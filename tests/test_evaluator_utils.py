@@ -64,6 +64,16 @@ def _build_mock_scorers(
     return [Scorer(name="none", filter=noop_filter, metrics=metrics)]
 
 
+def _scored_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ScoredDoc]:
+    """Build _scored_docs from flat {metric: [values]} for testing."""
+    n_docs = max((len(v) for v in metrics_dict.values()), default=0)
+    docs: dict[int, ScoredDoc] = {}
+    for i in range(n_docs):
+        reduced = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
+        docs[i] = ScoredDoc(doc_id=i, reference=None, scores={}, reduced_scores=reduced)
+    return docs
+
+
 def _build_multi_scorer_scorers(
     raw_metrics: dict[tuple[str, str], list],
     agg: dict[str, Any] | None = None,
@@ -71,7 +81,7 @@ def _build_multi_scorer_scorers(
 ) -> list[Scorer]:
     """Build Scorer objects that match the tuple-keyed raw_metrics.
 
-    Groups by scorer name, populates _reduced_results.
+    Groups by scorer name, populates _scored_docs with reduced_scores.
     """
     from lm_eval.config.metric import Metric
 
@@ -101,7 +111,7 @@ def _build_multi_scorer_scorers(
             name=scorer_name,
             filter=noop_filter,
             metrics=metrics,
-            _reduced_results=metrics_dict,
+            _scored_docs=_scored_docs_from_flat(metrics_dict),
         )
         scorers.append(scorer)
     return scorers
@@ -180,7 +190,7 @@ def make_result_acc(
 ) -> ResultAcc:
     """Build a ResultAcc dict for use with collect_results.
 
-    Also populates the task's _scorers with _reduced_results.
+    Also populates the task's _scorers with _scored_docs.
     """
     task._scorers = _build_multi_scorer_scorers(
         raw_metrics, agg=task._agg, hib=task._hib
@@ -891,16 +901,18 @@ class TestCollectResultsNSamples:
 
 
 class TestScoredDoc:
-    def test_frozen_immutability(self):
+    def test_mutable_reduced_scores(self):
         sd = ScoredDoc(doc_id=0, reference="hello", scores={"acc": [1.0]})
-        with pytest.raises(AttributeError):
-            sd.doc_id = 1  # type: ignore[misc]
+        assert sd.reduced_scores == {}
+        sd.reduced_scores["acc"] = 1.0
+        assert sd.reduced_scores == {"acc": 1.0}
 
     def test_construction_single_repeat(self):
         sd = ScoredDoc(doc_id=0, reference="target", scores={"acc": [1.0]})
         assert sd.doc_id == 0
         assert sd.reference == "target"
         assert sd.scores == {"acc": [1.0]}
+        assert sd.reduced_scores == {}
 
     def test_construction_multiple_repeats(self):
         sd = ScoredDoc(doc_id=5, reference="ref", scores={"acc": [1.0, 0.0, 1.0]})

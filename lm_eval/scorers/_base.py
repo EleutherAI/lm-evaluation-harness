@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class ScoredDoc:
     """Per-document scoring result produced by a Scorer.
 
@@ -26,8 +26,9 @@ class ScoredDoc:
     """
 
     doc_id: int
-    reference: Any  # str for gen, int|list[int] for MC
+    reference: Any  # str for gen, int|list[int] for MC, loglikelihood
     scores: dict[str, list[float]]  # {metric_name: [per_repeat_values]}
+    reduced_scores: dict[str, float] = field(default_factory=dict)  # post-reduction
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,8 +60,7 @@ class Scorer:
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
     output_type: str | None = None
-    _scored_docs: list[ScoredDoc] = field(default_factory=list)
-    _reduced_results: dict[str, list[Any]] = field(default_factory=dict)
+    _scored_docs: dict[int, ScoredDoc] = field(default_factory=dict)
 
     # ------------------------------------------------------------------
     # Construction helpers
@@ -141,7 +141,9 @@ class Scorer:
     # Scoring
     # ------------------------------------------------------------------
 
-    def score_instances(self, instances: dict[int, list[Instance]]) -> list[ScoredDoc]:
+    def score_instances(
+        self, instances: dict[int, list[Instance]]
+    ) -> dict[int, ScoredDoc]:
         """Score all documents' instances, returning a ``ScoredDoc`` per document.
 
         For each doc_id group, builds a structured result object
@@ -155,7 +157,7 @@ class Scorer:
         """
         from lm_eval.api._metrics.results import LLResults
 
-        scored_docs: list[ScoredDoc] = []
+        scored_docs: dict[int, ScoredDoc] = {}
 
         for doc_id, doc_instances in instances.items():
             if self.output_type == "generate_until":
@@ -170,12 +172,10 @@ class Scorer:
                     for metric_name, value in per_repeat.items():
                         repeat_scores[metric_name].append(value)
 
-                scored_docs.append(
-                    ScoredDoc(
-                        doc_id=doc_id,
-                        reference=target,
-                        scores=dict(repeat_scores),
-                    )
+                scored_docs[doc_id] = ScoredDoc(
+                    doc_id=doc_id,
+                    reference=target,
+                    scores=dict(repeat_scores),
                 )
             elif self.output_type == "loglikelihood_rolling":
                 # Rolling loglikelihood: 1 instance per doc, model returns a plain float
@@ -195,12 +195,10 @@ class Scorer:
                 references = results_obj.targets
                 per_doc = self._dispatch_metrics(references, results_obj)
 
-                scored_docs.append(
-                    ScoredDoc(
-                        doc_id=doc_id,
-                        reference=references,
-                        scores={mn: [v] for mn, v in per_doc.items()},
-                    )
+                scored_docs[doc_id] = ScoredDoc(
+                    doc_id=doc_id,
+                    reference=references,
+                    scores={mn: [v] for mn, v in per_doc.items()},
                 )
             else:
                 # loglikelihood / multiple_choice — repeats=1
@@ -208,12 +206,10 @@ class Scorer:
                 references = results_obj.targets
                 per_doc = self._dispatch_metrics(references, results_obj)
 
-                scored_docs.append(
-                    ScoredDoc(
-                        doc_id=doc_id,
-                        reference=references,
-                        scores={mn: [v] for mn, v in per_doc.items()},
-                    )
+                scored_docs[doc_id] = ScoredDoc(
+                    doc_id=doc_id,
+                    reference=references,
+                    scores={mn: [v] for mn, v in per_doc.items()},
                 )
 
         return scored_docs
@@ -235,37 +231,29 @@ class Scorer:
     # Reduction & Aggregation
     # ------------------------------------------------------------------
 
-    def reduce(self, scored_docs: list[ScoredDoc]) -> dict[str, list]:
+    def reduce(self, scored_docs: dict[int, ScoredDoc]) -> None:
         """Reduce per-doc list[T] -> T for each document.
 
         Calls ``m.reduction(reference, predictions)`` where *reference* is
         the raw target for the document and *predictions* is the list of K
         per-repeat scored values.
+
+        Writes the reduced scalar onto each ``ScoredDoc.reduced_scores``.
         """
-        reduced: dict[str, list] = {}
         for m in self.metrics or []:
-            values = []
             missing_count = 0
-            for sd in scored_docs:
+            for sd in scored_docs.values():
                 if m.name in sd.scores:
-                    values.append(m.reduction(sd.reference, sd.scores[m.name]))
+                    sd.reduced_scores[m.name] = m.reduction(
+                        sd.reference, sd.scores[m.name]
+                    )
                 else:
                     missing_count += 1
-            # todo: reevaluate
             if missing_count > 0:
                 eval_logger.warning(
                     f"Metric '{m.name}' missing from {missing_count}/{len(scored_docs)} "
                     f"documents in scorer '{self.name}'."
                 )
-            if values:
-                reduced[m.name] = values
-            else:
-                eval_logger.warning(
-                    f"Metric '{m.name}' produced no values across all documents. "
-                    f"It will be absent from results."
-                )
-        self._reduced_results = reduced
-        return reduced
 
     def aggregate(
         self,
@@ -283,16 +271,22 @@ class Scorer:
         """
         from lm_eval.api.metrics import mean, stderr_for_metric
 
-        results = (
-            metric_results if metric_results is not None else self._reduced_results
-        )
         agg: dict[str, Any] = {}
         sample_len = 0
 
         for m in self.metrics or []:
-            if m.name not in results:
-                continue
-            values = results[m.name]
+            if metric_results is not None:
+                if m.name not in metric_results:
+                    continue
+                values = metric_results[m.name]
+            else:
+                values = [
+                    sd.reduced_scores[m.name]
+                    for sd in self._scored_docs.values()
+                    if m.name in sd.reduced_scores
+                ]
+                if not values:
+                    continue
             sample_len = max(sample_len, len(values))
 
             # Aggregation — Metric.aggregate() works uniformly for both
