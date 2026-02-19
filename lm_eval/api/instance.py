@@ -6,6 +6,10 @@ from typing_extensions import TypedDict
 from lm_eval.result_schema import OutputType
 
 
+LLArgs = tuple[str, str] | tuple[list[dict[str, Any]], str]
+GenArgs = tuple[str, dict[str, Any]] | tuple[list[dict[str, Any]], dict[str, Any]]
+
+
 class AdditionalArgs(TypedDict, total=False, extra_items=Any):
     """
     Additional arguments that can be passed to the instance, e.g. for generation tasks.
@@ -19,11 +23,7 @@ class AdditionalArgs(TypedDict, total=False, extra_items=Any):
 class Instance:
     request_type: OutputType
     doc: dict
-    arguments: (
-        tuple[str, str]
-        | tuple[str | dict[str, Any], dict[str, Any]]
-        | tuple[dict[str, Any], dict[str, Any]]
-    )
+    arguments: LLArgs | GenArgs
     task_name: str
     doc_id: int = field(kw_only=True)
     idx: int = 0
