@@ -158,28 +158,36 @@ class Task:
             self.config.doc_to_audio or self.config.doc_to_image
         )
 
-        # Must be set before fewshot_docs() which may trigger dataset access
         self._dataset: Dataset | None = None
         self._instances = None
 
-        # TODO: make lazy
-        if (_fs_docs := self.fewshot_docs()) is not None:
-            config_sampler: str | type[samplers.ContextSampler] = (
-                self._fewshot_cfg.sampler if self._fewshot_cfg else "default"
-            )
-            fewshot_docs = list(_fs_docs)  # type: ignore
-            if isinstance(config_sampler, str):
-                sampler_cls = samplers.get_sampler(config_sampler)
-            elif issubclass(config_sampler, samplers.ContextSampler):
-                sampler_cls = config_sampler
-            else:
-                raise TypeError(
-                    f"fewshot_config.sampler should be a string or subclass of ContextSampler, "
-                    f"not {type(config_sampler)}"
-                )
-            self.sampler: samplers.ContextSampler = sampler_cls(fewshot_docs, rnd=None)
+        # Resolve sampler class eagerly (no dataset needed), defer creation
+        self._sampler_cls: type[samplers.ContextSampler] = self._resolve_sampler_cls()
+        self._fewshot_seed: int | None = None
 
         self._scorers: list[Scorer] = self._build_scorers()
+
+    def _resolve_sampler_cls(self) -> type[samplers.ContextSampler]:
+        """Resolve the sampler class from config (no dataset access needed)."""
+        config_sampler: str | type[samplers.ContextSampler] = (
+            self._fewshot_cfg.sampler if self._fewshot_cfg else "default"
+        )
+        if isinstance(config_sampler, str):
+            return samplers.get_sampler(config_sampler)
+        elif issubclass(config_sampler, samplers.ContextSampler):
+            return config_sampler
+        else:
+            raise TypeError(
+                f"fewshot_config.sampler should be a string or subclass of ContextSampler, "
+                f"not {type(config_sampler)}"
+            )
+
+    @cached_property
+    def sampler(self) -> samplers.ContextSampler:
+        """Lazily create the fewshot sampler (triggers dataset download on first access)."""
+        fewshot_docs = self.fewshot_docs()
+        docs = list(fewshot_docs) if fewshot_docs is not None else []
+        return self._sampler_cls(docs, rnd=self._fewshot_seed)
 
     def _build_global_metrics(self) -> list:
         """Convert config.metric_list (or output_type defaults) into list[Metric]."""
@@ -1019,7 +1027,9 @@ class Task:
 
     def set_fewshot_seed(self, seed: int | None = None) -> None:
         self.fewshot_rnd = random.Random(seed)
-        if hasattr(self, "sampler"):
+        self._fewshot_seed = seed
+        # If sampler already materialized, update it directly
+        if "sampler" in self.__dict__:
             self.sampler.set_rnd(seed)
 
     def dump_config(self) -> dict:
