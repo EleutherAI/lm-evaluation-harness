@@ -20,7 +20,7 @@ from lm_eval.api.registry import register_metric
 
 
 if TYPE_CHECKING:
-    from lm_eval._types import LLResults
+    from lm_eval.api._metrics.results import LLResults
 
 
 # ---------------------------------------------------------------------------

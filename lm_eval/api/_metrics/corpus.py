@@ -12,7 +12,7 @@ from lm_eval.utils import warning_once
 
 
 if TYPE_CHECKING:
-    from lm_eval._types import LLResults
+    from lm_eval.api._metrics.results import LLResults
 
 eval_logger = logging.getLogger(__name__)
 

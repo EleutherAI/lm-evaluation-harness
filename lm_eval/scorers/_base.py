@@ -153,7 +153,7 @@ class Scorer:
         (repeats always 1), the scalar is wrapped in a single-element list
         so that the downstream ``reduce`` step works uniformly.
         """
-        from lm_eval._types import LLResults
+        from lm_eval.api._metrics.results import LLResults
 
         scored_docs: list[ScoredDoc] = []
 
