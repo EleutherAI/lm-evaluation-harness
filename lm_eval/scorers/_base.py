@@ -220,11 +220,25 @@ class Scorer:
         reduced: dict[str, list] = {}
         for m in self.metrics or []:
             values = []
+            missing_count = 0
             for sd in scored_docs:
                 if m.name in sd.scores:
                     values.append(m.reduction(sd.reference, sd.scores[m.name]))
+                else:
+                    missing_count += 1
+            # todo: reevaluate
+            if missing_count > 0:
+                eval_logger.warning(
+                    f"Metric '{m.name}' missing from {missing_count}/{len(scored_docs)} "
+                    f"documents in scorer '{self.name}'."
+                )
             if values:
                 reduced[m.name] = values
+            else:
+                eval_logger.warning(
+                    f"Metric '{m.name}' produced no values across all documents. "
+                    f"It will be absent from results."
+                )
         self._reduced_results = reduced
         return reduced
 
@@ -263,7 +277,10 @@ class Scorer:
             if agg_fn is not None:
                 agg[str(MetricKey(m.name, self.name))] = m.aggregate(values)
             else:
-                eval_logger.warning(f"No aggregation for {m.name}. Using mean.")
+                eval_logger.warning(
+                    f"No aggregation function for metric '{m.name}' in scorer '{self.name}'. "
+                    f"Falling back to mean. This may produce incorrect results for corpus-level metrics."
+                )
                 agg_fn = mean
                 agg[str(MetricKey(m.name, self.name))] = mean(values)
 

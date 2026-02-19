@@ -148,7 +148,8 @@ def parse_metric(cfg: "_MetricConfig"):
         _reduce_fn = _reduce
 
     # higher_is_better semantics
-    _higher_is_better = cfg.get("higher_is_better", metric.higher_is_better) or True
+    _hib = cfg.get("higher_is_better", metric.higher_is_better)
+    _higher_is_better = _hib if _hib is not None else True
 
     return Metric(
         name=_metric_name,

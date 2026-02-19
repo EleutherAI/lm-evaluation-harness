@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 _T = TypeVar("_T")
 
-METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "kwargs"}
+METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 
 
 def has_kwargs(fn):

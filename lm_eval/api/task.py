@@ -6,7 +6,7 @@ import logging
 import random
 import re
 from copy import deepcopy
-from functools import partial
+from functools import cached_property, partial
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -14,7 +14,6 @@ from typing import (
     cast,
 )
 
-from distlib.util import cached_property
 from tqdm import tqdm
 from typing_extensions import TypedDict
 
@@ -289,7 +288,7 @@ class Task:
             return self.dataset[self.config.training_split]
 
     def validation_docs(self) -> datasets.Dataset | None:
-        if self.config.training_split is not None:
+        if self.config.validation_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.validation_split]
@@ -836,7 +835,7 @@ class Task:
             return None
 
     @cached_property
-    def is_multomodal(self):
+    def is_multimodal(self):
         return (
             self.config.doc_to_image is not None or self.config.doc_to_audio is not None
         )
