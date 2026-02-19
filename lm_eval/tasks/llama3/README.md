@@ -60,3 +60,8 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+* `gpqa_diamond_llama`: `GPQA Diamond (0-shot, generative) following Meta's evaluation methodology`
+* `ifeval_llama`: `IFEval instruction following evaluation`
+* `math_llama`: `MATH benchmark (CoT, 0-shot) with 7 subject subtasks`
+* `mgsm_llama`: `Multilingual GSM (0-shot) for 8 Llama-supported languages`
+* `hellaswag_llama`: `HellaSwag (0-shot, generative) following Meta's evaluation methodology`
