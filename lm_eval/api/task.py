@@ -71,7 +71,17 @@ def _legacy_to_scored_docs(
     return scored_docs
 
 
-class METADATA(TypedDict, total=True, extra_items=Any):
+class Metadata(TypedDict, total=False):
+    """Metadata passed through build_all_requests → construct_requests → Instance.
+
+    Required keys (set by build_all_requests, popped by construct_requests
+    into Instance fields):
+        task, doc_id, repeats
+
+    Additional keys may be added along the pipeline (e.g. acc_mutual_info)
+    and are forwarded as Instance.metadata.
+    """
+
     task: str
     doc_id: int
     repeats: int
@@ -603,7 +613,7 @@ class Task:
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: METADATA,
+        metadata: Metadata,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
@@ -1047,7 +1057,7 @@ class MultipleChoiceTask(Task):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: METADATA,
+        metadata: Metadata,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
@@ -1116,7 +1126,7 @@ class MultipleChoiceTask(Task):
                 doc_id=doc_id,
                 repeats=repeats,
                 target=target,
-                metadata=metadata,
+                metadata={**metadata},
                 **kwargs,
             )
             for i, arg in enumerate(arguments)
@@ -1212,7 +1222,7 @@ class GenerateTask(Task):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: METADATA,
+        metadata: Metadata,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
@@ -1221,7 +1231,7 @@ class GenerateTask(Task):
             metadata.pop("task"),
             metadata.pop("doc_id"),
             metadata.pop("repeats"),
-        )  # type:ignore[invalid-argument-type]
+        )
 
         # Filter out chat_template and metadata from kwargs
         instance_kwargs = {
@@ -1259,7 +1269,7 @@ class GenerateTask(Task):
         doc: dict[str, Any],
         ctx: list[dict[str, Any]],
         *,
-        metadata: METADATA,
+        metadata: Metadata,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
@@ -1285,14 +1295,14 @@ class LoglikelihoodTask(Task):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: METADATA,
+        metadata: Metadata,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
-        name = metadata.get("task", self.task_name)
-        doc_id = metadata.get("doc_id", 0)
-        repeats = metadata.get("repeats", 1)
+        name = metadata.pop("task", self.task_name)
+        doc_id = metadata.pop("doc_id", 0)
+        repeats = metadata.pop("repeats", 1)
 
         cont = self.doc_to_target(doc)
         assert isinstance(ctx, str), (
@@ -1312,6 +1322,7 @@ class LoglikelihoodTask(Task):
                 idx=0,
                 doc_id=doc_id,
                 repeats=repeats,
+                metadata={**metadata},
                 **kwargs,
             )
         ]
@@ -1325,7 +1336,7 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: METADATA,
+        metadata: Metadata,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
@@ -1345,6 +1356,7 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
                 idx=0,
                 doc_id=doc_id,
                 repeats=repeats,
+                metadata={**metadata},
                 **kwargs,
             )
         ]
