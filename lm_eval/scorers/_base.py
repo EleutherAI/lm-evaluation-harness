@@ -234,26 +234,20 @@ class Scorer:
     def reduce(self, scored_docs: dict[int, ScoredDoc]) -> None:
         """Reduce per-doc list[T] -> T for each document.
 
-        Calls ``m.reduction(reference, predictions)`` where *reference* is
-        the raw target for the document and *predictions* is the list of K
-        per-repeat scored values.
+        Iterates over each scored doc's metrics and applies the matching
+        ``Metric.reduction`` if available, otherwise takes the first value.
 
         Writes the reduced scalar onto each ``ScoredDoc.reduced_scores``.
         """
-        for m in self.metrics or []:
-            missing_count = 0
-            for sd in scored_docs.values():
-                if m.name in sd.scores:
-                    sd.reduced_scores[m.name] = m.reduction(
-                        sd.reference, sd.scores[m.name]
-                    )
+        metrics_by_name = {m.name: m for m in self.metrics or []}
+        for sd in scored_docs.values():
+            for metric_name, values in sd.scores.items():
+                m = metrics_by_name.get(metric_name)
+                if m is not None:
+                    sd.reduced_scores[metric_name] = m.reduction(sd.reference, values)
                 else:
-                    missing_count += 1
-            if missing_count > 0:
-                eval_logger.warning(
-                    f"Metric '{m.name}' missing from {missing_count}/{len(scored_docs)} "
-                    f"documents in scorer '{self.name}'."
-                )
+                    # Unknown metric (e.g. from process_results): take first
+                    sd.reduced_scores[metric_name] = values[0]
 
     def aggregate(
         self,
@@ -262,9 +256,10 @@ class Scorer:
     ) -> tuple[dict[str, Any], int]:
         """Aggregate metric results and compute stderr.
 
-        Calls ``m.aggregate(values)`` uniformly for all metrics — both
-        plain function metrics and corpus metrics have their aggregation
-        captured on the ``Metric`` object at construction time.
+        Iterates over all metric names present in ``_scored_docs`` (or
+        ``metric_results`` if provided) and looks up the ``Metric`` object
+        for aggregation/stderr when available, falling back to ``mean``
+        for unknown metrics.
 
         Returns ``(agg_metrics, sample_len)`` where keys are in
         ``"metric,{self.name}"`` / ``"metric_stderr,{self.name}"`` format.
@@ -274,37 +269,45 @@ class Scorer:
         agg: dict[str, Any] = {}
         sample_len = 0
 
-        for m in self.metrics or []:
-            if metric_results is not None:
-                if m.name not in metric_results:
-                    continue
-                values = metric_results[m.name]
-            else:
-                values = [
-                    sd.reduced_scores[m.name]
-                    for sd in self._scored_docs.values()
-                    if m.name in sd.reduced_scores
-                ]
-                if not values:
-                    continue
+        # Resolve values once — no branching on metric_results below.
+        if metric_results is not None:
+            results = metric_results
+        else:
+            results: dict[str, list] = {}
+            for sd in self._scored_docs.values():
+                for mn, val in sd.reduced_scores.items():
+                    results.setdefault(mn, []).append(val)
+
+        metrics_by_name = {m.name: m for m in self.metrics or []}
+
+        for metric_name, values in results.items():
+            if not values:
+                continue
             sample_len = max(sample_len, len(values))
 
-            # Aggregation — Metric.aggregate() works uniformly for both
-            # plain function metrics and corpus metrics (aggregation was
-            # captured at construction time in _get_metric).
-            agg_fn = m.aggregation
-            if agg_fn is not None:
-                agg[str(MetricKey(m.name, self.name))] = m.aggregate(values)
+            m = metrics_by_name.get(metric_name)
+            if m is not None:
+                agg_fn = m.aggregation
+                if agg_fn is not None:
+                    agg[str(MetricKey(metric_name, self.name))] = m.aggregate(values)
+                else:
+                    eval_logger.warning(
+                        f"No aggregation function for metric '{metric_name}' in scorer '{self.name}'. "
+                        f"Falling back to mean. This may produce incorrect results for corpus-level metrics."
+                    )
+                    agg_fn = mean
+                    agg[str(MetricKey(metric_name, self.name))] = mean(values)
             else:
+                # Unknown metric (e.g. from process_results): default to mean
                 eval_logger.warning(
-                    f"No aggregation function for metric '{m.name}' in scorer '{self.name}'. "
+                    f"No aggregation function for metric '{metric_name}' in scorer '{self.name}'. "
                     f"Falling back to mean. This may produce incorrect results for corpus-level metrics."
                 )
                 agg_fn = mean
-                agg[str(MetricKey(m.name, self.name))] = mean(values)
+                agg[str(MetricKey(metric_name, self.name))] = mean(values)
 
             # Stderr
-            stderr_key = str(MetricKey(m.name, self.name, is_stderr=True))
+            stderr_key = str(MetricKey(metric_name, self.name, is_stderr=True))
             if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
                 stderr_fn = stderr_for_metric(
                     metric=agg_fn, bootstrap_iters=bootstrap_iters
