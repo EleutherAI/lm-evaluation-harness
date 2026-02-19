@@ -102,22 +102,6 @@ class GroupConfig:
             ]
 
     def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
-        from dataclasses import asdict
+        from lm_eval.config.utils import serialize_config
 
-        cfg_dict = asdict(self)
-        for k, v in list(cfg_dict.items()):
-            if callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
-
-    def serialize_function(
-        self, value: Callable | str, keep_callable=False
-    ) -> Callable | str:
-        from inspect import getsource
-
-        if keep_callable:
-            return value
-        try:
-            return getsource(value)  # type: ignore
-        except (TypeError, OSError):
-            return str(value)
+        return serialize_config(self, keep_callable=keep_callable)

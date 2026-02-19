@@ -4,12 +4,11 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
-import numpy as np
 from typing_extensions import Protocol
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from numpy import float64, int64
     from numpy.typing import NDArray
@@ -18,6 +17,12 @@ if TYPE_CHECKING:
 
 _count_bytes = lambda x: len(x.encode("utf-8"))
 _count_words = lambda x: len(re.split(r"\s+", x))
+
+
+def empty_array():
+    import numpy as np
+
+    return np.array([], dtype=np.float64)
 
 
 class ChatTemplate(Protocol):
@@ -57,18 +62,15 @@ class GenResults:
 
 @dataclass(frozen=True, slots=True)
 class LLResults:
-    """Result of a multiple-choice task. Instances are grouped by doc_id beforehand"""
+    """Result of a multiple-choice task. Instances should be grouped by doc_id beforehand"""
 
     results: list[str] | list[list[tuple[float, bool]]]
-    targets: int | list[int] | str | list[str]
-    ctx: str = ""
-    doc: dict[str, Any] = field(default_factory=dict)
-    choices: Sequence[str] = field(default_factory=list)
     lls: NDArray[float64] = field(kw_only=True)
     is_greedy: Sequence[bool] = field(kw_only=True)
-    lls_mutual_info: NDArray[np.float64] = field(
-        default_factory=lambda: np.array([], dtype=np.float64)
-    )
+    targets: int | list[int] | str | list[str]
+    ctx: str = ""
+    choices: Sequence[str] = field(default_factory=list)
+    lls_mutual_info: NDArray[float64] = field(default_factory=lambda: empty_array)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     # @property
@@ -84,22 +86,28 @@ class LLResults:
             else np.ones(len(self.lls))
         )
 
-    def byte_len(self) -> NDArray[int64]:
+    def byte_len(
+        self, count_bytes: Callable[[str], float] = _count_bytes
+    ) -> NDArray[int64]:
         import numpy as np
 
         return np.array(
-            [_count_bytes(i) for i in self.choices]
+            [count_bytes(i) for i in self.choices]
             if self.choices
-            else [1 for _ in range(len(self.lls))]
+            else [1 for _ in range(len(self.lls))],
+            dtype=float,
         )
 
-    def word_len(self) -> NDArray[int64]:
+    def word_len(
+        self, count_words: Callable[[str], float] = _count_words
+    ) -> NDArray[int64]:
         import numpy as np
 
         return np.array(
-            [_count_words(i) for i in self.choices]
+            [count_words(i) for i in self.choices]
             if self.choices
-            else [1 for _ in range(len(self.lls))]
+            else [1 for _ in range(len(self.lls))],
+            dtype=float,
         )
 
     @classmethod
@@ -108,6 +116,8 @@ class LLResults:
         results: Sequence[Instance],
     ):
         from itertools import chain
+
+        import numpy as np
 
         instance = sorted(
             results,
@@ -121,7 +131,12 @@ class LLResults:
         lls = np.array(lls)
         targets = list(set(targets))[0]
         # Handle mutual information if needed
-        if 2 * len(set(choices)) == len(resps):
+        acc_mutual_info = results[0].metadata.get("acc_mutual_info", False)
+        if acc_mutual_info:
+            assert 2 * len(set(choices)) == len(resps), (
+                "Expected number of results to be twice the number of choices for mutual info, but got "
+                f"{len(resps)} results and {len(set(choices))} unique choices. Please open an issue on github."
+            )
             # Then we are doing mutual info.
             # This stores the "dryrun" / unconditional answer loglikelihoods
             # as we extend the args list with unconditional ("", continuation) pairs

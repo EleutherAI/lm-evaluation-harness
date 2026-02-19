@@ -7,11 +7,11 @@ function (typically ``mean``).
 
 from __future__ import annotations
 
-import re
-import string
 from typing import TYPE_CHECKING
 
 import numpy as np
+
+from lm_eval.api._metrics.utils import softmax
 
 
 NAT_TO_BIT = 1.0 / np.log(2.0)
@@ -53,7 +53,7 @@ def acc_fn(
         return int(predictions.is_greedy[0])
     pred = int(np.argmax(predictions.lls))
     if multiple_targets:
-        return _multiple_targets(predictions.targets, pred)
+        return _multiple_targets(references, pred)
     assert not isinstance(references, list), (
         "Multiple targets not supported for acc metric without multiple_targets=True"
     )
@@ -72,7 +72,7 @@ def acc_norm_fn(
     """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
     pred = int(np.argmax(np.array(predictions.lls) / np.array(predictions.char_len())))
     if multiple_targets:
-        return _multiple_targets(predictions.targets, pred)
+        return _multiple_targets(references, pred)
     assert not isinstance(references, list), (
         "Multiple targets not supported for acc metric without multiple_targets=True"
     )
@@ -226,91 +226,23 @@ def choice_logprob_norm_fn(references: int, predictions: LLResults) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Perplexity (passthrough ll for corpus-level aggregation)
+# Brier score (per-sample)
 # ---------------------------------------------------------------------------
 
 
 @register_metric(
-    metric="perplexity",
+    metric="brier_score",
     higher_is_better=False,
-    output_type="loglikelihood",
-    aggregation="perplexity",
-)
-def perplexity_fn(references: int | list[int], predictions: LLResults) -> float:
-    """Passthrough of the gold log-likelihood for corpus-level perplexity aggregation."""
-    if len(predictions.lls) == 1:
-        # Plain loglikelihood: single continuation
-        return float(predictions.lls[0])
-    return float(predictions.lls[references])
-
-
-# ---------------------------------------------------------------------------
-# generate_until: exact match
-# ---------------------------------------------------------------------------
-
-### the code used in the `exact_match_hf_evaluate` function is ported from
-### https://github.com/huggingface/evaluate/blob/main/metrics/exact_match/exact_match.py
-### which is under the apache license.
-
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#     http://www.apache.org/licenses/LICENSE-2.0
-
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-def exact_match_hf_evaluate(
-    predictions,
-    references,
-    regexes_to_ignore=None,
-    ignore_case=False,
-    ignore_punctuation=False,
-    ignore_numbers=False,
-):
-    if regexes_to_ignore is not None:
-        for s in regexes_to_ignore:
-            predictions = np.array([re.sub(s, "", x) for x in predictions])
-            references = np.array([re.sub(s, "", x) for x in references])
-    else:
-        predictions = np.asarray(predictions)
-        references = np.asarray(references)
-
-    if ignore_case:
-        predictions = np.char.lower(predictions)
-        references = np.char.lower(references)
-
-    if ignore_punctuation:
-        repl_table = string.punctuation.maketrans("", "", string.punctuation)
-        predictions = np.char.translate(predictions, table=repl_table)
-        references = np.char.translate(references, table=repl_table)
-
-    if ignore_numbers:
-        repl_table = string.digits.maketrans("", "", string.digits)
-        predictions = np.char.translate(predictions, table=repl_table)
-        references = np.char.translate(references, table=repl_table)
-
-    score_list = predictions == references
-
-    return {"exact_match": np.mean(score_list)}
-
-
-@register_metric(
-    metric="exact_match",
-    higher_is_better=True,
-    output_type="generate_until",
+    output_type="multiple_choice",
     aggregation="mean",
 )
-def exact_match_fn(references, predictions, **kwargs):
-    return exact_match_hf_evaluate(
-        predictions=predictions, references=references, **kwargs
-    )
+def brier_score(references: int, predictions: LLResults) -> float:
+    """Per-sample Brier score: sum of squared errors between softmax probs and one-hot gold."""
+
+    probs = softmax(np.array(predictions.lls))
+    one_hot = np.zeros_like(probs)
+    one_hot[references] = 1.0
+    return float(np.sum((probs - one_hot) ** 2))
 
 
 # ---------------------------------------------------------------------------

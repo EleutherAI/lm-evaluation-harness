@@ -24,6 +24,7 @@ from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
 from lm_eval.api.utils import (
     Message,
     ends_with_whitespace,
+    load_dataset_splits,
     maybe_delimit,
     multiturn_to_singleturn,
     random_task_id,
@@ -116,7 +117,7 @@ class Task:
         """
         # Normalize to TaskConfig if needed
         if isinstance(config, dict):
-            config = TaskConfig(**config)
+            config = TaskConfig(**config)  # type:ignore[invalid-argument-type]
 
         # Look up the appropriate Task class
         output_type = config.output_type
@@ -158,12 +159,13 @@ class Task:
             self.config.doc_to_audio or self.config.doc_to_image
         )
 
+        # lazy load dataset
         self._dataset: Dataset | None = None
-        self._instances = None
-
-        # Resolve sampler class eagerly (no dataset needed), defer creation
+        # resolve sampler class, does not need dataset access
         self._sampler_cls: type[samplers.ContextSampler] = self._resolve_sampler_cls()
+        # fewshot seed is None by default, so sampler will use random seed.
         self._fewshot_seed: int | None = None
+        self._instances = None
 
         self._scorers: list[Scorer] = self._build_scorers()
 
@@ -196,7 +198,7 @@ class Task:
         metrics: list[Metric] = []
         if self.config.metric_list:
             for m_cfg in self.config.metric_list:
-                metrics.append(Metric.from_dict(m_cfg))
+                metrics.append(Metric.from_dict({**m_cfg}))
         else:
             for metric_name in DEFAULT_METRIC_REGISTRY.get(self.OUTPUT_TYPE, []):
                 metrics.append(Metric.from_dict({"metric": metric_name}))
@@ -251,10 +253,16 @@ class Task:
             assert self._dataset_path is not None, (
                 "dataset_path must be set in TaskConfig or class attribute"
             )
-            self._dataset = datasets.load_dataset(
+            self._dataset = load_dataset_splits(
                 path=self._dataset_path,
                 name=self._dataset_name,
-                **self._config.dataset_kwargs,
+                split=[
+                    self.config.training_split,
+                    self.config.validation_split,
+                    self.config.test_split,
+                    self.config.fewshot_split,
+                ],
+                **self.config.dataset_kwargs,
             )
 
     @property
@@ -300,7 +308,7 @@ class Task:
                 return self.config.process_docs(self.dataset[self.config.test_split])
             return self.dataset[self.config.test_split]
 
-    def fewshot_docs(self):
+    def fewshot_docs(self) -> DataSplit | None:
         if (_df := self._fewshot_cfg.get_docs(self.dataset)) is not None:
             self._fewshot_docs = list(_df)
             return _df
@@ -334,7 +342,7 @@ class Task:
         _df = self.test_docs() or self.validation_docs()
         if _df is None:
             raise ValueError(
-                f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+                f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have validation or test docs!"
             )
         return _df
 
@@ -694,6 +702,7 @@ class Task:
         for doc_id, doc in tqdm(
             doc_id_docs,
             total=num_docs,
+            delay=5,
         ):
             fewshot_ctx = self.fewshot_context(
                 doc,
@@ -1296,7 +1305,7 @@ class LoglikelihoodTask(Task):
         assert self._multiple_targets is False
         if self.config.repeats and self.config.repeats > 1:
             eval_logger.warning(
-                f"MultipleChoiceTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
+                f"LoglikelihoodTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
             )
             self.config.repeats = 1
 
@@ -1332,6 +1341,7 @@ class LoglikelihoodTask(Task):
                 idx=0,
                 doc_id=doc_id,
                 repeats=repeats,
+                target=0,
                 metadata={**metadata},
                 **kwargs,
             )
@@ -1351,9 +1361,9 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
-        name = metadata.get("task", self.task_name)
-        doc_id = metadata.get("doc_id", 0)
-        repeats = metadata.get("repeats", 1)
+        name = metadata.pop("task", self.task_name)
+        doc_id = metadata.pop("doc_id", 0)
+        repeats = metadata.pop("repeats", 1)
 
         arguments = (self.doc_to_target(doc),)
 
@@ -1366,6 +1376,7 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
                 idx=0,
                 doc_id=doc_id,
                 repeats=repeats,
+                target=0,
                 metadata={**metadata},
                 **kwargs,
             )
