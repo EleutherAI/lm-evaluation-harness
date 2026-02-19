@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 
 if TYPE_CHECKING:
     from lm_eval.config.task import _MetricConfig
 
 
-def parse_metric(cfg: "_MetricConfig"):
+def parse_metric(cfg: _MetricConfig):
     from lm_eval.api._metrics.metric import Metric
 
     if "metric" not in cfg:
@@ -81,3 +85,9 @@ def parse_metric(cfg: "_MetricConfig"):
         higher_is_better=_higher_is_better,
         kwargs=cfg.get("kwargs") or {},
     )
+
+
+def softmax(x) -> np.ndarray:
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()

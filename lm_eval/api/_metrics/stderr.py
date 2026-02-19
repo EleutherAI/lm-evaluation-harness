@@ -6,7 +6,7 @@ from typing import TypeVar
 
 import numpy as np
 
-from lm_eval.api._metrics.aggregations import mean, median, nanmean, perplexity
+from lm_eval.api._metrics.aggregations import mean
 
 
 T = TypeVar("T")
@@ -113,28 +113,20 @@ def stderr_for_metric(
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
-    * If `bootstrap_iters > 0` and the metric is in the pre-approved
-      bootstrappable list, use `bootstrap_stderr` with that many draws.
-    * If the metric has a closed-form SE (e.g. `mean`, `acc_all`), use it.
-    * Otherwise, return `None`.
+    * ``mean`` has a closed-form SE (``sample_stddev / sqrt(n)``).
+    * All other aggregations use ``bootstrap_stderr`` with ``bootstrap_iters`` draws.
+    * Returns ``None`` when ``bootstrap_iters <= 0``.
     """
 
     if bootstrap_iters <= 0:
         # return no function (don't compute stderr) if bootstrap iters = 0
         return None
 
-    bootstrappable = [
-        median,
-        perplexity,
-        nanmean,
-    ]
+    # Closed-form stderr when available; bootstrap everything else.
+    if metric is mean:
+        return mean_stderr
 
-    if metric in bootstrappable:
-        return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
-
-    stderr = {mean: mean_stderr}
-
-    return stderr.get(metric)
+    return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
 
 def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):

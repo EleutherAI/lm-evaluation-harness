@@ -313,7 +313,7 @@ def _process_results(
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
             Format: {task_name: {"task": Task, "logged_samples": []}}
-            Task objects must have scorer._reduced_results populated
+            Task objects must have scorer._scored_docs populated
             (via task.process_instances() or task.import_raw_metrics()).
         groups: Dict of group name -> Group
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
@@ -332,7 +332,7 @@ def _process_results(
     Example usage:
         loaded = task_manager.load(['arc', 'hellaswag'])
 
-        # Run evaluation (populates scorer._reduced_results)
+        # Run evaluation (populates scorer._scored_docs)
         eval_results_acc = {name: {"task": t, "logged_samples": []}
                            for name, t in loaded['tasks'].items()}
 
@@ -462,7 +462,7 @@ def _build_logged_samples(
     """Build per-document sample logs for a task.
 
     Reads fields directly from Instance objects and per-doc metrics
-    from ``scorer._reduced_results``.  Instances are already filtered
+    from ``scorer._scored_docs``.  Instances are already filtered
     by rank/limit/world_size during ``build_all_requests``.
     """
     import json
@@ -477,36 +477,22 @@ def _build_logged_samples(
     for insts in instances_by_doc_id.values():
         insts.sort(key=lambda x: x.idx)
 
-    # Map doc_id → position in sorted order (same as _sort_instances)
-    doc_id_to_pos = {
-        doc_id: pos for pos, doc_id in enumerate(instances_by_doc_id.keys())
-    }
-
     indices = samples.get(task_name, None) if samples is not None else None
 
     for scorer in task._scorers or []:
-        reduced = scorer._reduced_results
-
         for doc_id, reqs in instances_by_doc_id.items():
             first = reqs[0]
             doc_id_true = indices[doc_id] if indices else doc_id
             target = first.target
 
-            # Get per-doc metric values from scorer's reduced results
-            per_doc_metrics = {}
-            per_repeat_metrics = {}
-            pos = doc_id_to_pos.get(doc_id)
-            if pos is not None and reduced:
-                for mn, vals in reduced.items():
-                    if pos < len(vals):
-                        per_doc_metrics[mn] = vals[pos]
-            # Get per-repeat metric scores (pre-reduction)
-            if pos is not None and scorer._scored_docs:
-                if pos < len(scorer._scored_docs):
-                    sd = scorer._scored_docs[pos]
-                    for mn, vals in sd.scores.items():
-                        if len(vals) > 1:
-                            per_repeat_metrics[mn] = vals
+            # Look up scored doc directly by doc_id
+            sd = scorer._scored_docs.get(doc_id)
+            per_doc_metrics = sd.reduced_scores if sd else {}
+            per_repeat_metrics = (
+                {mn: vals for mn, vals in sd.scores.items() if len(vals) > 1}
+                if sd
+                else {}
+            )
 
             example = {
                 "doc_id": doc_id_true,

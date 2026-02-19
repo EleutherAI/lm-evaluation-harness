@@ -4,7 +4,7 @@ import textwrap
 from argparse import Namespace
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -203,14 +203,14 @@ class EvaluatorConfig:
 
         # Load and merge YAML config if provided
         if used_config := getattr(namespace, "config", None):
-            config.update(cls.load_yaml_config(cast("str", used_config)))
+            config.update(cls.load_yaml_config(used_config))
 
-        # Override with CLI args (only truthy values or 0, exclude non-config args)
+        # Override with CLI args (skip None = "not provided", exclude non-config args)
         excluded_args = {"command", "func"}  # argparse internal args
         cli_args = {
             k: v
             for k, v in vars(namespace).items()
-            if (v or v == 0) and k not in excluded_args
+            if v is not None and k not in excluded_args
         }
         config.update(cli_args)
 
@@ -299,7 +299,7 @@ class EvaluatorConfig:
         # - If explicitly False, keep it False
         if self.fewshot_as_multiturn is None and self.apply_chat_template:
             eval_logger.info("Using default fewshot_as_multiturn=True.")
-            self.fewshot_as_multiturn = bool(self.apply_chat_template)
+            self.fewshot_as_multiturn = True
         elif self.fewshot_as_multiturn is True and not self.apply_chat_template:
             raise ValueError(
                 "When `fewshot_as_multiturn` is True, `apply_chat_template` must be set."
@@ -313,15 +313,12 @@ class EvaluatorConfig:
 
     def _process_arguments(self):
         """Process samples argument - load from a file if needed."""
-        if self.samples:
-            if isinstance(self.samples, dict):
-                self.samples = self.samples
-            elif isinstance(self.samples, str):
-                try:
-                    self.samples = json.loads(self.samples)
-                except json.JSONDecodeError:
-                    if (samples_path := Path(cast("str", self.samples))).is_file():
-                        self.samples = json.loads(samples_path.read_text())
+        if self.samples and isinstance(self.samples, str):
+            try:
+                self.samples = json.loads(self.samples)
+            except json.JSONDecodeError:
+                if (samples_path := Path(self.samples)).is_file():
+                    self.samples = json.loads(samples_path.read_text())
 
         # Set up metadata by merging model_args and metadata.
         if self.model_args is None:
@@ -380,10 +377,10 @@ class EvaluatorConfig:
             str(Path(task).absolute()) if task.endswith(".yaml") else task
             for task in task_list
         ]
-        match_dict = dict.fromkeys(task_list)  # deduplicate file paths
+        match_dict: dict[str, list] = {}
 
         # Match each task
-        for task in match_dict.keys():
+        for task in match_dict:
             if not task.endswith(".yaml"):
                 # Standard task name - match via task manager
                 matches = task_manager.match_tasks([task])
@@ -414,13 +411,6 @@ class EvaluatorConfig:
     def _set_trust_remote_code(self):
         """Apply the trust_remote_code setting if enabled."""
         if self.trust_remote_code:
-            # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
-            # because it's already been determined based on the prior env var before launching our
-            # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
-            import datasets
-
-            datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
-
             # Add to model_args for the actual model initialization
             if self.model_args is None:
                 self.model_args = {}

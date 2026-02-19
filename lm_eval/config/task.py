@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass, field
-from inspect import getsource
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
 from typing_extensions import TypedDict
@@ -24,7 +23,7 @@ DataSplit: TypeAlias = "datasets.Dataset | Sequence[Doc]"
 
 # The full dataset – maps split names (training_split, test_split, etc.) to splits.
 # datasets.DatasetDict is the primary impl; dict[str, DataSplit] works too.
-Dataset: TypeAlias = "Mapping[str, DataSplit]"
+Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
 
 
 eval_logger = logging.getLogger(__name__)
@@ -222,7 +221,7 @@ class TaskConfig:
             else self.fewshot_config
         )
 
-    def to_dict(self, keep_callable: bool = False) -> dict:
+    def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
         """Dumps the current config as a dictionary object, as a printable format.
 
         null fields will not be printed.
@@ -231,37 +230,7 @@ class TaskConfig:
         :return: dict
             A printable dictionary version of the TaskConfig object.
 
-        # TODO: should any default value in the TaskConfig not be printed?
         """
-        cfg_dict = asdict(self)
-        # remove values that are `None`
-        for k, v in list(cfg_dict.items()):
-            if v is None:
-                cfg_dict.pop(k)
-            elif k == "metric_list":
-                for metric_dict in v:
-                    for metric_key, metric_value in metric_dict.items():
-                        if callable(metric_value):
-                            metric_dict[metric_key] = self.serialize_function(
-                                metric_value, keep_callable=keep_callable
-                            )
-                cfg_dict[k] = v
-            elif callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
+        from lm_eval.config.utils import serialize_config
 
-    def serialize_function(
-        self, value: Callable | str, keep_callable=False
-    ) -> Callable | str:
-        """Serializes a given function or string.
-
-        If 'keep_callable' is True, the original callable is returned.
-        Otherwise, attempts to return the source code of the callable using 'getsource'.
-        """
-        if keep_callable:
-            return value
-        else:
-            try:
-                return getsource(value)  # type:ignore[invalid-argument-type]
-            except (TypeError, OSError):
-                return str(value)
+        return serialize_config(self, keep_callable=keep_callable)

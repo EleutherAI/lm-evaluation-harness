@@ -8,11 +8,11 @@ import numpy as np
 from typing_extensions import TypeVar
 
 from lm_eval.api.registry import register_metric
-from lm_eval.utils import softmax, warning_once
+from lm_eval.utils import warning_once
 
 
 if TYPE_CHECKING:
-    from lm_eval._types import LLResults
+    from lm_eval.api._metrics.results import LLResults
 
 eval_logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ __all__ = [
     "Ter",
     "F1",
     "MCC",
-    "BrierScore",
+    "Perplexity",
     "WordPerplexity",
     "BytePerplexity",
     "BitsPerByte",
@@ -66,32 +66,45 @@ class CorpusMetric(Generic[_R, _T], ABC):
         return predictions[0]
 
 
-@register_metric(
-    metric="brier_score",
-    higher_is_better=False,
-    output_type=["multiple_choice"],
-)
-class BrierScore(CorpusMetric["LLResults", tuple[int, np.ndarray]]):
+class BrierScore(CorpusMetric["LLResults", float]):
     """Brier score for multiple choice tasks.
 
-    Computes the mean squared error between predicted probabilities
-    (from softmax of log-likelihoods) and one-hot encoded targets.
-
-    Lower scores are better (perfect score = 0.0).
+    We use the functional form. Only here for simplicity.
     """
 
-    def __call__(
-        self, references: Any, predictions: "LLResults"
-    ) -> tuple[int, np.ndarray]:
-        return references, softmax(np.array(predictions.lls))
+    def __call__(self, references: Any, predictions: "LLResults") -> float:
+        from lm_eval.api._metrics.ll import brier_score_fn
 
-    def aggregation(self, items: list[tuple[int, np.ndarray]]) -> float:
-        gold, predictions = list(zip(*items, strict=True))
-        bs, num_class = np.array(predictions).shape
+        return brier_score_fn(references, predictions)
 
-        gold = list(gold)
-        gold_one_hot = np.eye(num_class)[gold]
-        return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+    def aggregation(self, items: list[float]) -> float:
+        return sum(items) / len(items)
+
+
+# ---------------------------------------------------------------------------
+# Loglikelihood perplexity
+# ---------------------------------------------------------------------------
+
+
+@register_metric(
+    metric="perplexity",
+    higher_is_better=False,
+    output_type="loglikelihood",
+)
+class Perplexity(CorpusMetric["LLResults", float]):
+    """Corpus-level perplexity for loglikelihood tasks.
+
+    Per-document: extracts the gold log-likelihood.
+    Aggregation: ``exp(-mean(lls))`` across all documents.
+    """
+
+    def __call__(self, references: int | list[int], predictions: "LLResults") -> float:
+        if len(predictions.lls) == 1:
+            return float(predictions.lls[0])
+        return float(predictions.lls[references])
+
+    def aggregation(self, items: list[float]) -> float:
+        return math.exp(-sum(items) / len(items))
 
 
 # ---------------------------------------------------------------------------

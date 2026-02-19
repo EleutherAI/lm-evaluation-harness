@@ -36,12 +36,22 @@ def _m(d: dict[str, Any]) -> _TaskMetrics:
     return d  # type: ignore[return-value]
 
 
+def _scored_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ScoredDoc]:
+    """Build _scored_docs from flat {metric: [values]} for testing."""
+    n_docs = max((len(v) for v in metrics_dict.values()), default=0)
+    docs: dict[int, ScoredDoc] = {}
+    for i in range(n_docs):
+        reduced = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
+        docs[i] = ScoredDoc(doc_id=i, reference=None, scores={}, reduced_scores=reduced)
+    return docs
+
+
 def _build_multi_scorer_scorers(
     raw_metrics: dict[tuple[str, str], list],
     agg: dict[str, Any] | None = None,
     hib: dict[str, bool] | None = None,
 ) -> list[Scorer]:
-    """Build Scorer objects from tuple-keyed raw_metrics with _reduced_results populated."""
+    """Build Scorer objects from tuple-keyed raw_metrics with _scored_docs populated."""
     from lm_eval.config.metric import Metric
 
     agg = agg or {}
@@ -69,7 +79,7 @@ def _build_multi_scorer_scorers(
             name=scorer_name,
             filter=noop_filter,
             metrics=metrics,
-            _reduced_results=metrics_dict,
+            _scored_docs=_scored_docs_from_flat(metrics_dict),
         )
         scorers.append(scorer)
     return scorers
@@ -140,7 +150,7 @@ def _make_acc(
     task: MockTask,
     raw_metrics: dict[tuple[str, str], list],
 ) -> ResultAcc:
-    """Build ResultAcc and populate task._scorers with _reduced_results."""
+    """Build ResultAcc and populate task._scorers with _scored_docs."""
     task._scorers = _build_multi_scorer_scorers(
         raw_metrics, agg=task._agg, hib=task._hib
     )
@@ -530,7 +540,7 @@ class TestLegacyProcessResultsBugFix:
         scored_docs = _legacy_to_scored_docs(instances, pr_results)
 
         assert len(scored_docs) == 3
-        for i, sd in enumerate(scored_docs):
+        for i, sd in scored_docs.items():
             assert isinstance(sd, ScoredDoc)
             assert sd.reference == f"target_{i}"
             assert "acc" in sd.scores
@@ -573,7 +583,12 @@ class TestLegacyProcessResultsBugFix:
             ],
         )
 
-        # reduce should succeed (not crash)
-        reduced = scorer.reduce(scored_docs)
-        assert "acc" in reduced
-        assert len(reduced["acc"]) == 2
+        # reduce should succeed (not crash) and populate reduced_scores
+        scorer._scored_docs = scored_docs
+        scorer.reduce(scored_docs)
+        reduced_values = [
+            sd.reduced_scores["acc"]
+            for sd in scored_docs.values()
+            if "acc" in sd.reduced_scores
+        ]
+        assert len(reduced_values) == 2

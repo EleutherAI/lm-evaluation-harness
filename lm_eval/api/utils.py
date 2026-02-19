@@ -3,9 +3,15 @@ from __future__ import annotations
 import functools
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from typing_extensions import TypeVar
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from lm_eval.config.task import Dataset
 
 
 _T = TypeVar("_T")
@@ -137,3 +143,25 @@ def random_task_id():
 def normalize_to_list(x: dict[str, _T | list[_T]]) -> dict[str, list[_T]]:
     """Normalize a dict of str to T or list[T] into a dict of str to list[T]."""
     return {k: v if isinstance(v, list) else [v] for k, v in x.items()}
+
+
+def load_dataset_splits(
+    path: str,
+    name: str | None,
+    split: Iterable[str | None] | None = None,
+    **kwargs,
+) -> Dataset:
+    """Load only the specified splits, returning a DatasetDict.
+
+    Accepts any iterable of split names. Duplicates are removed.
+    """
+    import datasets
+
+    unique_splits = list({s for s in split if s is not None}) if split else None
+    # if split != None, load_dataset returns a list of Datasets, otherwise, it returns a single DatasetDict
+    loaded = datasets.load_dataset(path, name, split=unique_splits or None, **kwargs)
+    return (
+        datasets.DatasetDict(dict(zip(unique_splits, loaded, strict=True)))
+        if unique_splits
+        else loaded
+    )
