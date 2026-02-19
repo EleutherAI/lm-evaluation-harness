@@ -1,0 +1,26 @@
+from collections.abc import Sequence
+from typing import Any
+
+from typing_extensions import Protocol, TypeVar
+
+
+_T = TypeVar("_T")
+_K = TypeVar("_K")
+
+
+class MetricFn(Protocol[_T]):
+    """Callable that computes a per-sample metric value."""
+
+    def __call__(self, references: Any, predictions: Any, **kwargs: Any) -> _T: ...
+
+
+class ReductionFn(Protocol[_T, _K]):
+    """Callable that reduces per-repeat scores into one value per document."""
+
+    def __call__(self, references: Any, predictions: Sequence[_T]) -> _K: ...
+
+
+class AggregationFn(Protocol[_K]):
+    """Callable that aggregates per-document values into a corpus-level float."""
+
+    def __call__(self, values: Sequence[_K]) -> float: ...
