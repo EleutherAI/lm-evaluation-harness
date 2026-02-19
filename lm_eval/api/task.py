@@ -39,10 +39,8 @@ from lm_eval.utils import normalize_to_list
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
-    import datasets
-
     from lm_eval._types import ChatTemplate, OutputType
-    from lm_eval.config.task import FewshotConfig
+    from lm_eval.config.task import Dataset, DataSplit, FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
 
@@ -151,7 +149,7 @@ class Task:
         )
 
         # Must be set before fewshot_docs() which may trigger dataset access
-        self._dataset = None
+        self._dataset: Dataset | None = None
         self._instances = None
 
         # TODO: make lazy
@@ -235,34 +233,23 @@ class Task:
             assert self._dataset_path is not None, (
                 "dataset_path must be set in TaskConfig or class attribute"
             )
-            df = datasets.load_dataset(
+            self._dataset = datasets.load_dataset(
                 path=self._dataset_path,
                 name=self._dataset_name,
                 **self._config.dataset_kwargs,
             )
-        assert isinstance(df, dict)
-        self._dataset = df
 
     @property
-    def dataset(self):
+    def dataset(self) -> Dataset:
         """Lazily load and return the dataset."""
         if self._dataset is None:
             self.download(self.config.dataset_kwargs)
-        return self._dataset
+        return self._dataset  # type: ignore[return-value]
 
     @property
     def config(self) -> TaskConfig:
         """Returns the TaskConfig associated with this class."""
         return self._config
-
-    # def has_training_docs(self) -> bool:
-    #     return self.config.training_split is not None
-    #
-    # def has_validation_docs(self) -> bool:
-    #     return self.config.validation_split is not None
-    #
-    # def has_test_docs(self) -> bool:
-    #     return self.config.test_split is not None
 
     def has_training_docs(self) -> bool:
         return self.config.training_split is not None
@@ -273,7 +260,7 @@ class Task:
     def has_test_docs(self) -> bool:
         return self.config.test_split is not None
 
-    def training_docs(self) -> datasets.Dataset | None:
+    def training_docs(self) -> DataSplit | None:
         if self.config.training_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
@@ -281,7 +268,7 @@ class Task:
                 )
             return self.dataset[self.config.training_split]
 
-    def validation_docs(self) -> datasets.Dataset | None:
+    def validation_docs(self) -> DataSplit | None:
         if self.config.validation_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
@@ -289,7 +276,7 @@ class Task:
                 )
             return self.dataset[self.config.validation_split]
 
-    def test_docs(self) -> datasets.Dataset | None:
+    def test_docs(self) -> DataSplit | None:
         if self.config.test_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
@@ -325,7 +312,7 @@ class Task:
                 return self._fewshot_docs
 
     @property
-    def eval_docs(self) -> datasets.Dataset | list[dict[str, Any]]:
+    def eval_docs(self) -> DataSplit:
         _df = self.test_docs() or self.validation_docs()
         if _df is None:
             raise ValueError(
@@ -333,7 +320,7 @@ class Task:
             )
         return _df
 
-    def get_docs(self, subset: str) -> list[dict[str, Any]] | None:
+    def get_docs(self, subset: str) -> DataSplit | None:
         assert self.dataset is not None, "dataset not set!"
         if subset := getattr(self.config, subset):
             if self.config.process_docs is not None:

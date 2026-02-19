@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict, dataclass, field
 from inspect import getsource
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
 from typing_extensions import TypedDict
 
@@ -11,15 +11,20 @@ from lm_eval.defaults import default_gen_kwargs
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Mapping, Sequence
 
     import datasets
 
     from lm_eval.api.instance import OutputType
 
-    TaskDataSet = datasets.Dataset | Iterable[dict[str, Any]]
-
 Doc = dict[str, Any]
+# A single dataset split – iterable + sized collection of docs.
+# datasets.Dataset is the primary impl; list[Doc] works for custom datasets.
+DataSplit: TypeAlias = "datasets.Dataset | Sequence[Doc]"
+
+# The full dataset – maps split names (training_split, test_split, etc.) to splits.
+# datasets.DatasetDict is the primary impl; dict[str, DataSplit] works too.
+Dataset: TypeAlias = "Mapping[str, DataSplit]"
 
 
 eval_logger = logging.getLogger(__name__)
@@ -73,7 +78,7 @@ class FewshotConfig:
                 "Both split and samples are configured; split will take precedence"
             )
 
-    def get_docs(self, dataset: dict[str, Any]) -> list[dict[str, Any]] | None:
+    def get_docs(self, dataset: Dataset) -> DataSplit | None:
         if self.split is not None:
             if self.process_docs is not None:
                 return self.process_docs(dataset[self.split])
@@ -133,7 +138,7 @@ class TaskConfig:
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    custom_dataset: Callable[..., dict[str, TaskDataSet]] | None = None
+    custom_dataset: Callable[..., Dataset] | None = None
     dataset_path: str | None = None
     dataset_name: str | None = None
     dataset_kwargs: dict[str, str | int | float] = field(default_factory=dict)
