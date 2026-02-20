@@ -4,7 +4,6 @@ import logging
 import math
 import pathlib
 import sys
-from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -313,7 +312,7 @@ def _process_results(
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
             Format: {task_name: {"task": Task, "logged_samples": []}}
-            Task objects must have scorer._scored_docs populated
+            Task objects must have scorer.scored_docs populated
             (via task.process_instances() or task.import_raw_metrics()).
         groups: Dict of group name -> Group
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
@@ -332,7 +331,7 @@ def _process_results(
     Example usage:
         loaded = task_manager.load(['arc', 'hellaswag'])
 
-        # Run evaluation (populates scorer._scored_docs)
+        # Run evaluation (populates scorer.scored_docs)
         eval_results_acc = {name: {"task": t, "logged_samples": []}
                            for name, t in loaded['tasks'].items()}
 
@@ -462,31 +461,28 @@ def _build_logged_samples(
     """Build per-document sample logs for a task.
 
     Reads fields directly from Instance objects and per-doc metrics
-    from ``scorer._scored_docs``.  Instances are already filtered
+    from ``scorer.scored_docs``.  Instances are already filtered
     by rank/limit/world_size during ``build_all_requests``.
     """
     import json
 
+    from lm_eval.api.task import _group_by_doc_id
     from lm_eval.utils import handle_non_serializable, hash_string
 
     logged: list[dict[str, Any]] = []
 
-    instances_by_doc_id: dict[int, list] = defaultdict(list)
-    for instance in task.instances:
-        instances_by_doc_id[instance.doc_id].append(instance)
-    for insts in instances_by_doc_id.values():
-        insts.sort(key=lambda x: x.idx)
+    instances_by_doc_id = _group_by_doc_id(task.instances)
 
     indices = samples.get(task_name, None) if samples is not None else None
 
-    for scorer in task._scorers or []:
+    for scorer in task.scorers or []:
         for doc_id, reqs in instances_by_doc_id.items():
             first = reqs[0]
             doc_id_true = indices[doc_id] if indices else doc_id
             target = first.target
 
             # Look up scored doc directly by doc_id
-            sd = scorer._scored_docs.get(doc_id)
+            sd = scorer.scored_docs.get(doc_id)
             per_doc_metrics = sd.reduced_scores if sd else {}
             per_repeat_metrics = (
                 {mn: vals for mn, vals in sd.scores.items() if len(vals) > 1}

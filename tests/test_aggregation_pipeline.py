@@ -150,7 +150,7 @@ def _make_acc(
     task: MockTask,
     raw_metrics: dict[tuple[str, str], list],
 ) -> ResultAcc:
-    """Build ResultAcc and populate task._scorers with _scored_docs."""
+    """Build ResultAcc and populate task scorers with scored_docs."""
     task._scorers = _build_multi_scorer_scorers(
         raw_metrics, agg=task._agg, hib=task._hib
     )
@@ -582,12 +582,11 @@ class TestLegacyProcessResultsBugFix:
             ],
         )
 
-        # reduce should succeed (not crash) and populate reduced_scores
-        scorer._scored_docs = scored_docs
-        scorer.reduce(scored_docs)
+        # set_results should succeed (not crash) and populate reduced_scores
+        scorer.set_results(scored_docs)
         reduced_values = [
             sd.reduced_scores["acc"]
-            for sd in scored_docs.values()
+            for sd in scorer.scored_docs.values()
             if "acc" in sd.reduced_scores
         ]
         assert len(reduced_values) == 2

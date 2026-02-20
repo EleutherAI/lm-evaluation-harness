@@ -495,7 +495,7 @@ def evaluate(
     if not log_samples and any(
         any(
             m.name == "bypass"
-            for scorer in getattr(task_obj, "_scorers", [])
+            for scorer in getattr(task_obj, "scorers", [])
             for m in (scorer.metrics or [])
         )
         for task_obj in eval_tasks.values()

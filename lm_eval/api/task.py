@@ -18,7 +18,6 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
-from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
 from lm_eval.api.utils import (
     Message,
     ends_with_whitespace,
@@ -45,10 +44,25 @@ if TYPE_CHECKING:
 
     from lm_eval._types import OutputType
     from lm_eval.api._types import ChatTemplate
-    from lm_eval.config.metric import Metric
     from lm_eval.config.task import Dataset, DataSplit, Doc, FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
+
+
+def _group_by_doc_id(
+    instances: list[Instance] | None = None,
+) -> dict[int, list[Instance]]:
+    """Group instances by doc_id and sort each group by idx."""
+    if not instances:
+        return {}
+    from collections import defaultdict
+
+    instances_by_doc_id: dict[int, list[Instance]] = defaultdict(list)
+    for instance in instances:
+        instances_by_doc_id[instance.doc_id].append(instance)
+    for insts in instances_by_doc_id.values():
+        insts.sort(key=lambda x: x.idx)
+    return instances_by_doc_id
 
 
 def _legacy_to_scored_docs(
@@ -182,36 +196,34 @@ class Task:
         docs = list(fewshot_docs) if fewshot_docs is not None else []
         return self._sampler_cls(docs, rnd=self._fewshot_seed)
 
-    def _build_global_metrics(self) -> list[Metric]:
-        """Convert config.metric_list (or output_type defaults) into list[Metric]."""
+    def _build_scorers(self) -> list[Scorer]:
+        """Build scorers from filter_list config, or a default scorer."""
+        from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
         from lm_eval.config.metric import Metric
 
         if self.config.metric_list:
-            metrics = [Metric.from_dict({**m_cfg}) for m_cfg in self.config.metric_list]
+            global_metrics = [
+                Metric.from_dict({**m_cfg}) for m_cfg in self.config.metric_list
+            ]
         else:
-            metrics = [
+            global_metrics = [
                 Metric.from_dict({"metric": metric_name})
                 for metric_name in DEFAULT_METRIC_REGISTRY.get(self.OUTPUT_TYPE, [])
             ]
-        return metrics
 
-    def _build_scorers(self) -> list[Scorer]:
-        """Build scorers from filter_list config, or a default scorer."""
-        global_metrics = self._build_global_metrics()
-        output_type = self.OUTPUT_TYPE
         context = self._build_scorer_context()
 
         if self.config.filter_list:
             scorers = [
                 Scorer.from_dict(
-                    filter_config,
-                    global_metrics=global_metrics,
-                    output_type=output_type,
+                    cfg, global_metrics=global_metrics, output_type=self.OUTPUT_TYPE
                 )
-                for filter_config in self.config.filter_list
+                for cfg in self.config.filter_list
             ]
         else:
-            scorers = [Scorer.default_scorer(global_metrics, output_type=output_type)]
+            scorers = [
+                Scorer.default_scorer(global_metrics, output_type=self.OUTPUT_TYPE)
+            ]
 
         for s in scorers:
             s.context = context
@@ -859,25 +871,24 @@ class Task:
 
         self.apply_filters()
 
-        instances = self._sort_instances(self._instances)
+        instances = _group_by_doc_id(self._instances)
 
         for scorer in self._scorers:
             pr_results = self._try_process_results(instances, scorer.name)
             if pr_results is not None:
-                scored_docs = pr_results
+                scorer.set_results(pr_results)
             else:
                 scored_docs = scorer.score_instances(instances)
-            scorer._scored_docs = scored_docs
-            scorer.reduce(scored_docs)
+                scorer.set_results(scored_docs)
 
     def _try_process_results(
         self,
         instances: dict[int, list[Instance]],
         filter_key: str,
     ) -> dict[int, ScoredDoc] | None:
-        """Try the process_results path for all docs.
+        """Run the legacy process_results path for all docs.
 
-        Returns ``{metric_name: [per_doc_values]}`` if ``process_results``
+        Returns ``{doc_id: ScoredDoc}`` if ``process_results``
         returns a non-None dict for the first document, otherwise ``None``.
         """
 
@@ -929,10 +940,7 @@ class Task:
         """
         exported: dict[str, dict[str, list[Any]]] = {}
         for scorer in self._scorers:
-            metrics: dict[str, list] = {}
-            for sd in scorer._scored_docs.values():
-                for mn, val in sd.reduced_scores.items():
-                    metrics.setdefault(mn, []).append(val)
+            metrics = scorer.export_reduced()
             if metrics:
                 exported[scorer.name] = metrics
         return exported
@@ -940,41 +948,21 @@ class Task:
     def import_raw_metrics(self, data: dict[str, dict[str, list]]) -> None:
         """Import merged results into scorers (after distributed gather).
 
-        Rebuilds ``_scored_docs`` from flat metric lists so that
-        ``scorer.aggregate()`` (which reads ``_scored_docs`` directly) works.
+        Rebuilds scored docs from flat metric lists so that
+        ``scorer.aggregate()`` works.
         """
         for scorer in self._scorers:
             if scorer.name not in data:
                 continue
-            metric_data = data[scorer.name]
-            n_docs = max((len(v) for v in metric_data.values()), default=0)
-            scorer._scored_docs = {}
-            for i in range(n_docs):
-                reduced = {
-                    mn: vals[i] for mn, vals in metric_data.items() if i < len(vals)
-                }
-                scorer._scored_docs[i] = ScoredDoc(
-                    doc_id=i, reference=None, scores={}, reduced_scores=reduced
-                )
-
-    @staticmethod
-    def _sort_instances(
-        instances: list[Instance] | None = None,
-    ) -> dict[int, list[Instance]]:
-        """Sorts instances by doc_id and then by idx"""
-        if not instances:
-            return {}
-        from collections import defaultdict
-
-        instances_by_doc_id: dict[int, list[Instance]] = defaultdict(list)
-        for instance in instances:
-            instances_by_doc_id[instance.doc_id].append(instance)
-        # Sort instances within each group
-        for instances in instances_by_doc_id.values():
-            instances.sort(key=lambda x: x.idx)
-        return instances_by_doc_id
+            scorer.import_reduced(data[scorer.name])
 
     ## Some public methods and utilities ##
+
+    @property
+    def scorers(self) -> list[Scorer]:
+        """Public access to the scorer pipeline."""
+        return self._scorers
+
     @property
     def task_name(self) -> str:
         return getattr(self.config, "task", random_task_id())
