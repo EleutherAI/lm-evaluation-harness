@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from sqlitedict import SqliteDict
+    from typing_extensions import Self
 
     from lm_eval.api.instance import GenInstance, Instance, LLInstance
 
@@ -54,7 +55,7 @@ class LM(abc.ABC):
             A list of ``(logprob, is_greedy)`` tuples — the log-probability of
             the continuation and whether it would be produced by greedy decoding.
         """
-        pass
+        ...
 
     @abc.abstractmethod
     def loglikelihood_rolling(self, requests: list[LLInstance]) -> list[float]:
@@ -95,7 +96,7 @@ class LM(abc.ABC):
             A list of ``(logprob,)`` tuples — the log-probability of the string
             conditioned on the BOS/EOS token (or ``prefix_token_id``).
         """
-        pass
+        ...
 
     # TODO: Add an optional max length
     @abc.abstractmethod
@@ -110,7 +111,7 @@ class LM(abc.ABC):
         Returns:
             A list of generated continuation strings, one per request.
         """
-        pass
+        ...
 
     def apply_chat_template(
         self, chat_history: list[dict[str, str]], add_generation_prompt=True
@@ -131,8 +132,8 @@ class LM(abc.ABC):
 
     @classmethod
     def create_from_arg_string(
-        cls: type[T], arg_string: str, additional_config: dict | None = None
-    ) -> T:
+        cls, arg_string: str, additional_config: dict | None = None
+    ) -> Self:
         """Create an LM instance from a comma-separated argument string.
 
         Args:
@@ -149,10 +150,10 @@ class LM(abc.ABC):
 
     @classmethod
     def create_from_arg_obj(
-        cls: type[T],
+        cls,
         arg_dict: dict[str, Any],
         additional_config: dict[str, Any] | None = None,
-    ) -> T:
+    ) -> Self:
         """Create an LM instance from a dictionary of arguments.
 
         Args:
@@ -342,8 +343,7 @@ class TemplateLM(LM):
 
     @property
     @abc.abstractmethod
-    def eot_token_id(self) -> int:
-        pass
+    def eot_token_id(self) -> int: ...
 
     @property
     def prefix_token_id(self):
@@ -359,13 +359,12 @@ class TemplateLM(LM):
         Must handle strings that already contain the BOS token when
         ``add_special_tokens`` is None. Otherwise, uses the flag as given.
         """
-        pass
+        ...
 
     @abc.abstractmethod
     def _loglikelihood_tokens(
         self, requests: list[tuple[tuple[str, str], list[int], list[int]]], **kwargs
-    ) -> list[tuple[float, bool]]:
-        pass
+    ) -> list[tuple[float, bool]]: ...
 
     def _encode_pair(
         self, context: str, continuation: str
@@ -446,12 +445,10 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def loglikelihood_rolling(
         self, requests, disable_tqdm: bool = False
-    ) -> list[float]:
-        pass
+    ) -> list[float]: ...
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
-        pass
+    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]: ...
 
     def chat_template(self, chat_template: bool | str = False) -> str | None:
         """Select and return the appropriate chat template for this model.
