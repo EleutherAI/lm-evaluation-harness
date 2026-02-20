@@ -319,7 +319,7 @@ class TestTaskDocToChoice:
     def test_non_list_returns_none(self):
         """If the result isn't a list (and isn't None), it should return None."""
         t = _make_task(doc_to_choice="answer")  # resolves to "blue" (str)
-        assert t is None
+        assert t.doc_to_choice(DOC) is None
 
 
 # ===================================================================

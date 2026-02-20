@@ -152,7 +152,8 @@ class BaseTasks:
             task.construct_requests(
                 doc=doc,
                 ctx="" if task._multiple_inputs else task.doc_to_text(doc),
-                metadata={"doc_id": i, "repeats": 1, "task_name": task_class.task_name},
+                doc_id=i,
+                metadata={},
             )
             for i, doc in enumerate(arr)
         ]
