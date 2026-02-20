@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -347,6 +348,37 @@ class Scorer:
                 agg[stderr_key] = "N/A"
 
         return agg, sample_len
+
+    # ------------------------------------------------------------------
+    # Data access / serialisation
+    # ------------------------------------------------------------------
+
+    @property
+    def scored_docs(self) -> Mapping[int, ScoredDoc]:
+        return self._scored_docs
+
+    def export_reduced(self) -> dict[str, list]:
+        """Export {metric_name: [per_doc_values]} from reduced_scores."""
+        metrics: dict[str, list] = {}
+        for sd in self._scored_docs.values():
+            for mn, val in sd.reduced_scores.items():
+                metrics.setdefault(mn, []).append(val)
+        return metrics
+
+    def import_reduced(self, metric_data: dict[str, list]) -> None:
+        """Rebuild _scored_docs from flat metric lists (after distributed gather)."""
+        n_docs = max((len(v) for v in metric_data.values()), default=0)
+        self._scored_docs = {}
+        for i in range(n_docs):
+            reduced = {mn: vals[i] for mn, vals in metric_data.items() if i < len(vals)}
+            self._scored_docs[i] = ScoredDoc(
+                doc_id=i, reference=None, scores={}, reduced_scores=reduced
+            )
+
+    def set_results(self, scored_docs: dict[int, ScoredDoc]) -> None:
+        """Store scored documents and apply reduction."""
+        self._scored_docs = scored_docs
+        self.reduce(scored_docs)
 
     # ------------------------------------------------------------------
     # Properties
