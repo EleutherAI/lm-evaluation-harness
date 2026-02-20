@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-import ast
 import functools
 import re
 import string
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
+
+from typing_extensions import overload
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-from typing_extensions import overload
+_T = TypeVar("_T")
 
 
 def serialize_callable(
@@ -59,46 +60,6 @@ def serialize_config(
         else:
             cfg_dict[k] = _serialize_value(v, keep_callable)
     return cfg_dict
-
-
-@overload
-def process_field(
-    doc: Any,
-    field_spec: Any,
-    *,
-    digits: Literal[False] = ...,
-    lists: Literal[False] = ...,
-) -> str | None: ...
-
-
-@overload
-def process_field(
-    doc: Any,
-    field_spec: Any,
-    *,
-    digits: Literal[True],
-    lists: Literal[False] = ...,
-) -> str | int | None: ...
-
-
-@overload
-def process_field(
-    doc: Any,
-    field_spec: Any,
-    *,
-    digits: Literal[False] = ...,
-    lists: Literal[True],
-) -> str | list[str] | None: ...
-
-
-@overload
-def process_field(
-    doc: Any,
-    field_spec: Any,
-    *,
-    digits: Literal[True],
-    lists: Literal[True],
-) -> str | int | list[str] | None: ...
 
 
 def regex_replace(text, pattern, repl, count: int = 0) -> str:
@@ -167,14 +128,23 @@ def apply_template(template: str, doc: dict, *args) -> str:
         ) from e
 
 
+@overload
+def process_field(doc: dict[Any, Any], field_spec: None) -> None: ...
+@overload
+def process_field(doc: dict[Any, Any], field_spec: str) -> str: ...
+@overload
+def process_field(doc: dict[Any, Any], field_spec: int) -> int: ...
+@overload
+def process_field(doc: dict[Any, Any], field_spec: list[_T]) -> list[str | _T]: ...
+@overload
+def process_field(
+    doc: dict[Any, Any], field_spec: Callable[[dict[Any, Any]], _T]
+) -> _T: ...
 def process_field(
     doc: dict[str, str],
     field_spec: Any | None,
-    *,
-    digits: bool = False,
-    lists: bool = False,
-) -> str | int | list[str] | None:
-    """Processes a field from a document."""
+) -> str | int | list | None:
+    """Resolve a field spec against a document."""
     # fmt: off
     match field_spec:
         case None: return None
@@ -183,18 +153,68 @@ def process_field(
         case list(): return [apply_template(x, doc) if isinstance(x, str) else x for x in field_spec]
         case str() if field_spec in doc: return doc[field_spec]
     # fmt: on
+    return apply_template(field_spec, doc)
 
-    target_string = apply_template(field_spec, doc)
 
-    if digits and isinstance(target_string, str) and target_string.isdigit():
-        return int(target_string)
+@overload
+def _coerce_list(value: None) -> None: ...
+@overload
+def _coerce_list(value: list[_T]) -> list[_T]: ...
+@overload
+def _coerce_list(value: str) -> str | list[str]: ...
+@overload
+def _coerce_list(value: int) -> int: ...
+def _coerce_list(value):
+    """Coerce a rendered field value: parse list literals to list."""
+    import ast
 
-    if lists and isinstance(target_string, str):
+    if isinstance(value, str) and value.startswith("[") and value.endswith("]"):
         try:
-            parsed = ast.literal_eval(target_string)
+            parsed = ast.literal_eval(value)
             if isinstance(parsed, list):
                 return parsed
         except (ValueError, SyntaxError):
             pass
+    return value
 
-    return target_string
+
+@overload
+def _coerce_target(value: None, parse_list: bool = ...) -> None: ...
+@overload
+def _coerce_target(value: list[_T], parse_list: bool = ...) -> list[_T]: ...
+@overload
+def _coerce_target(value: str, parse_list: Literal[False] = ...) -> str | int: ...
+@overload
+def _coerce_target(value: str, parse_list: Literal[True]) -> str | int | list[str]: ...
+@overload
+def _coerce_target(value: int, parse_list: bool = ...) -> int: ...
+def _coerce_target(value, parse_list=False):
+    """Coerce a rendered field value: parse digit strings to int, list literals to list."""
+    if isinstance(value, str):
+        if value.isdigit():
+            return int(value)
+        if parse_list:
+            return _coerce_list(value)
+    return value
+
+
+def _resolve_target_index(target, choices, doc) -> int | None:
+    import logging
+
+    eval_logger = logging.getLogger(__name__)
+    if isinstance(target, (int, float)):
+        idx = int(target)
+        if idx < len(choices):
+            return idx
+        eval_logger.warning(
+            f"Target index '{idx}' out of range for choices {choices} for doc:\n\n{doc}\n\n"
+        )
+        return None
+    if isinstance(target, str):
+        if target in choices:
+            return choices.index(target)
+        eval_logger.warning(
+            f"Target '{target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+        )
+        return None
+    return None
