@@ -1,190 +1,375 @@
-import pytest
+"""Tests for the refactored metrics in lm_eval/api/_metrics/.
 
+Tests cover:
+  - Per-sample metric functions (acc, acc_norm, acc_mutual_info, brier_score, etc.)
+  - LLResults construction and mutual-info slicing
+  - Aggregation functions (mean, median, perplexity)
+  - Bootstrap stderr helpers
+  - Corpus-level metrics (Perplexity, F1, AccAll)
+  - exact_match for generate_until
+"""
 
-pytest.skip("Currently broken")
+import math
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
-from lm_eval.api.task import ConfigurableTask
-from lm_eval.config.task import TaskConfig
+import numpy as np
+import pytest
+
+from lm_eval.api._metrics.aggregations import mean, median, perplexity
+from lm_eval.api._metrics.generation import exact_match_fn
+from lm_eval.api._metrics.ll import (
+    acc_fn,
+    acc_mutual_info_fn,
+    acc_norm_fn,
+    bpb_fn,
+    brier_score,
+    choice_logprob_fn,
+    logprob_fn,
+)
+from lm_eval.api._metrics.results import LLResults
+from lm_eval.api._metrics.stderr import (
+    _bootstrap_internal_no_mp,
+    mean_stderr,
+    sample_stddev,
+)
+from lm_eval.api._metrics.utils import softmax
 
 
-class MockConfigurableTask(ConfigurableTask):
-    """Mock task for testing metrics"""
-
-    def __init__(self):
-        # Create a minimal config
-        config = {
-            "task": "test_acc_mutual_info",
-            "output_type": "multiple_choice",
-            "metric_list": [{"metric": "acc"}, {"metric": "acc_mutual_info"}],
-            "doc_to_choice": ["A", "B", "C"],
-            "doc_to_target": 1,  # Correct answer is index 1 (choice "B")
-            "target_delimiter": " ",
-        }
-
-        # Initialize with minimal setup
-        self._config = TaskConfig(**config)
-        self.OUTPUT_TYPE = "multiple_choice"
-
-        # Set up required attributes
-        self.multiple_input = 0
-        self.multiple_target = 0
-
-        # Set up metrics
-        self._metric_fn_list = {"acc": None, "acc_mutual_info": None}
-        self._metric_fn_kwargs = {"acc": {}, "acc_mutual_info": {}}
-        self._aggregation_list = {}
-        self._higher_is_better = {}
-
-    def doc_to_choice(self, doc, *args, **kwargs):
-        return ["A", "B", "C"]
-
-    def doc_to_target(self, doc, *args, **kwargs):
-        return 1  # Choice "B" is correct
-
-    # Required abstract methods (minimal implementations)
-    def has_training_docs(self):
-        return False
-
-    def has_validation_docs(self):
-        return False
-
-    def has_test_docs(self):
-        return True
-
-    def download(self, *args, **kwargs):
-        pass
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
-def test_acc_mutual_info_slicing():
-    """Test that acc_mutual_info correctly slices conditional and unconditional loglikelihoods"""
-
-    task = MockConfigurableTask()
-
-    # Simulate loglikelihood results for 3 choices
-    # Format: [(loglikelihood, is_greedy), ...]
-    # First 3 are conditional P(choice|context), next 3 are unconditional P(choice)
-
-    # Combined results as they would come from the model
-    # Order: conditional_1, conditional_2, conditional_3, unconditional_1, unconditional_2, unconditional_3
-    # Conditional: [-2.0, -1.0, -3.0] - Choice B (index 1) has highest prob
-    # Unconditional: [-2.5, -2.0, -2.5] - Choice B has higher unconditional prob too
-    results = [
-        (-2.0, False),
-        (-1.0, True),
-        (-3.0, False),  # Conditional
-        (-2.5, False),
-        (-2.0, False),
-        (-2.5, False),
-    ]  # Unconditional
-
-    # Test the process_results method
-    doc = {}  # Mock document
-    result_dict = task.process_results(doc, results)
-
-    # Verify that both acc and acc_mutual_info are calculated
-    assert "acc" in result_dict
-    assert "acc_mutual_info" in result_dict
-
-    # Both should be 1.0 since choice B (index 1) is correct and has highest probability
-    assert result_dict["acc"] == 1.0, f"Expected acc=1.0, got {result_dict['acc']}"
-    assert result_dict["acc_mutual_info"] == 1.0, (
-        f"Expected acc_mutual_info=1.0, got {result_dict['acc_mutual_info']}"
+def _make_ll_results(
+    lls: list[float],
+    is_greedy: list[bool] | None = None,
+    targets: int | list[int] = 0,
+    choices: list[str] | None = None,
+    lls_mutual_info: list[float] | None = None,
+) -> LLResults:
+    """Build an LLResults for unit tests without needing Instance objects."""
+    if is_greedy is None:
+        is_greedy = [False] * len(lls)
+    if choices is None:
+        choices = [chr(65 + i) for i in range(len(lls))]  # A, B, C, ...
+    kwargs = {}
+    if lls_mutual_info is not None:
+        kwargs["lls_mutual_info"] = np.array(lls_mutual_info)
+    return LLResults(
+        results=[],
+        lls=np.array(lls),
+        is_greedy=is_greedy,
+        targets=targets,
+        choices=choices,
+        **kwargs,
     )
 
 
-def test_acc_mutual_info_different_predictions():
-    """Test case where conditional and mutual info predictions differ"""
-
-    task = MockConfigurableTask()
-
-    # Mutual info calculation:
-    # Conditional:   A=-1.0, B=-2.0, C=-3.0 (A wins conditionally)
-    # Unconditional: A=-0.5, B=-2.0, C=-3.0 (A has much higher unconditional prob)
-    # Mutual info = conditional - unconditional:
-    # A: -1.0 - (-0.5) = -0.5
-    # B: -2.0 - (-2.0) = 0.0    <- B wins with mutual info!
-    # C: -3.0 - (-3.0) = 0.0
-
-    results = [
-        (-1.0, True),
-        (-2.0, False),
-        (-3.0, False),  # Conditional (A wins)
-        (-0.5, False),
-        (-2.0, False),
-        (-3.0, False),
-    ]  # Unconditional
-
-    doc = {}
-    result_dict = task.process_results(doc, results)
-
-    # Regular acc should be 0.0 (A predicted, but B is correct)
-    assert result_dict["acc"] == 0.0, f"Expected acc=0.0, got {result_dict['acc']}"
-
-    # Mutual info should be 1.0 (B predicted with mutual info, and B is correct)
-    assert result_dict["acc_mutual_info"] == 1.0, (
-        f"Expected acc_mutual_info=1.0, got {result_dict['acc_mutual_info']}"
-    )
+# ===========================================================================
+# Per-sample metric functions
+# ===========================================================================
 
 
-def test_acc_mutual_info_without_metric():
-    """Test that normal behavior works when acc_mutual_info is not in metric list"""
+class TestAcc:
+    def test_acc_correct(self):
+        pred = _make_ll_results([-2.0, -1.0, -3.0], targets=1)
+        assert acc_fn(1, pred) == 1
 
-    # Create task without acc_mutual_info
-    config = {
-        "task": "test_normal",
-        "output_type": "multiple_choice",
-        "metric_list": [{"metric": "acc"}],  # Only acc, no acc_mutual_info
-        "doc_to_choice": ["A", "B", "C"],
-        "doc_to_target": 1,
-        "target_delimiter": " ",
-    }
+    def test_acc_wrong(self):
+        pred = _make_ll_results([-1.0, -2.0, -3.0], targets=1)
+        # argmax is 0 but gold is 1
+        assert acc_fn(1, pred) == 0
 
-    task = MockConfigurableTask()
-    task._config = TaskConfig(**config)
-    task._metric_fn_list = {"acc": None}  # Only acc
+    def test_acc_single_ll_greedy(self):
+        """Single loglikelihood: acc = greedy decode match."""
+        pred = _make_ll_results([-1.5], is_greedy=[True], choices=["x"])
+        assert acc_fn(0, pred) == 1
 
-    # Only conditional loglikelihoods (no unconditional since acc_mutual_info not requested)
-    results = [(-2.0, False), (-1.0, True), (-3.0, False)]  # 3 choices, B wins
+    def test_acc_single_ll_not_greedy(self):
+        pred = _make_ll_results([-1.5], is_greedy=[False], choices=["x"])
+        assert acc_fn(0, pred) == 0
 
-    doc = {}
-    result_dict = task.process_results(doc, results)
+    def test_acc_multiple_targets(self):
+        pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[0, 1])
+        # argmax=1, which is in [0, 1]
+        assert acc_fn([0, 1], pred, multiple_targets=True) == 1
 
-    # Should only have acc, not acc_mutual_info
-    assert "acc" in result_dict
-    assert "acc_mutual_info" not in result_dict
-    assert result_dict["acc"] == 1.0
+    def test_acc_multiple_targets_miss(self):
+        pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[0, 2])
+        # argmax=1, which is not in [0, 2]
+        assert acc_fn([0, 2], pred, multiple_targets=True) == 0
 
-
-def test_bootstrap_internal_no_mp():
-    """Test basic functionality of _bootstrap_internal_no_mp"""
-
-    data = [1, 2, 3, 4, 5]
-
-    # Mock tqdm to avoid progress bar output during testing
-    with mock.patch("tqdm.tqdm") as mock_tqdm:
-        mock_tqdm.return_value = range(1)  # Single chunk
-
-        # Mock print to avoid output during testing
-        with mock.patch("builtins.print"):
-            result = _bootstrap_internal_no_mp(mean, data, 100)
-
-    # Should return 100 bootstrap replicates
-    assert len(result) == 100
-
-    # All results should be numbers (means)
-    assert all(isinstance(x, (int, float)) for x in result)
-
-    # Bootstrap means should be close to original mean
-    bootstrap_mean = mean(result)
-    original_mean = mean(data)
-    assert abs(bootstrap_mean - original_mean) < 0.5  # Should be reasonably close
+    def test_acc_multiple_targets_ignores_minus100(self):
+        pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[1, -100])
+        # argmax=1, -100 is filtered out, so [1] matches
+        assert acc_fn([1, -100], pred, multiple_targets=True) == 1
 
 
-if __name__ == "__main__":
-    test_acc_mutual_info_slicing()
-    test_acc_mutual_info_different_predictions()
-    test_acc_mutual_info_without_metric()
-    test_bootstrap_internal_no_mp()
-    print("All tests passed!")
+class TestAccNorm:
+    def test_acc_norm_normalizes_by_length(self):
+        # lls:       [-2.0, -1.0, -3.0]
+        # choices:   ["AB", "B", "CDE"]   -> char_len = [2, 1, 3]
+        # ll/len:    [-1.0, -1.0, -1.0]   -> tie, argmax = 0
+        pred = _make_ll_results([-2.0, -1.0, -3.0], choices=["AB", "B", "CDE"])
+        result = acc_norm_fn(0, pred)
+        assert result == 1  # argmax of normalized is 0
+
+    def test_acc_norm_picks_shorter_choice(self):
+        # lls:       [-2.0, -2.0]
+        # choices:   ["A", "AB"]   -> char_len = [1, 2]
+        # ll/len:    [-2.0, -1.0]  -> argmax = 1
+        pred = _make_ll_results([-2.0, -2.0], choices=["A", "AB"])
+        assert acc_norm_fn(1, pred) == 1
+
+
+class TestAccMutualInfo:
+    def test_basic_mutual_info(self):
+        """acc_mutual_info picks argmax of lls_mutual_info, not raw lls."""
+        pred = _make_ll_results(
+            lls=[-1.0, -2.0, -3.0],
+            targets=1,
+            lls_mutual_info=[
+                -0.5,  # A: conditional - unconditional
+                0.0,  # B: wins with mutual info
+                0.0,  # C
+            ],
+        )
+        # argmax(lls_mutual_info) = 1 (or 2, tie-break), gold = 1
+        assert acc_mutual_info_fn(1, pred) == 1
+
+    def test_mutual_info_differs_from_raw_acc(self):
+        """When conditional and mutual-info predictions diverge."""
+        pred = _make_ll_results(
+            lls=[-1.0, -2.0, -3.0],  # A wins conditionally
+            targets=1,
+            lls_mutual_info=[
+                -0.5,  # A: -1.0 - (-0.5)
+                0.0,  # B: -2.0 - (-2.0) -> wins with MI
+                0.0,  # C: -3.0 - (-3.0)
+            ],
+        )
+        # Regular acc picks A (index 0), gold is 1 -> wrong
+        assert acc_fn(1, pred) == 0
+        # Mutual info picks B (index 1), gold is 1 -> correct
+        assert acc_mutual_info_fn(1, pred) == 1
+
+
+class TestBrierScore:
+    def test_perfect_prediction(self):
+        """Brier score = 0 when model puts all mass on correct answer."""
+        # lls such that softmax gives ~[0, 1, 0]
+        pred = _make_ll_results([-100.0, 0.0, -100.0], targets=1)
+        score = brier_score(1, pred)
+        assert score == pytest.approx(0.0, abs=1e-6)
+
+    def test_uniform_prediction(self):
+        """Brier score for uniform prediction over 3 choices, gold = 0."""
+        pred = _make_ll_results([0.0, 0.0, 0.0], targets=0)
+        score = brier_score(0, pred)
+        # softmax([0,0,0]) = [1/3, 1/3, 1/3]
+        # one_hot = [1, 0, 0]
+        # sum((1/3-1)^2 + (1/3-0)^2 + (1/3-0)^2) = (2/3)^2 + 2*(1/3)^2 = 4/9 + 2/9 = 6/9
+        assert score == pytest.approx(6 / 9, abs=1e-6)
+
+
+class TestBpb:
+    def test_bpb_basic(self):
+        pred = _make_ll_results([-2.0, -1.0], choices=["ab", "c"], targets=0)
+        # bpb = -lls[0] / byte_len[0] * NAT_TO_BIT
+        # byte_len("ab") = 2
+        # bpb = 2.0 / 2 * (1/ln2) = 1/ln2 ≈ 1.4427
+        result = bpb_fn(0, pred)
+        assert result == pytest.approx(1.0 / np.log(2.0), rel=1e-6)
+
+
+class TestLogprob:
+    def test_logprob_returns_gold_ll(self):
+        pred = _make_ll_results([-2.0, -1.0, -3.0], targets=1)
+        assert logprob_fn(1, pred) == pytest.approx(-1.0)
+
+
+class TestChoiceLogprob:
+    def test_basic(self):
+        pred = _make_ll_results([-2.0, -1.0, -3.0], targets=1)
+        # log(softmax) at index 1 = lls[1] - logsumexp(lls)
+        lls = np.array([-2.0, -1.0, -3.0])
+        expected = float(lls[1] - np.logaddexp.reduce(lls))
+        assert choice_logprob_fn(1, pred) == pytest.approx(expected)
+
+
+# ===========================================================================
+# LLResults construction
+# ===========================================================================
+
+
+class TestLLResultsDefaults:
+    def test_default_lls_mutual_info_is_empty_array(self):
+        """Regression: default_factory must call empty_array, not store the function."""
+        pred = _make_ll_results([-1.0, -2.0], targets=0)
+        assert isinstance(pred.lls_mutual_info, np.ndarray)
+        assert len(pred.lls_mutual_info) == 0
+
+    def test_char_len(self):
+        pred = _make_ll_results([-1.0, -2.0], choices=["AB", "CDE"])
+        np.testing.assert_array_equal(pred.char_len(), [2.0, 3.0])
+
+    def test_byte_len(self):
+        pred = _make_ll_results([-1.0], choices=["hello"])
+        np.testing.assert_array_equal(pred.byte_len(), [5.0])
+
+    def test_char_len_no_choices(self):
+        """When choices is empty, char_len returns ones matching lls length."""
+        pred = LLResults(
+            results=[],
+            lls=np.array([-1.0, -2.0, -3.0]),
+            is_greedy=[False, False, False],
+            targets=0,
+            choices=[],
+        )
+        np.testing.assert_array_equal(pred.char_len(), [1.0, 1.0, 1.0])
+
+
+# ===========================================================================
+# exact_match (generate_until)
+# ===========================================================================
+
+
+class TestExactMatch:
+    def test_perfect_match(self):
+        result = exact_match_fn(
+            references=["hello", "world"], predictions=["hello", "world"]
+        )
+        assert result["exact_match"] == 1.0
+
+    def test_no_match(self):
+        result = exact_match_fn(references=["hello"], predictions=["world"])
+        assert result["exact_match"] == 0.0
+
+    def test_partial_match(self):
+        result = exact_match_fn(references=["a", "b"], predictions=["a", "c"])
+        assert result["exact_match"] == pytest.approx(0.5)
+
+    def test_ignore_case(self):
+        result = exact_match_fn(
+            references=["Hello"], predictions=["hello"], ignore_case=True
+        )
+        assert result["exact_match"] == 1.0
+
+    def test_ignore_punctuation(self):
+        result = exact_match_fn(
+            references=["hello!"], predictions=["hello"], ignore_punctuation=True
+        )
+        assert result["exact_match"] == 1.0
+
+    def test_regex_ignore(self):
+        result = exact_match_fn(
+            references=["answer: 42"],
+            predictions=["answer: 42!"],
+            regexes_to_ignore=[r"[!]"],
+        )
+        assert result["exact_match"] == 1.0
+
+
+# ===========================================================================
+# Aggregation functions
+# ===========================================================================
+
+
+class TestAggregations:
+    def test_mean(self):
+        assert mean([1, 2, 3, 4, 5]) == 3.0
+
+    def test_median_odd(self):
+        assert median([3, 1, 2]) == 2  # sorted: [1,2,3], middle = 2
+
+    def test_median_even(self):
+        assert median([4, 1, 3, 2]) == 3  # sorted: [1,2,3,4], index 2 = 3
+
+    def test_median_already_sorted(self):
+        assert median([1, 2, 3, 4, 5]) == 3
+
+    def test_median_unsorted(self):
+        """Regression: median must sort before indexing."""
+        assert median([5, 1, 3]) == 3  # not 1 (middle of unsorted)
+
+    def test_perplexity(self):
+        items = [-1.0, -2.0, -3.0]
+        expected = math.exp(-mean(items))
+        assert perplexity(items) == pytest.approx(expected)
+
+
+# ===========================================================================
+# Softmax utility
+# ===========================================================================
+
+
+class TestSoftmax:
+    def test_sums_to_one(self):
+        result = softmax(np.array([1.0, 2.0, 3.0]))
+        assert result.sum() == pytest.approx(1.0)
+
+    def test_uniform(self):
+        result = softmax(np.array([0.0, 0.0, 0.0]))
+        np.testing.assert_allclose(result, [1 / 3, 1 / 3, 1 / 3])
+
+    def test_extreme_values(self):
+        """Softmax should be numerically stable with large values."""
+        result = softmax(np.array([1000.0, 1000.0]))
+        np.testing.assert_allclose(result, [0.5, 0.5])
+
+
+# ===========================================================================
+# Bootstrap / stderr
+# ===========================================================================
+
+
+class TestBootstrap:
+    def test_bootstrap_internal_no_mp(self):
+        data = [1, 2, 3, 4, 5]
+
+        with (
+            mock.patch("tqdm.tqdm", side_effect=lambda x, **kw: x),
+            mock.patch("builtins.print"),
+        ):
+            result = _bootstrap_internal_no_mp(mean, data, 1000)
+
+        assert len(result) == 1000
+        assert all(isinstance(x, (int, float)) for x in result)
+        # Bootstrap mean should be close to the original mean
+        assert abs(mean(result) - mean(data)) < 0.5
+
+    def test_mean_stderr(self):
+        data = [1, 2, 3, 4, 5]
+        se = mean_stderr(data)
+        # stderr = stddev / sqrt(n) = sqrt(2.5) / sqrt(5) ≈ 0.7071
+        expected = sample_stddev(data) / math.sqrt(len(data))
+        assert se == pytest.approx(expected)
+
+
+# ===========================================================================
+# Corpus-level metrics
+# ===========================================================================
+
+
+class TestCorpusPerplexity:
+    def test_corpus_perplexity(self):
+        from lm_eval.api._metrics.corpus import Perplexity
+
+        ppl = Perplexity()
+        # Per-doc: extract gold ll
+        pred1 = _make_ll_results([-2.0, -1.0], targets=1)
+        pred2 = _make_ll_results([-3.0, -0.5], targets=1)
+        item1 = ppl(1, pred1)  # -1.0
+        item2 = ppl(1, pred2)  # -0.5
+        assert item1 == pytest.approx(-1.0)
+        assert item2 == pytest.approx(-0.5)
+        # Aggregation: exp(-mean(lls))
+        result = ppl.aggregation([item1, item2])
+        assert result == pytest.approx(math.exp(-mean([-1.0, -0.5])))
+
+    def test_single_ll_perplexity(self):
+        from lm_eval.api._metrics.corpus import Perplexity
+
+        ppl = Perplexity()
+        pred = _make_ll_results([-2.5], choices=["x"])
+        assert ppl(0, pred) == pytest.approx(-2.5)

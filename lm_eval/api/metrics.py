@@ -12,6 +12,9 @@ from lm_eval.api._metrics.aggregations import (  # noqa: F401
     weighted_mean,
     weighted_perplexity,
 )
+from lm_eval.api._metrics.corpus import *  # noqa: F401, F403
+from lm_eval.api._metrics.generation import *  # noqa: F401, F403
+from lm_eval.api._metrics.ll import *  # noqa: F401, F403
 from lm_eval.api._metrics.stderr import (  # noqa: F401
     _bootstrap_internal,
     _bootstrap_internal_no_mp,
