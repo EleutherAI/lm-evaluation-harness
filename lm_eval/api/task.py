@@ -1087,6 +1087,7 @@ class MultipleChoiceTask(Task):
         _metadata = {**(metadata or {})}
 
         choices = self.doc_to_choice(doc)
+        target = self.doc_to_target(doc)
         if not choices:
             eval_logger.warning(
                 f"No choices found for doc:\n\n{doc}\n\nSkipping this instance."
@@ -1101,22 +1102,27 @@ class MultipleChoiceTask(Task):
                 else ""
             )
 
+        if isinstance(ctx, list) and isinstance(ctx[0], dict):
+            # Message list context: delegate entirely to _build_chat_arguments
+            return self._build_chat_arguments(
+                doc=doc,
+                ctx=cast("list[dict[str, str]]", ctx),
+                choices=choices,
+                target_delimiter=target_delimiter,
+                doc_id=doc_id,
+                metadata=_metadata,
+                **kwargs,
+            )
+
+        # From here on, ctx should always be a str (or list[str] for multiple_inputs)
         if self._multiple_inputs:
-            # If there are multiple inputs, choices are placed in the ctx
-            assert isinstance(ctx, list) and isinstance(ctx[0], str), (
-                "For multiple input tasks, ctx should be a list of strings"
-            )
-            assert len(choices) == 1, (
-                "For multiple input tasks, there should only be one choice"
-            )
             arguments = self._multiple_input_args(
-                context=ctx, choices=choices, target_delimiter=target_delimiter
+                context=cast("list[str]", ctx),
+                choices=choices,
+                target_delimiter=target_delimiter,
             )
-        elif isinstance(ctx, list):
-            # Chat template: ctx is a list of message dicts
-            arguments = self._build_chat_arguments(ctx, choices, target_delimiter)
         else:
-            # String context: choices are placed in the continuation
+            ctx = cast("str", ctx)
             arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
         # If any scorer uses acc_mutual_info, we need unconditional loglikelihoods.
@@ -1130,12 +1136,9 @@ class MultipleChoiceTask(Task):
             arguments.extend(aux_arguments)
             _metadata.update({"acc_mutual_info": True})
 
-        target = self.doc_to_target(doc)
-
         if target is None:
             return None
 
-        num_choices = len(choices)  # noqa: F841
         request_list = [
             Instance(
                 request_type="loglikelihood",
@@ -1165,17 +1168,54 @@ class MultipleChoiceTask(Task):
 
     def _build_chat_arguments(
         self,
-        ctx: list[dict[str, Any]],
+        doc: dict[str, Any],
+        ctx: list[dict[str, str]],
         choices: list[str],
         target_delimiter: str,
-    ) -> list[tuple[list[dict[str, Any]], str]]:
-        """Build (messages, continuation) pairs for chat-template contexts."""
-        return [(deepcopy(ctx), f"{target_delimiter}{choice}") for choice in choices]
+        *,
+        doc_id: int,
+        metadata: dict[str, Any],
+        target: Any,
+        **kwargs,
+    ) -> list[LLInstance] | None:
+        """Build Instance list when ctx is a raw message list.
+
+        The model implementation handles loglikelihood extraction directly
+        from the message format. The continuation is still a plain string.
+        """
+        if self._multiple_inputs:
+            raise NotImplementedError
+        else:
+            arguments = [
+                (deepcopy(ctx), f"{target_delimiter}{choice}") for choice in choices
+            ]
+
+        return [
+            Instance(
+                request_type="loglikelihood",
+                doc=doc,
+                arguments=arg,  # type:ignore[invalid-argument-type]
+                task_name=self.task_name,
+                idx=i,
+                doc_id=doc_id,
+                repeats=self.config.repeats,
+                target=target,
+                metadata=metadata,
+                **kwargs,
+            )
+            for i, arg in enumerate(arguments)
+        ]
 
     @staticmethod
     def _multiple_input_args(
         *, context: list[str], choices: list[str], target_delimiter: str
     ) -> list[tuple[str, str]]:
+        assert isinstance(context, list) and isinstance(context[0], str), (
+            "For multiple input tasks, ctx should be a list of strings"
+        )
+        assert len(choices) == 1, (
+            "For multiple input tasks, there should only be one choice"
+        )
         return [(cxt, f"{target_delimiter}{choices[0]}") for cxt in context]
 
     def doc_to_target(self, doc, doc_to_target=None) -> int | list[int] | None:
@@ -1281,17 +1321,16 @@ class GenerateTask(Task):
             )
         ]
 
-    def construct_requests_messages(
+    def _build_message_args(
         self,
-        doc: dict[str, Any],
-        ctx: list[dict[str, Any]],
-        *,
-        metadata: dict[str, Any] | None = None,
-        apply_chat_template: bool = False,
-        chat_template: ChatTemplate | None = None,
-        **kwargs,
-    ) -> list[Instance]:
-        raise NotImplementedError
+        ctx: list[dict[str, str]],
+    ) -> tuple[list[dict[str, str]], dict[str, Any]]:
+        """Build arguments for generation when ctx is a raw message list.
+
+        The model implementation receives the messages directly and handles
+        formatting and generation.
+        """
+        return (ctx, cast("dict[str, Any]", deepcopy(self.config.generation_kwargs)))
 
 
 class LoglikelihoodTask(Task):
