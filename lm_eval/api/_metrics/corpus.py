@@ -73,9 +73,9 @@ class BrierScore(CorpusMetric["LLResults", float]):
     """
 
     def __call__(self, references: Any, predictions: "LLResults") -> float:
-        from lm_eval.api._metrics.ll import brier_score_fn
+        from lm_eval.api._metrics.ll import brier_score
 
-        return brier_score_fn(references, predictions)
+        return brier_score(references, predictions)
 
     def aggregation(self, items: list[float]) -> float:
         return sum(items) / len(items)

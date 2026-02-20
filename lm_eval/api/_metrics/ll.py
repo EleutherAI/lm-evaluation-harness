@@ -63,7 +63,7 @@ def acc_fn(
 @register_metric(
     metric="acc_norm",
     higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
+    output_type="multiple_choice",
     aggregation="mean",
 )
 def acc_norm_fn(
@@ -82,7 +82,7 @@ def acc_norm_fn(
 @register_metric(
     metric="acc_bytes",
     higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
+    output_type="multiple_choice",
     aggregation="mean",
 )
 def acc_bytes_fn(
@@ -175,7 +175,7 @@ def logprob_fn(references: int, predictions: LLResults) -> float:
 @register_metric(
     metric="choice_logprob",
     higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
+    output_type="multiple_choice",
     aggregation="mean",
 )
 def choice_logprob_fn(references: int, predictions: LLResults) -> float:
@@ -191,7 +191,7 @@ def choice_logprob_fn(references: int, predictions: LLResults) -> float:
 @register_metric(
     metric="choice_prob_norm",
     higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
+    output_type="multiple_choice",
     aggregation="mean",
 )
 def choice_prob_norm_fn(references: int, predictions: LLResults) -> float:
@@ -210,7 +210,7 @@ def choice_prob_norm_fn(references: int, predictions: LLResults) -> float:
 @register_metric(
     metric="choice_logprob_norm",
     higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
+    output_type="multiple_choice",
     aggregation="mean",
 )
 def choice_logprob_norm_fn(references: int, predictions: LLResults) -> float:

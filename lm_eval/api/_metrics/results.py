@@ -34,7 +34,7 @@ class LLResults:
     targets: int | list[int] | str | list[str]
     ctx: str = ""
     choices: Sequence[str] = field(default_factory=list)
-    lls_mutual_info: NDArray[float64] = field(default_factory=lambda: empty_array)
+    lls_mutual_info: NDArray[float64] = field(default_factory=empty_array)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     # @property
