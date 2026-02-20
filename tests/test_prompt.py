@@ -252,7 +252,8 @@ def test_mmlu_prompt_rendering(
             requests = task.construct_requests(
                 doc=doc,
                 ctx=ctx,
-                metadata={"task": task.task_name, "doc_id": 0, "repeats": 1},
+                doc_id=0,
+                metadata={"task": task.task_name, "repeats": 1},
             )
 
             # MMLU is multiple_choice, so we expect a list of Instance objects

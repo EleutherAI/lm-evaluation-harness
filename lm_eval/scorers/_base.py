@@ -62,6 +62,7 @@ class Scorer:
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
     output_type: str | None = None
+    context: dict[str, Any] = field(default_factory=dict)
     _scored_docs: dict[int, ScoredDoc] = field(default_factory=dict)
 
     # ------------------------------------------------------------------
@@ -162,6 +163,9 @@ class Scorer:
         scored_docs: dict[int, ScoredDoc] = {}
 
         for doc_id, doc_instances in instances.items():
+            # Per-instance metric overrides (same for all instances of a doc)
+            inst_metric_kwargs = doc_instances[0].metadata.get("metric_kwargs")
+
             if self.output_type == "generate_until":
                 # Per-repeat scoring for generate_until
                 inst = doc_instances[0]  # 1 instance per doc for generate_until
@@ -170,7 +174,9 @@ class Scorer:
 
                 repeat_scores: dict[str, list] = defaultdict(list)
                 for resp in resps:
-                    per_repeat = self._dispatch_metrics([target], [resp])
+                    per_repeat = self._dispatch_metrics(
+                        [target], [resp], metric_kwargs=inst_metric_kwargs
+                    )
                     for metric_name, value in per_repeat.items():
                         repeat_scores[metric_name].append(value)
 
@@ -195,7 +201,9 @@ class Scorer:
                     choices=[text],
                 )
                 references = results_obj.targets
-                per_doc = self._dispatch_metrics(references, results_obj)
+                per_doc = self._dispatch_metrics(
+                    references, results_obj, metric_kwargs=inst_metric_kwargs
+                )
 
                 scored_docs[doc_id] = ScoredDoc(
                     doc_id=doc_id,
@@ -206,7 +214,9 @@ class Scorer:
                 # loglikelihood / multiple_choice — repeats=1
                 results_obj = LLResults.from_instances(doc_instances)
                 references = results_obj.targets
-                per_doc = self._dispatch_metrics(references, results_obj)
+                per_doc = self._dispatch_metrics(
+                    references, results_obj, metric_kwargs=inst_metric_kwargs
+                )
 
                 scored_docs[doc_id] = ScoredDoc(
                     doc_id=doc_id,
@@ -216,13 +226,29 @@ class Scorer:
 
         return scored_docs
 
-    def _dispatch_metrics(self, references: Any, predictions: Any) -> dict[str, Any]:
-        """Call each Metric.compute(references, predictions) and collect per-doc results."""
+    def _dispatch_metrics(
+        self,
+        references: Any,
+        predictions: Any,
+        metric_kwargs: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Call each Metric.compute(references, predictions) and collect per-doc results.
+
+        Extra kwargs are forwarded to each metric function from two sources
+        (later sources override earlier ones):
+
+        1. ``self.context`` — task-level runtime config (e.g. ``multiple_targets``).
+        2. *metric_kwargs* — per-instance overrides from ``Instance.metadata["metric_kwargs"]``.
+
+        ``filter_kwargs`` inside ``Metric.compute`` ensures only parameters
+        the function actually accepts are passed through.
+        """
         result_dict: dict[str, Any] = {}
         if not self.metrics:
             return result_dict
+        ctx = {**self.context, **(metric_kwargs or {})}
         for m in self.metrics:
-            score = m.compute(references, predictions)
+            score = m.compute(references, predictions, **ctx)
             if isinstance(score, dict):
                 result_dict.update(score)
             else:

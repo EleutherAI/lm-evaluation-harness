@@ -1,6 +1,7 @@
 import inspect
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from functools import cache
 from typing import TYPE_CHECKING, Any, Generic, cast
 
 from typing_extensions import Self, TypeVar
@@ -18,20 +19,29 @@ _K = TypeVar("_K")
 METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 
 
-def filter_kwargs(fn, kwargs) -> Mapping[str, Any]:
+@cache
+def _get_eligible_params(fn) -> frozenset[str] | None:
+    """Return the set of keyword-eligible parameter names for *fn*, cached.
+
+    Returns ``None`` as a sentinel when the function accepts ``**kwargs``
+    (meaning all keyword arguments should be forwarded).
+    """
     params = inspect.signature(fn).parameters
     if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return None
+    return frozenset(
+        k
+        for k, p in params.items()
+        if p.kind
+        not in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.VAR_POSITIONAL)
+    )
+
+
+def filter_kwargs(fn, kwargs) -> Mapping[str, Any]:
+    eligible = _get_eligible_params(fn)
+    if eligible is None:
         return kwargs  # function accepts **kwargs, pass everything
-    return {
-        k: v
-        for k, v in kwargs.items()
-        if k in params
-        and params[k].kind
-        not in (
-            inspect.Parameter.POSITIONAL_ONLY,
-            inspect.Parameter.VAR_POSITIONAL,
-        )
-    }
+    return {k: v for k, v in kwargs.items() if k in eligible}
 
 
 def take_first(references: Any, predictions: Sequence[Any]):
