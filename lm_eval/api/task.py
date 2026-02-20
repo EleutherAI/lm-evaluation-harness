@@ -773,9 +773,10 @@ class Task:
         )
         choices = _coerce_list(process_field(doc, doc_to_choice))
         if choices is not None and not isinstance(choices, list):
-            raise ValueError(
-                f"doc_to_choice must return a list, got {type(choices).__name__}: {choices!r}"
+            eval_logger.warning(
+                f"doc_to_choice must return a list, got {type(choices).__name__}: {choices!r}. Skipping ..."
             )
+            return None
         return choices
 
     def doc_to_target(
@@ -1213,9 +1214,10 @@ class MultipleChoiceTask(Task):
             and not isinstance(choices, list)
             and not isinstance(choices[0], str)
         ):
-            raise ValueError(
-                "doc_to_choice should return a list of strings representing the answer choices."
+            eval_logger.warning(
+                "doc_to_choice should return a list of strings representing the answer choices. Skipping ..."
             )
+            return None
         if self._multiple_inputs:
             assert choices is not None and len(choices) == 1, (
                 "For multiple input tasks, doc_to_choice should return a list with a single string representing the answer choice template."
@@ -1275,7 +1277,7 @@ class GenerateTask(Task):
 
         arguments = (
             ctx,
-            cast("dict[str, Any]", deepcopy(self.config.generation_kwargs)),
+            deepcopy(self.config.generation_kwargs),
         )
         multimodal_arguments = (
             self._build_multimodal_kwargs(doc) if self._multimodal else None
@@ -1307,7 +1309,7 @@ class GenerateTask(Task):
         The model implementation receives the messages directly and handles
         formatting and generation.
         """
-        return (ctx, cast("dict[str, Any]", deepcopy(self.config.generation_kwargs)))
+        return ctx, deepcopy(self.config.generation_kwargs)
 
 
 class LoglikelihoodTask(Task):
@@ -1357,6 +1359,21 @@ class LoglikelihoodTask(Task):
                 **kwargs,
             )
         ]
+
+    def doc_to_target(
+        self,
+        doc: Doc,
+        doc_to_target: Callable[[Doc], str | int | list[int] | list[str]]
+        | str
+        | None = None,
+    ) -> str | None:
+        target = super().doc_to_target(doc, doc_to_target)
+        if not isinstance(target, str):
+            eval_logger.warning(
+                f"doc_to_target should return a string representing the continuation to score for LoglikelihoodTask. Got {target} of type {type(target)}. Skipping this instance."
+            )
+            return None
+        return target
 
 
 class LoglikelihoodRollingTask(LoglikelihoodTask):
