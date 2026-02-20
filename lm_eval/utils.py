@@ -18,7 +18,6 @@ from typing import Any
 import numpy as np
 import requests
 import yaml
-from jinja2 import BaseLoader, Environment, StrictUndefined
 
 
 SPACING = " " * 47
@@ -567,22 +566,6 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
     return function
 
 
-def regex_replace(string, pattern, repl, count: int = 0):
-    """Implements the `re.sub` function as a custom Jinja filter."""
-    return re.sub(pattern, repl, string, count=count)
-
-
-env = Environment(
-    loader=BaseLoader, undefined=StrictUndefined, keep_trailing_newline=True
-)
-env.filters["regex_replace"] = regex_replace
-
-
-def apply_template(template: str, doc: dict) -> str:
-    rtemplate = env.from_string(template)
-    return rtemplate.render(**doc)
-
-
 def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
     """
     Method for creating a (potentially) sliced and limited
@@ -790,12 +773,14 @@ class RemoteTokenizer:
     def apply_chat_template(
         self, chat_history: list, add_generation_prompt: bool = True, **kwargs
     ) -> str:
+        from lm_eval.config.utils import _jinja_env
+
         with self._lock:
             if self._chat_template_obj is None:
                 template_str = self.tokenizer_info.get("chat_template")
                 if not template_str:
                     raise ValueError("No chat template available from server")
-                self._chat_template_obj = env.from_string(template_str)
+                self._chat_template_obj = _jinja_env().from_string(template_str)
         return self._chat_template_obj.render(
             messages=chat_history, add_generation_prompt=add_generation_prompt, **kwargs
         )
@@ -887,5 +872,5 @@ def random_name_id() -> str:
 
 
 def normalize_to_list(x: dict[str, Any] | dict[str, list[Any]]) -> dict[str, list[Any]]:
-    """Normalize a dict of str to T or list[T] into a dict of str to list[T]."""
+    """Normalize a dict[str, T | list[T]] to dict[str, list[T]]."""
     return {k: v if isinstance(v, list) else [v] for k, v in x.items()}

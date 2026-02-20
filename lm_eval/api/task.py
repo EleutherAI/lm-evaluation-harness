@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import ast
 import logging
 import random
 import re
@@ -31,7 +30,12 @@ from lm_eval.api.utils import (
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
-from lm_eval.config.utils import process_field
+from lm_eval.config.utils import (
+    _coerce_list,
+    _coerce_target,
+    _resolve_target_index,
+    process_field,
+)
 from lm_eval.scorers import ScoredDoc, Scorer
 from lm_eval.utils import normalize_to_list
 
@@ -41,7 +45,7 @@ if TYPE_CHECKING:
 
     from lm_eval._types import OutputType
     from lm_eval.api._types import ChatTemplate
-    from lm_eval.config.task import Dataset, DataSplit, FewshotConfig
+    from lm_eval.config.task import Dataset, DataSplit, Doc, FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
 
@@ -749,82 +753,53 @@ class Task:
 
     ### Doc to Text/Target/Choice/Multimodal Parsing Methods ##
 
-    def doc_to_text(self, doc, doc_to_text=None) -> str | list[str] | None:
+    def doc_to_text(
+        self,
+        doc: Doc,
+        doc_to_text: Callable[[Doc], str | list[str]] | str | None = None,
+    ) -> str | list[str] | None:
         doc_to_text = (
             doc_to_text if doc_to_text is not None else self.config.doc_to_text
         )
-        y = process_field(doc, doc_to_text, digits=False, lists=False)
-        return y
+        return process_field(doc, doc_to_text)
 
-    def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
+    def doc_to_choice(
+        self,
+        doc: Doc,
+        doc_to_choice: Callable[[Doc], list[str]] | str | list[str] | None = None,
+    ) -> list[str] | None:
         doc_to_choice = (
             doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
         )
-        y = process_field(doc, doc_to_choice, digits=False, lists=True)
-        return y
+        choices = _coerce_list(process_field(doc, doc_to_choice))
+        if choices is not None and not isinstance(choices, list):
+            raise ValueError(
+                f"doc_to_choice must return a list, got {type(choices).__name__}: {choices!r}"
+            )
+        return choices
 
     def doc_to_target(
-        self, doc, doc_to_target=None
+        self,
+        doc: Doc,
+        doc_to_target: Callable[[Doc], str | int | list[int] | list[str]]
+        | str
+        | None = None,
     ) -> str | int | list[str] | list[int] | None:
         doc_to_target = (
             doc_to_target if doc_to_target is not None else self.config.doc_to_target
         )
-        y = process_field(doc, doc_to_target, digits=True, lists=True)
-        return y
+        y = process_field(doc, doc_to_target)
+        return _coerce_target(y, parse_list=self._multiple_targets is True)
 
-    def doc_to_prefix(self, doc):
-        if (gen_prefix := self.config.gen_prefix) is not None:
-            if gen_prefix in doc:
-                return doc[gen_prefix]
-            else:
-                return utils.apply_template(gen_prefix, doc)
-        return None
+    def doc_to_prefix(self, doc) -> str | None:
+        _prefix = process_field(doc, self.config.gen_prefix)
+        return _prefix
 
     def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
-        if doc_to_image is not None:
-            doc_to_image = doc_to_image
-        elif self.config.doc_to_image is not None:
-            doc_to_image = self.config.doc_to_image
-        else:
-            return None
-
-        if isinstance(doc_to_image, list):
-            image_feature = [
-                self.doc_to_image(doc, feature) for feature in doc_to_image
-            ]
-            return [feature for feature in image_feature if feature is not None]
-        elif isinstance(doc_to_image, str):
-            if doc_to_image in doc:
-                return doc[doc_to_image]
-            else:
-                return ast.literal_eval(utils.apply_template(doc_to_image, doc))
-        elif callable(doc_to_image):
-            return doc_to_image(doc)
-        else:
-            return None
+        return process_field(doc, doc_to_image or self.config.doc_to_image)
 
     def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list | None:
-        if doc_to_audio is not None:
-            doc_to_audio = doc_to_audio
-        elif self.config.doc_to_audio is not None:
-            doc_to_audio = self.config.doc_to_audio
-        else:
-            return None
-
-        if isinstance(doc_to_audio, list):
-            audio_feature = [
-                self.doc_to_audio(doc, feature) for feature in doc_to_audio
-            ]
-            return [feature for feature in audio_feature if feature is not None]
-        elif isinstance(doc_to_audio, str):
-            if doc_to_audio in doc:
-                return doc[doc_to_audio]
-            else:
-                return ast.literal_eval(utils.apply_template(doc_to_audio, doc))
-        elif callable(doc_to_audio):
-            return doc_to_audio(doc)
-        else:
-            return None
+        return process_field(doc, doc_to_audio or self.config.doc_to_audio)
 
     @cached_property
     def is_multimodal(self):
@@ -1034,9 +1009,8 @@ class Task:
         self._scorers = [Scorer.default_scorer([metric], output_type=self.OUTPUT_TYPE)]
 
     @staticmethod
-    def resolve_field(doc: dict[str, Any], field: str | None = None):
-        if field:
-            return doc[field] if field in doc else utils.apply_template(field, doc)
+    def resolve_field(doc: dict[str, Any], field: str | None = None) -> str:
+        return cast("str", cast("object", process_field(doc, field)))
 
     def set_fewshot_seed(self, seed: int | None = None) -> None:
         self.fewshot_rnd = random.Random(seed)
@@ -1088,9 +1062,9 @@ class MultipleChoiceTask(Task):
 
         choices = self.doc_to_choice(doc)
         target = self.doc_to_target(doc)
-        if not choices:
+        if not choices or target is None:
             eval_logger.warning(
-                f"No choices found for doc:\n\n{doc}\n\nSkipping this instance."
+                f"No {choices=} or {target=} found for doc:\n\n{doc}\n\nSkipping this instance."
             )
             return None
         target_delimiter = self.config.target_delimiter
@@ -1135,9 +1109,6 @@ class MultipleChoiceTask(Task):
             )
             arguments.extend(aux_arguments)
             _metadata.update({"acc_mutual_info": True})
-
-        if target is None:
-            return None
 
         request_list = [
             Instance(
@@ -1218,52 +1189,30 @@ class MultipleChoiceTask(Task):
         )
         return [(cxt, f"{target_delimiter}{choices[0]}") for cxt in context]
 
-    def doc_to_target(self, doc, doc_to_target=None) -> int | list[int] | None:
-        doc_to_target = super().doc_to_target(doc, doc_to_target)
-        if isinstance(doc_to_target, int):
-            return doc_to_target
-
-        if isinstance(doc_to_target, str):
-            choices = self.doc_to_choice(doc)
-            if doc_to_target in choices:
-                return choices.index(doc_to_target)
-            else:
-                eval_logger.warning(
-                    f"[{self.task}] Target '{doc_to_target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
-                )
-                return None  # invalid index to indicate error
-
-        if (
-            isinstance(doc_to_target, list)
-            and (choices := self.doc_to_choice(doc)) is not None
-        ):
-            target_indices = []
-            for target in doc_to_target:
-                if isinstance(target, str) and target in choices:
-                    target_indices.append(choices.index(target))
-                else:
-                    eval_logger.warning(
-                        f"Target '{target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
-                    )
-                    target_indices.append(-100)  # invalid index to indicate error
-            return target_indices or None
-
-    def doc_to_text(self, doc, doc_to_text=None) -> str | list[str] | None:
-        doc_to_text = super().doc_to_text(doc, doc_to_text)
-        if isinstance(doc_to_text, str):
-            return doc_to_text
-        elif isinstance(doc_to_text, list):
-            assert self._multiple_inputs, (
-                "doc_to_text should return a single string for non-multiple-input tasks"
-            )
-            return doc_to_text
-
-    def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
-        doc_to_choice = (
-            doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
+    def doc_to_text(
+        self,
+        doc: Doc,
+        doc_to_text: Callable[[Doc], str | list[str]] | str | None = None,
+    ) -> str | list[str] | None:
+        doc_to_text = (
+            doc_to_text if doc_to_text is not None else self.config.doc_to_text
         )
-        choices = process_field(doc, doc_to_choice, digits=True, lists=True)
-        if choices is not None and not isinstance(choices, list):
+        y = process_field(doc, doc_to_text)
+        if self._multiple_inputs:
+            y = _coerce_list(y)
+        return y
+
+    def doc_to_choice(
+        self,
+        doc: Doc,
+        doc_to_choice: Callable[[Doc], list[str]] | str | list[str] | None = None,
+    ) -> list[str] | None:
+        choices = super().doc_to_choice(doc, doc_to_choice)
+        if (
+            choices is not None
+            and not isinstance(choices, list)
+            and not isinstance(choices[0], str)
+        ):
             raise ValueError(
                 "doc_to_choice should return a list of strings representing the answer choices."
             )
@@ -1272,6 +1221,34 @@ class MultipleChoiceTask(Task):
                 "For multiple input tasks, doc_to_choice should return a list with a single string representing the answer choice template."
             )
         return choices
+
+    def doc_to_target(
+        self,
+        doc: Doc,
+        doc_to_target: Callable[[Doc], str | int | list[int] | list[str]]
+        | str
+        | None = None,
+    ) -> int | list[int] | None:
+        target = super().doc_to_target(doc, doc_to_target)
+        choices = self.doc_to_choice(doc)
+        if not choices:
+            eval_logger.warning(
+                f"No choices found for doc:\n\n{doc}\n\nCannot map non int target to choice index."
+            )
+            return None
+
+        if isinstance(target, list):
+            acc = [
+                idx
+                for t in target
+                if (idx := _resolve_target_index(t, choices, doc)) is not None
+            ]
+            if not acc:
+                eval_logger.warning("No valid targets found in doc_to_target list.")
+                return None
+            return acc
+
+        return _resolve_target_index(target, choices, doc)
 
 
 class GenerateTask(Task):
