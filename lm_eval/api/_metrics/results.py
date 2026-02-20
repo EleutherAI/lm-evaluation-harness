@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from numpy import float64, int64
     from numpy._typing import NDArray
 
-    from lm_eval.api.instance import Instance
+    from lm_eval.api.instance import GenInstance, LLInstance
 
 
 _count_bytes = lambda x: len(x.encode("utf-8"))
@@ -77,13 +77,13 @@ class LLResults:
     @classmethod
     def from_instances(
         cls,
-        results: Sequence[Instance],
+        results: Sequence[LLInstance],
     ):
         from itertools import chain
 
         import numpy as np
 
-        instance = sorted(
+        instance: list[LLInstance] = sorted(
             results,
             key=lambda x: (x.doc_id, x.metadata.get("acc_mutual_info", False)),
         )
@@ -141,8 +141,8 @@ class GenResults:
     doc: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_instances(cls, results: Sequence[Instance]):
-        instance: list[Instance] = sorted(results, key=lambda x: x.doc_id)
+    def from_instances(cls, results: Sequence[GenInstance]):
+        instance: list[GenInstance] = sorted(results, key=lambda x: x.doc_id)
         targets = [inst.target for inst in instance]
         _results = [i.filtered_resps for i in instance]
         ctx = instance[0].args[0] if instance else ""

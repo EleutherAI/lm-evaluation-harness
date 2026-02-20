@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.instance import AdditionalArgs, Instance
+from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
 from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
 from lm_eval.api.utils import (
     Message,
@@ -39,7 +39,8 @@ from lm_eval.utils import normalize_to_list
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
-    from lm_eval._types import ChatTemplate, OutputType
+    from lm_eval._types import OutputType
+    from lm_eval.api._types import ChatTemplate
     from lm_eval.config.task import Dataset, DataSplit, FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
@@ -403,6 +404,7 @@ class Task:
             gen_prefix (str | None): Prefix to start the assistant's response (e.g., "Answer:").
 
         Returns:
+            # TODO: fix winogrande should be multiple contexts with one choice
             str | list[str]: The formatted prompt string, or a list of strings for
                 multiple-input tasks (e.g., Winogrande where each choice becomes a
                 separate context).
@@ -619,7 +621,7 @@ class Task:
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance] | Instance | None: ...
+    ) -> list[GenInstance] | list[LLInstance] | None: ...
 
     def build_all_requests(
         self,
@@ -1081,7 +1083,7 @@ class MultipleChoiceTask(Task):
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance] | None:
+    ) -> list[LLInstance] | None:
         _metadata = {**(metadata or {})}
 
         choices = self.doc_to_choice(doc)
@@ -1245,7 +1247,7 @@ class GenerateTask(Task):
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance]:
+    ) -> list[GenInstance]:
         # Filter out chat_template and metadata from kwargs
         metadata = metadata or {}
         instance_kwargs = {
@@ -1303,7 +1305,7 @@ class LoglikelihoodTask(Task):
             eval_logger.warning(
                 f"LoglikelihoodTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
             )
-            self.config.repeats = 1
+        self.config.repeats = 1
 
     def construct_requests(
         self,
@@ -1315,7 +1317,7 @@ class LoglikelihoodTask(Task):
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance]:
+    ) -> list[LLInstance]:
         cont = self.doc_to_target(doc)
         assert isinstance(ctx, str), (
             "For loglikelihood tasks, the argument should be a string representing the continuation to score against the context. Got type {type(ctx)} with value {ctx}. Please check your doc_to_text implementation."
