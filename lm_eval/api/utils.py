@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import functools
-import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -15,33 +13,6 @@ if TYPE_CHECKING:
 
 
 _T = TypeVar("_T")
-
-
-def regex_replace(string, pattern, repl, count: int = 0):
-    """Implements the `re.sub` function as a custom Jinja filter."""
-    return re.sub(pattern, repl, string, count=count)
-
-
-def apply_template(template: str, doc: dict) -> str:
-    from jinja2 import BaseLoader, Environment, StrictUndefined
-
-    if not hasattr(apply_template, "_env"):
-        apply_template._env = Environment(
-            loader=BaseLoader(),
-            undefined=StrictUndefined,
-            keep_trailing_newline=True,
-        )
-        apply_template._env.filters["regex_replace"] = regex_replace
-
-    try:
-        return _compile_tpl(template).render(doc)
-    except Exception as e:
-        raise ValueError(f"Error rendering template: {template} with doc: {doc}") from e
-
-
-@functools.lru_cache(maxsize=256)
-def _compile_tpl(src: str):
-    return apply_template._env.from_string(src)
 
 
 def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") -> str:

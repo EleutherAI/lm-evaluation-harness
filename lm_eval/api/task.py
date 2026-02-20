@@ -1088,9 +1088,9 @@ class MultipleChoiceTask(Task):
 
         choices = self.doc_to_choice(doc)
         target = self.doc_to_target(doc)
-        if not choices:
+        if not choices or target is None:
             eval_logger.warning(
-                f"No choices found for doc:\n\n{doc}\n\nSkipping this instance."
+                f"No {choices=} or {target=} found for doc:\n\n{doc}\n\nSkipping this instance."
             )
             return None
         target_delimiter = self.config.target_delimiter
@@ -1135,9 +1135,6 @@ class MultipleChoiceTask(Task):
             )
             arguments.extend(aux_arguments)
             _metadata.update({"acc_mutual_info": True})
-
-        if target is None:
-            return None
 
         request_list = [
             Instance(
@@ -1220,43 +1217,78 @@ class MultipleChoiceTask(Task):
 
     def doc_to_target(self, doc, doc_to_target=None) -> int | list[int] | None:
         doc_to_target = super().doc_to_target(doc, doc_to_target)
-        if isinstance(doc_to_target, int):
-            return doc_to_target
+        choices = self.doc_to_choice(doc)
+        if not choices:
+            eval_logger.warning(
+                f"No choices found for doc:\n\n{doc}\n\nCannot map non int target to choice index."
+            )
+            return None
 
-        if isinstance(doc_to_target, str):
-            choices = self.doc_to_choice(doc)
-            if doc_to_target in choices:
-                return choices.index(doc_to_target)
+        if isinstance(doc_to_target, (int, float)):
+            doc_to_target = int(doc_to_target)
+            if doc_to_target < len(choices):
+                return doc_to_target
             else:
                 eval_logger.warning(
-                    f"[{self.task}] Target '{doc_to_target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+                    f"Target index '{doc_to_target}' out of range for choices {choices} for doc:\n\n{doc}\n\n"
                 )
-                return None  # invalid index to indicate error
+                return None
 
-        if (
-            isinstance(doc_to_target, list)
-            and (choices := self.doc_to_choice(doc)) is not None
-        ):
-            target_indices = []
-            for target in doc_to_target:
-                if isinstance(target, str) and target in choices:
-                    target_indices.append(choices.index(target))
+        if not choices:
+            eval_logger.warning(
+                f"No choices found for doc:\n\n{doc}\n\nCannot map non int target to choice index."
+            )
+            return None
+
+        match doc_to_target:
+            case str():
+                if doc_to_target in choices:
+                    return choices.index(doc_to_target)
                 else:
                     eval_logger.warning(
-                        f"Target '{target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+                        f"Target '{doc_to_target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
                     )
-                    target_indices.append(-100)  # invalid index to indicate error
-            return target_indices or None
+                    return None
+            case list():
+                # validate
+                acc = []
+                for target in doc_to_target:
+                    if isinstance(target, str):
+                        if target in choices:
+                            acc.append(choices.index(target))
+                        else:
+                            eval_logger.warning(
+                                f"Target '{target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+                            )
+                    else:
+                        if target < len(choices):
+                            acc.append(int(target))
+                        else:
+                            eval_logger.warning(
+                                f"Target index '{target}' out of range for choices {choices} for doc:\n\n{doc}\n\n"
+                            )
+                if not acc:
+                    eval_logger.warning("No valid targets found in doc_to_target list.")
+                    return None
+                return acc
 
     def doc_to_text(self, doc, doc_to_text=None) -> str | list[str] | None:
-        doc_to_text = super().doc_to_text(doc, doc_to_text)
-        if isinstance(doc_to_text, str):
-            return doc_to_text
-        elif isinstance(doc_to_text, list):
-            assert self._multiple_inputs, (
-                "doc_to_text should return a single string for non-multiple-input tasks"
-            )
-            return doc_to_text
+        doc_to_text = (
+            doc_to_text if doc_to_text is not None else self.config.doc_to_text
+        )
+        y = process_field(
+            doc, doc_to_text, digits=False, lists=self._multiple_inputs is True
+        )
+        return y
+
+        # doc_to_text = super().doc_to_text(doc, doc_to_text)
+        # if isinstance(doc_to_text, str):
+        #     return doc_to_text
+        # elif isinstance(doc_to_text, list):
+        #     assert self._multiple_inputs, (
+        #         "doc_to_text should return a single string for non-multiple-input tasks"
+        #     )
+        #     return doc_to_text
 
     def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
         doc_to_choice = (

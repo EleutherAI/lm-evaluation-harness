@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import ast
-from collections.abc import Callable
-from typing import Any, Literal
+import functools
+import re
+import string
+from typing import TYPE_CHECKING, Any, Literal
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
 
 from typing_extensions import overload
-
-from lm_eval import utils
 
 
 def serialize_callable(
@@ -95,6 +101,72 @@ def process_field(
 ) -> str | int | list[str] | None: ...
 
 
+def regex_replace(text, pattern, repl, count: int = 0) -> str:
+    """Implements the `re.sub` function as a custom Jinja filter."""
+    return re.sub(pattern, repl, text, count=count)
+
+
+def letter_choices(choices: Sequence[str], sep: str = "\n", style: str = ". ") -> str:
+    r"""Format a list of choices with letter labels.
+
+    Usage in Jinja: ``{{ choices | letter_choices }}``
+    produces ``A. choice1\nB. choice2\n...``
+
+    *style* controls the separator between the letter and the text
+    (e.g. ``". "``, ``": "``, ``") "``).
+    """
+    return sep.join(
+        f"{string.ascii_uppercase[i]}{style}{c}" for i, c in enumerate(choices)
+    )
+
+
+def answer_key_to_index(key: str | int, labels: Sequence[str] | None = None) -> int:
+    """Convert an answer key to a 0-based index.
+
+    Usage in Jinja: ``{{ answerKey | answer_key_to_index(choices.label) }}``
+
+    Handles three cases:
+    * *labels* provided → ``labels.index(key)`` (after stripping whitespace).
+    * *key* is a letter (A-Z) → ordinal offset from ``'A'``.
+    * *key* is a numeric string (1-based) → ``int(key) - 1``.
+    """
+    key_str = str(key).strip()
+    if labels is not None:
+        return list(labels).index(key_str)
+    if len(key_str) == 1 and key_str.isalpha():
+        return ord(key_str.upper()) - ord("A")
+    return int(key_str) - 1
+
+
+@functools.lru_cache(maxsize=1)
+def _jinja_env():
+    from jinja2 import BaseLoader, Environment, StrictUndefined
+
+    env = Environment(
+        loader=BaseLoader(),
+        undefined=StrictUndefined,
+        keep_trailing_newline=True,
+    )
+    env.filters["regex_replace"] = regex_replace
+    env.filters["letter_choices"] = letter_choices
+    env.filters["answer_key_to_index"] = answer_key_to_index
+    return env
+
+
+@functools.lru_cache(maxsize=256)
+def _compile_tpl(src: str):
+    return _jinja_env().from_string(src)
+
+
+def apply_template(template: str, doc: dict, *args) -> str:
+    try:
+        return _compile_tpl(template).render(doc)
+    except Exception as e:
+        raise ValueError(
+            f"Error rendering template: {template} with doc: {doc}, args: {args}"
+        ) from e
+
+
 def process_field(
     doc: dict[str, str],
     field_spec: Any | None,
@@ -108,11 +180,11 @@ def process_field(
         case None: return None
         case _ if callable(field_spec): return field_spec(doc)
         case int(): return field_spec
-        case list(): return [utils.apply_template(x, doc) if isinstance(x, str) else x for x in field_spec]
+        case list(): return [apply_template(x, doc) if isinstance(x, str) else x for x in field_spec]
         case str() if field_spec in doc: return doc[field_spec]
     # fmt: on
 
-    target_string = utils.apply_template(field_spec, doc)
+    target_string = apply_template(field_spec, doc)
 
     if digits and isinstance(target_string, str) and target_string.isdigit():
         return int(target_string)
