@@ -1,13 +1,14 @@
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Generic
 
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict, TypeVar
 
+from lm_eval.api._types import GenArgs, GenResponse, LLArgs, LLResponse
 from lm_eval.result_schema import OutputType
 
 
-LLArgs = tuple[str, str] | tuple[list[dict[str, Any]], str]
-GenArgs = tuple[str, dict[str, Any]] | tuple[list[dict[str, Any]], dict[str, Any]]
+ArgsT = TypeVar("ArgsT", bound=LLArgs | GenArgs)
+RespT = TypeVar("RespT", bound=LLResponse | GenResponse)
 
 
 class AdditionalArgs(TypedDict, total=False, extra_items=Any):
@@ -20,18 +21,18 @@ class AdditionalArgs(TypedDict, total=False, extra_items=Any):
 
 
 @dataclass
-class Instance:
+class Instance(Generic[ArgsT, RespT]):
     request_type: OutputType
-    doc: dict
-    arguments: LLArgs | GenArgs
+    doc: dict[str, Any]
+    arguments: ArgsT
     task_name: str
     doc_id: int = field(kw_only=True)
     idx: int = 0
     repeats: int = 1
     target: str | int | list[str] | list[int] | None = None
     additional_args: AdditionalArgs | None = None
-    resps: list = field(default_factory=list)
-    filtered_resps: dict = field(default_factory=dict)
+    resps: RespT = field(default_factory=list)
+    filtered_resps: dict[str, RespT] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     # backward stub for metadata unpacking
@@ -42,10 +43,14 @@ class Instance:
             self.metadata = {}
 
     @property
-    def args(self):
+    def args(self) -> ArgsT:
         """
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """
         return (
             self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
         )
+
+
+LLInstance = Instance[LLArgs, LLResponse]
+GenInstance = Instance[GenArgs, GenResponse]

@@ -13,8 +13,7 @@ from typing import (
     TypeVar,
 )
 
-from typing_extensions import TypedDict
-
+from lm_eval.api._types import GenKwargs
 from lm_eval.utils import maybe_warn, warning_once
 
 
@@ -28,15 +27,6 @@ if TYPE_CHECKING:
     from PIL import Image
     from transformers import PreTrainedTokenizerBase
     from transformers.configuration_utils import PretrainedConfig
-
-
-class GenKwargs(TypedDict, total=False):
-    do_sample: bool
-    temperature: float
-    # other alias' will be converted to `max_gen_toks`.
-    max_gen_toks: int
-    until: list[str]
-    __extra_items__: Any
 
 
 def chunks(iter, n: int = 0, fn=None):
@@ -540,7 +530,7 @@ def configure_pad_token(
         # handle special cases
         if model_config and getattr(model_config, "model_type", None) == "qwen":
             # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
-            tokenizer.pad_token = "<|endoftext|>"
+            tokenizer.pad_token = "<|endoftext|>"  # noqa: S105
         elif (
             tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
             or tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
@@ -711,7 +701,7 @@ def normalize_gen_kwargs(
     kwargs["until"] = until
     kwargs["max_gen_toks"] = max_gen_toks
 
-    return GenKwargs(**kwargs)  # type:ignore[missing-typed-dict-key]
+    return GenKwargs(**kwargs)
 
 
 def resize_image(

@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import abc
 import hashlib
 import json
 import logging
 import os
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from tqdm import tqdm
 
@@ -12,10 +13,11 @@ from lm_eval import utils
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from sqlitedict import SqliteDict
 
-    from lm_eval.api.instance import Instance
-
+    from lm_eval.api.instance import GenInstance, Instance, LLInstance
 
 eval_logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ class LM(abc.ABC):
         self.cache_hook: CacheHook = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests: list["Instance"]) -> list[tuple[float, bool]]:
+    def loglikelihood(self, requests: list[LLInstance]) -> list[tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
 
         Downstream tasks should prefer this over other LM calls whenever possible.
@@ -55,7 +57,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests: list["Instance"]) -> list[float]:
+    def loglikelihood_rolling(self, requests: list[LLInstance]) -> list[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation.
 
         - Uses the full max context length of the model.
@@ -97,7 +99,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests: list["Instance"]) -> list[str]:
+    def generate_until(self, requests: list[GenInstance]) -> list[str]:
         """Generate greedily until a stopping sequence.
 
         Args:
@@ -112,7 +114,7 @@ class LM(abc.ABC):
 
     def apply_chat_template(
         self, chat_history: list[dict[str, str]], add_generation_prompt=True
-    ) -> str:
+    ) -> str | list[dict[str, str]]:
         """Transform few-shot chat history into a string prompt for the model.
 
         Args:
@@ -222,7 +224,7 @@ class LM(abc.ABC):
         """
         return ""
 
-    def set_cache_hook(self, cache_hook: "CacheHook") -> None:
+    def set_cache_hook(self, cache_hook: CacheHook) -> None:
         self.cache_hook = cache_hook
 
 
@@ -233,7 +235,7 @@ def hash_args(attr: str, args: Iterable[Any]) -> str:
 
 
 class CacheHook:
-    def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
+    def __init__(self, cachinglm: CachingLM | None) -> None:
         if cachinglm is None:
             self.dbdict: SqliteDict | None = None
             return
@@ -272,7 +274,7 @@ class CachingLM:
             eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
             return lm_attr
 
-        def _fn(requests: list["Instance"]) -> list["Instance"]:
+        def _fn(requests: list[Instance]) -> list[Instance]:
             res = []
             remaining_reqs = []
             warned = False
@@ -324,7 +326,7 @@ class CachingLM:
 
         return _fn
 
-    def get_cache_hook(self) -> "CacheHook":
+    def get_cache_hook(self) -> CacheHook:
         return CacheHook(self)
 
 
@@ -406,7 +408,7 @@ class TemplateLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(
-        self, requests: list["Instance"], disable_tqdm: bool = False
+        self, requests: list[LLInstance], disable_tqdm: bool = False
     ) -> list[tuple[float, bool]]:
         """Compute log-likelihood of continuations given contexts.
 
