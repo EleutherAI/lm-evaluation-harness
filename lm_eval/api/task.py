@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 
     from lm_eval._types import OutputType
     from lm_eval.api._types import ChatTemplate
+    from lm_eval.config.metric import Metric
     from lm_eval.config.task import Dataset, DataSplit, Doc, FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
@@ -181,26 +182,27 @@ class Task:
         docs = list(fewshot_docs) if fewshot_docs is not None else []
         return self._sampler_cls(docs, rnd=self._fewshot_seed)
 
-    def _build_global_metrics(self) -> list:
+    def _build_global_metrics(self) -> list[Metric]:
         """Convert config.metric_list (or output_type defaults) into list[Metric]."""
         from lm_eval.config.metric import Metric
 
-        metrics: list[Metric] = []
         if self.config.metric_list:
-            for m_cfg in self.config.metric_list:
-                metrics.append(Metric.from_dict({**m_cfg}))
+            metrics = [Metric.from_dict({**m_cfg}) for m_cfg in self.config.metric_list]
         else:
-            for metric_name in DEFAULT_METRIC_REGISTRY.get(self.OUTPUT_TYPE, []):
-                metrics.append(Metric.from_dict({"metric": metric_name}))
+            metrics = [
+                Metric.from_dict({"metric": metric_name})
+                for metric_name in DEFAULT_METRIC_REGISTRY.get(self.OUTPUT_TYPE, [])
+            ]
         return metrics
 
     def _build_scorers(self) -> list[Scorer]:
         """Build scorers from filter_list config, or a default scorer."""
         global_metrics = self._build_global_metrics()
         output_type = self.OUTPUT_TYPE
+        context = self._build_scorer_context()
 
         if self.config.filter_list:
-            return [
+            scorers = [
                 Scorer.from_dict(
                     filter_config,
                     global_metrics=global_metrics,
@@ -208,8 +210,24 @@ class Task:
                 )
                 for filter_config in self.config.filter_list
             ]
+        else:
+            scorers = [Scorer.default_scorer(global_metrics, output_type=output_type)]
 
-        return [Scorer.default_scorer(global_metrics, output_type=output_type)]
+        for s in scorers:
+            s.context = context
+        return scorers
+
+    def _build_scorer_context(self) -> dict[str, Any]:
+        """Collect task-level runtime config to forward to metric functions.
+
+        Values here are passed as extra kwargs to every ``Metric.compute``
+        call.  ``filter_kwargs`` ensures only metrics whose function
+        signature accepts a given key will receive it.
+        """
+        ctx: dict[str, Any] = {}
+        if self._multiple_targets:
+            ctx["multiple_targets"] = True
+        return ctx
 
     def _has_metric(self, metric_name: str) -> bool:
         """Check if any scorer contains a metric with the given name."""
