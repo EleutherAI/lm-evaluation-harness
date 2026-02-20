@@ -15,7 +15,6 @@ from typing import (
 )
 
 from tqdm import tqdm
-from typing_extensions import TypedDict
 
 from lm_eval import utils
 from lm_eval.api import samplers
@@ -72,22 +71,6 @@ def _legacy_to_scored_docs(
         )
 
     return scored_docs
-
-
-class Metadata(TypedDict, total=False):
-    """Metadata passed through build_all_requests → construct_requests → Instance.
-
-    Required keys (set by build_all_requests, popped by construct_requests
-    into Instance fields):
-        task, doc_id, repeats
-
-    Additional keys may be added along the pipeline (e.g. acc_mutual_info)
-    and are forwarded as Instance.metadata.
-    """
-
-    task: str
-    doc_id: int
-    repeats: int
 
 
 class Task:
@@ -631,7 +614,8 @@ class Task:
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: Metadata,
+        doc_id: int,
+        metadata: dict[str, Any] | None = None,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
@@ -722,11 +706,7 @@ class Task:
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
-                metadata={
-                    "task": self.task_name,
-                    "doc_id": doc_id,
-                    "repeats": self.config.repeats,
-                },
+                doc_id=doc_id,
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
             )
@@ -1096,12 +1076,13 @@ class MultipleChoiceTask(Task):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: Metadata,
+        doc_id: int,
+        metadata: dict[str, Any] | None = None,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance] | None:
-        _metadata = {**metadata}
+        _metadata = {**(metadata or {})}
 
         choices = self.doc_to_choice(doc)
         if not choices:
@@ -1158,10 +1139,10 @@ class MultipleChoiceTask(Task):
                 request_type="loglikelihood",
                 doc=doc,
                 arguments=arg,
-                task_name=_metadata.pop("task", self.task_name),
+                task_name=self.task_name,
                 idx=i,
-                doc_id=_metadata.pop("doc_id", 0),
-                repeats=_metadata.pop("repeats", 1),
+                doc_id=doc_id,
+                repeats=self.config.repeats,
                 target=target,
                 metadata=_metadata,
                 **kwargs,
@@ -1259,18 +1240,14 @@ class GenerateTask(Task):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: Metadata,
+        doc_id: int,
+        metadata: dict[str, Any] | None = None,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
-        name, doc_id, repeats = (
-            metadata.pop("task"),
-            metadata.pop("doc_id"),
-            metadata.pop("repeats"),
-        )
-
         # Filter out chat_template and metadata from kwargs
+        metadata = metadata or {}
         instance_kwargs = {
             k: v
             for k, v in kwargs.items()
@@ -1294,9 +1271,9 @@ class GenerateTask(Task):
                 additional_args=multimodal_arguments,
                 target=target,
                 idx=0,
-                task_name=name,
+                task_name=self.task_name,
                 doc_id=doc_id,
-                repeats=repeats,
+                repeats=self.config.repeats,
                 metadata={**metadata},
                 **instance_kwargs,
             )
@@ -1307,7 +1284,7 @@ class GenerateTask(Task):
         doc: dict[str, Any],
         ctx: list[dict[str, Any]],
         *,
-        metadata: Metadata,
+        metadata: dict[str, Any] | None = None,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
@@ -1333,15 +1310,12 @@ class LoglikelihoodTask(Task):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: Metadata,
+        doc_id: int,
+        metadata: dict[str, Any] | None = None,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
-        name = metadata.pop("task", self.task_name)
-        doc_id = metadata.pop("doc_id", 0)
-        repeats = metadata.pop("repeats", 1)
-
         cont = self.doc_to_target(doc)
         assert isinstance(ctx, str), (
             "For loglikelihood tasks, the argument should be a string representing the continuation to score against the context. Got type {type(ctx)} with value {ctx}. Please check your doc_to_text implementation."
@@ -1356,12 +1330,12 @@ class LoglikelihoodTask(Task):
                 request_type=cast("Literal['loglikelihood']", self.OUTPUT_TYPE),
                 doc=doc,
                 arguments=arguments,
-                task_name=name,
+                task_name=self.task_name,
                 idx=0,
                 doc_id=doc_id,
-                repeats=repeats,
+                repeats=self.config.repeats,
                 target=0,
-                metadata={**metadata},
+                metadata={**(metadata or {})},
                 **kwargs,
             )
         ]
@@ -1375,15 +1349,12 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
         *,
-        metadata: Metadata,
+        doc_id: int,
+        metadata: dict[str, Any] | None = None,
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
-        name = metadata.pop("task", self.task_name)
-        doc_id = metadata.pop("doc_id", 0)
-        repeats = metadata.pop("repeats", 1)
-
         arguments = (self.doc_to_target(doc),)
 
         return [
@@ -1391,12 +1362,12 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
                 request_type=cast("Literal['loglikelihood_rolling']", self.OUTPUT_TYPE),
                 doc=doc,
                 arguments=arguments,
-                task_name=name,
+                task_name=self.task_name,
                 idx=0,
                 doc_id=doc_id,
-                repeats=repeats,
+                repeats=self.config.repeats,
                 target=0,
-                metadata={**metadata},
+                metadata={**(metadata or {})},
                 **kwargs,
             )
         ]
