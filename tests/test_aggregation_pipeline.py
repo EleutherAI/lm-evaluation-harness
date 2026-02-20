@@ -517,7 +517,6 @@ class TestLegacyProcessResultsBugFix:
     """
 
     def test_legacy_scored_docs_have_references(self):
-
         from lm_eval.api.instance import Instance
         from lm_eval.api.task import _legacy_to_scored_docs
 

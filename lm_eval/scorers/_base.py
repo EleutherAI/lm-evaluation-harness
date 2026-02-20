@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 from typing_extensions import Self
 
-from lm_eval.api.filter import FilterEnsemble
+
+if TYPE_CHECKING:
+    from lm_eval.api.filter import FilterEnsemble
 
 
 if TYPE_CHECKING:
@@ -243,7 +245,7 @@ class Scorer:
         for sd in scored_docs.values():
             for metric_name, values in sd.scores.items():
                 m = metrics_by_name.get(metric_name)
-                if m is not None:
+                if m is not None and m.reduction is not None:
                     sd.reduced_scores[metric_name] = m.reduction(sd.reference, values)
                 else:
                     # Unknown metric (e.g. from process_results): take first

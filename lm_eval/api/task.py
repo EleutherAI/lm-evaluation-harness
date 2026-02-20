@@ -888,7 +888,7 @@ class Task:
         for scorer in self._scorers:
             pr_results = self._try_process_results(instances, scorer.name)
             if pr_results is not None:
-                scored_docs = _legacy_to_scored_docs(instances, pr_results)
+                scored_docs = pr_results
             else:
                 scored_docs = scorer.score_instances(instances)
             scorer._scored_docs = scored_docs
@@ -898,32 +898,34 @@ class Task:
         self,
         instances: dict[int, list[Instance]],
         filter_key: str,
-    ) -> dict[str, list[list[Any]]] | None:
-        """Try the legacy process_results path for all docs.
+    ) -> dict[int, ScoredDoc] | None:
+        """Try the process_results path for all docs.
 
         Returns ``{metric_name: [per_doc_values]}`` if ``process_results``
         returns a non-None dict for the first document, otherwise ``None``.
         """
-        from collections import defaultdict
 
-        accumulator = defaultdict(list)
+        accumulator: dict[int, ScoredDoc] = {}
 
         for doc_id, doc_instances in instances.items():
-            filtered_resps = [req.filtered_resps[filter_key] for req in doc_instances]
-            doc = doc_instances[0].doc
-            metrics = self.process_results(doc, filtered_resps)
-
+            metrics = self.process_results(
+                doc_instances[0].doc,
+                [req.filtered_resps[filter_key] for req in doc_instances],
+            )
             if metrics is None:
                 return None
 
             metrics = normalize_to_list(metrics)
+            scored_doc = ScoredDoc(
+                doc_id=doc_id, reference=doc_instances[0].target, scores=metrics
+            )
+            accumulator[doc_id] = scored_doc
 
-            for metric_name, value in metrics.items():
-                accumulator[metric_name].append(value)
+        return dict(accumulator) or None
 
-        return dict(accumulator) if accumulator else None
-
-    def process_results(self, doc, results) -> dict[str, list[Any]] | None:
+    def process_results(
+        self, doc: dict[str, Any], results: list[Any]
+    ) -> dict[str, list[Any]] | None:
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
         return None
@@ -1063,8 +1065,6 @@ class Task:
 
     def dump_config(self) -> dict:
         """Returns the config as a dictionary."""
-        # TODO: this should only return the overrides applied to a non-YAML task's configuration.
-        # (num_fewshot)
         return self.config.to_dict()
 
     @staticmethod
@@ -1089,7 +1089,7 @@ class MultipleChoiceTask(Task):
             eval_logger.warning(
                 f"MultipleChoiceTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
             )
-            self.config.repeats = 1
+        self.config.repeats = 1
 
     def construct_requests(
         self,
@@ -1297,6 +1297,7 @@ class GenerateTask(Task):
                 task_name=name,
                 doc_id=doc_id,
                 repeats=repeats,
+                metadata={**metadata},
                 **instance_kwargs,
             )
         ]
