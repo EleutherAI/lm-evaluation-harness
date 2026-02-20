@@ -14,12 +14,12 @@ T = TypeVar("T")
 
 def pop_stddev(arr):
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / len(arr))
+    return math.sqrt(sum((x - mu) ** 2 for x in arr) / len(arr))
 
 
 def sample_stddev(arr: Sequence[T]) -> float:
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+    return math.sqrt(sum((x - mu) ** 2 for x in arr) / (len(arr) - 1))
 
 
 def mean_stderr(arr):
@@ -142,10 +142,8 @@ def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # from the subtasks concatenated with each other.
     pooled_sample_var = (
         sum(
-            [
-                (size - 1) * stderr**2 * size
-                for size, stderr in zip(sizes, stderrs, strict=True)
-            ]
+            (size - 1) * stderr**2 * size
+            for size, stderr in zip(sizes, stderrs, strict=True)
         )
     ) / (sum(sizes) - len(sizes))
 

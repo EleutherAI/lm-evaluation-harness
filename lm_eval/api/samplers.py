@@ -116,8 +116,9 @@ class BalancedSampler(ContextSampler):
 
 
 class ManualSampler(ContextSampler):
+    """Sampler that allows users to implement custom fewshot selection logic."""
+
     def sample(self, n: int, eval_doc=None, df=None, **kwargs):
-        """ """
         raise NotImplementedError
 
 
