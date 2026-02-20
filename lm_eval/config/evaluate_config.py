@@ -380,7 +380,7 @@ class EvaluatorConfig:
         match_dict: dict[str, list] = {}
 
         # Match each task
-        for task in match_dict:
+        for task in task_list:
             if not task.endswith(".yaml"):
                 # Standard task name - match via task manager
                 matches = task_manager.match_tasks([task])
