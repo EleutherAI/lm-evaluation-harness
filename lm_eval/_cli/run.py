@@ -128,6 +128,14 @@ class Run(SubCommand):
             help="Number of examples in few-shot context",
         )
         eval_group.add_argument(
+            "--repeats",
+            "-r",
+            type=int,
+            default=None,
+            metavar="<n>",
+            help="Number of repeats for each request (useful for generation with sampling)",
+        )
+        eval_group.add_argument(
             "--batch_size",
             "-b",
             type=str,
@@ -383,6 +391,7 @@ class Run(SubCommand):
             model_args=cfg.model_args,
             tasks=cfg.tasks,
             num_fewshot=cfg.num_fewshot,
+            repeats=cfg.repeats,
             batch_size=cfg.batch_size,
             max_batch_size=cfg.max_batch_size,
             device=cfg.device,
