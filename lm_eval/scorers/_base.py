@@ -299,7 +299,7 @@ class Scorer:
         agg: dict[str, Any] = {}
         sample_len = 0
 
-        # Resolve values once — no branching on metric_results below.
+        # Resolve values once
         if metric_results is not None:
             results = metric_results
         else:
