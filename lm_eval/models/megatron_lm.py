@@ -946,7 +946,7 @@ class MegatronLMEval(LM):
 
         loglikelihoods = []
 
-        for (string,) in tqdm(
+        for string, _ in tqdm(
             local_requests,
             disable=disable_tqdm or (self._global_rank != 0),
             desc="Running loglikelihood_rolling requests",
@@ -971,7 +971,9 @@ class MegatronLMEval(LM):
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
-            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string, ""), string_nll
+            )
 
         # Gather results from all ranks
         all_results = self._gather_results(loglikelihoods, sizes)

@@ -366,7 +366,7 @@ class NeMoLM(LM):
     ) -> list[float]:
         loglikelihoods = []
 
-        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
+        for string, _ in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
                 map(
                     make_disjoint_window,
@@ -392,7 +392,9 @@ class NeMoLM(LM):
             loglikelihoods.append(string_nll)
 
             # cache this loglikelihood_rolling request
-            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string, ""), string_nll
+            )
         return loglikelihoods
 
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
