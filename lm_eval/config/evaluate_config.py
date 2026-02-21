@@ -69,9 +69,13 @@ class EvaluatorConfig:
         metadata={"help": "Comma-separated list of task names to evaluate"},
     )
 
-    # Few-shot and batching
+    # Few-shot, repeats, and batching
     num_fewshot: int | None = field(
         default=None, metadata={"help": "Number of examples in few-shot context"}
+    )
+    repeats: int | None = field(
+        default=None,
+        metadata={"help": "Number of repeats for each request (overrides task config)"},
     )
     batch_size: int = field(default=1, metadata={"help": "Batch size for evaluation"})
     max_batch_size: int | None = field(
