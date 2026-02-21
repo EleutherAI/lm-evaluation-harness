@@ -86,7 +86,7 @@ def _drop_duplicates_in_input(untokenized_dataset):
     id_to_idx = {}
     outputs = []
     for i, (id_, output) in enumerate(
-        zip(untokenized_dataset["id"], untokenized_dataset["output"])
+        zip(untokenized_dataset["id"], untokenized_dataset["output"], strict=True)
     ):
         if id_ in id_to_idx:
             outputs[id_to_idx[id_]].append(output)
@@ -121,7 +121,9 @@ class _SCROLLSTask(ConfigurableTask):
     PRUNE_NUM_PROC = None
 
     def __init__(self, config=None):
-        super().__init__(config={"metadata": {"version": self.VERSION}})
+        super().__init__(
+            config={"task": "scrolls", "metadata": {"version": self.VERSION}}
+        )
         if self.DATASET_NAME is not None:
             self.metric = load(_download_metric(), config_name=self.DATASET_NAME)
 
@@ -186,7 +188,7 @@ class _SCROLLSTask(ConfigurableTask):
 
         def _filter(sample):
             text = self._get_prune_text(sample)
-            cached = cache.get(text, None)
+            cached = cache.get(text)
             if cached is None:
                 for tokenizer in tokenizers:
                     if len(tokenizer(text).input_ids) > self.PRUNE_MAX_TOKENS:
@@ -214,7 +216,7 @@ class _SCROLLSTask(ConfigurableTask):
 
     def _make_compute_metrics(self, value):
         def compute_metrics(samples):
-            predictions, references = zip(*samples)  # unzip, if you will
+            predictions, references = zip(*samples, strict=True)  # unzip, if you will
             computed = self.metric.compute(
                 predictions=predictions, references=references
             )
@@ -245,7 +247,7 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
     def process_results(self, doc, results):
         gold = doc["gold"]
 
-        lls, _ = zip(*results)
+        lls, _ = zip(*results, strict=True)
         acc = 1.0 if np.argmax(lls) == gold else 0.0
         completion_len = np.array([float(len(i)) for i in doc["choices"]])
         acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
@@ -263,9 +265,9 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice))
+                arguments=(ctx, f" {choice}")
                 if not apply_chat_template
-                else (ctx, "{}".format(choice)),
+                else (ctx, f"{choice}"),
                 idx=i,
                 **kwargs,
             )
@@ -317,8 +319,9 @@ class Qasper(_SCROLLSTask):
     def _process_doc(self, doc):
         doc = _process_doc_prepended_question(doc)
         doc["is_yes_no"] = reduce(
-            lambda prev, cur: prev
-            and squad_metrics.normalize_answer(cur) in ["yes", "no"],
+            lambda prev, cur: (
+                prev and squad_metrics.normalize_answer(cur) in ["yes", "no"]
+            ),
             doc["outputs"],
             True,
         )

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -10,10 +9,9 @@ from typing_extensions import Self
 
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from lm_eval.api.filter import FilterEnsemble
-
-
-if TYPE_CHECKING:
     from lm_eval.api.instance import Instance
     from lm_eval.config.metric import Metric
 
@@ -282,13 +280,16 @@ class Scorer:
         self,
         metric_results: dict[str, list] | None = None,
         bootstrap_iters: int | None = 100000,
+        aggregation_overrides: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int]:
         """Aggregate metric results and compute stderr.
 
         Iterates over all metric names present in ``_scored_docs`` (or
         ``metric_results`` if provided) and looks up the ``Metric`` object
-        for aggregation/stderr when available, falling back to ``mean``
-        for unknown metrics.
+        for aggregation/stderr when available.  When *aggregation_overrides*
+        is supplied (legacy Python tasks that override ``Task.aggregation()``),
+        those functions take precedence over the ``mean`` fallback for metrics
+        not covered by a ``Metric`` object.
 
         Returns ``(agg_metrics, sample_len)`` where keys are in
         ``"metric,{self.name}"`` / ``"metric_stderr,{self.name}"`` format.
@@ -326,6 +327,9 @@ class Scorer:
                     )
                     agg_fn = mean
                     agg[str(MetricKey(metric_name, self.name))] = mean(values)
+            elif aggregation_overrides and metric_name in aggregation_overrides:
+                agg_fn = aggregation_overrides[metric_name]
+                agg[str(MetricKey(metric_name, self.name))] = agg_fn(values)
             else:
                 # Unknown metric (e.g. from process_results): default to mean
                 eval_logger.warning(

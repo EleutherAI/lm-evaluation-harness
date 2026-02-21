@@ -930,11 +930,26 @@ class Task:
 
         Returns (agg_dict, sample_len) where agg_dict has "metric,scorer" string keys.
         This is the only place where string keys are produced.
+
+        Legacy Python tasks that override ``aggregation()`` get their custom
+        functions forwarded to each scorer so that corpus-level metrics
+        (e.g. SQuAD v2, SCROLLS) are aggregated correctly instead of
+        falling back to ``mean``.
         """
+        # Detect subclass override of aggregation()
+        custom_agg = (
+            self.aggregation()
+            if type(self).aggregation is not Task.aggregation
+            else None
+        )
+
         agg_metrics: dict[str, Any] = {}
         sample_len = 0
         for scorer in self._scorers:
-            result, count = scorer.aggregate(bootstrap_iters=bootstrap_iters)
+            result, count = scorer.aggregate(
+                bootstrap_iters=bootstrap_iters,
+                aggregation_overrides=custom_agg,
+            )
             agg_metrics.update(result)
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
@@ -979,7 +994,7 @@ class Task:
 
         return Random(f"{self.task_name}").randint(0, 2**32)
 
-    def aggregation(self) -> dict:
+    def aggregation(self) -> dict[str, Callable[[list[Any]], Any]]:
         return {
             m.name: m.aggregation
             for scorer in self._scorers
