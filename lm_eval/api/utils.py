@@ -5,10 +5,13 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import TypeVar
 
+from lm_eval import utils
+
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from lm_eval.api.instance import Instance
     from lm_eval.config.task import Dataset
 
 
@@ -136,3 +139,43 @@ def load_dataset_splits(
         if unique_splits
         else loaded
     )
+
+
+def _build_cache_key(
+    task: str,
+    num_fewshot: int | None,
+    rank: int,
+    world_size: int,
+    apply_chat_template: bool,
+    fewshot_as_multiturn: bool,
+    system_instruction: str | None,
+    tokenizer_name: str,
+) -> str:
+    """Build the cache key string for request caching."""
+    parts = [
+        f"requests-{task}-{num_fewshot}shot-rank{rank}-world_size{world_size}",
+    ]
+    if apply_chat_template:
+        parts.append("chat_template")
+    if fewshot_as_multiturn:
+        parts.append("fewshot_as_multiturn")
+    if system_instruction is not None:
+        parts.append(f"system_prompt_hash{utils.hash_string(system_instruction)}")
+    parts.append(f"tokenizer{tokenizer_name}")
+    return "-".join(parts)
+
+
+def group_by_doc_id(
+    instances: list[Instance] | None = None,
+) -> dict[int, list[Instance]]:
+    """Group instances by doc_id and sort each group by idx."""
+    if not instances:
+        return {}
+    from collections import defaultdict
+
+    instances_by_doc_id: dict[int, list[Instance]] = defaultdict(list)
+    for instance in instances:
+        instances_by_doc_id[instance.doc_id].append(instance)
+    for insts in instances_by_doc_id.values():
+        insts.sort(key=lambda x: x.idx)
+    return instances_by_doc_id
