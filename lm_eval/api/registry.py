@@ -57,39 +57,39 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    # Core registry class
-    "Registry",
-    # Registry instances
-    "model_registry",
-    "filter_registry",
-    "aggregation_registry",
-    "metric_registry",
-    "metric_agg_registry",
-    "higher_is_better_registry",
-    "freeze_all",
-    # Helper functions
-    "register_model",
-    "get_model",
-    "register_metric",
-    "get_metric",
-    "register_aggregation",
-    "get_aggregation",
-    "get_metric_aggregation",
-    "is_higher_better",
-    "register_filter",
-    "get_filter",
-    "register_reduction",
-    "get_reduction",
-    "reduction_registry",
-    # Backward compat aliases (point to Registry instances)
-    "MODEL_REGISTRY",
-    "FILTER_REGISTRY",
-    "METRIC_REGISTRY",
-    "METRIC_AGGREGATION_REGISTRY",
     "AGGREGATION_REGISTRY",
-    "HIGHER_IS_BETTER_REGISTRY",
     # Default metric configuration
     "DEFAULT_METRIC_REGISTRY",
+    "FILTER_REGISTRY",
+    "HIGHER_IS_BETTER_REGISTRY",
+    "METRIC_AGGREGATION_REGISTRY",
+    "METRIC_REGISTRY",
+    # Backward compat aliases (point to Registry instances)
+    "MODEL_REGISTRY",
+    # Core registry class
+    "Registry",
+    "aggregation_registry",
+    "filter_registry",
+    "freeze_all",
+    "get_aggregation",
+    "get_filter",
+    "get_metric",
+    "get_metric_aggregation",
+    "get_model",
+    "get_reduction",
+    "higher_is_better_registry",
+    "is_higher_better",
+    "metric_agg_registry",
+    "metric_registry",
+    # Registry instances
+    "model_registry",
+    "reduction_registry",
+    "register_aggregation",
+    "register_filter",
+    "register_metric",
+    # Helper functions
+    "register_model",
+    "register_reduction",
 ]
 
 
@@ -710,12 +710,13 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
         import evaluate as hf_evaluate
 
         metric_object = hf_evaluate.load(name)
-        return metric_object.compute
-    except Exception:
+    except Exception:  # noqa: BLE001
         eval_logger.error(
             f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
         )
         return None
+    else:
+        return metric_object.compute
 
 
 def register_aggregation(name: str):
