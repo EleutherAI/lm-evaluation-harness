@@ -204,7 +204,7 @@ class TestVLLMContextLength:
 
         # Create a mock request
         mock_request = MagicMock()
-        mock_request.args = ("test string",)
+        mock_request.args = ("test string", "")
 
         VLLM.loglikelihood_rolling(mock_lm, [mock_request], disable_tqdm=True)
 

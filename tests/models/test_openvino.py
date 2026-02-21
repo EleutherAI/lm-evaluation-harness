@@ -63,7 +63,7 @@ def test_evaluator(backend, model_id, task):
             return res
 
         def ll_perp_fn(reqs):
-            for (string,) in [req.args for req in reqs]:
+            for string, _ in [req.args for req in reqs]:
                 assert isinstance(string, str)
 
             res = []

@@ -329,7 +329,9 @@ class WindowsML(TemplateLM):
                 if len(empty_enc) > 0:
                     return empty_enc[0]
             except Exception:
-                pass
+                eval_logger.debug(
+                    "Failed to encode empty string for prefix token detection"
+                )
 
             return None
 
@@ -640,7 +642,9 @@ class WindowsML(TemplateLM):
             loglikelihoods.append(total_nll)
 
             # Cache this loglikelihood_rolling request
-            self.cache_hook.add_partial("loglikelihood_rolling", (string,), total_nll)
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string, ""), total_nll
+            )
 
         return loglikelihoods
 

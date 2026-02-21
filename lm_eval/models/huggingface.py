@@ -1058,7 +1058,7 @@ class HFLM(TemplateLM):
         all_windows = []  # List of (request_idx, window) tuples
         request_window_counts = []  # Track number of windows per request
 
-        for req_idx, (string,) in enumerate(
+        for req_idx, (string, _) in enumerate(
             tqdm(
                 [req.args for req in requests],
                 disable=(disable_tqdm or (self.rank != 0)),
@@ -1124,7 +1124,7 @@ class HFLM(TemplateLM):
 
             string = requests[len(loglikelihoods) - 1].args[0]
             self.cache_hook.add_partial(
-                "loglikelihood_rolling", (string,), request_total
+                "loglikelihood_rolling", (string, ""), request_total
             )
 
         return loglikelihoods
