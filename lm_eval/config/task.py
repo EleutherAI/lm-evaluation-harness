@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
-from typing_extensions import TypedDict
+from typing_extensions import Required, TypedDict
 
 from lm_eval.defaults import default_gen_kwargs
 
@@ -37,15 +37,47 @@ class _MetricConfig(TypedDict, total=False):
     kwargs: dict[str, Any] | None
 
 
-class FilterConfig(TypedDict, total=False):
-    function: str
-    kwargs: dict[str, str]
-    metric_list: list[_MetricConfig] | None
+class FilterStep(TypedDict, total=False):
+    r"""A single filter step in a pipeline.
+
+    Example::
+
+        - function: "regex"
+          kwargs:
+            regex_pattern: "#### (\\\\-?[0-9\\\\.\\\\,]+)"
+
+        - function: "custom"
+          kwargs:
+            filter_fn: !function my_custom_filter_fn
+
+    """
+
+    function: Required[str]
+    kwargs: dict[str, Any]
 
 
-class FilterList(TypedDict, total=False):
-    name: str
-    filters: list[FilterConfig]
+class FilterPipeline(TypedDict, total=False):
+    r"""A named filter pipeline with optional per-pipeline metrics.
+
+    Mirrors ``filter_list`` entries in YAML task configs::
+
+        filter_list:
+          - name: "strict-match"
+            filter:
+              - function: "regex"
+                kwargs:
+                  regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
+              - function: "regex"
+                ...
+            metric_list:
+                - metric: "exact_match"
+          - name: "loose-match"
+            ...
+    """
+
+    name: Required[str]
+    filter: Required[list[FilterStep]]
+    metric_list: list[_MetricConfig]
 
 
 @dataclass
@@ -87,7 +119,7 @@ class FewshotConfig:
             match self.samples:
                 case list(): return cast("list[dict[str, Any]]", self.samples)
                 case fsamples if callable(self.samples): return cast("list[dict[str, Any]]", fsamples())
-                case _: raise Exception(
+                case _: raise ValueError(
                         "`fewshot_config['samples']` was incorrectly defined in the configuration. It should either be `list[dict]`, or callable returning this list."
                     ) from None
             # fmt: on
@@ -170,7 +202,7 @@ class TaskConfig:
     generation_kwargs: dict[str, Any] = field(default_factory=dict)
     # scoring options
     metric_list: list[_MetricConfig] = field(default_factory=list)
-    filter_list: FilterList = field(default_factory=list)
+    filter_list: list[FilterPipeline] = field(default_factory=list)
     scorer: str | None = None
     repeats: int = 1
     unsafe_code: bool = False

@@ -140,7 +140,9 @@ class Task:
         assert self.OUTPUT_TYPE, "output_type must be set in TaskConfig or subclass"
         self._dataset_name = self.DATASET_NAME or self._config.dataset_name
         self._dataset_path = self.DATASET_PATH or self._config.dataset_path
-        self._fewshot_cfg: FewshotConfig = self._config.fewshot_config
+        self._fewshot_cfg: FewshotConfig = cast(
+            "FewshotConfig", self._config.fewshot_config
+        )  # normalized by
 
         self._multiple_inputs = self._config.multiple_inputs
         self._multiple_targets = self.config.multiple_targets
@@ -200,7 +202,9 @@ class Task:
         if self.config.filter_list:
             scorers = [
                 Scorer.from_dict(
-                    cfg, global_metrics=global_metrics, output_type=self.OUTPUT_TYPE
+                    {**cfg},
+                    global_metrics=global_metrics,
+                    output_type=self.OUTPUT_TYPE,
                 )
                 for cfg in self.config.filter_list
             ]
@@ -908,9 +912,11 @@ class Task:
             if metrics is None:
                 return None
 
-            metrics = normalize_to_list(metrics)
+            scores = cast(
+                "dict[str, list[float]]", cast("object", normalize_to_list(metrics))
+            )
             scored_doc = ScoredDoc(
-                doc_id=doc_id, reference=doc_instances[0].target, scores=metrics
+                doc_id=doc_id, reference=doc_instances[0].target, scores=scores
             )
             accumulator[doc_id] = scored_doc
 
@@ -919,7 +925,9 @@ class Task:
     def process_results(
         self, doc: dict[str, Any], results: list[Any]
     ) -> dict[str, list[Any]] | None:
-        if callable(self.config.process_results):
+        if callable(self.config.process_results) and not isinstance(
+            self.config.process_results, str
+        ):
             return self.config.process_results(doc, results)
         return None
 
