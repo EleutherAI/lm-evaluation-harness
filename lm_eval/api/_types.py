@@ -1,10 +1,11 @@
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeAlias
 
 from typing_extensions import Protocol, TypedDict
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
 
     import datasets
 
@@ -20,10 +21,10 @@ Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
 
 
 LLArgs = tuple[str, str]
-LLResponse = list[tuple[float, bool]]
+LLResponse = Sequence[tuple[float, bool]]
 
 GenArgs = tuple[str | list[dict[str, str]], dict[str, Any]]
-GenResponse = list[str]
+GenResponse = Sequence[str]
 
 
 class ChatTemplate(Protocol):
