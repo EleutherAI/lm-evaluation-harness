@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from typing_extensions import Required, TypedDict
 
@@ -10,20 +10,10 @@ from lm_eval.defaults import default_gen_kwargs
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Mapping, Sequence
+    from collections.abc import Callable, Iterable
 
-    import datasets
-
+    from lm_eval.api._types import Dataset, DataSplit, Doc
     from lm_eval.api.instance import OutputType
-
-Doc = dict[str, Any]
-# A single dataset split – iterable + sized collection of docs.
-# datasets.Dataset is the primary impl; list[Doc] works for custom datasets.
-DataSplit: TypeAlias = "datasets.Dataset | Sequence[Doc]"
-
-# The full dataset – maps split names (training_split, test_split, etc.) to splits.
-# datasets.DatasetDict is the primary impl; dict[str, DataSplit] works too.
-Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
 
 
 eval_logger = logging.getLogger(__name__)

@@ -46,8 +46,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     from lm_eval._types import OutputType
-    from lm_eval.api._types import ChatTemplate
-    from lm_eval.config.task import Dataset, DataSplit, Doc, FewshotConfig
+    from lm_eval.api._types import ChatTemplate, Dataset, DataSplit, Doc
+    from lm_eval.config.task import FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
 

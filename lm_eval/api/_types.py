@@ -1,6 +1,22 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 from typing_extensions import Protocol, TypedDict
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    import datasets
+
+
+Doc = dict[str, Any]
+# A single dataset split – iterable + sized collection of docs.
+# datasets.Dataset is the primary impl; list[Doc] works for custom datasets.
+DataSplit: TypeAlias = "datasets.Dataset | Sequence[Doc]"
+
+# The full dataset – maps split names (training_split, test_split, etc.) to splits.
+# datasets.DatasetDict is the primary impl; dict[str, DataSplit] works too.
+Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
 
 
 LLArgs = tuple[str, str]
