@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
     from lm_eval.api.filter import FilterEnsemble
     from lm_eval.api.instance import Instance
-    from lm_eval.config.metric import Metric
+    from lm_eval.api.metrics import Metric
 
 eval_logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class Scorer:
                 ],
             }
         """
-        from lm_eval.config.metric import Metric
+        from lm_eval.api.metrics import Metric
         from lm_eval.filters import build_filter_ensemble
 
         global_metrics = global_metrics or []
@@ -299,7 +299,7 @@ class Scorer:
         agg: dict[str, Any] = {}
         sample_len = 0
 
-        # Resolve values once — no branching on metric_results below.
+        # Resolve values once
         if metric_results is not None:
             results = metric_results
         else:

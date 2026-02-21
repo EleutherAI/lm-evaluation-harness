@@ -46,7 +46,7 @@ def _build_mock_scorers(
 
     Returns one Scorer named "none" containing all metrics.
     """
-    from lm_eval.config.metric import Metric
+    from lm_eval.api.metrics import Metric
 
     hib = hib or {}
     metrics = []
@@ -83,7 +83,7 @@ def _build_multi_scorer_scorers(
 
     Groups by scorer name, populates _scored_docs with reduced_scores.
     """
-    from lm_eval.config.metric import Metric
+    from lm_eval.api.metrics import Metric
 
     agg = agg or {}
     hib = hib or {}

@@ -34,7 +34,7 @@ def exact_match_hf_evaluate(
     ignore_punctuation: bool = False,
     ignore_numbers: bool = False,
     multiple_targets: bool = False,
-):
+) -> dict[str, list[int]]:
     _predictions = np.asarray(predictions)
     _references = np.asarray(references)
 
@@ -59,7 +59,7 @@ def exact_match_hf_evaluate(
 
     score_list = _predictions == _references
 
-    return {"exact_match": np.mean(score_list)}
+    return {"exact_match": score_list.astype(int).tolist()}
 
 
 @register_metric(

@@ -51,45 +51,34 @@ eval_logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
+    from lm_eval.api._metrics._types import AggregationFn, ReductionFn
     from lm_eval.api.filter import Filter
+    from lm_eval.api.metrics import Metric
     from lm_eval.api.model import LM
-    from lm_eval.config.metric import Metric
 
 
 __all__ = [
-    # Core registry class
-    "Registry",
-    # Registry instances
-    "model_registry",
-    "filter_registry",
-    "aggregation_registry",
-    "metric_registry",
-    "metric_agg_registry",
-    "higher_is_better_registry",
-    "freeze_all",
-    # Helper functions
-    "register_model",
-    "get_model",
-    "register_metric",
-    "get_metric",
-    "register_aggregation",
-    "get_aggregation",
-    "get_metric_aggregation",
-    "is_higher_better",
-    "register_filter",
-    "get_filter",
-    "register_reduction",
-    "get_reduction",
-    "reduction_registry",
-    # Backward compat aliases (point to Registry instances)
-    "MODEL_REGISTRY",
-    "FILTER_REGISTRY",
-    "METRIC_REGISTRY",
-    "METRIC_AGGREGATION_REGISTRY",
-    "AGGREGATION_REGISTRY",
-    "HIGHER_IS_BETTER_REGISTRY",
-    # Default metric configuration
     "DEFAULT_METRIC_REGISTRY",
+    "Registry",
+    "aggregation_registry",
+    "filter_registry",
+    "get_aggregation",
+    "get_filter",
+    "get_metric",
+    "get_metric_aggregation",
+    "get_model",
+    "get_reduction",
+    "higher_is_better_registry",
+    "is_higher_better",
+    "metric_agg_registry",
+    "metric_registry",
+    "model_registry",
+    "reduction_registry",
+    "register_aggregation",
+    "register_filter",
+    "register_metric",
+    "register_model",
+    "register_reduction",
 ]
 
 
@@ -170,15 +159,19 @@ class Registry(Generic[T]):
         name: str,
         *,
         base_cls: type[T] | None = None,
+        lazy_module: str | None = None,
     ) -> None:
         """Initialize a new registry.
 
         Args:
             name: Human-readable name for error messages (e.g., "model", "metric")
             base_cls: Optional base class that all registered objects must inherit from
+            lazy_module: If set, auto-import this module on first ``get()`` when the
+                registry is still empty.
         """
         self._name = name
         self._base_cls = base_cls
+        self._lazy_module = lazy_module
         self._objs: dict[str, T | Placeholder] = {}
         self._lock = threading.RLock()
 
@@ -242,7 +235,7 @@ class Registry(Generic[T]):
                 )
             self._objs[alias] = target
 
-        def decorator(obj: T) -> T:  # type: ignore[valid-type]
+        def decorator(obj: T) -> T:
             names = aliases or (getattr(obj, "__name__", str(obj)),)
             with self._lock:
                 for name in names:
@@ -254,13 +247,23 @@ class Registry(Generic[T]):
             if len(aliases) != 1:
                 raise ValueError("Exactly one alias required when using 'target='")
             with self._lock:
-                _store(aliases[0], target)  # type: ignore[arg-type]
+                _store(aliases[0], target)
             # return no-op decorator for accidental use
-            return lambda x: x  # type: ignore[return-value]
+            return lambda x: x
 
         return decorator
 
     # Lookup & materialisation --------------------------------------------------
+
+    def _ensure_loaded(self) -> None:
+        """Auto-import ``lazy_module`` when the registry is still empty.
+
+        Uses double-checked locking so only one thread triggers the import.
+        """
+        if self._lazy_module and len(self._objs) == 0:
+            with self._lock:
+                if len(self._objs) == 0:
+                    importlib.import_module(self._lazy_module)
 
     def _materialise(self, ph: Placeholder) -> T:
         """Materialize a placeholder using the module-level cached function.
@@ -283,7 +286,9 @@ class Registry(Generic[T]):
         """Retrieve an object by alias, materializing if needed.
 
         Thread-safe lazy loading: if the alias points to a placeholder,
-        it will be loaded and cached before returning.
+        it will be loaded and cached before returning.  When ``lazy_module``
+        is configured and the registry is still empty, the module is
+        auto-imported first.
 
         Args:
             alias: The registered name to look up
@@ -297,6 +302,7 @@ class Registry(Generic[T]):
             TypeError: If a materialized object doesn't match base_cls
             ImportError/AttributeError: If lazy loading fails
         """
+        self._ensure_loaded()
         try:
             target = self._objs[alias]
         except KeyError as exc:
@@ -336,6 +342,7 @@ class Registry(Generic[T]):
 
     def __contains__(self, alias: str) -> bool:
         """Check if alias is registered."""
+        self._ensure_loaded()
         return alias in self._objs
 
     def __iter__(self):
@@ -388,9 +395,10 @@ class Registry(Generic[T]):
         try:
             path = inspect.getfile(obj)  # type: ignore[arg-type]
             line = inspect.getsourcelines(obj)[1]  # type: ignore[arg-type]
-            return f"{path}:{line}"
-        except Exception:  # pragma: no cover – best‑effort only
+        except Exception:  # noqa: BLE001
             return None
+        else:
+            return f"{path}:{line}"
 
     def freeze(self):
         """Make the registry read-only to prevent further modifications.
@@ -410,7 +418,7 @@ class Registry(Generic[T]):
         Only use this in test code to ensure a clean state between tests.
         """
         if isinstance(self._objs, MappingProxyType):
-            self._objs = dict(self._objs)  # type: ignore[assignment]
+            self._objs = dict(self._objs)
         self._objs.clear()
         _materialise_placeholder.cache_clear()
 
@@ -419,31 +427,24 @@ class Registry(Generic[T]):
 # Registry instances
 # =============================================================================
 
+_METRICS_MODULE = "lm_eval.api.metrics"
+_REDUCE_MODULE = "lm_eval.api._metrics.reduce"
+
 model_registry: Registry[type[LM]] = Registry("model")
 filter_registry: Registry[type[Filter]] = Registry("filter")
-aggregation_registry: Registry[Callable[..., float]] = Registry("aggregation")
-metric_registry: Registry[Callable] = Registry("metric")
-metric_agg_registry: Registry[Callable] = Registry("metric_aggregation")
-higher_is_better_registry: Registry[bool] = Registry("higher_is_better")
-reduction_registry: Registry[Callable] = Registry("reduction")
-
-
-def freeze_all():
-    """Freeze all registries to prevent further modifications.
-
-    This is useful for ensuring registry contents are immutable after
-    initialization, preventing accidental modifications during runtime.
-    """
-    for r in (
-        model_registry,
-        filter_registry,
-        aggregation_registry,
-        metric_registry,
-        metric_agg_registry,
-        higher_is_better_registry,
-        reduction_registry,
-    ):
-        r.freeze()
+aggregation_registry: Registry[Callable[..., float]] = Registry(
+    "aggregation", lazy_module=_METRICS_MODULE
+)
+metric_registry: Registry[Callable] = Registry("metric", lazy_module=_METRICS_MODULE)
+metric_agg_registry: Registry[Callable] = Registry(
+    "metric_aggregation", lazy_module=_METRICS_MODULE
+)
+higher_is_better_registry: Registry[bool] = Registry(
+    "higher_is_better", lazy_module=_METRICS_MODULE
+)
+reduction_registry: Registry[Callable] = Registry(
+    "reduction", lazy_module=_REDUCE_MODULE
+)
 
 
 # Backward compat aliases - these now point to Registry instances
@@ -564,9 +565,9 @@ def get_filter(filter_name: str | Callable) -> Callable:
         return filter_name
     try:
         return filter_registry.get(cast("str", filter_name))
-    except KeyError as e:
+    except KeyError:
         eval_logger.warning(f"filter `{filter_name}` is not registered!")
-        raise e
+        raise
 
 
 # Backward compatibility alias
@@ -612,7 +613,7 @@ def register_metric(**args):
     return decorate
 
 
-def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
+def _get_metric(name: str) -> Metric | None:
     """Get a metric function by name, returning a Metric object.
 
     Unlike `get_metric` (public API, returns raw callable), this internal helper
@@ -621,16 +622,11 @@ def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
 
     Args:
         name: The metric name
-        hf_evaluate_metric: If True, skip the local registry and use HF evaluate
 
     Returns:
         A Metric object, or None if not found
     """
-    from lm_eval.config.metric import Metric
-
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(metric_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
+    from lm_eval.api.metrics import Metric
 
     try:
         raw = metric_registry.get(name)
@@ -653,8 +649,8 @@ def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
         return Metric(
             name=name,
             fn=raw,
-            aggregation=raw.aggregation,
-            reduction=raw.reduce,
+            aggregation=cast("AggregationFn", raw.aggregation),
+            reduction=cast("ReductionFn", raw.reduce),
             higher_is_better=hib,
         )
 
@@ -664,57 +660,19 @@ def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
     return Metric(name=name, fn=raw, aggregation=agg_fn, higher_is_better=hib)
 
 
-def _get_aggregation(name: str) -> Callable[..., float] | None:
-    """Get an aggregation function by name.
-
-    Args:
-        name: The aggregation name
-
-    Returns:
-        The aggregation function, or None if not found
-    """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(aggregation_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
-
-    try:
-        return aggregation_registry.get(name)
-    except KeyError:
-        eval_logger.warning(f"{name} not a registered aggregation metric!")
-        return None
-
-
-def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
+def get_metric(name: str) -> Callable | None:
     """Get a metric function by name.
 
     Args:
         name: The metric name
-        hf_evaluate_metric: If True, skip the local registry and use HF evaluate
 
     Returns:
         The metric compute function, or None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(metric_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
-
-    if not hf_evaluate_metric:
-        if name in metric_registry:
-            return metric_registry.get(name)
-        else:
-            eval_logger.warning(
-                f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
-            )
-
     try:
-        import evaluate as hf_evaluate
-
-        metric_object = hf_evaluate.load(name)
-        return metric_object.compute
-    except Exception:
-        eval_logger.error(
-            f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
-        )
+        return metric_registry.get(name)
+    except KeyError:
+        eval_logger.warning(f"Could not find registered metric '{name}' in lm-eval.")
         return None
 
 
@@ -761,9 +719,6 @@ def get_reduction(name: str) -> Callable | None:
     Returns:
         The reduction function, or None if not found
     """
-    if len(reduction_registry) == 0:
-        import lm_eval.api._metrics.reduce  # noqa: F401
-
     try:
         return reduction_registry.get(name)
     except KeyError:
@@ -780,10 +735,6 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
     Returns:
         The aggregation function, or None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(aggregation_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
-
     try:
         return aggregation_registry.get(name)
     except KeyError:
@@ -800,10 +751,6 @@ def get_metric_aggregation(name: str) -> Callable[..., float] | None:
     Returns:
         The aggregation function for that metric, or None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(metric_agg_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
-
     try:
         return metric_agg_registry.get(name)
     except KeyError:
@@ -820,10 +767,6 @@ def is_higher_better(metric_name: str) -> bool | None:
     Returns:
         True if higher is better, False otherwise, None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(higher_is_better_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
-
     try:
         return higher_is_better_registry.get(metric_name)
     except KeyError:

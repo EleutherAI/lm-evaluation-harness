@@ -1,7 +1,7 @@
 import logging
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Generic
 
 import numpy as np
@@ -20,21 +20,20 @@ _R = TypeVar("_R")
 _T = TypeVar("_T")
 
 __all__ = [
-    "CorpusMetric",
-    "AccAll",
-    "Bleu",
-    "Chrf",
-    "Ter",
     "F1",
     "MCC",
-    "Perplexity",
-    "WordPerplexity",
-    "BytePerplexity",
     "BitsPerByte",
+    "Bleu",
+    "BytePerplexity",
+    "Chrf",
+    "CorpusMetric",
+    "Perplexity",
+    "Ter",
+    "WordPerplexity",
 ]
 
 
-class CorpusMetric(Generic[_R, _T], ABC):
+class CorpusMetric(ABC, Generic[_R, _T]):
     """Base class for corpus-level metrics.
 
     Corpus-level metrics are computed across multiple samples
@@ -52,11 +51,13 @@ class CorpusMetric(Generic[_R, _T], ABC):
         ...
 
     @abstractmethod
-    def aggregation(self, items: list[_T]) -> float:
+    def aggregation(self, items: Sequence[_T]) -> float:
         """Aggregate per-item values into a single corpus-level score."""
         ...
 
-    def reduce(self, references: list, predictions: list[_T], **kwargs) -> _T:
+    def reduce(
+        self, references: Sequence[Any], predictions: Sequence[_T], **kwargs
+    ) -> _T:
         """Collapse multiple repeats of a sample into one value. Corpus metrics only support repeat=1."""
         if len(predictions) != 1:
             warning_once(
@@ -77,7 +78,7 @@ class BrierScore(CorpusMetric["LLResults", float]):
 
         return brier_score(references, predictions)
 
-    def aggregation(self, items: list[float]) -> float:
+    def aggregation(self, items: Sequence[float]) -> float:
         return sum(items) / len(items)
 
 
@@ -103,7 +104,7 @@ class Perplexity(CorpusMetric["LLResults", float]):
             return float(predictions.lls[0])
         return float(predictions.lls[references])
 
-    def aggregation(self, items: list[float]) -> float:
+    def aggregation(self, items: Sequence[float]) -> float:
         return math.exp(-sum(items) / len(items))
 
 
@@ -136,7 +137,7 @@ class WordPerplexity(CorpusMetric["LLResults", tuple[float, int]]):
             predictions.word_len()[references]
         )
 
-    def aggregation(self, items: list[tuple[float, int]]) -> float:
+    def aggregation(self, items: Sequence[tuple[float, int]]) -> float:
         return math.exp(-_weighted_mean(items))
 
 
@@ -159,7 +160,7 @@ class BytePerplexity(CorpusMetric["LLResults", tuple[float, int]]):
             predictions.byte_len()[references]
         )
 
-    def aggregation(self, items: list[tuple[float, int]]) -> float:
+    def aggregation(self, items: Sequence[tuple[float, int]]) -> float:
         return math.exp(-_weighted_mean(items))
 
 
@@ -182,7 +183,7 @@ class BitsPerByte(CorpusMetric["LLResults", tuple[float, int]]):
             predictions.byte_len()[references]
         )
 
-    def aggregation(self, items: list[tuple[float, int]]) -> float:
+    def aggregation(self, items: Sequence[tuple[float, int]]) -> float:
         return -_weighted_mean(items) / math.log(2)
 
 
@@ -241,7 +242,7 @@ class Bleu(CorpusMetric[Any, tuple]):
     def __call__(self, references: Any, predictions: Any) -> tuple:
         return references, predictions
 
-    def aggregation(self, items: list[tuple]) -> float:
+    def aggregation(self, items: Sequence[tuple]) -> float:
         import sacrebleu
 
         refs, preds = zip(*items, strict=True)
@@ -262,7 +263,7 @@ class Chrf(CorpusMetric[Any, tuple]):
     def __call__(self, references: Any, predictions: Any) -> tuple:
         return references, predictions
 
-    def aggregation(self, items: list[tuple]) -> float:
+    def aggregation(self, items: Sequence[tuple]) -> float:
         import sacrebleu
 
         refs, preds = zip(*items, strict=True)
@@ -283,7 +284,7 @@ class Ter(CorpusMetric[Any, tuple]):
     def __call__(self, references: Any, predictions: Any) -> tuple:
         return references, predictions
 
-    def aggregation(self, items: list[tuple]) -> float:
+    def aggregation(self, items: Sequence[tuple]) -> float:
         import sacrebleu
 
         refs, preds = zip(*items, strict=True)
@@ -310,7 +311,7 @@ class F1(CorpusMetric["LLResults", tuple[int, int]]):
         pred = int(np.argmax(predictions.lls))
         return references, pred
 
-    def aggregation(self, items: list[tuple[int, int]]) -> float:
+    def aggregation(self, items: Sequence[tuple[int, int]]) -> float:
         from sklearn.metrics import f1_score
 
         golds, preds = zip(*items, strict=True)
@@ -331,7 +332,7 @@ class MCC(CorpusMetric["LLResults", tuple[int, int]]):
         pred = int(np.argmax(predictions.lls))
         return references, pred
 
-    def aggregation(self, items: list[tuple[int, int]]) -> float:
+    def aggregation(self, items: Sequence[tuple[int, int]]) -> float:
         from sklearn.metrics import matthews_corrcoef
 
         golds, preds = zip(*items, strict=True)
@@ -352,40 +353,40 @@ class Likelihood(CorpusMetric["LLResults", tuple[int, tuple]]):
     def __call__(self, references: int, predictions: "LLResults") -> tuple[int, tuple]:
         return references, tuple(predictions.lls)
 
-    def aggregation(self, items: list[tuple[int, tuple]]) -> float:
+    def aggregation(self, items: Sequence[tuple[int, tuple]]) -> float:
         from lm_eval.api.metrics import mean
 
         return mean([float(lls[gold]) for gold, lls in items])
 
 
-# ---------------------------------------------------------------------------
-# Loglikelihood: acc_all (BoolQ-style all-correct-per-question)
-# ---------------------------------------------------------------------------
-
-
-@register_metric(
-    metric="acc_all",
-    higher_is_better=True,
-    output_type="loglikelihood",
-)
-class AccAll(CorpusMetric["LLResults", tuple[int, dict]]):
-    """All-correct accuracy for grouped questions (e.g. BoolQ).
-
-    A question is scored as correct only if *every* answer option
-    for that question is labeled correctly.
-    """
-
-    def __call__(self, references: int, predictions: "LLResults") -> tuple[int, dict]:
-        pred = int(np.argmax(predictions.lls))
-        gold = references
-        return int(pred == gold), predictions.doc
-
-    def aggregation(self, items: list[tuple[int, dict]]) -> float:
-        question_scoring_dict: dict[tuple, list[bool]] = {}
-        for pred, doc in items:
-            key = (doc["idx"]["paragraph"], doc["idx"]["question"])
-            if key not in question_scoring_dict:
-                question_scoring_dict[key] = []
-            gold_label = doc["label"] == 1
-            question_scoring_dict[key].append(gold_label == pred)
-        return float(np.mean([int(all(x)) for x in question_scoring_dict.values()]))
+# # ---------------------------------------------------------------------------
+# # Loglikelihood: acc_all (BoolQ-style all-correct-per-question)
+# # ---------------------------------------------------------------------------
+#
+#
+# @register_metric(
+#     metric="acc_all",
+#     higher_is_better=True,
+#     output_type="loglikelihood",
+# )
+# class AccAll(CorpusMetric["LLResults", tuple[int, dict]]):
+#     """All-correct accuracy for grouped questions (e.g. BoolQ).
+#
+#     A question is scored as correct only if *every* answer option
+#     for that question is labeled correctly.
+#     """
+#
+#     def __call__(self, references: int, predictions: "LLResults") -> tuple[int, dict]:
+#         pred = int(np.argmax(predictions.lls))
+#         gold = references
+#         return int(pred == gold), predictions.doc
+#
+#     def aggregation(self, items: list[tuple[int, dict]]) -> float:
+#         question_scoring_dict: dict[tuple, list[bool]] = {}
+#         for pred, doc in items:
+#             key = (doc["idx"]["paragraph"], doc["idx"]["question"])
+#             if key not in question_scoring_dict:
+#                 question_scoring_dict[key] = []
+#             gold_label = doc["label"] == 1
+#             question_scoring_dict[key].append(gold_label == pred)
+#         return float(np.mean([int(all(x)) for x in question_scoring_dict.values()]))
