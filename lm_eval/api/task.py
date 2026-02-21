@@ -429,12 +429,11 @@ class Task:
             gen_prefix (str | None): Prefix to start the assistant's response (e.g., "Answer:").
 
         Returns:
-            # TODO: fix winogrande should be multiple contexts with one choice
             str | list[str]: The formatted prompt string, or a list of strings for
                 multiple-input tasks (e.g., Winogrande where each choice becomes a
                 separate context).
         """
-        messages = []
+        messages: list[Message] = []
         chat_template = (
             partial(chat_template, add_generation_prompt=not gen_prefix)
             if chat_template
@@ -461,19 +460,15 @@ class Task:
                     else None,
                     self.doc_to_target(fs_doc, self._fewshot_cfg.doc_to_target),
                 )
-                # in most cases we expect q to be a string, except for multiple-input where its list[str]
+                # in most cases we expect q to be a string, except for multiple-input:
+                # q: list[str], c: list[str] len 1, a: int index into q
                 if isinstance(q, list):
                     assert isinstance(a, int), (
                         "Multiple-input fewshot examples require integer answer keys to index into the question list"
                     )
                     q = q[a]
+                    a = 0  # choices are a list of len 1.
                 _gen_prefix = self.resolve_field(doc, self._fewshot_cfg.gen_prefix)
-                # for multiple inputs, q: int, c: list[str], target: str
-                # TODO: fix this hacky way of handling multiple inputs
-                if self._multiple_inputs:
-                    q = cast("str", c[q])  # type: ignore
-                    c = None
-                # TODO: fix types
                 messages += self.build_qa_turn(
                     q=q,
                     c=c,
@@ -504,6 +499,7 @@ class Task:
             q=q,
             c=c,
             gen_prefix=gen_prefix,
+            # fewshot delimiter used to separate q and gen_prefix
             tgt_delim=self.config.target_delimiter,
             few_delim="",
         )
