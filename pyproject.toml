@@ -160,6 +160,8 @@ ignore = [
     "F403",   # undefined-local-with-import-star
     "F405",   # undefined-local-with-import-star-usage
 ]
+"lm_eval/api/metrics.py" = [
+    "F401", "F403"]   # unused-import
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

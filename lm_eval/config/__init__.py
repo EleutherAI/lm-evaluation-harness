@@ -3,4 +3,4 @@ from .group import GroupConfig
 from .task import TaskConfig
 
 
-__all__ = ["EvaluatorConfig", "TaskConfig", "GroupConfig"]
+__all__ = ["EvaluatorConfig", "GroupConfig", "TaskConfig"]

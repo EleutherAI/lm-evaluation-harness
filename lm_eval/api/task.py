@@ -184,8 +184,8 @@ class Task:
 
     def _build_scorers(self) -> list[Scorer]:
         """Build scorers from filter_list config, or a default scorer."""
+        from lm_eval.api.metrics import Metric
         from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
-        from lm_eval.config.metric import Metric
 
         if self.config.metric_list:
             global_metrics = [
@@ -1039,7 +1039,7 @@ class Task:
         Rebuilds the scorer pipeline so that only *metric_name* is computed.
         Used by the evaluator for ``predict_only`` mode (metric="bypass").
         """
-        from lm_eval.config.metric import Metric
+        from lm_eval.api.metrics import Metric
 
         metric = Metric.from_dict({"metric": metric_name})
         self._scorers = [Scorer.default_scorer([metric], output_type=self.OUTPUT_TYPE)]

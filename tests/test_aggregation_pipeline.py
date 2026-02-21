@@ -52,7 +52,7 @@ def _build_multi_scorer_scorers(
     hib: dict[str, bool] | None = None,
 ) -> list[Scorer]:
     """Build Scorer objects from tuple-keyed raw_metrics with _scored_docs populated."""
-    from lm_eval.config.metric import Metric
+    from lm_eval.api.metrics import Metric
 
     agg = agg or {}
     hib = hib or {}
@@ -549,8 +549,8 @@ class TestLegacyProcessResultsBugFix:
         """Ensure reduce() works on ScoredDoc from legacy path (no crash)."""
         from lm_eval.api.filter import FilterEnsemble
         from lm_eval.api.instance import Instance
+        from lm_eval.api.metrics import Metric
         from lm_eval.api.task import _legacy_to_scored_docs
-        from lm_eval.config.metric import Metric
 
         instances: dict[int, list[Instance]] = {}
         for doc_id in range(2):

@@ -53,8 +53,8 @@ if TYPE_CHECKING:
 
     from lm_eval.api._metrics._types import AggregationFn, ReductionFn
     from lm_eval.api.filter import Filter
+    from lm_eval.api.metrics import Metric
     from lm_eval.api.model import LM
-    from lm_eval.config.metric import Metric
 
 
 __all__ = [
@@ -626,7 +626,7 @@ def _get_metric(name: str) -> Metric | None:
     Returns:
         A Metric object, or None if not found
     """
-    from lm_eval.config.metric import Metric
+    from lm_eval.api.metrics import Metric
 
     try:
         raw = metric_registry.get(name)

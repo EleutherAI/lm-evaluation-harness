@@ -25,9 +25,9 @@ def build_filter_ensemble(
 
 
 __all__ = [
+    "build_filter_ensemble",
     "custom",
     "extraction",
     "selection",
     "transformation",
-    "build_filter_ensemble",
 ]

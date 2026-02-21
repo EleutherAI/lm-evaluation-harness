@@ -1,8 +1,13 @@
 import logging
 
 # Import _metrics package — registers aggregations first, then all metrics.
-# Re-export aggregation functions for backward compatibility.
-from lm_eval.api._metrics.aggregations import (  # noqa: F401
+# Re-export public types, helpers, and aggregation functions.
+from lm_eval.api._metrics._types import (
+    AggregationFn,
+    MetricFn,
+    ReductionFn,
+)
+from lm_eval.api._metrics.aggregations import (
     bits_per_byte,
     bypass_agg,
     mean,
@@ -12,10 +17,16 @@ from lm_eval.api._metrics.aggregations import (  # noqa: F401
     weighted_mean,
     weighted_perplexity,
 )
-from lm_eval.api._metrics.corpus import *  # noqa: F401, F403
-from lm_eval.api._metrics.generation import *  # noqa: F401, F403
-from lm_eval.api._metrics.ll import *  # noqa: F401, F403
-from lm_eval.api._metrics.stderr import (  # noqa: F401
+from lm_eval.api._metrics.corpus import *
+from lm_eval.api._metrics.generation import *
+from lm_eval.api._metrics.ll import *
+from lm_eval.api._metrics.metric import (
+    METRIC_KEYS,
+    Metric,
+    filter_kwargs,
+    take_first,
+)
+from lm_eval.api._metrics.stderr import (
     _bootstrap_internal,
     _bootstrap_internal_no_mp,
     bootstrap_stderr,
