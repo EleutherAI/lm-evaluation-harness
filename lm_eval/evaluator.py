@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 import logging
 import random
 import time
@@ -505,12 +504,10 @@ def evaluate(
         for task_name, task_obj in eval_tasks.items()
     }
     if not log_samples and any(
-        any(
-            m.name == "bypass"
-            for scorer in getattr(task_obj, "scorers", [])
-            for m in (scorer.metrics or [])
-        )
+        m.name == "bypass"
         for task_obj in eval_tasks.values()
+        for scorer in getattr(task_obj, "scorers", [])
+        for m in (scorer.metrics or [])
     ):
         raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
 
@@ -534,10 +531,8 @@ def evaluate(
 
     # Cache the limit arg.
     limit_arg = limit
-    limits = []
     for task_name, task in eval_tasks.items():
         limit = get_sample_size(task, limit_arg)
-        limits.append(limit)
         task.build_all_requests(
             limit=limit,
             samples=samples.get(task_name, None) if samples is not None else samples,
@@ -609,7 +604,7 @@ def evaluate(
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
-    for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
+    for task_name, acc in eval_results_acc.items():
         task = acc["task"]
         task.process_instances()  # populates Scorer internals
 
@@ -625,12 +620,11 @@ def evaluate(
             all_samples = lm.gather_object(rank_samples, dst=0)
             if RANK == 0:
                 for task_name, acc in eval_results_acc.items():
-                    acc["logged_samples"] = list(
-                        itertools.chain.from_iterable(
-                            rank_data[task_name]
-                            for rank_data in all_samples  # type: ignore
-                        )
-                    )
+                    acc["logged_samples"] = [
+                        sample
+                        for rank_data in all_samples  # type: ignore
+                        for sample in rank_data[task_name]
+                    ]
 
         rank_metrics = {
             task_name: acc["task"].export_raw_metrics()
