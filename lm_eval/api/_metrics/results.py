@@ -93,7 +93,7 @@ class LLResults:
 
         lls, is_greedy = zip(*chain.from_iterable(resps), strict=True)
         lls = np.array(lls)
-        targets = list(set(targets))[0]
+        targets = next(iter(set(targets)))
         # Handle mutual information if needed
         acc_mutual_info = results[0].metadata.get("acc_mutual_info", False)
         if acc_mutual_info:
