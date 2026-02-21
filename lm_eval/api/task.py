@@ -6,6 +6,7 @@ import random
 import re
 from copy import deepcopy
 from functools import cached_property, partial
+from itertools import chain
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -895,9 +896,14 @@ class Task:
         accumulator: dict[int, ScoredDoc] = {}
 
         for doc_id, doc_instances in instances.items():
+            # we need to remove one level of nesting:
             metrics = self.process_results(
                 doc_instances[0].doc,
-                [req.filtered_resps[filter_key] for req in doc_instances],
+                list(
+                    chain.from_iterable(
+                        [req.filtered_resps[filter_key] for req in doc_instances]
+                    )
+                ),
             )
             if metrics is None:
                 return None
@@ -1396,7 +1402,13 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
-        arguments = (self.doc_to_target(doc),)
+        assert isinstance(ctx, str), (
+            "For loglikelihood_rolling tasks, the argument should be a string representing the full text to score. Got {ctx} of type {type(ctx)}. Please check your doc_to_text implementation."
+        )
+        arguments = (
+            ctx,
+            "",
+        )  # the continuation is not needed for rolling loglikelihood, but we keep the same argument structure for compatibility with scorers
 
         return [
             Instance(
