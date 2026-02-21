@@ -6,7 +6,7 @@ from typing_extensions import Protocol, TypedDict
 LLArgs = tuple[str, str]
 LLResponse = list[tuple[float, bool]]
 
-GenArgs = tuple[list[str] | list[dict[str, str]], dict[str, Any]]
+GenArgs = tuple[str | list[dict[str, str]], dict[str, Any]]
 GenResponse = list[str]
 
 

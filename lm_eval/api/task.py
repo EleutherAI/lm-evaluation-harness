@@ -523,7 +523,7 @@ class Task:
                 if fewshot_as_multiturn
                 else multiturn_to_singleturn(messages)
             )
-            res = chat_template(res)
+            res: list[dict[str, str]] | str = chat_template(res)
         else:
             res: str = "".join(m.to_text() for m in messages)
 
@@ -565,7 +565,7 @@ class Task:
         assert isinstance(q, str), f"Context is not a string! : {q}"
         # Check if answer is provided (handle a=0 as valid answer index)
         has_answer = a is not None and a != ""
-        msgs = [
+        msgs: list[Message] = [
             Message(
                 "user",
                 q,
@@ -1123,7 +1123,7 @@ class MultipleChoiceTask(Task):
             arguments.extend(aux_arguments)
             _metadata.update({"acc_mutual_info": True})
 
-        request_list = [
+        return [
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
@@ -1138,8 +1138,6 @@ class MultipleChoiceTask(Task):
             )
             for i, arg in enumerate(arguments)
         ]
-
-        return request_list
 
     @staticmethod
     def build_mutual_info(
@@ -1271,7 +1269,7 @@ class GenerateTask(Task):
     def construct_requests(
         self,
         doc: dict[str, Any],
-        ctx: str | list[str] | list[dict[str, Any]],
+        ctx: str | list[str] | list[dict[str, str]],
         *,
         doc_id: int,
         metadata: dict[str, Any] | None = None,
@@ -1288,7 +1286,7 @@ class GenerateTask(Task):
         }
 
         arguments = (
-            ctx,
+            cast("str | list[dict[str, str]]", ctx),
             deepcopy(self.config.generation_kwargs),
         )
         multimodal_arguments = (
