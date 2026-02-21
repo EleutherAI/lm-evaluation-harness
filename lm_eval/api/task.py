@@ -518,37 +518,41 @@ class Task:
     def build_qa_turn(
         self,
         *,
-        q: str | None = None,
+        q: str | None,
         c: list[str] | None = None,
-        a: str | int | list[str] | None = None,
+        a: str | int | list[str] | list[int] | None = None,
         gen_prefix: str | None = None,
         tgt_delim=" ",
         few_delim="\n\n",
     ) -> list[Message]:
         r"""Build a single Q&A turn as a list of Messages.
 
-        Constructs a user message containing the question/context, and optionally
-        an assistant message containing the answer. Used for building both few-shot
-        examples and the final evaluation prompt. The returned Messages can be
-        rendered as plain text (via to_text()) or converted to chat format
-        (via to_dict()) depending on whether a chat template is applied.
+        Constructs a user message from the question, and optionally an assistant
+        message with the answer (to construct few-shots). Returns intermediate Messages that are assembled
+        by ``fewshot_context`` into the final prompt.
 
         Args:
-            q (str): The question or context text (required).
+            q (str): The question or context text.
             c (list[str] | None): List of answer choices for multiple-choice tasks.
                 When provided with an integer `a`, indexes into this list to get the answer.
-            a (str | int | list[str] | None): The answer - can be a string, an index
-                into `c`, or a list of strings (for multiple targets).
+            a (str | int | list[str] | list[int] | None): The answer; only used
+                when building few-shot examples. Can be:
+                - str: literal answer text
+                - int: index into `c`
+                - list[str]: multiple valid targets (first used for prompt)
+                - list[int]: multiple valid choice indices (first used for prompt)
             gen_prefix (str | None): A prefix to prepend to generated text (e.g., "Answer:").
             tgt_delim (str): Delimiter between question and answer (default: " ").
-            few_delim (str): Delimiter after assistant response for few-shot separation
-                (default: "\n\n").
+            few_delim (str): Suffix on the assistant message; acts as separator
+                between few-shot turns in plain-text rendering (default: "\n\n").
 
         Returns:
             list[Message]: [user_msg] or [user_msg, assistant_msg] depending on
                 whether an answer or gen_prefix is provided.
         """
-        assert isinstance(q, str), f"Context is not a string! : {q}"
+        assert isinstance(q, str), (
+            f"Expected q to be str, got {type(q).__name__}: {q!r}"
+        )
         # Check if answer is provided (handle a=0 as valid answer index)
         has_answer = a is not None and a != ""
 
@@ -559,27 +563,32 @@ class Task:
         if (has_answer and not gen_prefix) or (
             gen_prefix and requires_delimiter(q, gen_prefix)
         ):
-            user_delim = tgt_delim
+            _tgt_delim = tgt_delim
         else:
-            user_delim = ""
+            _tgt_delim = ""
 
-        msgs: list[Message] = [Message("user", q, user_delim)]
+        msgs: list[Message] = [Message("user", q, _tgt_delim)]
 
+        # normalize answer to str
         if has_answer:
-            # Resolve answer text from choices, list, or raw string
-            if c and isinstance(a, int):
-                answer_text = c[a]
-            elif isinstance(a, list):
-                # For multiple-targets use the first answer.
-                answer_text = a[0]
-            else:
-                answer_text = a
-            assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
+            # fmt: off
+            match a:
+                case str(): answer_text = a
+                case int() if c: answer_text = c[a]
+                # if a is a list, then we are dealing with multiple-target. Either list[str] or list[int]
+                case [str() as first, *_]: answer_text: str = first
+                case [int() as first, *_]:
+                    assert c is not None, "Answer is an index but no choices provided!"
+                    answer_text: str = c[first]
+                case _: raise ValueError(f"Unexpected answer type: {a!r}")
+            # fmt: on
+
             # Currently, we always delimit gen_prefex and answer with space if delimiter required.
             answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
             msgs.append(Message("assistant", answer_text, few_delim))
         elif gen_prefix:
             # For gen-prefix, the delimiter is added in construct_requests
+            # when creating the continuation (not for generation tasks).
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 
@@ -637,7 +646,29 @@ class Task:
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[GenInstance] | list[LLInstance] | None: ...
+    ) -> list[GenInstance] | list[LLInstance] | None:
+        """Convert a doc and its prompt context into Instance objects for the LM.
+
+        Called by ``build_all_requests`` after ``fewshot_context`` has produced
+        the prompt. Each subclass maps the prompt into the request format its
+        output type requires (loglikelihood pairs, generation args, etc.).
+
+        Args:
+            doc: The evaluation document from the dataset split.
+            ctx: The prompt produced by ``fewshot_context``. Shape depends on
+                rendering mode:
+                - str: plain-text prompt
+                - list[str]: one prompt per input (multiple-input tasks)
+                - list[dict]: chat-formatted message list
+            doc_id: Index of the document within the evaluation split.
+            metadata: Per-instance metadata forwarded to the Instance.
+            apply_chat_template: Whether a chat template was applied.
+            chat_template: The chat template callable, if any.
+
+        Returns:
+            A list of Instances to send to the LM, or None to skip this doc.
+        """
+        ...
 
     def build_all_requests(
         self,
@@ -654,7 +685,30 @@ class Task:
         chat_template: ChatTemplate | None = None,
         tokenizer_name: str = "",
     ) -> list[Instance]:
-        """Build a set of Instances for a task, and store them in task.instances"""
+        """Build all Instance objects for this task and store them in ``self._instances``.
+
+        For each document in the evaluation split this method:
+        1. Builds the prompt via ``fewshot_context``.
+        2. Converts it to Instance(s) via ``construct_requests``.
+        3. Optionally loads/saves results from a request cache.
+
+        Args:
+            limit: Maximum number of documents to evaluate (None = all).
+            samples: Explicit list of document indices to evaluate.
+            rank: Worker rank for distributed evaluation.
+            world_size: Total number of workers.
+            cache_requests: Whether to load/save instances from cache.
+            rewrite_requests_cache: Force-rebuild the cache even if it exists.
+            system_instruction: System prompt prepended to every context.
+            apply_chat_template: Whether to render prompts through a chat template.
+            fewshot_as_multiturn: Keep few-shot examples as separate chat turns
+                instead of collapsing them into a single user message.
+            chat_template: The chat template callable.
+            tokenizer_name: Included in the cache key to distinguish tokenizers.
+
+        Returns:
+            Flat list of Instances, also stored in ``self._instances``.
+        """
 
         # used with caching
         og_limit = limit
