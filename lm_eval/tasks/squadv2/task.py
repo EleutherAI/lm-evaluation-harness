@@ -14,14 +14,14 @@ also determine when no answer is supported by the paragraph and abstain from ans
 Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 """
 
-from functools import partial
+from functools import lru_cache, partial
 from math import exp
 
 import datasets
 from packaging import version
 
 from lm_eval.api.instance import Instance
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task
 
 
 _CITATION = """
@@ -36,26 +36,33 @@ _CITATION = """
 """
 
 
-def _squad_metric(predictions, references):
+@lru_cache(maxsize=1)
+def _load_squad_metric():
     import evaluate
 
-    squad_metric = evaluate.load("squad_v2")
-    return squad_metric.compute(predictions=predictions, references=references)
+    return evaluate.load("squad_v2")
+
+
+def _squad_metric(predictions, references):
+    return _load_squad_metric().compute(predictions=predictions, references=references)
 
 
 def _squad_agg(key, items):
-    predictions, references = zip(*items)
+    predictions, references = zip(*items, strict=True)
 
     return _squad_metric(predictions=predictions, references=references).get(key, 0)
 
 
-class SQuAD2(ConfigurableTask):
+class SQuAD2(Task):
     VERSION = 3
     DATASET_PATH = "lighteval/squad_v2"
     DATASET_NAME = None
 
     def __init__(self, config=None):
-        super().__init__(config={"metadata": {"version": self.VERSION}})
+        self.task = "squadv2"
+        super().__init__(
+            config={"task": "squadv2", "metadata": {"version": self.VERSION}}
+        )
 
     # HF changed squad on us so we have to make sure we aren't running the old one
     assert version.parse(datasets.__version__) >= version.parse("1.11.0"), (
@@ -77,7 +84,7 @@ class SQuAD2(ConfigurableTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc, doc_to_text=None):
         return (
             "Title: "
             + doc["title"]
@@ -97,12 +104,9 @@ class SQuAD2(ConfigurableTask):
     def doc_to_decontamination_query(self, doc):
         return doc["context"]
 
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc, doc_to_target=None):
         answer_list = doc["answers"]["text"]
-        if len(answer_list) > 0:
-            answer = answer_list[0]
-        else:
-            answer = "unanswerable"
+        answer = answer_list[0] if len(answer_list) > 0 else "unanswerable"
         return " " + answer
 
     def construct_requests(
@@ -125,6 +129,7 @@ class SQuAD2(ConfigurableTask):
                 doc=doc,
                 arguments=(ctx, {"until": ["\n"]}),
                 idx=0,
+                task_name=self.task,
                 **kwargs,
             ),
             Instance(
@@ -132,6 +137,7 @@ class SQuAD2(ConfigurableTask):
                 doc=doc,
                 arguments=(ctx, " " + "unanswerable"),
                 idx=0,
+                task_name=self.task,
                 **kwargs,
             ),
         ]
