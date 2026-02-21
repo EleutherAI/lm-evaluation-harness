@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
+    from lm_eval.api._types import GenResponse, LLResponse
     from lm_eval.api.instance import Instance
 
 
@@ -23,7 +24,11 @@ class Filter(ABC):
         """
 
     @abstractmethod
-    def apply(self, resps: list | Iterable, docs: list[dict]) -> Iterable:
+    def apply(
+        self,
+        resps: "Iterable[LLResponse] | Iterable[GenResponse]",
+        docs: list[dict[str, Any]],
+    ) -> "Iterable[LLResponse] | Iterable[GenResponse]":
         """
         Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
         Should return the list of (filtered) response lists *in the same order as they were input*, e.g.
