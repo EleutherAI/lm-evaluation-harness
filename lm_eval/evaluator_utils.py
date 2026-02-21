@@ -200,10 +200,7 @@ def _collect_results(
     for task_name, acc in eval_results_acc.items():
         task = acc["task"]
 
-        # Compute aggregated metrics from scorer-internal reduced results
-        agg_metrics, sample_len = task.aggregate(bootstrap_iters)
-
-        # Get task config
+        agg_metrics, sample_len = _compute_task_aggregations(task, bootstrap_iters)
         task_config = dict(task.dump_config())
 
         result.metrics[task_name] = {
@@ -480,15 +477,9 @@ def _build_logged_samples(
             first = reqs[0]
             doc_id_true = indices[doc_id] if indices else doc_id
             target = first.target
-
-            # Look up scored doc directly by doc_id
             sd = scorer.scored_docs.get(doc_id)
+
             per_doc_metrics = sd.reduced_scores if sd else {}
-            per_repeat_metrics = (
-                {mn: vals for mn, vals in sd.scores.items() if len(vals) > 1}
-                if sd
-                else {}
-            )
 
             example = {
                 "doc_id": doc_id_true,
@@ -511,10 +502,13 @@ def _build_logged_samples(
                 ),
                 "prompt_hash": hash_string(first.arguments[0]),
                 "target_hash": hash_string(str(target)),
+                **per_doc_metrics,
             }
-            example.update(per_doc_metrics)
-            if per_repeat_metrics:
-                example["scores_per_repeat"] = per_repeat_metrics
+            # Include per-repeat scores when repeats > 1
+            if sd:
+                repeats = {k: v for k, v in sd.scores.items() if len(v) > 1}
+                if repeats:
+                    example["scores_per_repeat"] = repeats
             logged.append(example)
 
     return logged

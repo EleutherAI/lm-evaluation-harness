@@ -25,6 +25,7 @@ from lm_eval.api.utils import (
     load_dataset_splits,
     maybe_delimit,
     multiturn_to_singleturn,
+    normalize_to_list,
     random_task_id,
     requires_delimiter,
 )
@@ -37,7 +38,6 @@ from lm_eval.config.utils import (
     process_field,
 )
 from lm_eval.scorers import ScoredDoc, Scorer
-from lm_eval.utils import normalize_to_list
 
 
 if TYPE_CHECKING:
@@ -76,12 +76,9 @@ def _legacy_to_scored_docs(
     converts each positional entry into a ``ScoredDoc``, pulling the
     reference from the first ``Instance.target`` of each doc group.
     """
-    doc_ids = list(instances.keys())
-    n_docs = len(doc_ids)
     scored_docs: dict[int, ScoredDoc] = {}
 
-    for pos in range(n_docs):
-        doc_id = doc_ids[pos]
+    for pos, doc_id in enumerate(instances):
         reference = instances[doc_id][0].target
         scores: dict[str, list[float]] = {}
         for metric_name, doc_values in pr_results.items():
@@ -307,56 +304,52 @@ class Task:
     def has_test_docs(self) -> bool:
         return self.config.test_split is not None
 
+    def _get_split_docs(self, split: str | None) -> DataSplit | None:
+        """Return the docs for a given split, applying process_docs if configured."""
+        if split is None:
+            return None
+        docs = self.dataset[split]
+        if self.config.process_docs is not None:
+            return self.config.process_docs(docs)
+        return docs
+
     def training_docs(self) -> DataSplit | None:
-        if self.config.training_split is not None:
-            if self.config.process_docs is not None:
-                return self.config.process_docs(
-                    self.dataset[self.config.training_split]
-                )
-            return self.dataset[self.config.training_split]
+        return self._get_split_docs(self.config.training_split)
 
     def validation_docs(self) -> DataSplit | None:
-        if self.config.validation_split is not None:
-            if self.config.process_docs is not None:
-                return self.config.process_docs(
-                    self.dataset[self.config.validation_split]
-                )
-            return self.dataset[self.config.validation_split]
+        return self._get_split_docs(self.config.validation_split)
 
     def test_docs(self) -> DataSplit | None:
-        if self.config.test_split is not None:
-            if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.test_split])
-            return self.dataset[self.config.test_split]
+        return self._get_split_docs(self.config.test_split)
 
     def fewshot_docs(self) -> DataSplit | None:
         if (_df := self._fewshot_cfg.get_docs(self.dataset)) is not None:
             self._fewshot_docs = list(_df)
             return _df
-        else:
-            if (_shots := self._config.num_fewshot) is not None and (_shots > 0):
-                eval_logger.warning(
-                    f"[Task: {self._config.task}] "
-                    f"num_fewshot > 0 but fewshot_split is None. "
-                    "using preconfigured rule."
-                )
-                # Try splits in priority order
-                _df = self.training_docs() or self.validation_docs()
-                if _df is not None:
-                    self._fewshot_docs = list(_df)
-                    return self._fewshot_docs
 
-                # Fallback to test split
-                eval_logger.warning(
-                    f"[Task: {self._config.task}] has_training_docs and has_validation_docs are False"
-                    ", using test_docs as fewshot_docs but this is not recommended."
-                )
-                if (_df := self.test_docs()) is not None:
-                    self._fewshot_docs = list(_df)
-                    return self._fewshot_docs
-
-                self._fewshot_docs = []
+        if (_shots := self._config.num_fewshot) is not None and _shots > 0:
+            eval_logger.warning(
+                f"[Task: {self._config.task}] "
+                f"num_fewshot > 0 but fewshot_split is None. "
+                "using preconfigured rule."
+            )
+            # Try splits in priority order
+            _df = self.training_docs() or self.validation_docs()
+            if _df is not None:
+                self._fewshot_docs = list(_df)
                 return self._fewshot_docs
+
+            # Fallback to test split
+            eval_logger.warning(
+                f"[Task: {self._config.task}] has_training_docs and has_validation_docs are False"
+                ", using test_docs as fewshot_docs but this is not recommended."
+            )
+            if (_df := self.test_docs()) is not None:
+                self._fewshot_docs = list(_df)
+                return self._fewshot_docs
+
+            self._fewshot_docs = []
+            return self._fewshot_docs
 
     @property
     def eval_docs(self) -> DataSplit:
@@ -368,11 +361,8 @@ class Task:
         return _df
 
     def get_docs(self, subset: str) -> DataSplit | None:
-        assert self.dataset is not None, "dataset not set!"
-        if subset := getattr(self.config, subset):
-            if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[subset])
-            return self.dataset[subset]
+        split = getattr(self.config, subset, None)
+        return self._get_split_docs(split)
 
     def doc_iterator(
         self,
@@ -390,21 +380,21 @@ class Task:
             eval_logger.info(
                 f"{self.config.task}: Evaluating on {len(samples)} examples"
             )
-            doc_iterator = utils.create_iterator(
-                ((i, x) for i, x in enumerate(self.eval_docs) if i in samples),
+            sample_set = set(samples)
+            return utils.create_iterator(
+                ((i, x) for i, x in enumerate(self.eval_docs) if i in sample_set),
                 rank=int(rank),
-                limit=None,  # limit does not matter here since we are selecting samples directly
+                limit=None,
                 world_size=int(world_size),
             )
-        else:
-            limit = int(limit) if limit else None
-            doc_iterator = utils.create_iterator(
-                enumerate(self.eval_docs),
-                rank=int(rank),
-                limit=limit,
-                world_size=int(world_size),
-            )
-        return doc_iterator
+
+        limit = int(limit) if limit else None
+        return utils.create_iterator(
+            enumerate(self.eval_docs),
+            rank=int(rank),
+            limit=limit,
+            world_size=int(world_size),
+        )
 
     ### Context Construction ###
 
@@ -565,28 +555,31 @@ class Task:
         assert isinstance(q, str), f"Context is not a string! : {q}"
         # Check if answer is provided (handle a=0 as valid answer index)
         has_answer = a is not None and a != ""
-        msgs: list[Message] = [
-            Message(
-                "user",
-                q,
-                tgt_delim
-                if has_answer and not gen_prefix
-                else tgt_delim
-                if gen_prefix and requires_delimiter(q, gen_prefix)
-                else "",
-            )
-        ]
+
+        # Determine the delimiter after the user question:
+        # - With an answer and no gen_prefix: use tgt_delim (e.g., " ")
+        # - With gen_prefix that needs spacing: use tgt_delim
+        # - Otherwise: no delimiter
+        if (has_answer and not gen_prefix) or (
+            gen_prefix and requires_delimiter(q, gen_prefix)
+        ):
+            user_delim = tgt_delim
+        else:
+            user_delim = ""
+
+        msgs: list[Message] = [Message("user", q, user_delim)]
+
         if has_answer:
-            answer_text = (
-                c[a]
-                if (c and isinstance(a, int))
-                # TODO: for multiple targets a is a list[str]. Fix this hack
-                else a[0]
-                if isinstance(a, list)
-                else a
-            )
+            # Resolve answer text from choices, list, or raw string
+            if c and isinstance(a, int):
+                answer_text = c[a]
+            elif isinstance(a, list):
+                # For multiple-targets use the first answer.
+                answer_text = a[0]
+            else:
+                answer_text = a
             assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
-            # Currently, we always delimit gen_prefex and answer with space if deliimter required.
+            # Currently, we always delimit gen_prefex and answer with space if delimiter required.
             answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
             msgs.append(Message("assistant", answer_text, few_delim))
         elif gen_prefix:
@@ -620,30 +613,22 @@ class Task:
         Returns:
             list[str]: Formatted prompt strings, one per input choice.
         """
-        # for multiple inputs, q is list[str]
-        res_ = []
         prev_context = prev_context or []
-        contexts = [
-            prev_context
-            + self.build_qa_turn(
-                q=ctx,
-                gen_prefix=gen_prefix,
-                tgt_delim="",
+        results = []
+        for ctx in q:
+            messages = prev_context + self.build_qa_turn(
+                q=ctx, gen_prefix=gen_prefix, tgt_delim=""
             )
-            for ctx in q
-        ]
-        for messages in contexts:
             if chat_template:
-                res = (
+                formatted = (
                     [m.to_dict() for m in messages]
                     if fewshot_as_multiturn
                     else multiturn_to_singleturn(messages)
                 )
-                res = chat_template(res)
+                results.append(chat_template(formatted))
             else:
-                res = "".join(m.to_text() for m in messages)
-            res_.append(res)
-        return res_
+                results.append("".join(m.to_text() for m in messages))
+        return results
 
     @abc.abstractmethod
     def construct_requests(
@@ -678,15 +663,19 @@ class Task:
         # used with caching
         og_limit = limit
 
-        cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
-        cache_key += "-chat_template" if apply_chat_template else ""
-        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
-        cache_key += (
-            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
-            if system_instruction is not None
-            else ""
-        )
-        cache_key += f"-tokenizer{tokenizer_name}"
+        cache_parts = [
+            f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}",
+        ]
+        if apply_chat_template:
+            cache_parts.append("chat_template")
+        if fewshot_as_multiturn:
+            cache_parts.append("fewshot_as_multiturn")
+        if system_instruction is not None:
+            cache_parts.append(
+                f"system_prompt_hash{utils.hash_string(system_instruction)}"
+            )
+        cache_parts.append(f"tokenizer{tokenizer_name}")
+        cache_key = "-".join(cache_parts)
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
@@ -824,8 +813,7 @@ class Task:
         return _coerce_target(y, parse_list=self._multiple_targets is True)
 
     def doc_to_prefix(self, doc) -> str | None:
-        _prefix = process_field(doc, self.config.gen_prefix)
-        return _prefix
+        return process_field(doc, self.config.gen_prefix)
 
     def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
         return process_field(doc, doc_to_image or self.config.doc_to_image)
@@ -839,7 +827,7 @@ class Task:
             self.config.doc_to_image is not None or self.config.doc_to_audio is not None
         )
 
-    def _build_multimodal_kwargs(self, doc, **kwargs) -> AdditionalArgs | None:
+    def _build_multimodal_kwargs(self, doc) -> AdditionalArgs | None:
         assert self.MULTIMODAL, (
             "This method should only be called for multimodal tasks, but this task is not multimodal according to its config."
         )
@@ -1167,10 +1155,10 @@ class MultipleChoiceTask(Task):
         """
         if self._multiple_inputs:
             raise NotImplementedError
-        else:
-            arguments = [
-                (deepcopy(ctx), f"{target_delimiter}{choice}") for choice in choices
-            ]
+
+        arguments = [
+            (deepcopy(ctx), f"{target_delimiter}{choice}") for choice in choices
+        ]
 
         return [
             Instance(
@@ -1277,14 +1265,7 @@ class GenerateTask(Task):
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[GenInstance]:
-        # Filter out chat_template and metadata from kwargs
         metadata = metadata or {}
-        instance_kwargs = {
-            k: v
-            for k, v in kwargs.items()
-            if k not in ("chat_template", "apply_chat_template")
-        }
-
         arguments = (
             cast("str | list[dict[str, str]]", ctx),
             deepcopy(self.config.generation_kwargs),
@@ -1306,7 +1287,7 @@ class GenerateTask(Task):
                 doc_id=doc_id,
                 repeats=self.config.repeats,
                 metadata={**metadata},
-                **instance_kwargs,
+                **kwargs,
             )
         ]
 
@@ -1325,7 +1306,7 @@ class GenerateTask(Task):
 class LoglikelihoodTask(Task):
     OUTPUT_TYPE: Literal["loglikelihood"] = "loglikelihood"
 
-    def __init__(self, config: TaskConfig | dict[str, Any], *args, **kwargs):
+    def __init__(self, config: TaskConfig | dict[str, Any]):
         super().__init__(config)
         assert self._multiple_inputs is False
         assert self._multiple_targets is False
@@ -1348,7 +1329,7 @@ class LoglikelihoodTask(Task):
     ) -> list[LLInstance]:
         cont = self.doc_to_target(doc)
         assert isinstance(ctx, str), (
-            "For loglikelihood tasks, the argument should be a string representing the continuation to score against the context. Got type {type(ctx)} with value {ctx}. Please check your doc_to_text implementation."
+            f"For loglikelihood tasks, the argument should be a string representing the continuation to score against the context. Got type {type(ctx)} with value {ctx}. Please check your doc_to_text implementation."
         )
         assert isinstance(cont, str), (
             f"For loglikelihood tasks, the target should be a string representing the continuation to score. Got {cont} of type {type(cont)}. Please check your doc_to_target implementation."
@@ -1401,12 +1382,11 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
         **kwargs,
     ) -> list[Instance]:
         assert isinstance(ctx, str), (
-            "For loglikelihood_rolling tasks, the argument should be a string representing the full text to score. Got {ctx} of type {type(ctx)}. Please check your doc_to_text implementation."
+            f"For loglikelihood_rolling tasks, the argument should be a string representing the full text to score. Got {ctx} of type {type(ctx)}. Please check your doc_to_text implementation."
         )
-        arguments = (
-            ctx,
-            "",
-        )  # the continuation is not needed for rolling loglikelihood, but we keep the same argument structure for compatibility with scorers
+        # Empty continuation: not needed for rolling loglikelihood,
+        # but keeps the same argument structure.
+        arguments = (ctx, "")
 
         return [
             Instance(
