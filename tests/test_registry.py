@@ -131,6 +131,38 @@ class TestRegistryBasics:
         assert len(list(reg.items())) == 2
 
 
+class TestRegistryLazyModule:
+    """Test lazy_module auto-import on first get()."""
+
+    def test_lazy_module_auto_import(self):
+        """Test that get() auto-imports the lazy_module when registry is empty."""
+        reg = Registry("test", lazy_module="os.path")
+        # Registry starts empty — get() should trigger importlib.import_module("os.path")
+        # but "os.path" doesn't register anything into *this* registry,
+        # so we still expect KeyError. The point is: import_module doesn't crash.
+        with pytest.raises(KeyError):
+            reg.get("nonexistent")
+
+    def test_lazy_module_skipped_when_populated(self):
+        """Test that lazy_module import is skipped when registry already has entries."""
+        reg = Registry("test", lazy_module="this.module.does.not.exist")
+        reg.register("item", target="os:getcwd")
+        # Registry is non-empty, so lazy_module import should be skipped
+        # (if it ran, it would raise ImportError)
+        result = reg.get("item")
+        import os
+
+        assert result is os.getcwd
+
+    def test_no_lazy_module(self):
+        """Test that registries without lazy_module work normally."""
+        reg = Registry("test")
+        reg.register("item", target="os:getcwd")
+        import os
+
+        assert reg.get("item") is os.getcwd
+
+
 class TestRegistryCollisions:
     """Test collision handling in Registry."""
 
@@ -195,13 +227,6 @@ class TestRegistryFreeze:
         # But modifications fail
         with pytest.raises(TypeError):
             reg.register("b", target="os:getenv")
-
-    def test_freeze_all(self):
-        """Test freeze_all function."""
-
-        # This would freeze all global registries - skip in test
-        # freeze_all()
-        pass
 
 
 class TestRegistryThreadSafety:
