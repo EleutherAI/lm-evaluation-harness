@@ -21,7 +21,9 @@ from lm_eval.api import samplers
 from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
 from lm_eval.api.utils import (
     Message,
+    _build_cache_key,
     ends_with_whitespace,
+    group_by_doc_id,
     load_dataset_splits,
     maybe_delimit,
     multiturn_to_singleturn,
@@ -48,22 +50,6 @@ if TYPE_CHECKING:
     from lm_eval.config.task import Dataset, DataSplit, Doc, FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
-
-
-def _group_by_doc_id(
-    instances: list[Instance] | None = None,
-) -> dict[int, list[Instance]]:
-    """Group instances by doc_id and sort each group by idx."""
-    if not instances:
-        return {}
-    from collections import defaultdict
-
-    instances_by_doc_id: dict[int, list[Instance]] = defaultdict(list)
-    for instance in instances:
-        instances_by_doc_id[instance.doc_id].append(instance)
-    for insts in instances_by_doc_id.values():
-        insts.sort(key=lambda x: x.idx)
-    return instances_by_doc_id
 
 
 def _legacy_to_scored_docs(
@@ -709,110 +695,82 @@ class Task:
         Returns:
             Flat list of Instances, also stored in ``self._instances``.
         """
-
-        # used with caching
-        og_limit = limit
-
-        cache_parts = [
-            f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}",
-        ]
-        if apply_chat_template:
-            cache_parts.append("chat_template")
-        if fewshot_as_multiturn:
-            cache_parts.append("fewshot_as_multiturn")
-        if system_instruction is not None:
-            cache_parts.append(
-                f"system_prompt_hash{utils.hash_string(system_instruction)}"
-            )
-        cache_parts.append(f"tokenizer{tokenizer_name}")
-        cache_key = "-".join(cache_parts)
-
-        cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
-
-        if cache_requests and cached_instances and not rewrite_requests_cache:
-            cached_instances = cached_instances[:limit]
-
-            flattened_instances = [
-                instance
-                for instance_group in cached_instances
-                for instance in instance_group
-            ]
-
-            self._instances = flattened_instances
-            return flattened_instances
-
-        eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
-
-        instances = []
-
-        # process all documents when caching is specified for simplicity
-        if (
-            cache_requests
-            and (not cached_instances or rewrite_requests_cache)
-            and limit is not None
-        ):
-            limit = None
-
-        doc_id_docs = list(
-            self.doc_iterator(
-                rank=rank, limit=limit, samples=samples, world_size=world_size
-            )
+        cache_key = _build_cache_key(
+            self._config.task,
+            self.config.num_fewshot,
+            rank,
+            world_size,
+            apply_chat_template,
+            fewshot_as_multiturn,
+            system_instruction,
+            tokenizer_name,
         )
+        cached = load_from_cache(file_name=cache_key, cache=cache_requests)
 
-        num_docs = len(doc_id_docs)
+        if cache_requests and cached and not rewrite_requests_cache:
+            grouped = cached[:limit]
+        else:
+            # When caching a miss/rewrite, build ALL docs so the cache is
+            # complete; then slice to the requested limit afterwards.
+            should_build_all = (
+                cache_requests
+                and (not cached or rewrite_requests_cache)
+                and limit is not None
+            )
+            build_limit = None if should_build_all else limit
 
-        for doc_id, doc in tqdm(
-            doc_id_docs,
-            total=num_docs,
-            delay=5,
-        ):
-            fewshot_ctx = self.fewshot_context(
-                doc,
-                num_fewshot=0
-                if self.config.num_fewshot is None
-                else self.config.num_fewshot,
-                system_instruction=system_instruction,
-                apply_chat_template=apply_chat_template,
-                fewshot_as_multiturn=fewshot_as_multiturn,
-                chat_template=chat_template,
-                gen_prefix=self.doc_to_prefix(doc),
+            eval_logger.info(
+                f"Building contexts for {self.config.task} on rank {rank}..."
             )
 
-            # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
-            inst = self.construct_requests(
-                doc=doc,
-                ctx=fewshot_ctx,
-                doc_id=doc_id,
-                apply_chat_template=apply_chat_template,
-                chat_template=chat_template,
+            grouped: list[list[Instance]] = []
+            doc_id_docs = list(
+                self.doc_iterator(
+                    rank=rank, limit=build_limit, samples=samples, world_size=world_size
+                )
             )
-            if inst is None:
-                eval_logger.info(f"Skipping {doc_id=}.")
-                continue
-            if not isinstance(inst, list):
-                inst = [inst]
 
-            instances.append(inst)
+            for doc_id, doc in tqdm(doc_id_docs, total=len(doc_id_docs), delay=5):
+                fewshot_ctx = self.fewshot_context(
+                    doc,
+                    num_fewshot=0
+                    if self.config.num_fewshot is None
+                    else self.config.num_fewshot,
+                    system_instruction=system_instruction,
+                    apply_chat_template=apply_chat_template,
+                    fewshot_as_multiturn=fewshot_as_multiturn,
+                    chat_template=chat_template,
+                    gen_prefix=self.doc_to_prefix(doc),
+                )
 
-        # now flatten, this is to allow slicing to work with pickles
+                # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
+                inst = self.construct_requests(
+                    doc=doc,
+                    ctx=fewshot_ctx,
+                    doc_id=doc_id,
+                    apply_chat_template=apply_chat_template,
+                    chat_template=chat_template,
+                )
+                if inst is None:
+                    eval_logger.info(f"Skipping {doc_id=}.")
+                    continue
+                if not isinstance(inst, list):
+                    inst = [inst]
 
-        sliced_instances = instances[:og_limit]
+                grouped.append(inst)
 
-        flattened_instances = [
-            instance
-            for instance_group in sliced_instances
-            for instance in instance_group
-        ]
+            if cache_requests and (not cached or rewrite_requests_cache):
+                save_to_cache(file_name=cache_key, obj=grouped)
 
-        self._instances = flattened_instances
+            grouped = grouped[:limit]
 
-        if len(self._instances) == 0:
+        flattened = [inst for group in grouped for inst in group]
+
+        if not flattened:
             raise ValueError("task.build_requests() did not find any docs!")
 
-        if cache_requests and (not cached_instances or rewrite_requests_cache):
-            save_to_cache(file_name=cache_key, obj=instances)
-
-        return flattened_instances
+        self._instances = flattened
+        return flattened
 
     @property
     def instances(self) -> list[Instance]:
@@ -910,7 +868,7 @@ class Task:
 
         self.apply_filters()
 
-        instances = _group_by_doc_id(self._instances)
+        instances = group_by_doc_id(self._instances)
 
         for scorer in self._scorers:
             pr_results = self._try_process_results(instances, scorer.name)

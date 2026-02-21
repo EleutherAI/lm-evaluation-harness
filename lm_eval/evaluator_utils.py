@@ -463,12 +463,12 @@ def _build_logged_samples(
     """
     import json
 
-    from lm_eval.api.task import _group_by_doc_id
+    from lm_eval.api.utils import group_by_doc_id
     from lm_eval.utils import handle_non_serializable, hash_string
 
     logged: list[dict[str, Any]] = []
 
-    instances_by_doc_id = _group_by_doc_id(task.instances)
+    instances_by_doc_id = group_by_doc_id(task.instances)
 
     indices = samples.get(task_name, None) if samples is not None else None
 
