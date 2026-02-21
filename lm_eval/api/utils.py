@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from typing_extensions import TypeVar
 
@@ -73,7 +73,7 @@ def messages_to_text(messages: list[Message]) -> str:
     return "".join(m.to_text() for m in messages)
 
 
-def multiturn_to_singleturn(messages: list[Message]) -> list[dict[str, Any]]:
+def multiturn_to_singleturn(messages: list[Message]) -> list[dict[str, str]]:
     """Collapse multi-turn messages into a single user message (plus optional system/assistant)."""
     system, messages = (
         (messages[0], messages[1:])
