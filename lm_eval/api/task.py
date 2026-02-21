@@ -136,7 +136,7 @@ class Task:
         )
         self.task = self._config.task
         assert self.task is not None
-        self.OUTPUT_TYPE = self.OUTPUT_TYPE or self._config.output_type
+        self.OUTPUT_TYPE = self.OUTPUT_TYPE or self._config.output_type or None
         assert self.OUTPUT_TYPE, "output_type must be set in TaskConfig or subclass"
         self._dataset_name = self.DATASET_NAME or self._config.dataset_name
         self._dataset_path = self.DATASET_PATH or self._config.dataset_path
@@ -275,6 +275,10 @@ class Task:
         if self._dataset is None:
             self.download(self.config.dataset_kwargs)
         return self._dataset  # type: ignore[return-value]
+
+    @dataset.setter
+    def dataset(self, value):
+        self._dataset = value  # plain write
 
     @property
     def config(self) -> TaskConfig:
