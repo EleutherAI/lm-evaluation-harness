@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import datasets
 
 
@@ -15,13 +13,28 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def _extract_math_content(result: str) -> str:
+    r"""Extract content from math delimiters.
+
+    Supports both inline math ($...$) and display math (\\[...\\]) delimiters.
+    """
+    # Try $...$ delimiters first
+    indices = [pos for pos, char in enumerate(result) if char == "$"]
+    if len(indices) >= 2:
+        return result[indices[0] + 1 : indices[-1]]
+
+    # Try \[...\] display math delimiters
+    left = result.find("\\[")
+    right = result.rfind("\\]")
+    if left != -1 and right != -1 and right > left:
+        return result[left + 2 : right]
+
+    return result
+
+
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = _extract_math_content(results[0])
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
@@ -134,7 +147,7 @@ def fix_a_slash_b(string):
     try:
         a = int(a)
         b = int(b)
-        assert string == "{}/{}".format(a, b)
+        assert string == f"{a}/{b}"
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
     except AssertionError:
