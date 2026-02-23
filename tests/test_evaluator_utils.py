@@ -969,3 +969,98 @@ class TestMetricKey:
         original = MetricKey("bleu", "exact", is_stderr=True)
         parsed = MetricKey.parse(str(original))
         assert parsed == original
+
+    def test_parent_metric_plain(self):
+        assert MetricKey("acc", "none").parent_metric is None
+
+    def test_parent_metric_composite(self):
+        mk = MetricKey("pass@1(exact_match)", "none")
+        assert mk.parent_metric == "exact_match"
+
+    def test_parent_metric_nested_parens(self):
+        mk = MetricKey("sub(parent(inner))", "none")
+        assert mk.parent_metric == "parent(inner)"
+
+    def test_roundtrip_composite(self):
+        original = MetricKey("pass@1(exact_match)", "none")
+        parsed = MetricKey.parse(str(original))
+        assert parsed == original
+
+
+# ---------------------------------------------------------------------------
+# TestScorerAggregationComposite
+# ---------------------------------------------------------------------------
+
+
+class TestScorerAggregationComposite:
+    """Tests that Scorer.aggregate() and higher_is_better handle dict-returning reductions."""
+
+    def _make_scorer_with_composite(self, parent_hib: bool = True):
+        """Build a Scorer whose _scored_docs contain composite keys from a dict reduction.
+
+        Simulates what happens when a reduction like pass@k returns
+        {"pass@1": 1.0, "pass@5": 0.5} and reduce() stores them as
+        "pass@1(exact_match)" and "pass@5(exact_match)".
+        """
+        from lm_eval.api.metrics import Metric
+
+        parent_metric = Metric(
+            name="exact_match",
+            fn=lambda *a, **kw: 0,
+            aggregation=mean,
+            higher_is_better=parent_hib,
+        )
+        noop_filter = FilterEnsemble("none", [("identity", None)])
+        scorer = Scorer(
+            name="none",
+            filter=noop_filter,
+            metrics=[parent_metric],
+            _scored_docs=_scored_docs_from_flat(
+                {
+                    "pass@1(exact_match)": [1.0, 1.0, 0.0, 0.0],
+                    "pass@5(exact_match)": [0.5, 0.5, 0.5, 0.5],
+                }
+            ),
+        )
+        return scorer
+
+    def test_aggregate_uses_parent_aggregation(self):
+        scorer = self._make_scorer_with_composite()
+        agg, sample_len = scorer.aggregate(bootstrap_iters=0)
+        assert agg["pass@1(exact_match),none"] == pytest.approx(0.5)
+        assert agg["pass@5(exact_match),none"] == pytest.approx(0.5)
+        assert sample_len == 4
+
+    def test_aggregate_composite_stderr_present(self):
+        scorer = self._make_scorer_with_composite()
+        agg, _ = scorer.aggregate(bootstrap_iters=100)
+        assert "pass@1(exact_match)_stderr,none" in agg
+        assert "pass@5(exact_match)_stderr,none" in agg
+
+    def test_higher_is_better_includes_composite(self):
+        scorer = self._make_scorer_with_composite(parent_hib=True)
+        hib = scorer.higher_is_better
+        assert hib["exact_match"] is True
+        assert hib["pass@1(exact_match)"] is True
+        assert hib["pass@5(exact_match)"] is True
+
+    def test_higher_is_better_inherits_false(self):
+        scorer = self._make_scorer_with_composite(parent_hib=False)
+        hib = scorer.higher_is_better
+        assert hib["exact_match"] is False
+        assert hib["pass@1(exact_match)"] is False
+
+    def test_higher_is_better_no_scored_docs(self):
+        """Without _scored_docs, only base metrics appear."""
+        from lm_eval.api.metrics import Metric
+
+        parent_metric = Metric(
+            name="exact_match",
+            fn=lambda *a, **kw: 0,
+            aggregation=mean,
+            higher_is_better=True,
+        )
+        noop_filter = FilterEnsemble("none", [("identity", None)])
+        scorer = Scorer(name="none", filter=noop_filter, metrics=[parent_metric])
+        hib = scorer.higher_is_better
+        assert hib == {"exact_match": True}

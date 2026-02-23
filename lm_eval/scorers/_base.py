@@ -43,6 +43,15 @@ class MetricKey:
         name = f"{self.metric}_stderr" if self.is_stderr else self.metric
         return f"{name},{self.scorer}"
 
+    @property
+    def parent_metric(self) -> str | None:
+        """Extract parent from composite names: ``'pass@1(exact_match)'`` → ``'exact_match'``."""
+        m = self.metric
+        if m.endswith(")") and "(" in m:
+            _, _, parent = m.partition("(")
+            return parent[:-1]  # strip trailing ")"
+        return None
+
     @classmethod
     def parse(cls, key: str) -> MetricKey | None:
         """Parse a ``'metric,scorer'`` string. Returns ``None`` if not a metric key."""
@@ -238,9 +247,20 @@ class Scorer:
         metrics_by_name = {m.name: m for m in self.metrics or []}
         for sd in scored_docs.values():
             for metric_name, values in sd.scores.items():
+                if len(values) == 1:
+                    # No reduction needed for single-value metrics
+                    sd.reduced_scores[metric_name] = values[0]
+                    continue
                 m = metrics_by_name.get(metric_name)
                 if m is not None and m.reduction is not None:
-                    sd.reduced_scores[metric_name] = m.reduction(sd.reference, values)
+                    res = m.reduction(sd.reference, values)
+                    if isinstance(res, dict):
+                        # If reduction returns multiple sub-metrics, flatten them into reduced_scores
+                        for sub_metric_name, sub_value in res.items():
+                            full_sub_metric_name = f"{sub_metric_name}({metric_name})"
+                            sd.reduced_scores[full_sub_metric_name] = sub_value
+                    else:
+                        sd.reduced_scores[metric_name] = res
                 else:
                     # Unknown metric (e.g. from process_results): take first
                     if len(values) > 1:
@@ -291,6 +311,11 @@ class Scorer:
             sample_len = max(sample_len, len(values))
 
             m = metrics_by_name.get(metric_name)
+            # Fall back to parent for composite keys like "pass@1(exact_match)"
+            if m is None:
+                parent = MetricKey(metric_name, self.name).parent_metric
+                if parent is not None:
+                    m = metrics_by_name.get(parent)
             if m is not None:
                 agg_fn = m.aggregation
                 if agg_fn is not None:
@@ -366,4 +391,14 @@ class Scorer:
     @property
     def higher_is_better(self) -> dict[str, bool]:
         """Return ``{metric_name: bool}`` for all metrics in this scorer."""
-        return {m.name: m.higher_is_better for m in (self.metrics or [])}
+        base = {m.name: m.higher_is_better for m in (self.metrics or [])}
+        # Inherit higher_is_better for composite keys from their parent metric
+        if self._scored_docs:
+            for sd in self._scored_docs.values():
+                for key in sd.reduced_scores:
+                    if key not in base:
+                        mk = MetricKey(key, self.name)
+                        if mk.parent_metric and mk.parent_metric in base:
+                            base[key] = base[mk.parent_metric]
+                break  # all docs share the same metric names
+        return base

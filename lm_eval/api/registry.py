@@ -71,6 +71,7 @@ __all__ = [
     "higher_is_better_registry",
     "is_higher_better",
     "metric_agg_registry",
+    "metric_reduction_registry",
     "metric_registry",
     "model_registry",
     "reduction_registry",
@@ -445,6 +446,9 @@ higher_is_better_registry: Registry[bool] = Registry(
 reduction_registry: Registry[Callable] = Registry(
     "reduction", lazy_module=_REDUCE_MODULE
 )
+metric_reduction_registry: Registry[Callable] = Registry(
+    "metric_reduction", lazy_module=_METRICS_MODULE
+)
 
 
 # Backward compat aliases - these now point to Registry instances
@@ -608,6 +612,11 @@ def register_metric(**args):
             agg_fn = aggregation_registry.get(args["aggregation"])
             metric_agg_registry.register(name, target=agg_fn)
 
+        # Register reduction if provided
+        if "reduction" in args:
+            red_fn = reduction_registry.get(args["reduction"])
+            metric_reduction_registry.register(name, target=red_fn)
+
         return fn
 
     return decorate
@@ -654,9 +663,18 @@ def _get_metric(name: str) -> Metric | None:
             higher_is_better=hib,
         )
 
-    # Plain function metric — pull agg + hib from companion registries
+    # Plain function metric — pull agg + hib + reduction from companion registries
     agg_fn = metric_agg_registry.get(name, None)
     hib = higher_is_better_registry.get(name, True)
+    red_fn = metric_reduction_registry.get(name, None)
+    if red_fn is not None:
+        return Metric(
+            name=name,
+            fn=raw,
+            aggregation=agg_fn,
+            higher_is_better=hib,
+            reduction=red_fn,
+        )
     return Metric(name=name, fn=raw, aggregation=agg_fn, higher_is_better=hib)
 
 

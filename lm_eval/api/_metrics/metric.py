@@ -73,7 +73,7 @@ class Metric(Generic[_T, _K]):
         if not self.name:
             raise ValueError("Metric name must be non-empty.")
         if not callable(self.fn):
-            raise ValueError(
+            raise TypeError(
                 f"Metric '{self.name}' fn must be callable, got {type(self.fn)}."
             )
         if self.aggregation is not None and not callable(self.aggregation):
