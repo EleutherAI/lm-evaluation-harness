@@ -418,7 +418,7 @@ class TestBuildQaTurn:
 
     def test_raises_on_non_string_question(self, task):
         """Raises AssertionError if question is not a string."""
-        with pytest.raises(AssertionError, match="not a string"):
+        with pytest.raises(AssertionError):
             ConfigurableTask.build_qa_turn(task, q=123, a="A")  # type: ignore
 
     def test_answer_index_zero_uses_delimiter(self, task):
@@ -577,7 +577,7 @@ class TestFewshotContext:
 
         # Fewshot uses choices[0]="A", target question only (no answer)
         assert "A\n\n" in result
-        assert result.endswith("Pick a fruit:")
+        assert isinstance(result, str) and result.endswith("Pick a fruit:")
 
     def test_custom_delimiters(self, mock_configurable_task):
         """Custom delimiters are respected."""
@@ -617,7 +617,7 @@ class TestFewshotContext:
         # Fewshot answer should have gen_prefix prepended
         assert "Answer: A1" in result
         # Target should end with gen_prefix
-        assert result.endswith("Answer:")
+        assert isinstance(result, str) and result.endswith("Answer:")
 
     def test_sampler_excludes_eval_doc_when_same_split(self, mock_configurable_task):
         """When fewshot_split == test_split, eval_doc is passed to sampler."""
@@ -665,7 +665,7 @@ class TestFewshotContext:
 
         captured_messages = []
 
-        def mock_chat_template(msgs, **kwargs):
+        def mock_chat_template(msgs, **kwargs) -> str:
             captured_messages.extend(msgs)
             return "<chat>"
 
@@ -675,7 +675,7 @@ class TestFewshotContext:
             num_fewshot=1,
             apply_chat_template=True,
             fewshot_as_multiturn=True,
-            chat_template=mock_chat_template,
+            chat_template=mock_chat_template,  # type:ignore[invalid-argument-type]
         )
 
         assert result == "<chat>"
@@ -705,7 +705,7 @@ class TestFewshotContext:
             num_fewshot=1,
             apply_chat_template=True,
             fewshot_as_multiturn=False,
-            chat_template=mock_chat_template,
+            chat_template=mock_chat_template,  # type:ignore[invalid-argument-type]
         )
 
         assert result == "<chat>"

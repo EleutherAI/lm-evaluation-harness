@@ -177,7 +177,7 @@ class Group:
                 if mk and mk.metric == metric_name and not mk.is_stderr:
                     discovered_filters.add(mk.scorer)
 
-        return sorted(list(discovered_filters))  # Sort for deterministic ordering
+        return sorted(discovered_filters)  # Sort for deterministic ordering
 
     def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
         """
