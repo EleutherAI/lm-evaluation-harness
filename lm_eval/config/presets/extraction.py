@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 
 @dataclass
@@ -18,7 +18,7 @@ class ExtractionConfig:
     def from_str(cls, method: str) -> "ExtractionConfig":
         return cls(method=method)
 
-    def create_filters(self) -> list[dict] | None:
+    def create_filters(self) -> list[dict[str, Any]] | None:
         if self.method == "logprobs":
             return None  # Handled elsewhere
         if self.method == "first_token":

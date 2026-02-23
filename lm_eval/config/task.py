@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import dataclasses
 import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
@@ -206,28 +205,20 @@ class TaskConfig:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        # Resolve preset and apply its config as defaults.
-        # Explicit user values always take precedence over preset values.
-        # TODO: fix logic
+        # Resolve preset: it consumes doc_to_* as inputs (field mappings)
+        # and returns overrides that are applied unconditionally.
         if self.preset is not None:
             from lm_eval.config.presets import PresetConfig
 
             resolved = PresetConfig.get(self.preset)
             if resolved is not None:
-                overrides = resolved.to_task_config()
+                overrides = resolved.to_task_config(
+                    doc_to_text=self.doc_to_text or "question",  # type: ignore
+                    doc_to_choice=self.doc_to_choice,  # type: ignore
+                    doc_to_target=self.doc_to_target or "answer",  # type: ignore
+                )
                 for key, value in overrides.items():
-                    if key not in self.__dataclass_fields__:
-                        continue
-                    current = getattr(self, key)
-                    field_info = self.__dataclass_fields__[key]
-                    if field_info.default is not dataclasses.MISSING:
-                        is_default = current == field_info.default
-                    elif field_info.default_factory is not dataclasses.MISSING:
-                        is_default = current == field_info.default_factory()
-                    else:
-                        is_default = False
-                    if is_default or current is None:
-                        setattr(self, key, value)
+                    setattr(self, key, value)
 
         if self.generation_kwargs:
             if self.output_type != "generate_until":
