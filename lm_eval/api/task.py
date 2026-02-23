@@ -1415,13 +1415,15 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance]:
-        assert isinstance(ctx, str), (
-            f"For loglikelihood_rolling tasks, the argument should be a string representing the full text to score. Got {ctx} of type {type(ctx)}. Please check your doc_to_text implementation."
+    ) -> list[LLInstance]:
+        # Rolling loglikelihood scores the full target text with no context prefix.
+        # Convention: args = (context, continuation) matching loglikelihood —
+        # context is empty for rolling, continuation is the text being scored.
+        text = self.doc_to_target(doc)
+        assert isinstance(text, str), (
+            f"doc_to_target must return a string for loglikelihood_rolling tasks. Got {type(text)}."
         )
-        # Empty continuation: not needed for rolling loglikelihood,
-        # but keeps the same argument structure.
-        arguments = (ctx, "")
+        arguments = cast("tuple[str, str]", ("", text))
 
         return [
             Instance(

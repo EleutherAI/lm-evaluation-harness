@@ -287,7 +287,9 @@ class HFAUDIOLMQWEN(HFLM):
         pbar.close()
         return res
 
-    def loglikelihood_rolling(self, requests: list[Instance]) -> list[float]:
+    def loglikelihood_rolling(
+        self, requests: list[Instance]
+    ) -> list[tuple[float, bool]]:
         raise NotImplementedError(
             "model type `hf-audiolm` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks ",
             "this is because we do not support measuring the loglikelihood a model assigns to an image.",

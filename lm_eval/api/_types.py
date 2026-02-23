@@ -19,11 +19,15 @@ DataSplit: TypeAlias = "datasets.Dataset | Sequence[Doc]"
 # datasets.DatasetDict is the primary impl; dict[str, DataSplit] works too.
 Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
 
+# the context passed to the model. Usually a string in most cases, but can be a dict of turn-level strings,
+# for model implementations process them internally, depending on the chat template used.
+Context = str | dict[str, str]
+
 
 LLArgs = tuple[str, str]
 LLResponse = Sequence[tuple[float, bool]]
 
-GenArgs = tuple[str | list[dict[str, str]], dict[str, Any]]
+GenArgs = tuple[Context, dict[str, Any]]
 GenResponse = Sequence[str]
 
 
@@ -36,7 +40,7 @@ class ChatTemplate(Protocol):
         *,
         add_generation_prompt: bool,
         **kwargs,
-    ) -> str | list[dict[str, str]]: ...
+    ) -> Context: ...
 
 
 class GenKwargs(TypedDict, total=False):

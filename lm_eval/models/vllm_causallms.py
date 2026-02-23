@@ -553,7 +553,7 @@ class VLLM(TemplateLM):
 
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False
-    ) -> list[float]:
+    ) -> list[tuple[float, bool]]:
         adaptive_batch_size = None
         if self.batch_size == "auto":
             adaptive_batch_size = len(requests)
@@ -562,7 +562,7 @@ class VLLM(TemplateLM):
         all_windows = []  # List of (request_idx, window) tuples
         request_window_counts = []  # Track number of windows per request
 
-        for req_idx, (string, _) in enumerate(
+        for req_idx, (_, string) in enumerate(
             tqdm(
                 [req.args for req in requests],
                 disable=(disable_tqdm or (self.rank != 0)),
@@ -610,12 +610,12 @@ class VLLM(TemplateLM):
             request_nlls = all_nlls[current_idx : current_idx + window_count]
             # Sum up the nlls for this request (discarding is_greedy)
             request_total = sum(nll[0] for _, nll in request_nlls)
-            loglikelihoods.append(request_total)
+            loglikelihoods.append((request_total, False))
             current_idx += window_count
 
-            string = requests[len(loglikelihoods) - 1].args[0]
+            string = requests[len(loglikelihoods) - 1].args[1]
             self.cache_hook.add_partial(
-                "loglikelihood_rolling", (string, ""), request_total
+                "loglikelihood_rolling", ("", string), (request_total, False)
             )
 
         return loglikelihoods

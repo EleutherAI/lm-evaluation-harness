@@ -46,7 +46,7 @@ class DummyLM(LM):
         res = []
 
         for _ in tqdm(requests, disable=disable_tqdm):
-            res.append(-random.random())
+            res.append((-random.random(), False))
 
         return res
 

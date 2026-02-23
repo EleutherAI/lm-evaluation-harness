@@ -58,7 +58,9 @@ class Test_SGlang:
     def test_logliklihood_rolling(self) -> None:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
         for x in res:
-            assert isinstance(x, float)
+            assert isinstance(x, tuple)
+            assert isinstance(x[0], float)
+            assert isinstance(x[1], bool)
 
     # def test_simple_evaluate(self)-> None:
     #     results = simple_evaluate(

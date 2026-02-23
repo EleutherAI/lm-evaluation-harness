@@ -58,7 +58,9 @@ class LM(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests: list[LLInstance]) -> list[float]:
+    def loglikelihood_rolling(
+        self, requests: list[LLInstance]
+    ) -> list[tuple[float, bool]]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation.
 
         - Uses the full max context length of the model.
@@ -445,7 +447,7 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def loglikelihood_rolling(
         self, requests, disable_tqdm: bool = False
-    ) -> list[float]: ...
+    ) -> list[tuple[float, bool]]: ...
 
     @abc.abstractmethod
     def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]: ...

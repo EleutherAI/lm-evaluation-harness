@@ -828,10 +828,10 @@ class TemplateAPI(TemplateLM):
 
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False
-    ) -> list[float]:
+    ) -> list[tuple[float, bool]]:
         loglikelihoods = []
 
-        for string, _ in tqdm([req.args for req in requests], disable=disable_tqdm):
+        for _, string in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -857,10 +857,10 @@ class TemplateAPI(TemplateLM):
             string_nll = [x[0] for x in string_nll]
 
             string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
+            loglikelihoods.append((string_nll, False))
 
             # cache this loglikelihood_rolling request
             self.cache_hook.add_partial(
-                "loglikelihood_rolling", (string, ""), string_nll
+                "loglikelihood_rolling", ("", string), (string_nll, False)
             )
         return loglikelihoods

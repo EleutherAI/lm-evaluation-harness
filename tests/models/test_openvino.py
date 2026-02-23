@@ -69,7 +69,7 @@ def test_evaluator(backend, model_id, task):
             res = []
             random.seed(42)
             for _ in reqs:
-                res.extend([-random.random()])
+                res.extend([(-random.random(), False)])
 
             return res
 

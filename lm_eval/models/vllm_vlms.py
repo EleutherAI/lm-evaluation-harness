@@ -308,7 +308,7 @@ class VLLM_VLM(VLLM):
 
     def loglikelihood_rolling(
         self, requests: list["Instance"], disable_tqdm: bool = False
-    ) -> list[float]:
+    ) -> list[tuple[float, bool]]:
         if requests and len(requests[0].args) < 3:
             # Fall back to non-multimodal generation.
             return super().loglikelihood_rolling(requests=requests)
