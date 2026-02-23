@@ -891,7 +891,7 @@ class Task:
         instances: dict[int, list[Instance]],
         filter_key: str,
     ) -> dict[int, ScoredDoc] | None:
-        """Run the legacy process_results path for all docs.
+        """Run custom process_results path for all docs.
 
         Returns ``{doc_id: ScoredDoc}`` if ``process_results``
         returns a non-None dict for the first document, otherwise ``None``.

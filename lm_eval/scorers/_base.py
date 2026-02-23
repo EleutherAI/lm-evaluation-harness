@@ -243,6 +243,12 @@ class Scorer:
                     sd.reduced_scores[metric_name] = m.reduction(sd.reference, values)
                 else:
                     # Unknown metric (e.g. from process_results): take first
+                    if len(values) > 1:
+                        eval_logger.warning(
+                            "No reduction function for metric '%s' in scorer '%s'. Falling back to first value.",
+                            metric_name,
+                            self.name,
+                        )
                     sd.reduced_scores[metric_name] = values[0]
 
     def aggregate(
