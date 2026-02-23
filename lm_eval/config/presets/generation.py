@@ -33,7 +33,7 @@ class GeneratePreset(PresetConfig):
     before_answer: str = "\n"
     answer_instruction: str | None = None  # CoT instruction
     answer_instruction_delimiter: str = ""  # After answer_instruction
-    answer_prompt: str = 'Your response should end with "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of A, B, C or D.'
+    answer_prompt: str = 'Your response should end with "The best answer is [answer_letter]" where the [answer_letter] is one of A, B, C or D.'
     answer_format: str = "letters"
     gen_prefix: str = "The best answer is"
 

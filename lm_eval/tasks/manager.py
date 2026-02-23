@@ -146,14 +146,25 @@ class TaskManager:
             Task, Group, or list[Task] (for tags)
         """
         match spec:
-            # Registered name
+            # Registered name (possibly with @preset selector)
             case str():
-                # First check if it's a registered name (task/group/tag)
+                # Try exact match first (handles "arc_easy@mcqa" registered names)
                 entry = self._entry(spec)
                 if entry:
                     return self._factory.build(
                         entry, overrides=None, registry=self._index
                     )
+
+                # If spec has @, try base name with preset as runtime override
+                if "@" in spec:
+                    base_name, preset_selection = spec.rsplit("@", 1)
+                    overrides = {"_preset_selection": preset_selection}
+                    entry = self._entry(base_name)
+                    if entry:
+                        return self._factory.build(
+                            entry, overrides=overrides, registry=self._index
+                        )
+
                 # check if it's a path
                 entry = TaskIndex.entry_from_path(Path(spec))
                 if entry:
@@ -307,8 +318,23 @@ class TaskManager:
 
     # ---------------------------------------------------------------- utility
     def match_tasks(self, task_list: list[str]) -> list[str]:
-        """Match task names using glob patterns."""
-        return utils.pattern_match(task_list, self.all_tasks)
+        """Match task names using glob patterns.
+
+        Handles task@preset syntax: strips @preset for matching,
+        returns the original (with @preset) so _load_spec can parse it.
+        """
+        results = []
+        for pattern in task_list:
+            if "@" in pattern:
+                base, preset_suffix = pattern.split("@", 1)
+                matched = utils.pattern_match([base], self.all_tasks)
+                results.extend(f"{m}@{preset_suffix}" for m in matched)
+            else:
+                matched = utils.pattern_match([pattern], self.all_tasks)
+                results.extend(matched)
+            if not matched:
+                results.append(pattern)
+        return sorted(set(results))
 
     def list_all_tasks(
         self,
