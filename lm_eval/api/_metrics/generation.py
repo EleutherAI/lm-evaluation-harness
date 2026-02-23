@@ -67,6 +67,7 @@ def exact_match_hf_evaluate(
     higher_is_better=True,
     output_type="generate_until",
     aggregation="mean",
+    reduction="pass@k",
 )
 def exact_match_fn(references: list[str], predictions: list[str], **kwargs):
     return exact_match_hf_evaluate(
