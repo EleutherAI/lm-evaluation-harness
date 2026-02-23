@@ -1,13 +1,13 @@
-tag:
-  - ai2_arc
-task: arc_easy@cloze
+group: arc_easytest
 dataset_path: allenai/ai2_arc
-dataset_name: ARC-Easy
 training_split: train
 validation_split: validation
 test_split: test
 doc_to_text: "{{question}}"
 doc_to_target: "{{choices.label.index(answerKey)}}"
 doc_to_choice: "{{choices.text}}"
-metadata:
-  version: 1.0
+task:
+  - task: arc_easy@cloze
+    dataset_name: ARC-Easy
+  - task: arc_challenge@cloze
+    dataset_name: ARC-Challenge
