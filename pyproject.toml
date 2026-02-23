@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.12.dev0"
+version = "0.5.0.dev0"
 authors = [
     { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
@@ -21,13 +21,11 @@ dependencies = [
     "datasets>=2.16.0",
     "numpy",
     "jinja2",
-    "jsonlines",
     "pytablewriter",
     "rouge-score>=0.0.4",
     "sacrebleu>=1.5.0",
     "scikit-learn>=0.24.1",
     "sqlitedict",
-    "zstandard",
     "dill",
     "word2number",
     "more_itertools",
@@ -53,6 +51,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 [project.optional-dependencies]
 # Model backend dependencies
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
+archiver = ["jsonlines", "zstandard"]
 hf = ["transformers>=4.1","torch>=1.8", "accelerate>=0.26.0", "peft>=0.2.0",]
 vllm = ["vllm>=0.4.2"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
