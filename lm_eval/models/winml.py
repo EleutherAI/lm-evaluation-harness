@@ -575,7 +575,7 @@ class WindowsML(TemplateLM):
 
     def loglikelihood_rolling(
         self, requests: list["Instance"], disable_tqdm: bool = False
-    ) -> list[float]:
+    ) -> list[tuple[float, bool]]:
         """
         Compute rolling log-likelihood for perplexity using ONNX Runtime GenAI.
         Uses sliding windows to handle sequences longer than max_length.
@@ -592,7 +592,7 @@ class WindowsML(TemplateLM):
         for request in tqdm(
             requests, disable=disable_tqdm, desc="Computing rolling log-likelihoods"
         ):
-            string = request.args[0]
+            string = request.args[1]
 
             # Use sliding window approach for long sequences
             rolling_token_windows = list(
@@ -639,11 +639,11 @@ class WindowsML(TemplateLM):
 
             # Sum all window log-likelihoods
             total_nll = sum(string_nll)
-            loglikelihoods.append(total_nll)
+            loglikelihoods.append((total_nll, False))
 
             # Cache this loglikelihood_rolling request
             self.cache_hook.add_partial(
-                "loglikelihood_rolling", (string, ""), total_nll
+                "loglikelihood_rolling", ("", string), (total_nll, False)
             )
 
         return loglikelihoods

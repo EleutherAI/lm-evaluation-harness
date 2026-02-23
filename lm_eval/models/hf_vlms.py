@@ -391,7 +391,9 @@ class HFMultimodalLM(HFLM):
             )
         return batched_imgs
 
-    def loglikelihood_rolling(self, requests: list[Instance]) -> list[float]:
+    def loglikelihood_rolling(
+        self, requests: list[Instance]
+    ) -> list[tuple[float, bool]]:
         if requests and len(requests[0].args) < 3:
             # Fall back to non-multimodal generation.
             return super().loglikelihood_rolling(requests=requests)

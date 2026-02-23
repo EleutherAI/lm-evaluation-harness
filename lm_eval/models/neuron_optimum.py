@@ -368,7 +368,7 @@ class NEURON_HF(TemplateLM):
 
         adaptive_batch_size = None
 
-        for string, _ in tqdm(
+        for _, string in tqdm(
             [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
         ):
             rolling_token_windows = list(
@@ -411,10 +411,10 @@ class NEURON_HF(TemplateLM):
                 string_nll = [x[0] for x in string_nll]
 
             string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
+            loglikelihoods.append((string_nll, False))
             # cache this loglikelihood_rolling request
             self.cache_hook.add_partial(
-                "loglikelihood_rolling", (string, ""), string_nll
+                "loglikelihood_rolling", ("", string), (string_nll, False)
             )
         return loglikelihoods
 

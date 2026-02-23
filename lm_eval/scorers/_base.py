@@ -179,33 +179,8 @@ class Scorer:
                     reference=target,
                     scores=dict(repeat_scores),
                 )
-            elif self.output_type == "loglikelihood_rolling":
-                # Rolling loglikelihood: 1 instance per doc, model returns a plain float
-                import numpy as np
-
-                inst = doc_instances[0]
-                ll = inst.resps[0]  # plain float from loglikelihood_rolling
-                text = inst.args[0]  # the scored text (for word/byte counting)
-                results_obj = LLResults(
-                    results=inst.resps,
-                    lls=np.array([ll]),
-                    is_greedy=[False],
-                    targets=inst.target,
-                    ctx="",
-                    choices=[text],
-                )
-                references = results_obj.targets
-                per_doc = self._dispatch_metrics(
-                    references, results_obj, metric_kwargs=inst_metric_kwargs
-                )
-
-                scored_docs[doc_id] = ScoredDoc(
-                    doc_id=doc_id,
-                    reference=references,
-                    scores={mn: [v] for mn, v in per_doc.items()},
-                )
             else:
-                # loglikelihood / multiple_choice — repeats=1
+                # loglikelihood / loglikelihood_rolling / multiple_choice — repeats=1
                 results_obj = LLResults.from_instances(doc_instances)
                 references = results_obj.targets
                 per_doc = self._dispatch_metrics(
