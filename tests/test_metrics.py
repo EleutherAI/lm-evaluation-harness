@@ -239,27 +239,27 @@ class TestExactMatch:
         result = exact_match_fn(
             references=["hello", "world"], predictions=["hello", "world"]
         )
-        assert result["exact_match"] == 1.0
+        assert result["exact_match"] == [1, 1]
 
     def test_no_match(self):
         result = exact_match_fn(references=["hello"], predictions=["world"])
-        assert result["exact_match"] == 0.0
+        assert result["exact_match"] == [0]
 
     def test_partial_match(self):
         result = exact_match_fn(references=["a", "b"], predictions=["a", "c"])
-        assert result["exact_match"] == pytest.approx(0.5)
+        assert result["exact_match"] == [1, 0]
 
     def test_ignore_case(self):
         result = exact_match_fn(
             references=["Hello"], predictions=["hello"], ignore_case=True
         )
-        assert result["exact_match"] == 1.0
+        assert result["exact_match"] == [1]
 
     def test_ignore_punctuation(self):
         result = exact_match_fn(
             references=["hello!"], predictions=["hello"], ignore_punctuation=True
         )
-        assert result["exact_match"] == 1.0
+        assert result["exact_match"] == [1]
 
     def test_regex_ignore(self):
         result = exact_match_fn(
@@ -267,7 +267,7 @@ class TestExactMatch:
             predictions=["answer: 42!"],
             regexes_to_ignore=[r"[!]"],
         )
-        assert result["exact_match"] == 1.0
+        assert result["exact_match"] == [1]
 
 
 # ===========================================================================
@@ -409,27 +409,69 @@ class TestSacreformat:
 
 
 class TestCorpusMetricReduce:
-    """Tests for the reduce step that sits between __call__ and aggregation."""
+    """Tests for the reduce step that sits between __call__ and aggregation.
+
+    __call__ is invoked once per sample.  With repeats, predictions is a
+    list[str] with one string per repeat while references (list[str]) stays
+    the same.  reduce must strip the extra repeat predictions so that
+    aggregation / _sacreformat see exactly one prediction per sample.
+    """
 
     def test_reduce_single_repeat_passes_through(self):
         from lm_eval.api._metrics.corpus import Bleu
 
         bleu = Bleu()
+        # repeat=1: predictions has exactly one string
         item = bleu(["The cat."], ["A cat."])
         reduced = bleu.reduce(["The cat."], [item])
         assert reduced == item
 
-    def test_reduce_multiple_repeats_returns_first_and_warns(self):
+    def test_reduce_strips_extra_repeat_predictions(self):
+        """With repeat>1, predictions has multiple strings; reduce keeps only the first."""
         from lm_eval.api._metrics.corpus import Bleu
 
         bleu = Bleu()
-        item1 = bleu(["The cat."], ["A cat."])
-        item2 = bleu(["The cat."], ["The dog."])
-        reduced = bleu.reduce(["The cat."], [item1, item2])
-        assert reduced == item1
+        refs = ["The cat."]
+        # __call__ once per sample: 3 repeats bundled in predictions
+        item = bleu(refs, ["A cat.", "The dog.", "A feline."])
+        reduced = bleu.reduce(refs, [item])
+        # Must strip down to first repeat only
+        assert reduced == (refs, ["A cat."])
 
-    def test_reduce_works_for_all_sacrebleu_metrics(self):
-        """Reduce is inherited from CorpusMetric and should work identically."""
+    def test_reduce_strips_repeats_all_metrics(self):
+        """All sacrebleu metrics strip extra repeat predictions via reduce."""
+        from lm_eval.api._metrics.corpus import Bleu, Chrf, Ter
+
+        refs = ["The cat sat on the mat."]
+        for cls in (Bleu, Chrf, Ter):
+            metric = cls()
+            # 3 repeats in one __call__
+            item = metric(refs, ["pred1", "pred2", "pred3"])
+            reduced = metric.reduce(refs, [item])
+            assert reduced == (refs, ["pred1"])
+
+    def test_full_pipeline_with_repeats(self):
+        """End-to-end: repeat=3 across two samples, reduce → aggregation."""
+        from lm_eval.api._metrics.corpus import Bleu
+
+        bleu = Bleu()
+
+        # Sample 1: 3 repeats, first is perfect
+        s1_refs = ["The cat sat on the mat."]
+        s1_raw = bleu(s1_refs, ["The cat sat on the mat.", "A cat.", "Cats."])
+        s1_reduced = bleu.reduce(s1_refs, [s1_raw])
+
+        # Sample 2: 3 repeats, first is perfect
+        s2_refs = ["It was a fine day."]
+        s2_raw = bleu(s2_refs, ["It was a fine day.", "Nice day.", "Good."])
+        s2_reduced = bleu.reduce(s2_refs, [s2_raw])
+
+        # reduce kept only the first (perfect) repeat, so BLEU = 100
+        score = bleu.aggregation([s1_reduced, s2_reduced])
+        assert score == pytest.approx(100.0)
+
+    def test_reduce_single_repeat_unchanged(self):
+        """With repeat=1, reduce returns the result unchanged."""
         from lm_eval.api._metrics.corpus import Bleu, Chrf, Ter
 
         for cls in (Bleu, Chrf, Ter):
