@@ -39,7 +39,7 @@ from lm_eval.config.utils import (
     _resolve_target_index,
     process_field,
 )
-from lm_eval.scorers import ScoredDoc, Scorer
+from lm_eval.scorers import ScoredDoc, Scorer, build_scorer
 
 
 if TYPE_CHECKING:
@@ -201,8 +201,8 @@ class Task:
 
         if self.config.filter_list:
             scorers = [
-                Scorer.from_dict(
-                    {**cfg},
+                build_scorer(
+                    cfg={**cfg},
                     global_metrics=global_metrics,
                     output_type=self.OUTPUT_TYPE,
                 )
@@ -210,7 +210,10 @@ class Task:
             ]
         else:
             scorers = [
-                Scorer.default_scorer(global_metrics, output_type=self.OUTPUT_TYPE)
+                build_scorer(
+                    global_metrics=global_metrics,
+                    output_type=self.OUTPUT_TYPE,
+                )
             ]
 
         for s in scorers:
@@ -1042,7 +1045,9 @@ class Task:
         from lm_eval.api.metrics import Metric
 
         metric = Metric.from_dict({"metric": metric_name})
-        self._scorers = [Scorer.default_scorer([metric], output_type=self.OUTPUT_TYPE)]
+        self._scorers = [
+            build_scorer(global_metrics=[metric], output_type=self.OUTPUT_TYPE)
+        ]
 
     @staticmethod
     def resolve_field(doc: dict[str, Any], field: str | None = None) -> str:
