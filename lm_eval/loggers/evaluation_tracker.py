@@ -266,7 +266,7 @@ class EvaluationTracker:
                     ensure_ascii=False,
                 )
 
-                path = Path(self.output_path if self.output_path else Path.cwd())
+                path = Path(self.output_path or Path.cwd())
                 self.date_id = datetime.now().isoformat().replace(":", "-")
                 if path.suffix == ".json":
                     path.parent.mkdir(parents=True, exist_ok=True)
@@ -334,7 +334,7 @@ class EvaluationTracker:
             try:
                 eval_logger.debug(f"Saving per-sample results for: {task_name}")
 
-                path = Path(self.output_path if self.output_path else Path.cwd())
+                path = Path(self.output_path or Path.cwd())
                 if path.suffix == ".json":
                     path = path.parent
                 else:
@@ -400,7 +400,7 @@ class EvaluationTracker:
                                 json={"gated": "auto"},
                             )
                             hf_raise_for_status(r)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         eval_logger.warning("Could not gate the repository")
                         eval_logger.info(repr(e))
                     self.api.upload_folder(
@@ -433,6 +433,9 @@ class EvaluationTracker:
             hf_hub_url,
         )
 
+        assert self.api, (
+            "Hugging Face API is not initialized. Please provide a valid Hugging Face token to initialize the API and create the metadata card."
+        )
         eval_logger.info("Recreating metadata card")
         repo_id = self.details_repo if self.public_repo else self.details_repo_private
 
@@ -531,9 +534,9 @@ class EvaluationTracker:
         latest_model_name = max(
             latest_task_results_datetime, key=lambda k: latest_task_results_datetime[k]
         )
-        last_results_file = [
+        last_results_file = next(
             f for f in results_files if latest_datetime.replace(":", "-") in f
-        ][0]
+        )
         last_results_file_path = hf_hub_url(
             repo_id=repo_id, filename=last_results_file, repo_type="dataset"
         )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from typing_extensions import Self
 
@@ -10,7 +10,7 @@ from typing_extensions import Self
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from lm_eval.api.filter import FilterEnsemble
+    from lm_eval.api.filter import Filter, FilterEnsemble
     from lm_eval.api.instance import Instance
     from lm_eval.api.metrics import Metric
 
@@ -65,10 +65,33 @@ class MetricKey:
 
 @dataclass
 class Scorer:
+    """Base scorer defining the filter → score → reduce → aggregate pipeline.
+
+    Subclass hooks
+    ~~~~~~~~~~~~~~
+    * **score_doc** — override to define per-document scoring logic.
+    * **default_filter_cfg** — list of filter configs (dicts) or ``Filter``
+      subclasses to use when no explicit filter is provided.
+    * **default_metric_cfg** — list of metric configs (dicts) or ``Metric``
+      instances to use when no explicit metrics are provided.
+
+    Precedence (highest → lowest):
+
+    1. Explicit ``cfg["filter"]`` / ``cfg["metric_list"]`` passed to ``from_dict``
+    2. ``cls.default_filter_cfg`` / ``cls.default_metric_cfg``
+    3. Hardcoded fallback (``take_first`` / *global_metrics*)
+    """
+
+    # -- Subclass-overridable class defaults (not instance fields) ---------
+    # Each entry can be a config dict (same format as YAML) or an actual
+    # Filter class / Metric instance for inline definitions.
+    default_filter_cfg: ClassVar[list[dict[str, Any] | type[Filter]] | None] = None
+    default_metric_cfg: ClassVar[list[dict[str, Any] | Metric] | None] = None
+
+    # -- Instance fields ---------------------------------------------------
     name: str
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
-    output_type: str | None = None
     context: dict[str, Any] = field(default_factory=dict)
     _scored_docs: dict[int, ScoredDoc] = field(default_factory=dict)
 
@@ -81,7 +104,6 @@ class Scorer:
         cls,
         cfg: dict[str, Any],
         global_metrics: list[Metric] | None = None,
-        output_type: str | None = None,
     ) -> Self:
         """Build a Scorer from a filter_list entry dict.
 
@@ -98,24 +120,24 @@ class Scorer:
                 ],
             }
         """
-        from lm_eval.api.metrics import Metric
-        from lm_eval.filters import build_filter_ensemble
-
         global_metrics = global_metrics or []
 
         # --- build filter ensemble ---
+        # Precedence: explicit cfg > class default > take_first fallback
         filter_name = cfg.get("name", "none")
-        filter_functions = cfg.get("filter", [{"function": "take_first"}])
-        components: list[tuple[str, dict[str, Any] | None]] = []
-        for fn_cfg in filter_functions:
-            fn_name = fn_cfg["function"]
-            kwargs = {k: v for k, v in fn_cfg.items() if k != "function"}
-            components.append((fn_name, kwargs or None))
-        filter_ensemble = build_filter_ensemble(filter_name, components)
+        filter_cfg = cfg.get("filter")
+        if not filter_cfg and cls.default_filter_cfg is not None:
+            filter_cfg = cls.default_filter_cfg
+        elif not filter_cfg:
+            filter_cfg = [{"function": "take_first"}]
+        filter_ensemble = cls._resolve_filters(filter_name, filter_cfg)
 
         # --- build metrics ---
+        # Precedence: explicit cfg > class default > global_metrics fallback
         if cfg.get("metric_list"):
-            metrics = [Metric.from_dict(m) for m in cfg["metric_list"]]
+            metrics = cls._resolve_metrics(cfg["metric_list"])
+        elif cls.default_metric_cfg is not None:
+            metrics = cls._resolve_metrics(cls.default_metric_cfg)
         else:
             metrics = list(global_metrics)
 
@@ -123,22 +145,80 @@ class Scorer:
             name=filter_name,
             filter=filter_ensemble,
             metrics=metrics,
-            output_type=output_type,
         )
 
     @classmethod
-    def default_scorer(
-        cls, global_metrics: list[Metric], output_type: str | None = None
-    ) -> Self:
-        """Build the default scorer: ``take_first`` filter with the given metrics."""
-        return cls.from_dict(
-            {
-                "name": "none",
-                "filter": [{"function": "take_first"}],
-            },
-            global_metrics=global_metrics,
-            output_type=output_type,
-        )
+    def default_scorer(cls, global_metrics: list[Metric]) -> Self:
+        """Build the default scorer with the given metrics.
+
+        Filter defaults to ``cls.default_filter_cfg`` if set, otherwise
+        ``take_first``.
+        """
+        return cls.from_dict({"name": "none"}, global_metrics=global_metrics)
+
+    # ------------------------------------------------------------------
+    # Resolvers (override for fully custom construction)
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def _resolve_filters(
+        cls, filter_name: str, filter_cfg: list[dict[str, Any] | type[Filter]]
+    ) -> FilterEnsemble:
+        """Build a :class:`FilterEnsemble` from a mixed list.
+
+        Each entry in *filter_cfg* may be:
+
+        * A **dict** — ``{"function": "registered_name", ...kwargs}``
+          (looked up from the filter registry).
+        * A **Filter subclass** — used directly as a factory.
+        """
+        from functools import partial
+
+        from lm_eval.api.filter import Filter, FilterEnsemble as FEns
+        from lm_eval.filters import get_filter
+
+        filters: list = []
+        for item in filter_cfg:
+            if isinstance(item, dict):
+                fn_name = item["function"]
+                kwargs = {k: v for k, v in item.items() if k != "function"}
+                filter_cls = get_filter(fn_name)
+                filters.append(partial(filter_cls, **kwargs) if kwargs else filter_cls)
+            elif isinstance(item, type) and issubclass(item, Filter):
+                filters.append(item)
+            else:
+                raise TypeError(
+                    f"Filter config entries must be dicts or Filter subclasses, "
+                    f"got {type(item).__name__}: {item!r}"
+                )
+        return FEns(name=filter_name, filters=filters)
+
+    @classmethod
+    def _resolve_metrics(
+        cls, metric_cfg: list[dict[str, Any] | Metric]
+    ) -> list[Metric]:
+        """Build a list of :class:`Metric` objects from a mixed list.
+
+        Each entry in *metric_cfg* may be:
+
+        * A **dict** — ``{"metric": "registered_name", ...}``
+          (resolved via ``Metric.from_dict``).
+        * A **Metric instance** — used as-is.
+        """
+        from lm_eval.api.metrics import Metric
+
+        metrics: list[Metric] = []
+        for item in metric_cfg:
+            if isinstance(item, Metric):
+                metrics.append(item)
+            elif isinstance(item, dict):
+                metrics.append(Metric.from_dict(item))
+            else:
+                raise TypeError(
+                    f"Metric config entries must be dicts or Metric instances, "
+                    f"got {type(item).__name__}: {item!r}"
+                )
+        return metrics
 
     # ------------------------------------------------------------------
     # Filter
@@ -156,52 +236,25 @@ class Scorer:
     ) -> dict[int, ScoredDoc]:
         """Score all documents' instances, returning a ``ScoredDoc`` per document.
 
-        For each doc_id group, builds a structured result object
-        (``LLResults`` or ``GenResults``) from the instances and dispatches
-        metrics against it.
-
-        For ``generate_until`` tasks, each repeat is scored independently,
-        producing ``list[T]`` per doc per metric.  For other output types
-        (repeats always 1), the scalar is wrapped in a single-element list
-        so that the downstream ``reduce`` step works uniformly.
+        Delegates per-document scoring to :meth:`score_doc`, which subclasses
+        must implement.
         """
-        from lm_eval.api._metrics.results import LLResults
+        return {
+            doc_id: self.score_doc(doc_id, doc_instances)
+            for doc_id, doc_instances in instances.items()
+        }
 
-        scored_docs: dict[int, ScoredDoc] = {}
+    def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
+        """Score a single document's instances. Subclasses must implement this.
 
-        for doc_id, doc_instances in instances.items():
-            # Per-instance metric overrides (same for all instances of a doc)
-            inst_metric_kwargs = doc_instances[0].metadata.get("metric_kwargs")
-
-            if self.output_type == "generate_until":
-                # Per-repeat scoring for generate_until
-                inst = doc_instances[0]  # 1 instance per doc for generate_until
-                resps: list[str] = inst.filtered_resps[self.name]  # [str * R]
-                target = inst.target
-
-                repeat_scores = self._dispatch_metrics(
-                    [target], resps, metric_kwargs=inst_metric_kwargs
-                )
-                scored_docs[doc_id] = ScoredDoc(
-                    doc_id=doc_id,
-                    reference=target,
-                    scores=dict(repeat_scores),
-                )
-            else:
-                # loglikelihood / loglikelihood_rolling / multiple_choice — repeats=1
-                results_obj = LLResults.from_instances(doc_instances)
-                references = results_obj.targets
-                per_doc = self._dispatch_metrics(
-                    references, results_obj, metric_kwargs=inst_metric_kwargs
-                )
-
-                scored_docs[doc_id] = ScoredDoc(
-                    doc_id=doc_id,
-                    reference=references,
-                    scores={mn: [v] for mn, v in per_doc.items()},
-                )
-
-        return scored_docs
+        Override this method to define custom scoring logic.  Use
+        :meth:`_dispatch_metrics` as a helper to run configured metrics,
+        or compute scores directly and return a :class:`ScoredDoc`.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} must implement score_doc(). "
+            "Use GenScorer for generate_until tasks or LLScorer for loglikelihood tasks."
+        )
 
     def _dispatch_metrics(
         self,
@@ -402,3 +455,79 @@ class Scorer:
                             base[key] = base[mk.parent_metric]
                 break  # all docs share the same metric names
         return base
+
+
+# ---------------------------------------------------------------------------
+# Concrete scorer subclasses
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class GenScorer(Scorer):
+    """Scorer for ``generate_until`` tasks.
+
+    Each repeat is scored independently, producing ``list[T]`` per doc per
+    metric.  Subclass this to create custom generation evaluation pipelines
+    — override :meth:`score_doc` and optionally use :meth:`_dispatch_metrics`.
+    """
+
+    def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
+        inst = doc_instances[0]  # 1 instance per doc for generate_until
+        resps: list[str] = inst.filtered_resps[self.name]  # [str * R]
+        target = inst.target
+        metric_kwargs = inst.metadata.get("metric_kwargs")
+
+        repeat_scores: dict[str, list[Any]] = self._dispatch_metrics(
+            [target], resps, metric_kwargs=metric_kwargs
+        )
+        return ScoredDoc(
+            doc_id=doc_id,
+            reference=target,
+            scores=dict(repeat_scores),
+        )
+
+
+@dataclass
+class LLScorer(Scorer):
+    """Scorer for ``loglikelihood`` / ``loglikelihood_rolling`` / ``multiple_choice`` tasks.
+
+    Repeats are always 1.  The scalar metric result is wrapped in a
+    single-element list so that the downstream ``reduce`` step works
+    uniformly with :class:`GenScorer`.
+    """
+
+    def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
+        from lm_eval.api._metrics.results import LLResults
+
+        metric_kwargs = doc_instances[0].metadata.get("metric_kwargs")
+        results_obj = LLResults.from_instances(doc_instances)
+        references = results_obj.targets
+        per_doc = self._dispatch_metrics(
+            references, results_obj, metric_kwargs=metric_kwargs
+        )
+        return ScoredDoc(
+            doc_id=doc_id,
+            reference=references,
+            scores={mn: [v] for mn, v in per_doc.items()},
+        )
+
+
+# ---------------------------------------------------------------------------
+# Factory
+# ---------------------------------------------------------------------------
+
+
+def build_scorer(
+    cfg: dict[str, Any] | None = None,
+    global_metrics: list[Metric] | None = None,
+    output_type: str | None = None,
+) -> Scorer:
+    """Construct the appropriate scorer subclass based on *output_type*.
+
+    Uses :class:`GenScorer` for ``generate_until`` tasks, and
+    :class:`LLScorer` for all other output types.
+    """
+    cls = GenScorer if output_type == "generate_until" else LLScorer
+    if cfg is not None:
+        return cls.from_dict(cfg, global_metrics=global_metrics)
+    return cls.default_scorer(global_metrics or [])
