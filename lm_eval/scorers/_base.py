@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -171,14 +170,10 @@ class Scorer:
                 resps = inst.filtered_resps[self.name]  # [str * K]
                 target = inst.target
 
-                repeat_scores: dict[str, list] = defaultdict(list)
-                for resp in resps:
-                    per_repeat = self._dispatch_metrics(
-                        [target], [resp], metric_kwargs=inst_metric_kwargs
-                    )
-                    for metric_name, value in per_repeat.items():
-                        repeat_scores[metric_name].append(value)
-
+                # repeat_scores: dict[str, list] = defaultdict(list)
+                repeat_scores = self._dispatch_metrics(
+                    [target], resps, metric_kwargs=inst_metric_kwargs
+                )
                 scored_docs[doc_id] = ScoredDoc(
                     doc_id=doc_id,
                     reference=target,
