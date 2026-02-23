@@ -373,3 +373,168 @@ class TestCorpusPerplexity:
         ppl = Perplexity()
         pred = _make_ll_results([-2.5], choices=["x"])
         assert ppl(0, pred) == pytest.approx(-2.5)
+
+
+class TestSacreformat:
+    def test_single_ref_strings(self):
+        """Single reference per sample, flat list of strings."""
+        from lm_eval.api._metrics.corpus import _sacreformat
+
+        refs = ["The cat sat.", "It was raining."]
+        preds = ["A cat sat.", "It rained."]
+        out_refs, out_preds = _sacreformat(refs, preds)
+        # sacrebleu expects refs as List[List[str]] where inner list = one per sample
+        assert out_refs == [("The cat sat.", "It was raining.")]
+        assert out_preds == ["A cat sat.", "It rained."]
+
+    def test_multiple_refs_per_sample(self):
+        """Two references per sample, transposed to per-stream grouping."""
+        from lm_eval.api._metrics.corpus import _sacreformat
+
+        refs = [["ref1a", "ref1b"], ["ref2a", "ref2b"]]
+        preds = ["pred1", "pred2"]
+        out_refs, out_preds = _sacreformat(refs, preds)
+        # Transposed: stream 0 = [ref1a, ref2a], stream 1 = [ref1b, ref2b]
+        assert out_refs == [("ref1a", "ref2a"), ("ref1b", "ref2b")]
+        assert out_preds == ["pred1", "pred2"]
+
+    def test_nested_preds_unwrapped(self):
+        """Predictions wrapped in single-element lists get unwrapped."""
+        from lm_eval.api._metrics.corpus import _sacreformat
+
+        refs = ["ref1", "ref2"]
+        preds = [["pred1"], ["pred2"]]
+        out_refs, out_preds = _sacreformat(refs, preds)
+        assert out_preds == ["pred1", "pred2"]
+
+
+class TestCorpusMetricReduce:
+    """Tests for the reduce step that sits between __call__ and aggregation."""
+
+    def test_reduce_single_repeat_passes_through(self):
+        from lm_eval.api._metrics.corpus import Bleu
+
+        bleu = Bleu()
+        item = bleu(["The cat."], ["A cat."])
+        reduced = bleu.reduce(["The cat."], [item])
+        assert reduced == item
+
+    def test_reduce_multiple_repeats_returns_first_and_warns(self):
+        from lm_eval.api._metrics.corpus import Bleu
+
+        bleu = Bleu()
+        item1 = bleu(["The cat."], ["A cat."])
+        item2 = bleu(["The cat."], ["The dog."])
+        reduced = bleu.reduce(["The cat."], [item1, item2])
+        assert reduced == item1
+
+    def test_reduce_works_for_all_sacrebleu_metrics(self):
+        """Reduce is inherited from CorpusMetric and should work identically."""
+        from lm_eval.api._metrics.corpus import Bleu, Chrf, Ter
+
+        for cls in (Bleu, Chrf, Ter):
+            metric = cls()
+            item = metric(["hello"], ["hello"])
+            assert metric.reduce(["hello"], [item]) == item
+
+
+class TestBleu:
+    def test_call_returns_refs_and_preds(self):
+        from lm_eval.api._metrics.corpus import Bleu
+
+        bleu = Bleu()
+        result = bleu(["the cat"], ["a cat"])
+        assert result == (["the cat"], ["a cat"])
+
+    def test_full_pipeline_call_reduce_aggregate(self):
+        """End-to-end: __call__ -> reduce -> aggregation."""
+        from lm_eval.api._metrics.corpus import Bleu
+
+        bleu = Bleu()
+        # __call__ per document
+        raw1 = bleu(["The cat sat on the mat."], ["The cat sat on the mat."])
+        raw2 = bleu(["It was a fine day."], ["It was a fine day."])
+        # reduce (simulating repeat=1)
+        item1 = bleu.reduce(["The cat sat on the mat."], [raw1])
+        item2 = bleu.reduce(["It was a fine day."], [raw2])
+        # aggregation
+        score = bleu.aggregation([item1, item2])
+        assert score == pytest.approx(100.0)
+
+    def test_bleu_zero_for_no_overlap(self):
+        from lm_eval.api._metrics.corpus import Bleu
+
+        bleu = Bleu()
+        raw = bleu(["aaa bbb ccc ddd"], ["xxx yyy zzz www"])
+        item = bleu.reduce(["aaa bbb ccc ddd"], [raw])
+        score = bleu.aggregation([item])
+        assert score == pytest.approx(0.0)
+
+    def test_bleu_partial_match(self):
+        from lm_eval.api._metrics.corpus import Bleu
+
+        bleu = Bleu()
+        raw = bleu(["The cat sat on the mat."], ["The cat lay on the mat."])
+        item = bleu.reduce(["The cat sat on the mat."], [raw])
+        score = bleu.aggregation([item])
+        assert 0.0 < score < 100.0
+
+
+class TestChrf:
+    def test_call_returns_refs_and_preds(self):
+        from lm_eval.api._metrics.corpus import Chrf
+
+        chrf = Chrf()
+        result = chrf(["the cat"], ["a cat"])
+        assert result == (["the cat"], ["a cat"])
+
+    def test_full_pipeline_call_reduce_aggregate(self):
+        """End-to-end: __call__ -> reduce -> aggregation."""
+        from lm_eval.api._metrics.corpus import Chrf
+
+        chrf = Chrf()
+        raw1 = chrf(["The cat sat on the mat."], ["The cat sat on the mat."])
+        raw2 = chrf(["It was a fine day."], ["It was a fine day."])
+        item1 = chrf.reduce(["The cat sat on the mat."], [raw1])
+        item2 = chrf.reduce(["It was a fine day."], [raw2])
+        score = chrf.aggregation([item1, item2])
+        assert score == pytest.approx(100.0)
+
+    def test_chrf_partial_match(self):
+        from lm_eval.api._metrics.corpus import Chrf
+
+        chrf = Chrf()
+        raw = chrf(["The cat sat on the mat."], ["The cat lay on the mat."])
+        item = chrf.reduce(["The cat sat on the mat."], [raw])
+        score = chrf.aggregation([item])
+        assert 0.0 < score < 100.0
+
+
+class TestTer:
+    def test_call_returns_refs_and_preds(self):
+        from lm_eval.api._metrics.corpus import Ter
+
+        ter = Ter()
+        result = ter(["the cat"], ["a cat"])
+        assert result == (["the cat"], ["a cat"])
+
+    def test_full_pipeline_call_reduce_aggregate(self):
+        """End-to-end: __call__ -> reduce -> aggregation."""
+        from lm_eval.api._metrics.corpus import Ter
+
+        ter = Ter()
+        raw1 = ter(["The cat sat on the mat."], ["The cat sat on the mat."])
+        raw2 = ter(["It was a fine day."], ["It was a fine day."])
+        item1 = ter.reduce(["The cat sat on the mat."], [raw1])
+        item2 = ter.reduce(["It was a fine day."], [raw2])
+        score = ter.aggregation([item1, item2])
+        assert score == pytest.approx(0.0)
+
+    def test_ter_nonzero_for_mismatch(self):
+        from lm_eval.api._metrics.corpus import Ter
+
+        ter = Ter()
+        raw = ter(["The cat sat on the mat."], ["A dog lay on the rug."])
+        item = ter.reduce(["The cat sat on the mat."], [raw])
+        score = ter.aggregation([item])
+        assert score > 0.0

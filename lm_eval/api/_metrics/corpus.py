@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import math
 from abc import ABC, abstractmethod
@@ -8,15 +10,20 @@ import numpy as np
 from typing_extensions import TypeVar
 
 from lm_eval.api.registry import register_metric
-from lm_eval.utils import warning_once
 
 
 if TYPE_CHECKING:
+    from numpy import float64
+    from numpy._typing import NDArray
+
     from lm_eval.api._metrics.results import LLResults
+
+    GenPred = list[str]
+    LLPred = LLResults
 
 eval_logger = logging.getLogger(__name__)
 
-_R = TypeVar("_R")
+_R = TypeVar("_R", bound="LLResults | GenPred")
 _T = TypeVar("_T")
 
 __all__ = [
@@ -59,6 +66,8 @@ class CorpusMetric(ABC, Generic[_R, _T]):
         self, references: Sequence[Any], predictions: Sequence[_T], **kwargs
     ) -> _T:
         """Collapse multiple repeats of a sample into one value. Corpus metrics only support repeat=1."""
+        from lm_eval.utils import warning_once
+
         if len(predictions) != 1:
             warning_once(
                 eval_logger,
@@ -73,7 +82,7 @@ class BrierScore(CorpusMetric["LLResults", float]):
     We use the functional form. Only here for simplicity.
     """
 
-    def __call__(self, references: Any, predictions: "LLResults") -> float:
+    def __call__(self, references: Any, predictions: LLResults) -> float:
         from lm_eval.api._metrics.ll import brier_score
 
         return brier_score(references, predictions)
@@ -99,7 +108,7 @@ class Perplexity(CorpusMetric["LLResults", float]):
     Aggregation: ``exp(-mean(lls))`` across all documents.
     """
 
-    def __call__(self, references: int | list[int], predictions: "LLResults") -> float:
+    def __call__(self, references: int | list[int], predictions: LLResults) -> float:
         if len(predictions.lls) == 1:
             return float(predictions.lls[0])
         return float(predictions.lls[references])
@@ -132,7 +141,7 @@ class WordPerplexity(CorpusMetric["LLResults", tuple[float, int]]):
     Lower scores are better.
     """
 
-    def __call__(self, references: int, predictions: "LLResults") -> tuple[float, int]:
+    def __call__(self, references: int, predictions: LLResults) -> tuple[float, int]:
         return float(predictions.lls[references]), int(
             predictions.word_len()[references]
         )
@@ -155,7 +164,7 @@ class BytePerplexity(CorpusMetric["LLResults", tuple[float, int]]):
     Lower scores are better.
     """
 
-    def __call__(self, references: int, predictions: "LLResults") -> tuple[float, int]:
+    def __call__(self, references: int, predictions: LLResults) -> tuple[float, int]:
         return float(predictions.lls[references]), int(
             predictions.byte_len()[references]
         )
@@ -178,7 +187,7 @@ class BitsPerByte(CorpusMetric["LLResults", tuple[float, int]]):
     Lower scores are better.
     """
 
-    def __call__(self, references: int, predictions: "LLResults") -> tuple[float, int]:
+    def __call__(self, references: int, predictions: LLResults) -> tuple[float, int]:
         return float(predictions.lls[references]), int(
             predictions.byte_len()[references]
         )
@@ -192,11 +201,14 @@ class BitsPerByte(CorpusMetric["LLResults", tuple[float, int]]):
 # ---------------------------------------------------------------------------
 
 
-def is_non_str_iterable(obj):
+def is_non_str_iterable(obj: object) -> bool:
     return isinstance(obj, Iterable) and not isinstance(obj, str)
 
 
-def _sacreformat(refs, preds):
+def _sacreformat(
+    refs: Sequence[str] | Sequence[Sequence[str]],
+    preds: Sequence[str] | Sequence[Sequence[str]],
+) -> tuple[list[tuple[str, ...]], list[str]]:
     """Format refs and preds for sacrebleu corpus calculation. It is very particular"""
     # Sacrebleu expects (List[str], List[List[str])
     #   e.g. sacrebleu.corpus_bleu([pred_t], [[ref1_stream], [ref2_stream], ...])
@@ -210,7 +222,7 @@ def _sacreformat(refs, preds):
     if not is_non_str_iterable(refs):
         refs = list(refs)
     if not is_non_str_iterable(refs[0]):
-        refs = [[ref] for ref in refs]
+        refs = [[ref] for ref in refs]  # type:ignore[invalid-assignment]
     refs = list(zip(*refs, strict=True))
     # Note the number of refs in each ref list much match the number of preds
 
@@ -221,7 +233,7 @@ def _sacreformat(refs, preds):
         assert len(preds[0]) == 1, f"Pred must be a str, was {preds[0]}"
         preds = [pred[0] for pred in preds]
 
-    return refs, preds
+    return refs, preds  # type:ignore[invalid-return-type]
 
 
 # ---------------------------------------------------------------------------
@@ -230,7 +242,7 @@ def _sacreformat(refs, preds):
 
 
 @register_metric(metric="bleu", higher_is_better=True, output_type="generate_until")
-class Bleu(CorpusMetric[Any, tuple]):
+class Bleu(CorpusMetric[list[str], tuple[list[str], list[str]]]):
     """BLEU score for generated text.
 
     The Bilingual Evaluation Understudy Score counts matching n-grams in the
@@ -239,10 +251,12 @@ class Bleu(CorpusMetric[Any, tuple]):
     Higher is better.
     """
 
-    def __call__(self, references: Any, predictions: Any) -> tuple:
+    def __call__(
+        self, references: list[str], predictions: list[str]
+    ) -> tuple[list[str], list[str]]:
         return references, predictions
 
-    def aggregation(self, items: Sequence[tuple]) -> float:
+    def aggregation(self, items: Sequence[tuple[list[str], list[str]]]) -> float:
         import sacrebleu
 
         refs, preds = zip(*items, strict=True)
@@ -251,7 +265,7 @@ class Bleu(CorpusMetric[Any, tuple]):
 
 
 @register_metric(metric="chrf", higher_is_better=True, output_type="generate_until")
-class Chrf(CorpusMetric[Any, tuple]):
+class Chrf(CorpusMetric[list[str], tuple[list[str], list[str]]]):
     """chrF++ score for generated text.
 
     chrF++ is based on character n-gram precision and recall
@@ -260,10 +274,12 @@ class Chrf(CorpusMetric[Any, tuple]):
     Higher is better.
     """
 
-    def __call__(self, references: Any, predictions: Any) -> tuple:
+    def __call__(
+        self, references: list[str], predictions: list[str]
+    ) -> tuple[list[str], list[str]]:
         return references, predictions
 
-    def aggregation(self, items: Sequence[tuple]) -> float:
+    def aggregation(self, items: Sequence[tuple[list[str], list[str]]]) -> float:
         import sacrebleu
 
         refs, preds = zip(*items, strict=True)
@@ -272,7 +288,7 @@ class Chrf(CorpusMetric[Any, tuple]):
 
 
 @register_metric(metric="ter", higher_is_better=False, output_type="generate_until")
-class Ter(CorpusMetric[Any, tuple]):
+class Ter(CorpusMetric[list[str], tuple[list[str], list[str]]]):
     """Translation Error Rate for generated text.
 
     Measures the number of edits required to change a system output
@@ -281,10 +297,12 @@ class Ter(CorpusMetric[Any, tuple]):
     Lower is better.
     """
 
-    def __call__(self, references: Any, predictions: Any) -> tuple:
+    def __call__(
+        self, references: list[str], predictions: list[str]
+    ) -> tuple[list[str], list[str]]:
         return references, predictions
 
-    def aggregation(self, items: Sequence[tuple]) -> float:
+    def aggregation(self, items: Sequence[tuple[list[str], list[str]]]) -> float:
         import sacrebleu
 
         refs, preds = zip(*items, strict=True)
@@ -307,7 +325,7 @@ class F1(CorpusMetric["LLResults", tuple[int, int]]):
     Higher is better.
     """
 
-    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, int]:
+    def __call__(self, references: Any, predictions: LLResults) -> tuple[int, int]:
         pred = int(np.argmax(predictions.lls))
         return references, pred
 
@@ -328,7 +346,7 @@ class MCC(CorpusMetric["LLResults", tuple[int, int]]):
     Higher is better.
     """
 
-    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, int]:
+    def __call__(self, references: Any, predictions: LLResults) -> tuple[int, int]:
         pred = int(np.argmax(predictions.lls))
         return references, pred
 
@@ -344,16 +362,18 @@ class MCC(CorpusMetric["LLResults", tuple[int, int]]):
     higher_is_better=True,
     output_type="multiple_choice",
 )
-class Likelihood(CorpusMetric["LLResults", tuple[int, tuple]]):
+class Likelihood(CorpusMetric["LLResults", tuple[int, "tuple[NDArray[float64], ...]"]]):
     """Raw log-likelihoods of all choices paired with the gold index.
 
     Returns (gold_index, (ll_0, ll_1, ...)) for corpus-level custom aggregation.
     """
 
-    def __call__(self, references: int, predictions: "LLResults") -> tuple[int, tuple]:
+    def __call__(self, references: int, predictions: LLResults) -> tuple[int, tuple]:
         return references, tuple(predictions.lls)
 
-    def aggregation(self, items: Sequence[tuple[int, tuple]]) -> float:
+    def aggregation(
+        self, items: Sequence[tuple[int, tuple[NDArray[float64], ...]]]
+    ) -> float:
         from lm_eval.api.metrics import mean
 
         return mean([float(lls[gold]) for gold, lls in items])
