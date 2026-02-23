@@ -425,8 +425,8 @@ class TestTaskManagerIntegration:
     def test_load_tag_by_name(self, shared_task_manager):
         """Load all tasks in a tag"""
         result = shared_task_manager.load_task_or_group(["ai2_arc"])
-        # Should load both arc_easy and arc_challenge
-        assert "arc_easy" in result
+        # Should load both arc_easy@cloze and arc_challenge
+        assert "arc_easy@cloze" in result
         assert "arc_challenge" in result
 
     def test_include_path(self):

@@ -382,15 +382,15 @@ def _log_selected_tasks(
     """Log selected tasks with hierarchy information."""
     from pathlib import Path
 
-    # TODO: Add config info directly in Task object
     def get_task_path(task_name: str) -> str:
-        """Get display path for a task."""
-        if task_name not in task_manager.task_index:
+        """Get display path for a task from its config metadata."""
+        task = task_dict.get(task_name)
+        if task is None:
             return "N/A"
-        entry = task_manager.task_index[task_name]
-        if not entry.yaml_path:
+        source = task.config.metadata.get("config_source")
+        if not source or source == "inline":
             return "N/A"
-        yaml_path = Path(entry.yaml_path)
+        yaml_path = Path(source)
         tasks_dir = Path(__file__).parent / "tasks"
         try:
             return str(yaml_path.relative_to(tasks_dir))

@@ -203,14 +203,24 @@ class TaskConfig:
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    _preset_selection: str | None = None
 
     def __post_init__(self) -> None:
+        # Extract @preset from task name as selection (e.g. "arc_easy@cloze")
+        # Runtime _preset_selection takes priority over the YAML task name.
+        if self._preset_selection is None and "@" in self.task:
+            self._preset_selection = self.task.rsplit("@", 1)[1]
+
+        # If no preset: field, the selection itself becomes the preset
+        if self.preset is None:
+            self.preset = self._preset_selection
+
         # Resolve preset: it consumes doc_to_* as inputs (field mappings)
         # and returns overrides that are applied unconditionally.
         if self.preset is not None:
             from lm_eval.config.presets import PresetConfig
 
-            resolved = PresetConfig.get(self.preset)
+            resolved = PresetConfig.get(self.preset, selection=self._preset_selection)
             if resolved is not None:
                 overrides = resolved.to_task_config(
                     doc_to_text=self.doc_to_text or "question",  # type: ignore

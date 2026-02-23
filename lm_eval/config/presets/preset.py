@@ -62,15 +62,26 @@ class PresetConfig:
             self.extraction = ExtractionConfig.from_str(self.extraction)
 
     @classmethod
-    def get(cls, spec: str | dict | PresetConfig | None) -> PresetConfig | None:
-        """Resolve template from string, dict, or instance.
+    def get(
+        cls,
+        spec: str | dict | PresetConfig | None,
+        *,
+        selection: str | None = None,
+    ) -> PresetConfig | None:
+        """Resolve preset from string, dict, or instance.
 
         Args:
             spec: One of:
-                - str: Template name ("mcqa", "cot", "generate")
-                - dict: {"type": "mcqa", "instruction": "..."}
+                - str: Preset name ("mcqa", "cot", "generate")
+                - dict with "type" key: single preset with overrides
+                  ``{"type": "mcqa", "instruction": "..."}``
+                - dict keyed by preset names: multi-preset lookup table
+                  ``{"mcqa": {"instruction": "..."}, "generate": {...}}``
                 - PresetConfig: Already instantiated
-                - None: No template
+                - None: No preset
+            selection: Which preset to pick from a multi-preset dict.
+                Comes from ``task@selection`` syntax. If None, uses the
+                first key as default.
 
         Returns:
             PresetConfig instance or None
@@ -84,23 +95,46 @@ class PresetConfig:
             template_cls = cls._registry.get(spec)
             if template_cls is None:
                 raise ValueError(
-                    f"Unknown template: {spec}. Available: {cls.list_presets()}"
+                    f"Unknown preset: {spec}. Available: {cls.list_presets()}"
                 )
             return template_cls()  # type: ignore
 
         if isinstance(spec, dict):
-            spec_copy = spec.copy()
-            template_type = spec_copy.pop("type", "default")
-            template_cls = cls._registry.get(template_type)
-            if template_cls is None:
-                raise ValueError(
-                    f"Unknown template type: {template_type}. "
-                    f"Available: {cls.list_presets()}"
-                )
-            return template_cls(**spec_copy)
+            # Single preset with overrides: {"type": "mcqa", "instruction": "..."}
+            if "type" in spec:
+                spec_copy = spec.copy()
+                template_type = spec_copy.pop("type")
+                template_cls = cls._registry.get(template_type)
+                if template_cls is None:
+                    raise ValueError(
+                        f"Unknown preset type: {template_type}. "
+                        f"Available: {cls.list_presets()}"
+                    )
+                return template_cls(**spec_copy)
+
+            # Multi-preset lookup: {"mcqa": {...}, "generate": {...}}
+            # Keys are preset names, values are override dicts (or None)
+            if selection is not None:
+                if selection not in spec:
+                    raise ValueError(
+                        f"Preset '{selection}' not found in task presets. "
+                        f"Available: {list(spec.keys())}"
+                    )
+                chosen_name = selection
+            else:
+                # Default to first key
+                chosen_name = next(iter(spec))
+
+            overrides = spec[chosen_name]
+            if overrides is None:
+                overrides = {}
+            elif isinstance(overrides, str):
+                # Allow shorthand: {"mcqa": "some_other_preset"}
+                return cls.get(overrides)
+            return cls.get({"type": chosen_name, **overrides})
 
         raise TypeError(
-            f"Invalid template spec type: {type(spec)}. "
+            f"Invalid preset spec type: {type(spec)}. "
             f"Expected str, dict, PresetConfig, or None."
         )
 
@@ -129,12 +163,15 @@ class PresetConfig:
             return "{{" + field + "}}"
         return field
 
-    def _escape_jinja(self, s: str) -> str:
-        """Escape a string for inclusion in Jinja template.
+    @staticmethod
+    def _escape_jinja(s: str) -> str:
+        """Escape a string for inclusion in a Jinja template.
 
-        Preserves actual newlines as-is since Jinja handles them correctly.
+        Jinja templates are raw text, so quotes and backslashes are literal.
+        Only Jinja delimiters ({{ }}, {% %}) would need escaping, but we
+        don't expect those in preset string fields.
         """
-        return s.replace("\\", "\\\\").replace('"', '\\"')
+        return s
 
     def to_jinja_config(
         self,

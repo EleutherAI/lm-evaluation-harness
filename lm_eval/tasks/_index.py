@@ -117,7 +117,8 @@ class TaskIndex:
                 )
 
             case Kind.TASK | Kind.PY_TASK:
-                name = cfg["task"]
+                # Index key is base name (strip @preset); cfg keeps full name.
+                name = cfg["task"].split("@", 1)[0]
                 if name in index_:
                     log.warning(
                         f"Duplicate task name '{name}' found. "
