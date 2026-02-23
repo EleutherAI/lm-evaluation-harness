@@ -49,12 +49,6 @@ class PresetConfig:
     # Extraction
     extraction: ExtractionConfig | str | None
 
-    # Field mappings - map preset fields to document fields
-    # These can be simple field names or Jinja expressions
-    doc_to_text: str = "question"
-    doc_to_choice: str | None = "choices"
-    doc_to_target: str = "answer"
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Auto-register subclasses that define preset_name
@@ -142,8 +136,16 @@ class PresetConfig:
         """
         return s.replace("\\", "\\\\").replace('"', '\\"')
 
-    def to_jinja_config(self) -> dict[str, str | None]:
+    def to_jinja_config(
+        self,
+        doc_to_text: str = "question",
+        doc_to_choice: str | None = "choices",
+        doc_to_target: str = "answer",
+    ) -> dict[str, str | None]:
         """Generate Jinja templates for TaskConfig fields.
+
+        The doc_to_* parameters are field mappings from the task config that
+        tell the preset which document fields to reference in templates.
 
         Returns a dict with:
             - doc_to_text: Jinja template for the prompt
@@ -151,12 +153,16 @@ class PresetConfig:
             - doc_to_choice: Jinja template for choices (if applicable, else None)
         """
         return {
-            "doc_to_text": self._build_doc_to_text_jinja(),
-            "doc_to_target": self._build_doc_to_target_jinja(),
-            "doc_to_choice": self._build_doc_to_choice_jinja(),
+            "doc_to_text": self._build_doc_to_text_jinja(doc_to_text, doc_to_choice),
+            "doc_to_target": self._build_doc_to_target_jinja(
+                doc_to_target, doc_to_choice
+            ),
+            "doc_to_choice": self._build_doc_to_choice_jinja(doc_to_choice),
         }
 
-    def _build_doc_to_text_jinja(self) -> str:
+    def _build_doc_to_text_jinja(
+        self, doc_to_text: str, doc_to_choice: str | None
+    ) -> str:
         """Build Jinja template for doc_to_text.
 
         Generates a template that produces:
@@ -176,12 +182,12 @@ class PresetConfig:
         # Question prefix and question
         if self.question_prefix:
             template += self._escape_jinja(self.question_prefix + self.prefix_delimiter)
-        template += self._field_ref(self.doc_to_text)
+        template += self._field_ref(doc_to_text)
 
         # Choices (if applicable)
-        if self.choice_labels and self.doc_to_choice:
+        if self.choice_labels and doc_to_choice:
             template += self._escape_jinja(self.before_choices)
-            template += self._build_choices_format_jinja()
+            template += self._build_choices_format_jinja(doc_to_choice)
 
         # Answer section
         template += self._escape_jinja(self.before_answer)
@@ -193,17 +199,14 @@ class PresetConfig:
 
         return template
 
-    def _build_choices_format_jinja(self) -> str:
+    def _build_choices_format_jinja(self, doc_to_choice: str) -> str:
         r"""Build Jinja for formatting choices with labels.
 
         Generates Jinja like:
         {% for choice in choices %}{{ 'ABCD'[loop.index0] }}. {{ choice }}{% if not loop.last %}\n{% endif %}{% endfor %}
         """
-        assert self.doc_to_choice is not None, (
-            "choices_field required for choice formatting"
-        )
         # Use _field_ref with for_output=False to strip {{ }} if present
-        c_ref = self._field_ref(self.doc_to_choice, for_output=False)
+        c_ref = self._field_ref(doc_to_choice, for_output=False)
         delim = self._escape_jinja(self.choice_delimiter)
 
         if self.choice_labels == "letters":
@@ -223,19 +226,19 @@ class PresetConfig:
             "{% endfor %}"
         )
 
-    def _build_doc_to_target_jinja(self) -> str:
+    def _build_doc_to_target_jinja(
+        self, doc_to_target: str, doc_to_choice: str | None
+    ) -> str:
         """Build Jinja template for doc_to_target.
 
         For multiple_choice output_type, returns the index.
         For generate_until, returns the formatted answer text.
         """
         # Get field references - raw for control flow, wrapped for output
-        a_raw = self._field_ref(self.doc_to_target, for_output=False)
-        a_out = self._field_ref(self.doc_to_target, for_output=True)
+        a_raw = self._field_ref(doc_to_target, for_output=False)
+        a_out = self._field_ref(doc_to_target, for_output=True)
         c_ref = (
-            self._field_ref(self.doc_to_choice, for_output=False)
-            if self.doc_to_choice
-            else None
+            self._field_ref(doc_to_choice, for_output=False) if doc_to_choice else None
         )
 
         if self.output_type == "multiple_choice":
@@ -274,16 +277,16 @@ class PresetConfig:
         # Default: return answer as-is
         return a_out
 
-    def _build_doc_to_choice_jinja(self) -> str | None:
+    def _build_doc_to_choice_jinja(self, doc_to_choice: str | None) -> str | None:
         """Build Jinja template for doc_to_choice.
 
         Returns choice labels if configured, otherwise the raw choices.
         """
-        if not self.doc_to_choice:
+        if not doc_to_choice:
             return None
 
         # Strip {{ }} if present to get raw field reference
-        c_ref = self._field_ref(self.doc_to_choice, for_output=False)
+        c_ref = self._field_ref(doc_to_choice, for_output=False)
 
         if not self.choice_labels:
             # Return raw choices
@@ -300,15 +303,28 @@ class PresetConfig:
 
         return "{{ " + c_ref + " }}"
 
-    def to_task_config(self) -> dict[str, Any]:
+    def to_task_config(
+        self,
+        doc_to_text: str = "question",
+        doc_to_choice: str | None = "choices",
+        doc_to_target: str = "answer",
+    ) -> dict[str, Any]:
         """Expand preset into TaskConfig field overrides.
+
+        The doc_to_* parameters are field mappings from the task config.
+        The preset consumes them to build Jinja templates, then returns
+        overrides that are applied unconditionally to the TaskConfig.
 
         Returns a dict of TaskConfig-compatible fields including:
         - Jinja templates (doc_to_text, doc_to_target, doc_to_choice)
         - Formatting fields (output_type, target_delimiter, etc.)
         - Scorer config (filter_list, metric_list) from extraction
         """
-        cfg: dict[str, Any] = self.to_jinja_config()
+        cfg: dict[str, Any] = self.to_jinja_config(
+            doc_to_text=doc_to_text,
+            doc_to_choice=doc_to_choice,
+            doc_to_target=doc_to_target,
+        )
 
         # Formatting fields
         cfg["output_type"] = self.output_type
