@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from numpy import float64, int64
     from numpy._typing import NDArray
 
-    from lm_eval.api.instance import GenInstance, LLInstance
+    from lm_eval.api.instance import LLInstance
 
 
 _count_bytes = lambda x: len(x.encode("utf-8"))
@@ -28,7 +28,7 @@ def empty_array():
 class LLResults:
     """Result of a multiple-choice task. Instances should be grouped by doc_id beforehand"""
 
-    results: list[str] | list[list[tuple[float, bool]]]
+    results: list[Any]
     lls: NDArray[float64] = field(kw_only=True)
     is_greedy: Sequence[bool] = field(kw_only=True)
     targets: int | list[int] | str | list[str]
@@ -36,10 +36,6 @@ class LLResults:
     choices: Sequence[str] = field(default_factory=list)
     lls_mutual_info: NDArray[float64] = field(default_factory=empty_array)
     metadata: dict[str, Any] = field(default_factory=dict)
-
-    # @property
-    # def target(self) -> int:
-    #     return self.targets[0] if isinstance(self.targets, list) else self.targets
 
     def char_len(self) -> NDArray[float64]:
         import numpy as np
@@ -131,22 +127,3 @@ class LLResults:
 
     def to_metric_inputs(self):
         return {"references": self.targets, "predictions": self}
-
-
-@dataclass(frozen=True, slots=True)
-class GenResults:
-    ctx: str
-    targets: list[str]
-    results: list[dict[str, list[str]]]
-    doc: dict[str, Any] = field(default_factory=dict)
-
-    @classmethod
-    def from_instances(cls, results: Sequence[GenInstance]):
-        instance: list[GenInstance] = sorted(results, key=lambda x: x.doc_id)
-        targets = [inst.target for inst in instance]
-        _results = [i.filtered_resps for i in instance]
-        ctx = instance[0].args[0] if instance else ""
-        return cls(doc=instance[0].doc, ctx=ctx, targets=targets, results=_results)
-
-    def to_metric_inputs(self):
-        return {"references": self.targets, "predictions": self.results}

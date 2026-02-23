@@ -167,10 +167,9 @@ class Scorer:
             if self.output_type == "generate_until":
                 # Per-repeat scoring for generate_until
                 inst = doc_instances[0]  # 1 instance per doc for generate_until
-                resps = inst.filtered_resps[self.name]  # [str * K]
+                resps: list[str] = inst.filtered_resps[self.name]  # [str * R]
                 target = inst.target
 
-                # repeat_scores: dict[str, list] = defaultdict(list)
                 repeat_scores = self._dispatch_metrics(
                     [target], resps, metric_kwargs=inst_metric_kwargs
                 )
@@ -244,6 +243,12 @@ class Scorer:
                     sd.reduced_scores[metric_name] = m.reduction(sd.reference, values)
                 else:
                     # Unknown metric (e.g. from process_results): take first
+                    if len(values) > 1:
+                        eval_logger.warning(
+                            "No reduction function for metric '%s' in scorer '%s'. Falling back to first value.",
+                            metric_name,
+                            self.name,
+                        )
                     sd.reduced_scores[metric_name] = values[0]
 
     def aggregate(
