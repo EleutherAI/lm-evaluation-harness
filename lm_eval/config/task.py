@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
@@ -154,6 +155,7 @@ class TaskConfig:
     # task naming/registry
     task: str
     task_alias: str | None = None
+    preset: str | dict | None = None
     output_type: OutputType = "generate_until"
     tag: list[str] = field(default_factory=list)
     # HF dataset options.
@@ -204,6 +206,29 @@ class TaskConfig:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        # Resolve preset and apply its config as defaults.
+        # Explicit user values always take precedence over preset values.
+        # TODO: fix logic
+        if self.preset is not None:
+            from lm_eval.config.presets import PresetConfig
+
+            resolved = PresetConfig.get(self.preset)
+            if resolved is not None:
+                overrides = resolved.to_task_config()
+                for key, value in overrides.items():
+                    if key not in self.__dataclass_fields__:
+                        continue
+                    current = getattr(self, key)
+                    field_info = self.__dataclass_fields__[key]
+                    if field_info.default is not dataclasses.MISSING:
+                        is_default = current == field_info.default
+                    elif field_info.default_factory is not dataclasses.MISSING:
+                        is_default = current == field_info.default_factory()
+                    else:
+                        is_default = False
+                    if is_default or current is None:
+                        setattr(self, key, value)
+
         if self.generation_kwargs:
             if self.output_type != "generate_until":
                 eval_logger.warning(
