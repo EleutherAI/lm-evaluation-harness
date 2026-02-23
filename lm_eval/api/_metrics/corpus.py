@@ -10,6 +10,7 @@ import numpy as np
 from typing_extensions import TypeVar
 
 from lm_eval.api.registry import register_metric
+from lm_eval.utils import warning_once
 
 
 if TYPE_CHECKING:
@@ -66,8 +67,6 @@ class CorpusMetric(ABC, Generic[_R, _T]):
         self, references: Sequence[Any], predictions: Sequence[_T], **kwargs
     ) -> _T:
         """Collapse multiple repeats of a sample into one value. Corpus metrics only support repeat=1."""
-        from lm_eval.utils import warning_once
-
         if len(predictions) != 1:
             warning_once(
                 eval_logger,
@@ -241,8 +240,39 @@ def _sacreformat(
 # ---------------------------------------------------------------------------
 
 
+class _SacrebleuCorpusMetric(CorpusMetric["GenPred", tuple[list[str], list[str]]]):
+    """Base for sacrebleu corpus metrics (BLEU, chrF, TER).
+
+    With repeat > 1, predictions is ``list[str]`` with one string per repeat
+    while references stays the same.  ``reduce`` keeps only the first repeat
+    prediction so that downstream ``_sacreformat`` / ``aggregation`` see
+    exactly one prediction per sample.
+    """
+
+    def __call__(
+        self, references: list[str], predictions: list[str]
+    ) -> tuple[list[str], list[str]]:
+        return references, predictions
+
+    def reduce(
+        self,
+        references: Sequence[Any],
+        predictions: Sequence[tuple[list[str], list[str]]],
+        **kwargs,
+    ) -> tuple[list[str], list[str]]:
+        refs, preds = predictions[0]
+        if len(preds) > 1:
+            warning_once(
+                eval_logger,
+                f"CorpusMetric {self.__class__.__name__} received {len(preds)} "
+                "repeat predictions; keeping only the first.",
+            )
+            preds = preds[:1]
+        return refs, preds
+
+
 @register_metric(metric="bleu", higher_is_better=True, output_type="generate_until")
-class Bleu(CorpusMetric[list[str], tuple[list[str], list[str]]]):
+class Bleu(_SacrebleuCorpusMetric):
     """BLEU score for generated text.
 
     The Bilingual Evaluation Understudy Score counts matching n-grams in the
@@ -250,11 +280,6 @@ class Bleu(CorpusMetric[list[str], tuple[list[str], list[str]]]):
 
     Higher is better.
     """
-
-    def __call__(
-        self, references: list[str], predictions: list[str]
-    ) -> tuple[list[str], list[str]]:
-        return references, predictions
 
     def aggregation(self, items: Sequence[tuple[list[str], list[str]]]) -> float:
         import sacrebleu
@@ -265,7 +290,7 @@ class Bleu(CorpusMetric[list[str], tuple[list[str], list[str]]]):
 
 
 @register_metric(metric="chrf", higher_is_better=True, output_type="generate_until")
-class Chrf(CorpusMetric[list[str], tuple[list[str], list[str]]]):
+class Chrf(_SacrebleuCorpusMetric):
     """chrF++ score for generated text.
 
     chrF++ is based on character n-gram precision and recall
@@ -273,11 +298,6 @@ class Chrf(CorpusMetric[list[str], tuple[list[str], list[str]]]):
 
     Higher is better.
     """
-
-    def __call__(
-        self, references: list[str], predictions: list[str]
-    ) -> tuple[list[str], list[str]]:
-        return references, predictions
 
     def aggregation(self, items: Sequence[tuple[list[str], list[str]]]) -> float:
         import sacrebleu
@@ -288,7 +308,7 @@ class Chrf(CorpusMetric[list[str], tuple[list[str], list[str]]]):
 
 
 @register_metric(metric="ter", higher_is_better=False, output_type="generate_until")
-class Ter(CorpusMetric[list[str], tuple[list[str], list[str]]]):
+class Ter(_SacrebleuCorpusMetric):
     """Translation Error Rate for generated text.
 
     Measures the number of edits required to change a system output
@@ -296,11 +316,6 @@ class Ter(CorpusMetric[list[str], tuple[list[str], list[str]]]):
 
     Lower is better.
     """
-
-    def __call__(
-        self, references: list[str], predictions: list[str]
-    ) -> tuple[list[str], list[str]]:
-        return references, predictions
 
     def aggregation(self, items: Sequence[tuple[list[str], list[str]]]) -> float:
         import sacrebleu
