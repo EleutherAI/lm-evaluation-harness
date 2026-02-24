@@ -256,7 +256,7 @@ class EvaluatorConfig:
             raise ValueError(f"Could not read config file {_config_path}: {e}") from e
 
         if not isinstance(yaml_data, dict):
-            raise ValueError(
+            raise TypeError(
                 f"YAML root must be a mapping in {_config_path.resolve()}, got {type(yaml_data).__name__}"
             )
 
