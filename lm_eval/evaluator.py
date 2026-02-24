@@ -83,7 +83,13 @@ def simple_evaluate(
     confirm_run_unsafe_code: bool = False,
     metadata: dict[str, Any] | None = None,
 ) -> EvalResults | None:
-    """Instantiate and evaluate a model on a list of tasks.
+    """High-level entry point for evaluation.
+
+    Handles model instantiation (from a name string or pre-initialized LM object),
+    task loading via TaskManager, random seed setup, and per-task config overrides
+    (num_fewshot, gen_kwargs, repeats). Delegates the actual inference and metric
+    computation to :func:`evaluate`, then attaches run metadata (git hash,
+    environment info, tokenizer details) to the returned results.
 
     Args:
         model (str | LM): Name of model or LM object. See
@@ -453,7 +459,15 @@ def evaluate(
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
 ) -> EvalResults | None:
-    """Instantiate and evaluate a model on a list of tasks.
+    """Run inference and compute metrics for a pre-initialized model and task set.
+
+    This is the lower-level evaluation loop. It builds per-task request instances,
+    dispatches them to the model by request type (loglikelihood, generate_until, etc.),
+    collects responses, post-processes outputs via each task's scorers, and aggregates
+    metrics across samples. Handles multi-rank (FSDP/DDP) padding and result gathering.
+
+    Prefer :func:`simple_evaluate` unless you need direct control over model
+    initialization and task loading.
 
     Args:
         lm (LM): Language Model.
