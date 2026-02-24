@@ -5,9 +5,10 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from lm_eval.api.instance import Instance, LLInstance
-from lm_eval.api.task import Task
 from lm_eval.api.utils import ends_with_whitespace
 from lm_eval.config.utils import _coerce_list, _resolve_target_index, process_field
+
+from ._task import Task
 
 
 if TYPE_CHECKING:
@@ -264,6 +265,7 @@ class LoglikelihoodTask(Task):
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[LLInstance]:
+        metadata = {**(metadata or {})}
         cont = self.doc_to_target(doc)
         assert isinstance(ctx, str), (
             f"For loglikelihood tasks, the argument should be a string representing the continuation to score against the context. Got type {type(ctx)} with value {ctx}. Please check your doc_to_text implementation."
@@ -272,6 +274,8 @@ class LoglikelihoodTask(Task):
             f"For loglikelihood tasks, the target should be a string representing the continuation to score. Got {cont} of type {type(cont)}. Please check your doc_to_target implementation."
         )
         arguments = (ctx, cont)
+        if self._multiple_targets:
+            metadata.setdefault("metric_context", {})["multiple_targets"] = True
 
         return [
             Instance(
@@ -283,7 +287,7 @@ class LoglikelihoodTask(Task):
                 doc_id=doc_id,
                 repeats=self.config.repeats,
                 target=0,
-                metadata={**(metadata or {})},
+                metadata=metadata,
                 **kwargs,
             )
         ]

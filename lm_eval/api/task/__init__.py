@@ -1,6 +1,6 @@
+from ._task import Task  # noqa need to import Task first to avoid circular imports
 from ._generation import GenerateTask
 from ._ll import LoglikelihoodRollingTask, LoglikelihoodTask, MultipleChoiceTask
-from ._task import Task
 
 
 Task._registry = {

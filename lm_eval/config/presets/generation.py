@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import ClassVar
 
-from lm_eval.config.presets.preset import PresetConfig
+from .preset import PresetConfig
 
 
 @dataclass(kw_only=True)

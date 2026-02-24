@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 class SubCommand(ABC):
     """Base class for all subcommands."""
 
+    @abstractmethod
     def __init__(self, *args, **kwargs):
         pass
 

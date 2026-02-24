@@ -11,8 +11,11 @@ import numpy as np
 import lm_eval.api.model
 import lm_eval.api.registry
 from lm_eval.caching.cache import delete_cache
-from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
-from lm_eval.evaluator_utils import (
+from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
+from lm_eval.tasks import TaskManager
+
+from .defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
+from .evaluator_utils import (
     ResultAcc,
     _build_logged_samples,
     _handle_back_comp,
@@ -23,9 +26,7 @@ from lm_eval.evaluator_utils import (
     print_writeout,
     run_task_tests,
 )
-from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
-from lm_eval.tasks import TaskManager
-from lm_eval.utils import (
+from .utils import (
     hash_dict_images,
     positional_deprecated,
     set_torch_seed,

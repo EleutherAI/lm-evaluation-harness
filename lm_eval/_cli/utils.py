@@ -53,9 +53,11 @@ def _int_or_none_list_arg_type(
             f"Argument requires {max_len} integers or None, separated by '{split_char}'"
         )
     elif num_items != max_len:
-        logging.warning(
-            f"Argument requires {max_len} integers or None, separated by '{split_char}'. "
-            "Missing values will be filled with defaults."
+        eval_logger.warning(
+            "Argument requires %s integers or None, separated by '%s'. "
+            "Missing values will be filled with defaults.",
+            max_len,
+            split_char,
         )
         default_items = [parse_value(v) for v in defaults.split(split_char)]
         items.extend(default_items[num_items:])
@@ -117,7 +119,7 @@ def key_val_to_dict(args: str) -> dict[str, Any]:
     for k, v in (item.split("=", 1) for item in args.split(",")):
         v = handle_cli_value_string(v)
         if k in res:
-            eval_logger.warning(f"Overwriting key '{k}': {res[k]!r} -> {v!r}")
+            eval_logger.warning("Overwriting key '%s': %r -> %r", k, res[k], v)
         res[k] = v
     return res
 
@@ -149,7 +151,11 @@ class MergeDictAction(argparse.Action):
                     v = key_val_to_dict(v)
                     if overlap := current.keys() & v.keys():
                         eval_logger.warning(
-                            rf"{option_string or self.dest}: Overwriting {', '.join(f'{k}: {current[k]!r} -> {v[k]!r}' for k in overlap)}"
+                            "%s: Overwriting %s",
+                            option_string or self.dest,
+                            ", ".join(
+                                f"{k}: {current[k]!r} -> {v[k]!r}" for k in overlap
+                            ),
                         )
                     current.update(v)
 

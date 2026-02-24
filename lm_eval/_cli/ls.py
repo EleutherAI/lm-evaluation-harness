@@ -1,7 +1,7 @@
 import argparse
 import textwrap
 
-from lm_eval._cli.subcommand import SubCommand
+from .subcommand import SubCommand
 
 
 class List(SubCommand):

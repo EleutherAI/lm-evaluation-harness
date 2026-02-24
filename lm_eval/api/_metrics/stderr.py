@@ -6,7 +6,7 @@ from typing import TypeVar
 
 import numpy as np
 
-from lm_eval.api._metrics.aggregations import mean
+from .aggregations import mean
 
 
 T = TypeVar("T")

@@ -1,5 +1,6 @@
 from lm_eval._cli import HarnessCLI
-from lm_eval.utils import setup_logging
+
+from .utils import setup_logging
 
 
 def cli_evaluate() -> None:

@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING, Any, cast
 from lm_eval.api.group import Group
 from lm_eval.api.task import Task
 from lm_eval.config.group import GroupConfig
-from lm_eval.tasks._index import Entry, Kind
-from lm_eval.tasks._yaml_loader import load_yaml
+
+from ._index import Entry, Kind
+from ._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:

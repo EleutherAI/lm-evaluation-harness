@@ -9,9 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from datasets import load_dataset
-from datasets.utils.metadata import MetadataConfigs
-
 from lm_eval.utils import (
     get_file_datetime,
     get_file_task_name,
@@ -426,7 +423,8 @@ class EvaluationTracker:
 
         Pushes the card to the Hugging Face hub.
         """
-
+        from datasets import load_dataset
+        from datasets.utils.metadata import MetadataConfigs
         from huggingface_hub import (
             DatasetCard,
             DatasetCardData,

@@ -5,8 +5,8 @@ import os
 import textwrap
 from functools import partial
 
-from lm_eval._cli.subcommand import SubCommand
-from lm_eval._cli.utils import (
+from .subcommand import SubCommand
+from .utils import (
     MergeDictAction,
     SplitArgs,
     _int_or_none_list_arg_type,
