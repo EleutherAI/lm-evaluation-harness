@@ -269,6 +269,39 @@ class TestExactMatch:
         )
         assert result["exact_match"] == [1]
 
+    def test_multiple_targets_match(self):
+        result = exact_match_fn(
+            references=[["a", "b"]], predictions=["b"], multiple_targets=True
+        )
+        assert result["exact_match"] == [1]
+
+    def test_multiple_targets_miss(self):
+        result = exact_match_fn(
+            references=[["a", "b"]], predictions=["c"], multiple_targets=True
+        )
+        assert result["exact_match"] == [0]
+
+    def test_multiple_targets_with_repeats(self):
+        result = exact_match_fn(
+            references=[["a", "b"]], predictions=["a", "c", "b"], multiple_targets=True
+        )
+        assert result["exact_match"] == [1, 0, 1]
+
+    def test_multiple_targets_ignore_case(self):
+        result = exact_match_fn(
+            references=[["Hello", "Hi"]],
+            predictions=["hi"],
+            multiple_targets=True,
+            ignore_case=True,
+        )
+        assert result["exact_match"] == [1]
+
+    def test_multiple_targets_single_ref_fallback(self):
+        result = exact_match_fn(
+            references=["a"], predictions=["a"], multiple_targets=True
+        )
+        assert result["exact_match"] == [1]
+
 
 # ===========================================================================
 # Aggregation functions
