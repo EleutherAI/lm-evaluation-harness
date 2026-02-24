@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from typing_extensions import deprecated
 
 # Import TaskManager
-from lm_eval.tasks.manager import TaskManager
+from .manager import TaskManager
 
 
 if TYPE_CHECKING:
