@@ -526,7 +526,7 @@ class TestFewshotContext:
         """Description from config is included."""
         description = "Answer math questions.\n"
         mock_configurable_task.config.description = description
-        mock_configurable_task.resolve_field = Mock(return_value=description)
+        mock_configurable_task._resolve_field = Mock(return_value=description)
         mock_configurable_task.doc_to_text = Mock(return_value="2+2?")
         mock_configurable_task.doc_to_target = Mock(return_value="4")
 
@@ -541,7 +541,7 @@ class TestFewshotContext:
         description = "Answer math questions.\n"
         system_instruction = "Be helpful."
         mock_configurable_task.config.description = description
-        mock_configurable_task.resolve_field = Mock(return_value=description)
+        mock_configurable_task._resolve_field = Mock(return_value=description)
         mock_configurable_task.doc_to_text = Mock(return_value="2+2?")
         mock_configurable_task.doc_to_target = Mock(return_value="4")
 
@@ -608,7 +608,7 @@ class TestFewshotContext:
         # fewshot examples use fewshot_cfg.gen_prefix
         mock_configurable_task._fewshot_cfg.gen_prefix = "Answer:"
         # resolve_field returns the gen_prefix value (not a template)
-        mock_configurable_task.resolve_field = Mock(side_effect=lambda doc, val: val)
+        mock_configurable_task._resolve_field = Mock(side_effect=lambda doc, val: val)
 
         result = ConfigurableTask.fewshot_context(
             mock_configurable_task, doc=target_doc, num_fewshot=1, gen_prefix="Answer:"
