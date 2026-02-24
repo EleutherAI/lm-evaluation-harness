@@ -43,7 +43,7 @@ class PresetConfig:
     fewshot_delimiter: str  # Between examples
 
     # Scorer
-    scorer: str | None
+    scorer: str | dict[str, Any] | None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

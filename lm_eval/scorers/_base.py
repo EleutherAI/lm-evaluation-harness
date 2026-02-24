@@ -63,7 +63,7 @@ class MetricKey:
         return cls(metric=left, scorer=scorer)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Scorer:
     """Base scorer defining the filter → score → reduce → aggregate pipeline.
 
@@ -77,7 +77,7 @@ class Scorer:
 
     Precedence (highest → lowest):
 
-    1. Explicit ``cfg["filter"]`` / ``cfg["metric_list"]`` passed to ``from_dict``
+    1. Explicit ``cfg["filter_list"]`` / ``cfg["metric_list"]`` passed to ``from_dict``
     2. ``cls.default_filter_cfg`` / ``cls.default_metric_cfg``
     3. Hardcoded fallback (``take_first`` / *global_metrics*)
     """
@@ -111,7 +111,7 @@ class Scorer:
 
             {
                 "name": "strict-match",
-                "filter": [
+                "filter_list": [
                     {"function": "take_first"},
                     {"function": "regex", "regex_pattern": "..."},
                 ],
@@ -125,7 +125,7 @@ class Scorer:
         # --- build filter ensemble ---
         # Precedence: explicit cfg > class default > take_first fallback
         filter_name = cfg.get("name", "none")
-        filter_cfg = cfg.get("filter")
+        filter_cfg = cfg.get("filter_list")
         if not filter_cfg and cls.default_filter_cfg is not None:
             filter_cfg = cls.default_filter_cfg
         elif not filter_cfg:
@@ -141,10 +141,14 @@ class Scorer:
         else:
             metrics = list(global_metrics)
 
+        _consumed = {"name", "filter_list", "metric_list"}
+        extra = {k: v for k, v in cfg.items() if k not in _consumed}
+
         return cls(
             name=filter_name,
             filter=filter_ensemble,
             metrics=metrics,
+            **extra,
         )
 
     @classmethod
@@ -521,23 +525,41 @@ def build_scorer(
     cfg: dict[str, Any] | None = None,
     global_metrics: list[Metric] | None = None,
     output_type: str | None = None,
-    scorer_type: str | None = None,
+    scorer_type: str | dict[str, Any] | None = None,
 ) -> Scorer:
     """Construct the appropriate scorer subclass.
 
-    When *scorer_type* is given, resolves the class from the scorer registry
-    (e.g. ``"first_token"`` → :class:`FirstTokenScorer`).  Otherwise falls
-    back to :class:`GenScorer` for ``generate_until`` tasks and
-    :class:`LLScorer` for all other output types.
+    *scorer_type* can be:
+
+    * **str** — scorer name, resolved from the scorer registry
+      (e.g. ``"first_token"`` → :class:`FirstTokenScorer`).
+    * **dict** — ``{"type": "scorer_name", ...kwargs}`` where extra
+      keys are forwarded to the scorer constructor as kwargs.
+    * **None** — fall back to :class:`GenScorer` / :class:`LLScorer`
+      based on *output_type*.
     """
-    if scorer_type is not None:
+    scorer_kwargs: dict[str, Any] = {}
+    scorer_name: str | None = None
+
+    if isinstance(scorer_type, dict):
+        scorer_name = scorer_type["type"]
+        scorer_kwargs = {k: v for k, v in scorer_type.items() if k != "type"}
+    elif isinstance(scorer_type, str):
+        scorer_name = scorer_type
+
+    if scorer_name is not None:
         from lm_eval.api.registry import get_scorer
 
-        cls = get_scorer(scorer_type)
+        cls = get_scorer(scorer_name)
     else:
         cls = GenScorer if output_type == "generate_until" else LLScorer
+
     if cfg is not None:
-        return cls.from_dict(cfg, global_metrics=global_metrics)
-    if scorer_type is not None:
-        return cls.default_scorer(global_metrics or [], name=scorer_type)
+        return cls.from_dict({**cfg, **scorer_kwargs}, global_metrics=global_metrics)
+    if scorer_kwargs:
+        return cls.from_dict(
+            {"name": scorer_name, **scorer_kwargs}, global_metrics=global_metrics
+        )
+    if scorer_name is not None:
+        return cls.default_scorer(global_metrics or [], name=scorer_name)
     return cls.default_scorer(global_metrics or [])

@@ -53,7 +53,7 @@ class FilterPipeline(TypedDict, total=False):
 
         filter_list:
           - name: "strict-match"
-            filter:
+            filter_list:
               - function: "regex"
                 kwargs:
                   regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
@@ -66,7 +66,7 @@ class FilterPipeline(TypedDict, total=False):
     """
 
     name: Required[str]
-    filter: Required[list[FilterStep]]
+    filter_list: Required[list[FilterStep]]
     metric_list: list[_MetricConfig]
 
 
@@ -194,7 +194,7 @@ class TaskConfig:
     # scoring options
     metric_list: list[_MetricConfig] = field(default_factory=list)
     filter_list: list[FilterPipeline] = field(default_factory=list)
-    scorer: str | None = None
+    scorer: str | dict[str, Any] | None = None
     repeats: int = 1
     unsafe_code: bool = False
     use_prompt: str | None = None
