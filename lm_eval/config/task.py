@@ -233,7 +233,8 @@ class TaskConfig:
         if self.generation_kwargs:
             if self.output_type != "generate_until":
                 eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
+                    "[%s] passed `generation_kwargs`, but not using `output_type: generate_until`!",
+                    self.task,
                 )
 
             if "temperature" in self.generation_kwargs:
@@ -243,7 +244,9 @@ class TaskConfig:
 
             if "until" not in self.generation_kwargs:
                 eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                    "[%s]: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter=%r",
+                    self.task,
+                    self.fewshot_delimiter,
                 )
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
@@ -251,7 +254,9 @@ class TaskConfig:
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = default_gen_kwargs(self.fewshot_delimiter)
                 eval_logger.warning(
-                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
+                    "[%s]: No `generation_kwargs` specified in task config, defaulting to %s",
+                    self.task,
+                    self.generation_kwargs,
                 )
         self.fewshot_config = (
             FewshotConfig.from_dict(
