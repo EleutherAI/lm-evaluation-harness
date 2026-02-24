@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from lm_eval.api._metrics.utils import softmax
+from .utils import softmax
 
 
 NAT_TO_BIT = 1.0 / np.log(2.0)

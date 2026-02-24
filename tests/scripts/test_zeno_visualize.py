@@ -1,7 +1,13 @@
+import pytest
+
+
+pytest.importorskip(
+    "zeno_client",
+    reason="The zeno_client package is not available, skipping zeno_visualize tests.",
+)
+
 import json
 import re
-
-import pytest
 
 
 pytest.importorskip("zeno_client")

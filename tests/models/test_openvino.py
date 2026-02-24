@@ -1,8 +1,14 @@
+import pytest
+
+
+pytest.importorskip(
+    "optimum", reason="The optimum package is not available, skipping OpenVINO tests."
+)
+
 import random
 import tempfile
 from pathlib import Path
 
-import pytest
 from optimum.intel import OVModelForCausalLM, OVModelForSeq2SeqLM
 from transformers import AutoTokenizer
 

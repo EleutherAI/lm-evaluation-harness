@@ -212,7 +212,7 @@ def test_get_batched_requests_with_no_ssl(
             mock_post_response
         )
         mock_client_session.return_value.__aenter__.return_value = mock_session_instance
-        mock_parse.return_value = [(1.23, True), (4.56, False)]
+        mock_parse.return_value = [(1.23, True)]
 
         async def run():
             return await api_batch_ssl_tokenized.get_batched_requests(
@@ -243,12 +243,12 @@ def test_local_completionsapi_remote_tokenizer_authenticated(monkeypatch):
         tokenizer_backend="remote",
         verify_certificate=True,
         ca_cert_path="secure.crt",
-        auth_token="secure-token",
+        auth_token="secure-token",  # noqa: S106
     )
     assert captured["base_url"] == "https://secure-server"
     assert captured["verify_certificate"] is True
     assert captured["ca_cert_path"] == "secure.crt"
-    assert captured["auth_token"] == "secure-token"
+    assert captured["auth_token"] == "secure-token"  # noqa: S105
 
 
 def test_local_completionsapi_remote_tokenizer_unauthenticated(monkeypatch):
@@ -291,12 +291,12 @@ def test_localchatcompletion_remote_tokenizer_authenticated(monkeypatch):
         tokenizer_backend="remote",
         verify_certificate=True,
         ca_cert_path="secure.crt",
-        auth_token="secure-token",
+        auth_token="secure-token",  # noqa: S106
     )
     assert captured["base_url"] == "https://secure-server"
     assert captured["verify_certificate"] is True
     assert captured["ca_cert_path"] == "secure.crt"
-    assert captured["auth_token"] == "secure-token"
+    assert captured["auth_token"] == "secure-token"  # noqa: S105
 
 
 def test_localchatcompletion_remote_tokenizer_unauthenticated(monkeypatch):

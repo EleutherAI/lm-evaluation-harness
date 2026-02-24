@@ -3,8 +3,9 @@ from typing import Any, Generic
 
 from typing_extensions import TypedDict, TypeVar
 
-from lm_eval.api._types import GenArgs, GenResponse, LLArgs, LLResponse
 from lm_eval.result_schema import OutputType
+
+from ._types import GenArgs, GenResponse, LLArgs, LLResponse
 
 
 ArgsT = TypeVar("ArgsT", bound=LLArgs | GenArgs)

@@ -21,7 +21,7 @@ Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
 
 # the context passed to the model. Usually a string in most cases, but can be a dict of turn-level strings,
 # for model implementations process them internally, depending on the chat template used.
-Context = str | dict[str, str]
+Context = str | list[dict[str, str]]
 
 
 LLArgs = tuple[str, str]

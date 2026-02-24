@@ -2,9 +2,9 @@ import argparse
 import sys
 import textwrap
 
-from lm_eval._cli.ls import List
-from lm_eval._cli.run import Run
-from lm_eval._cli.validate import Validate
+from .ls import List
+from .run import Run
+from .validate import Validate
 
 
 class HarnessCLI:

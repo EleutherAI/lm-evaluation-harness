@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Generic, cast
 
 from typing_extensions import Self, TypeVar
 
-from lm_eval.api._metrics._types import AggregationFn, MetricFn, ReductionFn
+from ._types import AggregationFn, MetricFn, ReductionFn
 
 
 if TYPE_CHECKING:

@@ -7,8 +7,7 @@ import numpy as np
 import pandas as pd
 from packaging.version import Version
 
-from lm_eval.loggers.utils import _handle_non_serializable, remove_none_pattern
-from lm_eval.scorers import MetricKey
+from .utils import _handle_non_serializable, remove_none_pattern
 
 
 logger = logging.getLogger(__name__)
@@ -73,21 +72,19 @@ class WandbLogger:
         """Get configuration parameters."""
         self.task_configs = self.results.get("configs", {})
         cli_configs = self.results.get("config", {})
-        configs = {
+        return {
             "task_configs": self.task_configs,
             "cli_configs": cli_configs,
         }
 
-        return configs
-
     def _sanitize_results_dict(self) -> tuple[dict[str, str], dict[str, Any]]:
         """Sanitize the results dictionary."""
-        _results = copy.deepcopy(self.results.get("results", dict()))
+        _results = copy.deepcopy(self.results.get("results", {}))
 
         # Remove None from the metric string name
         tmp_results = copy.deepcopy(_results)
         for task_name in self.task_names:
-            task_result = tmp_results.get(task_name, dict())
+            task_result = tmp_results.get(task_name, {})
             for metric_name, metric_value in task_result.items():
                 _metric_name, removed = remove_none_pattern(metric_name)
                 if removed:
@@ -97,12 +94,12 @@ class WandbLogger:
         # remove string valued keys from the results dict
         wandb_summary = {}
         for task in self.task_names:
-            task_result = _results.get(task, dict())
+            task_result = _results.get(task, {})
             for metric_name, metric_value in task_result.items():
                 if isinstance(metric_value, str):
                     wandb_summary[f"{task}/{metric_name}"] = metric_value
 
-        for summary_metric, summary_value in wandb_summary.items():
+        for summary_metric in wandb_summary.keys():
             _task, _summary_metric = summary_metric.split("/")
             _results[_task].pop(_summary_metric)
 
@@ -130,16 +127,18 @@ class WandbLogger:
         def make_table(columns: list[str], key: str = "results"):
             import wandb
 
+            from lm_eval.scorers import MetricKey
+
             table = wandb.Table(columns=columns)
             results = copy.deepcopy(self.results)
 
-            for k, dic in results.get(key).items():
-                if k in self.group_names and not key == "groups":
+            for k, dic in results.get(key, {}).items():
+                if k in self.group_names and key != "groups":
                     continue
-                version = results.get("versions").get(k)
+                version = results.get("versions", {}).get(k)
                 if version == "N/A":
                     version = None
-                n = results.get("n-shot").get(k)
+                n = results.get("n-shot", {}).get(k)
 
                 for mf, v in dic.items():
                     mk = MetricKey.parse(mf)
@@ -152,7 +151,7 @@ class WandbLogger:
                     if stderr_key in dic:
                         se = dic[stderr_key]
                         if se != "N/A":
-                            se = "%.4f" % se
+                            se = f"{se:.4f}"
                         table.add_data(
                             *[k, version, mk.scorer, n, mk.metric, str(v), str(se)]
                         )

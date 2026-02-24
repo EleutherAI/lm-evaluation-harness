@@ -34,18 +34,20 @@ def print_writeout(task: Task) -> None:
         # print the prompt for the first few documents
         if inst.doc_id is not None and inst.doc_id < 1:
             eval_logger.info(
-                f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
-    \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
+                "Task: %s; document %s; context prompt (starting on next line):\
+    \n%s\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n%s\n(end of target on previous line)",
+                task,
+                inst.doc_id,
+                inst.args[0],
+                task.doc_to_target(inst.doc),
             )
-            eval_logger.info(f"Request: {str(inst)}")
+            eval_logger.info("Request: %s", inst)
             break
 
 
-def get_sample_size(task, limit: int | float | None) -> int | None:
+def get_sample_size(task, limit: float | None) -> int | None:
     if limit is not None:
-        limit = (
-            int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
-        )
+        limit = math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
     return limit
 
 
@@ -341,9 +343,7 @@ def _process_results(
     results = _collect_results(eval_results_acc, groups or {}, bootstrap_iters)
 
     # Aggregate group metrics
-    results = aggregate_groups(results)
-
-    return results
+    return aggregate_groups(results)
 
 
 def _propagate_num_fewshot(
@@ -367,7 +367,9 @@ def _propagate_higher_is_better(
                         _higher_is_better[m] = h
                     elif _higher_is_better[m] is not None and _higher_is_better[m] != h:
                         eval_logger.warning(
-                            f"Higher_is_better values for metric {m} in group {group.name} are not consistent. Defaulting to None."
+                            "Higher_is_better values for metric %s in group %s are not consistent. Defaulting to None.",
+                            m,
+                            group.name,
                         )
                         _higher_is_better[m] = None
         if _higher_is_better:
@@ -413,7 +415,7 @@ def _log_selected_tasks(
             return
         group = groups[group_name]
         pad = "  " * indent
-        eval_logger.info(f"{pad}Group: {group_name}")
+        eval_logger.info("%sGroup: %s", pad, group_name)
 
         for child in group.child_names:
             if child in groups:
@@ -421,7 +423,7 @@ def _log_selected_tasks(
             elif child in task_dict:
                 child_pad = "  " * (indent + 1)
                 path = get_task_path(child)
-                eval_logger.info(f"{child_pad}Task: {child} ({path})")
+                eval_logger.info("%sTask: %s (%s)", child_pad, child, path)
                 logged_tasks.add(child)
 
     for root in sorted(root_groups):
@@ -431,7 +433,7 @@ def _log_selected_tasks(
     for task_name in sorted(task_dict.keys()):
         if task_name not in logged_tasks:
             path = get_task_path(task_name)
-            eval_logger.info(f"Task: {task_name} ({path})")
+            eval_logger.info("Task: %s (%s)", task_name, path)
 
 
 def _merge_rank_metrics(

@@ -4,7 +4,8 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from lm_eval.api.instance import GenInstance, Instance
-from lm_eval.api.task import Task
+
+from ._task import Task
 
 
 if TYPE_CHECKING:
@@ -34,6 +35,8 @@ class GenerateTask(Task):
             self._build_multimodal_kwargs(doc) if self._multimodal else None
         )
         target = self.doc_to_target(doc)
+        if self._multiple_targets:
+            metadata.setdefault("metric_context", {})["multiple_targets"] = True
 
         return [
             Instance(

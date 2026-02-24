@@ -3,9 +3,13 @@ from typing import Any
 
 
 DEFAULT_MAX_LENGTH = 2048
+"""Default model context size"""
 DEFAULT_MAX_GEN_TOKS = 256
+"""Default max gen tokens for generation if not specified in the task config."""
 DEFAULT_RANDOM_SEED = 0
+"""Default seed for Random"""
 DEFAULT_OTHER_SEED = 1234
+"""torch, numpy, all others"""
 
 # Environment variables
 
@@ -33,6 +37,13 @@ def _envbool(var: str, default: bool = False) -> bool:
 LOGGING_LEVEL = os.environ.get("LMEVAL_LOG_LEVEL", "INFO")
 LMEVAL_HASHMM = _envbool("LMEVAL_HASHMM", default=True)
 DISABLE_MULTIPROC = _envbool("LMEVAL_DISABLE_MULTIPROC", default=False)
+
+
+def INVALID(*context: str) -> str:
+    """Returns a string indicating an invalid result, optionally with context."""
+    if context:
+        return f"INVALID({' '.join(context)})"
+    return "INVALID"
 
 
 def default_gen_kwargs(
