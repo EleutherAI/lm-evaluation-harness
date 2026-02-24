@@ -258,8 +258,9 @@ class Task:
 
         if callable(df := self._config.custom_dataset):
             eval_logger.warning(
-                f"{self._config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
-                + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
+                "%s: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
+                "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme.",
+                self._config.task,
             )
             self._dataset = df(**(self._config.dataset_kwargs | self._config.metadata))
         else:
@@ -328,9 +329,9 @@ class Task:
 
         if (_shots := self._config.num_fewshot) is not None and _shots > 0:
             eval_logger.warning(
-                f"[Task: {self._config.task}] "
-                f"num_fewshot > 0 but fewshot_split is None. "
-                "using preconfigured rule."
+                "[Task: %s] num_fewshot > 0 but fewshot_split is None. "
+                "using preconfigured rule.",
+                self._config.task,
             )
             # Try splits in priority order
             _df = self.training_docs() or self.validation_docs()
@@ -340,8 +341,9 @@ class Task:
 
             # Fallback to test split
             eval_logger.warning(
-                f"[Task: {self._config.task}] has_training_docs and has_validation_docs are False"
-                ", using test_docs as fewshot_docs but this is not recommended."
+                "[Task: %s] has_training_docs and has_validation_docs are False"
+                ", using test_docs as fewshot_docs but this is not recommended.",
+                self._config.task,
             )
             if (_df := self.test_docs()) is not None:
                 self._fewshot_docs = list(_df)
@@ -377,7 +379,9 @@ class Task:
                 f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
             )
             eval_logger.info(
-                f"{self.config.task}: Evaluating on {len(samples)} examples"
+                "%s: Evaluating on %s examples",
+                self.config.task,
+                len(samples),
             )
             sample_set = set(samples)
             return utils.create_iterator(
@@ -733,7 +737,9 @@ class Task:
             build_limit = None if should_build_all else limit
 
             eval_logger.info(
-                f"Building contexts for {self.config.task} on rank {rank}..."
+                "Building contexts for %s on rank %s...",
+                self.config.task,
+                rank,
             )
 
             grouped: list[list[Instance]] = []
@@ -765,7 +771,7 @@ class Task:
                     chat_template=chat_template,
                 )
                 if inst is None:
-                    eval_logger.info(f"Skipping {doc_id=}.")
+                    eval_logger.info("Skipping doc_id=%s.", doc_id)
                     continue
                 if not isinstance(inst, list):
                     inst = [inst]
@@ -815,7 +821,9 @@ class Task:
         choices = _coerce_list(process_field(doc, doc_to_choice))
         if choices is not None and not isinstance(choices, list):
             eval_logger.warning(
-                f"doc_to_choice must return a list, got {type(choices).__name__}: {choices!r}. Skipping ..."
+                "doc_to_choice must return a list, got %s: %r. Skipping ...",
+                type(choices).__name__,
+                choices,
             )
             return None
         return choices
@@ -1086,7 +1094,8 @@ class MultipleChoiceTask(Task):
         super().__init__(*args, **kwargs)
         if self.config.repeats and self.config.repeats > 1:
             eval_logger.warning(
-                f"MultipleChoiceTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
+                "MultipleChoiceTask does not support repeats > 1, but config has repeats=%s. Setting repeats to 1.",
+                self.config.repeats,
             )
         self.config.repeats = 1
 
@@ -1107,7 +1116,10 @@ class MultipleChoiceTask(Task):
         target = self.doc_to_target(doc)
         if not choices or target is None:
             eval_logger.warning(
-                f"No {choices=} or {target=} found for doc:\n\n{doc}\n\nSkipping this instance."
+                "No choices=%s or target=%s found for doc:\n\n%s\n\nSkipping this instance.",
+                choices,
+                target,
+                doc,
             )
             return None
         target_delimiter = self.config.target_delimiter
@@ -1275,7 +1287,8 @@ class MultipleChoiceTask(Task):
         choices = self.doc_to_choice(doc)
         if not choices:
             eval_logger.warning(
-                f"No choices found for doc:\n\n{doc}\n\nCannot map non int target to choice index."
+                "No choices found for doc:\n\n%s\n\nCannot map non int target to choice index.",
+                doc,
             )
             return None
 
@@ -1354,7 +1367,8 @@ class LoglikelihoodTask(Task):
         assert self._multiple_targets is False
         if self.config.repeats and self.config.repeats > 1:
             eval_logger.warning(
-                f"LoglikelihoodTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
+                "LoglikelihoodTask does not support repeats > 1, but config has repeats=%s. Setting repeats to 1.",
+                self.config.repeats,
             )
         self.config.repeats = 1
 
@@ -1403,7 +1417,9 @@ class LoglikelihoodTask(Task):
         target = super().doc_to_target(doc, doc_to_target)
         if not isinstance(target, str):
             eval_logger.warning(
-                f"doc_to_target should return a string representing the continuation to score for LoglikelihoodTask. Got {target} of type {type(target)}. Skipping this instance."
+                "doc_to_target should return a string representing the continuation to score for LoglikelihoodTask. Got %s of type %s. Skipping this instance.",
+                target,
+                type(target),
             )
             return None
         return target
