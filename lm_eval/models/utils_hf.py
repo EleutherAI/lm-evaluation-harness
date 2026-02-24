@@ -15,7 +15,7 @@ def pad_and_concat(
     length in the batch. Used for batching inputs and continuations in
     seq2seq models.
     """
-    assert padding_side == "left" or padding_side == "right", (
+    assert padding_side in {"left", "right"}, (
         f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
     )
 

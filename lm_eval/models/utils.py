@@ -11,11 +11,14 @@ from typing import (
     Any,
     Literal,
     TypeVar,
+    cast,
 )
 
-from lm_eval.api._types import GenKwargs
 from lm_eval.utils import maybe_warn, warning_once
 
+
+if TYPE_CHECKING:
+    from lm_eval.api._types import GenKwargs
 
 eval_logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -531,10 +534,7 @@ def configure_pad_token(
         if model_config and getattr(model_config, "model_type", None) == "qwen":
             # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
             tokenizer.pad_token = "<|endoftext|>"  # noqa: S105
-        elif (
-            tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
-            or tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
-        ):
+        elif tokenizer.__class__.__name__ in ["RWKVWorldTokenizer", "Rwkv5Tokenizer"]:
             # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
             # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
             # ---
@@ -701,7 +701,7 @@ def normalize_gen_kwargs(
     kwargs["until"] = until
     kwargs["max_gen_toks"] = max_gen_toks
 
-    return GenKwargs(**kwargs)
+    return cast("GenKwargs", kwargs)
 
 
 def resize_image(
