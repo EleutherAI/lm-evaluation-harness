@@ -11,20 +11,52 @@ from lm_eval.defaults import default_gen_kwargs
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
+    from typing import Literal
 
     from lm_eval.api._types import Dataset, DataSplit, Doc
     from lm_eval.api.instance import OutputType
+
+    _OutputType = OutputType | Literal["multiple_choice"]
 
 
 eval_logger = logging.getLogger(__name__)
 
 
 class _MetricConfig(TypedDict, total=False):
+    """Configuration for a single metric in ``metric_list``.
+
+    Example YAML::
+
+        metric_list:
+          - metric: exact_match
+            aggregation: mean
+            higher_is_better: true
+            ignore_case: true       # extra kwarg forwarded to the metric fn
+    """
+
     metric: str | Callable
+    """Name of a registered metric (e.g. ``"acc"``, ``"exact_match"``,
+    ``"bleu"``) or a callable. See ``lm_eval/api/metrics.py`` for
+    built-in metrics."""
+
     aggregation: str | Callable | None
+    """How per-document metric values are combined into a single score
+    (e.g. ``"mean"``, ``"median"``). Defaults to the metric's registered
+    aggregation if not set."""
+
     reduction: str | Callable | None
+    """How per-instance repeated values are reduced before aggregation
+    (e.g. when ``repeats > 1``). Defaults to the metric's registered
+    reduction if not set."""
+
     higher_is_better: bool | None
+    """Whether a higher metric value indicates better performance.
+    Defaults to the metric's registered value if not set."""
+
     kwargs: dict[str, Any] | None
+    """Extra keyword arguments forwarded to the metric function
+    (e.g. ``{"ignore_case": true}`` for ``exact_match``). Keys not in
+    ``METRIC_KEYS`` are also treated as kwargs."""
 
 
 class FilterStep(TypedDict, total=False):
@@ -43,7 +75,14 @@ class FilterStep(TypedDict, total=False):
     """
 
     function: Required[str]
+    """Name of a registered filter (e.g. ``"regex"``, ``"custom"``,
+    ``"majority_vote"``). Custom filters can be registered with
+    ``@register_filter``."""
+
     kwargs: dict[str, Any]
+    r"""Keyword arguments passed to the filter function
+    (e.g. ``{"regex_pattern": "The answer is (\d+)"}`` for ``"regex"``,
+    or ``{"filter_fn": "!function utils.my_filter"}`` for ``"custom"``)."""
 
 
 class FilterPipeline(TypedDict, total=False):
@@ -66,8 +105,17 @@ class FilterPipeline(TypedDict, total=False):
     """
 
     name: Required[str]
+    """Identifier for this pipeline, used as a prefix in result keys
+    (e.g. ``"strict-match"``, ``"maj@64"``)."""
+
     filter_list: Required[list[FilterStep]]
+    """Ordered sequence of filter steps applied to model outputs.
+    Steps run in order; each step's output feeds into the next."""
+
     metric_list: list[_MetricConfig]
+    """Optional per-pipeline metrics. When set, these metrics are scored
+    only on this pipeline's filtered outputs, instead of the task-level
+    ``metric_list``."""
 
 
 @dataclass
@@ -81,17 +129,50 @@ class FewshotConfig:
     """
 
     sampler: str = "default"
+    """Sampling strategy for selecting few-shot examples (e.g. ``"default"``,
+    ``"first_n"``). ``"default"`` samples randomly."""
+
     split: str | None = None
+    """Dataset split to draw few-shot examples from. Inherited from
+    ``TaskConfig.fewshot_split`` if not set directly. Takes precedence
+    over ``samples`` when both are provided."""
+
     process_docs: Callable[..., list[dict[str, Any]]] | None = None
+    """Optional callable to transform the few-shot split before sampling.
+    Inherited from ``TaskConfig.process_docs`` if not set."""
+
     fewshot_indices: list[int] | None = None
+    """Explicit list of document indices to use as few-shot examples.
+    When set, overrides random sampling with a fixed selection."""
+
     samples: list[dict[str, Any]] | Callable[[], list[dict[str, Any]]] | None = None
-    # Override doc formatting for fewshot examples
+    """Hardcoded few-shot examples as a list of dicts, or a callable
+    returning such a list. Used when examples don't come from a dataset
+    split. Ignored if ``split`` is also set."""
+
     doc_to_text: str | Callable[[Doc], str] | None = None
+    """Override ``doc_to_text`` for formatting few-shot examples differently
+    from the test example. Inherited from ``TaskConfig.doc_to_text``."""
+
     doc_to_choice: str | Callable[[Doc], list[str]] | list[str] | None = None
+    """Override ``doc_to_choice`` for few-shot examples.
+    Inherited from ``TaskConfig.doc_to_choice``."""
+
     doc_to_target: str | Callable[[Doc], str | int] | None = None
+    """Override ``doc_to_target`` for few-shot examples.
+    Inherited from ``TaskConfig.doc_to_target``."""
+
     gen_prefix: str | None = None
+    """Override ``gen_prefix`` for few-shot examples.
+    Inherited from ``TaskConfig.gen_prefix``."""
+
     fewshot_delimiter: str | None = None
+    """Override the delimiter between few-shot examples.
+    Inherited from ``TaskConfig.fewshot_delimiter``."""
+
     target_delimiter: str | None = None
+    """Override the delimiter between prompt and target in few-shot examples.
+    Inherited from ``TaskConfig.target_delimiter``."""
 
     def __post_init__(self):
         if self.split is not None and self.samples is not None:
@@ -151,59 +232,225 @@ class FewshotConfig:
 
 @dataclass(kw_only=True)
 class TaskConfig:
-    # task naming/registry
+    """Configuration for a single evaluation task.
+
+    Maps 1:1 with the YAML task config files under ``lm_eval/tasks/``.
+    Every key in a task YAML corresponds to a field here.
+
+    Example YAML::
+
+        task: arc_easy@cloze
+        dataset_path: allenai/ai2_arc
+        dataset_name: ARC-Easy
+        test_split: test
+        doc_to_text: "{{question}}"
+        doc_to_target: "{{choices.label.index(answerKey)}}"
+        doc_to_choice: "{{choices.text}}"
+    """
+
+    # ── Task naming / registry ──────────────────────────────────────────
+
     task: str
+    """Unique task identifier used for registration and CLI selection
+    (e.g. ``--tasks arc_easy``). Append ``@<preset>`` to select a prompt
+    preset at runtime (e.g. ``"arc_easy@cloze"``)."""
+
     task_alias: str | None = None
-    preset: str | dict | None = None
-    output_type: OutputType = "generate_until"
+    """Optional display name shown in result tables instead of ``task``."""
+
+    preset: str | dict[str, str] | None = None
+    """Prompt preset to apply. Can be a registered preset name (e.g. ``"cloze"``,
+    ``"mcq"``), or an inline dict of PresetConfig fields. When set, the preset's
+    template overrides ``doc_to_text``, ``doc_to_target``, ``output_type``, etc.
+    If None and ``task`` contains ``@``, the suffix is used as the preset name."""
+
+    output_type: _OutputType = "generate_until"
+    """The type of model request to construct for each document.
+
+    - ``"generate_until"``: open-ended text generation (default).
+    - ``"loglikelihood"``: score the likelihood of a target string.
+    - ``"loglikelihood_rolling"``: score a full sequence without a context split.
+    - ``"multiple_choice"``: rank answer choices by loglikelihood.
+    """
+
     tag: list[str] = field(default_factory=list)
-    # HF dataset options.
-    # which dataset to use,
-    # and what splits for what purpose
+    """Tags for categorizing this task. Users can select all tasks sharing
+    a tag via ``--tasks <tag_name>`` (e.g. ``tag: [math, reasoning]`` lets
+    users run ``--tasks math`` to include this task).
+    Distinct from explicit ``group`` configs (see ``GroupConfig``)."""
+
+    # ── HF dataset options ──────────────────────────────────────────────
+
     custom_dataset: Callable[..., Dataset] | None = None
+    """A callable that returns a HuggingFace ``DatasetDict``. Use this when
+    you need custom loading logic instead of ``datasets.load_dataset``.
+    At runtime, receives ``metadata`` (from this config) and ``model_args``
+    (if using ``evaluate``) as keyword arguments."""
+
     dataset_path: str | None = None
+    """HuggingFace dataset path passed to ``datasets.load_dataset()``.
+    Can be a Hub identifier (e.g. ``"allenai/ai2_arc"``) or a local path."""
+
     dataset_name: str | None = None
+    """HuggingFace dataset config/subset name (e.g. ``"ARC-Easy"``)."""
+
     dataset_kwargs: dict[str, str | int | float] = field(default_factory=dict)
+    """Extra keyword arguments forwarded to ``datasets.load_dataset()``
+    (e.g. ``{"data_dir": "path/to/data"}`` or ``{"data_files": "data.json"}``)."""
+
     training_split: str | None = None
+    """Name of the training split in the dataset (e.g. ``"train"``)."""
+
     validation_split: str | None = None
+    """Name of the validation split. Used as the evaluation split when
+    ``test_split`` is not set."""
+
     test_split: str | None = None
-    fewshot_split: str | None = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
-    )
-    # formatting / prompting options.
-    # see docs/advanced_task_guide.md for more info
+    """Name of the test split. When set, this is the primary split evaluated."""
+
+    fewshot_split: str | None = None
+    """Name of the split from which few-shot examples are drawn. Passed as
+    the default for ``fewshot_config.split``; overridden if ``fewshot_config``
+    explicitly sets its own ``split``."""
+
+    # ── Formatting / prompting options ──────────────────────────────────
+
     process_docs: Callable[..., list[dict[str, Any]]] | None = None
+    """A callable applied to a dataset split before evaluation. Use this
+    to filter, transform, or resample documents (e.g. renaming columns,
+    expanding multi-answer rows)."""
+
     description: str = ""
+    """A Jinja2 template or plain string prepended to every prompt. Useful for
+    task-level instructions, e.g.
+    ``"The following are questions (with answers) about {{subject}}.\n\n"``.
+    When a chat template is applied, this is combined with
+    ``system_instruction`` and sent as the ``system`` message."""
+
     doc_to_text: Callable[[Doc], str | list[str]] | str | None = None
+    """Converts a document dict into the prompt text shown to the model.
+    Can be a Jinja2 template string (e.g. ``"{{question}}"``), a column name,
+    or a callable. For ``loglikelihood`` tasks this is the context preceding
+    the target."""
+
     doc_to_choice: Callable[[Doc], list[str]] | str | list[str] | None = None
+    """Defines the set of answer choices for multiple-choice tasks.
+    Can be a Jinja2 template (e.g. ``"{{choices.text}}"``), a column name,
+    a static list of strings, or a callable returning a list of strings."""
+
     doc_to_target: Callable[[Doc], str | int | list[int] | list[str]] | str | None = (
         None
     )
+    """The gold-standard target for each document.
+    Can be a Jinja2 template, a callable, or a column name. For multiple-choice
+    tasks this is typically the integer index into ``doc_to_choice`` (e.g. ``"{{answer}}"``).
+    For generation tasks, it is the expected answer string."""
+
     gen_prefix: str | None = None
+    """A string appended after the prompt (and choices, if any) but before
+    the model generates or the target is scored. With a chat template, this
+    is appended after the ``<|assistant|>`` token; without one it is appended
+    to the end of the prompt. Useful for answer cues like ``"The answer is"``."""
+
     doc_to_image: Callable[[Doc], Any] | str | None = None
+    """Extracts an image from the document for multimodal models.
+    Can be a column name or a callable returning image data."""
+
     doc_to_audio: Callable[[Doc], Any] | str | None = None
+    """Extracts audio from the document for multimodal models.
+    Can be a column name or a callable returning audio data."""
+
     process_results: (
         Callable[[dict[str, Any], list[str]], dict[str, list[Any]]] | str | None
     ) = None
+    """Custom post-processing of model outputs before metrics are computed.
+    Receives ``(doc, results)`` and returns a dict mapping metric names to
+    lists of values. Can also be a string referencing a registered function."""
+
     target_delimiter: str = " "
+    """String inserted between the input (prompt/choices) and the target
+    output for each example (both few-shot and the test document)."""
+
     fewshot_delimiter: str = "\n\n"
+    """String inserted between consecutive few-shot examples.
+    Also used as the default ``until`` stop sequence for generation."""
+
     fewshot_config: dict[str, Any] | FewshotConfig | None = None
-    # runtime configuration options
+    """Advanced few-shot configuration. Accepts a dict or ``FewshotConfig``
+    to override how few-shot examples are sampled and formatted (e.g.
+    separate ``doc_to_text`` for examples, custom sampler, fixed indices).
+    When None or a dict, it is converted to ``FewshotConfig`` in ``__post_init__``."""
+
+    # ── Runtime configuration ───────────────────────────────────────────
+
     num_fewshot: int | None = None
+    """Number of few-shot examples to prepend to each prompt. When None,
+    the value is determined at runtime (typically by CLI ``--num_fewshot``)."""
+
     generation_kwargs: dict[str, Any] = field(default_factory=dict)
-    # scoring options
+    """Keyword arguments for text generation (e.g. ``temperature``, ``until``,
+    ``max_gen_toks``, ``do_sample``). Only relevant when ``output_type``
+    is ``"generate_until"``. If empty, greedy defaults are applied."""
+
+    # ── Scoring options ─────────────────────────────────────────────────
+
     metric_list: list[_MetricConfig] = field(default_factory=list)
+    """List of metrics to compute on model outputs. Each entry specifies
+    a metric name, optional aggregation function, and whether higher is
+    better (e.g. ``[{"metric": "exact_match", "higher_is_better": true}]``)."""
+
     filter_list: list[FilterPipeline] = field(default_factory=list)
+    """List of named filter pipelines applied to model outputs before scoring.
+    Each pipeline is a sequence of filter steps (e.g. regex extraction,
+    stripping) and can carry its own ``metric_list``. Pipelines run
+    independently on the same model outputs, allowing multiple scoring
+    strategies from a single evaluation run (e.g. ``"strict-match"``
+    and ``"maj@64"`` on GSM8k)."""
+
     scorer: str | dict[str, Any] | None = None
+    """A registered scorer name or inline scorer config. When set, scoring
+    is delegated to this scorer instead of the default metric pipeline."""
+
     repeats: int = 1
+    """Number of times to repeat each instance. Only used for generation
+    tasks. Useful for sampling diversity (e.g. pass@k, self-consistency)."""
+
     unsafe_code: bool = False
+    """Set to True to enable execution of untrusted code (e.g. for
+    code-execution benchmarks). Must be explicitly opted in."""
+
     use_prompt: str | None = None
+    """Name of a registered prompt template to apply (e.g.
+    ``"promptsource:GPT-3 Style"``). When set, overrides ``doc_to_text``,
+    ``doc_to_target``, and ``doc_to_choice``."""
+
     multiple_inputs: bool = False
+    """Only for ``multiple_choice`` tasks. When True, ``doc_to_text`` returns
+    a list of strings (one per choice) and ``doc_to_choice`` returns a single
+    shared target. Each choice produces a different context scored via
+    loglikelihood (e.g. Winogrande, where each option fills a blank)."""
+
     multiple_targets: bool = False
+    """When True, ``doc_to_target`` may return a list of acceptable answers.
+    Scoring considers any match a success."""
+
     should_decontaminate: bool = False
+    """Whether to run decontamination checks against training data."""
+
     doc_to_decontamination_query: str | None = None
+    """Jinja2 template or callable that extracts the decontamination query
+    string from a document. Used when ``should_decontaminate`` is True.
+    Falls back to ``doc_to_text`` if left as None."""
+
     metadata: dict[str, Any] = field(default_factory=dict)
+    """Metadata dict stored alongside results. Most tasks should include a
+    ``version`` key. The ``num_fewshot`` key overrides the displayed n-shot
+    column in result tables. Also passed to ``custom_dataset`` at runtime."""
+
     _preset_selection: str | None = None
+    """Internal field. Holds the ``@suffix`` parsed from the task name
+    (e.g. ``"cloze"`` from ``"arc_easy@cloze"``). Set automatically
+    in ``__post_init__``; should not be set in YAML configs."""
 
     def __post_init__(self) -> None:
         # Extract @preset from task name as selection (e.g. "arc_easy@cloze")
