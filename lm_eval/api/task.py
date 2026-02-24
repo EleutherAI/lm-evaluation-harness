@@ -442,7 +442,7 @@ class Task:
             if chat_template
             else None
         )
-        description = self.resolve_field(doc, self.config.description) or ""
+        description = self._resolve_field(doc, self.config.description) or ""
         system_prompt = maybe_delimit(
             system_instruction, description, self.config.fewshot_delimiter
         )
@@ -471,7 +471,7 @@ class Task:
                     )
                     q = q[a]
                     a = 0  # choices are a list of len 1.
-                _gen_prefix = self.resolve_field(doc, self._fewshot_cfg.gen_prefix)
+                _gen_prefix = self._resolve_field(doc, self._fewshot_cfg.gen_prefix)
                 messages += self.build_qa_turn(
                     q=q,
                     c=c,
@@ -759,7 +759,7 @@ class Task:
                     apply_chat_template=apply_chat_template,
                     fewshot_as_multiturn=fewshot_as_multiturn,
                     chat_template=chat_template,
-                    gen_prefix=self.doc_to_prefix(doc),
+                    gen_prefix=self._resolve_field(doc, self.config.gen_prefix),
                 )
 
                 # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -840,9 +840,6 @@ class Task:
         )
         y = process_field(doc, doc_to_target)
         return _coerce_target(y, parse_list=self._multiple_targets is True)
-
-    def doc_to_prefix(self, doc) -> str | None:
-        return process_field(doc, self.config.gen_prefix)
 
     def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
         return process_field(doc, doc_to_image or self.config.doc_to_image)
@@ -1060,8 +1057,8 @@ class Task:
         ]
 
     @staticmethod
-    def resolve_field(doc: dict[str, Any], field: str | None = None) -> str:
-        return cast("str", cast("object", process_field(doc, field)))
+    def _resolve_field(doc: dict[str, Any], field: str | None = None) -> str | None:
+        return cast("str | None", cast("object", process_field(doc, field)))
 
     def set_fewshot_seed(self, seed: int | None = None) -> None:
         self.fewshot_rnd = random.Random(seed)
