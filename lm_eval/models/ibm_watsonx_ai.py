@@ -185,10 +185,11 @@ class WatsonxLLM(LM):
 
     def __init__(
         self,
-        watsonx_credentials: Dict,
-        model_id,
-        deployment_id,
+        watsonx_credentials: Optional[Dict] = None,
+        model_id=None,
+        deployment_id=None,
         generate_params: Optional[Dict[Any, Any]] = None,
+        **kwargs,
     ) -> None:
         try:
             from ibm_watsonx_ai import APIClient

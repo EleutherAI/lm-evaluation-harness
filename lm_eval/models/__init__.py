@@ -51,7 +51,7 @@ MODEL_MAPPING = {
     "textsynth": "lm_eval.models.textsynth:TextSynthLM",
     "vllm": "lm_eval.models.vllm_causallms:VLLM",
     "vllm-vlm": "lm_eval.models.vllm_vlms:VLLM_VLM",
-    "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:IBMWatsonxAI",
+    "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:WatsonxLLM",
     "winml": "lm_eval.models.winml:WindowsML",
 }
 
