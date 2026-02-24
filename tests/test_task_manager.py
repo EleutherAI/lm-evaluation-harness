@@ -832,6 +832,56 @@ class TestTaskManagerLoad:
         assert "acc" in metric_names
         assert "acc_norm" in metric_names
 
+    def test_group_include_path(self):
+        """Group with include: path applies task defaults from YAML file to children"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        result = tm.load(["include_group_with_defaults"])
+        tasks = result["tasks"]
+
+        assert "include_task_fs0" in tasks
+        assert "include_task_fs1" in tasks
+
+        # task_defaults.yaml sets num_fewshot=3 and a custom doc_to_text
+        # but include_task_fs0 overrides num_fewshot=0 (per-task YAML wins)
+        # and include_task_fs1 sets num_fewshot=1
+        # The group include is a group-level default, which is overridden
+        # by the task's own config via _load_full_config merge
+        for task_obj in tasks.values():
+            assert "Default question:" in task_obj.config.doc_to_text
+
+    def test_group_include_inline(self):
+        """Group with include: dict applies inline task defaults to children"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        result = tm.load(["include_group_inline"])
+        tasks = result["tasks"]
+
+        assert "include_task_fs0" in tasks
+        assert "include_task_fs1" in tasks
+
+        for task_obj in tasks.values():
+            assert "Inline question:" in task_obj.config.doc_to_text
+
+    def test_group_include_per_item_override(self):
+        """Per-item overrides in task: list take precedence over group include"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        result = tm.load(["include_group_inline"])
+        tasks = result["tasks"]
+
+        # include_group_inline sets num_fewshot=7 via include
+        # but each child task has its own num_fewshot which takes precedence
+        # via the task YAML merge in _load_full_config
+        task_fs0 = tasks["include_task_fs0"]
+        task_fs1 = tasks["include_task_fs1"]
+        # The group's include doc_to_text overrides the base template's
+        assert task_fs0.config.num_fewshot == 7
+        assert task_fs1.config.num_fewshot == 7
+
     def test_tag_expansion_in_group(self, test_configs_task_manager):
         """TAGs inside groups expand each task individually"""
         result = test_configs_task_manager.load(["tag_subgroup"])

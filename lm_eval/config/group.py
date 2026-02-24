@@ -87,6 +87,32 @@ class GroupConfig:
     names, or a list of dicts for inline overrides and nested groups.
     A bare string is normalized to a single-element list."""
 
+    include: str | dict[str, Any] | None = None
+    """Task-level defaults applied to every child in this group.
+
+    Can be a path (str) to a YAML file with task fields, or an inline dict
+    of key-value pairs. When a path is given it is resolved relative to the
+    group YAML file's directory.
+
+    Example (path)::
+
+        group: my_bench
+        include: shared_defaults.yaml
+        task:
+          - task_a
+          - task_b
+
+    Example (inline)::
+
+        group: my_bench
+        include:
+          num_fewshot: 5
+          doc_to_text: "{{question}}"
+        task:
+          - task_a
+          - task_b
+    """
+
     # Accepts loose YAML input; __post_init__ normalizes to list[AggMetricConfig] | None
     aggregate_metric_list: list[AggMetricConfig] | list[dict] | None = None
     """Metrics to aggregate across child tasks. Without this, the group

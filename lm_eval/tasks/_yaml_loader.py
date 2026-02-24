@@ -187,7 +187,7 @@ def load_yaml(
     if not isinstance(cfg, dict):
         raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")
 
-    if not recursive or "include" not in cfg:
+    if not recursive or "include" not in cfg or "group" in cfg:
         return cfg
     else:
         includes = cfg.pop("include")
