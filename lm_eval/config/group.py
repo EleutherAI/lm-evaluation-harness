@@ -14,22 +14,26 @@ class AggMetricConfig:
             filter_list: ["none"]
             aggregation: mean
             weight_by_size: true
-
-    Attributes:
-        metric: Name of the metric to aggregate (e.g. "acc", "acc_norm").
-        filter_list: Filter names to aggregate over (e.g. ["none"]).
-            If None, filters are auto-discovered from child task results.
-            A bare string is normalized to a single-element list.
-        aggregation: Aggregation function. Currently only "mean" is supported
-            as a built-in; a custom callable may also be passed.
-        weight_by_size: If True, weight each subtask's contribution by its
-            sample count when aggregating. Defaults to True.
     """
 
     metric: str
+    """Name of the metric to aggregate across subtasks (e.g. ``"acc"``,
+    ``"exact_match"``). All children must report a metric with this name."""
+
     filter_list: list[str] | None = None
+    """Filter pipeline names to aggregate over (e.g. ``["none"]``,
+    ``["strict-match"]``). If None, filters are auto-discovered from
+    child task results. A bare string is normalized to a single-element list."""
+
     aggregation: str | Callable = "mean"
+    """Aggregation function to combine per-subtask metrics. Currently only
+    ``"mean"`` is supported as a built-in; a custom callable may also be
+    passed."""
+
     weight_by_size: bool = True
+    """If True (default), micro-average: weight each subtask's metric by its
+    sample count. If False, macro-average: each subtask contributes equally
+    regardless of size."""
 
     def __post_init__(self):
         if self.aggregation != "mean" and not callable(self.aggregation):
@@ -48,9 +52,8 @@ class GroupConfig:
     """Typed representation of a group YAML configuration.
 
     This is the ground-truth schema for group YAML files. Raw dicts parsed
-    from YAML should be fed through this dataclass so that loose input types
-    (single strings, bare dicts, etc.) are normalized into canonical forms
-    before the rest of the system sees them.
+    from YAML are fed through this dataclass so that loose input types
+    (single strings, bare dicts, etc.) are normalized into canonical forms.
 
     Example YAML::
 
@@ -70,25 +73,30 @@ class GroupConfig:
             weight_by_size: true
         metadata:
           version: 1.0
-
-    Attributes:
-        group: Unique identifier for the group (e.g. "mmlu").
-        group_alias: Optional display name shown in output tables.
-            Defaults to ``group`` when not set.
-        task: Child task/group references. Can be a single name, a list of
-            names, or a list of dicts.
-        aggregate_metric_list: Metrics to aggregate across children.
-            Accepts a single AggMetricConfig, a dict, or a list of either;
-            ``__post_init__`` normalizes everything to ``list[AggMetricConfig]``.
-        metadata: Arbitrary user-defined metadata (e.g. version, description).
     """
 
     group: str
+    """Unique identifier for the group, used for CLI selection
+    (e.g. ``--tasks mmlu``)."""
+
     group_alias: str | None = None
+    """Optional display name shown in result tables instead of ``group``."""
+
     task: str | list[str | dict[str, str | dict[str, str]]] | None = None
+    """Child task and/or group references. Can be a single name, a list of
+    names, or a list of dicts for inline overrides and nested groups.
+    A bare string is normalized to a single-element list."""
+
     # Accepts loose YAML input; __post_init__ normalizes to list[AggMetricConfig] | None
     aggregate_metric_list: list[AggMetricConfig] | list[dict] | None = None
+    """Metrics to aggregate across child tasks. Without this, the group
+    appears as a header row with no aggregate score. Accepts a single
+    ``AggMetricConfig``, a dict, or a list of either."""
+
     metadata: dict[str, Any] | None = None
+    """Arbitrary metadata stored alongside results (e.g. ``{"version": 1.0}``).
+    The ``num_fewshot`` key overrides the displayed n-shot column for the
+    group in result tables."""
 
     def __post_init__(self):
         if isinstance(self.task, str):
