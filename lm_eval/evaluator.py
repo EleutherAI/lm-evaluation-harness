@@ -62,7 +62,7 @@ def simple_evaluate(
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
-    limit: int | float | None = None,
+    limit: int | float | None = None,  # noqa: PYI041
     samples: dict[str, list[int]] | None = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
@@ -183,10 +183,13 @@ def simple_evaluate(
     ) and not apply_chat_template:
         eval_logger.warning(
             wrap_text(
-                f"""pretrained={model_args.get("pretrained") if isinstance(model_args, dict) else model_args} appears to be an
+                """pretrained=%s appears to be an
                 instruct or chat variant but chat template is not applied.
                 Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`).""",
-            )
+            ),
+            model_args.get("pretrained")
+            if isinstance(model_args, dict)
+            else model_args,
         )
 
     if delete_requests_cache:
@@ -224,8 +227,9 @@ def simple_evaluate(
         if isinstance(gen_kwargs, str):
             gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
-            "Ensure 'do_sample=True' for non-greedy decoding!"
+            "generation_kwargs: %s specified through cli, these settings will update set parameters in yaml tasks. "
+            "Ensure 'do_sample=True' for non-greedy decoding!",
+            gen_kwargs,
         )
         if not gen_kwargs:
             gen_kwargs = None
@@ -237,7 +241,7 @@ def simple_evaluate(
 
         if isinstance(model_args, dict):
             eval_logger.info(
-                f"Initializing {model} model, with arguments: {model_args}"
+                "Initializing %s model, with arguments: %s", model, model_args
             )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
@@ -250,9 +254,9 @@ def simple_evaluate(
 
         else:
             eval_logger.info(
-                wrap_text(
-                    f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
-                )
+                wrap_text("Initializing %s model, with arguments: %s"),
+                model,
+                simple_parse_args_string(model_args),
             )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
                 model_args,
@@ -271,7 +275,9 @@ def simple_evaluate(
         lm = model
 
     if use_cache is not None:
-        eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
+        eval_logger.info(
+            "Using cache at %s", use_cache + "_rank" + str(lm.rank) + ".db"
+        )
         lm = lm_eval.api.model.CachingLM(
             lm,
             use_cache
@@ -306,12 +312,15 @@ def simple_evaluate(
                     key="generation_kwargs", value=gen_kwargs, update=True
                 )
             eval_logger.info(
-                f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
+                "%s: Using gen_kwargs: %s",
+                task_obj.config.task,
+                task_obj.config.generation_kwargs,
             )
 
         if predict_only:
             eval_logger.info(
-                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+                "Processing %s in output-only mode. Metrics will not be calculated!",
+                task_name,
             )
             # we have to change the class properties post-hoc. This is pretty hacky.
             task_obj.override_metric(metric_name="bypass")
@@ -321,11 +330,15 @@ def simple_evaluate(
         if num_fewshot is not None:
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
                 eval_logger.info(
-                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                    "num_fewshot has been set to 0 for %s in its config. Manual configuration will be ignored.",
+                    task_name,
                 )
             else:
                 eval_logger.warning(
-                    f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                    "Overwriting default num_fewshot of %s from %s to %s",
+                    task_name,
+                    default_num_fewshot,
+                    num_fewshot,
                 )
                 task_obj.set_config(key="num_fewshot", value=num_fewshot)
         else:
@@ -340,7 +353,10 @@ def simple_evaluate(
             default_repeats = task_obj.get_config("repeats") or 1
             if repeats != default_repeats:
                 eval_logger.warning(
-                    f"Overwriting default repeats of {task_name} from {default_repeats} to {repeats}"
+                    "Overwriting default repeats of %s from %s to %s",
+                    task_name,
+                    default_repeats,
+                    repeats,
                 )
             task_obj.set_config(key="repeats", value=repeats)
 
@@ -480,7 +496,7 @@ def evaluate(
             "Either 'limit' or 'samples' must be None, but both are not None."
         )
     if samples is not None:
-        eval_logger.info(f"Evaluating examples for tasks {list(samples.keys())}")
+        eval_logger.info("Evaluating examples for tasks %s", list(samples.keys()))
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
@@ -551,7 +567,9 @@ def evaluate(
             else "",
         )
         eval_logger.debug(
-            f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
+            "Task: %s; number of requests on this rank: %d",
+            task_name,
+            len(task.instances),
         )
         if write_out:
             print_writeout(task)
@@ -581,7 +599,7 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
-        eval_logger.info(f"Running {reqtype} requests")
+        eval_logger.info("Running %s requests", reqtype)
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
