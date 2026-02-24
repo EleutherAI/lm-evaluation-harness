@@ -205,6 +205,7 @@ class TaskFactory:
             if base_name not in registry:
                 namespaced = f"{group_name}::{base_name}"
                 task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
+                task_cfg.setdefault("task_alias", base_name)
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
                 children.append(Task.from_config(task_cfg))
                 continue

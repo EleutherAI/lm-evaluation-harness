@@ -135,19 +135,21 @@ class Task:
             config if isinstance(config, TaskConfig) else TaskConfig(**config)
         )
         self.task = self._config.task
+        self.VERSION = self.config.metadata.get("version", self.VERSION)
         assert self.task is not None
-        self.OUTPUT_TYPE = self.OUTPUT_TYPE or self._config.output_type or None
+        self.OUTPUT_TYPE = self._config.output_type or self.OUTPUT_TYPE or None
         assert self.OUTPUT_TYPE, "output_type must be set in TaskConfig or subclass"
-        self._dataset_name = self.DATASET_NAME or self._config.dataset_name
-        self._dataset_path = self.DATASET_PATH or self._config.dataset_path
+        self._dataset_name = self._config.dataset_name or self.DATASET_NAME
+        self._dataset_path = self._config.dataset_path or self.DATASET_PATH
         self._fewshot_cfg: FewshotConfig = cast(
             "FewshotConfig", self._config.fewshot_config
         )  # normalized by
 
         self._multiple_inputs = self._config.multiple_inputs
         self._multiple_targets = self.config.multiple_targets
-        self._multimodal = self.MULTIMODAL or bool(
-            self.config.doc_to_audio or self.config.doc_to_image
+        self._multimodal = (
+            bool(self.config.doc_to_audio or self.config.doc_to_image)
+            or self.MULTIMODAL
         )
 
         # lazy load dataset
