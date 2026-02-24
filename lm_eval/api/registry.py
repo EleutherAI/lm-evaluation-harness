@@ -55,6 +55,7 @@ if TYPE_CHECKING:
     from lm_eval.api.filter import Filter
     from lm_eval.api.metrics import Metric
     from lm_eval.api.model import LM
+    from lm_eval.scorers import Scorer
 
 
 __all__ = [
@@ -68,6 +69,7 @@ __all__ = [
     "get_metric_aggregation",
     "get_model",
     "get_reduction",
+    "get_scorer",
     "higher_is_better_registry",
     "is_higher_better",
     "metric_agg_registry",
@@ -80,6 +82,8 @@ __all__ = [
     "register_metric",
     "register_model",
     "register_reduction",
+    "register_scorer",
+    "scorer_registry",
 ]
 
 
@@ -433,6 +437,7 @@ _REDUCE_MODULE = "lm_eval.api._metrics.reduce"
 
 model_registry: Registry[type[LM]] = Registry("model")
 filter_registry: Registry[type[Filter]] = Registry("filter")
+scorer_registry: Registry = Registry("scorer", lazy_module="lm_eval.scorers")
 aggregation_registry: Registry[Callable[..., float]] = Registry(
     "aggregation", lazy_module=_METRICS_MODULE
 )
@@ -576,6 +581,44 @@ def get_filter(filter_name: str | Callable) -> Callable:
 
 # Backward compatibility alias
 FILTER_REGISTRY = filter_registry
+
+
+# =============================================================================
+# Scorer registration (using new Registry class)
+# =============================================================================
+
+
+def register_scorer(*names: str):
+    """Decorator to register a scorer class.
+
+    Args:
+        *names: One or more names to register the scorer under
+
+    Returns:
+        Decorator function
+    """
+
+    def decorate(cls):
+        for name in names:
+            scorer_registry.register(name)(cls)
+        return cls
+
+    return decorate
+
+
+def get_scorer(scorer_name: str) -> type[Scorer]:
+    """Get a scorer class by name.
+
+    Args:
+        scorer_name: The registered name of the scorer
+
+    Returns:
+        The scorer class
+
+    Raises:
+        KeyError: If scorer name is not found
+    """
+    return scorer_registry.get(scorer_name)
 
 
 # =============================================================================

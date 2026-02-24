@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Literal
-
-
-if TYPE_CHECKING:
-    from lm_eval.config.presets.extraction import ExtractionConfig
+from typing import Any, ClassVar, Literal
 
 
 OutputType = Literal[
@@ -46,20 +42,14 @@ class PresetConfig:
     target_delimiter: str  # Between answer_prompt and target
     fewshot_delimiter: str  # Between examples
 
-    # Extraction
-    extraction: ExtractionConfig | str | None
+    # Scorer
+    scorer: str | None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Auto-register subclasses that define preset_name
         if cls.preset_name is not None:
             PresetConfig._registry[cls.preset_name] = cls
-
-    def __post_init__(self):
-        from lm_eval.config.presets.extraction import ExtractionConfig
-
-        if isinstance(self.extraction, str):
-            self.extraction = ExtractionConfig.from_str(self.extraction)
 
     @classmethod
     def get(
@@ -370,19 +360,8 @@ class PresetConfig:
         if self.gen_prefix is not None:
             cfg["gen_prefix"] = self.gen_prefix
 
-        # Scorer config from extraction (post_init guarantees ExtractionConfig)
-        from lm_eval.config.presets.extraction import ExtractionConfig
-
-        if isinstance(self.extraction, ExtractionConfig):
-            filters = self.extraction.create_filters()
-            metrics = self.extraction.create_metrics()
-
-            if filters:
-                if metrics:
-                    for f in filters:
-                        f.setdefault("metric_list", metrics)
-                cfg["filter_list"] = filters
-            elif metrics:
-                cfg["metric_list"] = metrics
+        # Scorer type — resolved by build_scorer() via the scorer registry
+        if self.scorer is not None:
+            cfg["scorer"] = self.scorer
 
         return cfg
