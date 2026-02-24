@@ -4,6 +4,7 @@ import inspect
 import logging
 from copy import deepcopy
 from dataclasses import fields
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from lm_eval.api.group import Group
@@ -55,7 +56,9 @@ class TaskFactory:
 
             case Entry(kind=Kind.GROUP):
                 raw_cfg = self._load_full_config(entry, None)
-                return self._build_group(entry.name, raw_cfg, overrides, registry)
+                return self._build_group(
+                    entry.name, raw_cfg, overrides, registry, entry.yaml_path
+                )
 
             case _:
                 return self._build_task(entry, overrides)
@@ -88,6 +91,7 @@ class TaskFactory:
         raw_cfg: dict[str, Any],
         overrides: dict[str, Any] | None,
         registry: dict[str, Entry],
+        yaml_path: Path | None = None,
     ) -> Group:
         """Build a Group with its children populated.
 
@@ -107,18 +111,27 @@ class TaskFactory:
         # Build Group object via existing from_config
         group = Group.from_config(group_cfg)
 
-        # Task-level overrides = everything NOT a group structural key
+        # Resolve include → explicit task defaults
+        include_overrides = self._resolve_include(group_cfg.include, yaml_path)
+
+        # Implicit task-level overrides = everything NOT a group structural key
+        # (backward compat for groups that put task fields at top level)
         group_task_overrides = {
             k: v for k, v in raw_cfg.items() if k not in GROUP_FIELD_NAMES
         }
-        # Merge: group-level defaults < caller overrides (caller takes precedence)
-        merged_overrides = {**group_task_overrides, **(overrides or {})}
+
+        # Merge: implicit top-level < include < caller overrides
+        merged_overrides = {
+            **group_task_overrides,
+            **include_overrides,
+            **(overrides or {}),
+        }
 
         # Build children from task: list (references to existing tasks/groups/tags)
         task_field = raw_cfg.get("task")
         if isinstance(task_field, list):
             for child in self._build_group_members(
-                task_field, group_name, merged_overrides, registry
+                task_field, group_name, merged_overrides, registry, yaml_path
             ):
                 group.add(child)
 
@@ -130,6 +143,7 @@ class TaskFactory:
         group_name: str,
         overrides: dict[str, Any] | None,
         registry: dict[str, Entry],
+        yaml_path: Path | None = None,
     ) -> list[Task | Group]:
         """Build group members from task: list syntax.
 
@@ -170,7 +184,9 @@ class TaskFactory:
                         # True inline group (not in registry)
                         name = f"{group_name}::{name}"
                         children.append(
-                            self._build_group(name, item, overrides, registry)
+                            self._build_group(
+                                name, item, overrides, registry, yaml_path
+                            )
                         )
                     continue
 
@@ -230,6 +246,37 @@ class TaskFactory:
                     registry[namespaced] = child_entry
 
         return children
+
+    # ---------------------------------------------------------------- include resolution
+
+    @staticmethod
+    def _resolve_include(
+        include: str | dict[str, Any] | None,
+        yaml_path: Path | None,
+    ) -> dict[str, Any]:
+        """Resolve a GroupConfig ``include`` value into task-override fields.
+
+        Args:
+            include: Path to a YAML file, an inline dict, or None.
+            yaml_path: Path of the group YAML file (for relative path resolution).
+
+        Returns:
+            Dict of task-level override fields (empty if include is None).
+        """
+        if include is None:
+            return {}
+        if isinstance(include, dict):
+            return include
+        # String path — load YAML file
+        inc = Path(include)
+        if not inc.is_absolute():
+            if yaml_path is None:
+                raise ValueError(
+                    f"Cannot resolve relative include path '{include}' "
+                    "without a YAML file context (inline group config)."
+                )
+            inc = yaml_path.parent / inc
+        return load_yaml(inc, resolve_func=True)
 
     def _build_tag(
         self,
