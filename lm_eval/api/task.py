@@ -205,6 +205,7 @@ class Task:
                     cfg={**cfg},
                     global_metrics=global_metrics,
                     output_type=self.OUTPUT_TYPE,
+                    scorer_type=self.config.scorer,
                 )
                 for cfg in self.config.filter_list
             ]
@@ -213,6 +214,7 @@ class Task:
                 build_scorer(
                     global_metrics=global_metrics,
                     output_type=self.OUTPUT_TYPE,
+                    scorer_type=self.config.scorer,
                 )
             ]
 

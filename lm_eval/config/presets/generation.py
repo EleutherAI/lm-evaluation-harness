@@ -1,13 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from lm_eval.config.presets.preset import PresetConfig
-
-
-if TYPE_CHECKING:
-    from lm_eval.config.presets.extraction import ExtractionConfig
 
 
 @dataclass(kw_only=True)
@@ -41,8 +37,8 @@ class GeneratePreset(PresetConfig):
     target_delimiter: str = "\n"
     fewshot_delimiter: str = "\n\n"
 
-    # Extraction
-    extraction: ExtractionConfig | str | None = "first_token"
+    # Scorer
+    scorer: str | None = "first_token"
 
 
 @dataclass(kw_only=True)

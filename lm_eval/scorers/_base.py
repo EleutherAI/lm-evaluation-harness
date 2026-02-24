@@ -148,13 +148,13 @@ class Scorer:
         )
 
     @classmethod
-    def default_scorer(cls, global_metrics: list[Metric]) -> Self:
+    def default_scorer(cls, global_metrics: list[Metric], name: str = "none") -> Self:
         """Build the default scorer with the given metrics.
 
         Filter defaults to ``cls.default_filter_cfg`` if set, otherwise
         ``take_first``.
         """
-        return cls.from_dict({"name": "none"}, global_metrics=global_metrics)
+        return cls.from_dict({"name": name}, global_metrics=global_metrics)
 
     # ------------------------------------------------------------------
     # Resolvers (override for fully custom construction)
@@ -521,13 +521,23 @@ def build_scorer(
     cfg: dict[str, Any] | None = None,
     global_metrics: list[Metric] | None = None,
     output_type: str | None = None,
+    scorer_type: str | None = None,
 ) -> Scorer:
-    """Construct the appropriate scorer subclass based on *output_type*.
+    """Construct the appropriate scorer subclass.
 
-    Uses :class:`GenScorer` for ``generate_until`` tasks, and
+    When *scorer_type* is given, resolves the class from the scorer registry
+    (e.g. ``"first_token"`` → :class:`FirstTokenScorer`).  Otherwise falls
+    back to :class:`GenScorer` for ``generate_until`` tasks and
     :class:`LLScorer` for all other output types.
     """
-    cls = GenScorer if output_type == "generate_until" else LLScorer
+    if scorer_type is not None:
+        from lm_eval.api.registry import get_scorer
+
+        cls = get_scorer(scorer_type)
+    else:
+        cls = GenScorer if output_type == "generate_until" else LLScorer
     if cfg is not None:
         return cls.from_dict(cfg, global_metrics=global_metrics)
+    if scorer_type is not None:
+        return cls.default_scorer(global_metrics or [], name=scorer_type)
     return cls.default_scorer(global_metrics or [])
