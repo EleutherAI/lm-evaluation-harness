@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import re
 import string
+from typing import Literal, cast
 
 import numpy as np
+from typing_extensions import overload
 
 from lm_eval.api.registry import register_metric
 
@@ -33,7 +37,6 @@ def exact_match_hf_evaluate(
     ignore_case: bool = False,
     ignore_punctuation: bool = False,
     ignore_numbers: bool = False,
-    multiple_targets: bool = False,
 ) -> dict[str, list[int]]:
     _predictions = np.asarray(predictions)
     _references = np.asarray(references)
@@ -62,6 +65,22 @@ def exact_match_hf_evaluate(
     return {"exact_match": score_list.astype(int).tolist()}
 
 
+@overload
+def exact_match_fn(
+    references: list[list[str]],
+    predictions: list[str],
+    *,
+    multiple_targets: Literal[True] = ...,
+    **kwargs,
+) -> dict[str, list[int]]: ...
+@overload
+def exact_match_fn(
+    references: list[str],
+    predictions: list[str],
+    *,
+    multiple_targets: Literal[False] = ...,
+    **kwargs,
+) -> dict[str, list[int]]: ...
 @register_metric(
     metric="exact_match",
     higher_is_better=True,
@@ -69,7 +88,34 @@ def exact_match_hf_evaluate(
     aggregation="mean",
     reduction="pass@k",
 )
-def exact_match_fn(references: list[str], predictions: list[str], **kwargs):
+def exact_match_fn(
+    references: list[str] | list[list[str]],
+    predictions: list[str],
+    multiple_targets: bool = False,
+    **kwargs,
+) -> dict[str, list[int]]:
+    if multiple_targets:
+        # references[0] is a list of acceptable target strings;
+        # score 1 if the prediction matches *any* target.
+        targets = references[0] if isinstance(references[0], list) else references
+        n_targets = len(targets)
+        # Cross-product: repeat each pred T times, tile targets P times
+        expanded_preds = [p for p in predictions for _ in range(n_targets)]
+        expanded_refs = list(targets) * len(predictions)
+        result = exact_match_hf_evaluate(
+            predictions=expanded_preds,
+            references=expanded_refs,
+            **kwargs,
+        )
+        # Reshape to (P, T) and collapse: match if *any* target matches
+        scores = (
+            np.array(result["exact_match"])
+            .reshape(len(predictions), n_targets)
+            .any(axis=1)
+            .astype(int)
+            .tolist()
+        )
+        return {"exact_match": scores}
     return exact_match_hf_evaluate(
-        predictions=predictions, references=references, **kwargs
+        predictions=predictions, references=cast("list[str]", references), **kwargs
     )
