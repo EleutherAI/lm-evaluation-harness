@@ -11,9 +11,9 @@ ArgsT = TypeVar("ArgsT", bound=LLArgs | GenArgs)
 RespT = TypeVar("RespT", bound=LLResponse | GenResponse)
 
 
-class AdditionalArgs(TypedDict, total=False, extra_items=Any):
+class AdditionalArgs(TypedDict, total=False):
     """
-    Additional arguments that can be passed to the instance, e.g. for generation tasks.
+    Additional arguments that can be passed to the instance, e.g. for multimodal tasks.
     """
 
     audio: Any

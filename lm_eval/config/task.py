@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from typing import Literal
 
-    from lm_eval.api._types import Dataset, DataSplit, Doc
+    from lm_eval.api._types import Dataset, DataSplit, Doc, GenKwargs
     from lm_eval.api.instance import OutputType
 
     _OutputType = OutputType | Literal["multiple_choice"]
@@ -387,7 +387,7 @@ class TaskConfig:
     """Number of few-shot examples to prepend to each prompt. When None,
     the value is determined at runtime (typically by CLI ``--num_fewshot``)."""
 
-    generation_kwargs: dict[str, Any] = field(default_factory=dict)
+    generation_kwargs: GenKwargs = field(default_factory=dict)
     """Keyword arguments for text generation (e.g. ``temperature``, ``until``,
     ``max_gen_toks``, ``do_sample``). Only relevant when ``output_type``
     is ``"generate_until"``. If empty, greedy defaults are applied."""
@@ -499,7 +499,9 @@ class TaskConfig:
         else:
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
-                self.generation_kwargs = default_gen_kwargs(self.fewshot_delimiter)
+                self.generation_kwargs = cast(
+                    "GenKwargs", default_gen_kwargs(self.fewshot_delimiter)
+                )
                 eval_logger.warning(
                     "[%s]: No `generation_kwargs` specified in task config, defaulting to %s",
                     self.task,

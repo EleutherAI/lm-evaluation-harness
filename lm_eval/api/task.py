@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     from lm_eval._types import OutputType
-    from lm_eval.api._types import ChatTemplate, Dataset, DataSplit, Doc
+    from lm_eval.api._types import ChatTemplate, Dataset, DataSplit, Doc, GenKwargs
     from lm_eval.config.task import FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
@@ -1346,7 +1346,7 @@ class GenerateTask(Task):
     def _build_message_args(
         self,
         ctx: list[dict[str, str]],
-    ) -> tuple[list[dict[str, str]], dict[str, Any]]:
+    ) -> tuple[list[dict[str, str]], GenKwargs]:
         """Build arguments for generation when ctx is a raw message list.
 
         The model implementation receives the messages directly and handles

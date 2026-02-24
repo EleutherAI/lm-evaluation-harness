@@ -27,7 +27,7 @@ Context = str | dict[str, str]
 LLArgs = tuple[str, str]
 LLResponse = Sequence[tuple[float, bool]]
 
-GenArgs = tuple[Context, dict[str, Any]]
+GenArgs = tuple[Context, "GenKwargs"]
 GenResponse = Sequence[str]
 
 
