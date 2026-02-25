@@ -92,12 +92,10 @@ class FilterPipeline(TypedDict, total=False):
 
         filter_list:
           - name: "strict-match"
-            filter_list:
+            filter:
               - function: "regex"
-                kwargs:
-                  regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
-              - function: "regex"
-                ...
+                regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
+              - function: "take_first"
             metric_list:
                 - metric: "exact_match"
           - name: "loose-match"
@@ -108,7 +106,7 @@ class FilterPipeline(TypedDict, total=False):
     """Identifier for this pipeline, used as a prefix in result keys
     (e.g. ``"strict-match"``, ``"maj@64"``)."""
 
-    filter_list: Required[list[FilterStep]]
+    filter: Required[list[FilterStep]]
     """Ordered sequence of filter steps applied to model outputs.
     Steps run in order; each step's output feeds into the next."""
 

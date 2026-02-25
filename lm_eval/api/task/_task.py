@@ -49,31 +49,6 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 
-def _legacy_to_scored_docs(
-    instances: dict[int, list[Instance]],
-    pr_results: dict[str, list[list[Any]]],
-) -> dict[int, ScoredDoc]:
-    """Convert legacy ``process_results`` output to ``ScoredDoc`` objects.
-
-    The legacy path returns ``{metric_name: [[v1], [v2], ...]}``. This
-    converts each positional entry into a ``ScoredDoc``, pulling the
-    reference from the first ``Instance.target`` of each doc group.
-    """
-    scored_docs: dict[int, ScoredDoc] = {}
-
-    for pos, doc_id in enumerate(instances):
-        reference = instances[doc_id][0].target
-        scores: dict[str, list[float]] = {}
-        for metric_name, doc_values in pr_results.items():
-            if pos < len(doc_values):
-                scores[metric_name] = doc_values[pos]
-        scored_docs[doc_id] = ScoredDoc(
-            doc_id=doc_id, reference=reference, scores=scores
-        )
-
-    return scored_docs
-
-
 class Task:
     """A task represents an entire benchmark, including its dataset, problems,
     answers, and evaluation methods. See BoolQ for a simple example implementation

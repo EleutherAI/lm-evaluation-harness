@@ -77,7 +77,7 @@ class Scorer:
 
     Precedence (highest → lowest):
 
-    1. Explicit ``cfg["filter_list"]`` / ``cfg["metric_list"]`` passed to ``from_dict``
+    1. Explicit ``cfg["filter"]`` / ``cfg["metric_list"]`` passed to ``from_dict``
     2. ``cls.default_filter_cfg`` / ``cls.default_metric_cfg``
     3. Hardcoded fallback (``take_first`` / *global_metrics*)
     """
@@ -105,15 +105,15 @@ class Scorer:
         cfg: dict[str, Any],
         global_metrics: list[Metric] | None = None,
     ) -> Self:
-        """Build a Scorer from a filter_list entry dict.
+        """Build a Scorer from a single ``filter_list`` entry dict.
 
         Expected shape (mirrors the YAML ``filter_list`` entries)::
 
             {
                 "name": "strict-match",
-                "filter_list": [
-                    {"function": "take_first"},
+                "filter": [
                     {"function": "regex", "regex_pattern": "..."},
+                    {"function": "take_first"},
                 ],
                 "metric_list": [           # optional -- falls back to global_metrics
                     {"metric": "exact_match", "aggregation": "mean", ...},
@@ -125,7 +125,7 @@ class Scorer:
         # --- build filter ensemble ---
         # Precedence: explicit cfg > class default > take_first fallback
         filter_name = cfg.get("name", "none")
-        filter_cfg = cfg.get("filter_list")
+        filter_cfg = cfg.get("filter") or cfg.get("filter_list")
         if not filter_cfg and cls.default_filter_cfg is not None:
             filter_cfg = cls.default_filter_cfg
         elif not filter_cfg:
@@ -141,7 +141,7 @@ class Scorer:
         else:
             metrics = list(global_metrics)
 
-        _consumed = {"name", "filter_list", "metric_list"}
+        _consumed = {"name", "filter", "filter_list", "metric_list"}
         extra = {k: v for k, v in cfg.items() if k not in _consumed}
 
         return cls(
@@ -477,6 +477,12 @@ class GenScorer(Scorer):
 
     def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
         inst = doc_instances[0]  # 1 instance per doc for generate_until
+        if self.name not in inst.filtered_resps:
+            raise KeyError(
+                f"Scorer '{self.name}' not found in filtered_resps. "
+                f"Available: {list(inst.filtered_resps.keys())}. "
+                f"Was apply_filters() called?"
+            )
         resps: list[str] = inst.filtered_resps[self.name]  # [str * R]
         target = inst.target
         metric_kwargs = inst.metadata.get("metric_kwargs")

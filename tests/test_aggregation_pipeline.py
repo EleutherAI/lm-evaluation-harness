@@ -503,71 +503,101 @@ class TestGroupAggregationWarnings:
 
 
 # ---------------------------------------------------------------------------
-# TestLegacyProcessResultsBugFix
+# TestProcessResultsBugFix
 # ---------------------------------------------------------------------------
 
 
-class TestLegacyProcessResultsBugFix:
+class _ProcessResultMockTask(MockTask):
+    """MockTask whose process_results returns actual metrics (legacy path)."""
+
+    def __init__(self, task_name: str, pr_fn, **kw):
+        super().__init__(task_name, **kw)
+        self._pr_fn = pr_fn
+
+    def process_results(self, doc, results):
+        return self._pr_fn(doc, results)
+
+
+def _make_instance(doc_id: int, *, doc: dict, target: str, filter_key: str, resps):
+    """Build an Instance with filtered_resps pre-populated."""
+    from lm_eval.api.instance import Instance
+
+    inst = Instance(
+        request_type="loglikelihood",
+        doc=doc,
+        arguments=("ctx", "cont"),
+        task_name="test_task",
+        doc_id=doc_id,
+        target=target,
+    )
+    inst.filtered_resps[filter_key] = resps
+    return inst
+
+
+class TestProcessResultsBugFix:
     """Regression test: legacy process_results path must populate references.
 
-    Previously, the legacy path set ``_metric_results`` but never populated
-    ``_doc_references``, causing ``reduce()`` to crash on
-    ``zip(..., strict=True)``.  The fix (``_legacy_to_scored_docs``) builds
-    ``ScoredDoc`` objects with references from ``Instance.target``.
+    Previously, the legacy path failed to populate references on ScoredDoc,
+    causing ``reduce()`` to crash on ``zip(..., strict=True)``.
+    ``_try_process_results`` now builds ScoredDoc objects with references
+    from ``Instance.target``.
     """
 
-    def test_legacy_scored_docs_have_references(self):
-        from lm_eval.api.instance import Instance
-        from lm_eval.api.task import _legacy_to_scored_docs
+    def test_scored_docs_have_references(self):
+        """_try_process_results populates ScoredDoc.reference from Instance.target."""
+        # process_results returns {"acc": score} for each doc
+        scores_by_doc = {0: 1.0, 1: 0.0, 2: 1.0}
+        task = _ProcessResultMockTask(
+            "t_legacy",
+            pr_fn=lambda doc, results: {"acc": results[0]},
+        )
 
-        # Build minimal instances keyed by doc_id
-        instances: dict[int, list[Instance]] = {}
+        instances: dict[int, list] = {}
         for doc_id in range(3):
-            inst = Instance(
-                request_type="loglikelihood",
+            inst = _make_instance(
+                doc_id,
                 doc={"text": f"doc{doc_id}"},
-                arguments=("ctx", "cont"),
-                task_name="test_task",
-                doc_id=doc_id,
                 target=f"target_{doc_id}",
+                filter_key="none",
+                resps=[scores_by_doc[doc_id]],
             )
             instances[doc_id] = [inst]
 
-        # Simulate legacy pr_results: {"acc": [[1.0], [0.0], [1.0]]}
-        pr_results = {"acc": [[1.0], [0.0], [1.0]]}
+        scored_docs = task._try_process_results(instances, filter_key="none")
 
-        scored_docs = _legacy_to_scored_docs(instances, pr_results)
-
+        assert scored_docs is not None
         assert len(scored_docs) == 3
         for i, sd in scored_docs.items():
             assert isinstance(sd, ScoredDoc)
             assert sd.reference == f"target_{i}"
             assert "acc" in sd.scores
-            assert sd.scores["acc"] == [float(i == 0 or i == 2)]
+            assert sd.scores["acc"] == [scores_by_doc[i]]
 
-    def test_legacy_path_reduce_succeeds(self):
-        """Ensure reduce() works on ScoredDoc from legacy path (no crash)."""
+    def test_path_reduce_succeeds(self):
+        """Ensure reduce() works on ScoredDoc from the legacy path (no crash)."""
         from lm_eval.api.filter import FilterEnsemble
-        from lm_eval.api.instance import Instance
         from lm_eval.api.metrics import Metric
-        from lm_eval.api.task import _legacy_to_scored_docs
 
-        instances: dict[int, list[Instance]] = {}
-        for doc_id in range(2):
-            inst = Instance(
-                request_type="loglikelihood",
+        task = _ProcessResultMockTask(
+            "t_legacy",
+            pr_fn=lambda doc, results: {"acc": results[0]},
+        )
+
+        instances: dict[int, list] = {}
+        for doc_id, score in enumerate([1.0, 0.0]):
+            inst = _make_instance(
+                doc_id,
                 doc={},
-                arguments=("ctx", "cont"),
-                task_name="t",
-                doc_id=doc_id,
                 target=f"ref_{doc_id}",
+                filter_key="none",
+                resps=[score],
             )
             instances[doc_id] = [inst]
 
-        pr_results = {"acc": [[1.0], [0.0]]}
-        scored_docs = _legacy_to_scored_docs(instances, pr_results)
+        scored_docs = task._try_process_results(instances, filter_key="none")
+        assert scored_docs is not None
 
-        # Build a scorer with a simple metric
+        # Build a scorer and feed it the scored_docs — set_results should not crash
         noop_filter = FilterEnsemble("none", [("identity", None)])
         scorer = Scorer(
             name="none",
@@ -582,7 +612,6 @@ class TestLegacyProcessResultsBugFix:
             ],
         )
 
-        # set_results should succeed (not crash) and populate reduced_scores
         scorer.set_results(scored_docs)
         reduced_values = [
             sd.reduced_scores["acc"]
