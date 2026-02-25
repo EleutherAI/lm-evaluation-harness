@@ -1,9 +1,8 @@
-from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic
+from typing import TYPE_CHECKING, Any
 
-from typing_extensions import TypeVar
+from typing_extensions import Protocol, TypeVar, runtime_checkable
 
 
 if TYPE_CHECKING:
@@ -11,10 +10,11 @@ if TYPE_CHECKING:
     from lm_eval.api.instance import Instance
 
 # Response element type: LLProb for loglikelihood, Completion (str) for generation.
-T = TypeVar("T", "LLOutput", "Completion", default="Completion")
+_T = TypeVar("_T", "LLOutput", "Completion", default="Completion")
 
 
-class Filter(ABC, Generic[T]):
+@runtime_checkable
+class Filter(Protocol[_T]):
     """Post-process model responses for a task before scoring.
 
     Filters transform raw model outputs (instance.resps) into a form suitable for metric
@@ -32,15 +32,11 @@ class Filter(ABC, Generic[T]):
     Defaults to ``Completion``.
     """
 
-    def __init__(self, **kwargs: Any) -> None:
-        """Override to add filter state (compiled regexes, etc.)."""
-
-    @abstractmethod
     def apply(
         self,
-        resps: Iterable[Sequence[T]],
+        resps: Iterable[Sequence[_T]],
         docs: Sequence[dict[str, Any]],
-    ) -> Iterable[Sequence[T]]:
+    ) -> Iterable[Sequence[_T]]:
         """Transform model responses.
 
         Args:
@@ -52,7 +48,7 @@ class Filter(ABC, Generic[T]):
             Transformed responses **in the same doc order**.  May be
             lazy (``map``) to allow generator chaining between filters.
         """
-        return resps
+        ...
 
 
 @dataclass
@@ -74,7 +70,7 @@ class FilterEnsemble:
         Callable[[], Filter]
     ]  # factories; typically partial(FilterCls, **kwargs) via build_filter_ensemble()
 
-    def apply(self, instances: list["Instance"]) -> None:
+    def apply(self, instances: Sequence["Instance"]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances), strict=True)
         # resps, docs = list(resps), list(docs)
 

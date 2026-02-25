@@ -14,7 +14,5 @@ class CustomFilter(Filter):
     def __init__(self, **kwargs: Any) -> None:
         self.filter_fn = kwargs.pop("filter_fn")
 
-        super().__init__(**kwargs)
-
     def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         return self.filter_fn(resps, docs)

@@ -89,7 +89,7 @@ class Scorer:
             cfg.get("filter")
             or cfg.get("filter_list")
             or cls.default_filter_cfg
-            or [{"function": "take_first"}]
+            or [{"function": "noop"}]
         )
         filter_ensemble = cls._resolve_filters(filter_name, filter_cfg)
 
