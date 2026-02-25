@@ -13,11 +13,12 @@ from lm_eval import utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
 
     from sqlitedict import SqliteDict
     from typing_extensions import Self
 
+    from lm_eval.api._types import LLOutput
     from lm_eval.api.instance import GenInstance, Instance, LLInstance
 
 eval_logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class LM(abc.ABC):
         self.cache_hook: CacheHook = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests: list[LLInstance]) -> list[tuple[float, bool]]:
+    def loglikelihood(self, requests: Sequence[LLInstance]) -> list[LLOutput]:
         """Compute log-likelihood of generating a continuation from a context.
 
         Downstream tasks should prefer this over other LM calls whenever possible.
@@ -52,15 +53,13 @@ class LM(abc.ABC):
                 continuation (e.g. ``context="hello"  continuation=" world"``).
 
         Returns:
-            A list of ``(logprob, is_greedy)`` tuples — the log-probability of
-            the continuation and whether it would be produced by greedy decoding.
+            A list of ``(logprob, is_greedy)`` tuples — (summed log-probability of
+            the continuation, whether it would be produced by greedy decoding).
         """
         ...
 
     @abc.abstractmethod
-    def loglikelihood_rolling(
-        self, requests: list[LLInstance]
-    ) -> list[tuple[float, bool]]:
+    def loglikelihood_rolling(self, requests: Sequence[LLInstance]) -> list[LLOutput]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation.
 
         - Uses the full max context length of the model.
@@ -91,24 +90,25 @@ class LM(abc.ABC):
               2. For the last pair, we provide the full context, but only score the last two tokens
 
         Args:
-            requests: List of ``Instance`` objects. Each ``Instance.args`` is a ``(string,)`` tuple containing
+            requests: List of ``Instance`` objects. Each ``Instance.args`` is a ``(Literal[""], string)`` tuple containing
                 the text whose overall log-likelihood is computed.
+                Context is always an empty string to keep the interface consistent with ``loglikelihood``.
 
         Returns:
-            A list of ``(logprob,)`` tuples — the log-probability of the string
+            A list of ``(logprob, Literal[False])`` tuples — the log-probability of the string
             conditioned on the BOS/EOS token (or ``prefix_token_id``).
+            Second element is always False since this method does not compute greedy likelihood.
         """
         ...
 
-    # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests: list[GenInstance]) -> list[str]:
+    def generate_until(self, requests: Sequence[GenInstance]) -> list[str]:
         """Generate greedily until a stopping sequence.
 
         Args:
             requests: List of ``Instance`` objects. Each ``Instance.args`` is a ``(context, gen_kwargs)`` tuple.
                 *context*: str — the conditioning text.
-                *gen_kwargs*: str — generation keyword arguments (e.g. ``top_k``, ``until``).
+                *gen_kwargs*: str — generation keyword arguments (e.g. ``temperature``, ``until``).
 
         Returns:
             A list of generated continuation strings, one per request.
@@ -116,7 +116,7 @@ class LM(abc.ABC):
         ...
 
     def apply_chat_template(
-        self, chat_history: list[dict[str, str]], add_generation_prompt=True
+        self, chat_history: Sequence[dict[str, str]], add_generation_prompt=True
     ) -> str | list[dict[str, str]]:
         """Transform few-shot chat history into a string prompt for the model.
 
@@ -126,7 +126,7 @@ class LM(abc.ABC):
                 (e.g. ``<|assistant|>``). Set to False when prefilling an assistant message.
 
         Returns:
-            The formatted prompt string.
+            The formatted prompt string, or a list of message dicts if the model handles templating internally.
         """
         raise NotImplementedError(
             "To use this model with chat templates, please implement the 'apply_chat_template' method for your model type."
@@ -366,7 +366,7 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def _loglikelihood_tokens(
         self, requests: list[tuple[tuple[str, str], list[int], list[int]]], **kwargs
-    ) -> list[tuple[float, bool]]: ...
+    ) -> list[LLOutput]: ...
 
     def _encode_pair(
         self, context: str, continuation: str
@@ -409,8 +409,8 @@ class TemplateLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(
-        self, requests: list[LLInstance], disable_tqdm: bool = False
-    ) -> list[tuple[float, bool]]:
+        self, requests: Sequence[LLInstance], disable_tqdm: bool = False
+    ) -> list[LLOutput]:
         """Compute log-likelihood of continuations given contexts.
 
         Tokenizes each ``(context, continuation)`` pair and delegates to
@@ -446,11 +446,13 @@ class TemplateLM(LM):
 
     @abc.abstractmethod
     def loglikelihood_rolling(
-        self, requests, disable_tqdm: bool = False
-    ) -> list[tuple[float, bool]]: ...
+        self, requests: Sequence[LLInstance], disable_tqdm: bool = False
+    ) -> list[LLOutput]: ...
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]: ...
+    def generate_until(
+        self, requests: Sequence[GenInstance], disable_tqdm: bool = False
+    ) -> list[str]: ...
 
     def chat_template(self, chat_template: bool | str = False) -> str | None:
         """Select and return the appropriate chat template for this model.

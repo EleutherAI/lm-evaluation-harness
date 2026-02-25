@@ -18,14 +18,14 @@ DataSplit: TypeAlias = "datasets.Dataset | Sequence[Doc]"
 # datasets.DatasetDict is the primary impl; dict[str, DataSplit] works too.
 Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
 
-# the context passed to the model. Usually a string in most cases, but can be a dict of turn-level strings,
+# the context passed to the model. Usually a string in most cases, but can be a dict of turn-level messages,
 # for model implementations process them internally, depending on the chat template used.
 Context = str | list[dict[str, str]]
 
 
 LLArgs = tuple[str, str]
-# output of single loglikelihood request: list of (logprob, is_greedy) pairs
-LLProb = tuple[float, bool]
+# output of single loglikelihood request: (logprob of completion, is_greedy)
+LLOutput = tuple[float, bool]
 
 GenArgs = tuple[Context, "GenKwargs"]
 # output of a single generation request.

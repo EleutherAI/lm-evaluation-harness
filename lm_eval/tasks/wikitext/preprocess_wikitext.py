@@ -36,8 +36,8 @@ def wikitext_detokenizer(doc):
     return string
 
 
-def process_results(doc, results):
-    (loglikelihood,) = results
+def process_results(doc: dict[str, str], results: list[tuple[float, bool]]):
+    (loglikelihood, _) = results[0]
     # IMPORTANT: wikitext counts number of words in *original doc before detokenization*
     _words = len(re.split(r"\s+", doc["page"]))
     _bytes = len(doc["page"].encode("utf-8"))

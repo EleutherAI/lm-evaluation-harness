@@ -39,10 +39,17 @@ from lm_eval.scorers import ScoredDoc, Scorer, build_scorer
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+    from collections.abc import Callable, Iterator, Sequence
 
     from lm_eval._types import OutputType
-    from lm_eval.api._types import ChatTemplate, Dataset, DataSplit, Doc
+    from lm_eval.api._types import (
+        ChatTemplate,
+        Completion,
+        Dataset,
+        DataSplit,
+        Doc,
+        LLOutput,
+    )
     from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
     from lm_eval.config.task import FewshotConfig
 
@@ -918,11 +925,11 @@ class Task:
         return dict(accumulator) or None
 
     def process_results(
-        self, doc: dict[str, Any], results: list[Any]
+        self,
+        doc: dict[str, Any],
+        results: Sequence[LLOutput] | Sequence[Completion],
     ) -> dict[str, list[Any]] | None:
-        if callable(self.config.process_results) and not isinstance(
-            self.config.process_results, str
-        ):
+        if callable(self.config.process_results):
             return self.config.process_results(doc, results)
         return None
 

@@ -13,7 +13,14 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
     from typing import Literal
 
-    from lm_eval.api._types import Dataset, DataSplit, Doc, GenKwargs
+    from lm_eval.api._types import (
+        Completion,
+        Dataset,
+        DataSplit,
+        Doc,
+        GenKwargs,
+        LLOutput,
+    )
     from lm_eval.api.instance import OutputType
 
     _OutputType = OutputType | Literal["multiple_choice"]
@@ -360,7 +367,11 @@ class TaskConfig:
     Can be a column name or a callable returning audio data."""
 
     process_results: (
-        Callable[[dict[str, Any], Sequence[str]], dict[str, list[Any]]] | None
+        Callable[
+            [dict[str, Any], Sequence[LLOutput] | Sequence[Completion]],
+            dict[str, list[Any]],
+        ]
+        | None
     ) = None
     """Custom post-processing of model outputs for metric computation.
     Receives ``(doc, results)`` and returns a dict mapping metric names to

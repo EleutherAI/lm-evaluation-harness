@@ -1,10 +1,18 @@
 import random
+from collections.abc import Sequence
 from functools import cached_property
 
 from tqdm import tqdm
 
+from lm_eval.api.instance import GenInstance, LLInstance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+
+
+def print_args(req: GenInstance | LLInstance):
+    a, b = req.args
+    print(f"arg1: {a}")
+    print(f"arg2: {b}")
 
 
 @register_model("dummy")
@@ -22,31 +30,37 @@ class DummyLM(LM):
     def create_from_arg_string(cls, arg_string, additional_config=None):
         return cls()
 
-    def loglikelihood(self, requests, disable_tqdm: bool = False):
+    def loglikelihood(self, requests: Sequence[LLInstance], disable_tqdm: bool = False):
         res = []
 
         for request in tqdm(requests, disable=disable_tqdm):
-            res.append((-random.random(), False))
+            res.append((-random.random(), random.choices([True, False])[0]))
             if self.write_out:
-                print(f"context: {request.arguments[0]}")
-                print(f"continuation: {request.arguments[1]}")
+                print_args(request)
 
         return res
 
-    def generate_until(self, requests, disable_tqdm: bool = False):
+    def generate_until(
+        self, requests: Sequence[GenInstance], disable_tqdm: bool = False
+    ):
         res = []
 
         for request in tqdm(requests, disable=disable_tqdm):
             res.append("lol")
             if self.write_out:
-                print(request.arguments[0])
-                print(f"gen_kwargs: {request.arguments[0]}")
+                print_args(request)
             if not self.raw_chats:
-                assert request.arguments[0].strip() != ""
+                assert request.arguments[0].strip() != "", (
+                    f"Expected non-empty context, got {request}"
+                )
 
         return res
 
-    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
+    def loglikelihood_rolling(
+        self, requests: Sequence[LLInstance], disable_tqdm: bool = False
+    ):
+        if self.write_out:
+            [print_args(request) for request in requests]
         return [(-random.random(), False) for _ in tqdm(requests, disable=disable_tqdm)]
 
     @cached_property
@@ -56,10 +70,10 @@ class DummyLM(LM):
         return AutoTokenizer.from_pretrained(self.tokenizer_name)
 
     def apply_chat_template(
-        self, chat_history: list[dict[str, str]], add_generation_prompt: bool = True
+        self, chat_history: Sequence[dict[str, str]], add_generation_prompt: bool = True
     ) -> str | list[dict[str, str]]:
         if self.raw_chats:
-            return chat_history
+            return list(chat_history)
         return self.tokenizer.apply_chat_template(
             chat_history,
             tokenize=False,

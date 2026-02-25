@@ -7,11 +7,11 @@ from typing_extensions import TypeVar
 
 
 if TYPE_CHECKING:
-    from lm_eval.api._types import Completion, LLProb
+    from lm_eval.api._types import Completion, LLOutput
     from lm_eval.api.instance import Instance
 
 # Response element type: LLProb for loglikelihood, Completion (str) for generation.
-T = TypeVar("T", "LLProb", "Completion", default="Completion")
+T = TypeVar("T", "LLOutput", "Completion", default="Completion")
 
 
 class Filter(ABC, Generic[T]):
@@ -27,7 +27,7 @@ class Filter(ABC, Generic[T]):
     Multiple filters can be chained via :class:`FilterEnsemble`.
     ``T`` is the response element type:
     :data:`Completion` (``str``) for generation tasks,
-    :data:`LLProb` (``tuple[float, bool]``) for loglikelihood tasks.
+    :data:`LLOutput` (``tuple[float, bool]``) for loglikelihood tasks.
 
     Defaults to ``Completion``.
     """

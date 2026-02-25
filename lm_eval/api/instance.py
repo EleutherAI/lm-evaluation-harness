@@ -5,11 +5,11 @@ from typing_extensions import TypedDict, TypeVar
 
 from lm_eval.result_schema import OutputType
 
-from ._types import Completion, GenArgs, LLArgs, LLProb
+from ._types import Completion, GenArgs, LLArgs, LLOutput
 
 
 InputT = TypeVar("InputT", bound=LLArgs | GenArgs)
-OutputT = TypeVar("OutputT", bound=list[LLProb] | list[Completion])
+OutputT = TypeVar("OutputT", bound=list[LLOutput] | list[Completion])
 
 
 class AdditionalArgs(TypedDict, total=False):
@@ -53,5 +53,5 @@ class Instance(Generic[InputT, OutputT]):
         )
 
 
-LLInstance = Instance[LLArgs, list[LLProb]]
+LLInstance = Instance[LLArgs, list[LLOutput]]
 GenInstance = Instance[GenArgs, list[Completion]]
