@@ -361,9 +361,9 @@ class TaskConfig:
     process_results: (
         Callable[[dict[str, Any], list[str]], dict[str, list[Any]]] | str | None
     ) = None
-    """Custom post-processing of model outputs before metrics are computed.
+    """Custom post-processing of model outputs for metric computation.
     Receives ``(doc, results)`` and returns a dict mapping metric names to
-    lists of values. Can also be a string referencing a registered function."""
+    lists of values. Typically set in YAML via ``!function utils.xxx``."""
 
     target_delimiter: str = " "
     """String inserted between the input (prompt/choices) and the target
