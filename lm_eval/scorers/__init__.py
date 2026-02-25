@@ -1,12 +1,11 @@
-from lm_eval.scorers._base import (
+from ._base import (
     GenScorer,
     LLScorer,
-    MetricKey,
-    ScoredDoc,
     Scorer,
     build_scorer,
 )
-from lm_eval.scorers.extraction import (
+from ._types import MetricKey, ScoredDoc
+from .extraction import (
     ChoiceMatchScorer,
     FirstTokenScorer,
     RegexExtractionScorer,

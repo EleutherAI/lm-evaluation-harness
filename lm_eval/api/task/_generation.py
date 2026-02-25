@@ -36,7 +36,7 @@ class GenerateTask(Task):
         )
         target = self.doc_to_target(doc)
         if self._multiple_targets:
-            metadata.setdefault("metric_ctx", {})["multiple_targets"] = True
+            metadata.setdefault("metric_kwargs", {})["multiple_targets"] = True
 
         return [
             Instance(

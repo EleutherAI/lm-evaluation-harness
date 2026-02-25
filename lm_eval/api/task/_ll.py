@@ -286,7 +286,7 @@ class LoglikelihoodTask(Task):
         )
         arguments = (ctx, cont)
         if self._multiple_targets:
-            metadata.setdefault("metric_ctx", {})["multiple_targets"] = True
+            metadata.setdefault("metric_kwargs", {})["multiple_targets"] = True
 
         return [
             Instance(
