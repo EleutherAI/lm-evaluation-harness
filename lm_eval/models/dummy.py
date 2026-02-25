@@ -11,9 +11,12 @@ from lm_eval.api.registry import register_model
 class DummyLM(LM):
     tokenizer_name = "allenai/Olmo-3-32B-Think"
 
-    def __init__(self, *args, write_out: bool = False, **kwargs) -> None:
+    def __init__(
+        self, *args, write_out: bool = False, raw_chats=False, **kwargs
+    ) -> None:
         super().__init__()
         self.write_out = write_out
+        self.raw_chats = raw_chats
 
     @classmethod
     def create_from_arg_string(cls, arg_string, additional_config=None):
@@ -38,17 +41,13 @@ class DummyLM(LM):
             if self.write_out:
                 print(request.arguments[0])
                 print(f"gen_kwargs: {request.arguments[0]}")
-            assert request.arguments[0].strip() != ""
+            if not self.raw_chats:
+                assert request.arguments[0].strip() != ""
 
         return res
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
-        res = []
-
-        for _ in tqdm(requests, disable=disable_tqdm):
-            res.append((-random.random(), False))
-
-        return res
+        return [(-random.random(), False) for _ in tqdm(requests, disable=disable_tqdm)]
 
     @cached_property
     def tokenizer(self):
@@ -58,7 +57,9 @@ class DummyLM(LM):
 
     def apply_chat_template(
         self, chat_history: list[dict[str, str]], add_generation_prompt: bool = True
-    ) -> str:
+    ) -> str | list[dict[str, str]]:
+        if self.raw_chats:
+            return chat_history
         return self.tokenizer.apply_chat_template(
             chat_history,
             tokenize=False,

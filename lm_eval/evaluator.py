@@ -276,7 +276,9 @@ def simple_evaluate(
     else:
         if not isinstance(model, lm_eval.api.model.LM):
             raise TypeError(
-                f"The value of `model` passed to simple_evaluate() was of type {type(model)}, but is required to be a subclass of lm_eval.api.model.LM . This may be because you are passing an initialized Hugging Face PreTrainedModel without having wrapped it in `lm_eval.models.huggingface.HFLM(pretrained=my_model)` first."
+                f"The value of `model` passed to simple_evaluate() was of type {type(model)}, but is required to be a subclass of lm_eval.api.model.LM . "
+                f"This may be because you are passing an initialized Hugging Face PreTrainedModel without having wrapped it in "
+                f"`lm_eval.models.huggingface.HFLM(pretrained=my_model)` first."
             )
         eval_logger.info("Using pre-initialized model")
         lm = model
@@ -338,6 +340,7 @@ def simple_evaluate(
         task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
         if repeats is not None:
+            # only generation tasks support repeats > 1, otherwise no-op
             task_obj.set_repeats(repeats)
 
     if check_integrity:
@@ -354,7 +357,7 @@ def simple_evaluate(
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
-    results = evaluate(
+    results: EvalResults = evaluate(
         lm=lm,
         task_dict=loaded,
         limit=limit,
@@ -373,7 +376,7 @@ def simple_evaluate(
     if verbosity is not None:
         setup_logging(verbosity=verbosity)
 
-    if lm.rank == 0:
+    if results:
         if isinstance(model, str):
             model_name = model
         elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
