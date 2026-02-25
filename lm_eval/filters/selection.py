@@ -1,4 +1,5 @@
-from collections import Counter
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
@@ -11,12 +12,7 @@ from lm_eval.api.registry import register_filter
 
 @register_filter("take_first")
 class TakeFirstFilter(Filter):
-    def __init__(self) -> None:
-        """
-        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
-        """
-
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         """Noop — preserve all repeats so downstream scoring can handle them."""
         return resps
 
@@ -28,28 +24,24 @@ class TakeKFilter(Filter):
 
         super().__init__(**kwargs)
 
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         # need resp to be subscriptable to check below
         resps = list(resps)
         # check we have at least k responses per doc, else we can't take the first k
         assert len(resps[0]) >= self.k, (
             f"Need at least {self.k} responses per doc to take first {self.k}, but got {len(resps[0])} only! Please increase TaskConfig.repeats ."
         )
-        return map(lambda r: r[: self.k], resps)
+        return (r[: self.k] for r in resps)
 
 
 @register_filter("majority_vote")
 class MajorityVoteFilter(Filter):
-    def __init__(self) -> None:
-        """
-        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
-        """
-
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         """
         Each entry of `resps` is a list of model responses.
         We select the response that occurs most frequently in each entry of `resps`.
         """
+        from collections import Counter
 
         def select_majority(resp):
             counts = Counter(resp)

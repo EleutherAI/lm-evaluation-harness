@@ -1,11 +1,10 @@
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeAlias
 
 from typing_extensions import Protocol, TypedDict
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     import datasets
 
@@ -25,10 +24,17 @@ Context = str | list[dict[str, str]]
 
 
 LLArgs = tuple[str, str]
-LLResponse = Sequence[tuple[float, bool]]
+# output of single loglikelihood request: list of (logprob, is_greedy) pairs
+LLProb = tuple[float, bool]
 
 GenArgs = tuple[Context, "GenKwargs"]
-GenResponse = Sequence[str]
+# output of a single generation request.
+Completion = str
+
+# The gold-standard reference for a document: str/list[str] for generation,
+# typically int for multiple-choice / loglikelihood, and list[int] in case of multiple-targets
+# None when unknown.
+Reference = str | list[str] | int | list[int] | None
 
 
 class ChatTemplate(Protocol):

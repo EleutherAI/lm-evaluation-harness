@@ -10,6 +10,7 @@ from typing_extensions import Self
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from lm_eval.api._types import Reference
     from lm_eval.api.filter import Filter, FilterEnsemble
     from lm_eval.api.instance import Instance
     from lm_eval.api.metrics import Metric
@@ -26,7 +27,7 @@ class ScoredDoc:
     """
 
     doc_id: int
-    reference: Any  # str for gen, int|list[int] for MC, loglikelihood
+    reference: Reference
     scores: dict[str, list[float]]  # {metric_name: [per_repeat_values]}
     reduced_scores: dict[str, float] = field(default_factory=dict)  # post-reduction
 
@@ -559,7 +560,7 @@ class GenScorer(Scorer):
         reference: str | list[str],
         predictions: list[str],
         metric_kwargs: dict[str, Any] | None = None,
-    ) -> dict[str, list]:
+    ) -> dict[str, list[float]]:
         """Per-document scoring.  Override for custom generation scoring.
 
         This is the simplest hook for custom scorers.  Receives clean

@@ -10,7 +10,7 @@ class DecontaminationFilter(Filter):
 
     name = "track_decontamination"
 
-    def __init__(self, path) -> None:
+    def __init__(self, path, **kwargs) -> None:
         """
 
         TODO: make sure only ever run one time on the train set (should this be cached as a class var? keyed by value for "path").
@@ -18,8 +18,8 @@ class DecontaminationFilter(Filter):
         """
         self._decontam_results = None
 
-    def apply(self, resps, docs) -> None:
+    def apply(self, resps, docs):
         """
         Return {"no_contamination", "only_contamination"} keys for the 2 different subsets
         """
-        pass
+        raise NotImplementedError

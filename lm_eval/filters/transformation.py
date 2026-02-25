@@ -1,4 +1,6 @@
 import re
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
@@ -6,10 +8,7 @@ from lm_eval.api.registry import register_filter
 
 @register_filter("lowercase")
 class LowercaseFilter(Filter):
-    def __init__(self) -> None:
-        pass
-
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         def filter_set(inst):
             return [resp.lower() for resp in inst]
 
@@ -18,10 +17,7 @@ class LowercaseFilter(Filter):
 
 @register_filter("uppercase")
 class UppercaseFilter(Filter):
-    def __init__(self) -> None:
-        pass
-
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         def filter_set(inst):
             return [resp.upper() for resp in inst]
 
@@ -30,7 +26,9 @@ class UppercaseFilter(Filter):
 
 @register_filter("map")
 class MapFilter(Filter):
-    def __init__(self, mapping_dict: dict = None, default_value=None) -> None:
+    def __init__(
+        self, mapping_dict: dict | None = None, default_value=None, **kwargs
+    ) -> None:
         """
         Initializes the MapFilter with a given mapping dictionary and default value.
 
@@ -51,7 +49,7 @@ class MapFilter(Filter):
         self.mapping_dict = mapping_dict
         self.default_value = default_value
 
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         def filter_set(inst):
             return [self.mapping_dict.get(resp, self.default_value) for resp in inst]
 
@@ -60,10 +58,7 @@ class MapFilter(Filter):
 
 @register_filter("format_span")
 class SPANFilter(Filter):
-    def __init__(self) -> None:
-        pass
-
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         def format_ner_text(text):
             label_dict = {
                 "person": "PER",
@@ -87,7 +82,7 @@ class SPANFilter(Filter):
                 text = text.replace(key, value)
 
             text = "$".join(i for i in text.split("$$"))
-            return text.rstrip("$$")
+            return text.removesuffix("$$")
 
         def format_named_entities(text):
             """
@@ -106,7 +101,6 @@ class SPANFilter(Filter):
                 # Split multiple entities separated by commas and strip whitespace
                 entities = [value.strip() for value in values.split(",")]
 
-                # Exclude 'none' entities
                 for entity in entities:
                     if entity.lower() != "none":
                         formatted_entities.append(f"{label.lower()}: {entity}")
