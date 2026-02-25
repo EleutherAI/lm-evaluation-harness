@@ -111,8 +111,8 @@ def _build_multi_scorer_scorers(
             name=scorer_name,
             filter=noop_filter,
             metrics=metrics,
-            _scored_docs=_scored_docs_from_flat(metrics_dict),
         )
+        scorer._scored_docs = _scored_docs_from_flat(metrics_dict)
         scorers.append(scorer)
     return scorers
 
@@ -1015,12 +1015,12 @@ class TestScorerAggregationComposite:
             name="none",
             filter=noop_filter,
             metrics=[parent_metric],
-            _scored_docs=_scored_docs_from_flat(
-                {
-                    "pass@1(exact_match)": [1.0, 1.0, 0.0, 0.0],
-                    "pass@5(exact_match)": [0.5, 0.5, 0.5, 0.5],
-                }
-            ),
+        )
+        scorer._scored_docs = _scored_docs_from_flat(
+            {
+                "pass@1(exact_match)": [1.0, 1.0, 0.0, 0.0],
+                "pass@5(exact_match)": [0.5, 0.5, 0.5, 0.5],
+            }
         )
         return scorer
 

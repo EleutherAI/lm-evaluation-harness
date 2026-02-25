@@ -93,7 +93,9 @@ class Scorer:
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
     context: dict[str, Any] = field(default_factory=dict)
-    _scored_docs: dict[int, ScoredDoc] = field(default_factory=dict)
+    _scored_docs: dict[int, ScoredDoc] = field(
+        default_factory=dict, init=False, repr=False
+    )
 
     # ------------------------------------------------------------------
     # Construction helpers

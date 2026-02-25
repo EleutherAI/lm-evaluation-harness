@@ -79,8 +79,8 @@ def _build_multi_scorer_scorers(
             name=scorer_name,
             filter=noop_filter,
             metrics=metrics,
-            _scored_docs=_scored_docs_from_flat(metrics_dict),
         )
+        scorer._scored_docs = _scored_docs_from_flat(metrics_dict)
         scorers.append(scorer)
     return scorers
 
