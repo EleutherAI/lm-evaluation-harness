@@ -933,7 +933,9 @@ class VLLM(TemplateLM):
             single_token_results = self._loglikelihood_single_token(
                 single_token_requests, disable_tqdm=disable_tqdm
             )
-            for idx, result in zip(single_token_indices, single_token_results, strict=True):
+            for idx, result in zip(
+                single_token_indices, single_token_results, strict=True
+            ):
                 results[idx] = result
 
         # Code path for samples with multiple continuation tokens.
@@ -941,7 +943,9 @@ class VLLM(TemplateLM):
             multi_token_results = self._loglikelihood_multiple_tokens(
                 multi_token_requests, disable_tqdm=disable_tqdm
             )
-            for idx, result in zip(multi_token_indices, multi_token_results, strict=True):
+            for idx, result in zip(
+                multi_token_indices, multi_token_results, strict=True
+            ):
                 results[idx] = result
 
         return results
