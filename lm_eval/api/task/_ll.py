@@ -92,12 +92,14 @@ class MultipleChoiceTask(Task):
         # This computes log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
         # by appending ("", continuation) pairs for each choice.
         # NOTE: this will at most ~2x runtime.
+        arg_meta = [(arg, {**_metadata}) for arg in arguments]
         if self._has_metric("acc_mutual_info"):
             aux_arguments = self.build_mutual_info(
                 context="", choices=choices, target_delimiter=target_delimiter
             )
-            arguments.extend(aux_arguments)
-            _metadata.update({"acc_mutual_info": True})
+            arg_meta.extend(
+                (arg, {**_metadata, "acc_mutual_info": True}) for arg in aux_arguments
+            )
 
         return [
             Instance(
@@ -109,10 +111,10 @@ class MultipleChoiceTask(Task):
                 doc_id=doc_id,
                 repeats=self.config.repeats,
                 target=target,
-                metadata=_metadata,
+                metadata=meta,
                 **kwargs,
             )
-            for i, arg in enumerate(arguments)
+            for i, (arg, meta) in enumerate(arg_meta)
         ]
 
     @staticmethod

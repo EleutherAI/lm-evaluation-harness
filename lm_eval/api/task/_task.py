@@ -877,8 +877,12 @@ class Task:
     ) -> dict[int, ScoredDoc] | None:
         """Run custom process_results path for all docs.
 
-        Returns ``{doc_id: ScoredDoc}`` if ``process_results``
-        returns a non-None dict for the first document, otherwise ``None``.
+        Returns ``{doc_id: ScoredDoc}`` if ``process_results`` produces
+        results, or ``None`` if it returns ``None`` for the first document
+        (signaling that scoring should fall through to the scorer pipeline).
+
+        Raises ``ValueError`` if ``process_results`` returns ``None``
+        inconsistently (non-``None`` for some docs, ``None`` for others).
         """
 
         accumulator: dict[int, ScoredDoc] = {}
@@ -894,6 +898,13 @@ class Task:
                 ),
             )
             if metrics is None:
+                if accumulator:
+                    raise ValueError(
+                        f"process_results() returned None for doc_id={doc_id} after "
+                        f"returning results for {len(accumulator)} earlier documents. "
+                        f"process_results() must consistently return either a dict or "
+                        f"None for all documents."
+                    )
                 return None
 
             scores = cast(
