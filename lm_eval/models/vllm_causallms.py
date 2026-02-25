@@ -753,7 +753,7 @@ class VLLM(TemplateLM):
         pbar = tqdm(
             total=len(unique_contexts),
             disable=disable_tqdm,
-            desc="Running loglikelihood requests (multi-choice tasks) with single forward pass per sample",
+            desc="Running loglikelihood requests (multi-choice tasks, single token answers)",
         )
 
         for batch_start in range(0, len(unique_contexts), batch_size):
@@ -842,20 +842,15 @@ class VLLM(TemplateLM):
         pbar.close()
         return results
 
-    def _loglikelihood_tokens(
+    def _loglikelihood_multiple_tokens(
         self,
         requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
-    ) -> list[tuple[float, bool]]:  # type:ignore[invalid-method-override]
-        # Check if all continuations are single tokens, in which case we do not need to run through prompt + possible continuations multiple times.
-        all_single_token = all(len(req[2]) == 1 for req in requests)
-
-        if all_single_token:
-            eval_logger.info(
-                f"Using optimized single-token evaluation for {len(requests)} requests"
-            )
-            return self._loglikelihood_single_token(requests, disable_tqdm)
-
+    ) -> list[tuple[float, bool]]:
+        """
+        Traditional loglikelihood evaluation for multi-token continuations.
+        Processes each request with prompt + continuation concatenated.
+        """
         res = []
         max_cxt_len = self.max_length - 1  # vLLM requires at least one generation token
 
@@ -872,7 +867,7 @@ class VLLM(TemplateLM):
         pbar = tqdm(
             total=len(requests),
             disable=disable_tqdm,
-            desc="Running loglikelihood requests",
+            desc="Running loglikelihood requests (multi-choice tasks, multiple tokens answers)",
         )
         for chunk in chunks:
             inputs = []
@@ -911,6 +906,45 @@ class VLLM(TemplateLM):
                 pbar.update(1)
         pbar.close()
         return re_ord.get_original(res)
+
+    def _loglikelihood_tokens(
+        self,
+        requests: list[tuple[tuple[str, str], list[int], list[int]]],
+        disable_tqdm: bool = False,
+    ) -> list[tuple[float, bool]]:  # type:ignore[invalid-method-override]
+        # Separate requests by their continuation length.
+        single_token_requests = []
+        multi_token_requests = []
+        single_token_indices = []
+        multi_token_indices = []
+
+        for idx, req in enumerate(requests):
+            if len(req[2]) == 1:  # req[2] is continuation_enc.
+                single_token_requests.append(req)
+                single_token_indices.append(idx)
+            else:
+                multi_token_requests.append(req)
+                multi_token_indices.append(idx)
+
+        results = [None] * len(requests)
+
+        # Code path for samples with a single continuation token.
+        if single_token_requests:
+            single_token_results = self._loglikelihood_single_token(
+                single_token_requests, disable_tqdm=disable_tqdm
+            )
+            for idx, result in zip(single_token_indices, single_token_results, strict=True):
+                results[idx] = result
+
+        # Code path for samples with multiple continuation tokens.
+        if multi_token_requests:
+            multi_token_results = self._loglikelihood_multiple_tokens(
+                multi_token_requests, disable_tqdm=disable_tqdm
+            )
+            for idx, result in zip(multi_token_indices, multi_token_results, strict=True):
+                results[idx] = result
+
+        return results
 
     @staticmethod
     def _parse_logprobs(tokens: list, outputs, ctxlen: int) -> tuple[float, bool]:
