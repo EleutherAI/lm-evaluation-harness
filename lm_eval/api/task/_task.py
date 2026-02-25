@@ -728,7 +728,7 @@ class Task:
                     doc,
                     num_fewshot=0
                     if self.config.num_fewshot is None
-                    else self.config.num_fewshot,
+                    else max(0, self.config.num_fewshot),
                     system_instruction=system_instruction,
                     apply_chat_template=apply_chat_template,
                     fewshot_as_multiturn=fewshot_as_multiturn,
@@ -1040,6 +1040,32 @@ class Task:
         self._scorers = [
             build_scorer(global_metrics=[metric], output_type=self.OUTPUT_TYPE)
         ]
+
+    def set_repeats(self, repeats: int) -> None:
+        """Override the default number of repeats this task."""
+        eval_logger.debug(
+            "[%s] Overwriting default repeats from %s to %s",
+            self.task_name,
+            self.config.repeats,
+            repeats,
+        )
+        self._config.repeats = int(repeats)
+
+    def set_num_fewshot(self, num_fewshot: int) -> None:
+        """Override the default number of fewshot examples for this task."""
+        if self.config.num_fewshot == 0:
+            eval_logger.info(
+                "[%s] num_fewshot has been set to 0 in its config. Manual configuration will be ignored.",
+                self.task_name,
+            )
+            return
+        eval_logger.debug(
+            "[%s] Overwriting default num_fewshot from %s to %s",
+            self.task_name,
+            self.config.num_fewshot or 0,
+            num_fewshot,
+        )
+        self._config.num_fewshot = int(num_fewshot)
 
     @staticmethod
     def _resolve_field(doc: dict[str, Any], field: str | None = None) -> str | None:

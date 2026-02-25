@@ -329,43 +329,16 @@ def simple_evaluate(
                 "Processing %s in output-only mode. Metrics will not be calculated!",
                 task_name,
             )
-            # we have to change the class properties post-hoc. This is pretty hacky.
             task_obj.override_metric(metric_name="bypass")
 
         # override tasks' fewshot values to the provided num_fewshot arg value
         # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
         if num_fewshot is not None:
-            if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
-                eval_logger.info(
-                    "num_fewshot has been set to 0 for %s in its config. Manual configuration will be ignored.",
-                    task_name,
-                )
-            else:
-                eval_logger.warning(
-                    "Overwriting default num_fewshot of %s from %s to %s",
-                    task_name,
-                    default_num_fewshot,
-                    num_fewshot,
-                )
-                task_obj.set_config(key="num_fewshot", value=num_fewshot)
-        else:
-            # if num_fewshot not provided, and the task does not define a default one, default to 0
-            if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
-                task_obj.set_config(key="num_fewshot", value=0)
-        # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
+            task_obj.set_num_fewshot(num_fewshot)
         task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
-        # override tasks' repeats value to the provided repeats arg value
         if repeats is not None:
-            default_repeats = task_obj.get_config("repeats") or 1
-            if repeats != default_repeats:
-                eval_logger.warning(
-                    "Overwriting default repeats of %s from %s to %s",
-                    task_name,
-                    default_repeats,
-                    repeats,
-                )
-            task_obj.set_config(key="repeats", value=repeats)
+            task_obj.set_repeats(repeats)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
