@@ -67,15 +67,17 @@ class MetricKey:
 class Scorer:
     """Base scorer defining the filter → score → reduce → aggregate pipeline.
 
-    Subclass hooks
-    ~~~~~~~~~~~~~~
-    * **score_doc** — override to define per-document scoring logic.
-    * **default_filter_cfg** — list of filter configs (dicts) or ``Filter``
-      subclasses to use when no explicit filter is provided.
-    * **default_metric_cfg** — list of metric configs (dicts) or ``Metric``
-      instances to use when no explicit metrics are provided.
+    For generation tasks, subclass :class:`GenScorer` which offers three
+    tiers of extensibility (from simplest to most control):
 
-    Precedence (highest → lowest):
+    1. **Config** — set ``default_filter_cfg`` / ``default_metric_cfg``
+       class variables.  No scoring code needed.
+    2. **Per-doc** — override ``GenScorer.score(reference, predictions)``
+       to return ``{metric: [scores]}``.  No ``Instance`` knowledge needed.
+    3. **Batch** — override ``GenScorer.score_batch(inputs)`` to score all
+       documents at once (e.g. batched LLM judge calls).
+
+    Filter / metric precedence (highest → lowest):
 
     1. Explicit ``cfg["filter"]`` / ``cfg["metric_list"]`` passed to ``from_dict``
     2. ``cls.default_filter_cfg`` / ``cls.default_metric_cfg``
@@ -127,11 +129,12 @@ class Scorer:
         # --- build filter ensemble ---
         # Precedence: explicit cfg > class default > take_first fallback
         filter_name = cfg.get("name", "none")
-        filter_cfg = cfg.get("filter") or cfg.get("filter_list")
-        if not filter_cfg and cls.default_filter_cfg is not None:
-            filter_cfg = cls.default_filter_cfg
-        elif not filter_cfg:
-            filter_cfg = [{"function": "take_first"}]
+        filter_cfg = (
+            cfg.get("filter")
+            or cfg.get("filter_list")
+            or cls.default_filter_cfg
+            or [{"function": "take_first"}]
+        )
         filter_ensemble = cls._resolve_filters(filter_name, filter_cfg)
 
         # --- build metrics ---
@@ -321,13 +324,12 @@ class Scorer:
                     else:
                         sd.reduced_scores[metric_name] = res
                 else:
-                    # Unknown metric (e.g. from process_results): take first
-                    if len(values) > 1:
-                        eval_logger.warning(
-                            "No reduction function for metric '%s' in scorer '%s'. Falling back to first value.",
-                            metric_name,
-                            self.name,
-                        )
+                    eval_logger.warning(
+                        "No reduction function for metric '%s' in scorer '%s'. "
+                        "Falling back to first value.",
+                        metric_name,
+                        self.name,
+                    )
                     sd.reduced_scores[metric_name] = values[0]
 
     def aggregate(
@@ -352,16 +354,9 @@ class Scorer:
 
         agg: dict[str, Any] = {}
         sample_len = 0
-
-        # Resolve values once
-        if metric_results is not None:
-            results = metric_results
-        else:
-            results: dict[str, list] = {}
-            for sd in self._scored_docs.values():
-                for mn, val in sd.reduced_scores.items():
-                    results.setdefault(mn, []).append(val)
-
+        results = (
+            metric_results if metric_results is not None else self.export_reduced()
+        )
         metrics_by_name = {m.name: m for m in self.metrics or []}
 
         for metric_name, values in results.items():
@@ -369,36 +364,32 @@ class Scorer:
                 continue
             sample_len = max(sample_len, len(values))
 
+            # Resolve metric object (check parent for composite keys like "pass@1(exact_match)")
             m = metrics_by_name.get(metric_name)
-            # Fall back to parent for composite keys like "pass@1(exact_match)"
-            if m is None:
-                parent = MetricKey(metric_name, self.name).parent_metric
-                if parent is not None:
-                    m = metrics_by_name.get(parent)
-            if m is not None:
+            if m is None and (
+                parent := MetricKey(metric_name, self.name).parent_metric
+            ):
+                m = metrics_by_name.get(parent)
+
+            # Resolve aggregation function: metric > legacy override > mean fallback
+            if m is not None and m.aggregation is not None:
                 agg_fn = m.aggregation
-                if agg_fn is not None:
-                    agg[str(MetricKey(metric_name, self.name))] = m.aggregate(values)
-                else:
-                    eval_logger.warning(
-                        f"No aggregation function for metric '{metric_name}' in scorer '{self.name}'. "
-                        f"Falling back to mean. This may produce incorrect results for corpus-level metrics."
-                    )
-                    agg_fn = mean
-                    agg[str(MetricKey(metric_name, self.name))] = mean(values)
             elif aggregation_overrides and metric_name in aggregation_overrides:
                 agg_fn = aggregation_overrides[metric_name]
-                agg[str(MetricKey(metric_name, self.name))] = agg_fn(values)
             else:
-                # Unknown metric (e.g. from process_results): default to mean
                 eval_logger.warning(
-                    f"No aggregation function for metric '{metric_name}' in scorer '{self.name}'. "
-                    f"Falling back to mean. This may produce incorrect results for corpus-level metrics."
+                    "No aggregation function for metric '%s' in scorer '%s'. "
+                    "Falling back to mean. This may produce incorrect results "
+                    "for corpus-level metrics.",
+                    metric_name,
+                    self.name,
                 )
                 agg_fn = mean
-                agg[str(MetricKey(metric_name, self.name))] = mean(values)
 
-            # Stderr
+            # Aggregate + stderr
+            key = str(MetricKey(metric_name, self.name))
+            agg[key] = agg_fn(values)
+
             stderr_key = str(MetricKey(metric_name, self.name, is_stderr=True))
             if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
                 stderr_fn = stderr_for_metric(
@@ -472,31 +463,185 @@ class Scorer:
 class GenScorer(Scorer):
     """Scorer for ``generate_until`` tasks.
 
-    Each repeat is scored independently, producing ``list[T]`` per doc per
-    metric.  Subclass this to create custom generation evaluation pipelines
-    — override :meth:`score_doc` and optionally use :meth:`_dispatch_metrics`.
+    Extensibility hooks (from simplest to most control)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    **Tier 1 — Config-only**: Set ``default_filter_cfg`` and/or
+    ``default_metric_cfg`` class variables to customize the filter/metric
+    pipeline without writing any scoring logic.
+
+    **Tier 2 — Per-doc scoring**: Override :meth:`score` to define custom
+    scoring as ``(reference, predictions) → {metric: [scores]}``.
+    No ``Instance`` or ``ScoredDoc`` knowledge needed.
+
+    **Tier 3 — Batch scoring**: Override :meth:`score_batch` to score all
+    documents at once (e.g. batched LLM judge calls, code sandbox pools).
+
+    For full control, override :meth:`score_doc` (raw ``Instance`` access)
+    or :meth:`score_instances` (full pipeline control).
     """
 
+    # ------------------------------------------------------------------
+    # Tier 3: Batch scoring hook
+    # ------------------------------------------------------------------
+
+    def score_instances(
+        self, instances: dict[int, list[Instance]]
+    ) -> dict[int, ScoredDoc]:
+        """Score all documents, trying :meth:`score_batch` first.
+
+        Extracts ``(reference, predictions, metric_kwargs)`` for every
+        doc and passes the mapping to :meth:`score_batch`.  If it returns
+        ``None`` (the default), falls back to per-doc :meth:`score_doc`.
+        """
+        extracted: dict[int, tuple[Any, list[str], dict[str, Any] | None]] = {
+            doc_id: self._extract_inputs(doc_instances)
+            for doc_id, doc_instances in instances.items()
+        }
+
+        # Try batch scoring first
+        batch_result = self.score_batch(extracted)
+        if batch_result is not None:
+            return batch_result
+
+        # Fall back to per-doc scoring via score()
+        return {
+            doc_id: self._build_scored_doc(doc_id, ref, preds, mkw)
+            for doc_id, (ref, preds, mkw) in extracted.items()
+        }
+
+    def score_batch(
+        self,
+        inputs: dict[int, tuple[Any, list[str], dict[str, Any] | None]],
+    ) -> dict[int, ScoredDoc] | None:
+        """Score all documents at once.  Override for batch scoring.
+
+        Return ``None`` (the default) to fall back to per-doc
+        :meth:`score`.  Return a ``{doc_id: ScoredDoc}`` dict to
+        bypass per-doc scoring entirely.
+
+        This is useful for scorers that benefit from batching across
+        documents, such as LLM-as-judge scorers that can send all
+        ``(reference, prediction)`` pairs in a single API call.
+
+        Args:
+            inputs: ``{doc_id: (reference, predictions, metric_kwargs)}``.
+
+        Returns:
+            ``{doc_id: ScoredDoc}`` or ``None`` to use per-doc scoring.
+
+        Example::
+
+            @register_scorer("ai_judge")
+            @dataclass
+            class AIJudgeScorer(GenScorer):
+                judge_model: str = "claude-sonnet-4-6"
+
+                def score_batch(self, inputs):
+                    pairs = {did: (ref, preds[0])
+                             for did, (ref, preds, _) in inputs.items()}
+                    ratings = batch_judge(self.judge_model, pairs)
+                    return {
+                        did: ScoredDoc(
+                            doc_id=did, reference=ref,
+                            scores={"judge": [ratings[did]]})
+                        for did, (ref, preds, _) in inputs.items()
+                    }
+        """
+        return None
+
+    # ------------------------------------------------------------------
+    # Tier 2: Per-doc scoring hook
+    # ------------------------------------------------------------------
+
+    def score(
+        self,
+        reference: str | list[str],
+        predictions: list[str],
+        metric_kwargs: dict[str, Any] | None = None,
+    ) -> dict[str, list]:
+        """Per-document scoring.  Override for custom generation scoring.
+
+        This is the simplest hook for custom scorers.  Receives clean
+        inputs and returns metric scores — no need to work with
+        ``Instance`` or ``ScoredDoc`` directly.
+
+        Args:
+            reference: The gold answer(s).
+            predictions: Model predictions (one per repeat).
+            metric_kwargs: Optional per-instance metric overrides.
+
+        Returns:
+            ``{metric_name: [score_per_repeat]}``.
+
+        Example::
+
+            @register_scorer("code_exec")
+            @dataclass
+            class CodeExecScorer(GenScorer):
+                timeout: int = 10
+
+                def score(self, reference, predictions, **kwargs):
+                    return {"pass": [
+                        1.0 if run(code, self.timeout) == reference
+                        else 0.0
+                        for code in predictions
+                    ]}
+        """
+        return self._dispatch_metrics(
+            [reference], predictions, metric_kwargs=metric_kwargs
+        )
+
+    # ------------------------------------------------------------------
+    # Full-control hook (escape hatch)
+    # ------------------------------------------------------------------
+
     def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
-        inst = doc_instances[0]  # 1 instance per doc for generate_until
+        """Score a single document from raw instances.
+
+        The default extracts inputs and delegates to :meth:`score`.
+        Override this only if you need direct access to the ``Instance``
+        object (e.g. to read ``inst.doc`` for extra context fields).
+
+        .. note:: When called via :meth:`score_instances`, this method
+           is bypassed in favour of :meth:`score` directly.  It remains
+           the entry point when callers invoke ``score_doc`` standalone
+           or through the base ``Scorer.score_instances``.
+        """
+        ref, preds, mkw = self._extract_inputs(doc_instances)
+        return self._build_scored_doc(doc_id, ref, preds, mkw)
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _extract_inputs(
+        self, doc_instances: list[Instance]
+    ) -> tuple[Any, list[str], dict[str, Any] | None]:
+        """Extract ``(reference, predictions, metric_kwargs)`` from a doc's instances."""
+        inst = doc_instances[0]
         if self.name not in inst.filtered_resps:
             raise KeyError(
                 f"Scorer '{self.name}' not found in filtered_resps. "
                 f"Available: {list(inst.filtered_resps.keys())}. "
                 f"Was apply_filters() called?"
             )
-        resps: list[str] = inst.filtered_resps[self.name]  # [str * R]
-        target = inst.target
-        metric_kwargs = inst.metadata.get("metric_kwargs")
+        return (
+            inst.target,
+            inst.filtered_resps[self.name],
+            inst.metadata.get("metric_kwargs"),
+        )
 
-        repeat_scores: dict[str, list[Any]] = self._dispatch_metrics(
-            [target], resps, metric_kwargs=metric_kwargs
-        )
-        return ScoredDoc(
-            doc_id=doc_id,
-            reference=target,
-            scores=dict(repeat_scores),
-        )
+    def _build_scored_doc(
+        self,
+        doc_id: int,
+        reference: Any,
+        predictions: list[str],
+        metric_kwargs: dict[str, Any] | None,
+    ) -> ScoredDoc:
+        """Build a ``ScoredDoc`` by calling :meth:`score`."""
+        scores = self.score(reference, predictions, metric_kwargs=metric_kwargs)
+        return ScoredDoc(doc_id=doc_id, reference=reference, scores=scores)
 
 
 @dataclass
