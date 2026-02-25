@@ -5,11 +5,11 @@ from typing_extensions import TypedDict, TypeVar
 
 from lm_eval.result_schema import OutputType
 
-from ._types import GenArgs, GenResponse, LLArgs, LLResponse
+from ._types import Completion, GenArgs, LLArgs, LLOutput
 
 
-ArgsT = TypeVar("ArgsT", bound=LLArgs | GenArgs)
-RespT = TypeVar("RespT", bound=LLResponse | GenResponse)
+InputT = TypeVar("InputT", bound=LLArgs | GenArgs)
+OutputT = TypeVar("OutputT", bound=list[LLOutput] | list[Completion])
 
 
 class AdditionalArgs(TypedDict, total=False):
@@ -22,18 +22,18 @@ class AdditionalArgs(TypedDict, total=False):
 
 
 @dataclass
-class Instance(Generic[ArgsT, RespT]):
+class Instance(Generic[InputT, OutputT]):
     request_type: OutputType
     doc: dict[str, Any]
-    arguments: ArgsT
+    arguments: InputT
     task_name: str
     doc_id: int = field(kw_only=True)
     idx: int = 0
     repeats: int = 1
     target: str | int | list[str] | list[int] | None = None
     additional_args: AdditionalArgs | None = None
-    resps: RespT = field(default_factory=list)
-    filtered_resps: dict[str, RespT] = field(default_factory=dict)
+    resps: OutputT = field(default_factory=list)
+    filtered_resps: dict[str, OutputT] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     # backward stub for metadata unpacking
@@ -44,7 +44,7 @@ class Instance(Generic[ArgsT, RespT]):
             self.metadata = {}
 
     @property
-    def args(self) -> ArgsT:
+    def args(self) -> InputT:
         """
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """
@@ -53,5 +53,5 @@ class Instance(Generic[ArgsT, RespT]):
         )
 
 
-LLInstance = Instance[LLArgs, LLResponse]
-GenInstance = Instance[GenArgs, GenResponse]
+LLInstance = Instance[LLArgs, list[LLOutput]]
+GenInstance = Instance[GenArgs, list[Completion]]

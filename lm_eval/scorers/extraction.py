@@ -38,11 +38,10 @@ class FirstTokenScorer(GenScorer):
 @register_scorer("regex")
 @dataclass
 class RegexExtractionScorer(GenScorer):
-    """Scorer that applies regex extraction then takes the first match."""
+    """Scorer that applies regex extraction."""
 
     default_filter_cfg: ClassVar[list[dict[str, Any]]] = [
         {"function": "regex"},
-        {"function": "take_first"},
     ]
     default_metric_cfg: ClassVar[list[dict[str, Any]]] = _EXACT_MATCH_METRIC
 

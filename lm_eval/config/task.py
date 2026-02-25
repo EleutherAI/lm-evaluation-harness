@@ -10,10 +10,17 @@ from lm_eval.defaults import default_gen_kwargs
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Sequence
     from typing import Literal
 
-    from lm_eval.api._types import Dataset, DataSplit, Doc, GenKwargs
+    from lm_eval.api._types import (
+        Completion,
+        Dataset,
+        DataSplit,
+        Doc,
+        GenKwargs,
+        LLOutput,
+    )
     from lm_eval.api.instance import OutputType
 
     _OutputType = OutputType | Literal["multiple_choice"]
@@ -280,8 +287,9 @@ class TaskConfig:
     # ── HF dataset options ──────────────────────────────────────────────
 
     custom_dataset: Callable[..., Dataset] | None = None
-    """A callable that returns a HuggingFace ``DatasetDict``. Use this when
-    you need custom loading logic instead of ``datasets.load_dataset``.
+    """A callable that returns a HuggingFace ``DatasetDict``. Should accept
+    arbitrary kwargs. Typically set in YAML via ``!function utils.xxx``
+    Use this when you need custom loading logic instead of ``datasets.load_dataset``.
     At runtime, receives ``metadata`` (from this config) and ``model_args``
     (if using ``evaluate``) as keyword arguments."""
 
@@ -316,7 +324,7 @@ class TaskConfig:
     process_docs: Callable[..., list[dict[str, Any]]] | None = None
     """A callable applied to a dataset split before evaluation. Use this
     to filter, transform, or resample documents (e.g. renaming columns,
-    expanding multi-answer rows)."""
+    expanding multi-answer rows). Typically set in YAML via ``!function utils.xxx``"""
 
     description: str = ""
     """A Jinja2 template or plain string prepended to every prompt. Useful for
@@ -325,27 +333,27 @@ class TaskConfig:
     When a chat template is applied, this is combined with
     ``system_instruction`` and sent as the ``system`` message."""
 
-    doc_to_text: Callable[[Doc], str | list[str]] | str | None = None
+    doc_to_text: str | Callable[[Doc], str | list[str]] | None = None
     """Converts a document dict into the prompt text shown to the model.
     Can be a Jinja2 template string (e.g. ``"{{question}}"``), a column name,
     or a callable. For ``loglikelihood`` tasks this is the context preceding
     the target."""
 
-    doc_to_choice: Callable[[Doc], list[str]] | str | list[str] | None = None
+    doc_to_choice: str | Callable[[Doc], list[str]] | list[str] | None = None
     """Defines the set of answer choices for multiple-choice tasks.
     Can be a Jinja2 template (e.g. ``"{{choices.text}}"``), a column name,
     a static list of strings, or a callable returning a list of strings."""
 
-    doc_to_target: Callable[[Doc], str | int | list[int] | list[str]] | str | None = (
+    doc_to_target: str | Callable[[Doc], str | int | list[int] | list[str]] | None = (
         None
     )
     """The gold-standard target for each document.
-    Can be a Jinja2 template, a callable, or a column name. For multiple-choice
+    Can be the column name, a Jinja2 template, or a callable. For multiple-choice
     tasks this is typically the integer index into ``doc_to_choice`` (e.g. ``"{{answer}}"``).
     For generation tasks, it is the expected answer string."""
 
     gen_prefix: str | None = None
-    """A string appended after the prompt (and choices, if any) but before
+    """A string or Jinja2 template appended after the prompt (and choices, if any) but before
     the model generates or the target is scored. With a chat template, this
     is appended after the ``<|assistant|>`` token; without one it is appended
     to the end of the prompt. Useful for answer cues like ``"The answer is"``."""
@@ -359,7 +367,11 @@ class TaskConfig:
     Can be a column name or a callable returning audio data."""
 
     process_results: (
-        Callable[[dict[str, Any], list[str]], dict[str, list[Any]]] | str | None
+        Callable[
+            [dict[str, Any], Sequence[LLOutput] | Sequence[Completion]],
+            dict[str, list[Any]],
+        ]
+        | None
     ) = None
     """Custom post-processing of model outputs for metric computation.
     Receives ``(doc, results)`` and returns a dict mapping metric names to
@@ -424,8 +436,8 @@ class TaskConfig:
 
     multiple_inputs: bool = False
     """Only for ``multiple_choice`` tasks. When True, ``doc_to_text`` returns
-    a list of strings (one per choice) and ``doc_to_choice`` returns a single
-    shared target. Each choice produces a different context scored via
+    a list of strings (one per choice) and ``doc_to_choice`` returns a 1 elememnt list.
+    Each choice produces a different context scored via
     loglikelihood (e.g. Winogrande, where each option fills a blank)."""
 
     multiple_targets: bool = False

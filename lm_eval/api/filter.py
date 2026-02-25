@@ -1,64 +1,84 @@
-from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from typing_extensions import Protocol, TypeVar, runtime_checkable
+
 
 if TYPE_CHECKING:
-    from lm_eval.api._types import GenResponse, LLResponse
+    from lm_eval.api._types import Completion, LLOutput
     from lm_eval.api.instance import Instance
 
+# Response element type: LLProb for loglikelihood, Completion (str) for generation.
+_T = TypeVar("_T", "LLOutput", "Completion", default="Completion")
 
-class Filter(ABC):
+
+@runtime_checkable
+class Filter(Protocol[_T]):
+    """Post-process model responses for a task before scoring.
+
+    Filters transform raw model outputs (instance.resps) into a form suitable for metric
+    computation.  They operate on **all docs of a task at once**,
+    receiving a 2-D structure::
+
+        outer (Iterable) — one entry per doc
+        inner (Sequence)  — one entry per repeat of that doc
+
+    Multiple filters can be chained via :class:`FilterEnsemble`.
+    ``T`` is the response element type:
+    :data:`Completion` (``str``) for generation tasks,
+    :data:`LLOutput` (``tuple[float, bool]``) for loglikelihood tasks.
+
+    Defaults to ``Completion``.
     """
-    Filter classes operate on a per-task level.
-    They take all model outputs (`instance.resps` for all `task.instances`)
-    across all instances of a task, and perform operations.
-    In a single run, one can configure any number of separate filters or lists of filters.
 
-    """
-
-    def __init__(self, **kwargs) -> None:  # noqa: B027
-        """
-        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
-        """
-
-    @abstractmethod
     def apply(
         self,
-        resps: "Iterable[LLResponse] | Iterable[GenResponse]",
-        docs: list[dict[str, Any]],
-    ) -> "Iterable[LLResponse] | Iterable[GenResponse]":
+        resps: Iterable[Sequence[_T]],
+        docs: Sequence[dict[str, Any]],
+    ) -> Iterable[Sequence[_T]]:
+        """Transform model responses.
+
+        Args:
+            resps: Per-doc response sequences.  Outer ``Iterable``
+                iterates over docs; inner ``Sequence`` holds repeats.
+            docs: The source document for each entry (parallel to *resps*).
+
+        Returns:
+            Transformed responses **in the same doc order**.  May be
+            lazy (``map``) to allow generator chaining between filters.
         """
-        Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
-        Should return the list of (filtered) response lists *in the same order as they were input*, e.g.
-        if pass in [<inst.resps for instance 0>, <inst.resps for instance 1>] should return
-        [<filtered resps for instance 0>, <filtered resps for instance 1>]
-        """
-        return resps
+        ...
 
 
 @dataclass
 class FilterEnsemble:
-    """
-    FilterEnsemble creates a pipeline applying multiple filters.
-    Its intended usage is to stack multiple post-processing steps in order.
-    `task.apply_filters` should use a list of FilterEnsemble classes that it stores, to apply each
-    pipeline separately.
+    """A named chain of :class:`Filter` steps applied sequentially.
+
+    Each :class:`Scorer` owns one ``FilterEnsemble``.  When applied, it
+    extracts ``(resps, doc)`` pairs from every ``Instance``, threads them
+    through each filter in order (outputs feed into the next filter's
+    inputs), and stores the final result in
+    ``Instance.filtered_resps[self.name]``.
+
+    Filters in the chain may return lazy iterables (e.g. ``map``);
+    materialisation is deferred until the final ``zip`` writes results back.
     """
 
     name: str
-    filters: list[Callable[[], Filter]]
+    filters: list[
+        Callable[[], Filter]
+    ]  # factories; typically partial(FilterCls, **kwargs) via build_filter_ensemble()
 
-    def apply(self, instances: list["Instance"]) -> None:
+    def apply(self, instances: Sequence["Instance"]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances), strict=True)
-        resps, docs = list(resps), list(docs)
+        # resps, docs = list(resps), list(docs)
 
         for f in self.filters:
             # apply filters in sequence
             resps = f().apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
-        # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
+        # has key `self.name`: each FilterEnsemble applied in a given run should use a unique name.
         for inst, resp in zip(instances, resps, strict=True):
             inst.filtered_resps[self.name] = resp

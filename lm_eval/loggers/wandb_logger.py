@@ -127,7 +127,7 @@ class WandbLogger:
         def make_table(columns: list[str], key: str = "results"):
             import wandb
 
-            from lm_eval.scorers import MetricKey
+            from ..scorers import MetricKey
 
             table = wandb.Table(columns=columns)
             results = copy.deepcopy(self.results)

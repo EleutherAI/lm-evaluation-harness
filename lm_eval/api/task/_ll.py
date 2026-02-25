@@ -72,6 +72,7 @@ class MultipleChoiceTask(Task):
                 ctx=cast("list[dict[str, str]]", ctx),
                 choices=choices,
                 target_delimiter=target_delimiter,
+                target=target,
                 doc_id=doc_id,
                 metadata=_metadata,
                 **kwargs,
@@ -85,8 +86,9 @@ class MultipleChoiceTask(Task):
                 target_delimiter=target_delimiter,
             )
         else:
-            ctx = cast("str", ctx)
-            arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
+            arguments = [
+                (cast("str", ctx), f"{target_delimiter}{cont}") for cont in choices
+            ]
 
         # If any scorer uses acc_mutual_info, we need unconditional loglikelihoods.
         # This computes log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
@@ -132,16 +134,16 @@ class MultipleChoiceTask(Task):
         ctx: list[dict[str, str]],
         choices: list[str],
         target_delimiter: str,
+        target: Any,
         *,
         doc_id: int,
         metadata: dict[str, Any],
-        target: Any,
         **kwargs,
     ) -> list[LLInstance] | None:
         """Build Instance list when ctx is a raw message list.
 
         The model implementation handles loglikelihood extraction directly
-        from the message format. The continuation is still a plain string.
+        from the message format. The continuation is always a plain string.
         """
         if self._multiple_inputs:
             raise NotImplementedError
@@ -284,7 +286,7 @@ class LoglikelihoodTask(Task):
         )
         arguments = (ctx, cont)
         if self._multiple_targets:
-            metadata.setdefault("metric_context", {})["multiple_targets"] = True
+            metadata.setdefault("metric_kwargs", {})["multiple_targets"] = True
 
         return [
             Instance(

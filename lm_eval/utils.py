@@ -126,7 +126,7 @@ def maybe_warn(msg: str, verbose: bool = True):
 
 
 def hash_string(string: str) -> str:
-    return hashlib.sha256(string.encode("utf-8")).hexdigest()
+    return hashlib.sha256(str(string).encode("utf-8")).hexdigest()
 
 
 def escaped_split(text, sep_char, maxsplit=-1):

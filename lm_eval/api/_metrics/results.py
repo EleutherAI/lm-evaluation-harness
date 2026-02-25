@@ -28,7 +28,11 @@ def _empty_array():
 
 @dataclass(frozen=True, slots=True)
 class LLResults:
-    """Result of a multiple-choice task. Instances should be grouped by doc_id beforehand."""
+    """Per-doc bundle of log-likelihoods, greedy flags, and choices for loglikelihood tasks.
+
+    Built via :meth:`from_instances` from all ``LLInstance``s sharing a ``doc_id``,
+    and passed as ``predictions`` to metrics in :class:`LLScorer`.
+    """
 
     results: list[Any]
     lls: NDArray[float64] = field(kw_only=True)
@@ -76,6 +80,7 @@ class LLResults:
     def from_instances(
         cls,
         results: Sequence[LLInstance],
+        filter_name: str = "none",
     ) -> Self:
         from itertools import chain
 
@@ -88,7 +93,7 @@ class LLResults:
         resps, choices, targets, is_mi = zip(
             *(
                 (
-                    inst.resps,
+                    inst.filtered_resps[filter_name],
                     inst.args[1],
                     inst.target,
                     inst.metadata.get("acc_mutual_info", False),
