@@ -241,6 +241,13 @@ class MultipleChoiceTask(Task):
 
         return _resolve_target_index(target, choices, doc)
 
+    def set_repeats(self, repeats: int) -> None:
+        """Override the default number of repeats this task."""
+        eval_logger.debug(
+            "[%s] Ignoring attempt to set repeats, as MultipleChoiceTask does not support repeats > 1.",
+            self.task_name,
+        )
+
 
 class LoglikelihoodTask(Task):
     OUTPUT_TYPE: Literal["loglikelihood"] = "loglikelihood"
@@ -310,6 +317,13 @@ class LoglikelihoodTask(Task):
             )
             return None
         return target
+
+    def set_repeats(self, repeats: int) -> None:
+        """Override the default number of repeats this task."""
+        eval_logger.debug(
+            "[%s] Ignoring attempt to set repeats, as LoglikelihoodTask does not support repeats > 1.",
+            self.task_name,
+        )
 
 
 class LoglikelihoodRollingTask(LoglikelihoodTask):

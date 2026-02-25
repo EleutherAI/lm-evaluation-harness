@@ -443,7 +443,7 @@ class TaskConfig:
     metadata: dict[str, Any] = field(default_factory=dict)
     """Metadata dict stored alongside results. Most tasks should include a
     ``version`` key. The ``num_fewshot`` key overrides the displayed n-shot
-    column in result tables. Also passed to ``custom_dataset`` at runtime."""
+    column in result tables. Also passed to ``custom_dataset`` at runtime to pass arbitrary kwargs"""
 
     _preset_selection: str | None = None
     """Internal field. Holds the ``@suffix`` parsed from the task name
