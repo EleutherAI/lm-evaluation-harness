@@ -387,7 +387,9 @@ class TemplateLM(LM):
         """
         assert context, "Context cannot be empty!"
 
-        n_spaces = len(context) - len(context.rstrip())
+        # NOTE: this logic is a bit suspicious -moving whitespaces to the continuation. Is it really needed?
+        # Reference: https://github.com/EleutherAI/lm-evaluation-harness/issues/2144
+        n_spaces = len(context) - len(context.rstrip(" "))
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
             context = context[:-n_spaces]
