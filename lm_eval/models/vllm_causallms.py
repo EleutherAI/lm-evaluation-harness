@@ -234,12 +234,9 @@ class VLLM(TemplateLM):
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
         self.chat_template_args = chat_template_args or {}
 
-        print("self.chat_template_args", self.chat_template_args)
         self.enable_thinking = self.chat_template_args.pop(
             "enable_thinking", enable_thinking
         )
-
-        print("self.enable_thinking", self.enable_thinking)
 
         if parse_version(version("vllm")) >= parse_version("0.8.3"):
             kwargs_resolve_hf_chat_template = {
@@ -780,8 +777,6 @@ class VLLM(TemplateLM):
 
                 batch_context_encs.append(context_enc)
 
-            # print("batch_context_encs", batch_context_encs)
-
             # Generate 1 token with logprobs to get the distribution over the next token.
             # We need max_tokens=1 and logprobs set to get the top logprobs for the generated token.
             sampling_params = SamplingParams(
@@ -865,22 +860,17 @@ class VLLM(TemplateLM):
         requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
     ) -> list[tuple[float, bool]]:  # type:ignore[invalid-method-override]
-        max_cxt_len = self.max_length - 1  # vLLM requires at least one generation token
-        # Check if we can use the optimized single-token MC path
-        # This applies when all continuations are single tokens
-        # The method groups by context, so it's efficient for MC tasks and still correct for non-MC
+        # Check if all continuations are single tokens, in which case we do not need to run through prompt + possible continuations multiple times.
+        all_single_token = all(len(req[2]) == 1 for req in requests)
 
-        # # Check if all continuations are single tokens
-        # all_single_token = all(len(req[2]) == 1 for req in requests)
+        if all_single_token:
+            eval_logger.info(
+                f"Using optimized single-token evaluation for {len(requests)} requests"
+            )
+            return self._loglikelihood_single_token(requests, disable_tqdm)
 
-        # if all_single_token:
-        #     eval_logger.info(
-        #         f"Using optimized single-token evaluation for {len(requests)} requests"
-        #     )
-        #     return self._loglikelihood_single_token(requests, disable_tqdm)
-
-        # Fallback to original implementation
         res = []
+        max_cxt_len = self.max_length - 1  # vLLM requires at least one generation token
 
         def _collate(x):
             toks = x[1] + x[2]
@@ -913,12 +903,7 @@ class VLLM(TemplateLM):
                 inputs.append(inp)
                 ctxlens.append(ctxlen)
 
-            # for inp in inputs:
-            #     print("input:", self.tokenizer.decode(inp))
-
             outputs = self._model_generate(requests=inputs, generate=False)
-
-            # print("outputs", outputs)
 
             for output, ctxlen, (cache_key, _, _), inp in zip(
                 outputs, ctxlens, chunk, inputs, strict=True
@@ -989,7 +974,7 @@ class VLLM(TemplateLM):
             )
         )
 
-        # Whether argmax matches given continuation exactly
+        # Determine if is_greedy
         is_greedy = True
         for token, logprob_dict in zip(
             tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:], strict=True
