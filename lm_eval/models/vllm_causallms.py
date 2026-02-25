@@ -233,7 +233,6 @@ class VLLM(TemplateLM):
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
         self.chat_template_args = chat_template_args or {}
-
         self.enable_thinking = self.chat_template_args.pop(
             "enable_thinking", enable_thinking
         )
@@ -747,7 +746,6 @@ class VLLM(TemplateLM):
         # Output indexed by original request position
         results = [None] * len(requests)
 
-        # Determine batch size
         batch_size = (
             int(self.batch_size) if self.batch_size != "auto" else len(unique_contexts)
         )
@@ -758,17 +756,14 @@ class VLLM(TemplateLM):
             desc="Running loglikelihood requests (multi-choice tasks) with single forward pass per sample",
         )
 
-        # Process unique contexts in batches
         for batch_start in range(0, len(unique_contexts), batch_size):
             batch_end = min(batch_start + batch_size, len(unique_contexts))
             batch_contexts = unique_contexts[batch_start:batch_end]
 
-            # Prepare batch inputs
             batch_context_encs = []
             for _, group in batch_contexts:
-                context_enc = group[0][2]  # All items in group share the same context
+                context_enc = group[0][2]
 
-                # Truncate context if needed
                 if len(context_enc) > self.max_length - 1:
                     eval_logger.warning(
                         f"Context length {len(context_enc)} exceeds max length - 1 ({self.max_length - 1}). Truncating context."
@@ -787,22 +782,17 @@ class VLLM(TemplateLM):
                 detokenize=False,
             )
 
-            # Generate for the entire batch
+            # Generate for the entire batch.
             outputs = self._model_generate(
                 requests=batch_context_encs,
                 generate=True,
                 sampling_params=sampling_params,
             )
 
-            # Process outputs for each context in the batch
+            # Process outputs for each context in the batch.
             for (_, group), output in zip(batch_contexts, outputs, strict=True):
-                # The generated output will have logprobs for the first generated token, which is what we need.
                 if not output.outputs or not output.outputs[0].logprobs:
-                    eval_logger.error("No logprobs returned from generation")
-                    # Assign low probability to all choices in this group
-                    for idx, _, _, _ in group:
-                        results[idx] = (-1e10, False)
-                    continue
+                    raise ValueError("No logprobs returned from generation")
 
                 # Get logprobs for the first (and only) generated token
                 next_token_logprobs_dict = {
@@ -821,12 +811,9 @@ class VLLM(TemplateLM):
                 # Now assign logprobs to each choice in the group
                 for idx, cache_key, _, continuation_enc in group:
                     if len(continuation_enc) != 1:
-                        eval_logger.warning(
-                            f"Expected single token continuation, got {len(continuation_enc)} tokens. Using fallback."
+                        raise ValueError(
+                            f"Expected single token continuation, got {len(continuation_enc)} tokens."
                         )
-                        # This shouldn't happen if we filter correctly, but handle it
-                        results[idx] = (-1e10, False)
-                        continue
 
                     choice_token = continuation_enc[0]
 
