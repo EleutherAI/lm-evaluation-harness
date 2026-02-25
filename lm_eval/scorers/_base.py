@@ -658,7 +658,7 @@ class LLScorer(Scorer):
         from lm_eval.api._metrics.results import LLResults
 
         metric_kwargs = doc_instances[0].metadata.get("metric_kwargs")
-        results_obj = LLResults.from_instances(doc_instances)
+        results_obj = LLResults.from_instances(doc_instances, self.name)
         references = results_obj.targets
         per_doc = self._dispatch_metrics(
             references, results_obj, metric_kwargs=metric_kwargs

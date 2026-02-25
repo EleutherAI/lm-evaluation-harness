@@ -80,6 +80,7 @@ class LLResults:
     def from_instances(
         cls,
         results: Sequence[LLInstance],
+        filter_name: str = "none",
     ) -> Self:
         from itertools import chain
 
@@ -92,7 +93,7 @@ class LLResults:
         resps, choices, targets, is_mi = zip(
             *(
                 (
-                    inst.resps,
+                    inst.filtered_resps[filter_name],
                     inst.args[1],
                     inst.target,
                     inst.metadata.get("acc_mutual_info", False),
