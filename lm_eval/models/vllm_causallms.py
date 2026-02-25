@@ -35,7 +35,7 @@ from lm_eval.utils import (
     get_rolling_token_windows,
     make_disjoint_window,
 )
-
+from collections import defaultdict
 
 if parse_version(version("vllm")) >= parse_version("0.8.3"):
     from vllm.entrypoints.chat_utils import resolve_hf_chat_template
@@ -232,9 +232,13 @@ class VLLM(TemplateLM):
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
         self.chat_template_args = chat_template_args or {}
+
+        print("self.chat_template_args", self.chat_template_args)
         self.enable_thinking = self.chat_template_args.pop(
             "enable_thinking", enable_thinking
         )
+
+        print("self.enable_thinking", self.enable_thinking)
 
         if parse_version(version("vllm")) >= parse_version("0.8.3"):
             kwargs_resolve_hf_chat_template = {
@@ -718,12 +722,155 @@ class VLLM(TemplateLM):
         # reorder all group of results back to original unsorted form
         return re_ords.get_original(res)
 
+    def _loglikelihood_single_token(
+        self,
+        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        disable_tqdm: bool = False,
+    ) -> List[Tuple[float, bool]]:
+        """
+        Multiple choice evaluation for single-token choice (e.g. MMLU pro).
+        Groups requests by context and evaluates all choices in a single forward pass.
+        Supports batching of unique contexts for efficiency.
+
+        Returns similar output as the usual code path in `_loglikelihood_tokens`.
+        """
+        # Group requests sharing the same context (e.g. same multi-choice question).
+        context_groups = defaultdict(list)
+        for idx, (cache_key, context_enc, continuation_enc) in enumerate(requests):
+            # Use context as grouping key.
+            ctx_key = tuple(context_enc)
+            context_groups[ctx_key].append((idx, cache_key, context_enc, continuation_enc))
+
+        # Create a list of unique contexts with their associated request groups
+        unique_contexts = list(context_groups.items())
+
+        # Output indexed by original request position
+        results = [None] * len(requests)
+
+        # Determine batch size
+        batch_size = int(self.batch_size) if self.batch_size != "auto" else len(unique_contexts)
+
+        pbar = tqdm(
+            total=len(unique_contexts),
+            disable=disable_tqdm,
+            desc="Running loglikelihood requests (multi-choice tasks) with single forward pass per sample",
+        )
+
+        # Process unique contexts in batches
+        for batch_start in range(0, len(unique_contexts), batch_size):
+            batch_end = min(batch_start + batch_size, len(unique_contexts))
+            batch_contexts = unique_contexts[batch_start:batch_end]
+
+            # Prepare batch inputs
+            batch_context_encs = []
+            for ctx_key, group in batch_contexts:
+                context_enc = group[0][2]  # All items in group share the same context
+
+                # Truncate context if needed
+                if len(context_enc) > self.max_length - 1:
+                    eval_logger.warning(
+                        f"Context length {len(context_enc)} exceeds max length - 1 ({self.max_length - 1}). Truncating context."
+                    )
+                    context_enc = context_enc[-(self.max_length - 1):]
+
+                batch_context_encs.append(context_enc)
+            
+            # print("batch_context_encs", batch_context_encs)
+
+            # Generate 1 token with logprobs to get the distribution over the next token.
+            # We need max_tokens=1 and logprobs set to get the top logprobs for the generated token.
+            sampling_params = SamplingParams(
+                temperature=0,
+                max_tokens=1,
+                logprobs=10,
+                prompt_logprobs=0,
+                detokenize=False
+            )
+
+            # Generate for the entire batch
+            outputs = self._model_generate(
+                requests=batch_context_encs,
+                generate=True,
+                sampling_params=sampling_params
+            )
+
+            # Process outputs for each context in the batch
+            for (ctx_key, group), output in zip(batch_contexts, outputs):
+                # The generated output will have logprobs for the first generated token, which is what we need.
+                if not output.outputs or not output.outputs[0].logprobs:
+                    eval_logger.error("No logprobs returned from generation")
+                    # Assign low probability to all choices in this group
+                    for idx, cache_key, _, continuation_enc in group:
+                        results[idx] = (-1e10, False)
+                    continue
+
+                # Get logprobs for the first (and only) generated token
+                next_token_logprobs_dict = {
+                    token: logprob.logprob
+                    for token, logprob in output.outputs[0].logprobs[0].items()
+                }
+
+                # Find the token with max logprob
+                if next_token_logprobs_dict:
+                    greedy_token = max(next_token_logprobs_dict, key=next_token_logprobs_dict.get)
+                else:
+                    greedy_token = None
+
+                # Now assign logprobs to each choice in the group
+                for idx, cache_key, _, continuation_enc in group:
+                    if len(continuation_enc) != 1:
+                        eval_logger.warning(
+                            f"Expected single token continuation, got {len(continuation_enc)} tokens. Using fallback."
+                        )
+                        # This shouldn't happen if we filter correctly, but handle it
+                        results[idx] = (-1e10, False)
+                        continue
+
+                    choice_token = continuation_enc[0]
+
+                    # is_greedy: Whether argmax matches given continuation exactly
+                    if choice_token not in next_token_logprobs_dict:
+                        # Token not in top-k logprobs, assign very low probability
+                        # This is accurate since it's not in the top-k
+                        eval_logger.debug(
+                            f"Choice token {choice_token} not in top-k logprobs, assigning low probability"
+                        )
+                        logprob = -1e10
+                        is_greedy = False
+                    else:
+                        logprob = next_token_logprobs_dict[choice_token]
+                        is_greedy = (choice_token == greedy_token)
+
+                    results[idx] = (logprob, is_greedy)
+
+                    if cache_key is not None:
+                        self.cache_hook.add_partial("loglikelihood", cache_key, results[idx])
+
+                pbar.update(1)
+
+        pbar.close()
+        return results
+
     def _loglikelihood_tokens(
         self,
         requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
     ) -> list[tuple[float, bool]]:  # type:ignore[invalid-method-override]
         max_cxt_len = self.max_length - 1  # vLLM requires at least one generation token
+        # Check if we can use the optimized single-token MC path
+        # This applies when all continuations are single tokens
+        # The method groups by context, so it's efficient for MC tasks and still correct for non-MC
+
+        # # Check if all continuations are single tokens
+        # all_single_token = all(len(req[2]) == 1 for req in requests)
+
+        # if all_single_token:
+        #     eval_logger.info(
+        #         f"Using optimized single-token evaluation for {len(requests)} requests"
+        #     )
+        #     return self._loglikelihood_single_token(requests, disable_tqdm)
+
+        # Fallback to original implementation
         res = []
 
         def _collate(x):
@@ -757,7 +904,12 @@ class VLLM(TemplateLM):
                 inputs.append(inp)
                 ctxlens.append(ctxlen)
 
+            # for inp in inputs:
+            #     print("input:", self.tokenizer.decode(inp))
+
             outputs = self._model_generate(requests=inputs, generate=False)
+
+            # print("outputs", outputs)
 
             for output, ctxlen, (cache_key, _, _), inp in zip(
                 outputs, ctxlens, chunk, inputs, strict=True
@@ -828,7 +980,7 @@ class VLLM(TemplateLM):
             )
         )
 
-        # Determine if is_greedy
+        # Whether argmax matches given continuation exactly
         is_greedy = True
         for token, logprob_dict in zip(
             tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:], strict=True
