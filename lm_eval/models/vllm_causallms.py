@@ -3,6 +3,7 @@ from __future__ import annotations
 import gc
 import logging
 import os
+from collections import defaultdict
 from importlib.metadata import version
 from importlib.util import find_spec
 from multiprocessing import Process, Queue
@@ -35,7 +36,7 @@ from lm_eval.utils import (
     get_rolling_token_windows,
     make_disjoint_window,
 )
-from collections import defaultdict
+
 
 if parse_version(version("vllm")) >= parse_version("0.8.3"):
     from vllm.entrypoints.chat_utils import resolve_hf_chat_template
@@ -724,9 +725,9 @@ class VLLM(TemplateLM):
 
     def _loglikelihood_single_token(
         self,
-        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
-    ) -> List[Tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:
         """
         Multiple choice evaluation for single-token choice (e.g. MMLU pro).
         Groups requests by context and evaluates all choices in a single forward pass.
@@ -739,7 +740,9 @@ class VLLM(TemplateLM):
         for idx, (cache_key, context_enc, continuation_enc) in enumerate(requests):
             # Use context as grouping key.
             ctx_key = tuple(context_enc)
-            context_groups[ctx_key].append((idx, cache_key, context_enc, continuation_enc))
+            context_groups[ctx_key].append(
+                (idx, cache_key, context_enc, continuation_enc)
+            )
 
         # Create a list of unique contexts with their associated request groups
         unique_contexts = list(context_groups.items())
@@ -748,7 +751,9 @@ class VLLM(TemplateLM):
         results = [None] * len(requests)
 
         # Determine batch size
-        batch_size = int(self.batch_size) if self.batch_size != "auto" else len(unique_contexts)
+        batch_size = (
+            int(self.batch_size) if self.batch_size != "auto" else len(unique_contexts)
+        )
 
         pbar = tqdm(
             total=len(unique_contexts),
@@ -763,7 +768,7 @@ class VLLM(TemplateLM):
 
             # Prepare batch inputs
             batch_context_encs = []
-            for ctx_key, group in batch_contexts:
+            for _, group in batch_contexts:
                 context_enc = group[0][2]  # All items in group share the same context
 
                 # Truncate context if needed
@@ -771,10 +776,10 @@ class VLLM(TemplateLM):
                     eval_logger.warning(
                         f"Context length {len(context_enc)} exceeds max length - 1 ({self.max_length - 1}). Truncating context."
                     )
-                    context_enc = context_enc[-(self.max_length - 1):]
+                    context_enc = context_enc[-(self.max_length - 1) :]
 
                 batch_context_encs.append(context_enc)
-            
+
             # print("batch_context_encs", batch_context_encs)
 
             # Generate 1 token with logprobs to get the distribution over the next token.
@@ -784,23 +789,23 @@ class VLLM(TemplateLM):
                 max_tokens=1,
                 logprobs=10,
                 prompt_logprobs=0,
-                detokenize=False
+                detokenize=False,
             )
 
             # Generate for the entire batch
             outputs = self._model_generate(
                 requests=batch_context_encs,
                 generate=True,
-                sampling_params=sampling_params
+                sampling_params=sampling_params,
             )
 
             # Process outputs for each context in the batch
-            for (ctx_key, group), output in zip(batch_contexts, outputs):
+            for (_, group), output in zip(batch_contexts, outputs, strict=True):
                 # The generated output will have logprobs for the first generated token, which is what we need.
                 if not output.outputs or not output.outputs[0].logprobs:
                     eval_logger.error("No logprobs returned from generation")
                     # Assign low probability to all choices in this group
-                    for idx, cache_key, _, continuation_enc in group:
+                    for idx, _, _, _ in group:
                         results[idx] = (-1e10, False)
                     continue
 
@@ -812,7 +817,9 @@ class VLLM(TemplateLM):
 
                 # Find the token with max logprob
                 if next_token_logprobs_dict:
-                    greedy_token = max(next_token_logprobs_dict, key=next_token_logprobs_dict.get)
+                    greedy_token = max(
+                        next_token_logprobs_dict, key=next_token_logprobs_dict.get
+                    )
                 else:
                     greedy_token = None
 
@@ -839,12 +846,14 @@ class VLLM(TemplateLM):
                         is_greedy = False
                     else:
                         logprob = next_token_logprobs_dict[choice_token]
-                        is_greedy = (choice_token == greedy_token)
+                        is_greedy = choice_token == greedy_token
 
                     results[idx] = (logprob, is_greedy)
 
                     if cache_key is not None:
-                        self.cache_hook.add_partial("loglikelihood", cache_key, results[idx])
+                        self.cache_hook.add_partial(
+                            "loglikelihood", cache_key, results[idx]
+                        )
 
                 pbar.update(1)
 
