@@ -645,6 +645,23 @@ class MegatronLMEval(LM):
         """Return accelerator interface for distributed operations (NeMo-style)."""
         return self._Accelerator(self._world_size, self._device)
 
+    def all_gather(self, tensor: torch.Tensor) -> torch.Tensor:
+        """All-gather a tensor across data-parallel ranks."""
+        return self.accelerator.gather(tensor)
+
+    def gather_object(self, obj, dst: int = 0):
+        """Gather Python objects and return list on dst, None on others."""
+        if not torch.distributed.is_initialized() or self.world_size == 1:
+            return [obj]
+
+        gathered_objects = [None] * self.world_size
+        torch.distributed.all_gather_object(gathered_objects, obj)
+        return gathered_objects if self.rank == dst else None
+
+    def barrier(self) -> None:
+        """Synchronize processes."""
+        self.accelerator.wait_for_everyone()
+
     class _Accelerator:
         """
         Internal accelerator class for distributed operations.
