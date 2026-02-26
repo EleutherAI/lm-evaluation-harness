@@ -136,12 +136,67 @@ class TaskManager:
         """Get the Entry for a given task/group/tag name from the index."""
         return self._index.get(name)
 
+    def _resolve_path(self, spec: str) -> Task | Group:
+        """Resolve a ``::``-separated path to an inline subgroup or task.
+
+        Loads the root group from the index, then walks down the hierarchy
+        using each ``::``-delimited segment.  Children are keyed by their
+        full namespaced name (e.g. ``"parent::child"``), which is exactly
+        what ``"::".join(parts[:i+1])`` produces at each level.
+
+        Args:
+            spec: A path like ``"group::subgroup"`` or ``"group::sub::task"``.
+
+        Returns:
+            The Task or Group at the end of the path.
+        """
+        parts = spec.split("::")
+        root_name = parts[0]
+
+        root = self._load_spec(root_name)
+        if not isinstance(root, Group):
+            raise KeyError(f"Root '{root_name}' in path '{spec}' is not a group")
+
+        current: Task | Group = root
+        for i in range(1, len(parts)):
+            if not isinstance(current, Group):
+                path_so_far = "::".join(parts[:i])
+                raise KeyError(
+                    f"Cannot navigate into '{parts[i]}': "
+                    f"'{path_so_far}' is a task, not a group"
+                )
+            child_key = "::".join(parts[: i + 1])
+            child = current.get(child_key)
+            # Bare name without @preset — find the child whose key
+            # matches after stripping the @suffix (e.g. "group::task"
+            # matches "group::task@mcqa").
+            if child is None and "@" not in parts[i]:
+                candidates = [
+                    k for k in current.child_names if k.split("@", 1)[0] == child_key
+                ]
+                if len(candidates) == 1:
+                    child = current.get(candidates[0])
+                elif len(candidates) > 1:
+                    raise KeyError(
+                        f"Ambiguous path '{child_key}': matches multiple "
+                        f"children: {candidates}"
+                    )
+            if child is None:
+                raise KeyError(
+                    f"'{child_key}' not found in group '{current.name}'. "
+                    f"Available children: {current.child_names}"
+                )
+            current = child
+
+        return current
+
     def _load_spec(self, spec: str | dict[str, Any]) -> Task | Group | list[Task]:
         """Load a task/group/tag by name, file path, or inline config.
 
         Args:
-            spec: Task name (str), YAML file path,
-                  or dict with "task"/"group" key.
+            spec: Task name (str), YAML file path, ``::``-separated path
+                  (e.g. ``"group::subgroup::task"``), or dict with
+                  "task"/"group" key.
 
         Returns:
             Task, Group, or list[Task] (for tags)
@@ -155,6 +210,10 @@ class TaskManager:
                     return self._factory.build(
                         entry, overrides=None, registry=self._index
                     )
+
+                # Handle :: path for inline groups/tasks
+                if "::" in spec:
+                    return self._resolve_path(spec)
 
                 # If spec has @, try base name with preset as runtime override
                 if "@" in spec:
@@ -343,7 +402,7 @@ class TaskManager:
         list_tags: bool = True,
         list_subtasks: bool = True,
     ) -> str:
-        """Generate a markdown table listing all available tasks."""
+        """Generate a Markdown table listing all available tasks."""
         from pytablewriter import MarkdownTableWriter
 
         def sanitize_path(path):

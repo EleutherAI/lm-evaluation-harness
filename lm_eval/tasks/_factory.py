@@ -108,6 +108,9 @@ class TaskFactory:
 
         # Merge runtime metadata
         group_cfg.metadata = (group_cfg.metadata or {}) | self._meta
+        group_cfg.metadata.setdefault(
+            "config_source", str(yaml_path) if yaml_path else "inline"
+        )
 
         # Build Group object via existing from_config
         group = Group.from_config(group_cfg)
@@ -208,6 +211,9 @@ class TaskFactory:
                 task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
                 task_cfg.setdefault("task_alias", base_name)
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
+                task_cfg["metadata"]["config_source"] = (
+                    str(yaml_path) if yaml_path else "inline"
+                )
                 children.append(Task.from_config(task_cfg))
                 continue
 
