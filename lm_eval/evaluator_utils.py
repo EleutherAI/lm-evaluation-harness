@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
+import os
 import pathlib
 import sys
 from dataclasses import dataclass, field
@@ -565,3 +566,16 @@ def _handle_back_comp(
                 tasks[key] = value
 
     return groups, tasks
+
+
+class _RankZeroFilter(logging.Filter):
+    """Suppress logs on non-zero ranks unless marked with ``all_ranks=True``.
+
+    By default, all evaluator logs are rank-0-only. To let a specific log
+    through on every rank, pass ``extra={"all_ranks": True}``.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if getattr(record, "all_ranks", False):
+            return True
+        return int(os.environ.get("RANK", "0")) == 0

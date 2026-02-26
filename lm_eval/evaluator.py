@@ -22,6 +22,7 @@ from .evaluator_utils import (
     _log_selected_tasks,
     _merge_rank_metrics,
     _process_results,
+    _RankZeroFilter,
     get_sample_size,
     print_writeout,
     run_task_tests,
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
     _NestedDict = dict[Group, dict[str, Task] | Group] | dict[str, Task]
 
 eval_logger = logging.getLogger(__name__)
+eval_logger.addFilter(_RankZeroFilter())
 
 
 @positional_deprecated
@@ -561,6 +563,7 @@ def evaluate(
             "Task: %s; number of requests on this rank: %d",
             task_name,
             len(task.instances),
+            extra={"all_ranks": True},
         )
         if write_out:
             print_writeout(task)
