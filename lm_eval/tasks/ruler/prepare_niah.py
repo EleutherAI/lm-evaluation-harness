@@ -299,7 +299,7 @@ def generate_samples(
                 assert length <= max_seq_length, f"{length} exceeds max_seq_length."
                 break
                 # ruff: noqa
-            except:
+            except Exception:
                 if used_haystack > incremental:
                     used_haystack -= incremental
 

@@ -189,7 +189,7 @@ def rouge_score(predictions: str, ground_truth: str, **kwargs) -> float:
     try:
         scores = rouge.get_scores([predictions], [ground_truth], avg=True)
         # ruff: noqa
-    except:
+    except Exception:
         return 0.0
     return scores["rouge-l"]["f"]
 
