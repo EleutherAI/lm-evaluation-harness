@@ -322,6 +322,8 @@ class HFLM(TemplateLM):
                             eval_logger.info(
                                 f"Using {gpus} devices with data parallelism"
                             )
+                        else:
+                            os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 
                     self._device = torch.device(f"{accelerator.device}")
                     self.accelerator = accelerator

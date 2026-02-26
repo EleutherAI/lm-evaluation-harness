@@ -1,6 +1,5 @@
 from lm_eval._cli import HarnessCLI
-
-from .utils import setup_logging
+from lm_eval.utils import destroy, setup_logging
 
 
 def cli_evaluate() -> None:
@@ -13,3 +12,4 @@ def cli_evaluate() -> None:
 
 if __name__ == "__main__":
     cli_evaluate()
+    destroy()

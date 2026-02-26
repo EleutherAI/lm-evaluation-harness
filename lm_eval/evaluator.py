@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
+from tqdm.auto import tqdm
 
 import lm_eval.api.model
 import lm_eval.api.registry
@@ -14,15 +15,20 @@ from lm_eval.caching.cache import delete_cache
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager
 
-from .defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
+from .defaults import (
+    DEFAULT_OTHER_SEED,
+    DEFAULT_RANDOM_SEED,
+    LMEVAL_HASHMM,
+)
 from .evaluator_utils import (
     ResultAcc,  # noqa: TC001
     _build_logged_samples,
     _handle_back_comp,
-    _log_selected_tasks,
+    _log_rank_zero,
     _merge_rank_metrics,
     _process_results,
     get_sample_size,
+    log_selected_tasks_,
     print_writeout,
     run_task_tests,
     torch_gather_object,
@@ -47,7 +53,7 @@ if TYPE_CHECKING:
 
     _NestedDict = dict[Group, dict[str, Task] | Group] | dict[str, Task]
 
-eval_logger = logging.getLogger(__name__)
+eval_logger = _log_rank_zero(logging.getLogger(__name__))
 
 
 @positional_deprecated
@@ -312,7 +318,7 @@ def simple_evaluate(
     loaded = task_manager.load(tasks)
 
     # Log selected tasks with hierarchy
-    _log_selected_tasks(loaded["tasks"], loaded["groups"], task_manager)
+    log_selected_tasks_(loaded["tasks"], loaded["groups"], task_manager)
 
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
@@ -495,7 +501,7 @@ def evaluate(
     padding_requests = defaultdict(int)
 
     # Initialize groups and tasks
-    # handle back_comp. Assume if "tasks" not present, then using old nested.
+    # handle back compact. Assume if "tasks" not present, then using old nested.
     if "tasks" not in task_dict:
         groups, eval_tasks = _handle_back_comp(cast("_NestedDict", task_dict))
     else:
@@ -538,7 +544,12 @@ def evaluate(
 
     # Cache the limit arg.
     limit_arg = limit
-    for task_name, task in eval_tasks.items():
+    for task_name, task in tqdm(
+        eval_tasks.items(),
+        delay=5,
+        desc="Building contexts on all ranks",
+        disable=lm.rank != 0,
+    ):
         limit = get_sample_size(task, limit_arg)
         task.build_all_requests(
             limit=limit,
@@ -561,6 +572,7 @@ def evaluate(
             "Task: %s; number of requests on this rank: %d",
             task_name,
             len(task.instances),
+            extra={"all_ranks": True},
         )
         if write_out:
             print_writeout(task)
@@ -612,6 +624,7 @@ def evaluate(
 
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
+    ## can delete model from this point.
     ### Postprocess outputs ###
     for task_name, acc in eval_results_acc.items():
         task = acc["task"]

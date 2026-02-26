@@ -18,9 +18,9 @@ from lm_eval.evaluator_utils import (
     _compute_task_aggregations,
     _get_root_groups,
     _process_results,
-    _propagate_higher_is_better,
     aggregate_groups,
     get_sample_size,
+    propagate_higher_is_better_,
 )
 from lm_eval.scorers import MetricKey, ScoredDoc, Scorer
 
@@ -710,7 +710,7 @@ class TestPropagateHigherIsBetter:
         task = MockEvalTask("t")
         g.add(task)
         hib = {"t": {"acc": True}}
-        _propagate_higher_is_better([g], hib)
+        propagate_higher_is_better_([g], hib)
         assert hib["grp"] == {"acc": True}
 
     def test_conflicting_values_set_to_none(self):
@@ -720,7 +720,7 @@ class TestPropagateHigherIsBetter:
         g.add(t1)
         g.add(t2)
         hib = {"t1": {"acc": True}, "t2": {"acc": False}}
-        _propagate_higher_is_better([g], hib)
+        propagate_higher_is_better_([g], hib)
         assert hib["grp"]["acc"] is None
 
     def test_conflicting_values_log_warning(self, caplog):
@@ -731,7 +731,7 @@ class TestPropagateHigherIsBetter:
         g.add(t2)
         hib = {"t1": {"acc": True}, "t2": {"acc": False}}
         with caplog.at_level(logging.WARNING):
-            _propagate_higher_is_better([g], hib)
+            propagate_higher_is_better_([g], hib)
         assert any("not consistent" in r.message for r in caplog.records)
 
     def test_no_children_in_higher_is_better(self):
@@ -739,7 +739,7 @@ class TestPropagateHigherIsBetter:
         task = MockEvalTask("t")
         g.add(task)
         hib: dict = {}
-        _propagate_higher_is_better([g], hib)
+        propagate_higher_is_better_([g], hib)
         # No child data → group should not appear
         assert "grp" not in hib
 
@@ -753,13 +753,13 @@ class TestPropagateHigherIsBetter:
             "t1": {"acc": True, "f1": True},
             "t2": {"acc": True, "f1": False},
         }
-        _propagate_higher_is_better([g], hib)
+        propagate_higher_is_better_([g], hib)
         assert hib["grp"]["acc"] is True
         assert hib["grp"]["f1"] is None
 
     def test_empty_groups_list(self):
         hib: dict = {"t": {"acc": True}}
-        _propagate_higher_is_better([], hib)
+        propagate_higher_is_better_([], hib)
         # Nothing changes
         assert hib == {"t": {"acc": True}}
 
