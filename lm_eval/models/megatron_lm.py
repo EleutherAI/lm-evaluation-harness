@@ -472,7 +472,7 @@ class MegatronLMEval(LM):
                 transformer_impl = getattr(args, "transformer_impl", "local")
                 use_transformer_engine = transformer_impl == "transformer_engine"
                 if args.num_experts:
-                    assert not (config.transformer_impl == "inference_optimized"), (
+                    assert config.transformer_impl != "inference_optimized", (
                         "MoE is not supported with inference_optimized transformer_impl."
                     )
                     transformer_layer_spec = get_gpt_decoder_block_spec(
@@ -482,7 +482,7 @@ class MegatronLMEval(LM):
                         qk_l2_norm=getattr(args, "qk_l2_norm", False),
                     )
                 elif args.heterogeneous_layers_config_path is not None:
-                    assert not (config.transformer_impl == "inference_optimized"), (
+                    assert config.transformer_impl != "inference_optimized", (
                         "Heterogeneous layers are not supported with inference_optimized transformer_impl."
                     )
                     transformer_layer_spec = get_gpt_heterogeneous_layer_spec(
