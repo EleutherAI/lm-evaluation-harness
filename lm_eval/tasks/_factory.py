@@ -121,11 +121,18 @@ class TaskFactory:
             k: v for k, v in raw_cfg.items() if k not in GROUP_FIELD_NAMES
         }
 
+        # Filter group structural keys from caller overrides so they don't
+        # leak into child task configs (e.g. task: ["arc_easy"] from the
+        # group spec should not clobber a child's task: "arc_easy" string).
+        caller_task_overrides = {
+            k: v for k, v in (overrides or {}).items() if k not in GROUP_FIELD_NAMES
+        }
+
         # Merge: implicit top-level < include < caller overrides
         merged_overrides = {
             **group_task_overrides,
             **include_overrides,
-            **(overrides or {}),
+            **caller_task_overrides,
         }
 
         # Build children from task: list (references to existing tasks/groups/tags)
