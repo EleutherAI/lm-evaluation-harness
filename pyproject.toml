@@ -127,6 +127,7 @@ plugins.md034.enabled = false # no-bare-urls
 [tool.ruff.lint]
 preview = true
 explicit-preview-rules = true
+future-annotations = true
 extend-select = [
     # bugbear, comprehension, docstyle, pycodestyle, pyflakes
     "B", "C419", "D", "E", "F",
@@ -144,21 +145,16 @@ fixable = [
     "SIM", "TC", "UP", "W605",
 ]
 ignore = [
-    "D10", "D200", "D202", "D205",
-    "D212", "D415", "D417",
+    "D417", "D10",
     "E11", "E402", "E501", "E701",
     "E731", "E741",
-    "SIM105", "SIM401", "SIM118", # flake8-simplify
+    "SIM105", "SIM401", # flake8-simplify
     "S311", "S701",  "S101" # bandits, assert-used
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"__init__.py" = [
-    "F401",   # unused-import
-    "F402",   # import-shadowed-by-loop-var
-    "F403",   # undefined-local-with-import-star
-    "F405",   # undefined-local-with-import-star-usage
-]
+ # unused-import, import-shadowed-by-loop-var, undefined-local-with-import-star, undefined-local-with-import-star-usage
+"__init__.py" = ["F401", "F402", "F403", "F405"]
 "lm_eval/api/metrics.py" = [
     "F401", "F403"]   # unused-import
 
