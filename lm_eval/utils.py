@@ -830,7 +830,7 @@ def normalize_to_list(x: dict[str, Any] | dict[str, list[Any]]) -> dict[str, lis
     return {k: v if isinstance(v, list) else [v] for k, v in x.items()}
 
 
-def destroy():
+def destroy() -> None:
     try:
         import torch
     except ImportError:
