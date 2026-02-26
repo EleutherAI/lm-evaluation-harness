@@ -37,7 +37,7 @@ class Scorer:
 
     1. Explicit ``cfg["filter"]`` / ``cfg["metric_list"]`` passed to ``from_dict``
     2. ``cls.default_filter_cfg`` / ``cls.default_metric_cfg``
-    3. Hardcoded fallback (``take_first`` / *global_metrics*)
+    3. Hardcoded fallback (``noop`` / *global_metrics*)
     """
 
     # -- Subclass-overridable class defaults (not instance fields) ---------
@@ -64,10 +64,11 @@ class Scorer:
         cls,
         cfg: dict[str, Any],
         global_metrics: list[Metric] | None = None,
+        **kwargs: Any,
     ) -> Self:
-        """Build a Scorer from a single ``filter_list`` entry dict.
+        """Build a Scorer from a config dict.
 
-        Expected shape (mirrors the YAML ``filter_list`` entries)::
+        Expected shape::
 
             {
                 "name": "strict-match",
@@ -79,45 +80,43 @@ class Scorer:
                     {"metric": "exact_match", "aggregation": "mean", ...},
                 ],
             }
+
+        Any extra *kwargs* are forwarded to the constructor (e.g. custom
+        dataclass fields on scorer subclasses).
         """
-        global_metrics = global_metrics or []
-
-        # --- build filter ensemble ---
-        # Precedence: explicit cfg > class default > take_first fallback
-        filter_name = cfg.get("name", "none")
-        filter_cfg = (
-            cfg.get("filter")
-            or cfg.get("filter_list")
-            or cls.default_filter_cfg
-            or [{"function": "noop"}]
-        )
-        filter_ensemble = cls._resolve_filters(filter_name, filter_cfg)
-
-        # --- build metrics ---
-        # Precedence: explicit cfg > class default > global_metrics fallback
-        if cfg.get("metric_list"):
-            metrics = cls._resolve_metrics(cfg["metric_list"])
-        elif cls.default_metric_cfg is not None:
-            metrics = cls._resolve_metrics(cls.default_metric_cfg)
-        else:
-            metrics = list(global_metrics)
-
-        _consumed = {"name", "filter", "filter_list", "metric_list"}
-        extra = {k: v for k, v in cfg.items() if k not in _consumed}
-
+        name = cfg.get("name", "none")
         return cls(
-            name=filter_name,
-            filter=filter_ensemble,
-            metrics=metrics,
-            **extra,
+            name=name,
+            filter=cls._build_filter(name, cfg),
+            metrics=cls._build_metrics(cfg, global_metrics or []),
+            **kwargs,
         )
+
+    @classmethod
+    def _build_filter(cls, name: str, cfg: dict[str, Any]) -> FilterEnsemble:
+        """Resolve filter config: explicit cfg > ClassVar default > noop fallback."""
+        filter_cfg = (
+            cfg.get("filter") or cls.default_filter_cfg or [{"function": "noop"}]
+        )
+        return cls._resolve_filters(name, filter_cfg)
+
+    @classmethod
+    def _build_metrics(
+        cls, cfg: dict[str, Any], global_metrics: list[Metric]
+    ) -> list[Metric]:
+        """Resolve metric config: explicit cfg > ClassVar default > global_metrics."""
+        if cfg.get("metric_list"):
+            return cls._resolve_metrics(cfg["metric_list"])
+        if cls.default_metric_cfg is not None:
+            return cls._resolve_metrics(cls.default_metric_cfg)
+        return list(global_metrics)
 
     @classmethod
     def default_scorer(cls, global_metrics: list[Metric], name: str = "none") -> Self:
         """Build the default scorer with the given metrics.
 
         Filter defaults to ``cls.default_filter_cfg`` if set, otherwise
-        ``take_first``.
+        ``noop``.
         """
         return cls.from_dict({"name": name}, global_metrics=global_metrics)
 
@@ -218,7 +217,8 @@ class Scorer:
         """
         raise NotImplementedError(
             f"{type(self).__name__} must implement score_doc(). "
-            "Use GenScorer for generate_until tasks or LLScorer for loglikelihood tasks."
+            "Override score_doc() on your Scorer subclass, "
+            "or use GenScorer (which uses score_batch/score instead)."
         )
 
     def _dispatch_metrics(
@@ -423,68 +423,49 @@ class GenScorer(Scorer):
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     **Tier 1 — Config-only**: Set ``default_filter_cfg`` and/or
-    ``default_metric_cfg`` class variables to customize the filter/metric
-    pipeline without writing any scoring logic.
+    ``default_metric_cfg`` class variables.  No scoring code needed.
 
     **Tier 2 — Per-doc scoring**: Override :meth:`score` to define custom
     scoring as ``(reference, predictions) → {metric: [scores]}``.
-    No ``Instance`` or ``ScoredDoc`` knowledge needed.
 
     **Tier 3 — Batch scoring**: Override :meth:`score_batch` to score all
     documents at once (e.g. batched LLM judge calls, code sandbox pools).
 
-    For full control, override :meth:`score_doc` (raw ``Instance`` access)
-    or :meth:`score_instances` (full pipeline control).
+    For full pipeline control, override :meth:`score_instances`.
+
+    The call chain is linear::
+
+        score_instances()  →  score_batch()  →  score()
     """
 
     # ------------------------------------------------------------------
-    # Tier 3: Batch scoring hook
+    # Scoring hooks (override one of these)
     # ------------------------------------------------------------------
 
     def score_instances(
         self, instances: dict[int, list[Instance]]
     ) -> dict[int, ScoredDoc]:
-        """Score all documents, trying :meth:`score_batch` first.
+        """Extract inputs from instances and delegate to :meth:`score_batch`.
 
-        Extracts ``(reference, predictions, metric_kwargs)`` for every
-        doc and passes the mapping to :meth:`score_batch`.  If it returns
-        ``None`` (the default), falls back to per-doc :meth:`score_doc`.
+        Override for full pipeline control (e.g. custom instance access).
         """
-        extracted: dict[int, tuple[Any, list[str], dict[str, Any] | None]] = {
+        extracted = {
             doc_id: self._extract_inputs(doc_instances)
             for doc_id, doc_instances in instances.items()
         }
-
-        # Try batch scoring first
-        batch_result = self.score_batch(extracted)
-        if batch_result is not None:
-            return batch_result
-
-        # Fall back to per-doc scoring via score()
-        return {
-            doc_id: self._build_scored_doc(doc_id, ref, preds, mkw)
-            for doc_id, (ref, preds, mkw) in extracted.items()
-        }
+        return self.score_batch(extracted)
 
     def score_batch(
         self,
         inputs: dict[int, tuple[Any, list[str], dict[str, Any] | None]],
-    ) -> dict[int, ScoredDoc] | None:
-        """Score all documents at once.  Override for batch scoring.
+    ) -> dict[int, ScoredDoc]:
+        """Score all documents.  Override for batch scoring.
 
-        Return ``None`` (the default) to fall back to per-doc
-        :meth:`score`.  Return a ``{doc_id: ScoredDoc}`` dict to
-        bypass per-doc scoring entirely.
-
-        This is useful for scorers that benefit from batching across
-        documents, such as LLM-as-judge scorers that can send all
-        ``(reference, prediction)`` pairs in a single API call.
+        Default calls :meth:`score` per document.  Override to score all
+        documents at once (e.g. batched LLM judge calls).
 
         Args:
             inputs: ``{doc_id: (reference, predictions, metric_kwargs)}``.
-
-        Returns:
-            ``{doc_id: ScoredDoc}`` or ``None`` to use per-doc scoring.
 
         Example::
 
@@ -504,11 +485,14 @@ class GenScorer(Scorer):
                         for did, (ref, preds, _) in inputs.items()
                     }
         """
-        return None
-
-    # ------------------------------------------------------------------
-    # Tier 2: Per-doc scoring hook
-    # ------------------------------------------------------------------
+        return {
+            doc_id: ScoredDoc(
+                doc_id=doc_id,
+                reference=ref,
+                scores=self.score(ref, preds, metric_kwargs=mkw),
+            )
+            for doc_id, (ref, preds, mkw) in inputs.items()
+        }
 
     def score(
         self,
@@ -518,9 +502,8 @@ class GenScorer(Scorer):
     ) -> dict[str, list[float]]:
         """Per-document scoring.  Override for custom generation scoring.
 
-        This is the simplest hook for custom scorers.  Receives clean
-        inputs and returns metric scores — no need to work with
-        ``Instance`` or ``ScoredDoc`` directly.
+        This is the simplest hook.  Receives clean inputs and returns
+        metric scores — no need to work with ``Instance`` or ``ScoredDoc``.
 
         Args:
             reference: The gold answer(s).
@@ -549,25 +532,6 @@ class GenScorer(Scorer):
         )
 
     # ------------------------------------------------------------------
-    # Full-control hook (escape hatch)
-    # ------------------------------------------------------------------
-
-    def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
-        """Score a single document from raw instances.
-
-        The default extracts inputs and delegates to :meth:`score`.
-        Override this only if you need direct access to the ``Instance``
-        object (e.g. to read ``inst.doc`` for extra context fields).
-
-        .. note:: When called via :meth:`score_instances`, this method
-           is bypassed in favour of :meth:`score` directly.  It remains
-           the entry point when callers invoke ``score_doc`` standalone
-           or through the base ``Scorer.score_instances``.
-        """
-        ref, preds, mkw = self._extract_inputs(doc_instances)
-        return self._build_scored_doc(doc_id, ref, preds, mkw)
-
-    # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
@@ -585,19 +549,8 @@ class GenScorer(Scorer):
         return (
             inst.target,
             inst.filtered_resps[self.name],
-            inst.metadata.get("metric_kwargs"),
+            inst.metadata.get("metric_kwargs", {}),
         )
-
-    def _build_scored_doc(
-        self,
-        doc_id: int,
-        reference: Any,
-        predictions: list[str],
-        metric_kwargs: dict[str, Any] | None,
-    ) -> ScoredDoc:
-        """Build a ``ScoredDoc`` by calling :meth:`score`."""
-        scores = self.score(reference, predictions, metric_kwargs=metric_kwargs)
-        return ScoredDoc(doc_id=doc_id, reference=reference, scores=scores)
 
 
 @dataclass
@@ -664,10 +617,10 @@ def build_scorer(
         cls = GenScorer if output_type == "generate_until" else LLScorer
 
     if cfg is not None:
-        return cls.from_dict({**cfg, **scorer_kwargs}, global_metrics=global_metrics)
+        return cls.from_dict(cfg, global_metrics=global_metrics, **scorer_kwargs)
     if scorer_kwargs:
         return cls.from_dict(
-            {"name": scorer_name, **scorer_kwargs}, global_metrics=global_metrics
+            {"name": scorer_name}, global_metrics=global_metrics, **scorer_kwargs
         )
     if scorer_name is not None:
         return cls.default_scorer(global_metrics or [], name=scorer_name)
