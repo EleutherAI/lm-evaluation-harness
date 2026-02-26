@@ -828,3 +828,13 @@ def random_name_id() -> str:
 def normalize_to_list(x: dict[str, Any] | dict[str, list[Any]]) -> dict[str, list[Any]]:
     """Normalize a dict[str, T | list[T]] to dict[str, list[T]]."""
     return {k: v if isinstance(v, list) else [v] for k, v in x.items()}
+
+
+def destroy():
+    try:
+        import torch
+    except ImportError:
+        return
+
+    if torch.distributed.is_initialized():  # type :ignore[possibly-missing-attribute]
+        torch.distributed.destroy_process_group()  # type :ignore[possibly-missing-attribute]
