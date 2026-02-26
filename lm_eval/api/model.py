@@ -198,13 +198,6 @@ class LM(abc.ABC):
         """
         return tensor
 
-    def gather_object(self, obj, dst=0):
-        """Gather a Python object to ``dst`` rank.
-
-        Returns list of objects on ``dst``, None on others. Default: returns ``[obj]``.
-        """
-        return [obj]
-
     def barrier(self) -> None:
         """Synchronization barrier. Default: no-op."""
         return

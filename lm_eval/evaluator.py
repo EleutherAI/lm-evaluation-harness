@@ -25,6 +25,7 @@ from .evaluator_utils import (
     get_sample_size,
     print_writeout,
     run_task_tests,
+    torch_gather_object,
 )
 from .utils import (
     hash_dict_images,
@@ -625,7 +626,9 @@ def evaluate(
                 task_name: acc["logged_samples"]
                 for task_name, acc in eval_results_acc.items()
             }
-            all_samples = lm.gather_object(rank_samples, dst=0)
+            all_samples = torch_gather_object(
+                rank_samples, rank=RANK, world_size=WORLD_SIZE, dst=0
+            )
             if RANK == 0:
                 for task_name, acc in eval_results_acc.items():
                     acc["logged_samples"] = [
@@ -638,7 +641,9 @@ def evaluate(
             task_name: acc["task"].export_raw_metrics()
             for task_name, acc in eval_results_acc.items()
         }
-        all_metrics = lm.gather_object(rank_metrics, dst=0)
+        all_metrics = torch_gather_object(
+            rank_metrics, rank=RANK, world_size=WORLD_SIZE, dst=0
+        )
         if RANK == 0:
             for task_name, acc in eval_results_acc.items():
                 merged = _merge_rank_metrics(all_metrics, task_name)  # type: ignore
