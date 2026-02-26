@@ -472,9 +472,9 @@ class MegatronLMEval(LM):
                 transformer_impl = getattr(args, "transformer_impl", "local")
                 use_transformer_engine = transformer_impl == "transformer_engine"
                 if args.num_experts:
-                    assert not (
-                        config.transformer_impl == "inference_optimized"
-                    ), "MoE is not supported with inference_optimized transformer_impl."
+                    assert not (config.transformer_impl == "inference_optimized"), (
+                        "MoE is not supported with inference_optimized transformer_impl."
+                    )
                     transformer_layer_spec = get_gpt_decoder_block_spec(
                         config,
                         use_transformer_engine=use_transformer_engine,
@@ -482,9 +482,9 @@ class MegatronLMEval(LM):
                         qk_l2_norm=getattr(args, "qk_l2_norm", False),
                     )
                 elif args.heterogeneous_layers_config_path is not None:
-                    assert not (
-                        config.transformer_impl == "inference_optimized"
-                    ), "Heterogeneous layers are not supported with inference_optimized transformer_impl."
+                    assert not (config.transformer_impl == "inference_optimized"), (
+                        "Heterogeneous layers are not supported with inference_optimized transformer_impl."
+                    )
                     transformer_layer_spec = get_gpt_heterogeneous_layer_spec(
                         config, use_transformer_engine=use_transformer_engine
                     )
@@ -541,7 +541,10 @@ class MegatronLMEval(LM):
                                 updated += 1
 
                     if updated == 0:
-                        raise RuntimeError("No self_attention params found to override.")
+                        eval_logger.warning(
+                            "No self_attention params found to override attn_mask_type; "
+                            "proceeding with original spec defaults."
+                        )
                 except Exception as e:
                     raise RuntimeError(
                         "Failed to override attn_mask_type on transformer_layer_spec. "
