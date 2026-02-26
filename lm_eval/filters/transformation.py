@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import re
-from collections.abc import Iterable, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 @register_filter("lowercase")
@@ -29,8 +34,7 @@ class MapFilter(Filter):
     def __init__(
         self, mapping_dict: dict | None = None, default_value=None, **kwargs
     ) -> None:
-        """
-        Initializes the MapFilter with a given mapping dictionary and default value.
+        """Initializes the MapFilter with a given mapping dictionary and default value.
 
         Args:
         - mapping_dict (dict): A dictionary containing the key-value mappings.
@@ -85,8 +89,8 @@ class SPANFilter(Filter):
             return text.removesuffix("$$")
 
         def format_named_entities(text):
-            """
-            Extract named entities from text and format them as 'label: value $$ label: value'.
+            """Extract named entities and format as ``'label: value $$ label: value'``.
+
             Handles grouped entities (e.g., LOC: kenya, uganda) and excludes 'none' values.
             """
             # Regular expression to match label: entities pattern

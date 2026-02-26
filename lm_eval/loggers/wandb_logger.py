@@ -23,7 +23,7 @@ def get_wandb_printer() -> Literal["Printer"]:
 
 class WandbLogger:
     def __init__(self, init_args=None, config_args=None) -> None:
-        """Attaches to wandb logger if already initialized. Otherwise, passes init_args to wandb.init() and config_args to wandb.config.update()
+        """Attaches to wandb logger if already initialized. Otherwise, passes init_args to wandb.init() and config_args to wandb.config.update().
 
         Args:
             init_args Optional[Dict]: Arguments for init configuration.
@@ -99,7 +99,7 @@ class WandbLogger:
                 if isinstance(metric_value, str):
                     wandb_summary[f"{task}/{metric_name}"] = metric_value
 
-        for summary_metric in wandb_summary.keys():
+        for summary_metric in wandb_summary:
             _task, _summary_metric = summary_metric.split("/")
             _results[_task].pop(_summary_metric)
 
@@ -166,7 +166,7 @@ class WandbLogger:
         table = make_table(["Tasks"] + columns, "results")
         self.run.log({"evaluation/eval_results": table}, step=self.step)
 
-        if "groups" in self.results.keys():
+        if "groups" in self.results:
             table = make_table(["Groups"] + columns, "groups")
             self.run.log({"evaluation/group_eval_results": table}, step=self.step)
 

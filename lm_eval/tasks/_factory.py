@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import inspect
 import logging
-from copy import deepcopy
 from dataclasses import fields
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -25,10 +24,9 @@ GROUP_FIELD_NAMES = {f.name for f in fields(GroupConfig)}
 
 # TODO: DO not initialize Tasks, initialize in Manager
 class TaskFactory:
-    """
-    Builds Task and Group objects from Entry definitions.
+    """Builds Task and Group objects from Entry definitions.
 
-    Returns Task | Group directly - Groups contain their children.
+    Returns Task | Group directly - Groups contain references to their children.
     """
 
     def __init__(self, *, meta: dict[str, Any] | None = None):
@@ -40,11 +38,10 @@ class TaskFactory:
         self,
         entry: Entry,
         *,
-        overrides: dict[str, Any] | None = None,
+        overrides: Mapping[str, Any] | None = None,
         registry: dict[str, Entry],
     ) -> Task | Group | list[Task]:
-        """
-        Build an entry into a Task, Group, or list of Tasks.
+        """Build an entry into a Task, Group, or list of Tasks.
 
         Returns:
             - Task: for single tasks
@@ -66,7 +63,7 @@ class TaskFactory:
 
     # ---------------------------------------------------------------- build methods
 
-    def _build_task(self, entry: Entry, overrides: dict[str, Any] | None) -> Task:
+    def _build_task(self, entry: Entry, overrides: Mapping[str, Any] | None) -> Task:
         """Build and return a Task."""
         cfg = self._load_full_config(entry, overrides)
 
@@ -89,8 +86,8 @@ class TaskFactory:
     def _build_group(
         self,
         group_name: str,
-        raw_cfg: dict[str, Any],
-        overrides: dict[str, Any] | None,
+        raw_cfg: Mapping[str, Any],
+        overrides: Mapping[str, Any] | None,
         registry: dict[str, Entry],
         yaml_path: Path | None = None,
     ) -> Group:
@@ -145,7 +142,7 @@ class TaskFactory:
         self,
         member_list: list[str | dict[str, Any]],
         group_name: str,
-        overrides: dict[str, Any] | None,
+        overrides: Mapping[str, Any] | None,
         registry: dict[str, Entry],
         yaml_path: Path | None = None,
     ) -> list[Task | Group]:
@@ -255,11 +252,9 @@ class TaskFactory:
 
         return children
 
-    # ---------------------------------------------------------------- include resolution
-
     @staticmethod
     def _resolve_include(
-        include: str | dict[str, Any] | None,
+        include: str | Mapping[str, Any] | None,
         yaml_path: Path | None,
     ) -> dict[str, Any]:
         """Resolve a GroupConfig ``include`` value into task-override fields.
@@ -271,25 +266,31 @@ class TaskFactory:
         Returns:
             Dict of task-level override fields (empty if include is None).
         """
-        if include is None:
-            return {}
-        if isinstance(include, dict):
-            return include
-        # String path — load YAML file
-        inc = Path(include)
-        if not inc.is_absolute():
-            if yaml_path is None:
-                raise ValueError(
-                    f"Cannot resolve relative include path '{include}' "
-                    "without a YAML file context (inline group config)."
-                )
-            inc = yaml_path.parent / inc
-        return load_yaml(inc, resolve_func=True)
+        match include:
+            # fmt: off
+            case None:
+                return {}
+            case dict():
+                return {**include}
+            # fmt: on
+            case str():
+                # String path — load YAML file
+                inc = Path(include)
+                if not inc.is_absolute():
+                    if yaml_path is None:
+                        raise ValueError(
+                            f"Cannot resolve relative include path '{include}' "
+                            "without a YAML file context (inline group config)."
+                        )
+                    inc = yaml_path.parent / inc
+                return load_yaml(inc, resolve_func=True)
+            case _:
+                raise TypeError(f"Invalid include value: {include!r}")
 
     def _build_tag(
         self,
         entry: Entry,
-        overrides: dict[str, Any] | None,
+        overrides: Mapping[str, Any] | None,
         registry: Mapping[str, Entry],
     ) -> list[Task]:
         """Build all tasks from a tag.
@@ -310,12 +311,12 @@ class TaskFactory:
     def _load_full_config(
         self,
         entry: Entry,
-        overrides: dict[str, Any] | None = None,
+        overrides: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         if entry.yaml_path:
-            cfg = deepcopy(load_yaml(entry.yaml_path, resolve_func=True))
+            cfg = load_yaml(entry.yaml_path, resolve_func=True)
         elif entry.cfg:
-            cfg = deepcopy(entry.cfg)
+            cfg = {**entry.cfg}
         else:
             eval_logger.debug(
                 f"Entry '{entry.name}' has no YAML or inline config; using placeholder."

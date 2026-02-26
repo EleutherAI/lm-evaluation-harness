@@ -13,12 +13,14 @@ from lm_eval.api.group import Group
 from lm_eval.api.task import Task
 
 from ._factory import TaskFactory
-from ._index import Entry, Kind, TaskIndex
+from ._index import Kind, TaskIndex
 from ._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Iterable, Mapping, Sequence
+
+    from ._index import Entry
 
 
 class TaskDict(TypedDict):
@@ -43,6 +45,12 @@ class TaskManager:
     then use :meth:`load` to instantiate tasks by name, glob pattern, file
     path, or inline config dict.
 
+    Args:
+        verbosity: Logging level (deprecated, use standard logging instead).
+        include_path: Custom paths to scan for task configs (takes precedence).
+        include_defaults: Whether to include built-in tasks from lm_eval/tasks/.
+        metadata: Extra metadata to attach to all loaded tasks.
+
     Example::
 
         tm = TaskManager(include_path="my_tasks/")
@@ -58,13 +66,6 @@ class TaskManager:
         include_defaults: bool = True,
         metadata: dict[str, dict[str, Any] | str] | None = None,
     ) -> None:
-        """
-        Args:
-            verbosity: Logging level (e.g., "INFO", "DEBUG") (deprecated, use standard logging configuration instead)
-            include_path: Custom paths to scan for task configs (takes precedence)
-            include_defaults: Whether to include built-in tasks from lm_eval/tasks/
-            metadata: Extra metadata to attach to all loaded tasks
-        """
         if verbosity:
             warnings.warn(
                 "The `verbosity` argument is deprecated. Use logging configuration instead.",
@@ -190,7 +191,7 @@ class TaskManager:
 
         return current
 
-    def _load_spec(self, spec: str | dict[str, Any]) -> Task | Group | list[Task]:
+    def _load_spec(self, spec: str | Mapping[str, Any]) -> Task | Group | list[Task]:
         """Load a task/group/tag by name, file path, or inline config.
 
         Args:

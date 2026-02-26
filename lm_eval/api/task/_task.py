@@ -35,11 +35,11 @@ from lm_eval.config.utils import (
     _coerce_target,
     process_field,
 )
-from lm_eval.scorers import ScoredDoc, Scorer, build_scorer
+from lm_eval.scorers import ScoredDoc, build_scorer
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Sequence
+    from collections.abc import Callable, Iterator, Mapping, Sequence
 
     from lm_eval._types import OutputType
     from lm_eval.api._types import (
@@ -52,13 +52,15 @@ if TYPE_CHECKING:
     )
     from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
     from lm_eval.config.task import FewshotConfig
+    from lm_eval.scorers import Scorer
 
 eval_logger = logging.getLogger(__name__)
 
 
 class Task:
-    """A task represents an entire benchmark, including its dataset, problems,
-    answers, and evaluation methods. See BoolQ for a simple example implementation
+    """A task represents an entire benchmark including its dataset, problems, answers, and evaluation methods.
+
+    See BoolQ for a simple example implementation.
 
     A `doc` can be any python object that represents one instance of evaluation.
     This is usually a dictionary e.g.
@@ -74,8 +76,7 @@ class Task:
 
     @classmethod
     def from_config(cls, config: TaskConfig | dict[str, Any]):
-        """
-        Factory method to create the appropriate Task subclass based on output_type.
+        """Factory method to create the appropriate Task subclass based on output_type.
 
         Args:
             config: TaskConfig instance or dict with task configuration
@@ -101,7 +102,7 @@ class Task:
 
     @staticmethod
     def count_bytes(doc):
-        """Used for byte-level perplexity metrics in rolling loglikelihood"""
+        """Used for byte-level perplexity metrics in rolling loglikelihood."""
         return len(doc.encode("utf-8"))
 
     @staticmethod
@@ -352,7 +353,7 @@ class Task:
         rank: int = 0,
         limit: int | None = None,
         world_size: int = 1,
-        samples: list[int] | None = None,
+        samples: Sequence[int] | None = None,
     ) -> Iterator[tuple[int, Any]]:
         if samples:
             n = len(self.eval_docs)
@@ -623,7 +624,7 @@ class Task:
     def construct_requests(
         self,
         doc: dict[str, Any],
-        ctx: str | list[str] | list[dict[str, Any]],
+        ctx: str | Sequence[str] | list[dict[str, Any]],
         *,
         doc_id: int,
         metadata: dict[str, Any] | None = None,
@@ -658,7 +659,7 @@ class Task:
         self,
         *,
         limit: int | None = None,
-        samples: list[int] | None = None,
+        samples: Sequence[int] | None = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
@@ -774,8 +775,9 @@ class Task:
 
     @property
     def instances(self) -> list[Instance]:
-        """After calling `task.build_all_requests()`, tasks
-        maintain a list of the dataset instances which will be evaluated.
+        """Dataset instances which will be evaluated.
+
+        Populated after calling `task.build_all_requests()`.
         """
         return self._instances or []
 
@@ -879,7 +881,7 @@ class Task:
 
     def _try_process_results(
         self,
-        instances: dict[int, list[Instance]],
+        instances: Mapping[int, Sequence[Instance]],
         filter_key: str,
     ) -> dict[int, ScoredDoc] | None:
         """Run custom process_results path for all docs.
@@ -891,7 +893,6 @@ class Task:
         Raises ``ValueError`` if ``process_results`` returns ``None``
         inconsistently (non-``None`` for some docs, ``None`` for others).
         """
-
         accumulator: dict[int, ScoredDoc] = {}
 
         for doc_id, doc_instances in instances.items():
@@ -1091,12 +1092,12 @@ class Task:
 
     @staticmethod
     def process_doc(doc: dict, fn: Callable) -> dict:
-        """
-        Override this to process (detokenize, strip, replace, etc.) individual
-        documents. This can be used in a map over documents of a data split.
-        E.g. `map(self._process_doc, self.dataset["validation"])`
+        """Process (detokenize, strip, replace, etc.) an individual document.
 
-        :return: dict
+        Override this to transform documents. Can be used in a map over a data split,
+        e.g. ``map(self._process_doc, self.dataset["validation"])``.
+
+        Returns:
             The processed version of the specified `doc`.
         """
         return doc

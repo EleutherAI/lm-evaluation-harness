@@ -35,8 +35,7 @@ class ContextSampler:
         df: Sequence[dict[str, Any]] | None = None,
         **kwargs,
     ) -> Sequence[dict[str, Any]]:
-        """
-        Sample n documents from the pool.
+        """Sample n documents from the pool.
 
         Args:
             n: Number of documents to sample
@@ -76,7 +75,7 @@ class ContextSampler:
         return self
 
     def fewshot_docs(self):
-        """Return cached fewshot docs if available"""
+        """Return cached fewshot docs if available."""
         if self._loaded:
             return self.df
         if self.fewshot_indices and self.df and not self._loaded:
@@ -95,8 +94,8 @@ class ContextSampler:
 
 class FirstNSampler(ContextSampler):
     def sample(self, n: int, eval_doc=None, df=None, **kwargs):
-        """
-        Draw the first `n` samples in order from the specified split.
+        """Draw the first `n` samples in order from the specified split.
+
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
         assert n <= len(self.df), (
@@ -107,11 +106,10 @@ class FirstNSampler(ContextSampler):
 
 class BalancedSampler(ContextSampler):
     def sample(self, n: int, eval_doc=None, df=None, **kwargs):
-        """
-        TODO: this should return approximately class-balanced samples from our fewshot examples.
+        """Return approximately class-balanced samples from fewshot examples.
+
         TODO: what order should they be in? maybe random?
         """
-
         raise NotImplementedError
 
 

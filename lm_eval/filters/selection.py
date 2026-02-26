@@ -1,8 +1,13 @@
-from collections.abc import Iterable, Sequence
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 # TODO: implement "arg_max" filter. either it should take in an arbitrary "scoring"/reward function
@@ -42,9 +47,9 @@ class TakeKFilter(Filter):
 @register_filter("majority_vote")
 class MajorityVoteFilter(Filter):
     def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
-        """
+        """Select the most frequent response from each entry of `resps`.
+
         Each entry of `resps` is a list of model responses.
-        We select the response that occurs most frequently in each entry of `resps`.
         """
         from collections import Counter
 

@@ -6,6 +6,8 @@ This module provides:
 - Helper functions for task name resolution
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -17,6 +19,8 @@ from .manager import TaskManager
 
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from lm_eval.api.task import Task
 
 
@@ -33,7 +37,7 @@ __all__ = [
 @deprecated(
     "get_task_name_from_config is deprecated, and will be removed in a future version. Task names should be explicitly defined in task configs under the 'task' key."
 )
-def get_task_name_from_config(task_config: dict[str, str]) -> str:
+def get_task_name_from_config(task_config: Mapping[str, str]) -> str:
     match task_config:
         case {"task": task_name}:
             return task_name
@@ -95,7 +99,7 @@ def _check_duplicates(task_dict: dict) -> None:
         )
 
 
-def _log_task_dict(task_dict: dict, task_manager: "TaskManager") -> None:
+def _log_task_dict(task_dict: dict, task_manager: TaskManager) -> None:
     """Log the selected tasks with hierarchy information."""
     from lm_eval.api.group import ConfigurableGroup
     from lm_eval.api.task import Task
@@ -135,7 +139,7 @@ def _log_task_dict(task_dict: dict, task_manager: "TaskManager") -> None:
 
 @deprecated("get_task_dict is deprecated. Use TaskManager.load() instead.")
 def get_task_dict(
-    task_name_list: "str | list[str | dict | Task]",
+    task_name_list: str | list[str | dict | Task],
     task_manager: TaskManager | None = None,
 ):
     from lm_eval.api.task import Task

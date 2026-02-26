@@ -12,9 +12,7 @@ def build_filter_ensemble(
     filter_name: str,
     components: list[tuple[str, dict[str, str | int | float] | None]],
 ) -> FilterEnsemble:
-    """
-    Create a filtering pipeline.
-    """
+    """Create a filtering pipeline."""
     # create filters given its name in the registry, and add each as a pipeline step
     return FilterEnsemble(
         name=filter_name,

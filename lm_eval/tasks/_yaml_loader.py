@@ -169,12 +169,12 @@ def load_yaml(
     _seen: set[Path] | None = None,
 ) -> dict[str, Any]:
     """Pure data-loading helper.
+
     Returns a dict ready for higher-level interpretation.
     •No task/group/tag semantics here.
     """
     path = Path(path).expanduser().resolve()
-    if _seen is None:
-        _seen = set()
+    _seen = _seen or set()
     if path in _seen:
         raise ValueError(f"Include cycle at {path}")
     _seen.add(path)
@@ -185,7 +185,7 @@ def load_yaml(
         cfg = yaml.load(fh, Loader=loader_cls)  # noqa: S506
 
     if not isinstance(cfg, dict):
-        raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")
+        raise TypeError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")
 
     if not recursive or "include" not in cfg or "group" in cfg:
         return cfg

@@ -1,16 +1,19 @@
+from __future__ import annotations
+
 import inspect
-from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from functools import cache
 from typing import TYPE_CHECKING, Any, Generic, cast
 
 from typing_extensions import Self, TypeVar
 
-from ._types import AggregationFn, MetricFn, ReductionFn
-
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
     from lm_eval.config.task import _MetricConfig
+
+    from ._types import AggregationFn, MetricFn, ReductionFn
 
 
 _T = TypeVar("_T")

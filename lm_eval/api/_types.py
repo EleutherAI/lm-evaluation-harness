@@ -1,10 +1,11 @@
+from collections.abc import Sequence  # noqa: TC003
 from typing import TYPE_CHECKING, Any, TypeAlias
 
 from typing_extensions import Protocol, TypedDict
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
 
     import datasets
 
@@ -42,10 +43,10 @@ class ChatTemplate(Protocol):
 
     def __call__(
         self,
-        chat_history: list[dict[str, Any]],
+        chat_history: Sequence[dict[str, Any]],
         *,
         add_generation_prompt: bool,
-        **kwargs,
+        **kwargs: Any,
     ) -> Context: ...
 
 

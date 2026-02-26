@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -216,7 +218,7 @@ class EvaluationTracker:
         self.results_repo_private = f"{hub_results_org}/{results_repo_name}-private"
 
     @staticmethod
-    def _api(token: str | None = None) -> "HfApi | None":
+    def _api(token: str | None = None) -> HfApi | None:
         """Initializes the Hugging Face API if a token is provided."""
         if not token:
             return None

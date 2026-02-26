@@ -1,9 +1,14 @@
-from collections.abc import Sequence
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from lm_eval.api.registry import register_reduction
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _default_k_values(n: int) -> list[int]:

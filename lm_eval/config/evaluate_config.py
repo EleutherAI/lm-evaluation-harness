@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import logging
 import textwrap
-from argparse import Namespace
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -12,6 +13,8 @@ from lm_eval.utils import simple_parse_args_string
 
 
 if TYPE_CHECKING:
+    from argparse import Namespace
+
     from lm_eval.tasks import TaskManager
 
 eval_logger = logging.getLogger(__name__)
@@ -197,10 +200,10 @@ class EvaluatorConfig:
     )
 
     @classmethod
-    def from_cli(cls, namespace: Namespace) -> "EvaluatorConfig":
-        """
-        Build an EvaluationConfig by merging with simple precedence:
-        CLI args > YAML config > built-in defaults
+    def from_cli(cls, namespace: Namespace) -> EvaluatorConfig:
+        """Build an EvaluationConfig by merging with simple precedence.
+
+        CLI args > YAML config > built-in defaults.
         """
         # Start with built-in defaults
         config = asdict(cls())
@@ -232,9 +235,9 @@ class EvaluatorConfig:
         return instance
 
     @classmethod
-    def from_config(cls, config_path: str | Path) -> "EvaluatorConfig":
-        """
-        Build an EvaluationConfig from a YAML config file.
+    def from_config(cls, config_path: str | Path) -> EvaluatorConfig:
+        """Build an EvaluationConfig from a YAML config file.
+
         Merges with built-in defaults and validates.
         """
         # Load YAML config
@@ -334,7 +337,7 @@ class EvaluatorConfig:
 
         return self
 
-    def process_tasks(self, metadata: dict | None = None) -> "TaskManager":
+    def process_tasks(self, metadata: dict | None = None) -> TaskManager:
         """Process and validate tasks, return resolved task names.
 
         Handles:
