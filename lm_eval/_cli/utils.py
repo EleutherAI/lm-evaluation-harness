@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import argparse
 import ast
 import json
 import logging
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 eval_logger = logging.getLogger(__name__)
@@ -81,9 +86,7 @@ def request_caching_arg_to_dict(cache_requests: str | None) -> dict[str, bool]:
 
 
 def check_argument_types(parser: argparse.ArgumentParser) -> None:
-    """
-    Check to make sure all CLI args are typed, raises error if not
-    """
+    """Check to make sure all CLI args are typed, raises error if not."""
     for action in parser._actions:
         # Skip help, subcommands, and const actions
         if action.dest in ["help", "command"] or action.const is not None:

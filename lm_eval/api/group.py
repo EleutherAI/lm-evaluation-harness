@@ -1,5 +1,4 @@
-"""
-Group model for organizing tasks into hierarchical collections.
+"""Group model for organizing tasks into hierarchical collections.
 
 A Group is a container for Tasks and/or sub-Groups that can compute
 aggregated metrics across its members.
@@ -19,7 +18,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from typing_extensions import deprecated
 
-from lm_eval.config.group import AggMetricConfig, GroupConfig
+from lm_eval.config.group import GroupConfig
 from lm_eval.scorers import MetricKey
 
 
@@ -28,13 +27,13 @@ eval_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from lm_eval.api.task import Task
+    from lm_eval.config.group import AggMetricConfig
     from lm_eval.result_schema import _TaskMetrics
 
 
 @dataclass
 class Group:
-    """
-    A Group is a container for Tasks and/or sub-Groups.
+    """A Group is a container for Tasks and/or sub-Groups.
 
     Groups directly hold references to their children, making
     traversal and aggregation straightforward.
@@ -90,8 +89,7 @@ class Group:
     # Query API
 
     def get_all_tasks(self, recursive: bool = True) -> list[Task]:
-        """
-        Get all leaf Task objects.
+        """Get all leaf Task objects.
 
         Args:
             recursive: If True, include tasks from nested subgroups.
@@ -111,8 +109,7 @@ class Group:
         return tasks
 
     def get_all_groups(self, recursive: bool = True) -> list[Group]:
-        """
-        Get all subgroups.
+        """Get all subgroups.
 
         Args:
             recursive: If True, include nested subgroups.
@@ -150,8 +147,7 @@ class Group:
     def _discover_filters_for_metric(
         self, metric_name: str, task_metrics: dict[str, _TaskMetrics]
     ) -> list[str]:
-        """
-        Discover all filter names used with a specific metric in child tasks.
+        """Discover all filter names used with a specific metric in child tasks.
 
         Scans all leaf task metrics for keys matching "{metric},{filter}" pattern
         and returns unique filter names.
@@ -172,7 +168,7 @@ class Group:
 
             task_result = task_metrics[task_name]
 
-            for key in task_result.keys():
+            for key in task_result:
                 mk = MetricKey.parse(key)
                 if mk and mk.metric == metric_name and not mk.is_stderr:
                     discovered_filters.add(mk.scorer)
@@ -180,8 +176,7 @@ class Group:
         return sorted(discovered_filters)  # Sort for deterministic ordering
 
     def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
-        """
-        Aggregate metrics for this group from its leaf task results.
+        """Aggregate metrics for this group from its leaf task results.
 
         Args:
             task_metrics: {task_name: {metric_key: value, "sample_len": int, ...}}
@@ -302,8 +297,7 @@ class Group:
 
     @classmethod
     def from_config(cls, config: GroupConfig | dict[str, Any]) -> Group:
-        """
-        Create a Group from a GroupConfig or raw dict (e.g., parsed from YAML).
+        """Create a Group from a GroupConfig or raw dict (e.g., parsed from YAML).
 
         Note: This only creates the Group shell. Children must be added
         separately via group.add() after Tasks/subGroups are built.

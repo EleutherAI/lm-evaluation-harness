@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import fnmatch
 import functools
@@ -9,15 +11,19 @@ import logging
 import os
 import re
 import threading
-from collections.abc import Callable, Generator
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import requests
-import yaml
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+    from pathlib import Path
+
+    import yaml
 
 
 SPACING = " " * 47
@@ -48,9 +54,7 @@ def is_transformers_available() -> bool:
 
 
 def wrap_text(string: str, width: int = 140, **kwargs) -> str | None:
-    """
-    Wraps the given string to the specified width.
-    """
+    """Wraps the given string to the specified width."""
     import textwrap
 
     return textwrap.fill(
@@ -130,8 +134,9 @@ def hash_string(string: str) -> str:
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
-    """Split text into a list on occurrences of the given separation
-    character `sep_char`. The separation character may be escaped by a
+    """Split text into a list on occurrences of the given separation character `sep_char`.
+
+    The separation character may be escaped by a
     backslash to avoid splitting at that location.
 
     The separation character must be a string of size 1.
@@ -175,9 +180,7 @@ def handle_non_serializable(o):
 
 
 def sanitize_list(sub):
-    """
-    Takes possible nested list and recursively converts all inner component to strings
-    """
+    """Takes possible nested list and recursively converts all inner component to strings."""
     if isinstance(sub, list):
         return [sanitize_list(item) for item in sub]
     if isinstance(sub, tuple):
@@ -187,11 +190,7 @@ def sanitize_list(sub):
 
 
 def simple_parse_args_string(args_string: str | None) -> dict:
-    """
-    Parses something like
-        args1=val1,arg2=val2
-    Into a dictionary
-    """
+    """Parses something like args1=val1,arg2=val2 into a dictionary."""
     if args_string is None:
         return {}
     args_string = args_string.strip()
@@ -229,7 +228,7 @@ def pattern_match(patterns, source_list):
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
-    return sorted(list(task_names))
+    return sorted(task_names)
 
 
 def general_detokenize(string) -> str:
@@ -243,73 +242,55 @@ def general_detokenize(string) -> str:
 
 
 def get_file_task_name(filename: str) -> str:
-    """
-    Given the sample results filenames, extracts and returns the task name.
-    """
+    """Given the sample results filenames, extracts and returns the task name."""
     return filename[filename.find("_") + 1 : filename.rfind("_")]
 
 
 def get_file_datetime(filename: str) -> str:
-    """
-    Given the results and sample results filenames, extracts and returns the datetime.
-    """
+    """Given the results and sample results filenames, extracts and returns the datetime."""
     return filename[filename.rfind("_") + 1 :].replace(".jsonl", "")
 
 
 def sanitize_model_name(model_name: str) -> str:
-    """
-    Given the model name, returns a sanitized version of it.
-    """
+    """Given the model name, returns a sanitized version of it."""
     return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
 
 
 def sanitize_task_name(task_name: str) -> str:
-    """
-    Given the task name, returns a sanitized version of it.
-    """
+    """Given the task name, returns a sanitized version of it."""
     return re.sub(r"\W", "_", task_name)
 
 
 def get_latest_filename(filenames: list[str]) -> str:
-    """
-    Given a list of filenames, returns the filename with the latest datetime.
-    """
+    """Given a list of filenames, returns the filename with the latest datetime."""
     return max(filenames, key=lambda f: get_file_datetime(f))
 
 
 def get_results_filenames(filenames: list[str]) -> list[str]:
-    """
-    Extracts filenames that correspond to aggregated results.
-    """
+    """Extracts filenames that correspond to aggregated results."""
     return [f for f in filenames if "/results_" in f and ".json" in f]
 
 
 def get_sample_results_filenames(filenames: list[str]) -> list[str]:
-    """
-    Extracts filenames that correspond to sample results.
-    """
+    """Extracts filenames that correspond to sample results."""
     return [f for f in filenames if "/samples_" in f and ".json" in f]
 
 
 def get_rolling_token_windows(
     token_list: list[int], prefix_token: int, max_seq_len: int, context_len: int
 ) -> Generator[tuple[list[int], list[int]], None, None]:
-    """
-    - context_len allows for a rolling window context, allowing each prediction window to potentially
-      condition on some context
+    """Yield rolling ``(input_tokens, pred_tokens)`` windows over a token list.
 
-    :param token_list: list
-        List of tokens to be PREDICTED
-    :param max_seq_len: int
-        max_seq_len of model (or max_seq_len we want to use)
-    :param context_len: int
-        Amount of desired token context for prediction. Needs to be at least 1.
-    :param prefix_token: token
-        Dummy token like <eos> so the first token has something to condition on
-    :return: generator
-        Generator of tuples
-            (input_tokens, pred_tokens)
-        Note: Score only the last len(pred_tokens) logits of the LM
+    ``context_len`` allows each prediction window to condition on prior context.
+
+    Args:
+        token_list: List of tokens to be predicted.
+        prefix_token: Dummy token like ``<eos>`` so the first token has something to condition on.
+        max_seq_len: Max sequence length of model (or desired limit).
+        context_len: Amount of desired token context for prediction. Must be >= 1.
+
+    Yields:
+        ``(input_tokens, pred_tokens)`` — score only the last ``len(pred_tokens)`` logits.
     """
     assert 1 <= context_len <= max_seq_len
     if not token_list:
@@ -337,15 +318,15 @@ def get_rolling_token_windows(
 def make_disjoint_window(
     pair: tuple[list[int], list[int]],
 ) -> tuple[list[int], list[int]]:
-    """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
+    """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation."""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
 
 
 class EnhancedJSONEncoder(json.JSONEncoder):
-    """
-    Provides a proper json encoding for the loggers and trackers json dumps.
-    Notably manages the json encoding of dataclasses.
+    """JSON encoder that handles dataclasses and other non-standard types.
+
+    Used by loggers and trackers for json dumps.
     """
 
     def default(self, o):
@@ -356,7 +337,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
 class Reorderer:
     def __init__(self, arr: list[Any], fn: Callable) -> None:
-        """Reorder an array according to some function
+        """Reorder an array according to some function.
 
         Args:
             arr (List[Any]): The initial array
@@ -373,7 +354,7 @@ class Reorderer:
         self.arr = arr
 
     def get_reordered(self):
-        """Gets the reordered array
+        """Gets the reordered array.
 
         Returns:
             List[Any]: The reordered array
@@ -381,7 +362,7 @@ class Reorderer:
         return [x[1] for x in self.arr]
 
     def get_original(self, newarr):
-        """Restores the original order of a new array based on the old array's order
+        """Restores the original order of a new array based on the old array's order.
 
         Args:
             newarr (List[Any]): The array to be restored
@@ -428,9 +409,7 @@ def _build_hierarchy_info(
             visit(name, 0)
 
     # Add remaining keys not in any hierarchy (sorted for determinism)
-    for key in sorted(available_keys):
-        if key not in depth_map:
-            ordered.append(key)
+    ordered.extend(k for k in sorted(available_keys) if k not in depth_map)
 
     return depth_map, ordered
 
@@ -522,10 +501,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
 
 def positional_deprecated(fn):
-    """
-    A decorator to nudge users into passing only keyword args (`kwargs`) to the
-    wrapped function, `fn`.
-    """
+    """Decorator that warns when positional args are passed to `fn`."""
 
     @functools.wraps(fn)
     def _wrapper(*args, **kwargs):
@@ -567,11 +543,7 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
 
 
 def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
-    """
-    Method for creating a (potentially) sliced and limited
-    iterator from a raw document iterator. Used for splitting data
-    among ranks in multigpu setting or only pulling a sample of documents
-    """
+    """Create a sliced and limited iterator for multi-GPU splitting or sampling."""
     return islice(raw_iterator, rank, limit, world_size)
 
 
@@ -585,41 +557,27 @@ def weighted_f1_score(items):
     return fscore
 
 
-def convert_pil_to_hash(value):
-    from io import BytesIO
-
-    img_bytes = BytesIO()
-    value.save(img_bytes, format="PNG")
-    return hashlib.sha256(img_bytes.getvalue()).hexdigest()
-
-
 def convert_bytes_to_hash(value):
     return hashlib.sha256(str(value).encode()).hexdigest()
 
 
 def hash_dict_images(data_dict):
-    """
-    Create a deep copy of `data_dict` where all bytes and PIL.Image.Image values
-    are replaced by their respective hashes using the provided converter functions.
+    """Deep-copy `data_dict`, replacing bytes and PIL images with their hashes.
 
-    Parameters:
-        data_dict (dict): The input dictionary with arbitrary nesting of dicts and lists.
+    Args:
+        data_dict: The input dictionary with arbitrary nesting of dicts and lists.
 
     Returns:
-        dict: A new dictionary with the same structure as `data_dict`, but with all
-              bytes and PIL.Image.Image objects replaced by their hashes.
+        A new dictionary with the same structure, but with all bytes and
+        PIL.Image.Image objects replaced by their hashes.
     """
 
     def _process_value(value):
-        # Bytes -> hash
-        from PIL import Image
-
         if isinstance(value, (bytes, bytearray)):
             return convert_bytes_to_hash(value)
-        # PIL Image -> hash
-        if isinstance(value, Image.Image):
-            return convert_pil_to_hash(value)
-        # Nested dictionary -> recurse
+        # PIL Image -> hash via duck typing
+        if hasattr(value, "tobytes") and hasattr(value, "mode"):
+            return hashlib.sha256(value.tobytes()).hexdigest()
         if isinstance(value, dict):
             return {k: _process_value(v) for k, v in value.items()}
         # List or tuple -> recurse, preserving type
@@ -634,17 +592,11 @@ def hash_dict_images(data_dict):
     if not isinstance(data_dict, dict):
         raise TypeError("Input must be a dictionary")
 
-    return (
-        {key: _process_value(val) for key, val in data_dict.items()}
-        if importlib.util.find_spec("PIL")
-        else data_dict
-    )
+    return {key: _process_value(val) for key, val in data_dict.items()}
 
 
 class RemoteTokenizer:
-    """
-    Minimal robust tokenizer that uses vLLM server's tokenizer endpoints.
-    """
+    """Minimal robust tokenizer that uses vLLM server's tokenizer endpoints."""
 
     def __init__(
         self,
@@ -697,9 +649,10 @@ class RemoteTokenizer:
                     **kwargs,
                 )
                 resp.raise_for_status()
-                return resp
             except requests.RequestException as e:
                 last_exc = e
+            else:
+                return resp
         raise RuntimeError(
             f"RemoteTokenizer: {method} {url} failed after {self.max_retries} attempts: {last_exc}"
         )
@@ -755,7 +708,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         tokens = resp.json().get("tokens")
         if not isinstance(tokens, list):
-            raise RuntimeError("Malformed response from /tokenize endpoint.")
+            raise TypeError("Malformed response from /tokenize endpoint.")
         return tokens
 
     def decode(self, tokens: list[int]) -> str:
@@ -764,7 +717,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         prompt = resp.json().get("prompt")
         if not isinstance(prompt, str):
-            raise RuntimeError("Malformed response from /detokenize endpoint.")
+            raise TypeError("Malformed response from /detokenize endpoint.")
         return prompt
 
     def batch_decode(self, tokens_list: list[list[int]]) -> list[str]:
@@ -798,9 +751,9 @@ def check_remote_tokenizer_support(
     auth_token: str | None = None,
     max_retries: int = 3,
 ) -> bool:
-    """
-    Check if server supports remote tokenizer endpoints.
-    Returns True if both /tokenizer_info and /tokenize endpoints are available and functional, False otherwise.
+    """Check if server supports remote tokenizer endpoints.
+
+    Returns True if both ``/tokenizer_info`` and ``/tokenize`` are available, False otherwise.
     """
     if not base_url:
         return False
@@ -831,9 +784,10 @@ def check_remote_tokenizer_support(
                     **kwargs,
                 )
                 resp.raise_for_status()
-                return resp
             except requests.RequestException:
                 pass
+            else:
+                return resp
         return None
 
     # Check /tokenizer_info

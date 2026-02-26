@@ -9,13 +9,14 @@ from typing import TYPE_CHECKING, Any
 
 from typing_extensions import TypedDict
 
-from lm_eval.result_schema import EvalResults, _SampleCount, _TaskMetrics
+from lm_eval.result_schema import _SampleCount
 from lm_eval.utils import positional_deprecated
 
 
 if TYPE_CHECKING:
     from lm_eval.api.group import Group
     from lm_eval.api.task import Task
+    from lm_eval.result_schema import EvalResults, _TaskMetrics
     from lm_eval.tasks import TaskManager
 
 
@@ -53,10 +54,7 @@ def get_sample_size(task, limit: float | None) -> int | None:
 
 @positional_deprecated
 def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
-    """
-    Search upward in the directory tree to a maximum of three layers
-    to find and return the package root (containing the 'tests' folder)
-    """
+    """Search upward in the directory tree to a maximum of three layers to find and return the package root (containing the 'tests' folder)."""
     cur_path = start_path.resolve()
     max_layers = 3
     for _ in range(max_layers):
@@ -71,9 +69,7 @@ def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
 
 @positional_deprecated
 def run_task_tests(task_list: list[str]):
-    """
-    Find the package root and run the tests for the given tasks
-    """
+    """Find the package root and run the tests for the given tasks."""
     import pytest
 
     package_root = find_test_root(start_path=pathlib.Path(__file__))
@@ -184,8 +180,7 @@ def _collect_results(
     groups: dict[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
 ) -> EvalAcc:
-    """
-    Collect and aggregate task results into EvalAcc container.
+    """Collect and aggregate task results into EvalAcc container.
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
@@ -229,8 +224,7 @@ def _collect_results(
 def aggregate_groups(
     results: EvalAcc,
 ) -> EvalAcc:
-    """
-    Compute aggregated metrics for groups.
+    """Compute aggregated metrics for groups.
 
     Processes groups bottom-up (children before parents) and delegates
     aggregation to each Group's aggregate() method.
@@ -254,10 +248,9 @@ def aggregate_groups(
 
 
 def _get_root_groups(groups: dict[str, Group]) -> list[Group]:
-    """
-    Find groups that aren't children of any other group.
-    We assume all groups have unique names and no cycles exist.
+    """Find groups that aren't children of any other group.
 
+    We assume all groups have unique names and no cycles exist.
     These are the "top-level" groups for traversal.
     """
     # Collect all group names that appear as children of other groups
@@ -271,8 +264,7 @@ def _get_root_groups(groups: dict[str, Group]) -> list[Group]:
 
 
 def _collect_groups_bottom_up(groups: dict[str, Group]) -> list[Group]:
-    """
-    Collect all groups in bottom-up order (children before parents).
+    """Collect all groups in bottom-up order (children before parents).
 
     This is a post-order traversal that ensures subgroups are processed
     before their parent groups.
@@ -305,8 +297,7 @@ def _process_results(
     groups: dict[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
 ) -> EvalAcc:
-    """
-    Process evaluation results.
+    """Process evaluation results.
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.

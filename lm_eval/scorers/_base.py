@@ -196,7 +196,7 @@ class Scorer:
     # ------------------------------------------------------------------
 
     def score_instances(
-        self, instances: dict[int, list[Instance]]
+        self, instances: Mapping[int, list[Instance]]
     ) -> dict[int, ScoredDoc]:
         """Score all documents' instances, returning a ``ScoredDoc`` per document.
 
@@ -290,7 +290,7 @@ class Scorer:
 
     def aggregate(
         self,
-        metric_results: dict[str, list] | None = None,
+        metric_results: Mapping[str, list[Any]] | None = None,
         bootstrap_iters: int | None = 100000,
         aggregation_overrides: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int]:
@@ -443,7 +443,7 @@ class GenScorer(Scorer):
     # ------------------------------------------------------------------
 
     def score_instances(
-        self, instances: dict[int, list[Instance]]
+        self, instances: Mapping[int, list[Instance]]
     ) -> dict[int, ScoredDoc]:
         """Extract inputs from instances and delegate to :meth:`score_batch`.
 

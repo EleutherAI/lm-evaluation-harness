@@ -4,22 +4,19 @@ from lm_eval.api.registry import register_filter
 
 @register_filter("decontaminate")
 class DecontaminationFilter(Filter):
-    """
-    A filter which evaluates
-    """
+    """A filter which evaluates."""
 
     name = "track_decontamination"
 
     def __init__(self, path, **kwargs) -> None:
-        """
+        """Load decontamination results from the given path.
 
-        TODO: make sure only ever run one time on the train set (should this be cached as a class var? keyed by value for "path").
-        should further cache result on a given (task_name, doc_id)
+        TODO: make sure only ever run one time on the train set
+        (should this be cached as a class var? keyed by value for "path").
+        Should further cache result on a given (task_name, doc_id).
         """
         self._decontam_results = None
 
     def apply(self, resps, docs):
-        """
-        Return {"no_contamination", "only_contamination"} keys for the 2 different subsets
-        """
+        """Return {"no_contamination", "only_contamination"} keys for the 2 different subsets."""
         raise NotImplementedError

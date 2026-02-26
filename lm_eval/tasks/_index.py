@@ -9,7 +9,7 @@ from ._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Mapping
     from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -29,14 +29,12 @@ class Entry:
     name: str
     kind: Kind
     yaml_path: Path | None  # None for generated / py-only entries
-    cfg: dict[str, Any] | None = None
+    cfg: Mapping[str, Any] | None = None
     tags: set[str] = field(default_factory=set)
 
 
 class TaskIndex:
-    """Walks one or more directories, parses YAML quickly (functions unresolved),
-    and produces a mapping {task_name: Entry}.
-    """
+    """Walks one or more directories, parses YAML quickly (functions unresolved), and produces a mapping {task_name: Entry}."""
 
     def __init__(self, *, meta: dict[str, str] | None = None) -> None:
         pass
@@ -60,7 +58,7 @@ class TaskIndex:
                         recursive=resolve_includes,
                     )
                     TaskIndex.process_cfg(cfg, yaml_path, path_index)
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001
                     log.debug("Skip %s (%s)", yaml_path, err)
                     continue
 
@@ -152,7 +150,7 @@ class TaskIndex:
             entry.tags.add(task)
 
     @staticmethod
-    def _kind_of(cfg: dict) -> Kind:
+    def _kind_of(cfg: Mapping) -> Kind:
         match cfg:
             # Python task: has 'class' key (check before 'task' since PY_TASK may have both)
             case {"class": _}:
@@ -177,7 +175,7 @@ class TaskIndex:
         return Entry(name=name, kind=kind, yaml_path=path) if name else None
 
     @staticmethod
-    def entry_from_config(cfg: dict[str, Any]) -> Entry | None:
+    def entry_from_config(cfg: Mapping[str, Any]) -> Entry | None:
         """Create an Entry from a raw config dict (not in the index)."""
         _kind = TaskIndex._kind_of(cfg)
         match _kind:

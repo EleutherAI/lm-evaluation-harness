@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import re
 import sys
-from collections.abc import Iterable, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 @register_filter("regex")
@@ -22,8 +27,8 @@ class RegexFilter(Filter):
         group_select: int = 0,
         fallback: str = "[invalid]",
     ) -> None:
-        """
-        Pass a string `regex` to run `re.compile(r"regex")` on.
+        """Compile `regex_pattern` and set the fallback for non-matches.
+
         `fallback` defines the output returned if no matches for the regex are located.
         """
         self.regex_pattern = regex_pattern
@@ -64,8 +69,8 @@ class POSFilter(Filter):
         group_select=0,
         fallback=None,
     ) -> None:
-        """
-        Pass a string `regex` to run `re.compile(r"regex")` on.
+        """Compile `regex_pattern` and set the fallback for non-matches.
+
         `fallback` defines the output returned if no matches for the regex are located.
         """
         if fallback is None:
@@ -113,11 +118,10 @@ class WhitespaceFilter(Filter):
 
 @register_filter("multi_choice_regex")
 class MultiChoiceRegexFilter(RegexFilter):
-    """
-    A filter used to extract a model's answer on multiple choice questions with
-    letter answers. assumes each document has a "choices" field
-    containing the list of answer choices and that the answer label symbols
-    are of the form (A), (B), (C), ... or A, B, C.
+    """Extract a model's answer on multiple choice questions with letter answers.
+
+    Assumes each document has a "choices" field containing the list of answer choices
+    and that the answer label symbols are of the form (A), (B), (C), ... or A, B, C.
     """
 
     def __init__(
@@ -129,14 +133,18 @@ class MultiChoiceRegexFilter(RegexFilter):
         ignore_punctuation: bool = False,
         regexes_to_ignore: list[str] | None = None,
     ) -> None:
-        """
-        regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
-                        - step 1 : We parse the choices between ([A-Z])s then try to find these choices in the response.
-                        - step 2 : We parse the choice with regex: r's*([A-?])', where ? varies by number of choices.
-        group_select: Selects the (group_select)th match from the findall result.
-        ignore_case: Ignores the case during step 1 matching
-        ignore_punctuation: Remove the punctuation during step 1 matching
-        regexes_to_ignore: Remove these regexes during step 1 matching
+        r"""Configure the multi-choice regex filter.
+
+        Args:
+            regex_pattern: The basic regex pattern to use. If it fails to match,
+                a customized procedure is used:
+                step 1 — parse choices between ([A-Z])s and search in the response.
+                step 2 — parse with regex ``r'\s*([A-?])'``, where ``?`` varies by
+                number of choices.
+            group_select: Selects the (group_select)th match from the findall result.
+            ignore_case: Ignore case during step 1 matching.
+            ignore_punctuation: Remove punctuation during step 1 matching.
+            regexes_to_ignore: Remove these regexes during step 1 matching.
         """
         super().__init__(regex_pattern, group_select, fallback)
         self.ignore_case = ignore_case

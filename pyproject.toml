@@ -130,7 +130,7 @@ explicit-preview-rules = true
 future-annotations = true
 extend-select = [
     # bugbear, comprehension, docstyle, pycodestyle, pyflakes
-    "B", "C419", "D", "E", "F",
+    "B", "C4", "D", "E", "F",
     # refurb, isort, typecheck, useless-if-else
     "FURB", "I", "TC", "RUF034",
      # flake8-bandit, simplify, pyupgrade, invalid-escape-sequence
@@ -138,7 +138,7 @@ extend-select = [
 ]
 fixable = [
      # bugbear, pydocstyle, pycodestyle, unused-import
-    "B", "D", "E", "F401",
+    "B", "C4","D", "E", "F401",
     # refurb, unsorted-imports, ruff-specific
     "FURB", "I001", "RUF",
     # simplify, type-checking, pyupgrade, invalid-escape
@@ -154,7 +154,7 @@ ignore = [
 
 [tool.ruff.lint.extend-per-file-ignores]
  # unused-import, import-shadowed-by-loop-var, undefined-local-with-import-star, undefined-local-with-import-star-usage
-"__init__.py" = ["F401", "F402", "F403", "F405"]
+"__init__.py" = ["F401", "F402", "F403", "F405", "F822"]
 "lm_eval/api/metrics.py" = [
     "F401", "F403"]   # unused-import
 

@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Generic
+from typing import TYPE_CHECKING, Any, Generic
 
 from typing_extensions import TypedDict, TypeVar
 
-from lm_eval.result_schema import OutputType
-
 from ._types import Completion, GenArgs, LLArgs, LLOutput
+
+
+if TYPE_CHECKING:
+    from lm_eval.result_schema import OutputType
 
 
 InputT = TypeVar("InputT", bound=LLArgs | GenArgs)
@@ -13,9 +17,7 @@ OutputT = TypeVar("OutputT", bound=list[LLOutput] | list[Completion])
 
 
 class AdditionalArgs(TypedDict, total=False):
-    """
-    Additional arguments that can be passed to the instance, e.g. for multimodal tasks.
-    """
+    """Additional arguments that can be passed to the instance, e.g. for multimodal tasks."""
 
     audio: Any
     visual: Any
@@ -45,9 +47,7 @@ class Instance(Generic[InputT, OutputT]):
 
     @property
     def args(self) -> InputT:
-        """
-        Returns (string,) where `string` is the string to calculate loglikelihood over
-        """
+        """Returns (string,) where `string` is the string to calculate loglikelihood over."""
         return (
             self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
         )

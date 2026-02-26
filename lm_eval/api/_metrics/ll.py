@@ -47,7 +47,6 @@ def acc_fn(
     For multiple-choice (multiple lls): 1 if argmax(lls) matches gold.
     For single loglikelihood (one ll): 1 if the continuation was decoded greedily.
     """
-
     if len(predictions.lls) == 1:
         # Plain loglikelihood: acc = greedy decode match
         return int(predictions.is_greedy[0])
@@ -238,7 +237,6 @@ def choice_logprob_norm_fn(references: int, predictions: LLResults) -> float:
 )
 def brier_score(references: int, predictions: LLResults) -> float:
     """Per-sample Brier score: sum of squared errors between softmax probs and one-hot gold."""
-
     probs = softmax(np.array(predictions.lls))
     one_hot = np.zeros_like(probs)
     one_hot[references] = 1.0

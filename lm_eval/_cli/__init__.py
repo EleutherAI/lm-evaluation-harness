@@ -1,6 +1,4 @@
-"""
-CLI subcommands to run from the terminal.
-"""
+"""CLI subcommands to run from the terminal."""
 
 from .harness import HarnessCLI
 

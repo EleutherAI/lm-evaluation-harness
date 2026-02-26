@@ -4,7 +4,7 @@ import logging
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-from lm_eval.api.instance import Instance, LLInstance
+from lm_eval.api.instance import Instance
 from lm_eval.api.utils import ends_with_whitespace
 from lm_eval.config.utils import _coerce_list, _resolve_target_index, process_field
 
@@ -12,9 +12,10 @@ from ._task import Task
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from lm_eval.api._types import ChatTemplate, Doc
+    from lm_eval.api.instance import LLInstance
     from lm_eval.config import TaskConfig
 
 
@@ -36,7 +37,7 @@ class MultipleChoiceTask(Task):
     def construct_requests(
         self,
         doc: dict[str, Any],
-        ctx: str | list[str] | list[dict[str, Any]],
+        ctx: str | Sequence[str] | list[dict[str, str]],
         *,
         doc_id: int,
         metadata: dict[str, Any] | None = None,
@@ -132,7 +133,7 @@ class MultipleChoiceTask(Task):
         self,
         doc: dict[str, Any],
         ctx: list[dict[str, str]],
-        choices: list[str],
+        choices: Sequence[str],
         target_delimiter: str,
         target: Any,
         *,
@@ -170,7 +171,7 @@ class MultipleChoiceTask(Task):
 
     @staticmethod
     def _multiple_input_args(
-        *, context: list[str], choices: list[str], target_delimiter: str
+        *, context: Sequence[str], choices: Sequence[str], target_delimiter: str
     ) -> list[tuple[str, str]]:
         assert isinstance(context, list) and isinstance(context[0], str), (
             "For multiple input tasks, ctx should be a list of strings"
@@ -268,7 +269,7 @@ class LoglikelihoodTask(Task):
     def construct_requests(
         self,
         doc: dict[str, Any],
-        ctx: str | list[str] | list[dict[str, Any]],
+        ctx: str | Sequence[str] | list[dict[str, Any]],
         *,
         doc_id: int,
         metadata: dict[str, Any] | None = None,
@@ -334,7 +335,7 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
     def construct_requests(
         self,
         doc: dict[str, Any],
-        ctx: str | list[str] | list[dict[str, Any]],
+        ctx: str | Sequence[str] | list[dict[str, Any]],
         *,
         doc_id: int,
         metadata: dict[str, Any] | None = None,

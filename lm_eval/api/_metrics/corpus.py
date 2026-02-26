@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Generic
 
 import numpy as np
@@ -14,6 +14,8 @@ from lm_eval.utils import warning_once
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from numpy import float64
     from numpy._typing import NDArray
 
@@ -208,7 +210,7 @@ def _sacreformat(
     refs: Sequence[str] | Sequence[Sequence[str]],
     preds: Sequence[str] | Sequence[Sequence[str]],
 ) -> tuple[list[tuple[str, ...]], list[str]]:
-    """Format refs and preds for sacrebleu corpus calculation. It is very particular"""
+    """Format refs and preds for sacrebleu corpus calculation. It is very particular."""
     # Sacrebleu expects (List[str], List[List[str])
     #   e.g. sacrebleu.corpus_bleu([pred_t], [[ref1_stream], [ref2_stream], ...])
 

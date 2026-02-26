@@ -1,4 +1,5 @@
-from collections.abc import Callable, Iterable, Sequence
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -6,6 +7,8 @@ from typing_extensions import Protocol, TypeVar, runtime_checkable
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Sequence
+
     from lm_eval.api._types import Completion, LLOutput
     from lm_eval.api.instance import Instance
 
@@ -70,7 +73,7 @@ class FilterEnsemble:
         Callable[[], Filter]
     ]  # factories; typically partial(FilterCls, **kwargs) via build_filter_ensemble()
 
-    def apply(self, instances: Sequence["Instance"]) -> None:
+    def apply(self, instances: Sequence[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances), strict=True)
         # resps, docs = list(resps), list(docs)
 

@@ -16,7 +16,7 @@ from lm_eval.tasks import TaskManager
 
 from .defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from .evaluator_utils import (
-    ResultAcc,
+    ResultAcc,  # noqa: TC001
     _build_logged_samples,
     _handle_back_comp,
     _log_selected_tasks,
@@ -481,7 +481,6 @@ def evaluate(
     Returns:
         dict | None: Dictionary of results, or None if not on rank 0.
     """
-
     if limit is not None and samples is not None:
         raise ValueError(
             "Either 'limit' or 'samples' must be None, but both are not None."
