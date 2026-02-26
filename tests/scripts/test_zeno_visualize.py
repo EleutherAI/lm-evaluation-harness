@@ -15,11 +15,9 @@ from scripts.zeno_visualize import sanitize_string
 
 
 def test_zeno_sanitize_string():
-    """
-    Test that the model_args handling logic in zeno_visualize.py properly handles
+    """Test that the model_args handling logic in zeno_visualize.py properly handles
     different model_args formats (string and dictionary).
     """
-
     # Define the process_model_args function that replicates the fixed logic in zeno_visualize.py
     # Test case 1: model_args as a string
     string_model_args = "pretrained=EleutherAI/pythia-160m,dtype=float32"

@@ -999,6 +999,15 @@ class Task:
     def task_name(self) -> str:
         return getattr(self.config, "task", random_task_id())
 
+    @property
+    def _qualified_name(self) -> str:
+        """Namespaced identity used as dict key throughout the pipeline.
+
+        Returns config._qualified_name if set (e.g. "group::arc_easy"),
+        otherwise falls back to task_name (bare name).
+        """
+        return self.config._qualified_name or self.task_name
+
     @cached_property
     def id(self):
         from random import Random

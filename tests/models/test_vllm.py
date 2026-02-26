@@ -1,7 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 from lm_eval import tasks
-from lm_eval.api.instance import Instance
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.instance import Instance
 
 
 task_manager = tasks.TaskManager()

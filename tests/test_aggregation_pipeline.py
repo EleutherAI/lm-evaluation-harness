@@ -1,16 +1,16 @@
 # type:ignore[invalid-assignment]
-"""
-End-to-end tests for the aggregation pipeline:
-  raw per-sample values → task aggregation → group aggregation
+"""End-to-end tests for the aggregation pipeline: raw per-sample values → task aggregation → group aggregation.
 
 Tests the full path through:
   _compute_task_aggregations → _collect_results → aggregate_groups
   (wrapped by _process_results)
 """
 
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -19,11 +19,16 @@ from lm_eval.api.group import AggMetricConfig, Group
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import Task
 from lm_eval.evaluator_utils import (
-    ResultAcc,
     _process_results,
 )
-from lm_eval.result_schema import _TaskMetrics
 from lm_eval.scorers import ScoredDoc, Scorer
+
+
+if TYPE_CHECKING:
+    from lm_eval.evaluator_utils import (
+        ResultAcc,
+    )
+    from lm_eval.result_schema import _TaskMetrics
 
 
 # ---------------------------------------------------------------------------

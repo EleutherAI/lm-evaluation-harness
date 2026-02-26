@@ -374,7 +374,7 @@ class TestValidateCommand:
 
 
 class TestEvaluatorConfigTaskLoading:
-    """Test EvaluatorConfig task loading"""
+    """Test EvaluatorConfig task loading."""
 
     @patch("lm_eval.tasks.TaskManager")
     def test_process_tasks_comma_separated_in_list(self, mock_task_manager):
@@ -808,7 +808,7 @@ class TestMergeDictAction:
         assert args.args == {"outer": {"inner": "value"}}
 
     def test_empty_values(self):
-        """Test that empty values result in None"""
+        """Test that empty values result in None."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--args", nargs="*", action=MergeDictAction)
 

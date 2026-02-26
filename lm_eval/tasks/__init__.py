@@ -64,41 +64,6 @@ def get_task_name_from_object(task_object):
     )
 
 
-def _check_duplicates(task_dict: dict) -> None:
-    """Check that no leaf task appears in more than one top-level group.
-
-    Traverses the nested dict returned by load_task_or_group and errors
-    if any leaf task is claimed by multiple disjoint groups.
-    """
-    from lm_eval.api.group import Group
-
-    def _collect_leaf_tasks(d: dict) -> list[str]:
-        """Recursively collect leaf task name strings from nested dict."""
-        tasks = []
-        for key, value in d.items():
-            if isinstance(value, dict):
-                tasks.extend(_collect_leaf_tasks(value))
-            else:  # value is a Task
-                tasks.append(key if isinstance(key, str) else key.task_name)
-        return tasks
-
-    subtask_map = {}
-    for key, value in task_dict.items():
-        if isinstance(key, Group) and isinstance(value, dict):
-            group_name = key.group_name if hasattr(key, "group_name") else key.name
-            subtask_map[group_name] = _collect_leaf_tasks(value)
-
-    all_tasks = [t for tasks in subtask_map.values() for t in tasks]
-    duplicates = {t for t in all_tasks if all_tasks.count(t) > 1}
-    if duplicates:
-        competing = [g for g, tasks in subtask_map.items() if set(tasks) & duplicates]
-        raise ValueError(
-            f"Found tasks in multiple groups: {list(duplicates)}. "
-            f"Offending groups: {competing}. "
-            f"Please call groups which overlap in separate evaluation runs."
-        )
-
-
 def _log_task_dict(task_dict: dict, task_manager: TaskManager) -> None:
     """Log the selected tasks with hierarchy information."""
     from lm_eval.api.group import ConfigurableGroup
@@ -174,8 +139,7 @@ def get_task_dict(
     for task_obj in task_objects:
         result[get_task_name_from_object(task_obj)] = task_obj
 
-    # Validate and log
-    _check_duplicates(result)
+    # Log
     _log_task_dict(result, task_manager)
 
     return result

@@ -31,36 +31,36 @@ DOC = {"question": "What colour is the sky?", "answer": "blue", "label": "1", "i
 
 def _make_task(**overrides) -> Task:
     """Build a minimal Task (generate_until) for testing doc_to_* methods."""
-    defaults = dict(
-        task="test_task",
-        output_type="generate_until",
-        dataset_path="dummy",
-        test_split="test",
-    )
+    defaults = {
+        "task": "test_task",
+        "output_type": "generate_until",
+        "dataset_path": "dummy",
+        "test_split": "test",
+    }
     defaults.update(overrides)
     return Task(TaskConfig(**defaults))  # type:ignore[invalid-argument-type]
 
 
 def _make_mc_task(**overrides) -> MultipleChoiceTask:
     """Build a minimal MultipleChoiceTask."""
-    defaults = dict(
-        task="test_mc",
-        output_type="multiple_choice",
-        dataset_path="dummy",
-        test_split="test",
-    )
+    defaults = {
+        "task": "test_mc",
+        "output_type": "multiple_choice",
+        "dataset_path": "dummy",
+        "test_split": "test",
+    }
     defaults.update(overrides)
     return MultipleChoiceTask(TaskConfig(**defaults))  # type:ignore[invalid-argument-type]
 
 
 def _make_ll_task(**overrides) -> LoglikelihoodTask:
     """Build a minimal LoglikelihoodTask."""
-    defaults = dict(
-        task="test_ll",
-        output_type="loglikelihood",
-        dataset_path="dummy",
-        test_split="test",
-    )
+    defaults = {
+        "task": "test_ll",
+        "output_type": "loglikelihood",
+        "dataset_path": "dummy",
+        "test_split": "test",
+    }
     defaults.update(overrides)
     return LoglikelihoodTask(TaskConfig(**defaults))  # type:ignore[invalid-argument-type]
 

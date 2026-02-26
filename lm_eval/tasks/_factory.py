@@ -205,7 +205,11 @@ class TaskFactory:
             # Handle inline task (not in registry)
             if base_name not in registry:
                 namespaced = f"{group_name}::{base_name}"
-                task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
+                task_cfg: dict[str, Any] = {
+                    **item_overrides,
+                    "task": namespaced,
+                    "_qualified_name": namespaced,
+                }
                 task_cfg.setdefault("task_alias", base_name)
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
                 task_cfg["metadata"]["config_source"] = (
@@ -225,26 +229,21 @@ class TaskFactory:
 
                 case Entry(kind=Kind.TAG):
                     for task_name in sorted(child_entry.tags):
-                        # TODO not adding namespaces currently
-                        # namespaced = f"{group_name}::{task_name}"
-                        namespaced = task_name
+                        namespaced = f"{group_name}::{task_name}"
                         child_obj = self.build(
                             registry[task_name],
-                            overrides={"task": namespaced, **item_overrides},
+                            overrides={"_qualified_name": namespaced, **item_overrides},
                             registry=registry,
                         )
                         children.append(cast("Task", child_obj))
-                        # also register to index with new namespaced name
                         registry[namespaced] = registry[task_name]
 
                 case _:
                     # TASK or PY_TASK
-                    # TODO not adding namespaces currently
-                    # namespaced = f"{group_name}::{base_name}"
-                    namespaced = base_name
+                    namespaced = f"{group_name}::{base_name}"
                     child_obj = self.build(
                         child_entry,
-                        overrides={"task": namespaced, **item_overrides},
+                        overrides={"_qualified_name": namespaced, **item_overrides},
                         registry=registry,
                     )
                     children.append(cast("Task", child_obj))

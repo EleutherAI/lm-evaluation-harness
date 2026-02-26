@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from itertools import islice
 
 import pytest
@@ -8,9 +10,14 @@ pytest.skip(
 )
 
 
+from typing import TYPE_CHECKING
+
 from lm_eval import tasks as tasks
-from lm_eval.api.task import ConfigurableTask
 from tests.test_tasks import BaseTasks, task_class
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.task import ConfigurableTask
 
 
 @pytest.fixture()
@@ -26,10 +33,9 @@ def limit() -> int:
     ids=lambda x: f"{x.config.task}",
 )
 class TestUnitxtTasks(BaseTasks):
-    """
-    Test class for Unitxt tasks parameterized with a small custom
+    """Test class for Unitxt tasks parameterized with a small custom
     task as described here:
-      https://www.unitxt.ai/en/latest/docs/lm_eval.html
+      https://www.unitxt.ai/en/latest/docs/lm_eval.html.
     """
 
     def test_check_training_docs(self, task_class: ConfigurableTask):

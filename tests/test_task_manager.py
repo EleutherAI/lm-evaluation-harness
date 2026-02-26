@@ -82,7 +82,7 @@ def test_python_task_inclusion(
 
 class TestConfigLoader:
     def test_load_simple_yaml(self, tmp_path):
-        """Load a basic YAML without includes or functions"""
+        """Load a basic YAML without includes or functions."""
         content = """
 task: simple_test
 dataset_path: test_dataset
@@ -98,7 +98,7 @@ output_type: generate_until
         assert cfg["output_type"] == "generate_until"
 
     def test_load_yaml_with_include(self, tmp_path):
-        """Load YAML that includes another file"""
+        """Load YAML that includes another file."""
         base_content = """
 dataset_path: base_dataset
 output_type: multiple_choice
@@ -122,7 +122,7 @@ num_fewshot: 10
         assert cfg["output_type"] == "multiple_choice"
 
     def test_load_yaml_with_function_tag_resolved(self, tmp_path):
-        """Load YAML with !function tag, resolve_func=True"""
+        """Load YAML with !function tag, resolve_func=True."""
         utils_content = """
 def my_processor(doc):
     return doc
@@ -140,7 +140,7 @@ process_docs: !function utils.my_processor
         assert callable(cfg["process_docs"])
 
     def test_load_yaml_without_function_resolution(self, tmp_path):
-        """Load YAML with !function tag, resolve_func=False (returns path string)"""
+        """Load YAML with !function tag, resolve_func=False (returns path string)."""
         yaml_content = """
 task: func_test
 process_docs: !function utils.my_processor
@@ -155,7 +155,7 @@ process_docs: !function utils.my_processor
         assert "utils.my_processor" in cfg["process_docs"]
 
     def test_load_yaml_recursive_includes(self, tmp_path):
-        """Load YAML with nested includes"""
+        """Load YAML with nested includes."""
         grandparent = """
 output_type: generate_until
 metric_list:
@@ -180,7 +180,7 @@ task: nested_task
         assert cfg["output_type"] == "generate_until"
 
     def test_load_yaml_cycle_detection(self, tmp_path):
-        """Detect include cycles"""
+        """Detect include cycles."""
         a_content = """
 include: b.yaml
 task: a
@@ -203,7 +203,7 @@ task: b
 
 class TestKind:
     def test_kind_enum_values(self):
-        """Verify Kind enum has expected values"""
+        """Verify Kind enum has expected values."""
         assert Kind.TASK is not None
         assert Kind.PY_TASK is not None
         assert Kind.GROUP is not None
@@ -212,7 +212,7 @@ class TestKind:
 
 class TestEntry:
     def test_entry_dataclass_fields(self):
-        """Verify Entry has expected fields"""
+        """Verify Entry has expected fields."""
         entry = Entry(
             name="test",
             kind=Kind.TASK,
@@ -229,7 +229,7 @@ class TestEntry:
 
 class TestTaskIndex:
     def test_build_from_directory(self, tmp_path):
-        """Build index from a directory with YAML files"""
+        """Build index from a directory with YAML files."""
         task_content = """
 task: test_task
 dataset_path: test
@@ -244,7 +244,7 @@ output_type: generate_until
         assert result["test_task"].kind == Kind.TASK
 
     def test_deterministic_traversal(self, tmp_path):
-        """Verify files are processed in sorted order"""
+        """Verify files are processed in sorted order."""
         # Create files that would be in different order without sorting
         (tmp_path / "z_task.yaml").write_text("task: z_task\ndataset_path: z")
         (tmp_path / "a_task.yaml").write_text("task: a_task\ndataset_path: a")
@@ -259,7 +259,7 @@ output_type: generate_until
         assert "z_task" in result
 
     def test_duplicate_task_detection(self, tmp_path, caplog):
-        """Verify warning logged for duplicate task names"""
+        """Verify warning logged for duplicate task names."""
         # Create subdirectories with duplicate task names
         dir1 = tmp_path / "dir1"
         dir2 = tmp_path / "dir2"
@@ -279,7 +279,7 @@ output_type: generate_until
         assert "Duplicate task name" in caplog.text
 
     def test_duplicate_group_detection(self, tmp_path, caplog):
-        """Verify debug message logged for duplicate group names"""
+        """Verify debug message logged for duplicate group names."""
         dir1 = tmp_path / "dir1"
         dir2 = tmp_path / "dir2"
         dir1.mkdir()
@@ -304,25 +304,25 @@ task:
         assert "Duplicate group name" in caplog.text
 
     def test_kind_detection_task(self):
-        """Config with 'task' key (string) detected as TASK"""
+        """Config with 'task' key (string) detected as TASK."""
         cfg = {"task": "my_task", "dataset_path": "test"}
         kind = TaskIndex._kind_of(cfg)
         assert kind == Kind.TASK
 
     def test_kind_detection_group(self):
-        """Config with 'group' key detected as GROUP"""
+        """Config with 'group' key detected as GROUP."""
         cfg = {"group": "my_group", "task": ["task1", "task2"]}
         kind = TaskIndex._kind_of(cfg)
         assert kind == Kind.GROUP
 
     def test_kind_detection_py_task(self):
-        """Config with 'class' key detected as PY_TASK"""
+        """Config with 'class' key detected as PY_TASK."""
         cfg = {"task": "my_task", "class": "SomeClass"}
         kind = TaskIndex._kind_of(cfg)
         assert kind == Kind.PY_TASK
 
     def test_tag_registration(self, tmp_path):
-        """Tags from tasks are registered in index"""
+        """Tags from tasks are registered in index."""
         task_content = """
 task: tagged_task
 dataset_path: test
@@ -339,7 +339,7 @@ tag: my_custom_tag
         assert "tagged_task" in result["my_custom_tag"].tags
 
     def test_ignore_pycache(self, tmp_path):
-        """Files in __pycache__ are ignored"""
+        """Files in __pycache__ are ignored."""
         pycache = tmp_path / "__pycache__"
         pycache.mkdir()
         (pycache / "task.yaml").write_text("task: should_ignore\ndataset_path: t")
@@ -358,29 +358,29 @@ tag: my_custom_tag
 # Module-level fixture to avoid re-creating TaskManager for each test
 @pytest.fixture(scope="module")
 def shared_task_manager():
-    """Create a TaskManager with default tasks"""
+    """Create a TaskManager with default tasks."""
     return TaskManager()
 
 
 @pytest.fixture(scope="module")
 def test_configs_task_manager():
-    """TaskManager with only test_configs tasks"""
+    """TaskManager with only test_configs tasks."""
     test_configs_path = Path(__file__).parent / "test_configs"
     return TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
 
 class TestTaskManagerIntegration:
     def test_initialization(self, shared_task_manager):
-        """TaskManager initializes with default tasks"""
+        """TaskManager initializes with default tasks."""
         assert len(shared_task_manager.all_tasks) > 0
 
     def test_all_tasks_sorted(self, shared_task_manager):
-        """all_tasks returns sorted list"""
+        """all_tasks returns sorted list."""
         tasks = shared_task_manager.all_tasks
         assert tasks == sorted(tasks)
 
     def test_all_groups_property(self, shared_task_manager):
-        """all_groups returns only groups"""
+        """all_groups returns only groups."""
         groups = shared_task_manager.all_groups
         assert len(groups) > 0
         for g in groups[:5]:  # Check first 5
@@ -390,7 +390,7 @@ class TestTaskManagerIntegration:
             )
 
     def test_all_subtasks_property(self, shared_task_manager):
-        """all_subtasks returns TASK and PY_TASK kinds"""
+        """all_subtasks returns TASK and PY_TASK kinds."""
         subtasks = shared_task_manager.all_subtasks
         assert len(subtasks) > 0
         for t in subtasks[:5]:  # Check first 5
@@ -398,7 +398,7 @@ class TestTaskManagerIntegration:
             assert entry.kind in (Kind.TASK, Kind.PY_TASK)
 
     def test_all_tags_property(self, shared_task_manager):
-        """all_tags returns only tags"""
+        """all_tags returns only tags."""
         tags = shared_task_manager.all_tags
         assert len(tags) > 0
         for t in tags[:5]:  # Check first 5
@@ -408,12 +408,12 @@ class TestTaskManagerIntegration:
             )
 
     def test_load_task_by_name(self, test_configs_task_manager):
-        """Load a single task by name"""
+        """Load a single task by name."""
         result = test_configs_task_manager.load_task_or_group(["simple_task"])
         assert "simple_task" in result
 
     def test_load_group_by_name(self, test_configs_task_manager):
-        """Load a group and get nested structure with namespaced task names"""
+        """Load a group and get nested structure with namespaced task names."""
         result = test_configs_task_manager.load_task_or_group(["test_group"])
         # Result is {ConfigurableGroup: {task_name: task_obj}}
         # Get the children dict from the group
@@ -430,14 +430,14 @@ class TestTaskManagerIntegration:
     #     assert "arc_challenge" in result
 
     def test_include_path(self):
-        """Custom include_path adds tasks to index using tests/test_configs/"""
+        """Custom include_path adds tasks to index using tests/test_configs/."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
         # simple_task is defined in test_configs/simple_task.yaml
         assert "simple_task" in tm.all_tasks
 
     def test_include_defaults_false(self):
-        """include_defaults=False excludes built-in tasks"""
+        """include_defaults=False excludes built-in tasks."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
         # Should have tasks from test_configs
@@ -446,14 +446,14 @@ class TestTaskManagerIntegration:
         assert "arc_easy" not in tm.all_tasks
 
     def test_include_resolution(self):
-        """Test that includes are properly resolved"""
+        """Test that includes are properly resolved."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
         # include_task_fs5 includes include_base which has the actual task config
         assert "include_task_fs5" in tm.all_tasks
 
     def test_include_inheritance_override(self):
-        """Test that child config overrides parent values from include"""
+        """Test that child config overrides parent values from include."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
@@ -468,7 +468,7 @@ class TestTaskManagerIntegration:
         assert task_obj.config.dataset_path == "json"
 
     def test_include_custom_metrics(self):
-        """Test that include_task_fs5 has custom metrics (acc + acc_norm)"""
+        """Test that include_task_fs5 has custom metrics (acc + acc_norm)."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
@@ -481,14 +481,14 @@ class TestTaskManagerIntegration:
         assert "acc_norm" in metric_names
 
     def test_group_loading(self):
-        """Test that groups are indexed from test_configs"""
+        """Test that groups are indexed from test_configs."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
         # group.yaml defines a group called 'test_group'
         assert "test_group" in tm.all_groups
 
     def test_include_group(self):
-        """Test group with tasks sharing same base config via includes"""
+        """Test group with tasks sharing same base config via includes."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
         # include_group.yaml: group with include_task_fs0, fs1, fs5
@@ -499,18 +499,18 @@ class TestTaskManagerIntegration:
         assert "include_task_fs5" in tm.all_tasks
 
     def test_match_tasks_glob(self, shared_task_manager):
-        """match_tasks handles glob patterns"""
+        """match_tasks handles glob patterns."""
         matches = shared_task_manager.match_tasks(["arc_*"])
         assert "arc_easy" in matches
         assert "arc_challenge" in matches
 
     def test_name_is_registered(self, shared_task_manager):
-        """_name_is_registered checks if name exists"""
+        """_name_is_registered checks if name exists."""
         assert "arc_easy" in shared_task_manager._index
         assert "nonexistent_task_xyz" not in shared_task_manager._index
 
     def test_name_is_task_tag(self, shared_task_manager):
-        """_name_is_task returns True for tasks"""
+        """_name_is_task returns True for tasks."""
         assert "arc_easy" in shared_task_manager._index
         assert shared_task_manager._index["arc_easy"].kind == Kind.TASK
         entry = shared_task_manager._index.get("ai2_arc")
@@ -780,12 +780,12 @@ class TestTaskManagerLoad:
     """
 
     def test_load_task_by_name(self, test_configs_task_manager):
-        """Load a single task by name"""
+        """Load a single task by name."""
         result = test_configs_task_manager.load(["simple_task"])
         assert "simple_task" in result["tasks"]
 
     def test_load_group_by_name(self, test_configs_task_manager):
-        """Load a group and get tasks + groups dicts"""
+        """Load a group and get tasks + groups dicts."""
         result = test_configs_task_manager.load(["test_group"])
         assert "test_group" in result["groups"]
         tasks = result["tasks"]
@@ -793,7 +793,7 @@ class TestTaskManagerLoad:
         assert "test_group::group_task_fs2" in tasks
 
     def test_load_group_map(self, test_configs_task_manager):
-        """group_map lists direct children of each group"""
+        """group_map lists direct children of each group."""
         result = test_configs_task_manager.load(["test_group"])
         gm = result["group_map"]
         assert "test_group" in gm
@@ -801,7 +801,7 @@ class TestTaskManagerLoad:
         assert "test_group::group_task_fs2" in gm["test_group"]
 
     def test_load_tag_by_name(self, shared_task_manager):
-        """Load all tasks in a tag"""
+        """Load all tasks in a tag."""
         result = shared_task_manager.load(["ai2_arc"])
         assert "arc_easy" in result["tasks"]
         assert "arc_challenge" in result["tasks"]
@@ -809,7 +809,7 @@ class TestTaskManagerLoad:
         assert len(result["groups"]) == 0
 
     def test_include_inheritance_override(self):
-        """Child config overrides parent values from include"""
+        """Child config overrides parent values from include."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
@@ -820,7 +820,7 @@ class TestTaskManagerLoad:
         assert task_obj.config.dataset_path == "json"
 
     def test_include_custom_metrics(self):
-        """include_task_fs5 has custom metrics (acc + acc_norm)"""
+        """include_task_fs5 has custom metrics (acc + acc_norm)."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
@@ -833,15 +833,15 @@ class TestTaskManagerLoad:
         assert "acc_norm" in metric_names
 
     def test_group_include_path(self):
-        """Group with include: path applies task defaults from YAML file to children"""
+        """Group with include: path applies task defaults from YAML file to children."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
         result = tm.load(["include_group_with_defaults"])
         tasks = result["tasks"]
 
-        assert "include_task_fs0" in tasks
-        assert "include_task_fs1" in tasks
+        assert "include_group_with_defaults::include_task_fs0" in tasks
+        assert "include_group_with_defaults::include_task_fs1" in tasks
 
         # task_defaults.yaml sets num_fewshot=3 and a custom doc_to_text
         # but include_task_fs0 overrides num_fewshot=0 (per-task YAML wins)
@@ -853,22 +853,22 @@ class TestTaskManagerLoad:
             assert "Default question:" in task_obj.config.doc_to_text
 
     def test_group_include_inline(self):
-        """Group with include: dict applies inline task defaults to children"""
+        """Group with include: dict applies inline task defaults to children."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
         result = tm.load(["include_group_inline"])
         tasks = result["tasks"]
 
-        assert "include_task_fs0" in tasks
-        assert "include_task_fs1" in tasks
+        assert "include_group_inline::include_task_fs0" in tasks
+        assert "include_group_inline::include_task_fs1" in tasks
 
         for task_obj in tasks.values():
             assert isinstance(task_obj.config.doc_to_text, str)
             assert "Inline question:" in task_obj.config.doc_to_text
 
     def test_group_include_per_item_override(self):
-        """Per-item overrides in task: list take precedence over group include"""
+        """Per-item overrides in task: list take precedence over group include."""
         test_configs_path = Path(__file__).parent / "test_configs"
         tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
@@ -878,24 +878,24 @@ class TestTaskManagerLoad:
         # include_group_inline sets num_fewshot=7 via include
         # but each child task has its own num_fewshot which takes precedence
         # via the task YAML merge in _load_full_config
-        task_fs0 = tasks["include_task_fs0"]
-        task_fs1 = tasks["include_task_fs1"]
+        task_fs0 = tasks["include_group_inline::include_task_fs0"]
+        task_fs1 = tasks["include_group_inline::include_task_fs1"]
         # The group's include doc_to_text overrides the base template's
         assert task_fs0.config.num_fewshot == 7
         assert task_fs1.config.num_fewshot == 7
 
     def test_tag_expansion_in_group(self, test_configs_task_manager):
-        """TAGs inside groups expand each task individually"""
+        """TAGs inside groups expand each task individually."""
         result = test_configs_task_manager.load(["tag_subgroup"])
         tasks = result["tasks"]
 
-        assert "tag_task_1" in tasks
-        assert "tag_task_2" in tasks
-        assert "tag_task_3" in tasks
+        assert "tag_subgroup::tag_task_1" in tasks
+        assert "tag_subgroup::tag_task_2" in tasks
+        assert "tag_subgroup::tag_task_3" in tasks
         assert len(tasks) == 3
 
     def test_nested_group_with_tag(self, test_configs_task_manager):
-        """Nested groups with TAG: parent -> subgroup -> TAG -> tasks"""
+        """Nested groups with TAG: parent -> subgroup -> TAG -> tasks."""
         result = test_configs_task_manager.load(["tag_parent_group"])
 
         groups = result["groups"]
@@ -903,12 +903,12 @@ class TestTaskManagerLoad:
         assert "tag_subgroup" in groups
 
         tasks = result["tasks"]
-        assert "tag_task_1" in tasks
-        assert "tag_task_2" in tasks
-        assert "tag_task_3" in tasks
+        assert "tag_subgroup::tag_task_1" in tasks
+        assert "tag_subgroup::tag_task_2" in tasks
+        assert "tag_subgroup::tag_task_3" in tasks
 
     def test_include_path_precedence(self, shared_task_manager):
-        """User-specified include paths override default tasks"""
+        """User-specified include paths override default tasks."""
         with tempfile.TemporaryDirectory() as custom_dir:
             custom_task_content = """task: arc_easy
 dataset_path: allenai/ai2_arc
@@ -946,7 +946,7 @@ metadata:
             )
 
     def test_load_returns_same_tasks_as_legacy(self, test_configs_task_manager):
-        """load() and load_task_or_group() produce the same leaf tasks"""
+        """load() and load_task_or_group() produce the same leaf tasks."""
         new = test_configs_task_manager.load(["test_group"])
         with pytest.warns(DeprecationWarning):
             old = test_configs_task_manager.load_task_or_group(["test_group"])
@@ -984,7 +984,8 @@ class TestGroupBuilding:
     # ---- existing group reference with overrides (the key bug fix) ----
 
     def test_existing_group_ref_has_children(self, tm):
-        """
+        """Group referencing existing sub-group.
+
         When a parent group references an existing group via
         {group: include_group, ...}, the referenced group must still
         have its own children populated from the registry.
@@ -1005,10 +1006,7 @@ class TestGroupBuilding:
         )
 
     def test_existing_group_ref_overrides_propagate(self, tm):
-        """
-        Overrides specified on a group reference should propagate
-        down to the leaf tasks of the referenced group.
-        """
+        """Overrides specified on a group reference should propagate down to the leaf tasks of the referenced group."""
         loaded = tm.load(["group_ref_parent"])
         parent = loaded["groups"]["group_ref_parent"]
         include_grp = parent.get_all_groups(recursive=False)[0]
@@ -1022,10 +1020,7 @@ class TestGroupBuilding:
     # ---- group-level config propagation ----
 
     def test_group_level_config_propagates_to_children(self, tm):
-        """
-        Config keys set at the group level (outside GROUP_ONLY_KEYS)
-        should propagate to all children as defaults.
-        """
+        """Config keys set at the group level (outside GROUP_ONLY_KEYS) should propagate to all children as defaults."""
         loaded = tm.load(["propagation_group"])
         tasks = loaded["tasks"]
 
@@ -1037,10 +1032,7 @@ class TestGroupBuilding:
             )
 
     def test_caller_overrides_beat_group_defaults(self, tm):
-        """
-        Caller-supplied overrides should take precedence over
-        group-level config values.
-        """
+        """Caller-supplied overrides should take precedence over group-level config values."""
         loaded = tm.load([{"group": "propagation_group", "num_fewshot": 0}])
         tasks = loaded["tasks"]
 
@@ -1053,25 +1045,19 @@ class TestGroupBuilding:
     # ---- mixed member types ----
 
     def test_mixed_members_string_ref(self, tm):
-        """
-        A bare string in the task list should resolve to the task in
-        the registry.
-        """
+        """A bare string in the task list should resolve to the task in the registry."""
         loaded = tm.load(["mixed_members_group"])
         tasks = loaded["tasks"]
-        assert "simple_task" in tasks
+        assert "mixed_members_group::simple_task" in tasks
 
     def test_mixed_members_dict_with_overrides(self, tm):
         """A dict with 'task' key should apply inline overrides."""
         loaded = tm.load(["mixed_members_group"])
-        task_b = loaded["tasks"]["simple_task_b"]
+        task_b = loaded["tasks"]["mixed_members_group::simple_task_b"]
         assert task_b.config.num_fewshot == 7
 
     def test_mixed_members_inline_subgroup(self, tm):
-        """
-        A dict with 'group' key (not in registry) should create an
-        inline subgroup with namespacing.
-        """
+        """A dict with 'group' key (not in registry) should create an inline subgroup with namespacing."""
         loaded = tm.load(["mixed_members_group"])
         groups = loaded["groups"]
 
@@ -1082,13 +1068,25 @@ class TestGroupBuilding:
         assert inline.aggregate_metric_list is not None
         assert inline.aggregate_metric_list[0].metric == "acc"
 
+    # ---- overlapping groups ----
+
+    def test_overlapping_groups_allowed(self, tm):
+        """Two groups sharing a task should load without error."""
+        loaded = tm.load(
+            [
+                {"group": "group_a", "task": ["simple_task"]},
+                {"group": "group_b", "task": ["simple_task"]},
+            ]
+        )
+        tasks = loaded["tasks"]
+        assert "group_a::simple_task" in tasks
+        assert "group_b::simple_task" in tasks
+        assert len(tasks) == 2
+
     # ---- empty group ----
 
     def test_empty_group_has_no_children(self, tm):
-        """
-        A group with no task list should build successfully with
-        zero children.
-        """
+        """A group with no task list should build successfully with zero children."""
         loaded = tm.load(["empty_group"])
         group = loaded["groups"]["empty_group"]
         assert len(group) == 0
@@ -1120,10 +1118,7 @@ class TestGroupBuilding:
         assert result[1].weight_by_size is False
 
     def test_parse_aggregation_single_dict_normalized(self):
-        """
-        A single dict (not wrapped in a list) should be normalized
-        to a one-element list.
-        """
+        """A single dict (not wrapped in a list) should be normalized to a one-element list."""
         from lm_eval.config.group import AggMetricConfig, GroupConfig
 
         cfg = GroupConfig(
@@ -1173,10 +1168,7 @@ class TestGroupBuilding:
     # ---- nested groups ----
 
     def test_deeply_nested_get_all_tasks_recursive(self, tm):
-        """
-        get_all_tasks(recursive=True) on a parent group should
-        collect tasks from all levels of nesting.
-        """
+        """get_all_tasks(recursive=True) on a parent group should collect tasks from all levels of nesting."""
         loaded = tm.load(["group_ref_parent"])
         parent = loaded["groups"]["group_ref_parent"]
 
@@ -1185,10 +1177,7 @@ class TestGroupBuilding:
         assert len(all_tasks) == 3
 
     def test_deeply_nested_get_all_tasks_non_recursive(self, tm):
-        """
-        get_all_tasks(recursive=False) on a parent group should
-        NOT return tasks from nested subgroups.
-        """
+        """The meth: get_all_tasks(recursive=False) on a parent group should NOT return tasks from nested subgroups."""
         loaded = tm.load(["group_ref_parent"])
         parent = loaded["groups"]["group_ref_parent"]
 

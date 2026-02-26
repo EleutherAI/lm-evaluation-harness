@@ -462,6 +462,11 @@ class TaskConfig:
     (e.g. ``"cloze"`` from ``"arc_easy@cloze"``). Set automatically
     in ``__post_init__``; should not be set in YAML configs."""
 
+    _qualified_name: str | None = None
+    """Namespaced identity for pipeline tracking (e.g. ``"group_a::arc_easy"``).
+    Set automatically by the factory when a task is built as a group member.
+    Falls back to ``task`` when not set. Not intended for manual YAML use."""
+
     def __post_init__(self) -> None:
         # Extract @preset from task name as selection (e.g. "arc_easy@cloze")
         # Runtime _preset_selection takes priority over the YAML task name.

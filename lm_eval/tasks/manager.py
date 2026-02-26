@@ -18,7 +18,7 @@ from ._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Iterable, Mapping
 
     from ._index import Entry
 
@@ -251,8 +251,8 @@ class TaskManager:
     def load(
         self,
         task_list: str
-        | Sequence[str]
-        | Sequence[str | Task | Group | dict[str, Any]]
+        | list[str]
+        | list[str | Task | Group | dict[str, Any]]
         | Task
         | Group
         | dict[str, Any],
@@ -293,15 +293,14 @@ class TaskManager:
             if isinstance(item, Group):
                 groups[item.name] = item
                 for task in item.get_all_tasks():
-                    tasks[task.task_name] = task
+                    tasks[task._qualified_name] = task
                 for subgroup in item.get_all_groups():
                     groups[subgroup.name] = subgroup
             else:
-                tasks[item.task_name] = item
+                tasks[item._qualified_name] = item
 
         for item in built:
             collect(item)
-        self._check_duplicates(built)
         return {
             "tasks": tasks,
             "groups": groups,
@@ -350,32 +349,6 @@ class TaskManager:
         return dict(
             collections.ChainMap(*[_to_nested(self._load_spec(s)) for s in task_list])
         )
-
-    @staticmethod
-    def _check_duplicates(built: list[Task | Group]) -> None:
-        """Check that no task appears in more than one top-level item.
-
-        For each top-level item (Task or Group), collect all leaf task names.
-        If any task name appears in multiple top-level items, raise an error.
-        This catches cases like requesting ["group_a", "group_b"] where both
-        groups contain the same task, or requesting a task both standalone
-        and as part of a group.
-        """
-        seen: dict[str, str] = {}  # task_name -> source name
-        for item in built:
-            if isinstance(item, Group):
-                source = item.name
-                task_names = [t.task_name for t in item.get_all_tasks()]
-            else:
-                source = item.task_name
-                task_names = [item.task_name]
-
-            for name in task_names:
-                if name in seen and seen[name] != source:
-                    raise ValueError(
-                        f"Duplicate task '{name}': found in both '{seen[name]}' and '{source}'"
-                    )
-                seen[name] = source
 
     # ---------------------------------------------------------------- utility
     def match_tasks(self, task_list: list[str]) -> list[str]:

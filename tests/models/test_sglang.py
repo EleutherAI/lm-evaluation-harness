@@ -1,9 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 import torch
 
 from lm_eval import evaluate, simple_evaluate, tasks
-from lm_eval.api.instance import Instance
 from lm_eval.tasks import get_task_dict
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.instance import Instance
 
 
 task_manager = tasks.TaskManager()
