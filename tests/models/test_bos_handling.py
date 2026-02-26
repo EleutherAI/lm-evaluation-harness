@@ -1,5 +1,4 @@
-"""
-Tests for BOS (Beginning-Of-Sequence) token handling.
+"""Tests for BOS (Beginning-Of-Sequence) token handling.
 
 Expected BOS Logic:
 - add_bos_token=None: Use tokenizer's default behavior
@@ -78,8 +77,7 @@ from lm_eval.models.utils import _add_special_kwargs, has_bos_prefix
 
 @pytest.fixture(scope="module")
 def pythia_tokenizer():
-    """
-    Load pythia-14m tokenizer for testing.
+    """Load pythia-14m tokenizer for testing.
 
     Properties:
     - BOS token: '<|endoftext|>' (ID: 0)
@@ -95,8 +93,7 @@ def pythia_tokenizer():
 
 @pytest.fixture(scope="module")
 def olmo_tokenizer():
-    """
-    Load OLMo-3-7B-Instruct tokenizer for testing.
+    """Load OLMo-3-7B-Instruct tokenizer for testing.
 
     Properties:
     - BOS token: '<|endoftext|>' (ID: 100257)
@@ -200,8 +197,7 @@ class TestDefaultsToNone:
 
     @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_none_uses_tokenizer_default(self, tokenizer_name, request):
-        """
-        HF: When add_bos_token=None, should respect tokenizer's default.
+        """HF: When add_bos_token=None, should respect tokenizer's default.
 
         Tests both tokenizer types:
         - Pythia: Doesn't add BOS by default
@@ -216,8 +212,7 @@ class TestDefaultsToNone:
 
     @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_vllm_none_uses_tokenizer_default(self, tokenizer_name, request):
-        """
-        vLLM: When add_bos_token=None, should respect tokenizer's default.
+        """vLLM: When add_bos_token=None, should respect tokenizer's default.
 
         Tests both tokenizer types:
         - Pythia: Doesn't add BOS by default
@@ -265,7 +260,7 @@ class TestNoDuplicateBos:
 
     @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_adds_bos_when_missing(self, tokenizer_name, request):
-        """HF: Should add BOS when string doesn't have it (using add_special_tokens=True)"""
+        """HF: Should add BOS when string doesn't have it (using add_special_tokens=True)."""
         tokenizer = request.getfixturevalue(tokenizer_name)
         mock_hflm = create_hf_mock(tokenizer, add_bos_token=True)
 
@@ -278,8 +273,7 @@ class TestNoDuplicateBos:
 
     @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_follows_tokenizer_default(self, tokenizer_name, request):
-        """
-        HF: When add_bos_token is not set (None), follows tokenizer default.
+        """HF: When add_bos_token is not set (None), follows tokenizer default.
 
         - Pythia: Doesn't add BOS by default
         - OLMo: DOES add BOS by default
@@ -295,8 +289,7 @@ class TestNoDuplicateBos:
     @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_vllm_handles_mixed_batch(self, tokenizer_name, add_bos_token, request):
-        """
-        vLLM: Should handle mixed batch (some with BOS, some without).
+        """vLLM: Should handle mixed batch (some with BOS, some without).
 
         Verifies correctness by comparing to expected tokenization:
         - Strings WITH BOS should not get duplicate BOS
@@ -378,8 +371,7 @@ class TestChatTemplateCompatibility:
 
     @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_chat_template_no_duplicate_bos(self, tokenizer_name, request):
-        """
-        HF: Chat template adds BOS, tokenizer should not add another.
+        """HF: Chat template adds BOS, tokenizer should not add another.
 
         Scenario: Chat template outputs text with BOS prefix
         Expected: No duplicate BOS token in final encoding
@@ -403,8 +395,7 @@ class TestChatTemplateCompatibility:
     @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_vllm_mixed_chat_batch(self, tokenizer_name, add_bos_token, request):
-        """
-        vLLM: Mixed batch with chat templates should handle correctly.
+        """vLLM: Mixed batch with chat templates should handle correctly.
 
         Scenario: Some messages have BOS from chat template, others don't
         Expected: Split processing, no duplicates, order preserved
@@ -477,8 +468,7 @@ class TestLoglikelihoodBosHandling:
     def test_empty_context_continuation_with_bos(
         self, tokenizer_name, add_bos_token, request
     ):
-        """
-        When context="" and continuation starts with BOS, should reuse BOS.
+        """When context="" and continuation starts with BOS, should reuse BOS.
 
         Expected: (context=[BOS], continuation=[rest_of_tokens])
         Not: (context=[BOS], continuation=[BOS, rest_of_tokens])
@@ -534,8 +524,7 @@ class TestLoglikelihoodBosHandling:
     def test_empty_context_continuation_without_bos(
         self, tokenizer_name, add_bos_token, request
     ):
-        """
-        When context="" and continuation doesn't start with BOS, should add BOS as context.
+        """When context="" and continuation doesn't start with BOS, should add BOS as context.
 
         Expected: (context=[BOS], continuation=[full_continuation_tokens])
         """

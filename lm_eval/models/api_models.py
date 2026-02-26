@@ -54,9 +54,7 @@ class JsonChatStr(NamedTuple):
 def create_image_prompt(
     imgs: list["Image.Image"], chat: dict, fmt: str = "PNG"
 ) -> dict:
-    """
-
-    Parameters
+    """Parameters
     ----------
     img : list[PIL.Image.Image]
         The list of images to encode to base64
@@ -293,13 +291,13 @@ class TemplateAPI(TemplateLM):
         ctxlen: list[int] | None = None,
         **kwargs,
     ) -> list[tuple[float, bool]]:
-        """Method used to parse the logprobs from the (batched) API response. This method should return a list of tuples"""
+        """Method used to parse the logprobs from the (batched) API response. This method should return a list of tuples."""
         raise NotImplementedError
 
     @staticmethod
     @abc.abstractmethod
     def parse_generations(outputs: Any | list[Any], **kwargs) -> list[str]:
-        """Method used to parse the generations from the (batched) API response. This method should return a list of str"""
+        """Method used to parse the generations from the (batched) API response. This method should return a list of str."""
         raise NotImplementedError
 
     @cached_property
@@ -315,6 +313,7 @@ class TemplateAPI(TemplateLM):
     @property
     def tokenizer_name(self) -> str:
         """Must be defined for LM subclasses which implement Chat Templating.
+
         Should return the name of the tokenizer or chat template used.
         Used only to properly fingerprint caches when requests are being cached with `--cache_requests`, otherwise not used.
         """

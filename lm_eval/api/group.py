@@ -58,12 +58,13 @@ class Group:
     _children: dict[str, Task | Group] = field(default_factory=dict, repr=False)
     _config: GroupConfig | None = field(default=None, repr=False)
 
+    @property
+    def _qualified_name(self) -> str:
+        return self.name
+
     def add(self, item: Task | Group) -> None:
         """Add a task or subgroup to this group."""
-        # Tasks have task_name, Groups have name
-        key: str = cast(
-            "str", item.task_name if hasattr(item, "task_name") else item.name
-        )
+        key: str = item._qualified_name
         self._children[key] = item
 
     def pop(self, name: str) -> Group | Task | None:
@@ -160,7 +161,7 @@ class Group:
             Sorted list of unique filter names (e.g., ["custom", "none", "prefix"])
         """
         discovered_filters: set[str] = set()
-        leaf_tasks = [t.task_name for t in self.get_all_tasks()]
+        leaf_tasks = [t._qualified_name for t in self.get_all_tasks()]
 
         for task_name in leaf_tasks:
             if task_name not in task_metrics:
@@ -198,7 +199,7 @@ class Group:
             return cast("_TaskMetrics", group_metrics)
 
         # Get leaf task names
-        leaf_tasks = [t.task_name for t in self.get_all_tasks()]
+        leaf_tasks = [t._qualified_name for t in self.get_all_tasks()]
 
         # group-level sample len. Not used for weighting, but useful metadata
         # Compute total sample_len once (across all leaf tasks), not per-filter

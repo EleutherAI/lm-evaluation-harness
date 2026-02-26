@@ -37,7 +37,7 @@ JANITOR_FILTH2 = "filth lots of filthy dirty filth"
 
 
 def simple_ngram(sequence, n):
-    ngrams = list()
+    ngrams = []
     ngram = []
     for x in sequence:
         ngram.extend([x])

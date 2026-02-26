@@ -1,7 +1,5 @@
 # type:ignore[invalid-assignment]
-"""
-Tests for Group class and filter auto-discovery functionality.
-"""
+"""Tests for Group class and filter auto-discovery functionality."""
 
 from typing import TYPE_CHECKING
 
@@ -300,10 +298,7 @@ class TestGroupAggregation:
         assert "alias" in result
         assert "name" in result
         assert "acc_norm,none" not in result
-        assert (
-            len([k for k in result.keys() if k not in ("alias", "name", "sample_len")])
-            == 0
-        )
+        assert len([k for k in result if k not in ("alias", "name", "sample_len")]) == 0
 
     def test_multiple_metrics_auto_discovery(self):
         """Test auto-discovery with multiple metrics."""
@@ -402,10 +397,7 @@ class TestGroupAggregation:
         assert result["acc_norm_stderr,custom"] == 0.012
 
     def test_sample_len_count_with_auto_discovery(self):
-        """
-        Test that sample_len is the total across all leaf tasks, and
-        per-metric sample_count reflects contributing tasks.
-        """
+        """Test that sample_len is the total across all leaf tasks, and per-metric sample_count reflects contributing tasks."""
         group = Group(
             name="test_group",
             aggregate_metric_list=[AggMetricConfig(metric="acc_norm")],

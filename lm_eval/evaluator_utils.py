@@ -202,7 +202,7 @@ def _collect_results(
 
         result.metrics[task_name] = {
             "name": task_name,
-            "alias": task_config.get("task_alias", task_name),
+            "alias": task_config.get("task_alias") or task.task_name,
             "sample_len": sample_len,
             **agg_metrics,
         }

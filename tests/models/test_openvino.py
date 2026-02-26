@@ -93,7 +93,7 @@ def test_evaluator(backend, model_id, task):
 
 
 def test_ov_config():
-    """Test that if specified, a custom OpenVINO config is loaded correctly"""
+    """Test that if specified, a custom OpenVINO config is loaded correctly."""
     model_id = "hf-internal-testing/tiny-random-gpt2"
     with tempfile.TemporaryDirectory() as tmpdirname:
         config_file = str(Path(tmpdirname) / "ov_config.json")

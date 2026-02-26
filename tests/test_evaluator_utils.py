@@ -1,20 +1,18 @@
-"""
-Tests for evaluator_utils.py — utility functions used by the evaluation pipeline.
-"""
+from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from lm_eval.api.filter import FilterEnsemble
-from lm_eval.api.group import AggMetricConfig, Group
+from lm_eval.api.group import Group
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import Task
+from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
     EvalAcc,
-    ResultAcc,
     _collect_groups_bottom_up,
     _collect_results,
     _compute_task_aggregations,
@@ -24,13 +22,12 @@ from lm_eval.evaluator_utils import (
     aggregate_groups,
     get_sample_size,
 )
-from lm_eval.result_schema import _TaskMetrics
 from lm_eval.scorers import MetricKey, ScoredDoc, Scorer
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+if TYPE_CHECKING:
+    from lm_eval.evaluator_utils import ResultAcc
+    from lm_eval.result_schema import _TaskMetrics
 
 
 def _m(d: dict[str, Any]) -> _TaskMetrics:
@@ -142,6 +139,10 @@ class MockEvalTask(Task):
     def task_name(self):
         return self._task_name
 
+    @property
+    def _qualified_name(self):
+        return self._task_name
+
     # -- config / metadata -------------------------------------------------
     def dump_config(self) -> dict:
         return dict(self._config_dict)
@@ -170,10 +171,10 @@ class MockEvalTask(Task):
     def test_docs(self):
         return [{}] * self._n_eval_docs
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc, **kwargs):
         return ""
 
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc, **kwargs):
         return ""
 
     def construct_requests(self, doc, ctx, **kwargs):

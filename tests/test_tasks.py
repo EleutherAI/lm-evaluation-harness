@@ -1,27 +1,26 @@
+from __future__ import annotations
+
 import os
 from itertools import islice
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-import datasets
 import pytest
-
-from lm_eval.api.task import ConfigurableTask
-from lm_eval.tasks import TaskManager
 
 from .utils import new_tasks
 
 
-datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+if TYPE_CHECKING:
+    from lm_eval.api.task import ConfigurableTask
+    from lm_eval.tasks import TaskManager
+
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Default Task
 TASKS = ["arc_easy"]
 
 
 def get_new_tasks_else_default():
-    """
-    Check if any modifications have been made to built-in tasks and return
-    the list, otherwise return the default task list
-    """
+    """Check if any modifications have been made to built-in tasks and return the list, otherwise return the default task list."""
     global TASKS
     # CI: new_tasks checks if any modifications have been made
     task_list = new_tasks()
@@ -32,9 +31,7 @@ def get_new_tasks_else_default():
 def task_class(
     task_names: list[str], task_manager: TaskManager | None = None
 ) -> list[ConfigurableTask]:
-    """
-    Convert a list of task names to a list of ConfigurableTask instances
-    """
+    """Convert a list of task names to a list of ConfigurableTask instances."""
     if task_manager is None:
         from lm_eval.tasks import TaskManager
 
@@ -52,9 +49,7 @@ def limit() -> int:
 
 
 class BaseTasks:
-    """
-    Base class for testing tasks
-    """
+    """Base class for testing tasks."""
 
     def test_download(self, task_class: ConfigurableTask):
         task_class.download()
@@ -166,7 +161,4 @@ class BaseTasks:
     ids=lambda x: f"{x.config.task}",
 )
 class TestNewTasksElseDefault(BaseTasks):
-    """
-    Test class parameterized with a list of new/modified tasks
-    (or a set of default tasks if none have been modified)
-    """
+    """Test class parameterized with a list of new/modified tasks (or a set of default tasks if none have been modified)."""
