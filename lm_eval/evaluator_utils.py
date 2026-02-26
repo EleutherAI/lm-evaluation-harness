@@ -22,7 +22,25 @@ if TYPE_CHECKING:
 
 _T = TypeVar("_T")
 
-eval_logger = logging.getLogger(__name__)
+
+def log_rank_zero(logger: logging.Logger):
+    class _RankZeroFilter(logging.Filter):
+        """Suppress logs on non-zero ranks unless marked with ``all_ranks=True``.
+
+        By default, all evaluator logs are rank-0-only. To let a specific log
+        through on every rank, pass ``extra={"all_ranks": True}``.
+        """
+
+        def filter(self, record: logging.LogRecord) -> bool:
+            if getattr(record, "all_ranks", False):
+                return True
+            return int(os.environ.get("RANK", "0")) == 0
+
+    logger.addFilter(_RankZeroFilter())
+    return logger
+
+
+eval_logger = log_rank_zero(logging.getLogger(__name__))
 
 
 class ResultAcc(TypedDict):
@@ -566,16 +584,3 @@ def _handle_back_comp(
                 tasks[key] = value
 
     return groups, tasks
-
-
-class _RankZeroFilter(logging.Filter):
-    """Suppress logs on non-zero ranks unless marked with ``all_ranks=True``.
-
-    By default, all evaluator logs are rank-0-only. To let a specific log
-    through on every rank, pass ``extra={"all_ranks": True}``.
-    """
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        if getattr(record, "all_ranks", False):
-            return True
-        return int(os.environ.get("RANK", "0")) == 0

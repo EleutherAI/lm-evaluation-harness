@@ -718,7 +718,7 @@ class Task:
             )
             build_limit = None if should_build_all else limit
 
-            eval_logger.info(
+            eval_logger.debug(
                 "Building contexts for %s on rank %s...",
                 self.config.task,
                 rank,

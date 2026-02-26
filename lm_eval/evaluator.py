@@ -22,8 +22,8 @@ from .evaluator_utils import (
     _log_selected_tasks,
     _merge_rank_metrics,
     _process_results,
-    _RankZeroFilter,
     get_sample_size,
+    log_rank_zero,
     print_writeout,
     run_task_tests,
     torch_gather_object,
@@ -48,8 +48,7 @@ if TYPE_CHECKING:
 
     _NestedDict = dict[Group, dict[str, Task] | Group] | dict[str, Task]
 
-eval_logger = logging.getLogger(__name__)
-eval_logger.addFilter(_RankZeroFilter())
+eval_logger = log_rank_zero(logging.getLogger(__name__))
 
 
 @positional_deprecated
