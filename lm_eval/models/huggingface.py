@@ -58,7 +58,9 @@ TOKENIZER_INFINITY = 1000000000000000019884624838656
 
 @register_model("hf-auto", "hf", "huggingface")
 class HFLM(TemplateLM):
-    """An abstracted Huggingface model class. Enables usage with both models of
+    """An abstracted Huggingface model class.
+
+    Enables usage with both models of
     `transformers.AutoModelForCausalLM` and `transformers.AutoModelForSeq2SeqLM` classes.
 
     Supports data-parallel multi-GPU with HF Accelerate.
@@ -257,7 +259,7 @@ class HFLM(TemplateLM):
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
         self.chat_template_args = (
-            chat_template_args or {} | dict(enable_thinking=enable_thinking)
+            chat_template_args or {} | {"enable_thinking": enable_thinking}
             if enable_thinking is not None
             else {}
         )
@@ -384,9 +386,7 @@ class HFLM(TemplateLM):
         if parallelize:  # Model parallelism will be used
             max_memory = {}
             if max_memory_per_gpu is not None:  # Using the provided memory requirements
-                max_memory_per_gpu_map = {
-                    device_idx: max_memory_per_gpu for device_idx in range(gpus)
-                }
+                max_memory_per_gpu_map = dict.fromkeys(range(gpus), max_memory_per_gpu)
             else:  # Estimating the possible memory requirements
                 max_memory_all_gpus = get_max_memory()
                 max_memory_all_gpus.pop("cpu", None)
@@ -496,13 +496,6 @@ class HFLM(TemplateLM):
             return tensor
         return self.accelerator.gather(tensor)
 
-    def gather_object(self, obj, dst=0):
-        if self.world_size <= 1:
-            return [obj]
-        result = [None] * self.world_size if self.rank == dst else None
-        torch.distributed.gather_object(obj=obj, object_gather_list=result, dst=dst)
-        return result
-
     def barrier(self):
         if self.world_size > 1:
             self.accelerator.wait_for_everyone()
@@ -525,7 +518,6 @@ class HFLM(TemplateLM):
         **If not calling HFLM.__init__() or HFLM._get_backend() within a subclass of HFLM,
         user must set `self.backend` to be either "causal" or "seq2seq" manually!**
         """
-
         assert backend in ["default", "causal", "seq2seq"]
 
         if backend != "default":
@@ -613,9 +605,9 @@ class HFLM(TemplateLM):
         subfolder: str = "",
         **kwargs,
     ) -> None:
-        """Initializes an HF or HF-compatible PreTrainedModel from scratch
-        inside HFLM, using the kwargs passed into self.__init__().
+        """Initializes an HF or HF-compatible PreTrainedModel from scratch.
 
+        Uses the kwargs passed into self.__init__().
         Also handles functionality such as AutoGPTQ usage and PEFT wrapping.
 
         For future similar extensions to AutoGPTQ that are not core to HF's ecosystem,
@@ -623,7 +615,6 @@ class HFLM(TemplateLM):
         HF's public interface relied on in this HFLM class)
         please consider subclassing HFLM and overriding this and other methods as needed.
         """
-
         model_kwargs = kwargs or {}
 
         model_kwargs.update(
@@ -946,7 +937,7 @@ class HFLM(TemplateLM):
         attn_mask: torch.Tensor | None = None,
         labels: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """
+        """Compute logits from the model.
 
         :param inps: torch.Tensor
             A torch tensor of shape [batch, (sequence_ctx + sequence_cont)] or of shape
@@ -1389,7 +1380,7 @@ class HFLM(TemplateLM):
         res = []
 
         def _collate(req: tuple[str, dict]):
-            """Defines the key for the sorted method"""
+            """Defines the key for the sorted method."""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch

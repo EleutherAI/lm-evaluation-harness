@@ -25,7 +25,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from lm_eval.api.instance import Instance
+from lm_eval.api.instance import Instance  # noqa: TC001
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator
@@ -316,13 +316,6 @@ class NeMoLM(LM):
         gathered = [torch.zeros_like(tensor) for _ in range(self.world_size)]
         torch.distributed.all_gather(gathered, tensor)
         return torch.cat(gathered)
-
-    def gather_object(self, obj, dst=0):
-        if self.world_size <= 1:
-            return [obj]
-        result = [None] * self.world_size if self.rank == dst else None
-        torch.distributed.gather_object(obj=obj, object_gather_list=result, dst=dst)
-        return result
 
     def barrier(self):
         if self.world_size > 1:

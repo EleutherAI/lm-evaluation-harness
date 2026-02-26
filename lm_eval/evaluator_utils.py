@@ -5,9 +5,9 @@ import math
 import pathlib
 import sys
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict, TypeVar, overload
 
 from lm_eval.result_schema import _SampleCount
 from lm_eval.utils import positional_deprecated
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from lm_eval.result_schema import EvalResults, _TaskMetrics
     from lm_eval.tasks import TaskManager
 
+_T = TypeVar("_T")
 
 eval_logger = logging.getLogger(__name__)
 
@@ -425,6 +426,31 @@ def _log_selected_tasks(
         if task_name not in logged_tasks:
             path = get_task_path(task_name)
             eval_logger.info("Task: %s (%s)", task_name, path)
+
+
+@overload
+def torch_gather_object(
+    obj: _T, rank: int, world_size: int, dst: int = 0
+) -> list[_T]: ...
+@overload
+def torch_gather_object(
+    obj: _T, rank: int, world_size: int, dst: int = ...
+) -> None: ...
+def torch_gather_object(
+    obj: _T, *, rank: int, world_size: int, dst: int = 0
+) -> list[_T] | None:
+    """Gather a Python object from all ranks to ``dst``.
+
+    Returns a list of objects (one per rank) on ``dst``, ``None`` on all other
+    ranks.  When ``world_size == 1`` this is a no-op that returns ``[obj]``.
+    """
+    if world_size <= 1:
+        return [obj]
+    import torch.distributed as dist
+
+    result = [None] * world_size if rank == dst else None
+    dist.gather_object(obj=obj, object_gather_list=result, dst=dst)  # type:ignore[possibly-missing-attribute]
+    return cast("list[_T] | None", result)
 
 
 def _merge_rank_metrics(
