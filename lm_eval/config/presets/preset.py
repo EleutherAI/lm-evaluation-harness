@@ -3,10 +3,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, ClassVar, Literal
 
+from typing_extensions import TypedDict
+
 
 OutputType = Literal[
     "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
 ]
+
+
+class _DOCTO(TypedDict, extra_items=str):
+    doc_to_text: str
+    doc_to_target: str
+    doc_to_choice: str | None
 
 
 @dataclass(kw_only=True)
@@ -148,7 +156,13 @@ class PresetConfig:
                 return field.strip()
             else:
                 # Strip {{ }} for use in {% if %} etc.
-                return field.replace("{{", "").replace("}}", "").strip()
+                inner = field.replace("{{", "").replace("}}", "").strip()
+                # Parenthesize complex expressions so |filter, .method(),
+                # and [idx] bind to the whole expression, not just the last
+                # token. E.g. [a, b, c]|length → ([a, b, c])|length
+                if not inner.isidentifier():
+                    return "(" + inner + ")"
+                return inner
         if for_output:
             return "{{" + field + "}}"
         return field
@@ -166,19 +180,70 @@ class PresetConfig:
     def to_jinja_config(
         self,
         doc_to_text: str = "question",
-        doc_to_choice: str | None = "choices",
-        doc_to_target: str = "answer",
-    ) -> dict[str, str | None]:
-        """Generate Jinja templates for TaskConfig fields.
+        doc_to_choice: str | list | None = "choices",
+        doc_to_target: str | int = "answer",
+    ) -> _DOCTO:
+        r"""Generate Jinja templates for TaskConfig fields.
 
         The doc_to_* parameters are field mappings from the task config that
         tell the preset which document fields to reference in templates.
 
-        Returns a dict with:
-            - doc_to_text: Jinja template for the prompt
-            - doc_to_target: Jinja template for the target
-            - doc_to_choice: Jinja template for choices (if applicable, else None)
+        Args:
+            doc_to_text: Field name or Jinja expression for the question text.
+                Common forms found in task YAML configs:
+
+                - Plain field name — ``"question"``
+                - Jinja field ref — ``"{{question}}"`` (idempotent with above)
+                - Nested field — ``"{{question.stem}}"``
+                - Bracket access — ``"{{row['question']}}"``
+                - With filter — ``"{{ question.strip() }}"``
+                - Multi-field — ``"{{context}}\\n{{question}}"``
+                - Join expression — ``"{{[s1, s2, s3]|join(' ')}}"``
+                - String slicing — ``"{{text.split(' ')[:-1]|join(' ')}}"``
+
+            doc_to_choice: Field name, Jinja expression, Python list, or None.
+                Common forms found in task YAML configs:
+
+                - Plain field name — ``"choices"``
+                - Nested field — ``"{{choices.text}}"``
+                - List construction — ``"{{[answerA, answerB, answerC]}}"``
+                - Map/filter — ``"{{answers|map(attribute='atext')|list}}"``
+                - Hardcoded list — ``["yes", "no", "maybe"]``
+                  (arrives as a Python ``list``; converted internally)
+                - ``None`` — no choices (valid for generation tasks)
+
+            doc_to_target: Field name, Jinja expression, or integer constant
+                for the answer. Common forms found in task YAML configs:
+
+                - Plain field name — ``"answer"``, ``"label"``, ``"gold"``
+                - Jinja field ref — ``"{{label}}"`` (idempotent with above)
+                - Integer constant — ``0``, ``3``
+                - Index lookup — ``"{{choices.label.index(answerKey)}}"``
+                - Arithmetic — ``"{{ (label|int) - 1 }}"``
+                - Conditional — ``"{{choice1 if label == 0 else choice2}}"``
+                - Array mapping — ``"{{['B', 'A'][label]}}"``
+                - String ops — ``"{{answer.split(' ')[0]}}"``
+                - With filter — ``"{{answer_number|string}}"``
+
+        Returns:
+            A dict with keys:
+
+            - doc_to_text: Jinja template for the prompt.
+            - doc_to_target: Jinja template for the target.
+            - doc_to_choice: Jinja template for choices, or None.
         """
+        # Integer doc_to_target (e.g. YAML `doc_to_target: 0`) is a constant,
+        # not a field name. Convert to a Jinja literal.
+        if isinstance(doc_to_target, int):
+            doc_to_target = "{{" + str(doc_to_target) + "}}"
+        if isinstance(doc_to_text, int):
+            doc_to_text = "{{" + str(doc_to_text) + "}}"
+
+        # Hardcoded YAML lists (e.g. doc_to_choice: ["yes", "no"]) arrive as
+        # Python lists.  Convert to a string literal that is valid Jinja syntax.
+        if isinstance(doc_to_choice, list):
+            doc_to_choice = str(doc_to_choice)
+
         return {
             "doc_to_text": self._build_doc_to_text_jinja(doc_to_text, doc_to_choice),
             "doc_to_target": self._build_doc_to_target_jinja(
@@ -229,8 +294,35 @@ class PresetConfig:
     def _build_choices_format_jinja(self, doc_to_choice: str) -> str:
         r"""Build Jinja for formatting choices with labels.
 
-        Generates Jinja like:
-        {% for choice in choices %}{{ 'ABCD'[loop.index0] }}. {{ choice }}{% if not loop.last %}\n{% endif %}{% endfor %}
+        Generates a ``{% for %}`` loop that pairs each choice with a label.
+
+        Args:
+            doc_to_choice: Field name or Jinja expression resolving to an
+                iterable of choice strings (e.g. ``"choices"``,
+                ``"{{[answerA, answerB, answerC]}}"``,
+                ``"{{answers|map(attribute='atext')|list}"``).
+
+        Returns:
+            A Jinja template string. For example, with
+            ``choice_labels="letters"`` and ``doc_to_choice="choices"``::
+
+                {% for choice in choices %}
+                    {{ 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[loop.index0] }}. {{ choice }}
+                {% endfor %}
+
+            Which renders (given ``choices = ["Paris", "London", "Berlin"]``)
+            as::
+
+                A. Paris
+                B. London
+                C. Berlin
+
+            Label style is controlled by ``self.choice_labels``:
+
+            - ``"letters"`` — ``A. choice``, ``B. choice``, ...
+            - ``"numbers"`` — ``1. choice``, ``2. choice``, ...
+            - ``["I", "II", ...]`` — custom list indexed by position
+            - ``None`` — no label prefix (renders ``. choice``)
         """
         # Use _field_ref with for_output=False to strip {{ }} if present
         c_ref = self._field_ref(doc_to_choice, for_output=False)
@@ -333,7 +425,7 @@ class PresetConfig:
     def to_task_config(
         self,
         doc_to_text: str = "question",
-        doc_to_choice: str | None = "choices",
+        doc_to_choice: str | list[str] | None = "choices",
         doc_to_target: str = "answer",
     ) -> dict[str, Any]:
         """Expand preset into TaskConfig field overrides.
@@ -347,16 +439,18 @@ class PresetConfig:
         - Formatting fields (output_type, target_delimiter, etc.)
         - Scorer config (filter_list, metric_list) from extraction
         """
-        cfg: dict[str, Any] = self.to_jinja_config(
-            doc_to_text=doc_to_text,
-            doc_to_choice=doc_to_choice,
-            doc_to_target=doc_to_target,
-        )
+        cfg = {
+            **self.to_jinja_config(
+                doc_to_text=doc_to_text,
+                doc_to_choice=doc_to_choice,
+                doc_to_target=doc_to_target,
+            ),
+            "output_type": self.output_type,
+            "target_delimiter": self.target_delimiter,
+            "fewshot_delimiter": self.fewshot_delimiter,
+        }
 
         # Formatting fields
-        cfg["output_type"] = self.output_type
-        cfg["target_delimiter"] = self.target_delimiter
-        cfg["fewshot_delimiter"] = self.fewshot_delimiter
         if self.gen_prefix is not None:
             cfg["gen_prefix"] = self.gen_prefix
 
