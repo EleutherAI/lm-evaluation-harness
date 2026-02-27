@@ -13,8 +13,8 @@ from lm_eval.api.task import Task
 from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
     EvalAcc,
+    _agg_and_collect,
     _collect_groups_bottom_up,
-    _collect_results,
     _compute_task_aggregations,
     _get_root_groups,
     _process_results,
@@ -352,7 +352,7 @@ class TestCollectResults:
 
     def test_single_task_basic_collection(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, bootstrap_iters=0)
         assert "my_task" in result.metrics
         m = result.metrics["my_task"]
         assert "acc,none" in m
@@ -361,52 +361,52 @@ class TestCollectResults:
 
     def test_alias_from_task_config(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, bootstrap_iters=0)
         assert result.metrics["my_task"]["alias"] == "My Task"
 
     def test_alias_defaults_to_task_name(self):
         task = MockEvalTask("fallback_task", agg={"acc": mean})
         raw = {("acc", "none"): [1.0]}
         acc = make_result_acc(task, raw)
-        result = _collect_results({"fallback_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"fallback_task": acc}, bootstrap_iters=0)
         assert result.metrics["fallback_task"]["alias"] == "fallback_task"
 
     def test_configs_populated(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, bootstrap_iters=0)
         assert result.configs["my_task"] == task.dump_config()
 
     def test_versions_populated(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, bootstrap_iters=0)
         assert result.versions["my_task"] == 1
 
     def test_num_fewshot_populated(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, bootstrap_iters=0)
         assert result.num_fewshot["my_task"] == 5
 
     def test_higher_is_better_populated(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, bootstrap_iters=0)
         assert result.higher_is_better["my_task"] == {"acc": True}
 
     def test_samples_populated(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, bootstrap_iters=0)
         assert result.samples["my_task"] == ["s1", "s2"]
 
     def test_groups_stored(self):
         task, acc = self._simple_acc()
         g = Group(name="grp")
-        result = _collect_results(
+        result = _agg_and_collect(
             {"my_task": acc}, groups={"grp": g}, bootstrap_iters=0
         )
         assert result.groups == {"grp": g}
 
     def test_groups_default_to_empty(self):
         task, acc = self._simple_acc()
-        result = _collect_results({"my_task": acc}, groups=None, bootstrap_iters=0)
+        result = _agg_and_collect({"my_task": acc}, groups=None, bootstrap_iters=0)
         assert result.groups == {}
 
     def test_multiple_tasks(self):
@@ -416,7 +416,7 @@ class TestCollectResults:
             "t1": make_result_acc(t1, {("acc", "none"): [1.0]}),
             "t2": make_result_acc(t2, {("acc", "none"): [0.0]}),
         }
-        result = _collect_results(accs, bootstrap_iters=0)
+        result = _agg_and_collect(accs, bootstrap_iters=0)
         assert "t1" in result.metrics
         assert "t2" in result.metrics
         assert "t1" in result.configs
@@ -884,14 +884,14 @@ class TestCollectResultsNSamples:
             "t1": make_result_acc(t1, {("acc", "none"): [1.0, 0.0, 1.0]}),
             "t2": make_result_acc(t2, {("acc", "none"): [0.0]}),
         }
-        result = _collect_results(accs, bootstrap_iters=0)
+        result = _agg_and_collect(accs, bootstrap_iters=0)
         assert result.n_samples["t1"] == {"original": 100, "effective": 3}
         assert result.n_samples["t2"] == {"original": 200, "effective": 1}
 
     def test_n_samples_original_from_eval_docs(self):
         task = MockEvalTask("t1", agg={"acc": mean}, n_eval_docs=42)
         accs = {"t1": make_result_acc(task, {("acc", "none"): [1.0, 0.5]})}
-        result = _collect_results(accs, bootstrap_iters=0)
+        result = _agg_and_collect(accs, bootstrap_iters=0)
         assert result.n_samples["t1"]["original"] == 42
         assert result.n_samples["t1"]["effective"] == 2
 

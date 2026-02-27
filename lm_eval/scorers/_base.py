@@ -23,15 +23,15 @@ eval_logger = logging.getLogger(__name__)
 class Scorer:
     """Base scorer defining the filter → score → reduce → aggregate pipeline.
 
-    For generation tasks, subclass :class:`GenScorer` which offers three
+    For generation tasks, subclass :class:`GenScorer` which offers two
     tiers of extensibility (from simplest to most control):
 
     1. **Config** — set ``default_filter_cfg`` / ``default_metric_cfg``
        class variables.  No scoring code needed.
     2. **Per-doc** — override ``GenScorer.score(reference, predictions)``
        to return ``{metric: [scores]}``.  No ``Instance`` knowledge needed.
-    3. **Batch** — override ``GenScorer.score_batch(inputs)`` to score all
-       documents at once (e.g. batched LLM judge calls).
+
+    For full control (e.g. batch scoring), override :meth:`score_instances`.
 
     Filter / metric precedence (highest → lowest):
 
@@ -218,7 +218,8 @@ class Scorer:
         raise NotImplementedError(
             f"{type(self).__name__} must implement score_doc(). "
             "Override score_doc() on your Scorer subclass, "
-            "or use GenScorer (which uses score_batch/score instead)."
+            "or subclass GenScorer and override score() for per-doc scoring, "
+            "or override score_instances() for batch scoring."
         )
 
     def _dispatch_metrics(
@@ -428,71 +429,48 @@ class GenScorer(Scorer):
     **Tier 2 — Per-doc scoring**: Override :meth:`score` to define custom
     scoring as ``(reference, predictions) → {metric: [scores]}``.
 
-    **Tier 3 — Batch scoring**: Override :meth:`score_batch` to score all
-    documents at once (e.g. batched LLM judge calls, code sandbox pools).
+    **Full control**: Override :meth:`score_instances` for batch scoring
+    (e.g. batched LLM judge calls, code sandbox pools).  Use
+    :meth:`_extract_inputs` to pull ``(reference, predictions, metric_kwargs)``
+    from each document's instances.
 
-    For full pipeline control, override :meth:`score_instances`.
+    The default call chain is::
 
-    The call chain is linear::
+        score_instances()  →  score_doc()  →  score()
 
-        score_instances()  →  score_batch()  →  score()
+    Example batch scorer overriding ``score_instances``::
+
+        @register_scorer("ai_judge")
+        @dataclass
+        class AIJudgeScorer(GenScorer):
+            judge_model: str = "claude-sonnet-4-6"
+
+            def score_instances(self, instances):
+                inputs = {did: self._extract_inputs(insts)
+                          for did, insts in instances.items()}
+                ratings = batch_judge(self.judge_model,
+                    {did: (ref, preds[0])
+                     for did, (ref, preds, _) in inputs.items()})
+                return {
+                    did: ScoredDoc(
+                        doc_id=did, reference=ref,
+                        scores={"judge": [ratings[did]]})
+                    for did, (ref, preds, _) in inputs.items()
+                }
     """
 
     # ------------------------------------------------------------------
-    # Scoring hooks (override one of these)
+    # Scoring hooks
     # ------------------------------------------------------------------
 
-    def score_instances(
-        self, instances: Mapping[int, list[Instance]]
-    ) -> dict[int, ScoredDoc]:
-        """Extract inputs from instances and delegate to :meth:`score_batch`.
-
-        Override for full pipeline control (e.g. custom instance access).
-        """
-        extracted = {
-            doc_id: self._extract_inputs(doc_instances)
-            for doc_id, doc_instances in instances.items()
-        }
-        return self.score_batch(extracted)
-
-    def score_batch(
-        self,
-        inputs: dict[int, tuple[Any, list[str], dict[str, Any] | None]],
-    ) -> dict[int, ScoredDoc]:
-        """Score all documents.  Override for batch scoring.
-
-        Default calls :meth:`score` per document.  Override to score all
-        documents at once (e.g. batched LLM judge calls).
-
-        Args:
-            inputs: ``{doc_id: (reference, predictions, metric_kwargs)}``.
-
-        Example::
-
-            @register_scorer("ai_judge")
-            @dataclass
-            class AIJudgeScorer(GenScorer):
-                judge_model: str = "claude-sonnet-4-6"
-
-                def score_batch(self, inputs):
-                    pairs = {did: (ref, preds[0])
-                             for did, (ref, preds, _) in inputs.items()}
-                    ratings = batch_judge(self.judge_model, pairs)
-                    return {
-                        did: ScoredDoc(
-                            doc_id=did, reference=ref,
-                            scores={"judge": [ratings[did]]})
-                        for did, (ref, preds, _) in inputs.items()
-                    }
-        """
-        return {
-            doc_id: ScoredDoc(
-                doc_id=doc_id,
-                reference=ref,
-                scores=self.score(ref, preds, metric_kwargs=mkw),
-            )
-            for doc_id, (ref, preds, mkw) in inputs.items()
-        }
+    def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
+        """Extract inputs from a document's instances and delegate to :meth:`score`."""
+        ref, preds, mkw = self._extract_inputs(doc_instances)
+        return ScoredDoc(
+            doc_id=doc_id,
+            reference=ref,
+            scores=self.score(ref, preds, metric_kwargs=mkw),
+        )
 
     def score(
         self,
@@ -613,8 +591,19 @@ def build_scorer(
         from lm_eval.api.registry import get_scorer
 
         cls = get_scorer(scorer_name)
+    elif output_type == "generate_until":
+        cls = GenScorer
+    elif output_type in (
+        "loglikelihood",
+        "loglikelihood_rolling",
+        "multiple_choice",
+    ):
+        cls = LLScorer
     else:
-        cls = GenScorer if output_type == "generate_until" else LLScorer
+        raise ValueError(
+            f"Cannot infer scorer for output_type={output_type!r}. "
+            f"Pass an explicit scorer_type or use a known output_type."
+        )
 
     if cfg is not None:
         return cls.from_dict(cfg, global_metrics=global_metrics, **scorer_kwargs)

@@ -26,6 +26,8 @@ eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from lm_eval.api.task import Task
     from lm_eval.config.group import AggMetricConfig
     from lm_eval.result_schema import _TaskMetrics
@@ -146,7 +148,7 @@ class Group:
         )
 
     def _discover_filters_for_metric(
-        self, metric_name: str, task_metrics: dict[str, _TaskMetrics]
+        self, metric_name: str, task_metrics: Mapping[str, _TaskMetrics]
     ) -> list[str]:
         """Discover all filter names used with a specific metric in child tasks.
 
@@ -176,7 +178,7 @@ class Group:
 
         return sorted(discovered_filters)  # Sort for deterministic ordering
 
-    def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
+    def aggregate(self, task_metrics: Mapping[str, _TaskMetrics]) -> _TaskMetrics:
         """Aggregate metrics for this group from its leaf task results.
 
         Args:

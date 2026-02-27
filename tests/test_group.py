@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from lm_eval.api.group import AggMetricConfig, Group
 from lm_eval.api.task import Task
+from lm_eval.config.group import AggMetricConfig, Group
 
 
 if TYPE_CHECKING:
