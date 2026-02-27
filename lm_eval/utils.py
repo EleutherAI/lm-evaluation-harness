@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-import collections
-import fnmatch
 import functools
 import hashlib
 import importlib.util
-import inspect
 import json
 import logging
 import os
 import re
 import threading
-from dataclasses import asdict, is_dataclass
 from itertools import islice
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
 import requests
 
 
@@ -24,6 +19,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import yaml
+
+    from lm_eval.result_schema import EvalResults
 
 
 SPACING = " " * 47
@@ -55,6 +52,7 @@ def is_transformers_available() -> bool:
 
 def wrap_text(string: str, width: int = 140, **kwargs) -> str | None:
     """Wraps the given string to the specified width."""
+    import inspect
     import textwrap
 
     return textwrap.fill(
@@ -171,6 +169,8 @@ def handle_arg_string(arg):
 
 
 def handle_non_serializable(o):
+    import numpy as np
+
     if isinstance(o, (np.int64, np.int32)):
         return int(o)
     elif isinstance(o, set):
@@ -210,6 +210,8 @@ def join_iters(iters):
 
 
 def group(arr, fn):
+    import collections
+
     res = collections.defaultdict(list)
 
     for ob in arr:
@@ -221,6 +223,8 @@ def group(arr, fn):
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
 def pattern_match(patterns, source_list):
+    import fnmatch
+
     if isinstance(patterns, str):
         patterns = [patterns]
 
@@ -330,6 +334,8 @@ class EnhancedJSONEncoder(json.JSONEncoder):
     """
 
     def default(self, o):
+        from dataclasses import asdict, is_dataclass
+
         if is_dataclass(o):
             return asdict(o)
         return super().default(o)
@@ -414,7 +420,9 @@ def _build_hierarchy_info(
     return depth_map, ordered
 
 
-def make_table(result_dict, column: str = "results", sort_results: bool = False):
+def make_table(
+    result_dict: EvalResults, column: str = "results", sort_results: bool = False
+) -> str:
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
@@ -502,6 +510,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
 def positional_deprecated(fn):
     """Decorator that warns when positional args are passed to `fn`."""
+    import inspect
 
     @functools.wraps(fn)
     def _wrapper(*args, **kwargs):

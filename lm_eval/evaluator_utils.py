@@ -11,14 +11,14 @@ from typing import TYPE_CHECKING, Any, cast
 from typing_extensions import TypedDict, TypeVar, overload
 
 from lm_eval.result_schema import _SampleCount
-from lm_eval.utils import positional_deprecated
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
     from lm_eval.api.group import Group
     from lm_eval.api.task import Task
     from lm_eval.result_schema import EvalResults, _TaskMetrics
-    from lm_eval.tasks import TaskManager
 
 _T = TypeVar("_T")
 
@@ -50,64 +50,6 @@ class ResultAcc(TypedDict):
     logged_samples: list[Any]
 
 
-def print_writeout(task: Task) -> None:
-    for inst in task.instances:
-        # print the prompt for the first few documents
-        if inst.doc_id is not None and inst.doc_id < 1:
-            eval_logger.info(
-                "Task: %s; document %s; context prompt (starting on next line):\
-    \n%s\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n%s\n(end of target on previous line)",
-                task,
-                inst.doc_id,
-                inst.args[0],
-                task.doc_to_target(inst.doc),
-            )
-            eval_logger.info("Request: %s", inst)
-            break
-
-
-def get_sample_size(task, limit: float | None) -> int | None:
-    if limit is None:
-        return None
-    return math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
-
-
-@positional_deprecated
-def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
-    """Search upward in the directory tree to a maximum of three layers to find and return the package root (containing the 'tests' folder)."""
-    cur_path = start_path.resolve()
-    max_layers = 3
-    for _ in range(max_layers):
-        if (cur_path / "tests" / "test_version_stable.py").exists():
-            return cur_path
-        else:
-            cur_path = cur_path.parent.resolve()
-    raise FileNotFoundError(
-        f"Unable to find package root within {max_layers} upwards" + f"of {start_path}"
-    )
-
-
-@positional_deprecated
-def run_task_tests(task_list: list[str]):
-    """Find the package root and run the tests for the given tasks."""
-    import pytest
-
-    package_root = find_test_root(start_path=pathlib.Path(__file__))
-    task_string = " or ".join(task_list)
-    args = [
-        f"{package_root}/tests/test_version_stable.py",
-        f"--rootdir={package_root}",
-        "-k",
-        f"{task_string}",
-    ]
-    sys.path.append(str(package_root))
-    pytest_return_val = pytest.main(args)
-    if pytest_return_val:
-        raise ValueError(
-            f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
-        )
-
-
 @dataclass
 class EvalAcc:
     """Container for evaluation results."""
@@ -128,7 +70,7 @@ class EvalAcc:
     n_samples: dict[str, _SampleCount] = field(default_factory=dict)
 
     # All groups (for aggregation and formatting)
-    groups: dict[str, Group] = field(default_factory=dict)
+    groups: Mapping[str, Group] = field(default_factory=dict)
 
     def collect(self) -> tuple[dict[str, _TaskMetrics], dict[str, _TaskMetrics]]:
         """Collect metrics into task_results and group_results.
@@ -150,11 +92,10 @@ class EvalAcc:
         """Assemble the final EvalResults dict from accumulated data.
 
         Args:
-            samples: Optional pre-processed samples dict (caller handles
-                multimodal hashing before passing in).
+            samples: Optional pre-processed samples dict.
 
         Returns:
-            EvalResults TypedDict ready for serialisation / display.
+            EvalResults: TypedDict ready for serialisation / display.
         """
         task_data, group_data = self.collect()
 
@@ -183,6 +124,62 @@ class EvalAcc:
         return results_dict
 
 
+def print_writeout(task: Task) -> None:
+    for inst in task.instances:
+        # print the prompt for the first few documents
+        if inst.doc_id is not None and inst.doc_id < 1:
+            eval_logger.info(
+                "Task: %s; document %s; context prompt (starting on next line):\
+    \n%s\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n%s\n(end of target on previous line)",
+                task,
+                inst.doc_id,
+                inst.args[0],
+                task.doc_to_target(inst.doc),
+            )
+            eval_logger.info("Request: %s", inst)
+            break
+
+
+def get_sample_size(task, limit: float | None) -> int | None:
+    if limit is None:
+        return None
+    return math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
+
+
+def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
+    """Search upward in the directory tree to a maximum of three layers to find and return the package root (containing the 'tests' folder)."""
+    cur_path = start_path.resolve()
+    max_layers = 3
+    for _ in range(max_layers):
+        if (cur_path / "tests" / "test_version_stable.py").exists():
+            return cur_path
+        else:
+            cur_path = cur_path.parent.resolve()
+    raise FileNotFoundError(
+        f"Unable to find package root within {max_layers} upwards" + f"of {start_path}"
+    )
+
+
+def run_task_tests(task_list: list[str]):
+    """Find the package root and run the tests for the given tasks."""
+    import pytest
+
+    package_root = find_test_root(start_path=pathlib.Path(__file__))
+    task_string = " or ".join(task_list)
+    args = [
+        f"{package_root}/tests/test_version_stable.py",
+        f"--rootdir={package_root}",
+        "-k",
+        f"{task_string}",
+    ]
+    sys.path.append(str(package_root))
+    pytest_return_val = pytest.main(args)
+    if pytest_return_val:
+        raise ValueError(
+            f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
+        )
+
+
 def _compute_task_aggregations(
     task: Task,
     bootstrap_iters: int | None = 100000,
@@ -195,16 +192,16 @@ def _compute_task_aggregations(
     return task.aggregate(bootstrap_iters)
 
 
-def _collect_results(
-    eval_results_acc: dict[str, ResultAcc],
-    groups: dict[str, Group] | None = None,
+def _agg_and_collect(
+    eval_results_acc: Mapping[str, ResultAcc],
+    groups: Mapping[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
 ) -> EvalAcc:
     """Collect and aggregate task results into EvalAcc container.
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
-            Format: {task_name: {"task": Task, "logged_samples": []}}
+            Format: {task_name: {"task": Task, "logged_samples": [...]}}
         groups: Dict of group name -> Group objects
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
@@ -267,7 +264,7 @@ def aggregate_groups(
     return results
 
 
-def _get_root_groups(groups: dict[str, Group]) -> list[Group]:
+def _get_root_groups(groups: Mapping[str, Group]) -> list[Group]:
     """Find groups that aren't children of any other group.
 
     We assume all groups have unique names and no cycles exist.
@@ -283,7 +280,7 @@ def _get_root_groups(groups: dict[str, Group]) -> list[Group]:
     return [g for name, g in groups.items() if name not in child_names]
 
 
-def _collect_groups_bottom_up(groups: dict[str, Group]) -> list[Group]:
+def _collect_groups_bottom_up(groups: Mapping[str, Group]) -> list[Group]:
     """Collect all groups in bottom-up order (children before parents).
 
     This is a post-order traversal that ensures subgroups are processed
@@ -313,15 +310,15 @@ def _collect_groups_bottom_up(groups: dict[str, Group]) -> list[Group]:
 
 
 def _process_results(
-    eval_results_acc: dict[str, ResultAcc],
-    groups: dict[str, Group] | None = None,
+    eval_results_acc: Mapping[str, ResultAcc],
+    groups: Mapping[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
 ) -> EvalAcc:
     """Process evaluation results.
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
-            Format: {task_name: {"task": Task, "logged_samples": []}}
+            Format: {task_name: {"task": Task, "logged_samples": [...]}}
             Task objects must have scorer.scored_docs populated
             (via task.process_instances() or task.import_raw_metrics()).
         groups: Dict of group name -> Group
@@ -351,14 +348,14 @@ def _process_results(
         eval_results = results._to_eval_results()
     """
     # Collect task results (includes aggregation)
-    results = _collect_results(eval_results_acc, groups or {}, bootstrap_iters)
+    results = _agg_and_collect(eval_results_acc, groups or {}, bootstrap_iters)
 
     # Aggregate group metrics
     return aggregate_groups(results)
 
 
 def propagate_num_fewshot_(
-    all_groups: list[Group], num_fewshot: dict[str, int]
+    all_groups: Iterable[Group], num_fewshot: dict[str, int]
 ) -> None:
     for group in all_groups:
         values = {num_fewshot[c] for c in group.child_names if c in num_fewshot}
@@ -367,7 +364,7 @@ def propagate_num_fewshot_(
 
 
 def propagate_higher_is_better_(
-    all_groups: list[Group], higher_is_better: dict[str, dict[str, bool]]
+    all_groups: Iterable[Group], higher_is_better: dict[str, dict[str, bool]]
 ) -> None:
     for group in all_groups:
         _higher_is_better = {}
@@ -390,10 +387,8 @@ def propagate_higher_is_better_(
 def log_selected_tasks_(
     task_dict: dict,
     groups: dict[str, Group],
-    task_manager: TaskManager,
 ) -> None:
     """Log selected tasks with hierarchy information."""
-    from pathlib import Path
 
     def get_task_path(task_name: str) -> str:
         """Get display path for a task from its config metadata."""
@@ -403,12 +398,7 @@ def log_selected_tasks_(
         source = task.config.metadata.get("config_source")
         if not source or source == "inline":
             return "N/A"
-        yaml_path = Path(source)
-        tasks_dir = Path(__file__).parent / "tasks"
-        try:
-            return str(yaml_path.relative_to(tasks_dir))
-        except ValueError:
-            return str(yaml_path)
+        return source
 
     eval_logger.info("Selected tasks:")
 

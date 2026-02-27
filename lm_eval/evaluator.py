@@ -318,7 +318,7 @@ def simple_evaluate(
     loaded = task_manager.load(tasks)
 
     # Log selected tasks with hierarchy
-    log_selected_tasks_(loaded["tasks"], loaded["groups"], task_manager)
+    log_selected_tasks_(loaded["tasks"], loaded["groups"])
 
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
