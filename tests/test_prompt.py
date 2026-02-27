@@ -3,7 +3,6 @@ import random
 import numpy as np
 import pytest
 
-from lm_eval import tasks
 from lm_eval.api.instance import Instance
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import join_iters
@@ -207,12 +206,9 @@ def test_mmlu_prompt_rendering(
     np.random.seed(seed)
 
     task_manager = TaskManager()
-    task_dict = tasks.get_task_dict(task_names, task_manager)
+    task_dict = task_manager.load(task_names)["tasks"]
 
     for _task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            _, task = task
-
         # Apply gen_prefix to task config if provided
         if gen_prefix is not None:
             task.config.gen_prefix = gen_prefix

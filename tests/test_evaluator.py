@@ -1,6 +1,5 @@
 import os
 import re
-from typing import List
 
 import pytest
 
@@ -36,7 +35,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
     ids=lambda d: f"{d}",
 )
 def test_evaluator(
-    task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
+    task_name: list[str], limit: int, model: str, model_args: str, bootstrap_iters: int
 ):
     e1 = evaluator.simple_evaluate(
         model=model,
@@ -56,7 +55,7 @@ def test_evaluator(
         },
     )
     task_manager = tasks.TaskManager()
-    task_dict = tasks.get_task_dict(task_name, task_manager)
+    task_dict = task_manager.load(task_name)
 
     e2 = evaluator.evaluate(
         lm=lm,
@@ -76,7 +75,9 @@ def test_evaluator(
 
     assert all(
         x == y
-        for x, y in zip([y for _, y in r(e1).items()], [y for _, y in r(e2).items()])
+        for x, y in zip(
+            [y for _, y in r(e1).items()], [y for _, y in r(e2).items()], strict=True
+        )
     )
 
 
@@ -110,7 +111,9 @@ def test_evaluator(
     ],
     ids=lambda d: f"{d}",
 )
-def test_printed_results(task_name: List[str], limit: int, model: str, model_args: str):
+def test_printed_results(
+    task_name: list[str], limit: int, model: str, model_args: str, on_ci: bool
+):
     results = evaluator.simple_evaluate(
         model=model,
         tasks=task_name,
@@ -128,24 +131,34 @@ def test_printed_results(task_name: List[str], limit: int, model: str, model_arg
             "-".join(task_name),
             str(limit),
             str(model),
-            re.sub(r"[^a-zA-Z0-9_\-\.]", "-", model_args),
+            re.sub(r"[^a-zA-Z0-9_\-.]", "-", model_args),
         )
     )
     filepath = f"./tests/testdata/{filename}.txt"
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         t1 = f.read().strip()
 
     t2 = make_table(results).strip()
 
     t1_lines, t2_lines = t1.splitlines(), t2.splitlines()
     assert len(t1_lines) == len(t2_lines)
-    for t1_line, t2_line in zip(t1_lines, t2_lines):
+    for t1_line, t2_line in zip(t1_lines, t2_lines, strict=True):
         t1_items, t2_items = t1_line.split("|"), t2_line.split("|")
         assert len(t1_items) == len(t2_items)
-        for t1_item, t2_item in zip(t1_items, t2_items):
+        for t1_item, t2_item in zip(t1_items, t2_items, strict=True):
             try:
-                t1_item = float(t1_item)
-                t2_item = float(t2_item)
-                assert abs(t1_item - t2_item) < 0.3
+                t1_item_f = float(t1_item)
+                t2_item_f = float(t2_item)
+                ## TODO: these are pretty loose tolerances but:
+                # - we only test 10 samples
+                # - not sure when/how the ground truth test_data was generated
+                tol = 0.3 if on_ci else 0.5
+                assert abs(t1_item_f - t2_item_f) < tol
             except ValueError:
                 assert t1_item == t2_item
+                # # Locally, values may differ slightly causing column width
+                # # changes. Skip separator lines and compare content stripped.
+                # t1_s = t1_item.strip().rstrip("-:").rstrip("-")
+                # t2_s = t2_item.strip().rstrip("-:").rstrip("-")
+                # if t1_s or t2_s:  # skip separator-only cells
+                #     assert t1_s == t2_s

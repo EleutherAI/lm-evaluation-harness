@@ -1,6 +1,6 @@
 |             Tasks             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
 |-------------------------------|------:|------|-----:|------|---|-----:|---|------|
-|stem                           |      2|none  |      |acc   |↑  |0.2474|±  |   N/A|
+|stem                           |      2|none  |     0|acc   |↑  |0.2474|±  |   N/A|
 | - abstract_algebra            |      1|none  |     0|acc   |↑  |0.2000|±  |   N/A|
 | - anatomy                     |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
 | - astronomy                   |      1|none  |     0|acc   |↑  |0.1000|±  |   N/A|
