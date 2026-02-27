@@ -485,9 +485,13 @@ class TaskConfig:
             resolved = PresetConfig.get(self.preset, selection=self._preset_selection)
             if resolved is not None:
                 overrides = resolved.to_task_config(
-                    doc_to_text=self.doc_to_text or "question",  # type: ignore
+                    doc_to_text=self.doc_to_text
+                    if self.doc_to_text is not None
+                    else "question",  # type: ignore
                     doc_to_choice=self.doc_to_choice,  # type: ignore
-                    doc_to_target=self.doc_to_target or "answer",  # type: ignore
+                    doc_to_target=self.doc_to_target
+                    if self.doc_to_target is not None
+                    else "answer",  # type: ignore
                 )
                 for key, value in overrides.items():
                     setattr(self, key, value)
