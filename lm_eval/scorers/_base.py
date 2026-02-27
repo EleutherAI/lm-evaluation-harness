@@ -22,10 +22,10 @@ eval_logger = logging.getLogger(__name__)
 
 
 class _ScorerCfg(TypedDict):
-    """Normalised per-pipeline config consumed by :meth:`Scorer.from_dict`.
+    """Normalised per-pipeline config consumed by [Scorer.from_dict][Scorer.from_dict].
 
     Each ``TaskConfig.filter_list`` entry becomes one ``_ScorerCfg`` passed
-    to :func:`build_scorer`.  After ``TaskConfig._normalize_scoring_config()``,
+    to [build_scorer][build_scorer].  After ``TaskConfig._normalize_scoring_config()``,
     all three keys are guaranteed present:
 
     * ``name`` — pipeline identifier.
@@ -40,14 +40,14 @@ class _ScorerCfg(TypedDict):
 
     filter: list[FilterStep]
     """Ordered filter-step configs.  Each entry follows the
-    :class:`~lm_eval.config.task.FilterStep` shape (``"function"`` key
+    [FilterStep][lm_eval.config.task.FilterStep] shape (``"function"`` key
     plus optional ``"kwargs"``).
     An empty list ``[]`` signals "no explicit filters" — ``Scorer._build_filter``
     falls back to the scorer's ``default_filter_cfg`` → ``[{"function": "noop"}]``."""
 
     metric_list: list[MetricConfig]
     """Per-pipeline metric configs.  Each entry follows the
-    :class:`~lm_eval.config.task.MetricConfig` shape (``"metric"`` key
+    [MetricConfig][lm_eval.config.task.MetricConfig] shape (``"metric"`` key
     plus optional aggregation/kwargs fields).
     An empty list ``[]`` signals "no explicit metrics" — ``Scorer._build_metrics``
     falls back to ``default_metric_cfg`` → ``DEFAULT_METRIC_REGISTRY``."""
@@ -57,7 +57,7 @@ class _ScorerCfg(TypedDict):
 class Scorer:
     """Base scorer defining the filter → score → reduce → aggregate pipeline.
 
-    For generation tasks, subclass :class:`GenScorer` which offers two
+    For generation tasks, subclass [GenScorer][GenScorer] which offers two
     tiers of extensibility (from simplest to most control):
 
     1. **Config** — set ``default_filter_cfg`` / ``default_metric_cfg``
@@ -65,7 +65,7 @@ class Scorer:
     2. **Per-doc** — override ``GenScorer.score(reference, predictions)``
        to return ``{metric: [scores]}``.  No ``Instance`` knowledge needed.
 
-    For full control (e.g. batch scoring), override :meth:`score_instances`.
+    For full control (e.g. batch scoring), override [score_instances][score_instances].
 
     Filter / metric precedence (highest → lowest):
 
@@ -106,7 +106,7 @@ class Scorer:
     ) -> Self:
         """Build a Scorer from a normalised pipeline config.
 
-        *cfg* is a :class:`_ScorerCfg` produced by
+        *cfg* is a [_ScorerCfg][_ScorerCfg] produced by
         ``TaskConfig._normalize_scoring_config()``::
 
             {
@@ -190,7 +190,7 @@ class Scorer:
         filter_name: str,
         filter_cfg: Sequence[dict[str, Any] | type[Filter]] | Sequence[FilterStep],
     ) -> FilterEnsemble:
-        """Build a :class:`FilterEnsemble` from a mixed list.
+        """Build a [FilterEnsemble][lm_eval.api.filter.FilterEnsemble] from a mixed list.
 
         Each entry in *filter_cfg* may be:
 
@@ -225,7 +225,7 @@ class Scorer:
         metric_cfg: Sequence[dict[str, Any] | Metric] | Sequence[MetricConfig],
         output_type: str,
     ) -> list[Metric]:
-        """Build a list of :class:`Metric` objects from a mixed list.
+        """Build a list of [Metric][lm_eval.api.metrics.Metric] objects from a mixed list.
 
         Each entry in *metric_cfg* may be:
 
@@ -264,7 +264,7 @@ class Scorer:
     ) -> dict[int, ScoredDoc]:
         """Score all documents' instances, returning a ``ScoredDoc`` per document.
 
-        Delegates per-document scoring to :meth:`score_doc`, which subclasses
+        Delegates per-document scoring to [score_doc][.score_doc], which subclasses
         must implement.
         """
         return {
@@ -276,8 +276,8 @@ class Scorer:
         """Score a single document's instances. Subclasses must implement this.
 
         Override this method to define custom scoring logic.  Use
-        :meth:`_dispatch_metrics` as a helper to run configured metrics,
-        or compute scores directly and return a :class:`ScoredDoc`.
+        [_dispatch_metrics][._dispatch_metrics] as a helper to run configured metrics,
+        or compute scores directly and return a [ScoredDoc][lm_eval.scorers.ScoredDoc].
         """
         raise NotImplementedError(
             f"{type(self).__name__} must implement score_doc(). "
@@ -322,7 +322,7 @@ class Scorer:
     def reduce(self, scored_docs: dict[int, ScoredDoc]) -> dict[int, ReducedDoc]:
         """Reduce per-doc ``list[T]`` → ``T`` for each document.
 
-        Pure function: takes :class:`ScoredDoc` objects (immutable raw scores)
+        Pure function: takes [ScoredDoc][lm_eval.scorers.ScoredDoc] objects (immutable raw scores)
         and returns ``{doc_id: {metric: scalar}}`` dicts ready for aggregation.
 
         For each metric in each document:
@@ -445,7 +445,7 @@ class Scorer:
     def raw_docs(self) -> Mapping[int, ScoredDoc]:
         """Per-document raw scoring results (pre-reduction).
 
-        Empty after :meth:`import_reduced` — raw scores only exist on the
+        Empty after [import_reduced][.import_reduced] — raw scores only exist on the
         rank that performed scoring.
         """
         return self._raw_docs
@@ -518,12 +518,12 @@ class GenScorer(Scorer):
     **Tier 1 — Config-only**: Set ``default_filter_cfg`` and/or
     ``default_metric_cfg`` class variables.  No scoring code needed.
 
-    **Tier 2 — Per-doc scoring**: Override :meth:`score` to define custom
+    **Tier 2 — Per-doc scoring**: Override [score][.score] to define custom
     scoring as ``(reference, predictions) → {metric: [scores]}``.
 
-    **Full control**: Override :meth:`score_instances` for batch scoring
+    **Full control**: Override [score_instances][.score_instances] for batch scoring
     (e.g. batched LLM judge calls, code sandbox pools).  Use
-    :meth:`_extract_inputs` to pull ``(reference, predictions, metric_kwargs)``
+    [_extract_inputs][._extract_inputs] to pull ``(reference, predictions, metric_kwargs)``
     from each document's instances.
 
     The default call chain is::
@@ -556,7 +556,7 @@ class GenScorer(Scorer):
     # ------------------------------------------------------------------
 
     def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
-        """Extract inputs from a document's instances and delegate to :meth:`score`."""
+        """Extract inputs from a document's instances and delegate to [score][.score]."""
         ref, preds, mkw = self._extract_inputs(doc_instances)
         return ScoredDoc(
             doc_id=doc_id,
@@ -629,7 +629,7 @@ class LLScorer(Scorer):
 
     Repeats are always 1.  The scalar metric result is wrapped in a
     single-element list so that the downstream ``reduce`` step works
-    uniformly with :class:`GenScorer`.
+    uniformly with [GenScorer][GenScorer].
     """
 
     def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
@@ -660,17 +660,17 @@ def build_scorer(
 ) -> Scorer:
     """Construct the appropriate scorer subclass.
 
-    *cfg* is a :class:`_ScorerCfg` (normalised pipeline config from
+    *cfg* is a [_ScorerCfg][_ScorerCfg] (normalised pipeline config from
     ``TaskConfig.filter_list``).
 
     *scorer_type* can be:
 
     * **str** — scorer name, resolved from the scorer registry
-      (e.g. ``"first_token"`` → :class:`FirstTokenScorer`).
-    * :class:`~lm_eval.config.task.ScorerConfig` **dict** —
+      (e.g. ``"first_token"`` → [FirstTokenScorer][lm_eval.scorers.extraction.FirstTokenScorer]).
+    * [ScorerConfig][lm_eval.config.task.ScorerConfig] **dict** —
       ``{"type": "scorer_name", ...kwargs}`` where extra keys are
       forwarded to the scorer constructor as kwargs.
-    * **None** — fall back to :class:`GenScorer` / :class:`LLScorer`
+    * **None** — fall back to [GenScorer][GenScorer] / [LLScorer][LLScorer]
       based on *output_type*.
 
     Metrics are resolved inside ``Scorer.from_dict`` with a 3-tier

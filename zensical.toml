@@ -1,0 +1,135 @@
+[project]
+site_name = "LM Evaluation Harness"
+site_url = "https://lm-evaluation-harness.readthedocs.io/"
+site_description = "A framework for evaluating language models"
+site_author = "EleutherAI"
+repo_url = "https://github.com/EleutherAI/lm-evaluation-harness"
+repo_name = "EleutherAI/lm-evaluation-harness"
+edit_uri = "edit/main/docs/"
+
+nav = [
+  { "Home" = "index.md" },
+  { "Getting Started" = [
+    { "User Guide" = "interface.md" },
+    { "Python API" = "python-api.md" },
+    { "Configuration Files" = "config_files.md" },
+  ]},
+  { "Guides" = [
+    { "Model Guide" = "model_guide.md" },
+    { "API Model Guide" = "API_guide.md" },
+    { "New Task Guide" = "new_task_guide.md" },
+    { "Task Configuration" = "task_guide.md" },
+  ]},
+  { "Advanced" = [
+    { "Chat Templates" = "chat-template-readme.md" },
+    { "Decontamination" = "decontamination.md" },
+    { "Common Pitfalls" = "footguns.md" },
+  ]},
+  { "API Reference" = [
+    "api/index.md",
+    { "Running Evaluations" = [
+      { "Entry Points" = "api/entry_points.md" },
+      { "TaskManager" = "api/lm_eval.tasks.md" },
+      { "Evaluation Config" = "api/evaluation_config.md" },
+    ]},
+    { "Models" = [
+      { "Available Backends" = "api/lm_eval.models.md" },
+      { "LM Base Class" = "api/lm_base_class.md" },
+    ]},
+    { "Configuration" = [
+      { "TaskConfig" = "api/task_configuration.md" },
+      { "GroupConfig" = "api/group_configuration.md" },
+    ]},
+    { "Tasks" = [
+      { "Task Class" = "api/task_class.md" },
+      { "Groups" = "api/groups.md" },
+    ]},
+    { "Metrics & Scoring" = [
+      { "Metrics" = "api/metrics.md" },
+      { "Scorers" = "api/lm_eval.scorers.md" },
+      { "Filters" = "api/lm_eval.filters.md" },
+    ]},
+  ]},
+  { "Contributing" = "CONTRIBUTING.md" },
+]
+
+[project.theme]
+features = [
+  "navigation.tabs",
+  "navigation.sections",
+  "navigation.expand",
+  "navigation.top",
+  "navigation.indexes",
+  "search.highlight",
+  "search.suggest",
+  "content.code.copy",
+  "content.code.annotate",
+  "toc.follow",
+]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+[project.plugins.mkdocstrings]
+default_handler = "python"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["."]
+inventories = [
+  "https://typing-extensions.readthedocs.io/en/latest/objects.inv",
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_source = true
+show_root_heading = true
+show_root_full_path = false
+show_category_heading = true
+show_symbol_type_heading = true
+show_symbol_type_toc = true
+docstring_style = "google"
+docstring_section_style = "spacy"
+members_order = "source"
+merge_init_into_class = true
+show_if_no_docstring = true
+signature_crossrefs = true
+separate_signature = true
+unwrap_annotated = true
+show_signature_annotations = true
+show_attribute_values = true
+show_inheritance_diagram = true
+relative_crossrefs = true
+scoped_crossrefs = true
+
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.def_list]
+[project.markdown_extensions.footnotes]
+[project.markdown_extensions.md_in_html]
+[project.markdown_extensions.tables]
+
+[project.markdown_extensions.toc]
+permalink = true
+
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.snippets]
+
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+
+[project.markdown_extensions.pymdownx.tasklist]
+custom_checkbox = true
+
+[project.markdown_extensions.pymdownx.emoji]
+emoji_index = "zensical.extensions.emoji.twemoji"
+emoji_generator = "zensical.extensions.emoji.to_svg"

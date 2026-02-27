@@ -97,7 +97,7 @@ def simple_evaluate(
     Handles model instantiation (from a name string or pre-initialized LM object),
     task loading via TaskManager, random seed setup, and per-task config overrides
     (num_fewshot, gen_kwargs, repeats). Delegates the actual inference and metric
-    computation to :func:`evaluate`, then attaches run metadata (git hash,
+    computation to [evaluate][evaluate], then attaches run metadata (git hash,
     environment info, tokenizer details) to the returned results.
 
     Args:
@@ -451,7 +451,7 @@ def evaluate(
     collects responses, post-processes outputs via each task's scorers, and aggregates
     metrics across samples. Handles multi-rank (FSDP/DDP) padding and result gathering.
 
-    Prefer :func:`simple_evaluate` unless you need direct control over model
+    Prefer [simple_evaluate][simple_evaluate] unless you need direct control over model
     initialization and task loading.
 
     Args:

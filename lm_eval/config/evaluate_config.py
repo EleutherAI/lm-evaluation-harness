@@ -6,6 +6,7 @@ import textwrap
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from typing_extensions import Self
 
 import yaml
 
@@ -33,15 +34,18 @@ class EvaluatorConfig:
     """Configuration for language model evaluation runs.
 
     This dataclass contains all parameters for configuring model evaluations via
-    `simple_evaluate()` or the CLI. It supports initialization from:
-    - CLI arguments (via `from_cli()`)
-    - YAML configuration files (via `from_config()`)
+    [simple_evaluate][lm_eval.evaluator.simple_evaluate] or the CLI.
+    It supports initialization from:
+
+    - CLI arguments (via [from_cli][.from_cli])
+    - YAML configuration files (via [from_config][.from_config])
     - Direct instantiation with keyword arguments
 
     The configuration handles argument parsing, validation, and preprocessing
     to ensure properly structured and validated.
 
-    Example:
+    Example::
+
         # From CLI arguments
         config = EvaluatorConfig.from_cli(args)
 
@@ -53,155 +57,137 @@ class EvaluatorConfig:
             model="hf",
             model_args={"pretrained": "gpt2"},
             tasks=["hellaswag", "arc_easy"],
-            num_fewshot=5
+            num_fewshot=5,
         )
-
-      See individual field documentation for detailed parameter descriptions.
     """
 
     # Core evaluation parameters
-    config: str | None = field(
-        default=None, metadata={"help": "Path to YAML config file"}
-    )
-    model: str = field(default="hf", metadata={"help": "Name of model e.g. 'hf'"})
-    model_args: dict = field(
-        default_factory=dict, metadata={"help": "Arguments for model initialization"}
-    )
-    tasks: str | list[str] = field(
-        default_factory=list,
-        metadata={"help": "Comma-separated list of task names to evaluate"},
-    )
+
+    config: str | None = None
+    """Path to a YAML config file. CLI args override values from the file."""
+
+    model: str = "hf"
+    """Name of the model backend (e.g. ``"hf"``, ``"vllm"``, ``"openai"``)."""
+
+    model_args: dict = field(default_factory=dict)
+    """Arguments for model initialization, passed to the model constructor."""
+
+    tasks: str | list[str] = field(default_factory=list)
+    """Task names to evaluate. Accepts a comma-separated string or a list."""
 
     # Few-shot, repeats, and batching
-    num_fewshot: int | None = field(
-        default=None, metadata={"help": "Number of examples in few-shot context"}
-    )
-    repeats: int | None = field(
-        default=None,
-        metadata={"help": "Number of repeats for each request (overrides task config)"},
-    )
-    batch_size: int = field(default=1, metadata={"help": "Batch size for evaluation"})
-    max_batch_size: int | None = field(
-        default=None, metadata={"help": "Maximum batch size for auto batching"}
-    )
+
+    num_fewshot: int | None = None
+    """Number of examples in few-shot context."""
+
+    repeats: int | None = None
+    """Number of repeats for each request (overrides task config)."""
+
+    batch_size: int = 1
+    """Batch size for evaluation."""
+
+    max_batch_size: int | None = None
+    """Maximum batch size for auto batching."""
 
     # Device
-    device: str | None = field(
-        default="cuda:0", metadata={"help": "Device to use (e.g. cuda, cuda:0, cpu)"}
-    )
+
+    device: str | None = "cuda:0"
+    """Device to use (e.g. ``"cuda"``, ``"cuda:0"``, ``"cpu"``)."""
 
     # Data sampling and limiting
-    limit: float | None = field(
-        default=None, metadata={"help": "Limit number of examples per task"}
-    )
-    samples: str | dict | None = field(
-        default=None,
-        metadata={"help": "dict, JSON string or path to JSON file with doc indices"},
-    )
+
+    limit: float | None = None
+    """Limit number of examples per task. Mutually exclusive with ``samples``."""
+
+    samples: str | dict | None = None
+    """Dict, JSON string, or path to a JSON file mapping task names to doc indices."""
 
     # Caching
-    use_cache: str | None = field(
-        default=None,
-        metadata={"help": "Path to sqlite db file for caching model outputs"},
-    )
-    cache_requests: dict = field(
-        default_factory=dict,
-        metadata={"help": "Cache dataset requests: true/refresh/delete"},
-    )
+
+    use_cache: str | None = None
+    """Path to a SQLite DB file for caching model outputs."""
+
+    cache_requests: dict = field(default_factory=dict)
+    """Cache dataset requests. Values: ``true`` / ``"refresh"`` / ``"delete"``."""
 
     # Output and logging flags
-    check_integrity: bool = field(
-        default=False, metadata={"help": "Run test suite for tasks"}
-    )
-    write_out: bool = field(
-        default=False, metadata={"help": "Print prompts for first few documents"}
-    )
-    log_samples: bool = field(
-        default=False, metadata={"help": "Save model outputs and inputs"}
-    )
-    output_path: str | None = field(
-        default=None, metadata={"help": "Dir path where result metrics will be saved"}
-    )
-    predict_only: bool = field(
-        default=False,
-        metadata={
-            "help": "Only save model outputs, don't evaluate metrics. Use with log_samples."
-        },
-    )
+
+    check_integrity: bool = False
+    """Run the test suite for tasks."""
+
+    write_out: bool = False
+    """Print prompts for the first few documents."""
+
+    log_samples: bool = False
+    """Save model outputs and inputs. Requires ``output_path``."""
+
+    output_path: str | None = None
+    """Directory path where result metrics will be saved."""
+
+    predict_only: bool = False
+    """Only save model outputs without evaluating metrics. Implies ``log_samples``."""
 
     # Chat and instruction handling
-    system_instruction: str | None = field(
-        default=None, metadata={"help": "Custom System instruction to add"}
-    )
-    apply_chat_template: bool | str = field(
-        default=False,
-        metadata={
-            "help": "Apply chat template to prompt. Either True, or a string identifying the tokenizer template."
-        },
-    )
-    fewshot_as_multiturn: bool | None = field(
-        default=None,
-        metadata={
-            "help": "Use fewshot as multi-turn conversation. Defaults to True when apply_chat_template is set."
-        },
-    )
+
+    system_instruction: str | None = None
+    """Custom system instruction prepended to every prompt."""
+
+    apply_chat_template: bool | str = False
+    """Apply chat template to the prompt. Either ``True``, or a string naming the tokenizer template."""
+
+    fewshot_as_multiturn: bool | None = None
+    """Use fewshot examples as multi-turn conversation. Defaults to ``True`` when ``apply_chat_template`` is set."""
 
     # Configuration display
-    show_config: bool = field(
-        default=False, metadata={"help": "Show full config at end of evaluation"}
-    )
+
+    show_config: bool = False
+    """Show the full config at the end of evaluation."""
 
     # External tasks and generation
-    include_path: str | None = field(
-        default=None, metadata={"help": "Additional dir path for external tasks"}
-    )
-    gen_kwargs: dict = field(
-        default_factory=dict,
-        metadata={"help": "Arguments for model generation. Will update Task defaults"},
-    )
+
+    include_path: str | None = None
+    """Additional directory path for external tasks."""
+
+    gen_kwargs: dict = field(default_factory=dict)
+    """Generation arguments passed to the model. Overrides task-level defaults."""
 
     # Logging and verbosity
-    verbosity: str | None = field(
-        default=None, metadata={"help": "Logging verbosity level"}
-    )
+
+    verbosity: str | None = None
+    """Logging verbosity level."""
 
     # External integrations
-    wandb_args: dict = field(
-        default_factory=dict, metadata={"help": "Arguments for wandb.init"}
-    )
-    wandb_config_args: dict = field(
-        default_factory=dict, metadata={"help": "Arguments for wandb.config.update"}
-    )
-    hf_hub_log_args: dict = field(
-        default_factory=dict, metadata={"help": "Arguments for HF Hub logging"}
-    )
+
+    wandb_args: dict = field(default_factory=dict)
+    """Arguments for ``wandb.init``."""
+
+    wandb_config_args: dict = field(default_factory=dict)
+    """Arguments for ``wandb.config.update``."""
+
+    hf_hub_log_args: dict = field(default_factory=dict)
+    """Arguments for HF Hub logging."""
 
     # Reproducibility
-    seed: list = field(
-        default_factory=lambda: [0, 1234, 1234, 1234],
-        metadata={"help": "Seeds for random, numpy, torch, fewshot (random)"},
-    )
+
+    seed: list = field(default_factory=lambda: [0, 1234, 1234, 1234])
+    """Seeds as ``[random, numpy, torch, fewshot]``."""
 
     # Security
-    trust_remote_code: bool = field(
-        default=False, metadata={"help": "Trust remote code for HF datasets"}
-    )
-    confirm_run_unsafe_code: bool = field(
-        default=False,
-        metadata={
-            "help": "Confirm understanding of unsafe code risks (for code tasks that executes arbitrary Python)"
-        },
-    )
+
+    trust_remote_code: bool = False
+    """Trust remote code for HF datasets and models."""
+
+    confirm_run_unsafe_code: bool = False
+    """Confirm understanding of unsafe code risks (for tasks that execute arbitrary Python)."""
 
     # Internal metadata
-    metadata: dict = field(
-        default_factory=dict,
-        metadata={"help": "Additional metadata for tasks that require it"},
-    )
+
+    metadata: dict = field(default_factory=dict)
+    """Additional metadata for tasks that require it."""
 
     @classmethod
     def from_cli(cls, namespace: Namespace) -> EvaluatorConfig:
-        """Build an EvaluationConfig by merging with simple precedence.
+        """Build an EvaluationConfig by merging with a simple precedence.
 
         CLI args > YAML config > built-in defaults.
         """
@@ -228,7 +214,7 @@ class EvaluatorConfig:
         if used_config:
             cli_args.pop("config", None)
             eval_logger.info(
-                f"CLI args {cli_args} will override yaml"
+                "CLI args %s will override yaml", cli_args
             ) if cli_args else None
             print(textwrap.dedent(f"""{instance}"""))
 
@@ -265,20 +251,20 @@ class EvaluatorConfig:
 
         return yaml_data
 
-    def _parse_dict_args(self):
+    def _parse_dict_args(self) -> Self:
         # Parse string arguments that should be dictionaries
         for f in fields(self):
             if f.type is dict and isinstance(getattr(self, f.name), str):
                 setattr(self, f.name, simple_parse_args_string(getattr(self, f.name)))
         return self
 
-    def _configure(self):
+    def _configure(self) -> Self:
         """Validate configuration and preprocess fields after creation."""
         self._validate_arguments()._process_arguments()._set_trust_remote_code()
 
         return self
 
-    def _validate_arguments(self):
+    def _validate_arguments(self) -> Self:
         """Validate configuration arguments and cross-field constraints."""
         # tasks are required
         if self.tasks is None:
@@ -318,7 +304,7 @@ class EvaluatorConfig:
 
         return self
 
-    def _process_arguments(self):
+    def _process_arguments(self) -> Self:
         """Process samples argument - load from a file if needed."""
         if self.samples and isinstance(self.samples, str):
             try:
@@ -346,7 +332,6 @@ class EvaluatorConfig:
         - Glob patterns (e.g., "/path/to/*.yaml")
         - Directories of YAML files
         """
-        import glob
         import itertools
 
         from lm_eval.tasks import TaskManager
@@ -355,7 +340,7 @@ class EvaluatorConfig:
         # if metadata manually passed use that:
         self.metadata = metadata or self.metadata
 
-        # Create task manager with metadata
+        # Create a task manager with metadata
         task_manager = TaskManager(
             include_path=self.include_path,
             metadata=self.metadata or {},
@@ -370,10 +355,9 @@ class EvaluatorConfig:
         )
 
         # Handle directory input
-        if len(task_list) == 1 and Path(task_list[0]).is_dir():
+        if len(task_list) == 1 and (yaml_path := Path(task_list[0])).is_dir():
             task_names = []
-            yaml_path = Path(task_list[0]) / "*.yaml"
-            for yaml_file in glob.glob(str(yaml_path)):
+            for yaml_file in yaml_path.glob("*.yaml"):
                 config = load_yaml(yaml_file, resolve_func=False)
                 task_names.append(config)
             self.tasks = task_names
@@ -394,7 +378,7 @@ class EvaluatorConfig:
             else:
                 # Custom config file(s) - support glob patterns
                 matches = []
-                for yaml_file in glob.glob(task):
+                for yaml_file in Path().glob(task):
                     config = load_yaml(yaml_file, resolve_func=False)
                     matches.append(config)
             match_dict[task] = matches
@@ -415,7 +399,7 @@ class EvaluatorConfig:
         self.tasks = task_names
         return task_manager
 
-    def _set_trust_remote_code(self):
+    def _set_trust_remote_code(self) -> Self:
         """Apply the trust_remote_code setting if enabled."""
         if self.trust_remote_code:
             # Add to model_args for the actual model initialization

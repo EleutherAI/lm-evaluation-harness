@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64.0"]
+requires = ["setuptools>=82.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -97,7 +97,15 @@ tasks = [
 
 [dependency-groups]
 dev = [
+  {include-group = "dev1"},
+  {include-group = "docs"}
+]
+dev1 = [
     "lm_eval[api]", "lm_eval[dev]", "lm_eval[hf]","sentencepiece"
+]
+docs = [
+    "zensical>=0.0.24",
+    "mkdocstrings-python>=2.0",
 ]
 
 [tool.uv]
@@ -124,15 +132,18 @@ plugins.md028.enabled = false # no-blanks-blockquote
 plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.ruff.lint]
 preview = true
 explicit-preview-rules = true
 future-annotations = true
 extend-select = [
     # bugbear, comprehension, docstyle, pycodestyle, pyflakes
-    "B", "C4", "D", "E", "F",
+    "A","B", "C4", "D", "E", "F", "G",
     # refurb, isort, typecheck, useless-if-else
-    "FURB", "I", "TC", "RUF034",
+    "FURB", "I", "LOG", "TC", "RUF034",
      # flake8-bandit, simplify, pyupgrade, invalid-escape-sequence
     "S", "SIM", "S307", "UP", "W605",
 ]
@@ -147,7 +158,7 @@ fixable = [
 ignore = [
     "D417", "D10",
     "E11", "E402", "E501", "E701",
-    "E731", "E741",
+    "E731", "E741", "SIM108",
     "SIM105", "SIM401", # flake8-simplify
     "S311", "S701",  "S101" # bandits, assert-used
 ]
@@ -155,8 +166,7 @@ ignore = [
 [tool.ruff.lint.extend-per-file-ignores]
  # unused-import, import-shadowed-by-loop-var, undefined-local-with-import-star, undefined-local-with-import-star-usage
 "__init__.py" = ["F401", "F402", "F403", "F405", "F822"]
-"lm_eval/api/metrics.py" = [
-    "F401", "F403"]   # unused-import
+"lm_eval/api/metrics.py" = ["F401", "F403"]   # unused-import
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
