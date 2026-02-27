@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
-def log_rank_zero(logger: logging.Logger):
+def _log_rank_zero(logger: logging.Logger):
     class _RankZeroFilter(logging.Filter):
         """Suppress logs on non-zero ranks unless marked with ``all_ranks=True``.
 
@@ -40,7 +40,7 @@ def log_rank_zero(logger: logging.Logger):
     return logger
 
 
-eval_logger = log_rank_zero(logging.getLogger(__name__))
+eval_logger = _log_rank_zero(logging.getLogger(__name__))
 
 
 class ResultAcc(TypedDict):
@@ -67,9 +67,9 @@ def print_writeout(task: Task) -> None:
 
 
 def get_sample_size(task, limit: float | None) -> int | None:
-    if limit is not None:
-        limit = math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
-    return limit
+    if limit is None:
+        return None
+    return math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
 
 
 @positional_deprecated
@@ -162,10 +162,10 @@ class EvalAcc:
         subtask_list = {group.name: group.child_names for group in all_groups}
 
         higher_is_better = dict(self.higher_is_better)
-        _propagate_higher_is_better(all_groups, higher_is_better)
+        propagate_higher_is_better_(all_groups, higher_is_better)
 
         num_fewshot = dict(self.num_fewshot)
-        _propagate_num_fewshot(all_groups, num_fewshot)
+        propagate_num_fewshot_(all_groups, num_fewshot)
 
         results_dict: EvalResults = {
             "results": task_data,
@@ -357,7 +357,7 @@ def _process_results(
     return aggregate_groups(results)
 
 
-def _propagate_num_fewshot(
+def propagate_num_fewshot_(
     all_groups: list[Group], num_fewshot: dict[str, int]
 ) -> None:
     for group in all_groups:
@@ -366,7 +366,7 @@ def _propagate_num_fewshot(
             num_fewshot[group.name] = values.pop()
 
 
-def _propagate_higher_is_better(
+def propagate_higher_is_better_(
     all_groups: list[Group], higher_is_better: dict[str, dict[str, bool]]
 ) -> None:
     for group in all_groups:
@@ -387,7 +387,7 @@ def _propagate_higher_is_better(
             higher_is_better[group.name] = _higher_is_better
 
 
-def _log_selected_tasks(
+def log_selected_tasks_(
     task_dict: dict,
     groups: dict[str, Group],
     task_manager: TaskManager,
