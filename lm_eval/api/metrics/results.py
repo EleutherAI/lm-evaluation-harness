@@ -33,8 +33,8 @@ def _empty_array():
 class LLResults:
     """Per-doc bundle of log-likelihoods, greedy flags, and choices for loglikelihood tasks.
 
-    Built via :meth:`from_instances` from all ``LLInstance``s sharing a ``doc_id``,
-    and passed as ``predictions`` to metrics in :class:`LLScorer`.
+    Built via [from_instances][.from_instances] from all ``LLInstance``s sharing a ``doc_id``,
+    and passed as ``predictions`` to metrics in [LLScorer][lm_eval.scorers.LLScorer].
     """
 
     results: list[Any]

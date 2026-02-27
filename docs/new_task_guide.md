@@ -40,8 +40,8 @@ and rename the folders and YAML file(s) as desired.
 
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 .
-> [!TIP]
-> To test your task, we recommend using verbose logging using `export LMEVAL_LOG_LEVEL="DEBUG"` in your shell before running the evaluation script. This will help you debug any issues that may arise.
+!!! tip
+    To test your task, we recommend using verbose logging using `export LMEVAL_LOG_LEVEL="DEBUG"` in your shell before running the evaluation script. This will help you debug any issues that may arise.
 Once you have a HuggingFace dataset prepared for your task, we want to assign our new YAML to use this dataset:
 
 ```yaml
@@ -233,8 +233,8 @@ doc_to_target: "{{answer}}"
 
 For tasks which are multiple choice (a fixed, finite set of label words per each document) and evaluated via comparing loglikelihoods of all label words (the `multiple_choice` task output type) we enforce a particular convention on prompt format.
 
-> [!WARNING]
-> We add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_text(doc) + target_delimiter + doc_to_target(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively. For multiple choice the target will be each choice index concatenated with the delimiter.
+!!! warning
+    We add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_text(doc) + target_delimiter + doc_to_target(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively. For multiple choice the target will be each choice index concatenated with the delimiter.
 
 An annotated example in the case of SciQ is as follows:
 

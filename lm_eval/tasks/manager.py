@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class TaskDict(TypedDict):
-    """Return type of :meth:`TaskManager.load`.
+    """Return type of [TaskManager.load][TaskManager.load].
 
     Attributes:
         tasks: Flat mapping of task name to Task for every leaf task.
@@ -41,7 +41,7 @@ class TaskManager:
 
     On construction, scans one or more directories for YAML task configs and
     builds an in-memory index of every known task, group, and tag.  Callers
-    then use :meth:`load` to instantiate tasks by name, glob pattern, file
+    then use [load][load] to instantiate tasks by name, glob pattern, file
     path, or inline config dict.
 
     Args:
@@ -312,16 +312,16 @@ class TaskManager:
     def load_task_or_group(self, task_list: str | list[str | dict]) -> dict:
         """Legacy loader that returns the old nested-dict format.
 
-        Wraps :meth:`load` but converts the result into ``{ConfigurableGroup: {task_name: Task, ...}, ...}``
-        dicts expected by callers.  New code should use :meth:`load` instead.
+        Wraps [load][.load] but converts the result into ``{ConfigurableGroup: {task_name: Task, ...}, ...}``
+        dicts expected by callers.  New code should use [load][.load] instead.
 
         Args:
             task_list: Single task name or list of task names/dicts.
 
         Returns:
-            Nested dict keyed by :class:`ConfigurableGroup` (for groups) or
+            Nested dict keyed by [ConfigurableGroup][lm_eval.api.group.ConfigurableGroup] (for groups) or
             ``task_name`` (for standalone tasks), with leaf values being
-            :class:`Task` instances.
+            [Task][lm_eval.api.task.Task] instances.
         """
         import collections
 

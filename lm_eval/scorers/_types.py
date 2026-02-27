@@ -14,7 +14,7 @@ class ScoredDoc:
 
     Created by ``score_doc()`` / ``score_instances()``.  Contains per-repeat
     values that haven't been reduced yet.  After reduction, a
-    :class:`ReducedDoc` is produced — ``ScoredDoc`` itself is never mutated.
+    [ReducedDoc][ReducedDoc] is produced — ``ScoredDoc`` itself is never mutated.
     """
 
     doc_id: int
@@ -26,8 +26,8 @@ ReducedDoc: TypeAlias = dict[str, float]
 """Per-document reduced result: ``{metric_name: scalar_value}``.
 
 The doc_id is the key in the containing ``dict[int, ReducedDoc]``.
-Created by :meth:`Scorer.reduce` from a :class:`ScoredDoc`, or directly
-by :meth:`Scorer.import_reduced` after a distributed gather.
+Created by [Scorer.reduce][lm_eval.scorers.Scorer.reduce] from a [ScoredDoc][ScoredDoc], or directly
+by [Scorer.import_reduced][lm_eval.scorers.Scorer.import_reduced] after a distributed gather.
 """
 
 

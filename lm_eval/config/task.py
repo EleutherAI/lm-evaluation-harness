@@ -461,7 +461,7 @@ class TaskConfig:
 
     Accepts a string (e.g. ``"first_token"``) which is normalised to
     ``{"type": "first_token"}`` in ``__post_init__``, or a full
-    :class:`ScorerConfig` dict with extra kwargs forwarded to the scorer
+    [ScorerConfig][ScorerConfig] dict with extra kwargs forwarded to the scorer
     constructor."""
 
     repeats: int = 1

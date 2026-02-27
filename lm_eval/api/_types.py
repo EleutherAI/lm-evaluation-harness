@@ -10,31 +10,32 @@ if TYPE_CHECKING:
 
 
 Doc = dict[str, Any]
-# A single dataset split – iterable + sized collection of docs.
-# datasets.Dataset is the primary impl; list[Doc] works for custom datasets.
+"""A single document (row) from the dataset, mapping field names to values."""
+
 DataSplit: TypeAlias = "datasets.Dataset | Sequence[Doc]"
+"""A single dataset split — iterable + sized collection of docs."""
 
-# The full dataset – maps split names (training_split, test_split, etc.) to splits.
-# datasets.DatasetDict is the primary impl; dict[str, DataSplit] works too.
 Dataset: TypeAlias = "Mapping[str, DataSplit] | datasets.DatasetDict"
+"""The full dataset — maps split names to splits."""
 
-# the context passed to the model. Usually a string in most cases, but can be a dict of turn-level messages,
-# for model implementations process them internally, depending on the chat template used.
 Context = str | list[dict[str, str]]
+"""The context passed to the model: a string or list of chat messages."""
 
 
 LLArgs = tuple[str, str]
-# output of single loglikelihood request: (logprob of completion, is_greedy)
+"""Arguments for a loglikelihood request: ``(context, continuation)``."""
+
 LLOutput = tuple[float, bool]
+"""Output of a single loglikelihood request: ``(logprob, is_greedy)``."""
 
 GenArgs = tuple[Context, "GenKwargs"]
-# output of a single generation request.
-Completion = str
+"""Arguments for a generation request: ``(context, gen_kwargs)``."""
 
-# The gold-standard reference for a document: str/list[str] for generation,
-# typically int for multiple-choice / loglikelihood, and list[int] in case of multiple-targets
-# None when unknown.
+Completion = str
+"""Output of a single generation request."""
+
 Reference = str | list[str] | int | list[int] | None
+"""Gold-standard reference for a document."""
 
 
 class ChatTemplate(Protocol):
@@ -50,6 +51,8 @@ class ChatTemplate(Protocol):
 
 
 class GenKwargs(TypedDict, total=False):
+    """Keyword arguments controlling text generation."""
+
     do_sample: bool
     temperature: float
     # other alias' will be converted to `max_gen_toks`.

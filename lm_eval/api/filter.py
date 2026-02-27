@@ -26,10 +26,10 @@ class Filter(Protocol[_T]):
         outer (Iterable) — one entry per doc
         inner (Sequence)  — one entry per repeat of that doc
 
-    Multiple filters can be chained via :class:`FilterEnsemble`.
+    Multiple filters can be chained via [FilterEnsemble][FilterEnsemble].
     ``T`` is the response element type:
-    :data:`Completion` (``str``) for generation tasks,
-    :data:`LLOutput` (``tuple[float, bool]``) for loglikelihood tasks.
+    ``Completion`` (``str``) for generation tasks,
+    ``LLOutput`` (``tuple[float, bool]``) for loglikelihood tasks.
 
     Defaults to ``Completion``.
     """
@@ -55,9 +55,9 @@ class Filter(Protocol[_T]):
 
 @dataclass
 class FilterEnsemble:
-    """A named chain of :class:`Filter` steps applied sequentially.
+    """A named chain of [Filter][Filter] steps applied sequentially.
 
-    Each :class:`Scorer` owns one ``FilterEnsemble``.  When applied, it
+    Each [Scorer][lm_eval.scorers.Scorer] owns one ``FilterEnsemble``.  When applied, it
     extracts ``(resps, doc)`` pairs from every ``Instance``, threads them
     through each filter in order (outputs feed into the next filter's
     inputs), and stores the final result in

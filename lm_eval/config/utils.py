@@ -56,7 +56,7 @@ def serialize_config(
     """Convert a dataclass config to a plain dict, serializing callables.
 
     * ``None`` values are dropped.
-    * Any callable value is serialized with :func:`serialize_callable`.
+    * Any callable value is serialized with [serialize_callable][serialize_callable].
     """
     from dataclasses import asdict
 
@@ -127,7 +127,7 @@ FILTER_STEP_KEYS = {"function", "kwargs"}
 def _normalize_filter_step(cfg: Mapping[str, Any]) -> FilterStep:
     r"""Normalize a raw YAML filter step into a proper FilterStep.
 
-    Same pattern as :func:`normalize_metric_cfg`: known fields are kept,
+    Same pattern as [normalize_metric_cfg][normalize_metric_cfg]: known fields are kept,
     extra keys (e.g. ``regex_pattern``) are collected into ``kwargs``.
 
     Example::

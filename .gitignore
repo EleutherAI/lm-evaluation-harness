@@ -46,5 +46,8 @@ examples/wandb/
 # PyInstaller
 *.spec
 
+# MkDocs build output
+site/
+
 #uv
 uv.lock
