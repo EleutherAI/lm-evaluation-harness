@@ -51,7 +51,7 @@ eval_logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping
 
-    from lm_eval.api._metrics._types import AggregationFn, ReductionFn
+    from lm_eval.api._metrics._types import AggregationFn, MetricFn, ReductionFn
     from lm_eval.api.filter import Filter
     from lm_eval.api.metrics import Metric
     from lm_eval.api.model import LM
@@ -671,7 +671,7 @@ def register_metric(**args):
     return decorate
 
 
-def _get_metric(name: str) -> Metric | None:
+def _get_metric(name: str) -> Metric[Any, Any] | None:
     """Get a metric function by name, returning a Metric object.
 
     Unlike `get_metric` (public API, returns raw callable), this internal helper
@@ -704,9 +704,11 @@ def _get_metric(name: str) -> Metric | None:
 
     if isinstance(raw, CorpusMetric):
         hib = higher_is_better_registry.get(name, True)
+        # casts needed as CorpusMetric doesn't support **kwargs but
+        # Metric.compute() (metric.py:103-105) calls filter_kwargs(self.fn, ...) before passing kwargs.
         return Metric(
             name=name,
-            fn=raw,
+            fn=cast("MetricFn", raw),
             aggregation=cast("AggregationFn", raw.aggregation),
             reduction=cast("ReductionFn", raw.reduce),
             higher_is_better=hib,
