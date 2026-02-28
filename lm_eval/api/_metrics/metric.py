@@ -88,9 +88,9 @@ class Metric(Generic[_T, _K]):
     @classmethod
     def from_dict(cls, cfg: dict[str, Any] | MetricConfig) -> Metric[Any, Any]:
         from lm_eval.api._metrics import utils
-        from lm_eval.config.utils import normalize_metric_list
+        from lm_eval.config.utils import normalize_metric_cfg
 
-        return utils.parse_metric(normalize_metric_list(cfg))
+        return utils.parse_metric(normalize_metric_cfg(cfg))
 
     def compute(self, *args: Any, **kwargs: Any) -> _T | dict[str, list[_T]]:
         """Compute the metric for a sample."""

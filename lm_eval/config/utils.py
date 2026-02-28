@@ -11,7 +11,7 @@ from typing_extensions import overload
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from lm_eval.config.task import MetricConfig
+    from lm_eval.config.task import FilterPipeline, FilterStep, MetricConfig
 
 _T = TypeVar("_T")
 
@@ -222,7 +222,7 @@ def _resolve_target_index(target, choices, doc) -> int | None:
     return None
 
 
-def normalize_metric_list(cfg: Mapping[str, Any]) -> MetricConfig:
+def normalize_metric_cfg(cfg: Mapping[str, Any]) -> MetricConfig:
     """Normalize a raw YAML metric entry into a proper MetricConfig.
 
     YAML metric entries mix known fields (``metric``, ``aggregation``, etc.)
@@ -231,7 +231,7 @@ def normalize_metric_list(cfg: Mapping[str, Any]) -> MetricConfig:
 
     Example::
 
-        >>> normalize_metric_list({"metric": "exact_match", "ignore_case": True})
+        >>> normalize_metric_cfg({"metric": "exact_match", "ignore_case": True})
         {"metric": "exact_match", "kwargs": {"ignore_case": True}}
     """
     from lm_eval.api._metrics.metric import METRIC_KEYS
@@ -251,3 +251,75 @@ def normalize_metric_list(cfg: Mapping[str, Any]) -> MetricConfig:
     normalized["kwargs"] = {**extra_kwargs, **(cfg.get("kwargs", {}))}
 
     return cast("MetricConfig", normalized)
+
+
+def normalize_metric_list(
+    cfg: list[Mapping[str, Any]] | list[MetricConfig], output_type: str
+) -> list[MetricConfig]:
+    """Normalize a raw ``metric_list`` from YAML into a list of MetricConfigs.
+
+    When *cfg* is empty, falls back to the default metrics for *output_type*.
+    """
+    if not cfg:
+        from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
+
+        defaults = DEFAULT_METRIC_REGISTRY.get(output_type, [])
+        return [{"metric": name} for name in defaults]
+
+    return [normalize_metric_cfg(entry) for entry in cfg]
+
+
+# ── Filter normalization ─────────────────────────────────────────────
+
+FILTER_STEP_KEYS = {"function", "kwargs"}
+
+
+def _normalize_filter_step(step: Mapping[str, Any]) -> FilterStep:
+    r"""Normalize a raw YAML filter step into a proper FilterStep.
+
+    Same pattern as :func:`normalize_metric_cfg`: known fields are kept,
+    extra keys (e.g. ``regex_pattern``) are collected into ``kwargs``.
+
+    Example::
+
+        >>> _normalize_filter_step({"function": "regex", "regex_pattern": r"\\d+"})
+        {"function": "regex", "kwargs": {"regex_pattern": "\\\\d+"}}
+    """
+    if "function" not in step:
+        raise KeyError(
+            f"Each filter step requires a 'function' field. Got: {dict(step)}"
+        )
+    normalized = {k: v for k, v in step.items() if k in FILTER_STEP_KEYS}
+    extra_kwargs = {k: v for k, v in step.items() if k not in FILTER_STEP_KEYS}
+    normalized["kwargs"] = {**extra_kwargs, **(step.get("kwargs", {}))}
+    return cast("FilterStep", normalized)
+
+
+def normalize_filter_list(
+    cfg: list[Mapping[str, Any]] | list[FilterPipeline], output_type: str
+) -> list[FilterPipeline]:
+    """Normalize a raw ``filter_list`` from YAML into a list of FilterPipelines.
+
+    Each pipeline's ``filter`` steps and nested ``metric_list`` are normalized.
+    When *cfg* is empty, returns an empty list (the caller provides a default scorer).
+    """
+    if not cfg:
+        return []
+
+    result = []
+    for pipeline in cfg:
+        if "name" not in pipeline or "filter" not in pipeline:
+            raise KeyError(
+                f"'name' and 'function' are required keys for each filter, got {pipeline.keys()} in {cfg}"
+            )
+        entry: FilterPipeline = {
+            "name": pipeline["name"],
+            "filter": [_normalize_filter_step(s) for s in pipeline["filter"]],
+        }
+
+        if "metric_list" in pipeline:
+            entry["metric_list"] = normalize_metric_list(
+                pipeline["metric_list"], output_type
+            )
+        result.append(entry)
+    return result

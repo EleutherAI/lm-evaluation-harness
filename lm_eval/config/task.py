@@ -7,7 +7,7 @@ from typing_extensions import Required, TypedDict
 
 from lm_eval.defaults import default_gen_kwargs
 
-from .utils import normalize_metric_list
+from .utils import normalize_filter_list, normalize_metric_list
 
 
 if TYPE_CHECKING:
@@ -544,7 +544,8 @@ class TaskConfig:
         )
 
         # normalize metrics
-        self.metric_list = [normalize_metric_list(x) for x in self.metric_list]
+        self.metric_list = normalize_metric_list(self.metric_list, self.output_type)
+        self.filter_list = normalize_filter_list(self.filter_list, self.output_type)
 
     def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
         """Dumps the current config as a dictionary object, as a printable format.

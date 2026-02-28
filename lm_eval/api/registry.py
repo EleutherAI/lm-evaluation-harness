@@ -49,13 +49,23 @@ eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Mapping
 
     from lm_eval.api._metrics._types import AggregationFn, ReductionFn
     from lm_eval.api.filter import Filter
     from lm_eval.api.metrics import Metric
     from lm_eval.api.model import LM
     from lm_eval.scorers import Scorer
+
+DEFAULT_METRIC_REGISTRY: Mapping[str, list[str]] = {
+    "loglikelihood": [
+        "perplexity",
+        "acc",
+    ],
+    "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
+    "multiple_choice": ["acc", "acc_norm"],
+    "generate_until": ["exact_match"],
+}
 
 
 __all__ = [
@@ -461,16 +471,6 @@ METRIC_REGISTRY = metric_registry
 METRIC_AGGREGATION_REGISTRY = metric_agg_registry
 AGGREGATION_REGISTRY = aggregation_registry
 HIGHER_IS_BETTER_REGISTRY = higher_is_better_registry
-
-DEFAULT_METRIC_REGISTRY = {
-    "loglikelihood": [
-        "perplexity",
-        "acc",
-    ],
-    "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
-    "multiple_choice": ["acc", "acc_norm"],
-    "generate_until": ["exact_match"],
-}
 
 
 # =============================================================================
