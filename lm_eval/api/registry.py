@@ -51,6 +51,7 @@ eval_logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping
 
+    from lm_eval.api._metrics.metric import Metric
     from lm_eval.api.filter import Filter
     from lm_eval.api.model import LM
     from lm_eval.scorers import Scorer
@@ -445,7 +446,17 @@ class _Deferred:
 
 
 class _MetricRegistry(Registry):
-    """Registry that auto-resolves ``_Deferred`` entries on ``.get()``."""
+    """Registry that auto-resolves ``_Deferred`` entries on ``.get()``.
+
+    Callers always receive a ``Metric`` (or the *default*) — never a raw
+    ``_Deferred`` wrapper.
+    """
+
+    @overload
+    def get(self, alias: str) -> Metric[Any, Any]: ...
+
+    @overload
+    def get(self, alias: str, default: D) -> Metric[Any, Any] | D: ...
 
     def get(self, alias, default=_MISSING):
         result = super().get(alias, default)
@@ -715,7 +726,7 @@ def register_metric(**args):
 
         try:
             metric_registry.register(name, target=_Deferred(_build))
-        except Exception:
+        except ValueError:
             eval_logger.warning("Failed to register metric '%s'", name, exc_info=True)
 
         return fn
