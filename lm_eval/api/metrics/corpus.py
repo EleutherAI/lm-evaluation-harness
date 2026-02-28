@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from numpy import float64
     from numpy._typing import NDArray
 
-    from lm_eval.api._metrics.results import LLResults
+    from .results import LLResults
 
     GenPred = list[str]
     LLPred = LLResults
@@ -77,14 +77,14 @@ class CorpusMetric(ABC, Generic[_R, _T]):
         return predictions[0]
 
 
-class BrierScore(CorpusMetric["LLResults", float]):
+class _BrierScore(CorpusMetric["LLResults", float]):
     """Brier score for multiple choice tasks.
 
     We use the functional form. Only here for simplicity.
     """
 
     def __call__(self, references: Any, predictions: LLResults) -> float:
-        from lm_eval.api._metrics.ll import brier_score
+        from .ll import brier_score
 
         return brier_score(references, predictions)
 
@@ -192,7 +192,7 @@ class BitsPerByte(CorpusMetric["LLResults", tuple[float, int]]):
 # ---------------------------------------------------------------------------
 
 
-def is_non_str_iterable(obj: object) -> bool:
+def _is_non_str_iterable(obj: object) -> bool:
     return isinstance(obj, Iterable) and not isinstance(obj, str)
 
 
@@ -210,17 +210,17 @@ def _sacreformat(
 
     # We expect refs to be List[str] or List[List[str]], the outer list corresponding to preds
     # Must become List[List[str]] with the inner list corresponding to preds
-    if not is_non_str_iterable(refs):
+    if not _is_non_str_iterable(refs):
         refs = list(refs)
-    if not is_non_str_iterable(refs[0]):
+    if not _is_non_str_iterable(refs[0]):
         refs = [[ref] for ref in refs]  # type:ignore[invalid-assignment]
     refs = list(zip(*refs, strict=True))
     # Note the number of refs in each ref list much match the number of preds
 
     # We expect preds to be List[str] or List[List[str]]. Must become List[str]
-    if not is_non_str_iterable(preds):
+    if not _is_non_str_iterable(preds):
         preds = list(preds)
-    if is_non_str_iterable(preds[0]):
+    if _is_non_str_iterable(preds[0]):
         assert len(preds[0]) == 1, f"Pred must be a str, was {preds[0]}"
         preds = [pred[0] for pred in preds]
 
@@ -377,7 +377,7 @@ class Likelihood(CorpusMetric["LLResults", tuple[int, "tuple[NDArray[float64], .
     def aggregation(
         self, items: Sequence[tuple[int, tuple[NDArray[float64], ...]]]
     ) -> float:
-        from lm_eval.api.metrics import mean
+        from .aggregations import mean
 
         return mean([float(lls[gold]) for gold, lls in items])
 

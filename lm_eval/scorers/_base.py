@@ -627,7 +627,7 @@ class LLScorer(Scorer):
     """
 
     def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
-        from lm_eval.api._metrics.results import LLResults
+        from lm_eval.api.metrics.results import LLResults
 
         metric_kwargs = doc_instances[0].metadata.get("metric_kwargs")
         results_obj = LLResults.from_instances(doc_instances, self.name)

@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING, Any, cast
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from lm_eval.api._metrics.metric import Metric
     from lm_eval.config.task import MetricConfig
+
+    from .metric import Metric
 
 
 eval_logger = logging.getLogger(__name__)
@@ -42,8 +43,9 @@ def _resolve_registry_fn(value, lookup_fn, label: str) -> Callable | None:
 
 
 def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[Any, Any]:
-    from lm_eval.api._metrics.metric import Metric
     from lm_eval.api.registry import get_aggregation, get_reduction, metric_registry
+
+    from .metric import Metric
 
     if "metric" not in cfg:
         raise ValueError(
@@ -56,7 +58,7 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
 
     # 1) Resolve the base metric from registry or callable
     if isinstance(raw, str):
-        # the lambda case as we allow arbitrary metrics to be returned from process_results
+        # in the lambda case as we allow arbitrary metrics to be returned from process_results
         base = metric_registry.get(raw, None)
         if base is None:
             eval_logger.warning(

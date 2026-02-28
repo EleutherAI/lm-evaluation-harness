@@ -95,8 +95,9 @@ class Metric(Generic[_T, _K]):
     def from_dict(
         cls, cfg: dict[str, Any] | MetricConfig, output_type: str | None = None
     ) -> Metric[Any, Any]:
-        from lm_eval.api._metrics import utils
         from lm_eval.config.utils import normalize_metric_cfg
+
+        from . import utils
 
         return utils.parse_metric(normalize_metric_cfg(cfg), output_type)
 

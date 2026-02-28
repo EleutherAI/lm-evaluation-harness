@@ -353,7 +353,7 @@ class TestMetricRegistry:
 
     def test_register_metric(self):
         """Test registering a metric stores a Metric object."""
-        from lm_eval.api._metrics.metric import Metric
+        from lm_eval.api.metrics.metric import Metric
 
         # First register the aggregation
         @register_aggregation("test_metric_agg")

@@ -51,8 +51,8 @@ eval_logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
 
-    from lm_eval.api._metrics.metric import Metric
     from lm_eval.api.filter import Filter
+    from lm_eval.api.metrics.metric import Metric
     from lm_eval.api.model import LM
     from lm_eval.scorers import Scorer
 
@@ -484,7 +484,7 @@ class _MetricRegistry(Registry):
 # =============================================================================
 
 _METRICS_MODULE = "lm_eval.api.metrics"
-_REDUCE_MODULE = "lm_eval.api._metrics.reduce"
+_REDUCE_MODULE = "lm_eval.api.metrics.reduce"
 
 model_registry: Registry[type[LM]] = Registry("model")
 filter_registry: Registry[type[Filter]] = Registry("filter")
@@ -693,7 +693,7 @@ def register_metric(
         name = metric
 
         def _build():
-            from lm_eval.api._metrics.metric import Metric, take_first
+            from lm_eval.api.metrics.metric import Metric, take_first
 
             hib = args.get("higher_is_better", True)
             output_type = args.get("output_type", "multiple_choice")

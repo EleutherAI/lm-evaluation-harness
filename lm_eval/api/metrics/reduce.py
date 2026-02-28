@@ -80,8 +80,3 @@ def pass_at_k(
                 1.0 - np.prod(1.0 - ki / np.arange(n - c + 1, n + 1))  # type: ignore
             )
     return results
-
-
-def take_first(references, predictions: Sequence):
-    """Return the first repeat's prediction, ignoring all others."""
-    return predictions[0]

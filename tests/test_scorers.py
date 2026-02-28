@@ -13,10 +13,10 @@ from typing import ClassVar
 import numpy as np
 import pytest
 
-from lm_eval.api._metrics.metric import Metric, take_first
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
+from lm_eval.api.metrics.metric import Metric, take_first
 from lm_eval.scorers._base import GenScorer, LLScorer, build_scorer
 from lm_eval.scorers._types import ScoredDoc
 

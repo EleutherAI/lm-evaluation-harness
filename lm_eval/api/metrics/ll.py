@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 
-NAT_TO_BIT = 1.0 / np.log(2.0)
+_NAT_TO_BIT = 1.0 / np.log(2.0)
 
 from lm_eval.api.registry import register_metric as metric
 
@@ -20,10 +20,10 @@ from lm_eval.api.registry import register_metric as metric
 if TYPE_CHECKING:
     from numpy._typing import ArrayLike
 
-    from lm_eval.api._metrics.results import LLResults
+    from .results import LLResults
 
 
-def softmax(x: ArrayLike) -> np.ndarray:
+def _softmax(x: ArrayLike) -> np.ndarray:
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
@@ -163,7 +163,7 @@ def bpb(references: int, predictions: LLResults) -> float:
     """
     return (
         -predictions.lls[references] / predictions.byte_len()[references]
-    ) * NAT_TO_BIT
+    ) * _NAT_TO_BIT
 
 
 @metric(
@@ -239,7 +239,7 @@ def choice_logprob_norm(references: int, predictions: LLResults) -> float:
 )
 def brier_score(references: int, predictions: LLResults) -> float:
     """Per-sample Brier score: sum of squared errors between softmax probs and one-hot gold."""
-    probs = softmax(np.array(predictions.lls))
+    probs = _softmax(np.array(predictions.lls))
     one_hot = np.zeros_like(probs)
     one_hot[references] = 1.0
     return (np.sum((probs - one_hot) ** 2)).item()
