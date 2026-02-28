@@ -69,7 +69,7 @@ def acc_norm_fn(
     references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
-    pred = int(np.argmax(np.array(predictions.lls) / np.array(predictions.char_len())))
+    pred = np.argmax(predictions.lls / predictions.char_len()).item()
     if multiple_targets:
         return _multiple_targets(references, pred)
     assert not isinstance(references, list), (
@@ -88,7 +88,7 @@ def acc_bytes_fn(
     references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
-    pred = int(np.argmax(np.array(predictions.lls) / np.array(predictions.byte_len())))
+    pred = np.argmax(predictions.lls / predictions.byte_len()).item()
     if multiple_targets:
         return _multiple_targets(references, pred)
     assert not isinstance(references, list), (
@@ -107,7 +107,7 @@ def acc_mutual_info_fn(
     references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Mutual-information-weighted accuracy: picks the choice with the highest ``ll - ll_unconditional``."""
-    pred = int(np.argmax(predictions.lls_mutual_info))
+    pred = np.argmax(predictions.lls_mutual_info).item()
     if multiple_targets:
         return _multiple_targets(references, pred)
     assert not isinstance(references, list), (

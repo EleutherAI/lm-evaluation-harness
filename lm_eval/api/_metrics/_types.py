@@ -26,7 +26,7 @@ class ReductionFn(Protocol[_T, _K]):
 
     def __call__(
         self, references: Any, predictions: Sequence[_T]
-    ) -> _K | _T | dict[str, list[_K]]: ...
+    ) -> _K | _T | dict[str, _K] | dict[str, _T]: ...
 
 
 class AggregationFn(Protocol[_K]):
