@@ -49,7 +49,7 @@ eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Mapping
+    from collections.abc import Iterable, Mapping
 
     from lm_eval.api._metrics.metric import Metric
     from lm_eval.api.filter import Filter
@@ -90,8 +90,9 @@ __all__ = [
 ]
 
 
-T = TypeVar("T")
-D = TypeVar("D")
+_T = TypeVar("_T")
+_D = TypeVar("_D")
+_Fn = TypeVar("_Fn", bound=Callable)
 Placeholder = str | md.EntryPoint
 
 # Sentinel for distinguishing "no default" from "default=None"
@@ -154,7 +155,7 @@ def _build_key_error_msg(name: str, alias: str, keys: Iterable[str]) -> str:
     return msg
 
 
-class Registry(Generic[T]):
+class Registry(Generic[_T]):
     """Thread-safe dict mapping string aliases to objects or lazy placeholders.
 
     Lazy placeholders ("module.path:attr" strings or EntryPoints) are
@@ -166,7 +167,7 @@ class Registry(Generic[T]):
         self,
         name: str,
         *,
-        base_cls: type[T] | None = None,
+        base_cls: type[_T] | None = None,
         lazy_module: str | None = None,
     ) -> None:
         """Initialize a new registry.
@@ -180,7 +181,7 @@ class Registry(Generic[T]):
         self._name = name
         self._base_cls = base_cls
         self._lazy_module = lazy_module
-        self._objs: dict[str, T | Placeholder] = {}
+        self._objs: dict[str, _T | Placeholder] = {}
         self._lock = threading.RLock()
 
     # Registration (decorator or direct call) --------------------------------------
@@ -188,8 +189,8 @@ class Registry(Generic[T]):
     def register(
         self,
         *aliases: str,
-        target: T | Placeholder | None = None,
-    ) -> Callable[[T], T]:
+        target: _T | Placeholder | None = None,
+    ) -> Callable[[_T], _T]:
         """Register an object under one or more aliases.
 
         Can be used as a decorator or called directly for direct registration.
@@ -216,7 +217,7 @@ class Registry(Generic[T]):
             TypeError: If an object doesn't inherit from base_cls (when specified)
         """
 
-        def _store(alias: str, target: T | Placeholder) -> None:
+        def _store(alias: str, target: _T | Placeholder) -> None:
             current = self._objs.get(alias)
             # collision handling ------------------------------------------
             if current is not None and current != target:
@@ -243,7 +244,7 @@ class Registry(Generic[T]):
                 )
             self._objs[alias] = target
 
-        def decorator(obj: T) -> T:
+        def decorator(obj: _T) -> _T:
             names = aliases or (getattr(obj, "__name__", str(obj)),)
             with self._lock:
                 for name in names:
@@ -273,7 +274,7 @@ class Registry(Generic[T]):
                 if len(self._objs) == 0:
                     importlib.import_module(self._lazy_module)
 
-    def _materialise(self, ph: Placeholder) -> T:
+    def _materialise(self, ph: Placeholder) -> _T:
         """Materialize a placeholder using the module-level cached function.
 
         Args:
@@ -282,15 +283,15 @@ class Registry(Generic[T]):
         Returns:
             The materialized object, cast to type T
         """
-        return cast("T", _materialise_placeholder(ph))
+        return cast("_T", _materialise_placeholder(ph))
 
     @overload
-    def get(self, alias: str) -> T: ...
+    def get(self, alias: str) -> _T: ...
 
     @overload
-    def get(self, alias: str, default: D) -> T | D: ...
+    def get(self, alias: str, default: _D) -> _T | _D: ...
 
-    def get(self, alias: str, default: D | Any = _MISSING) -> T | D:
+    def get(self, alias: str, default: _D | Any = _MISSING) -> _T | _D:
         """Retrieve an object by alias, materializing if needed.
 
         Thread-safe lazy loading: if the alias points to a placeholder,
@@ -344,7 +345,7 @@ class Registry(Generic[T]):
             ) from None
         return target
 
-    def __getitem__(self, alias: str) -> T:
+    def __getitem__(self, alias: str) -> _T:
         """Allow dict-style access: registry[alias]."""
         return self.get(alias)
 
@@ -456,7 +457,7 @@ class _MetricRegistry(Registry):
     def get(self, alias: str) -> Metric[Any, Any]: ...
 
     @overload
-    def get(self, alias: str, default: D) -> Metric[Any, Any] | D: ...
+    def get(self, alias: str, default: _D) -> Metric[Any, Any] | _D: ...
 
     def get(self, alias, default=_MISSING):
         result = super().get(alias, default)
@@ -613,7 +614,7 @@ FILTER_REGISTRY = filter_registry
 
 
 # =============================================================================
-# Scorer registration (using new Registry class)
+# Scorer
 # =============================================================================
 
 
@@ -662,7 +663,7 @@ def register_metric(
     aggregation: str | None = None,
     reduction: str | None = None,
     output_type: str | list[str] = "multiple_choice",
-) -> Callable[[Callable], Callable]:
+) -> Callable[[_Fn], _Fn]:
     """Decorator to register a function or class as a named ``Metric``.
 
     The metric is constructed lazily on first use, keeping import-time
@@ -688,7 +689,7 @@ def register_metric(
     if reduction is not None:
         args["reduction"] = reduction
 
-    def decorate(fn: Callable) -> Callable:
+    def decorate(fn: _Fn) -> _Fn:
         name = metric
 
         def _build():
