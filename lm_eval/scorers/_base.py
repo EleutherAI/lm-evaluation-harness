@@ -3,20 +3,54 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
-
-from typing_extensions import Self
+from typing_extensions import Self, TypedDict
 
 from ._types import MetricKey, ScoredDoc
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     from lm_eval.api.filter import Filter, FilterEnsemble
     from lm_eval.api.instance import Instance
     from lm_eval.api.metrics import Metric
+    from lm_eval.config.task import FilterStep, MetricConfig, ScorerConfig
+
+    from ._types import ReducedDoc
 
 eval_logger = logging.getLogger(__name__)
+
+
+class _ScorerCfg(TypedDict):
+    """Normalised per-pipeline config consumed by :meth:`Scorer.from_dict`.
+
+    Each ``TaskConfig.filter_list`` entry becomes one ``_ScorerCfg`` passed
+    to :func:`build_scorer`.  After ``TaskConfig._normalize_scoring_config()``,
+    all three keys are guaranteed present:
+
+    * ``name`` — pipeline identifier.
+    * ``filter`` — filter steps, or ``[]`` to fall back to the scorer's
+      ``default_filter_cfg`` (→ ``noop``).
+    * ``metric_list`` — metric configs, or ``[]`` to fall back to
+      ``default_metric_cfg`` (→ ``DEFAULT_METRIC_REGISTRY``).
+    """
+
+    name: str
+    """Pipeline identifier (e.g. ``"strict-match"``, ``"none"``)."""
+
+    filter: list[FilterStep]
+    """Ordered filter-step configs.  Each entry follows the
+    :class:`~lm_eval.config.task.FilterStep` shape (``"function"`` key
+    plus optional ``"kwargs"``).
+    An empty list ``[]`` signals "no explicit filters" — ``Scorer._build_filter``
+    falls back to the scorer's ``default_filter_cfg`` → ``[{"function": "noop"}]``."""
+
+    metric_list: list[MetricConfig]
+    """Per-pipeline metric configs.  Each entry follows the
+    :class:`~lm_eval.config.task.MetricConfig` shape (``"metric"`` key
+    plus optional aggregation/kwargs fields).
+    An empty list ``[]`` signals "no explicit metrics" — ``Scorer._build_metrics``
+    falls back to ``default_metric_cfg`` → ``DEFAULT_METRIC_REGISTRY``."""
 
 
 @dataclass(kw_only=True)
@@ -51,7 +85,10 @@ class Scorer:
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
     context: dict[str, Any] = field(default_factory=dict)
-    _scored_docs: dict[int, ScoredDoc] = field(
+    _raw_docs: dict[int, ScoredDoc] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _reduced_docs: dict[int, ReducedDoc] = field(
         default_factory=dict, init=False, repr=False
     )
 
@@ -62,13 +99,15 @@ class Scorer:
     @classmethod
     def from_dict(
         cls,
-        cfg: dict[str, Any],
-        global_metrics: list[Metric] | None = None,
+        cfg: _ScorerCfg,
+        *,
+        output_type: str | None = None,
         **kwargs: Any,
     ) -> Self:
-        """Build a Scorer from a config dict.
+        """Build a Scorer from a normalised pipeline config.
 
-        Expected shape::
+        *cfg* is a :class:`_ScorerCfg` produced by
+        ``TaskConfig._normalize_scoring_config()``::
 
             {
                 "name": "strict-match",
@@ -76,49 +115,70 @@ class Scorer:
                     {"function": "regex", "regex_pattern": "..."},
                     {"function": "take_first"},
                 ],
-                "metric_list": [           # optional -- falls back to global_metrics
+                "metric_list": [
                     {"metric": "exact_match", "aggregation": "mean", ...},
                 ],
             }
 
-        Any extra *kwargs* are forwarded to the constructor (e.g. custom
+        *output_type* is used as a last-resort fallback when neither the
+        config nor the class provides metrics (see
+        ``DEFAULT_METRIC_REGISTRY``).
+
+        Any extra *kwargs* are forwarded to the constructor (e.g., custom
         dataclass fields on scorer subclasses).
         """
         name = cfg.get("name", "none")
         return cls(
             name=name,
             filter=cls._build_filter(name, cfg),
-            metrics=cls._build_metrics(cfg, global_metrics or []),
+            metrics=cls._build_metrics(cfg, output_type=output_type),
             **kwargs,
         )
 
     @classmethod
-    def _build_filter(cls, name: str, cfg: dict[str, Any]) -> FilterEnsemble:
+    def _build_filter(cls, name: str, cfg: _ScorerCfg) -> FilterEnsemble:
         """Resolve filter config: explicit cfg > ClassVar default > noop fallback."""
-        filter_cfg = (
-            cfg.get("filter") or cls.default_filter_cfg or [{"function": "noop"}]
-        )
-        return cls._resolve_filters(name, filter_cfg)
+        if cfg.get("filter"):
+            return cls._resolve_filters(name, cfg["filter"])
+        if cls.default_filter_cfg:
+            return cls._resolve_filters(name, cls.default_filter_cfg)
+        return cls._resolve_filters(name, [{"function": "noop"}])
 
     @classmethod
     def _build_metrics(
-        cls, cfg: dict[str, Any], global_metrics: list[Metric]
+        cls,
+        cfg: _ScorerCfg,
+        *,
+        output_type: str | None = None,
     ) -> list[Metric]:
-        """Resolve metric config: explicit cfg > ClassVar default > global_metrics."""
+        """Resolve metric config with a clear 3-tier precedence.
+
+        1. Explicit ``cfg["metric_list"]`` (per-pipeline or task-level)
+        2. ``cls.default_metric_cfg`` (scorer class defaults)
+        3. ``DEFAULT_METRIC_REGISTRY`` based on *output_type*
+        """
         if cfg.get("metric_list"):
-            return cls._resolve_metrics(cfg["metric_list"])
+            return cls._resolve_metrics(cfg["metric_list"], output_type or "")
         if cls.default_metric_cfg is not None:
-            return cls._resolve_metrics(cls.default_metric_cfg)
-        return list(global_metrics)
+            return cls._resolve_metrics(cls.default_metric_cfg, output_type or "")
+        if output_type is not None:
+            from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
+
+            defaults = DEFAULT_METRIC_REGISTRY.get(output_type, [])
+            if defaults:
+                return cls._resolve_metrics(
+                    [{"metric": name} for name in defaults], output_type
+                )
+        return []
 
     @classmethod
-    def default_scorer(cls, global_metrics: list[Metric], name: str = "none") -> Self:
-        """Build the default scorer with the given metrics.
+    def default_scorer(cls, name: str = "none", **kwargs: Any) -> Self:
+        """Build the default scorer (no explicit config).
 
         Filter defaults to ``cls.default_filter_cfg`` if set, otherwise
         ``noop``.
         """
-        return cls.from_dict({"name": name}, global_metrics=global_metrics)
+        return cls.from_dict({"name": name, "filter": [], "metric_list": []}, **kwargs)
 
     # ------------------------------------------------------------------
     # Resolvers (override for fully custom construction)
@@ -126,7 +186,9 @@ class Scorer:
 
     @classmethod
     def _resolve_filters(
-        cls, filter_name: str, filter_cfg: list[dict[str, Any] | type[Filter]]
+        cls,
+        filter_name: str,
+        filter_cfg: Sequence[dict[str, Any] | type[Filter]] | Sequence[FilterStep],
     ) -> FilterEnsemble:
         """Build a :class:`FilterEnsemble` from a mixed list.
 
@@ -145,7 +207,7 @@ class Scorer:
         for item in filter_cfg:
             if isinstance(item, dict):
                 fn_name = item["function"]
-                kwargs = {k: v for k, v in item.items() if k != "function"}
+                kwargs = item.get("kwargs", {})
                 filter_cls = get_filter(fn_name)
                 filters.append(partial(filter_cls, **kwargs) if kwargs else filter_cls)
             elif isinstance(item, type) and issubclass(item, Filter):
@@ -159,7 +221,9 @@ class Scorer:
 
     @classmethod
     def _resolve_metrics(
-        cls, metric_cfg: list[dict[str, Any] | Metric]
+        cls,
+        metric_cfg: Sequence[dict[str, Any] | Metric] | Sequence[MetricConfig],
+        output_type: str,
     ) -> list[Metric]:
         """Build a list of :class:`Metric` objects from a mixed list.
 
@@ -176,7 +240,7 @@ class Scorer:
             if isinstance(item, Metric):
                 metrics.append(item)
             elif isinstance(item, dict):
-                metrics.append(Metric.from_dict(item))
+                metrics.append(Metric.from_dict(item, output_type))
             else:
                 raise TypeError(
                     f"Metric config entries must be dicts or Metric instances, "
@@ -255,31 +319,37 @@ class Scorer:
     # Reduction & Aggregation
     # ------------------------------------------------------------------
 
-    def reduce(self, scored_docs: dict[int, ScoredDoc]) -> None:
-        """Reduce per-doc list[T] -> T for each document.
+    def reduce(self, scored_docs: dict[int, ScoredDoc]) -> dict[int, ReducedDoc]:
+        """Reduce per-doc ``list[T]`` → ``T`` for each document.
 
-        Iterates over each scored doc's metrics and applies the matching
-        ``Metric.reduction`` if available, otherwise takes the first value.
+        Pure function: takes :class:`ScoredDoc` objects (immutable raw scores)
+        and returns ``{doc_id: {metric: scalar}}`` dicts ready for aggregation.
 
-        Writes the reduced scalar onto each ``ScoredDoc.reduced_scores``.
+        For each metric in each document:
+
+        * **Single value** — passed through as-is (no reduction needed).
+        * **Multiple values + reduction fn** — calls ``Metric.reduction(reference, values)``.
+          If the reduction returns a dict, composite keys like ``"pass@1(metric)"``
+          are created.
+        * **No reduction fn** — warns and takes the first value.
         """
         metrics_by_name = {m.name: m for m in self.metrics or []}
+        result: dict[int, ReducedDoc] = {}
+
         for sd in scored_docs.values():
-            for metric_name, values in sd.scores.items():
-                if len(values) == 1:
-                    # No reduction needed for single-value metrics
-                    sd.reduced_scores[metric_name] = values[0]
+            values_dict: ReducedDoc = {}
+            for metric_name, score_list in sd.scores.items():
+                if len(score_list) == 1:
+                    values_dict[metric_name] = score_list[0]
                     continue
                 m = metrics_by_name.get(metric_name)
                 if m is not None and m.reduction is not None:
-                    res = m.reduction(sd.reference, values)
+                    res = m.reduction(sd.reference, score_list)
                     if isinstance(res, dict):
-                        # If reduction returns multiple sub-metrics, flatten them into reduced_scores
                         for sub_metric_name, sub_value in res.items():
-                            full_sub_metric_name = f"{sub_metric_name}({metric_name})"
-                            sd.reduced_scores[full_sub_metric_name] = sub_value
+                            values_dict[f"{sub_metric_name}({metric_name})"] = sub_value
                     else:
-                        sd.reduced_scores[metric_name] = res
+                        values_dict[metric_name] = res
                 else:
                     eval_logger.warning(
                         "No reduction function for metric '%s' in scorer '%s'. "
@@ -287,33 +357,39 @@ class Scorer:
                         metric_name,
                         self.name,
                     )
-                    sd.reduced_scores[metric_name] = values[0]
+                    values_dict[metric_name] = score_list[0]
+
+            result[sd.doc_id] = values_dict
+
+        return result
 
     def aggregate(
         self,
-        metric_results: Mapping[str, list[Any]] | None = None,
+        reduced_docs: Mapping[int, ReducedDoc],
         bootstrap_iters: int | None = 100000,
         aggregation_overrides: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int]:
-        """Aggregate metric results and compute stderr.
+        """Aggregate reduced docs and compute stderr.
 
-        Iterates over all metric names present in ``_scored_docs`` (or
-        ``metric_results`` if provided) and looks up the ``Metric`` object
-        for aggregation/stderr when available.  When *aggregation_overrides*
-        is supplied (legacy Python tasks that override ``Task.aggregation()``),
-        those functions take precedence over the ``mean`` fallback for metrics
-        not covered by a ``Metric`` object.
+        Pure function: takes ``{doc_id: {metric: value}}`` and produces
+        aggregated ``"metric,scorer"`` keyed results.  When
+        *aggregation_overrides* is supplied (legacy Python tasks that override
+        ``Task.aggregation()``), those functions take precedence over the
+        ``mean`` fallback for metrics not covered by a ``Metric`` object.
 
         Returns ``(agg_metrics, sample_len)`` where keys are in
         ``"metric,{self.name}"`` / ``"metric_stderr,{self.name}"`` format.
         """
         from lm_eval.api.metrics import mean, stderr_for_metric
 
+        # Transpose doc-first → metric-first: {metric: [values]}
+        results: dict[str, list[float]] = {}
+        for rd in reduced_docs.values():
+            for mn, val in rd.items():
+                results.setdefault(mn, []).append(val)
+
         agg: dict[str, Any] = {}
         sample_len = 0
-        results = (
-            metric_results if metric_results is not None else self.export_reduced()
-        )
         metrics_by_name = {m.name: m for m in self.metrics or []}
 
         for metric_name, values in results.items():
@@ -365,31 +441,41 @@ class Scorer:
     # ------------------------------------------------------------------
 
     @property
-    def scored_docs(self) -> Mapping[int, ScoredDoc]:
-        return self._scored_docs
+    def raw_docs(self) -> Mapping[int, ScoredDoc]:
+        """Per-document raw scoring results (pre-reduction).
 
-    def export_reduced(self) -> dict[str, list]:
-        """Export {metric_name: [per_doc_values]} from reduced_scores."""
-        metrics: dict[str, list] = {}
-        for sd in self._scored_docs.values():
-            for mn, val in sd.reduced_scores.items():
-                metrics.setdefault(mn, []).append(val)
-        return metrics
+        Empty after :meth:`import_reduced` — raw scores only exist on the
+        rank that performed scoring.
+        """
+        return self._raw_docs
 
-    def import_reduced(self, metric_data: dict[str, list]) -> None:
-        """Rebuild _scored_docs from flat metric lists (after distributed gather)."""
-        n_docs = max((len(v) for v in metric_data.values()), default=0)
-        self._scored_docs = {}
-        for i in range(n_docs):
-            reduced = {mn: vals[i] for mn, vals in metric_data.items() if i < len(vals)}
-            self._scored_docs[i] = ScoredDoc(
-                doc_id=i, reference=None, scores={}, reduced_scores=reduced
-            )
+    @property
+    def reduced_docs(self) -> Mapping[int, ReducedDoc]:
+        """Per-document reduced results (post-reduction), ready for aggregation."""
+        return self._reduced_docs
+
+    def export_reduced(self) -> dict[int, ReducedDoc]:
+        """Export ``{doc_id: {metric: value}}`` for distributed gathering.
+
+        Since ``ReducedDoc`` is a plain ``dict[str, float]``, this is a
+        shallow copy.  Merge across ranks is a simple ``dict.update``
+        since doc IDs are unique per rank.
+        """
+        return dict(self._reduced_docs)
+
+    def import_reduced(self, doc_data: dict[int, ReducedDoc]) -> None:
+        """Import merged results after distributed gather.
+
+        Raw scores are not available after import (they live on the
+        source ranks).
+        """
+        self._raw_docs = {}
+        self._reduced_docs = dict(doc_data)
 
     def set_results(self, scored_docs: dict[int, ScoredDoc]) -> None:
-        """Store scored documents and apply reduction."""
-        self._scored_docs = scored_docs
-        self.reduce(scored_docs)
+        """Store raw scored documents and compute reduction."""
+        self._raw_docs = scored_docs
+        self._reduced_docs = self.reduce(scored_docs)
 
     # ------------------------------------------------------------------
     # Properties
@@ -400,9 +486,9 @@ class Scorer:
         """Return ``{metric_name: bool}`` for all metrics in this scorer."""
         base = {m.name: m.higher_is_better for m in (self.metrics or [])}
         # Inherit higher_is_better for composite keys from their parent metric
-        if self._scored_docs:
-            for sd in self._scored_docs.values():
-                for key in sd.reduced_scores:
+        if self._reduced_docs:
+            for rd in self._reduced_docs.values():
+                for key in rd:
                     if key not in base:
                         mk = MetricKey(key, self.name)
                         if mk.parent_metric and mk.parent_metric in base:
@@ -541,7 +627,7 @@ class LLScorer(Scorer):
     """
 
     def score_doc(self, doc_id: int, doc_instances: list[Instance]) -> ScoredDoc:
-        from lm_eval.api._metrics.results import LLResults
+        from lm_eval.api.metrics.results import LLResults
 
         metric_kwargs = doc_instances[0].metadata.get("metric_kwargs")
         results_obj = LLResults.from_instances(doc_instances, self.name)
@@ -562,28 +648,34 @@ class LLScorer(Scorer):
 
 
 def build_scorer(
-    cfg: dict[str, Any] | None = None,
-    global_metrics: list[Metric] | None = None,
+    cfg: _ScorerCfg | None = None,
     output_type: str | None = None,
-    scorer_type: str | dict[str, Any] | None = None,
+    scorer_type: str | ScorerConfig | None = None,
 ) -> Scorer:
     """Construct the appropriate scorer subclass.
+
+    *cfg* is a :class:`_ScorerCfg` (normalised pipeline config from
+    ``TaskConfig.filter_list``).
 
     *scorer_type* can be:
 
     * **str** — scorer name, resolved from the scorer registry
       (e.g. ``"first_token"`` → :class:`FirstTokenScorer`).
-    * **dict** — ``{"type": "scorer_name", ...kwargs}`` where extra
-      keys are forwarded to the scorer constructor as kwargs.
+    * :class:`~lm_eval.config.task.ScorerConfig` **dict** —
+      ``{"type": "scorer_name", ...kwargs}`` where extra keys are
+      forwarded to the scorer constructor as kwargs.
     * **None** — fall back to :class:`GenScorer` / :class:`LLScorer`
       based on *output_type*.
+
+    Metrics are resolved inside ``Scorer.from_dict`` with a 3-tier
+    precedence: cfg > scorer class default > DEFAULT_METRIC_REGISTRY.
     """
     scorer_kwargs: dict[str, Any] = {}
     scorer_name: str | None = None
 
     if isinstance(scorer_type, dict):
         scorer_name = scorer_type["type"]
-        scorer_kwargs = {k: v for k, v in scorer_type.items() if k != "type"}
+        scorer_kwargs = scorer_type.get("kwargs", {})
     elif isinstance(scorer_type, str):
         scorer_name = scorer_type
 
@@ -606,11 +698,14 @@ def build_scorer(
         )
 
     if cfg is not None:
-        return cls.from_dict(cfg, global_metrics=global_metrics, **scorer_kwargs)
+        return cls.from_dict(cfg, output_type=output_type, **scorer_kwargs)
     if scorer_kwargs:
+        assert scorer_name is not None  # set in the same branch as scorer_kwargs
         return cls.from_dict(
-            {"name": scorer_name}, global_metrics=global_metrics, **scorer_kwargs
+            {"name": scorer_name, "filter": [], "metric_list": []},
+            output_type=output_type,
+            **scorer_kwargs,
         )
     if scorer_name is not None:
-        return cls.default_scorer(global_metrics or [], name=scorer_name)
-    return cls.default_scorer(global_metrics or [])
+        return cls.default_scorer(name=scorer_name, output_type=output_type)
+    return cls.default_scorer(output_type=output_type)

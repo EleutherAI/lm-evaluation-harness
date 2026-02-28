@@ -4,7 +4,7 @@ from ._base import (
     Scorer,
     build_scorer,
 )
-from ._types import MetricKey, ScoredDoc
+from ._types import MetricKey, ReducedDoc, ScoredDoc
 from .extraction import (
     ChoiceMatchScorer,
     FirstTokenScorer,
@@ -18,6 +18,7 @@ __all__ = [
     "GenScorer",
     "LLScorer",
     "MetricKey",
+    "ReducedDoc",
     "RegexExtractionScorer",
     "ScoredDoc",
     "Scorer",

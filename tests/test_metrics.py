@@ -1,4 +1,4 @@
-"""Tests for the refactored metrics in lm_eval/api/_metrics/.
+"""Tests for the metrics in lm_eval/api/metrics/.
 
 Tests cover:
   - Per-sample metric functions (acc, acc_norm, acc_mutual_info, brier_score, etc.)
@@ -15,24 +15,24 @@ import unittest.mock as mock
 import numpy as np
 import pytest
 
-from lm_eval.api._metrics.aggregations import mean, median, perplexity
-from lm_eval.api._metrics.generation import exact_match_fn
-from lm_eval.api._metrics.ll import (
-    acc_fn,
+from lm_eval.api.metrics.aggregations import mean, median, perplexity
+from lm_eval.api.metrics.generation import exact_match_fn
+from lm_eval.api.metrics.ll import (
+    _softmax as softmax,
+    acc,
     acc_mutual_info_fn,
-    acc_norm_fn,
-    bpb_fn,
+    acc_norm,
+    bpb,
     brier_score,
-    choice_logprob_fn,
+    choice_logprob,
     logprob_fn,
 )
-from lm_eval.api._metrics.results import LLResults
-from lm_eval.api._metrics.stderr import (
+from lm_eval.api.metrics.results import LLResults
+from lm_eval.api.metrics.stderr import (
     _bootstrap_internal_no_mp,
     mean_stderr,
     sample_stddev,
 )
-from lm_eval.api._metrics.utils import softmax
 
 
 # ---------------------------------------------------------------------------
@@ -73,36 +73,36 @@ def _make_ll_results(
 class TestAcc:
     def test_acc_correct(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=1)
-        assert acc_fn(1, pred) == 1
+        assert acc(1, pred) == 1
 
     def test_acc_wrong(self):
         pred = _make_ll_results([-1.0, -2.0, -3.0], targets=1)
         # argmax is 0 but gold is 1
-        assert acc_fn(1, pred) == 0
+        assert acc(1, pred) == 0
 
     def test_acc_single_ll_greedy(self):
         """Single loglikelihood: acc = greedy decode match."""
         pred = _make_ll_results([-1.5], is_greedy=[True], choices=["x"])
-        assert acc_fn(0, pred) == 1
+        assert acc(0, pred) == 1
 
     def test_acc_single_ll_not_greedy(self):
         pred = _make_ll_results([-1.5], is_greedy=[False], choices=["x"])
-        assert acc_fn(0, pred) == 0
+        assert acc(0, pred) == 0
 
     def test_acc_multiple_targets(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[0, 1])
         # argmax=1, which is in [0, 1]
-        assert acc_fn([0, 1], pred, multiple_targets=True) == 1
+        assert acc([0, 1], pred, multiple_targets=True) == 1
 
     def test_acc_multiple_targets_miss(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[0, 2])
         # argmax=1, which is not in [0, 2]
-        assert acc_fn([0, 2], pred, multiple_targets=True) == 0
+        assert acc([0, 2], pred, multiple_targets=True) == 0
 
     def test_acc_multiple_targets_ignores_minus100(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[1, -100])
         # argmax=1, -100 is filtered out, so [1] matches
-        assert acc_fn([1, -100], pred, multiple_targets=True) == 1
+        assert acc([1, -100], pred, multiple_targets=True) == 1
 
 
 class TestAccNorm:
@@ -111,7 +111,7 @@ class TestAccNorm:
         # choices:   ["AB", "B", "CDE"]   -> char_len = [2, 1, 3]
         # ll/len:    [-1.0, -1.0, -1.0]   -> tie, argmax = 0
         pred = _make_ll_results([-2.0, -1.0, -3.0], choices=["AB", "B", "CDE"])
-        result = acc_norm_fn(0, pred)
+        result = acc_norm(0, pred)
         assert result == 1  # argmax of normalized is 0
 
     def test_acc_norm_picks_shorter_choice(self):
@@ -119,7 +119,7 @@ class TestAccNorm:
         # choices:   ["A", "AB"]   -> char_len = [1, 2]
         # ll/len:    [-2.0, -1.0]  -> argmax = 1
         pred = _make_ll_results([-2.0, -2.0], choices=["A", "AB"])
-        assert acc_norm_fn(1, pred) == 1
+        assert acc_norm(1, pred) == 1
 
 
 class TestAccMutualInfo:
@@ -149,7 +149,7 @@ class TestAccMutualInfo:
             ],
         )
         # Regular acc picks A (index 0), gold is 1 -> wrong
-        assert acc_fn(1, pred) == 0
+        assert acc(1, pred) == 0
         # Mutual info picks B (index 1), gold is 1 -> correct
         assert acc_mutual_info_fn(1, pred) == 1
 
@@ -178,7 +178,7 @@ class TestBpb:
         # bpb = -lls[0] / byte_len[0] * NAT_TO_BIT
         # byte_len("ab") = 2
         # bpb = 2.0 / 2 * (1/ln2) = 1/ln2 ≈ 1.4427
-        result = bpb_fn(0, pred)
+        result = bpb(0, pred)
         assert result == pytest.approx(1.0 / np.log(2.0), rel=1e-6)
 
 
@@ -194,7 +194,7 @@ class TestChoiceLogprob:
         # log(softmax) at index 1 = lls[1] - logsumexp(lls)
         lls = np.array([-2.0, -1.0, -3.0])
         expected = float(lls[1] - np.logaddexp.reduce(lls))
-        assert choice_logprob_fn(1, pred) == pytest.approx(expected)
+        assert choice_logprob(1, pred) == pytest.approx(expected)
 
 
 # ===========================================================================
@@ -386,7 +386,7 @@ class TestBootstrap:
 
 class TestCorpusPerplexity:
     def test_corpus_perplexity(self):
-        from lm_eval.api._metrics.corpus import Perplexity
+        from lm_eval.api.metrics.corpus import Perplexity
 
         ppl = Perplexity()
         # Per-doc: extract gold ll
@@ -401,7 +401,7 @@ class TestCorpusPerplexity:
         assert result == pytest.approx(math.exp(-mean([-1.0, -0.5])))
 
     def test_single_ll_perplexity(self):
-        from lm_eval.api._metrics.corpus import Perplexity
+        from lm_eval.api.metrics.corpus import Perplexity
 
         ppl = Perplexity()
         pred = _make_ll_results([-2.5], choices=["x"])
@@ -411,7 +411,7 @@ class TestCorpusPerplexity:
 class TestSacreformat:
     def test_single_ref_strings(self):
         """Single reference per sample, flat list of strings."""
-        from lm_eval.api._metrics.corpus import _sacreformat
+        from lm_eval.api.metrics.corpus import _sacreformat
 
         refs = ["The cat sat.", "It was raining."]
         preds = ["A cat sat.", "It rained."]
@@ -422,7 +422,7 @@ class TestSacreformat:
 
     def test_multiple_refs_per_sample(self):
         """Two references per sample, transposed to per-stream grouping."""
-        from lm_eval.api._metrics.corpus import _sacreformat
+        from lm_eval.api.metrics.corpus import _sacreformat
 
         refs = [["ref1a", "ref1b"], ["ref2a", "ref2b"]]
         preds = ["pred1", "pred2"]
@@ -433,7 +433,7 @@ class TestSacreformat:
 
     def test_nested_preds_unwrapped(self):
         """Predictions wrapped in single-element lists get unwrapped."""
-        from lm_eval.api._metrics.corpus import _sacreformat
+        from lm_eval.api.metrics.corpus import _sacreformat
 
         refs = ["ref1", "ref2"]
         preds = [["pred1"], ["pred2"]]
@@ -451,7 +451,7 @@ class TestCorpusMetricReduce:
     """
 
     def test_reduce_single_repeat_passes_through(self):
-        from lm_eval.api._metrics.corpus import Bleu
+        from lm_eval.api.metrics.corpus import Bleu
 
         bleu = Bleu()
         # repeat=1: predictions has exactly one string
@@ -461,7 +461,7 @@ class TestCorpusMetricReduce:
 
     def test_reduce_strips_extra_repeat_predictions(self):
         """With repeat>1, predictions has multiple strings; reduce keeps only the first."""
-        from lm_eval.api._metrics.corpus import Bleu
+        from lm_eval.api.metrics.corpus import Bleu
 
         bleu = Bleu()
         refs = ["The cat."]
@@ -473,7 +473,7 @@ class TestCorpusMetricReduce:
 
     def test_reduce_strips_repeats_all_metrics(self):
         """All sacrebleu metrics strip extra repeat predictions via reduce."""
-        from lm_eval.api._metrics.corpus import Bleu, Chrf, Ter
+        from lm_eval.api.metrics.corpus import Bleu, Chrf, Ter
 
         refs = ["The cat sat on the mat."]
         for cls in (Bleu, Chrf, Ter):
@@ -485,7 +485,7 @@ class TestCorpusMetricReduce:
 
     def test_full_pipeline_with_repeats(self):
         """End-to-end: repeat=3 across two samples, reduce → aggregation."""
-        from lm_eval.api._metrics.corpus import Bleu
+        from lm_eval.api.metrics.corpus import Bleu
 
         bleu = Bleu()
 
@@ -505,7 +505,7 @@ class TestCorpusMetricReduce:
 
     def test_reduce_single_repeat_unchanged(self):
         """With repeat=1, reduce returns the result unchanged."""
-        from lm_eval.api._metrics.corpus import Bleu, Chrf, Ter
+        from lm_eval.api.metrics.corpus import Bleu, Chrf, Ter
 
         for cls in (Bleu, Chrf, Ter):
             metric = cls()
@@ -515,7 +515,7 @@ class TestCorpusMetricReduce:
 
 class TestBleu:
     def test_call_returns_refs_and_preds(self):
-        from lm_eval.api._metrics.corpus import Bleu
+        from lm_eval.api.metrics.corpus import Bleu
 
         bleu = Bleu()
         result = bleu(["the cat"], ["a cat"])
@@ -523,7 +523,7 @@ class TestBleu:
 
     def test_full_pipeline_call_reduce_aggregate(self):
         """End-to-end: __call__ -> reduce -> aggregation."""
-        from lm_eval.api._metrics.corpus import Bleu
+        from lm_eval.api.metrics.corpus import Bleu
 
         bleu = Bleu()
         # __call__ per document
@@ -537,7 +537,7 @@ class TestBleu:
         assert score == pytest.approx(100.0)
 
     def test_bleu_zero_for_no_overlap(self):
-        from lm_eval.api._metrics.corpus import Bleu
+        from lm_eval.api.metrics.corpus import Bleu
 
         bleu = Bleu()
         raw = bleu(["aaa bbb ccc ddd"], ["xxx yyy zzz www"])
@@ -546,7 +546,7 @@ class TestBleu:
         assert score == pytest.approx(0.0)
 
     def test_bleu_partial_match(self):
-        from lm_eval.api._metrics.corpus import Bleu
+        from lm_eval.api.metrics.corpus import Bleu
 
         bleu = Bleu()
         raw = bleu(["The cat sat on the mat."], ["The cat lay on the mat."])
@@ -557,7 +557,7 @@ class TestBleu:
 
 class TestChrf:
     def test_call_returns_refs_and_preds(self):
-        from lm_eval.api._metrics.corpus import Chrf
+        from lm_eval.api.metrics.corpus import Chrf
 
         chrf = Chrf()
         result = chrf(["the cat"], ["a cat"])
@@ -565,7 +565,7 @@ class TestChrf:
 
     def test_full_pipeline_call_reduce_aggregate(self):
         """End-to-end: __call__ -> reduce -> aggregation."""
-        from lm_eval.api._metrics.corpus import Chrf
+        from lm_eval.api.metrics.corpus import Chrf
 
         chrf = Chrf()
         raw1 = chrf(["The cat sat on the mat."], ["The cat sat on the mat."])
@@ -576,7 +576,7 @@ class TestChrf:
         assert score == pytest.approx(100.0)
 
     def test_chrf_partial_match(self):
-        from lm_eval.api._metrics.corpus import Chrf
+        from lm_eval.api.metrics.corpus import Chrf
 
         chrf = Chrf()
         raw = chrf(["The cat sat on the mat."], ["The cat lay on the mat."])
@@ -587,7 +587,7 @@ class TestChrf:
 
 class TestTer:
     def test_call_returns_refs_and_preds(self):
-        from lm_eval.api._metrics.corpus import Ter
+        from lm_eval.api.metrics.corpus import Ter
 
         ter = Ter()
         result = ter(["the cat"], ["a cat"])
@@ -595,7 +595,7 @@ class TestTer:
 
     def test_full_pipeline_call_reduce_aggregate(self):
         """End-to-end: __call__ -> reduce -> aggregation."""
-        from lm_eval.api._metrics.corpus import Ter
+        from lm_eval.api.metrics.corpus import Ter
 
         ter = Ter()
         raw1 = ter(["The cat sat on the mat."], ["The cat sat on the mat."])
@@ -606,7 +606,7 @@ class TestTer:
         assert score == pytest.approx(0.0)
 
     def test_ter_nonzero_for_mismatch(self):
-        from lm_eval.api._metrics.corpus import Ter
+        from lm_eval.api.metrics.corpus import Ter
 
         ter = Ter()
         raw = ter(["The cat sat on the mat."], ["A dog lay on the rug."])

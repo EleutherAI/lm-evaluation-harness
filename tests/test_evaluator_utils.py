@@ -12,21 +12,21 @@ from lm_eval.api.metrics import mean
 from lm_eval.api.task import Task
 from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
-    EvalAcc,
     _agg_and_collect,
+    _aggregate_groups,
     _collect_groups_bottom_up,
     _compute_task_aggregations,
+    _EvalAcc,
     _get_root_groups,
+    _get_sample_size,
     _process_results,
-    aggregate_groups,
-    get_sample_size,
-    propagate_higher_is_better_,
+    _propagate_higher_is_better_,
 )
 from lm_eval.scorers import MetricKey, ScoredDoc, Scorer
 
 
 if TYPE_CHECKING:
-    from lm_eval.evaluator_utils import ResultAcc
+    from lm_eval.evaluator_utils import _ResultAcc
     from lm_eval.result_schema import _TaskMetrics
 
 
@@ -61,13 +61,14 @@ def _build_mock_scorers(
     return [Scorer(name="none", filter=noop_filter, metrics=metrics)]
 
 
-def _scored_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ScoredDoc]:
-    """Build _scored_docs from flat {metric: [values]} for testing."""
+def _reduced_docs_from_flat(
+    metrics_dict: dict[str, list],
+) -> dict[int, dict[str, float]]:
+    """Build _reduced_docs from flat {metric: [values]} for testing."""
     n_docs = max((len(v) for v in metrics_dict.values()), default=0)
-    docs: dict[int, ScoredDoc] = {}
+    docs: dict[int, dict[str, float]] = {}
     for i in range(n_docs):
-        reduced = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
-        docs[i] = ScoredDoc(doc_id=i, reference=None, scores={}, reduced_scores=reduced)
+        docs[i] = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
     return docs
 
 
@@ -78,7 +79,7 @@ def _build_multi_scorer_scorers(
 ) -> list[Scorer]:
     """Build Scorer objects that match the tuple-keyed raw_metrics.
 
-    Groups by scorer name, populates _scored_docs with reduced_scores.
+    Groups by scorer name, populates _reduced_docs.
     """
     from lm_eval.api.metrics import Metric
 
@@ -109,7 +110,7 @@ def _build_multi_scorer_scorers(
             filter=noop_filter,
             metrics=metrics,
         )
-        scorer._scored_docs = _scored_docs_from_flat(metrics_dict)
+        scorer._reduced_docs = _reduced_docs_from_flat(metrics_dict)
         scorers.append(scorer)
     return scorers
 
@@ -153,7 +154,7 @@ class MockEvalTask(Task):
     def higher_is_better(self):
         return dict(self._hib)
 
-    # -- eval_docs (used by get_sample_size) -------------------------------
+    # -- eval_docs (used by _get_sample_size) -------------------------------
     @property
     def eval_docs(self):
         return [None] * self._n_eval_docs
@@ -188,10 +189,10 @@ def make_result_acc(
     task: MockEvalTask,
     raw_metrics: dict[tuple[str, str], list],
     logged_samples: list | None = None,
-) -> ResultAcc:
-    """Build a ResultAcc dict for use with collect_results.
+) -> _ResultAcc:
+    """Build a _ResultAcc dict for use with collect_results.
 
-    Also populates the task's _scorers with _scored_docs.
+    Also populates the task's _scorers with _reduced_docs.
     """
     task._scorers = _build_multi_scorer_scorers(
         raw_metrics, agg=task._agg, hib=task._hib
@@ -209,7 +210,7 @@ def make_result_acc(
 
 class TestEvalResults:
     def test_default_fields_are_empty(self):
-        r = EvalAcc()
+        r = _EvalAcc()
         assert r.metrics == {}
         assert r.configs == {}
         assert r.versions == {}
@@ -220,8 +221,8 @@ class TestEvalResults:
         assert r.groups == {}
 
     def test_fields_are_independent_instances(self):
-        a = EvalAcc()
-        b = EvalAcc()
+        a = _EvalAcc()
+        b = _EvalAcc()
         a.metrics["x"] = _m({"v": 1})
         assert "x" not in b.metrics
 
@@ -236,26 +237,26 @@ class TestGetSampleSize:
         return MockEvalTask("t", n_eval_docs=n)
 
     def test_limit_none_returns_none(self):
-        assert get_sample_size(self._task(), limit=None) is None
+        assert _get_sample_size(self._task(), limit=None) is None
 
     def test_limit_integer_returns_int(self):
-        assert get_sample_size(self._task(), limit=50) == 50
+        assert _get_sample_size(self._task(), limit=50) == 50
 
     def test_limit_fractional_rounds_up(self):
         # 100 * 0.3 = 30
-        assert get_sample_size(self._task(100), limit=0.3) == 30
+        assert _get_sample_size(self._task(100), limit=0.3) == 30
 
     def test_limit_fractional_small(self):
         # 10 * 0.05 = 0.5 → ceil → 1
-        assert get_sample_size(self._task(10), limit=0.05) == 1
+        assert _get_sample_size(self._task(10), limit=0.05) == 1
 
     def test_limit_one_is_treated_as_integer(self):
         # 1 is not < 1.0 so it goes to int(limit) branch
-        assert get_sample_size(self._task(), limit=1) == 1
+        assert _get_sample_size(self._task(), limit=1) == 1
 
     def test_limit_float_exactly_one_is_integer(self):
         # 1.0 is not < 1.0 so treated as integer
-        assert get_sample_size(self._task(), limit=1.0) == 1
+        assert _get_sample_size(self._task(), limit=1.0) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -545,7 +546,7 @@ class TestAggregateGroups:
         )
         g.add(task)
 
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["t1"] = _m(
             {
                 "alias": "T1",
@@ -556,15 +557,15 @@ class TestAggregateGroups:
         )
         results.groups = {"grp": g}
 
-        aggregate_groups(results)
+        _aggregate_groups(results)
         assert "grp" in results.metrics
         assert "acc,none" in results.metrics["grp"]
 
     def test_no_groups_noop(self):
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["t"] = _m({"acc,none": 0.5})
         results.groups = {}
-        aggregate_groups(results)
+        _aggregate_groups(results)
         assert "t" in results.metrics
         assert len(results.metrics) == 1
 
@@ -583,7 +584,7 @@ class TestAggregateGroups:
         )
         parent.add(child)
 
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["leaf"] = _m(
             {
                 "alias": "Leaf",
@@ -594,7 +595,7 @@ class TestAggregateGroups:
         )
         results.groups = {"parent": parent, "child": child}
 
-        aggregate_groups(results)
+        _aggregate_groups(results)
         # Both child and parent should have metrics
         assert "child" in results.metrics
         assert "parent" in results.metrics
@@ -612,7 +613,7 @@ class TestProcessResults:
 
     def test_returns_eval_results(self):
         result = _process_results(self._basic_acc(), bootstrap_iters=0)
-        assert isinstance(result, EvalAcc)
+        assert isinstance(result, _EvalAcc)
 
     def test_with_groups(self):
         task = MockEvalTask("t", agg={"acc": mean})
@@ -635,7 +636,7 @@ class TestProcessResults:
 
 class TestGetResultsData:
     def test_preserves_sample_len(self):
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["t"] = _m({"alias": "t", "sample_len": 100, "acc,none": 0.9})
         task_res, _ = results.collect()
         assert task_res["t"]["sample_len"] == 100
@@ -645,7 +646,7 @@ class TestGetResultsData:
         g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["grp"] = _m(
             {"alias": "grp", "sample_len": 50, "acc,none": 0.85}
         )
@@ -669,7 +670,7 @@ class TestGetResultsData:
         g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["grp"] = _m({"alias": "grp", "acc,none": 0.8})
         results.metrics["t"] = _m({"alias": "t", "acc,none": 0.8})
         results.groups = {"grp": g}
@@ -683,7 +684,7 @@ class TestGetResultsData:
         g = Group(name="grp")  # no aggregation
         g.add(task)
 
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["grp"] = _m({"alias": "grp"})
         results.metrics["t"] = _m({"alias": "t", "acc,none": 0.8})
         results.groups = {"grp": g}
@@ -692,7 +693,7 @@ class TestGetResultsData:
         assert "grp" not in group_res
 
     def test_task_only_in_task_results(self):
-        results = EvalAcc()
+        results = _EvalAcc()
         results.metrics["standalone"] = _m({"alias": "standalone", "acc,none": 0.9})
         task_res, group_res = results.collect()
         assert "standalone" in task_res
@@ -710,7 +711,7 @@ class TestPropagateHigherIsBetter:
         task = MockEvalTask("t")
         g.add(task)
         hib = {"t": {"acc": True}}
-        propagate_higher_is_better_([g], hib)
+        _propagate_higher_is_better_([g], hib)
         assert hib["grp"] == {"acc": True}
 
     def test_conflicting_values_set_to_none(self):
@@ -720,7 +721,7 @@ class TestPropagateHigherIsBetter:
         g.add(t1)
         g.add(t2)
         hib = {"t1": {"acc": True}, "t2": {"acc": False}}
-        propagate_higher_is_better_([g], hib)
+        _propagate_higher_is_better_([g], hib)
         assert hib["grp"]["acc"] is None
 
     def test_conflicting_values_log_warning(self, caplog):
@@ -731,7 +732,7 @@ class TestPropagateHigherIsBetter:
         g.add(t2)
         hib = {"t1": {"acc": True}, "t2": {"acc": False}}
         with caplog.at_level(logging.WARNING):
-            propagate_higher_is_better_([g], hib)
+            _propagate_higher_is_better_([g], hib)
         assert any("not consistent" in r.message for r in caplog.records)
 
     def test_no_children_in_higher_is_better(self):
@@ -739,7 +740,7 @@ class TestPropagateHigherIsBetter:
         task = MockEvalTask("t")
         g.add(task)
         hib: dict = {}
-        propagate_higher_is_better_([g], hib)
+        _propagate_higher_is_better_([g], hib)
         # No child data → group should not appear
         assert "grp" not in hib
 
@@ -753,13 +754,13 @@ class TestPropagateHigherIsBetter:
             "t1": {"acc": True, "f1": True},
             "t2": {"acc": True, "f1": False},
         }
-        propagate_higher_is_better_([g], hib)
+        _propagate_higher_is_better_([g], hib)
         assert hib["grp"]["acc"] is True
         assert hib["grp"]["f1"] is None
 
     def test_empty_groups_list(self):
         hib: dict = {"t": {"acc": True}}
-        propagate_higher_is_better_([], hib)
+        _propagate_higher_is_better_([], hib)
         # Nothing changes
         assert hib == {"t": {"acc": True}}
 
@@ -770,10 +771,10 @@ class TestPropagateHigherIsBetter:
 
 
 class TestToEvalResults:
-    """Tests for EvalAcc.to_eval_results()."""
+    """Tests for _EvalAcc.to_eval_results()."""
 
     def _make_eval_acc(self, *, with_group: bool = False, has_aggregation: bool = True):
-        """Build a minimal EvalAcc for testing to_eval_results()."""
+        """Build a minimal _EvalAcc for testing to_eval_results()."""
         task = MockEvalTask(
             "t1",
             config_dict={"task_alias": "Task One", "num_fewshot": 3},
@@ -902,18 +903,16 @@ class TestCollectResultsNSamples:
 
 
 class TestScoredDoc:
-    def test_mutable_reduced_scores(self):
+    def test_frozen(self):
         sd = ScoredDoc(doc_id=0, reference="hello", scores={"acc": [1.0]})
-        assert sd.reduced_scores == {}
-        sd.reduced_scores["acc"] = 1.0
-        assert sd.reduced_scores == {"acc": 1.0}
+        with pytest.raises(AttributeError):
+            sd.doc_id = 1  # type: ignore[misc]
 
     def test_construction_single_repeat(self):
         sd = ScoredDoc(doc_id=0, reference="target", scores={"acc": [1.0]})
         assert sd.doc_id == 0
         assert sd.reference == "target"
         assert sd.scores == {"acc": [1.0]}
-        assert sd.reduced_scores == {}
 
     def test_construction_multiple_repeats(self):
         sd = ScoredDoc(doc_id=5, reference="ref", scores={"acc": [1.0, 0.0, 1.0]})
@@ -997,7 +996,7 @@ class TestScorerAggregationComposite:
     """Tests that Scorer.aggregate() and higher_is_better handle dict-returning reductions."""
 
     def _make_scorer_with_composite(self, parent_hib: bool = True):
-        """Build a Scorer whose _scored_docs contain composite keys from a dict reduction.
+        """Build a Scorer whose _reduced_docs contain composite keys from a dict reduction.
 
         Simulates what happens when a reduction like pass@k returns
         {"pass@1": 1.0, "pass@5": 0.5} and reduce() stores them as
@@ -1017,7 +1016,7 @@ class TestScorerAggregationComposite:
             filter=noop_filter,
             metrics=[parent_metric],
         )
-        scorer._scored_docs = _scored_docs_from_flat(
+        scorer._reduced_docs = _reduced_docs_from_flat(
             {
                 "pass@1(exact_match)": [1.0, 1.0, 0.0, 0.0],
                 "pass@5(exact_match)": [0.5, 0.5, 0.5, 0.5],
@@ -1027,14 +1026,14 @@ class TestScorerAggregationComposite:
 
     def test_aggregate_uses_parent_aggregation(self):
         scorer = self._make_scorer_with_composite()
-        agg, sample_len = scorer.aggregate(bootstrap_iters=0)
+        agg, sample_len = scorer.aggregate(scorer.reduced_docs, bootstrap_iters=0)
         assert agg["pass@1(exact_match),none"] == pytest.approx(0.5)
         assert agg["pass@5(exact_match),none"] == pytest.approx(0.5)
         assert sample_len == 4
 
     def test_aggregate_composite_stderr_present(self):
         scorer = self._make_scorer_with_composite()
-        agg, _ = scorer.aggregate(bootstrap_iters=100)
+        agg, _ = scorer.aggregate(scorer.reduced_docs, bootstrap_iters=100)
         assert "pass@1(exact_match)_stderr,none" in agg
         assert "pass@5(exact_match)_stderr,none" in agg
 
@@ -1051,8 +1050,8 @@ class TestScorerAggregationComposite:
         assert hib["exact_match"] is False
         assert hib["pass@1(exact_match)"] is False
 
-    def test_higher_is_better_no_scored_docs(self):
-        """Without _scored_docs, only base metrics appear."""
+    def test_higher_is_better_no_reduced_docs(self):
+        """Without _reduced_docs, only base metrics appear."""
         from lm_eval.api.metrics import Metric
 
         parent_metric = Metric(

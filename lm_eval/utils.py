@@ -735,7 +735,7 @@ class RemoteTokenizer:
     def apply_chat_template(
         self, chat_history: list, add_generation_prompt: bool = True, **kwargs
     ) -> str:
-        from lm_eval.config.utils import _jinja_env
+        from lm_eval.config.templates import _jinja_env
 
         with self._lock:
             if self._chat_template_obj is None:

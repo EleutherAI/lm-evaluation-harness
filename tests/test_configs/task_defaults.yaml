@@ -1,0 +1,3 @@
+# Shared task defaults for group include tests
+num_fewshot: 3
+doc_to_text: "Default question: {{question}}"

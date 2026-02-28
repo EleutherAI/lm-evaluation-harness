@@ -14,7 +14,7 @@ from lm_eval.api.task import (
     Task,
 )
 from lm_eval.config.task import TaskConfig
-from lm_eval.config.utils import (
+from lm_eval.config.templates import (
     _coerce_list,
     _coerce_target,
     _resolve_target_index,
@@ -105,9 +105,7 @@ class TestProcessField:
         assert process_field(DOC, "{{idx + 1}}") == "4"
 
     def test_plain_string_no_key_no_template(self):
-        """A string that isn't a key and has no {{ }} is still passed through
-        apply_template (which just returns it unchanged).
-        """
+        """A string that isn't a key and has no {{ }} is still passed through apply_template (which just returns it unchanged)."""
         assert process_field(DOC, "hello world") == "hello world"
 
     def test_digit_string_not_a_key(self):

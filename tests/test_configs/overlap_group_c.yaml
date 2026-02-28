@@ -1,0 +1,14 @@
+group: overlap_group_c
+group_alias: "Overlap C"
+task:
+  - task_with_custom_df_3
+  - task_with_custom_df_1
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

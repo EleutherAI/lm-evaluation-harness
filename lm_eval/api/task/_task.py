@@ -30,7 +30,7 @@ from lm_eval.api.utils import (
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
-from lm_eval.config.utils import (
+from lm_eval.config.templates import (
     _coerce_list,
     _coerce_target,
     process_field,
@@ -41,7 +41,6 @@ from lm_eval.scorers import ScoredDoc, build_scorer
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping, Sequence
 
-    from lm_eval._types import OutputType
     from lm_eval.api._types import (
         ChatTemplate,
         Completion,
@@ -52,13 +51,14 @@ if TYPE_CHECKING:
     )
     from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
     from lm_eval.config.task import FewshotConfig
-    from lm_eval.scorers import Scorer
+    from lm_eval.result_schema import OutputType
+    from lm_eval.scorers import ReducedDoc, Scorer
 
 eval_logger = logging.getLogger(__name__)
 
 
 class Task:
-    """A task represents an entire benchmark including its dataset, problems, answers, and evaluation methods.
+    """A task represents an entire benchmark, including its dataset, problems, answers, and evaluation methods.
 
     See BoolQ for a simple example implementation.
 
@@ -165,41 +165,22 @@ class Task:
         return self._sampler_cls(docs, rnd=self._fewshot_seed)
 
     def _build_scorers(self) -> list[Scorer]:
-        """Build scorers from filter_list config, or a default scorer."""
-        from lm_eval.api.metrics import Metric
-        from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
+        """Build scorers from the normalised ``filter_list`` config.
 
-        if self.config.metric_list:
-            global_metrics = [
-                Metric.from_dict({**m_cfg}) for m_cfg in self.config.metric_list
-            ]
-        else:
-            global_metrics = [
-                Metric.from_dict({"metric": metric_name})
-                for metric_name in DEFAULT_METRIC_REGISTRY.get(self.OUTPUT_TYPE, [])
-            ]
-
+        After ``TaskConfig._normalize_scoring_config()``, ``filter_list``
+        is guaranteed to have at least one entry with a resolved
+        ``metric_list``.  This method just iterates and delegates to
+        ``build_scorer``.
+        """
         context = self._build_scorer_context()
-
-        if self.config.filter_list:
-            scorers = [
-                build_scorer(
-                    cfg={**cfg},
-                    global_metrics=global_metrics,
-                    output_type=self.OUTPUT_TYPE,
-                    scorer_type=self.config.scorer,
-                )
-                for cfg in self.config.filter_list
-            ]
-        else:
-            scorers = [
-                build_scorer(
-                    global_metrics=global_metrics,
-                    output_type=self.OUTPUT_TYPE,
-                    scorer_type=self.config.scorer,
-                )
-            ]
-
+        scorers = [
+            build_scorer(
+                cfg={**cfg},  # type:ignore[invalid-argument-type]
+                output_type=self.OUTPUT_TYPE,
+                scorer_type=self.config.scorer,
+            )
+            for cfg in self.config.filter_list
+        ]
         for s in scorers:
             s.context = context
         return scorers
@@ -454,7 +435,7 @@ class Task:
                     q = q[a]
                     a = 0  # choices are a list of len 1.
                 _gen_prefix = self._resolve_field(doc, self._fewshot_cfg.gen_prefix)
-                messages += self.build_qa_turn(
+                messages += self._build_qa_turn(
                     q=q,
                     c=c,
                     a=a,
@@ -470,7 +451,7 @@ class Task:
         )
         if self._multiple_inputs:
             assert isinstance(c, list), "multiple inputs require choices to be a list"
-            return self.multiple_input_context(
+            return self._multiple_input_context(
                 messages,
                 gen_prefix,
                 c,
@@ -480,7 +461,7 @@ class Task:
         assert isinstance(q, str), (
             f"Expected doc_to_text to be a string, got {type(q)}: {q}"
         )
-        messages += self.build_qa_turn(
+        messages += self._build_qa_turn(
             q=q,
             c=c,
             gen_prefix=gen_prefix,
@@ -500,7 +481,7 @@ class Task:
 
         return res
 
-    def build_qa_turn(
+    def _build_qa_turn(
         self,
         *,
         q: str | None,
@@ -577,7 +558,7 @@ class Task:
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 
-    def multiple_input_context(
+    def _multiple_input_context(
         self,
         prev_context: list[Message] | None,
         gen_prefix: str | None,
@@ -606,7 +587,7 @@ class Task:
         prev_context = prev_context or []
         results = []
         for ctx in q:
-            messages = prev_context + self.build_qa_turn(
+            messages = prev_context + self._build_qa_turn(
                 q=ctx, gen_prefix=gen_prefix, tgt_delim=""
             )
             if chat_template:
@@ -958,6 +939,7 @@ class Task:
         sample_len = 0
         for scorer in self._scorers:
             result, count = scorer.aggregate(
+                scorer.reduced_docs,
                 bootstrap_iters=bootstrap_iters,
                 aggregation_overrides=custom_agg,
             )
@@ -965,22 +947,23 @@ class Task:
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
 
-    def export_raw_metrics(self) -> dict[str, dict[str, list[Any]]]:
+    def _export_reduced(self) -> dict[str, dict[int, ReducedDoc]]:
         """Export reduced results from all scorers for distributed gathering.
 
-        Returns {scorer_name: {metric_name: [per_doc_values]}}.
+        Returns ``{scorer_name: {doc_id: {metric: value}}}``.
+        Doc-first format preserves document identity across ranks.
         """
-        exported: dict[str, dict[str, list[Any]]] = {}
+        exported: dict[str, dict[int, dict[str, float]]] = {}
         for scorer in self._scorers:
-            metrics = scorer.export_reduced()
-            if metrics:
-                exported[scorer.name] = metrics
+            docs = scorer.export_reduced()
+            if docs:
+                exported[scorer.name] = docs
         return exported
 
-    def import_raw_metrics(self, data: dict[str, dict[str, list]]) -> None:
+    def _import_reduced(self, data: dict[str, dict[int, ReducedDoc]]) -> None:
         """Import merged results into scorers (after distributed gather).
 
-        Rebuilds scored docs from flat metric lists so that
+        Rebuilds reduced docs from doc-first data so that
         ``scorer.aggregate()`` works.
         """
         for scorer in self._scorers:
@@ -1051,11 +1034,15 @@ class Task:
         Rebuilds the scorer pipeline so that only *metric_name* is computed.
         Used by the evaluator for ``predict_only`` mode (metric="bypass").
         """
-        from lm_eval.api.metrics import Metric
-
-        metric = Metric.from_dict({"metric": metric_name})
         self._scorers = [
-            build_scorer(global_metrics=[metric], output_type=self.OUTPUT_TYPE)
+            build_scorer(
+                cfg={
+                    "name": "none",
+                    "filter": [],
+                    "metric_list": [{"metric": metric_name}],
+                },
+                output_type=self.OUTPUT_TYPE,
+            )
         ]
 
     def set_repeats(self, repeats: int) -> None:

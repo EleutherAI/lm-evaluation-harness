@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.utils import ends_with_whitespace
-from lm_eval.config.utils import _coerce_list, _resolve_target_index, process_field
+from lm_eval.config.templates import _coerce_list, _resolve_target_index, process_field
 
 from ._task import Task
 
@@ -97,7 +97,7 @@ class MultipleChoiceTask(Task):
         # NOTE: this will at most ~2x runtime.
         arg_meta = [(arg, {**_metadata}) for arg in arguments]
         if self._has_metric("acc_mutual_info"):
-            aux_arguments = self.build_mutual_info(
+            aux_arguments = self._build_mutual_info(
                 context="", choices=choices, target_delimiter=target_delimiter
             )
             arg_meta.extend(
@@ -121,7 +121,7 @@ class MultipleChoiceTask(Task):
         ]
 
     @staticmethod
-    def build_mutual_info(
+    def _build_mutual_info(
         *, context="", choices: list[str], target_delimiter: str
     ) -> list[tuple[str, str]]:
         assert choices is not None and target_delimiter is not None, (

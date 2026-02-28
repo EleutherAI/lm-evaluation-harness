@@ -2,7 +2,7 @@
 """End-to-end tests for the aggregation pipeline: raw per-sample values → task aggregation → group aggregation.
 
 Tests the full path through:
-  _compute_task_aggregations → _collect_results → aggregate_groups
+  _compute_task_aggregations → _collect_results → _aggregate_groups
   (wrapped by _process_results)
 """
 
@@ -15,9 +15,10 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from lm_eval.api.filter import FilterEnsemble
+from lm_eval.api.group import Group
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import Task
-from lm_eval.config.group import AggMetricConfig, Group
+from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
     _process_results,
 )
@@ -26,7 +27,7 @@ from lm_eval.scorers import ScoredDoc, Scorer
 
 if TYPE_CHECKING:
     from lm_eval.evaluator_utils import (
-        ResultAcc,
+        _ResultAcc,
     )
     from lm_eval.result_schema import _TaskMetrics
 
@@ -41,13 +42,14 @@ def _m(d: dict[str, Any]) -> _TaskMetrics:
     return d  # type: ignore[return-value]
 
 
-def _scored_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ScoredDoc]:
-    """Build _scored_docs from flat {metric: [values]} for testing."""
+def _reduced_docs_from_flat(
+    metrics_dict: dict[str, list],
+) -> dict[int, dict[str, float]]:
+    """Build _reduced_docs from flat {metric: [values]} for testing."""
     n_docs = max((len(v) for v in metrics_dict.values()), default=0)
-    docs: dict[int, ScoredDoc] = {}
+    docs: dict[int, dict[str, float]] = {}
     for i in range(n_docs):
-        reduced = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
-        docs[i] = ScoredDoc(doc_id=i, reference=None, scores={}, reduced_scores=reduced)
+        docs[i] = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
     return docs
 
 
@@ -56,7 +58,7 @@ def _build_multi_scorer_scorers(
     agg: dict[str, Any] | None = None,
     hib: dict[str, bool] | None = None,
 ) -> list[Scorer]:
-    """Build Scorer objects from tuple-keyed raw_metrics with _scored_docs populated."""
+    """Build Scorer objects from tuple-keyed raw_metrics with _reduced_docs populated."""
     from lm_eval.api.metrics import Metric
 
     agg = agg or {}
@@ -85,7 +87,7 @@ def _build_multi_scorer_scorers(
             filter=noop_filter,
             metrics=metrics,
         )
-        scorer._scored_docs = _scored_docs_from_flat(metrics_dict)
+        scorer._reduced_docs = _reduced_docs_from_flat(metrics_dict)
         scorers.append(scorer)
     return scorers
 
@@ -110,6 +112,10 @@ class MockTask(Task):
 
     @property
     def task_name(self):
+        return self._task_name
+
+    @property
+    def _qualified_name(self):
         return self._task_name
 
     def dump_config(self) -> dict:
@@ -154,8 +160,8 @@ class MockTask(Task):
 def _make_acc(
     task: MockTask,
     raw_metrics: dict[tuple[str, str], list],
-) -> ResultAcc:
-    """Build ResultAcc and populate task scorers with scored_docs."""
+) -> _ResultAcc:
+    """Build _ResultAcc and populate task scorers with scored_docs."""
     task._scorers = _build_multi_scorer_scorers(
         raw_metrics, agg=task._agg, hib=task._hib
     )
@@ -619,8 +625,6 @@ class TestProcessResultsBugFix:
 
         scorer.set_results(scored_docs)
         reduced_values = [
-            sd.reduced_scores["acc"]
-            for sd in scorer.scored_docs.values()
-            if "acc" in sd.reduced_scores
+            rd["acc"] for rd in scorer.reduced_docs.values() if "acc" in rd
         ]
         assert len(reduced_values) == 2

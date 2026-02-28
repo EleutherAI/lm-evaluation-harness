@@ -3,11 +3,11 @@ from __future__ import annotations
 import re
 import string
 from typing import Literal, cast
-
-import numpy as np
 from typing_extensions import overload
 
-from lm_eval.api.registry import register_metric
+import numpy as np
+
+from lm_eval.api.registry import register_metric as metric
 
 
 ### the code used in the `exact_match_hf_evaluate` function is ported from
@@ -30,7 +30,7 @@ from lm_eval.api.registry import register_metric
 # limitations under the License.
 
 
-def exact_match_hf_evaluate(
+def _exact_match_hf_evaluate(
     predictions: list[str],
     references: list[str],
     regexes_to_ignore: list[str] | None = None,
@@ -81,8 +81,8 @@ def exact_match_fn(
     multiple_targets: Literal[False] = ...,
     **kwargs,
 ) -> dict[str, list[int]]: ...
-@register_metric(
-    metric="exact_match",
+@metric(
+    "exact_match",
     higher_is_better=True,
     output_type="generate_until",
     aggregation="mean",
@@ -102,7 +102,7 @@ def exact_match_fn(
         # Cross-product: repeat each pred T times, tile targets P times
         expanded_preds = [p for p in predictions for _ in range(n_targets)]
         expanded_refs = list(targets) * len(predictions)
-        result = exact_match_hf_evaluate(
+        result = _exact_match_hf_evaluate(
             predictions=expanded_preds,
             references=expanded_refs,
             **kwargs,
@@ -116,6 +116,6 @@ def exact_match_fn(
             .tolist()
         )
         return {"exact_match": scores}
-    return exact_match_hf_evaluate(
+    return _exact_match_hf_evaluate(
         predictions=predictions, references=cast("list[str]", references), **kwargs
     )

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Generic
-
 from typing_extensions import TypedDict, TypeVar
 
 from ._types import Completion, GenArgs, LLArgs, LLOutput

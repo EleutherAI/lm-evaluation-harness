@@ -49,13 +49,22 @@ eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Iterable, Mapping
 
-    from lm_eval.api._metrics._types import AggregationFn, ReductionFn
     from lm_eval.api.filter import Filter
-    from lm_eval.api.metrics import Metric
+    from lm_eval.api.metrics.metric import Metric
     from lm_eval.api.model import LM
     from lm_eval.scorers import Scorer
+
+DEFAULT_METRIC_REGISTRY: Mapping[str, list[str]] = {
+    "loglikelihood": [
+        "perplexity",
+        "acc",
+    ],
+    "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
+    "multiple_choice": ["acc", "acc_norm"],
+    "generate_until": ["exact_match"],
+}
 
 
 __all__ = [
@@ -65,15 +74,9 @@ __all__ = [
     "filter_registry",
     "get_aggregation",
     "get_filter",
-    "get_metric",
-    "get_metric_aggregation",
     "get_model",
     "get_reduction",
     "get_scorer",
-    "higher_is_better_registry",
-    "is_higher_better",
-    "metric_agg_registry",
-    "metric_reduction_registry",
     "metric_registry",
     "model_registry",
     "reduction_registry",
@@ -87,8 +90,9 @@ __all__ = [
 ]
 
 
-T = TypeVar("T")
-D = TypeVar("D")
+_T = TypeVar("_T")
+_D = TypeVar("_D")
+_Fn = TypeVar("_Fn", bound=Callable)
 Placeholder = str | md.EntryPoint
 
 # Sentinel for distinguishing "no default" from "default=None"
@@ -151,7 +155,7 @@ def _build_key_error_msg(name: str, alias: str, keys: Iterable[str]) -> str:
     return msg
 
 
-class Registry(Generic[T]):
+class Registry(Generic[_T]):
     """Thread-safe dict mapping string aliases to objects or lazy placeholders.
 
     Lazy placeholders ("module.path:attr" strings or EntryPoints) are
@@ -163,7 +167,7 @@ class Registry(Generic[T]):
         self,
         name: str,
         *,
-        base_cls: type[T] | None = None,
+        base_cls: type[_T] | None = None,
         lazy_module: str | None = None,
     ) -> None:
         """Initialize a new registry.
@@ -177,7 +181,7 @@ class Registry(Generic[T]):
         self._name = name
         self._base_cls = base_cls
         self._lazy_module = lazy_module
-        self._objs: dict[str, T | Placeholder] = {}
+        self._objs: dict[str, _T | Placeholder] = {}
         self._lock = threading.RLock()
 
     # Registration (decorator or direct call) --------------------------------------
@@ -185,8 +189,8 @@ class Registry(Generic[T]):
     def register(
         self,
         *aliases: str,
-        target: T | Placeholder | None = None,
-    ) -> Callable[[T], T]:
+        target: _T | Placeholder | None = None,
+    ) -> Callable[[_T], _T]:
         """Register an object under one or more aliases.
 
         Can be used as a decorator or called directly for direct registration.
@@ -213,7 +217,7 @@ class Registry(Generic[T]):
             TypeError: If an object doesn't inherit from base_cls (when specified)
         """
 
-        def _store(alias: str, target: T | Placeholder) -> None:
+        def _store(alias: str, target: _T | Placeholder) -> None:
             current = self._objs.get(alias)
             # collision handling ------------------------------------------
             if current is not None and current != target:
@@ -240,7 +244,7 @@ class Registry(Generic[T]):
                 )
             self._objs[alias] = target
 
-        def decorator(obj: T) -> T:
+        def decorator(obj: _T) -> _T:
             names = aliases or (getattr(obj, "__name__", str(obj)),)
             with self._lock:
                 for name in names:
@@ -270,7 +274,7 @@ class Registry(Generic[T]):
                 if len(self._objs) == 0:
                     importlib.import_module(self._lazy_module)
 
-    def _materialise(self, ph: Placeholder) -> T:
+    def _materialise(self, ph: Placeholder) -> _T:
         """Materialize a placeholder using the module-level cached function.
 
         Args:
@@ -279,15 +283,15 @@ class Registry(Generic[T]):
         Returns:
             The materialized object, cast to type T
         """
-        return cast("T", _materialise_placeholder(ph))
+        return cast("_T", _materialise_placeholder(ph))
 
     @overload
-    def get(self, alias: str) -> T: ...
+    def get(self, alias: str) -> _T: ...
 
     @overload
-    def get(self, alias: str, default: D) -> T | D: ...
+    def get(self, alias: str, default: _D) -> _T | _D: ...
 
-    def get(self, alias: str, default: D | Any = _MISSING) -> T | D:
+    def get(self, alias: str, default: _D | Any = _MISSING) -> _T | _D:
         """Retrieve an object by alias, materializing if needed.
 
         Thread-safe lazy loading: if the alias points to a placeholder,
@@ -341,7 +345,7 @@ class Registry(Generic[T]):
             ) from None
         return target
 
-    def __getitem__(self, alias: str) -> T:
+    def __getitem__(self, alias: str) -> _T:
         """Allow dict-style access: registry[alias]."""
         return self.get(alias)
 
@@ -429,11 +433,58 @@ class Registry(Generic[T]):
 
 
 # =============================================================================
+# Deferred metric resolution
+# =============================================================================
+
+
+class _Deferred:
+    """Lazy factory for Metric objects — resolved on first registry access."""
+
+    __slots__ = ("_factory",)
+
+    def __init__(self, factory: Callable[[], Any]) -> None:
+        self._factory = factory
+
+
+class _MetricRegistry(Registry):
+    """Registry that auto-resolves ``_Deferred`` entries on ``.get()``.
+
+    Callers always receive a ``Metric`` (or the *default*) — never a raw
+    ``_Deferred`` wrapper.
+    """
+
+    @overload
+    def get(self, alias: str) -> Metric[Any, Any]: ...
+
+    @overload
+    def get(self, alias: str, default: _D) -> Metric[Any, Any] | _D: ...
+
+    def get(self, alias, default=_MISSING):
+        result = super().get(alias, default)
+        if not isinstance(result, _Deferred):
+            return result
+        try:
+            metric = result._factory()
+        except Exception:
+            eval_logger.warning("Failed to resolve metric '%s'", alias, exc_info=True)
+            if default is not _MISSING:
+                return default
+            raise
+        # Cache the resolved Metric for future lookups
+        with self._lock:
+            if not isinstance(self._objs, MappingProxyType):
+                current = self._objs.get(alias)
+                if isinstance(current, _Deferred):
+                    self._objs[alias] = metric
+        return metric
+
+
+# =============================================================================
 # Registry instances
 # =============================================================================
 
 _METRICS_MODULE = "lm_eval.api.metrics"
-_REDUCE_MODULE = "lm_eval.api._metrics.reduce"
+_REDUCE_MODULE = "lm_eval.api.metrics.reduce"
 
 model_registry: Registry[type[LM]] = Registry("model")
 filter_registry: Registry[type[Filter]] = Registry("filter")
@@ -441,36 +492,15 @@ scorer_registry: Registry = Registry("scorer", lazy_module="lm_eval.scorers")
 aggregation_registry: Registry[Callable[..., float]] = Registry(
     "aggregation", lazy_module=_METRICS_MODULE
 )
-metric_registry: Registry[Callable] = Registry("metric", lazy_module=_METRICS_MODULE)
-metric_agg_registry: Registry[Callable] = Registry(
-    "metric_aggregation", lazy_module=_METRICS_MODULE
-)
-higher_is_better_registry: Registry[bool] = Registry(
-    "higher_is_better", lazy_module=_METRICS_MODULE
+metric_registry: _MetricRegistry = _MetricRegistry(
+    "metric", lazy_module=_METRICS_MODULE
 )
 reduction_registry: Registry[Callable] = Registry(
     "reduction", lazy_module=_REDUCE_MODULE
 )
-metric_reduction_registry: Registry[Callable] = Registry(
-    "metric_reduction", lazy_module=_METRICS_MODULE
-)
 
 
-# Backward compat aliases - these now point to Registry instances
-METRIC_REGISTRY = metric_registry
-METRIC_AGGREGATION_REGISTRY = metric_agg_registry
 AGGREGATION_REGISTRY = aggregation_registry
-HIGHER_IS_BETTER_REGISTRY = higher_is_better_registry
-
-DEFAULT_METRIC_REGISTRY = {
-    "loglikelihood": [
-        "perplexity",
-        "acc",
-    ],
-    "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
-    "multiple_choice": ["acc", "acc_norm"],
-    "generate_until": ["exact_match"],
-}
 
 
 # =============================================================================
@@ -584,7 +614,7 @@ FILTER_REGISTRY = filter_registry
 
 
 # =============================================================================
-# Scorer registration (using new Registry class)
+# Scorer
 # =============================================================================
 
 
@@ -626,115 +656,91 @@ def get_scorer(scorer_name: str) -> type[Scorer]:
 # =============================================================================
 
 
-def register_metric(**args):
-    """Decorator to register a metric function.
+def register_metric(
+    metric: str,
+    *,
+    higher_is_better: bool = True,
+    aggregation: str | None = None,
+    reduction: str | None = None,
+    output_type: str | list[str] = "multiple_choice",
+) -> Callable[[_Fn], _Fn]:
+    """Decorator to register a function or class as a named ``Metric``.
+
+    The metric is constructed lazily on first use, keeping import-time
+    work minimal.
 
     Args:
-        **args: Keyword arguments including
-            - metric: Name to register the metric under (required)
-            - higher_is_better: Whether higher scores are better
-            - aggregation: Name of aggregation function to use
+        metric: Name to register the metric under
+        higher_is_better: Whether higher scores are better (default True)
+        aggregation: Name of aggregation function to use
+        reduction: Name of reduction function to use
+        output_type: str or list of output type names
 
     Returns:
         Decorator function
     """
+    args: dict[str, Any] = {
+        "metric": metric,
+        "higher_is_better": higher_is_better,
+        "output_type": output_type,
+    }
+    if aggregation is not None:
+        args["aggregation"] = aggregation
+    if reduction is not None:
+        args["reduction"] = reduction
 
-    def decorate(fn):
-        assert "metric" in args
-        name = args["metric"]
+    def decorate(fn: _Fn) -> _Fn:
+        name = metric
 
-        # Register the metric function
-        metric_registry.register(name)(fn)
+        def _build():
+            from lm_eval.api.metrics.metric import Metric, take_first
 
-        # Register higher_is_better if provided
-        if "higher_is_better" in args:
-            higher_is_better_registry.register(name, target=args["higher_is_better"])
+            hib = args.get("higher_is_better", True)
+            output_type = args.get("output_type", "multiple_choice")
+            otp = [output_type] if isinstance(output_type, str) else list(output_type)
 
-        # Register aggregation if provided
-        if "aggregation" in args:
-            agg_fn = aggregation_registry.get(args["aggregation"])
-            metric_agg_registry.register(name, target=agg_fn)
+            agg_fn = None
+            if "aggregation" in args:
+                agg_fn = aggregation_registry.get(args["aggregation"])
 
-        # Register reduction if provided
-        if "reduction" in args:
-            red_fn = reduction_registry.get(args["reduction"])
-            metric_reduction_registry.register(name, target=red_fn)
+            red_fn = take_first
+            if "reduction" in args:
+                red_fn = reduction_registry.get(args["reduction"])
+
+            # CorpusMetric classes: detect via duck typing to avoid circular
+            # import (corpus.py imports register_metric at module level).
+            if (
+                isinstance(fn, type)
+                and hasattr(fn, "aggregation")
+                and hasattr(fn, "reduce")
+            ):
+                instance = fn()
+                return Metric(
+                    name=name,
+                    fn=cast("Any", instance),
+                    aggregation=cast("Any", instance.aggregation),
+                    reduction=cast("Any", instance.reduce),
+                    higher_is_better=hib,
+                    output_type=set(otp),
+                )
+
+            return Metric(
+                name=name,
+                fn=fn,
+                aggregation=agg_fn,
+                reduction=red_fn,
+                higher_is_better=hib,
+                output_type=set(otp),
+            )
+
+        try:
+            metric_registry.register(name, target=_Deferred(_build))
+        except ValueError:
+            eval_logger.warning("Failed to register metric '%s'", name, exc_info=True)
 
         return fn
 
     return decorate
-
-
-def _get_metric(name: str) -> Metric | None:
-    """Get a metric function by name, returning a Metric object.
-
-    Unlike `get_metric` (public API, returns raw callable), this internal helper
-    always returns a `Metric` dataclass wrapping the callable plus its
-    companion aggregation/higher_is_better metadata.
-
-    Args:
-        name: The metric name
-
-    Returns:
-        A Metric object, or None if not found
-    """
-    from lm_eval.api.metrics import Metric
-
-    try:
-        raw = metric_registry.get(name)
-    except KeyError:
-        return None
-
-    if isinstance(raw, Metric):
-        return raw
-
-    # CorpusMetric subclasses are registered as classes — instantiate and
-    # capture their aggregation/reduction so the resulting Metric is
-    # self-contained.  Scorer never needs to know about CorpusMetric.
-    from lm_eval.api._metrics.corpus import CorpusMetric
-
-    if isinstance(raw, type) and issubclass(raw, CorpusMetric):
-        raw = raw()
-
-    if isinstance(raw, CorpusMetric):
-        hib = higher_is_better_registry.get(name, True)
-        return Metric(
-            name=name,
-            fn=raw,
-            aggregation=cast("AggregationFn", raw.aggregation),
-            reduction=cast("ReductionFn", raw.reduce),
-            higher_is_better=hib,
-        )
-
-    # Plain function metric — pull agg + hib + reduction from companion registries
-    agg_fn = metric_agg_registry.get(name, None)
-    hib = higher_is_better_registry.get(name, True)
-    red_fn = metric_reduction_registry.get(name, None)
-    if red_fn is not None:
-        return Metric(
-            name=name,
-            fn=raw,
-            aggregation=agg_fn,
-            higher_is_better=hib,
-            reduction=red_fn,
-        )
-    return Metric(name=name, fn=raw, aggregation=agg_fn, higher_is_better=hib)
-
-
-def get_metric(name: str) -> Callable | None:
-    """Get a metric function by name.
-
-    Args:
-        name: The metric name
-
-    Returns:
-        The metric compute function, or None if not found
-    """
-    try:
-        return metric_registry.get(name)
-    except KeyError:
-        eval_logger.warning(f"Could not find registered metric '{name}' in lm-eval.")
-        return None
 
 
 def register_aggregation(name: str):
@@ -800,38 +806,4 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
         return aggregation_registry.get(name)
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
-        return None
-
-
-def get_metric_aggregation(name: str) -> Callable[..., float] | None:
-    """Get the aggregation function for a metric.
-
-    Args:
-        name: The metric name
-
-    Returns:
-        The aggregation function for that metric, or None if not found
-    """
-    try:
-        return metric_agg_registry.get(name)
-    except KeyError:
-        eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
-        return None
-
-
-def is_higher_better(metric_name: str) -> bool | None:
-    """Check if higher values are better for a metric.
-
-    Args:
-        metric_name: The metric name
-
-    Returns:
-        True if higher is better, False otherwise, None if not found
-    """
-    try:
-        return higher_is_better_registry.get(metric_name)
-    except KeyError:
-        eval_logger.warning(
-            f"higher_is_better not specified for metric '{metric_name}'!"
-        )
         return None

@@ -7,7 +7,6 @@ import pathlib
 import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
-
 from typing_extensions import TypedDict, TypeVar, overload
 
 from lm_eval.result_schema import _SampleCount
@@ -21,6 +20,8 @@ if TYPE_CHECKING:
     from lm_eval.result_schema import EvalResults, _TaskMetrics
 
 _T = TypeVar("_T")
+
+__all__ = ["run_task_tests", "torch_gather_object"]
 
 
 def _log_rank_zero(logger: logging.Logger):
@@ -43,7 +44,7 @@ def _log_rank_zero(logger: logging.Logger):
 eval_logger = _log_rank_zero(logging.getLogger(__name__))
 
 
-class ResultAcc(TypedDict):
+class _ResultAcc(TypedDict):
     """Accumulator for results of a single task."""
 
     task: Task
@@ -51,7 +52,7 @@ class ResultAcc(TypedDict):
 
 
 @dataclass
-class EvalAcc:
+class _EvalAcc:
     """Container for evaluation results."""
 
     # Core results: {task_name: {metric_key: value}}
@@ -103,10 +104,10 @@ class EvalAcc:
         subtask_list = {group.name: group.child_names for group in all_groups}
 
         higher_is_better = dict(self.higher_is_better)
-        propagate_higher_is_better_(all_groups, higher_is_better)
+        _propagate_higher_is_better_(all_groups, higher_is_better)
 
         num_fewshot = dict(self.num_fewshot)
-        propagate_num_fewshot_(all_groups, num_fewshot)
+        _propagate_num_fewshot_(all_groups, num_fewshot)
 
         results_dict: EvalResults = {
             "results": task_data,
@@ -124,7 +125,7 @@ class EvalAcc:
         return results_dict
 
 
-def print_writeout(task: Task) -> None:
+def _print_writeout(task: Task) -> None:
     for inst in task.instances:
         # print the prompt for the first few documents
         if inst.doc_id is not None and inst.doc_id < 1:
@@ -140,13 +141,13 @@ def print_writeout(task: Task) -> None:
             break
 
 
-def get_sample_size(task, limit: float | None) -> int | None:
+def _get_sample_size(task, limit: float | None) -> int | None:
     if limit is None:
         return None
     return math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
 
 
-def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
+def _find_test_root(start_path: pathlib.Path) -> pathlib.Path:
     """Search upward in the directory tree to a maximum of three layers to find and return the package root (containing the 'tests' folder)."""
     cur_path = start_path.resolve()
     max_layers = 3
@@ -164,7 +165,7 @@ def run_task_tests(task_list: list[str]):
     """Find the package root and run the tests for the given tasks."""
     import pytest
 
-    package_root = find_test_root(start_path=pathlib.Path(__file__))
+    package_root = _find_test_root(start_path=pathlib.Path(__file__))
     task_string = " or ".join(task_list)
     args = [
         f"{package_root}/tests/test_version_stable.py",
@@ -193,11 +194,11 @@ def _compute_task_aggregations(
 
 
 def _agg_and_collect(
-    eval_results_acc: Mapping[str, ResultAcc],
+    eval_results_acc: Mapping[str, _ResultAcc],
     groups: Mapping[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
-) -> EvalAcc:
-    """Collect and aggregate task results into EvalAcc container.
+) -> _EvalAcc:
+    """Collect and aggregate task results into _EvalAcc container.
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
@@ -206,9 +207,9 @@ def _agg_and_collect(
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
     Returns:
-        EvalAcc with all results consolidated
+        _EvalAcc with all results consolidated
     """
-    result = EvalAcc()
+    result = _EvalAcc()
     result.groups = groups or {}
 
     for task_name, acc in eval_results_acc.items():
@@ -238,19 +239,19 @@ def _agg_and_collect(
     return result
 
 
-def aggregate_groups(
-    results: EvalAcc,
-) -> EvalAcc:
+def _aggregate_groups(
+    results: _EvalAcc,
+) -> _EvalAcc:
     """Compute aggregated metrics for groups.
 
     Processes groups bottom-up (children before parents) and delegates
     aggregation to each Group's aggregate() method.
 
     Args:
-        results: EvalAcc from collect_results
+        results: _EvalAcc from collect_results
 
     Returns:
-        Same EvalAcc with group metrics added
+        Same _EvalAcc with group metrics added
     """
     # Collect all groups in bottom-up order (children before parents)
     all_groups = _collect_groups_bottom_up(results.groups)
@@ -310,22 +311,22 @@ def _collect_groups_bottom_up(groups: Mapping[str, Group]) -> list[Group]:
 
 
 def _process_results(
-    eval_results_acc: Mapping[str, ResultAcc],
+    eval_results_acc: Mapping[str, _ResultAcc],
     groups: Mapping[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
-) -> EvalAcc:
+) -> _EvalAcc:
     """Process evaluation results.
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
             Format: {task_name: {"task": Task, "logged_samples": [...]}}
-            Task objects must have scorer.scored_docs populated
-            (via task.process_instances() or task.import_raw_metrics()).
+            Task objects must have scorer.reduced_docs populated
+            (via task.process_instances() or task.import_reduced()).
         groups: Dict of group name -> Group
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
     Returns:
-        EvalAcc dataclass with:
+        _EvalAcc dataclass with:
         - metrics: Dict of task/group metrics
         - configs: Task configurations
         - versions: Task versions
@@ -338,7 +339,7 @@ def _process_results(
     Example usage:
         loaded = task_manager.load(['arc', 'hellaswag'])
 
-        # Run evaluation (populates scorer.scored_docs)
+        # Run evaluation (populates scorer.reduced_docs)
         eval_results_acc = {name: {"task": t, "logged_samples": []}
                            for name, t in loaded['tasks'].items()}
 
@@ -351,10 +352,10 @@ def _process_results(
     results = _agg_and_collect(eval_results_acc, groups or {}, bootstrap_iters)
 
     # Aggregate group metrics
-    return aggregate_groups(results)
+    return _aggregate_groups(results)
 
 
-def propagate_num_fewshot_(
+def _propagate_num_fewshot_(
     all_groups: Iterable[Group], num_fewshot: dict[str, int]
 ) -> None:
     for group in all_groups:
@@ -363,7 +364,7 @@ def propagate_num_fewshot_(
             num_fewshot[group.name] = values.pop()
 
 
-def propagate_higher_is_better_(
+def _propagate_higher_is_better_(
     all_groups: Iterable[Group], higher_is_better: dict[str, dict[str, bool]]
 ) -> None:
     for group in all_groups:
@@ -384,7 +385,7 @@ def propagate_higher_is_better_(
             higher_is_better[group.name] = _higher_is_better
 
 
-def log_selected_tasks_(
+def _log_selected_tasks_(
     task_dict: dict,
     groups: dict[str, Group],
 ) -> None:
@@ -464,17 +465,19 @@ def torch_gather_object(
 
 def _merge_rank_metrics(
     all_rank_data: list[dict], task_name: str
-) -> dict[str, dict[str, list]]:
-    """Merge per-task metrics from all ranks by concatenating value lists."""
-    merged: dict[str, dict[str, list]] = {}
+) -> dict[str, dict[int, dict[str, float]]]:
+    """Merge per-task reduced docs from all ranks.
+
+    Each rank exports ``{scorer: {doc_id: {metric: value}}}``.
+    Merging is a dict update — order-independent since doc IDs are unique
+    per rank.
+    """
+    merged: dict[str, dict[int, dict[str, float]]] = {}
     for rank_data in all_rank_data:
         if task_name not in rank_data:
             continue
-        for scorer_name, metrics in rank_data[task_name].items():
-            if scorer_name not in merged:
-                merged[scorer_name] = {}
-            for metric_name, values in metrics.items():
-                merged[scorer_name].setdefault(metric_name, []).extend(values)
+        for scorer_name, docs in rank_data[task_name].items():
+            merged.setdefault(scorer_name, {}).update(docs)
     return merged
 
 
@@ -485,9 +488,10 @@ def _build_logged_samples(
 ) -> list[dict[str, Any]]:
     """Build per-document sample logs for a task.
 
-    Reads fields directly from Instance objects and per-doc metrics
-    from ``scorer.scored_docs``.  Instances are already filtered
-    by rank/limit/world_size during ``build_all_requests``.
+    Reads fields directly from Instance objects, reduced metrics from
+    ``scorer.reduced_docs``, and per-repeat raw scores from
+    ``scorer.raw_docs``.  Instances are already filtered by
+    rank/limit/world_size during ``build_all_requests``.
     """
     import json
 
@@ -505,9 +509,9 @@ def _build_logged_samples(
             first = reqs[0]
             doc_id_true = indices[doc_id] if indices else doc_id
             target = first.target
-            sd = scorer.scored_docs.get(doc_id)
+            rd = scorer.reduced_docs.get(doc_id)
 
-            per_doc_metrics = sd.reduced_scores if sd else {}
+            per_doc_metrics = rd or {}
 
             example = {
                 "doc_id": doc_id_true,
@@ -533,8 +537,9 @@ def _build_logged_samples(
                 **per_doc_metrics,
             }
             # Include per-repeat scores when repeats > 1
-            if sd:
-                repeats = {k: v for k, v in sd.scores.items() if len(v) > 1}
+            raw = scorer.raw_docs.get(doc_id)
+            if raw:
+                repeats = {k: v for k, v in raw.scores.items() if len(v) > 1}
                 if repeats:
                     example["scores_per_repeat"] = repeats
             logged.append(example)

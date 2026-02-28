@@ -10,12 +10,7 @@ from lm_eval.api.registry import (
     filter_registry,
     get_aggregation,
     get_filter,
-    get_metric,
-    get_metric_aggregation,
     get_model,
-    higher_is_better_registry,
-    is_higher_better,
-    metric_agg_registry,
     metric_registry,
     model_registry,
     register_aggregation,
@@ -357,7 +352,8 @@ class TestMetricRegistry:
         assert get_aggregation("test_agg_unique") is test_agg
 
     def test_register_metric(self):
-        """Test registering a metric."""
+        """Test registering a metric stores a Metric object."""
+        from lm_eval.api.metrics.metric import Metric
 
         # First register the aggregation
         @register_aggregation("test_metric_agg")
@@ -373,18 +369,21 @@ class TestMetricRegistry:
             return sum(1 for i in items if i)
 
         assert "test_metric_unique" in metric_registry
-        assert get_metric("test_metric_unique") is test_metric
-        assert is_higher_better("test_metric_unique") is True
-        assert get_metric_aggregation("test_metric_unique") is mean_agg
+        m = metric_registry.get("test_metric_unique")
+        assert isinstance(m, Metric)
+        assert m.fn is test_metric
+        assert m.higher_is_better is True
+        assert m.aggregation is mean_agg
 
-    def test_register_metric_duplicate_raises(self):
-        """Test that re-registering a built-in metric name with a different function raises."""
-        # Ensure built-in metrics are loaded
+    def test_register_metric_duplicate_warns(self, caplog):
+        """Test that re-registering a built-in metric name logs a warning."""
+        import logging
+
         from lm_eval.api import metrics  # noqa: F401
 
         assert "exact_match" in metric_registry
 
-        with pytest.raises(ValueError, match="already registered"):
+        with caplog.at_level(logging.WARNING, logger="lm_eval.api.registry"):
 
             @register_metric(
                 metric="exact_match",
@@ -393,6 +392,8 @@ class TestMetricRegistry:
             )
             def custom_exact_match(**kwargs):
                 return 0
+
+        assert "Failed to register metric 'exact_match'" in caplog.text
 
     def test_builtin_metrics_loaded(self):
         """Test that built-in metrics are loaded."""
@@ -412,18 +413,12 @@ class TestBackwardCompatibility:
         from lm_eval.api.registry import (
             AGGREGATION_REGISTRY,
             FILTER_REGISTRY,
-            HIGHER_IS_BETTER_REGISTRY,
-            METRIC_AGGREGATION_REGISTRY,
-            METRIC_REGISTRY,
             MODEL_REGISTRY,
         )
 
         assert MODEL_REGISTRY is model_registry
         assert FILTER_REGISTRY is filter_registry
-        assert METRIC_REGISTRY is metric_registry
         assert AGGREGATION_REGISTRY is aggregation_registry
-        assert METRIC_AGGREGATION_REGISTRY is metric_agg_registry
-        assert HIGHER_IS_BETTER_REGISTRY is higher_is_better_registry
 
 
 class TestRegistryClear:

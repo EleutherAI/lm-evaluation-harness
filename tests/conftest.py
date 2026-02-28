@@ -57,7 +57,7 @@ def mock_configurable_task(task_config):
     task._multiple_inputs = False
 
     # Mock methods - use real build_qa_turn
-    task.build_qa_turn = lambda **kwargs: Task.build_qa_turn(task, **kwargs)
+    task.build_qa_turn = lambda **kwargs: Task._build_qa_turn(task, **kwargs)
     task._resolve_field = Mock(return_value=None)
 
     # Mock sampler

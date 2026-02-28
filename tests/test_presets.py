@@ -7,6 +7,7 @@ Tests cover:
 - Jinja template rendering with sample documents
 - to_task_config() output
 - All built-in presets: MCQPreset, ClozePreset, GeneratePreset, COTGeneratePreset
+- TaskConfig._resolve_preset() integration (@ suffix, preset field, overrides)
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from lm_eval.config.presets import (
     MCQPreset,
     PresetConfig,
 )
+from lm_eval.config.task import TaskConfig
 
 
 # ---------------------------------------------------------------------------
@@ -165,7 +167,7 @@ class TestGet:
         preset = PresetConfig.get(spec)
         assert isinstance(preset, MCQPreset)
         # Should have default MCQPreset values
-        assert preset.question_prefix == "Question:"
+        assert preset.question_prefix == "Question: "
 
     def test_get_multi_preset_dict_string_redirect(self):
         """When an override value is a string, redirect to that preset."""
@@ -176,6 +178,16 @@ class TestGet:
     def test_get_invalid_type_raises(self):
         with pytest.raises(TypeError, match="Invalid preset spec type"):
             PresetConfig.get(42)  # type: ignore[arg-type]
+
+    def test_get_empty_string_raises(self):
+        """Empty string is not a valid preset name."""
+        with pytest.raises(ValueError, match="Unknown preset"):
+            PresetConfig.get("")
+
+    def test_get_redirect_to_unknown_raises(self):
+        """Multi-preset string redirect to unknown preset raises."""
+        with pytest.raises(ValueError, match="Unknown preset"):
+            PresetConfig.get({"mcqa": "nonexistent_xyz"})
 
 
 # ---------------------------------------------------------------------------
@@ -243,7 +255,7 @@ class TestMCQPreset:
     def test_defaults(self):
         assert self.preset.output_type == "multiple_choice"
         assert self.preset.instruction is None
-        assert self.preset.question_prefix == "Question:"
+        assert self.preset.question_prefix == "Question: "
         assert self.preset.choice_labels == "letters"
         assert self.preset.answer_prompt == "Answer:"
         assert self.preset.scorer is None
@@ -416,7 +428,7 @@ class TestCOTGeneratePreset:
         assert self.preset.answer_format == "full_text"
 
     def test_question_prefix_is_problem(self):
-        assert self.preset.question_prefix == "Problem:"
+        assert self.preset.question_prefix == "Problem: "
 
     def test_jinja_doc_to_text_no_choices(self):
         cfg = self.preset.to_jinja_config()
@@ -563,7 +575,7 @@ class TestFieldMapping:
     def test_no_choices_field_mcq_raises(self):
         """multiple_choice output_type requires doc_to_choice."""
         preset = MCQPreset()
-        with pytest.raises(AssertionError, match="choices_field required"):
+        with pytest.raises(ValueError, match="no doc_to_choice was provided"):
             preset.to_jinja_config(doc_to_choice=None)
 
     def test_jinja_expression_in_field(self):
@@ -994,3 +1006,171 @@ class TestIntegerDocToTarget:
         cfg = preset.to_jinja_config(doc_to_text=42, doc_to_choice=None)
         rendered = render(cfg["doc_to_text"], doc)
         assert "42" in rendered
+
+
+# ---------------------------------------------------------------------------
+# _escape_jinja contract
+# ---------------------------------------------------------------------------
+
+
+class TestEscapeJinja:
+    """Document that _escape_jinja is intentionally a no-op identity function."""
+
+    def test_escape_jinja_is_identity(self):
+        assert PresetConfig._escape_jinja("Hello {{world}}") == "Hello {{world}}"
+        assert (
+            PresetConfig._escape_jinja("quotes 'and' \"double\"")
+            == "quotes 'and' \"double\""
+        )
+        assert PresetConfig._escape_jinja("") == ""
+
+
+# ---------------------------------------------------------------------------
+# TaskConfig._resolve_preset() integration
+# ---------------------------------------------------------------------------
+
+
+def _make_config(**overrides) -> TaskConfig:
+    """Build a minimal TaskConfig for testing preset resolution.
+
+    Includes doc_to_choice="choices" by default because MCQ presets
+    require a choices field for template generation.
+    """
+    defaults: dict = {
+        "task": "test_task",
+        "dataset_path": "dummy",
+        "test_split": "test",
+        "doc_to_choice": "choices",
+    }
+    defaults.update(overrides)
+    return TaskConfig(**defaults)
+
+
+class TestTaskConfigResolvePreset:
+    """Test TaskConfig.__post_init__ -> _resolve_preset() integration.
+
+    Verifies that the @suffix parsing, preset field resolution, and
+    override application in TaskConfig work correctly end-to-end.
+    """
+
+    def test_at_suffix_parses_preset_selection(self):
+        """task='t@mcqa' sets _preset_selection and preset."""
+        cfg = _make_config(task="t@mcqa")
+        assert cfg._preset_selection == "mcqa"
+        assert cfg.preset == "mcqa"
+
+    def test_at_suffix_applies_mcq_preset(self):
+        """task='t@mcqa' applies MCQPreset: output_type, doc_to_text, etc."""
+        cfg = _make_config(task="t@mcqa")
+        assert cfg.output_type == "multiple_choice"
+        assert "Question:" in cfg.doc_to_text
+        assert cfg.doc_to_target is not None
+        assert cfg.doc_to_choice is not None
+        assert cfg.target_delimiter == " "
+        assert cfg.fewshot_delimiter == "\n\n"
+
+    def test_at_suffix_cloze_preset(self):
+        """task='t@cloze' applies ClozePreset (MCQ variant, no choice labels)."""
+        cfg = _make_config(task="t@cloze")
+        assert cfg.output_type == "multiple_choice"
+        # ClozePreset has choice_labels=None, so the for-loop in the template
+        # uses empty string labels instead of A/B/C
+        assert cfg.doc_to_text is not None
+
+    def test_at_suffix_generate_preset(self):
+        """task='t@generate' applies GeneratePreset."""
+        cfg = _make_config(task="t@generate")
+        assert cfg.output_type == "generate_until"
+        assert "choose the best answer" in cfg.doc_to_text
+
+    def test_explicit_preset_field_no_at_suffix(self):
+        """preset='mcqa' with no @ in task name applies preset."""
+        cfg = _make_config(preset="mcqa")
+        assert cfg.output_type == "multiple_choice"
+        assert cfg._preset_selection is None
+        assert cfg.preset == "mcqa"
+
+    def test_multi_preset_with_at_suffix_selection(self):
+        """Multi-preset dict + @suffix selects the right variant."""
+        cfg = _make_config(
+            task="t@generate",
+            preset={
+                "mcqa": {"instruction": "MCQ here"},
+                "generate": {"instruction": "Gen here"},
+            },
+        )
+        assert cfg.output_type == "generate_until"
+        assert "Gen here" in cfg.doc_to_text
+
+    def test_multi_preset_default_first_key(self):
+        """Multi-preset dict with no @suffix defaults to first key."""
+        cfg = _make_config(
+            preset={"mcqa": None, "generate": None},
+        )
+        assert cfg.output_type == "multiple_choice"
+
+    def test_doc_to_text_default_fallback(self):
+        """When doc_to_text is None, preset uses 'question' as default field."""
+        cfg = _make_config(task="t@mcqa")
+        # doc_to_text was None -> preset used "question" as field name
+        assert "question" in cfg.doc_to_text
+
+    def test_doc_to_target_default_fallback(self):
+        """When doc_to_target is None, preset uses 'answer' as default field."""
+        cfg = _make_config(task="t@mcqa")
+        # The target template references 'answer'
+        assert "answer" in cfg.doc_to_target
+
+    def test_explicit_doc_to_text_overrides_default(self):
+        """Explicit doc_to_text='prompt' is used instead of default 'question'."""
+        cfg = _make_config(task="t@mcqa", doc_to_text="prompt_field")
+        assert "prompt_field" in cfg.doc_to_text
+        # Render the template to confirm it references the custom field
+        rendered = render(
+            cfg.doc_to_text, {"prompt_field": "Hello", "choices": ["a", "b"]}
+        )
+        assert "Hello" in rendered
+
+    def test_explicit_doc_to_choice_passed_through(self):
+        """Explicit doc_to_choice='options' is used in preset template."""
+        cfg = _make_config(task="t@mcqa", doc_to_choice="options")
+        assert "options" in cfg.doc_to_text
+
+    def test_preset_selection_runtime_override(self):
+        """_preset_selection='cloze' without @ in task name applies ClozePreset."""
+        cfg = _make_config(_preset_selection="cloze")
+        assert cfg.output_type == "multiple_choice"
+        assert cfg.preset == "cloze"
+        assert cfg._preset_selection == "cloze"
+
+    def test_preset_selection_priority_over_suffix(self):
+        """Runtime _preset_selection takes priority over @suffix in task name."""
+        cfg = _make_config(task="t@generate", _preset_selection="mcqa")
+        # _preset_selection="mcqa" was already set, so @ parsing is skipped
+        assert cfg._preset_selection == "mcqa"
+        assert cfg.output_type == "multiple_choice"
+
+    def test_unknown_preset_in_at_suffix_raises(self):
+        """Unknown preset name in @suffix raises ValueError."""
+        with pytest.raises(ValueError, match="Unknown preset"):
+            _make_config(task="t@nonexistent_preset_xyz")
+
+
+# ---------------------------------------------------------------------------
+# TaskConfig preset scorer integration
+# ---------------------------------------------------------------------------
+
+
+class TestTaskConfigPresetScorer:
+    """Test that preset scorer fields survive TaskConfig normalization."""
+
+    def test_mcq_scorer_is_none(self):
+        """MCQPreset has scorer=None — stays None after normalization."""
+        cfg = _make_config(task="t@mcqa")
+        assert cfg.scorer is None
+
+    def test_generate_scorer_normalized_to_dict(self):
+        """GeneratePreset scorer='first_token' is normalized to dict form."""
+        cfg = _make_config(task="t@generate")
+        # _normalize_scoring_config converts str -> {"type": str}
+        assert cfg.scorer == {"type": "first_token"}

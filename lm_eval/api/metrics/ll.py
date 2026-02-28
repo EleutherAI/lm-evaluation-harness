@@ -11,16 +11,22 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from .utils import softmax
 
+_NAT_TO_BIT = 1.0 / np.log(2.0)
 
-NAT_TO_BIT = 1.0 / np.log(2.0)
-
-from lm_eval.api.registry import register_metric
+from lm_eval.api.registry import register_metric as metric
 
 
 if TYPE_CHECKING:
-    from lm_eval.api._metrics.results import LLResults
+    from numpy._typing import ArrayLike
+
+    from .results import LLResults
+
+
+def _softmax(x: ArrayLike) -> np.ndarray:
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
 
 
 # ---------------------------------------------------------------------------
@@ -33,19 +39,19 @@ def _multiple_targets(_target: int | list[int], _result: int):
     return int(any(_result == t for t in _target))
 
 
-@register_metric(
-    metric="acc",
+@metric(
+    "acc",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_fn(
+def acc(
     references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Accuracy.
 
     For multiple-choice (multiple lls): 1 if argmax(lls) matches gold.
-    For single loglikelihood (one ll): 1 if the continuation was decoded greedily.
+    For a single loglikelihood (one ll): 1 if the continuation was decoded greedily.
     """
     if len(predictions.lls) == 1:
         # Plain loglikelihood: acc = greedy decode match
@@ -59,13 +65,13 @@ def acc_fn(
     return int(pred == int(references))
 
 
-@register_metric(
-    metric="acc_norm",
+@metric(
+    "acc_norm",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
 )
-def acc_norm_fn(
+def acc_norm(
     references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
@@ -78,13 +84,13 @@ def acc_norm_fn(
     return int(pred == int(references))
 
 
-@register_metric(
-    metric="acc_bytes",
+@metric(
+    "acc_bytes",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
 )
-def acc_bytes_fn(
+def acc_bytes(
     references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
@@ -97,8 +103,8 @@ def acc_bytes_fn(
     return int(pred == int(references))
 
 
-@register_metric(
-    metric="acc_mutual_info",
+@metric(
+    "acc_mutual_info",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -121,13 +127,13 @@ def acc_mutual_info_fn(
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
-    metric="exact_match_mc",
+@metric(
+    "exact_match_mc",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
 )
-def exact_match_mc_fn(references: int | list[int], predictions: LLResults) -> int:
+def exact_match_mc(references: int | list[int], predictions: LLResults) -> int:
     """1 if the gold completion was decoded greedily (every token was argmax), else 0."""
     if isinstance(references, list):
         return int(
@@ -143,13 +149,13 @@ def exact_match_mc_fn(references: int | list[int], predictions: LLResults) -> in
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
-    metric="bpb",
+@metric(
+    "bpb",
     higher_is_better=False,
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def bpb_fn(references: int, predictions: LLResults) -> float:
+def bpb(references: int, predictions: LLResults) -> float:
     """Bits-per-byte of the gold completion: ``-ll[gold] / byte_len[gold] * NAT_TO_BIT``.
 
     Lower is better — measures how many bits the model needs per byte of the
@@ -157,71 +163,67 @@ def bpb_fn(references: int, predictions: LLResults) -> float:
     """
     return (
         -predictions.lls[references] / predictions.byte_len()[references]
-    ) * NAT_TO_BIT
+    ) * _NAT_TO_BIT
 
 
-@register_metric(
-    metric="logprob",
+@metric(
+    "logprob",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
 def logprob_fn(references: int, predictions: LLResults) -> float:
     """Raw log-probability of the gold completion (in nats)."""
-    return float(predictions.lls[references])
+    return (predictions.lls[references]).item()
 
 
-@register_metric(
-    metric="choice_logprob",
+@metric(
+    "choice_logprob",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
 )
-def choice_logprob_fn(references: int, predictions: LLResults) -> float:
+def choice_logprob(references: int, predictions: LLResults) -> float:
     """Log-probability of the gold choice under a softmax over all choices.
 
     Equals ``ll[gold] - logsumexp(ll)``, i.e. treating the raw log-likelihoods
     as logits and returning the log-probability assigned to the correct answer.
     """
     lls = np.array(predictions.lls)
-    return float(lls[references] - np.logaddexp.reduce(lls))
+    return (lls[references] - np.logaddexp.reduce(lls)).item()
 
 
-@register_metric(
-    metric="choice_prob_norm",
+@metric(
+    "choice_prob_norm",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
 )
-def choice_prob_norm_fn(references: int, predictions: LLResults) -> float:
+def choice_prob_norm(references: int, predictions: LLResults) -> float:
     """Length-normalised probability of the gold choice.
 
     Each choice is weighted by its nats-per-byte (``ll / byte_len``), then a
     softmax is applied. Returns the probability mass on the correct answer.
     This compensates for longer completions receiving lower raw log-likelihoods.
     """
-    lls = np.array(predictions.lls)
-    byte_len = np.array(predictions.byte_len(), dtype=float)
-    log_weights = lls / byte_len
-    return float(np.exp(log_weights[references] - np.logaddexp.reduce(log_weights)))
+    log_weights = predictions.lls / predictions.byte_len()
+    return np.exp(log_weights[references] - np.logaddexp.reduce(log_weights)).item()
 
 
-@register_metric(
-    metric="choice_logprob_norm",
+@metric(
+    "choice_logprob_norm",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
 )
-def choice_logprob_norm_fn(references: int, predictions: LLResults) -> float:
+def choice_logprob_norm(references: int, predictions: LLResults) -> float:
     """Log of the length-normalised probability of the gold choice.
 
     Equivalent to ``log(choice_prob_norm)`` but computed in log-space for
     numerical stability.
     """
-    lls = np.array(predictions.lls)
-    byte_len = np.array(predictions.byte_len(), dtype=float)
-    log_weights = lls / byte_len
-    return float(log_weights[references] - np.logaddexp.reduce(log_weights))
+    log_weights = predictions.lls / predictions.byte_len()
+    return (log_weights[references] - np.logaddexp.reduce(log_weights)).item()
 
 
 # ---------------------------------------------------------------------------
@@ -229,18 +231,18 @@ def choice_logprob_norm_fn(references: int, predictions: LLResults) -> float:
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
-    metric="brier_score",
+@metric(
+    "brier_score",
     higher_is_better=False,
     output_type="multiple_choice",
     aggregation="mean",
 )
 def brier_score(references: int, predictions: LLResults) -> float:
     """Per-sample Brier score: sum of squared errors between softmax probs and one-hot gold."""
-    probs = softmax(np.array(predictions.lls))
+    probs = _softmax(np.array(predictions.lls))
     one_hot = np.zeros_like(probs)
     one_hot[references] = 1.0
-    return float(np.sum((probs - one_hot) ** 2))
+    return (np.sum((probs - one_hot) ** 2)).item()
 
 
 # ---------------------------------------------------------------------------
@@ -248,11 +250,11 @@ def brier_score(references: int, predictions: LLResults) -> float:
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
-    metric="bypass",
+@metric(
+    "bypass",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice", "generate_until"],
     aggregation="bypass",
 )
 def bypass(references=None, predictions=None, **kwargs):
-    return None
+    return -1

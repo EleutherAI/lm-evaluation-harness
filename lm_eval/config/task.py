@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
-
 from typing_extensions import Required, TypedDict
 
 from lm_eval.defaults import default_gen_kwargs
+
+from .utils import normalize_filter_list, normalize_metric_list
 
 
 if TYPE_CHECKING:
@@ -41,7 +42,7 @@ class MetricConfig(TypedDict, total=False):
             ignore_case: true       # extra kwarg forwarded to the metric fn
     """
 
-    metric: str | Callable
+    metric: Required[str | Callable]
     """Name of a registered metric (e.g. ``"acc"``, ``"exact_match"``,
     ``"bleu"``) or a callable. See ``lm_eval/api/metrics.py`` for
     built-in metrics."""
@@ -90,6 +91,42 @@ class FilterStep(TypedDict, total=False):
     r"""Keyword arguments passed to the filter function
     (e.g. ``{"regex_pattern": "The answer is (\d+)"}`` for ``"regex"``,
     or ``{"filter_fn": "!function utils.my_filter"}`` for ``"custom"``)."""
+
+
+class ScorerConfig(TypedDict, total=False):
+    """Configuration for a registered scorer.
+
+    A scorer encapsulates the full filter → score → reduce → aggregate
+    pipeline. When ``scorer`` is set on a task, scoring is delegated to
+    the registered scorer class instead of the default metric pipeline.
+
+    Can be specified as a plain string (just the scorer name) or as a
+    dict with ``type`` and optional ``kwargs`` forwarded to the scorer
+    constructor.
+
+    Example YAML::
+
+        # String shorthand — equivalent to {"type": "first_token"}
+        scorer: first_token
+
+        # Dict form with custom kwargs forwarded to the scorer class
+        scorer:
+          type: ai_judge
+          kwargs:
+            judge_model: claude-sonnet-4-6
+
+    See ``lm_eval/scorers/`` for built-in scorers.  Custom scorers can
+    be registered with ``@register_scorer``.
+    """
+
+    type: Required[str]
+    """Name of a registered scorer (e.g. ``"first_token"``, ``"regex"``,
+    ``"choice_match"``). Resolved via ``lm_eval.api.registry.get_scorer``."""
+
+    kwargs: dict[str, Any]
+    """Extra keyword arguments forwarded to the scorer constructor.
+    Scorer subclasses declare these as dataclass fields
+    (e.g. ``judge_model`` on an ``AIJudgeScorer``)."""
 
 
 class FilterPipeline(TypedDict, total=False):
@@ -417,9 +454,14 @@ class TaskConfig:
     strategies from a single evaluation run (e.g. ``"strict-match"``
     and ``"maj@64"`` on GSM8k)."""
 
-    scorer: str | dict[str, Any] | None = None
+    scorer: str | ScorerConfig | None = None
     """A registered scorer name or inline scorer config. When set, scoring
-    is delegated to this scorer instead of the default metric pipeline."""
+    is delegated to this scorer instead of the default metric pipeline.
+
+    Accepts a string (e.g. ``"first_token"``) which is normalised to
+    ``{"type": "first_token"}`` in ``__post_init__``, or a full
+    :class:`ScorerConfig` dict with extra kwargs forwarded to the scorer
+    constructor."""
 
     repeats: int = 1
     """Number of times to repeat each instance. Only used for generation
@@ -468,6 +510,13 @@ class TaskConfig:
     Falls back to ``task`` when not set. Not intended for manual YAML use."""
 
     def __post_init__(self) -> None:
+        self._resolve_preset()
+        self._apply_generation_defaults()
+        self._build_fewshot_config()
+        self._normalize_scoring_config()
+
+    def _resolve_preset(self) -> None:
+        """Parse ``@preset`` from task name and apply preset overrides."""
         # Extract @preset from task name as selection (e.g. "arc_easy@cloze")
         # Runtime _preset_selection takes priority over the YAML task name.
         if self._preset_selection is None and "@" in self.task:
@@ -496,6 +545,8 @@ class TaskConfig:
                 for key, value in overrides.items():
                     setattr(self, key, value)
 
+    def _apply_generation_defaults(self) -> None:
+        """Fill in missing ``generation_kwargs`` with sensible defaults."""
         if self.generation_kwargs:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -526,8 +577,11 @@ class TaskConfig:
                     self.task,
                     self.generation_kwargs,
                 )
-        self.fewshot_config = (
-            FewshotConfig.from_dict(
+
+    def _build_fewshot_config(self) -> None:
+        """Convert a raw ``fewshot_config`` dict to a :class:`FewshotConfig`, inheriting task-level fields."""
+        if isinstance(self.fewshot_config, dict) or self.fewshot_config is None:
+            self.fewshot_config = FewshotConfig.from_dict(
                 self.fewshot_config or {},
                 split=self.fewshot_split,
                 process_docs=self.process_docs,
@@ -538,15 +592,46 @@ class TaskConfig:
                 doc_to_choice=self.doc_to_choice,
                 doc_to_target=self.doc_to_target,
             )
-            if (isinstance(self.fewshot_config, dict) or self.fewshot_config is None)
-            else self.fewshot_config
-        )
+
+    def _normalize_scoring_config(self) -> None:
+        """Canonicalise scoring fields into a fully resolved ``filter_list``.
+
+        After this method:
+
+        * ``metric_list`` contains only what the user explicitly provided
+          (empty if nothing was specified — registry defaults are the
+          scorer layer's responsibility).
+        * ``filter_list`` always has at least one entry.  Each entry
+          carries a ``metric_list`` (per-pipeline if provided, otherwise
+          the task-level ``metric_list`` as fallback).
+        * ``scorer`` is normalised to :class:`ScorerConfig` ``| None``.
+        """
+        self.metric_list = normalize_metric_list(self.metric_list)
+        self.filter_list = normalize_filter_list(self.filter_list)
+
+        # Distribute task-level metrics as fallback into pipelines that
+        # don't have their own.
+        for pipeline in self.filter_list:
+            pipeline.setdefault("metric_list", list(self.metric_list))
+
+        # When no filter_list is provided, create a default scorer entry.
+        # ``filter`` is empty so that the scorer class can apply its own
+        # ``default_filter_cfg`` (the ``or`` chain in ``_build_filter``
+        # treats ``[]`` the same as a missing key).
+        if not self.filter_list:
+            self.filter_list = [
+                {"name": "none", "filter": [], "metric_list": list(self.metric_list)}
+            ]
+
+        # Normalise the scorer type to a dict form for consistent downstream handling.
+        if isinstance(self.scorer, str):
+            self.scorer = {"type": self.scorer}
 
     def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
         """Dumps the current config as a dictionary object, as a printable format.
 
         null fields will not be printed.
-        Used for dumping results alongside full task configuration
+        Used for dumping results alongside a full task configuration
 
         :return: dict
             A printable dictionary version of the TaskConfig object.

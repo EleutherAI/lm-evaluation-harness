@@ -3,9 +3,8 @@ from __future__ import annotations
 import inspect
 from dataclasses import dataclass, field
 from functools import cache
-from typing import TYPE_CHECKING, Any, Generic, cast
-
-from typing_extensions import Self, TypeVar
+from typing import TYPE_CHECKING, Any, Generic
+from typing_extensions import TypeVar
 
 
 if TYPE_CHECKING:
@@ -16,8 +15,8 @@ if TYPE_CHECKING:
     from ._types import AggregationFn, MetricFn, ReductionFn
 
 
-_T = TypeVar("_T")
-_K = TypeVar("_K")
+_T = TypeVar("_T", default=float, infer_variance=True)
+_K = TypeVar("_K", default=float, infer_variance=True)
 
 METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 
@@ -69,12 +68,18 @@ class Metric(Generic[_T, _K]):
     kwargs: Mapping[str, Any] = field(default_factory=dict)
     aggregation: AggregationFn[_K] | None = None
     higher_is_better: bool = True
-    output_type: str = "multiple_choice"
+    output_type: set[str] = field(default_factory=lambda: {"multiple_choice"})
     reduction: ReductionFn[_T, _K] | None = take_first
 
     def __post_init__(self):
         if not self.name:
             raise ValueError("Metric name must be non-empty.")
+        output_type = (
+            [self.output_type]
+            if isinstance(self.output_type, str)
+            else self.output_type
+        )
+        object.__setattr__(self, "output_type", set(output_type))
         if not callable(self.fn):
             raise TypeError(
                 f"Metric '{self.name}' fn must be callable, got {type(self.fn)}."
@@ -87,15 +92,16 @@ class Metric(Generic[_T, _K]):
             object.__setattr__(self, "reduction", take_first)
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> Self:
-        from lm_eval.api._metrics import utils
+    def from_dict(
+        cls, cfg: dict[str, Any] | MetricConfig, output_type: str | None = None
+    ) -> Metric[Any, Any]:
+        from lm_eval.config.utils import normalize_metric_cfg
 
-        _cfg = {k: v for k, v in cfg.items() if k in METRIC_KEYS}
-        if len(_cfg) < len(cfg):
-            _cfg["kwargs"] = {k: v for k, v in cfg.items() if k not in METRIC_KEYS}
-        return utils.parse_metric(cast("MetricConfig", _cfg))
+        from . import utils
 
-    def compute(self, *args: Any, **kwargs: Any) -> _T:
+        return utils.parse_metric(normalize_metric_cfg(cfg), output_type)
+
+    def compute(self, *args: Any, **kwargs: Any) -> _T | dict[str, list[_T]]:
         """Compute the metric for a sample."""
         return self.fn(*args, **filter_kwargs(self.fn, {**self.kwargs, **kwargs}))
 

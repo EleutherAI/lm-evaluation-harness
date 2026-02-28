@@ -1,17 +1,24 @@
+"""Config normalization and serialization utilities.
+
+Functions in this module run at **parse time** to canonicalise raw YAML
+dicts into well-typed config structures (e.g. separating known metric
+fields from extra kwargs).  They are intentionally separated from the
+runtime template helpers in ``config/templates.py``.
+"""
+
 from __future__ import annotations
 
-import functools
-import re
-import string
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
-
-from typing_extensions import overload
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, cast
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Mapping
 
-_T = TypeVar("_T")
+    from lm_eval.config.task import FilterPipeline, FilterStep, MetricConfig
+
+
+# ── Serialization ────────────────────────────────────────────────────
 
 
 def serialize_callable(
@@ -62,159 +69,100 @@ def serialize_config(
     return cfg_dict
 
 
-def regex_replace(text, pattern, repl, count: int = 0) -> str:
-    """Implements the `re.sub` function as a custom Jinja filter."""
-    return re.sub(pattern, repl, text, count=count)
+# ── Metric normalization ─────────────────────────────────────────────
 
 
-def letter_choices(choices: Sequence[str], sep: str = "\n", style: str = ". ") -> str:
-    r"""Format a list of choices with letter labels.
+def _norm_kwargs(cfg: Mapping[str, Any], keys: set[str]) -> dict[str, Any]:
+    return {k: v for k, v in cfg.items() if k in keys} | {
+        "kwargs": {k: v for k, v in cfg.items() if k not in keys and k != "kwargs"}
+        | cfg.get("kwargs", {})
+    }
 
-    Usage in Jinja: ``{{ choices | letter_choices }}``
-    produces ``A. choice1\nB. choice2\n...``
 
-    *style* controls the separator between the letter and the text
-    (e.g. ``". "``, ``": "``, ``") "``).
+def normalize_metric_cfg(cfg: Mapping[str, Any]) -> MetricConfig:
+    """Normalize a raw YAML metric entry into a proper MetricConfig.
+
+    YAML metric entries mix known fields (``metric``, ``aggregation``, etc.)
+    with arbitrary extra keys that should be forwarded as ``kwargs`` to the
+    metric function. This function separates the two.
+
+    Example::
+
+        >>> normalize_metric_cfg({"metric": "exact_match", "ignore_case": True})
+        {"metric": "exact_match", "kwargs": {"ignore_case": True}}
     """
-    return sep.join(
-        f"{string.ascii_uppercase[i]}{style}{c}" for i, c in enumerate(choices)
-    )
+    METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 
-
-def answer_key_to_index(key: str | int, labels: Sequence[str] | None = None) -> int:
-    """Convert an answer key to a 0-based index.
-
-    Usage in Jinja: ``{{ answerKey | answer_key_to_index(choices.label) }}``
-
-    Handles three cases:
-    * *labels* provided → ``labels.index(key)`` (after stripping whitespace).
-    * *key* is a letter (A-Z) → ordinal offset from ``'A'``.
-    * *key* is a numeric string (1-based) → ``int(key) - 1``.
-    """
-    key_str = str(key).strip()
-    if labels is not None:
-        return list(labels).index(key_str)
-    if len(key_str) == 1 and key_str.isalpha():
-        return ord(key_str.upper()) - ord("A")
-    return int(key_str) - 1
-
-
-@functools.lru_cache(maxsize=1)
-def _jinja_env():
-    from jinja2 import BaseLoader, Environment, StrictUndefined
-
-    env = Environment(
-        loader=BaseLoader(),
-        undefined=StrictUndefined,
-        keep_trailing_newline=True,
-    )
-    env.filters["regex_replace"] = regex_replace
-    env.filters["letter_choices"] = letter_choices
-    env.filters["answer_key_to_index"] = answer_key_to_index
-    return env
-
-
-@functools.lru_cache(maxsize=256)
-def _compile_tpl(src: str):
-    return _jinja_env().from_string(src)
-
-
-def apply_template(template: str, doc: dict, *args) -> str:
-    try:
-        return _compile_tpl(template).render(doc)
-    except Exception as e:
+    if "metric" not in cfg:
         raise ValueError(
-            f"Error rendering template: {template} with doc: {doc}, args: {args}"
-        ) from e
-
-
-@overload
-def process_field(doc: dict[Any, Any], field_spec: None) -> None: ...
-@overload
-def process_field(doc: dict[Any, Any], field_spec: str) -> str: ...
-@overload
-def process_field(doc: dict[Any, Any], field_spec: int) -> int: ...
-@overload
-def process_field(doc: dict[Any, Any], field_spec: list[_T]) -> list[str | _T]: ...
-@overload
-def process_field(
-    doc: dict[Any, Any], field_spec: Callable[[dict[Any, Any]], _T]
-) -> _T: ...
-def process_field(
-    doc: dict[str, str],
-    field_spec: Any | None,
-) -> str | int | list | None:
-    """Resolve a field spec against a document."""
-    # fmt: off
-    match field_spec:
-        case None: return None
-        case _ if callable(field_spec): return field_spec(doc)
-        case int(): return field_spec
-        case list(): return [apply_template(x, doc) if isinstance(x, str) else x for x in field_spec]
-        case str() if field_spec in doc: return doc[field_spec]
-    # fmt: on
-    return apply_template(field_spec, doc)
-
-
-@overload
-def _coerce_list(value: None) -> None: ...
-@overload
-def _coerce_list(value: list[_T]) -> list[_T]: ...
-@overload
-def _coerce_list(value: str) -> str | list[str]: ...
-@overload
-def _coerce_list(value: int) -> int: ...
-def _coerce_list(value):
-    """Coerce a rendered field value: parse list literals to list."""
-    import ast
-
-    if isinstance(value, str) and value.startswith("[") and value.endswith("]"):
-        try:
-            parsed = ast.literal_eval(value)
-            if isinstance(parsed, list):
-                return parsed
-        except (ValueError, SyntaxError):
-            pass
-    return value
-
-
-@overload
-def _coerce_target(value: None, parse_list: bool = ...) -> None: ...
-@overload
-def _coerce_target(value: list[_T], parse_list: bool = ...) -> list[_T]: ...
-@overload
-def _coerce_target(value: str, parse_list: Literal[False] = ...) -> str | int: ...
-@overload
-def _coerce_target(value: str, parse_list: Literal[True]) -> str | int | list[str]: ...
-@overload
-def _coerce_target(value: int, parse_list: bool = ...) -> int: ...
-def _coerce_target(value, parse_list=False):
-    """Coerce a rendered field value: parse digit strings to int, list literals to list."""
-    if isinstance(value, str):
-        if value.isdigit():
-            return int(value)
-        if parse_list:
-            return _coerce_list(value)
-    return value
-
-
-def _resolve_target_index(target, choices, doc) -> int | None:
-    import logging
-
-    eval_logger = logging.getLogger(__name__)
-    if isinstance(target, (int, float)):
-        idx = int(target)
-        if idx < len(choices):
-            return idx
-        eval_logger.warning(
-            f"Target index '{idx}' out of range for choices {choices} for doc:\n\n{doc}\n\n"
+            f"Each metric_list entry requires a 'metric' field. Got: {dict(cfg)}"
         )
-        return None
-    if isinstance(target, str):
-        if target in choices:
-            return choices.index(target)
-        eval_logger.warning(
-            f"Target '{target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+    if not isinstance(_m := (cfg["metric"]), (str, Callable)):
+        raise TypeError(
+            f"'metric' must be a string or callable, got {type(_m)} in {cfg}"
         )
-        return None
-    return None
+
+    return cast("MetricConfig", _norm_kwargs(cfg, METRIC_KEYS))
+
+
+def normalize_metric_list(
+    cfg: list[Mapping[str, Any]] | list[MetricConfig],
+) -> list[MetricConfig]:
+    """Normalize a raw ``metric_list`` from YAML into a list of MetricConfigs.
+
+    Returns an empty list when *cfg* is empty — the scorer layer is
+    responsible for providing defaults (via ``Scorer.default_metric_cfg``
+    or ``DEFAULT_METRIC_REGISTRY``).
+    """
+    if not cfg:
+        return []
+    return [normalize_metric_cfg(entry) for entry in cfg]
+
+
+# ── Filter normalization ─────────────────────────────────────────────
+
+FILTER_STEP_KEYS = {"function", "kwargs"}
+
+
+def _normalize_filter_step(cfg: Mapping[str, Any]) -> FilterStep:
+    r"""Normalize a raw YAML filter step into a proper FilterStep.
+
+    Same pattern as :func:`normalize_metric_cfg`: known fields are kept,
+    extra keys (e.g. ``regex_pattern``) are collected into ``kwargs``.
+
+    Example::
+
+        >>> _normalize_filter_step({"function": "regex", "regex_pattern": r"\\d+"})
+        {"function": "regex", "kwargs": {"regex_pattern": "\\\\d+"}}
+    """
+    if "function" not in cfg:
+        raise KeyError(f"Each filter step requires a 'function' field. Got: {cfg}")
+    return cast("FilterStep", _norm_kwargs(cfg, FILTER_STEP_KEYS))
+
+
+def normalize_filter_list(
+    cfg: list[Mapping[str, Any]] | list[FilterPipeline],
+) -> list[FilterPipeline]:
+    """Normalize a raw ``filter_list`` from YAML into a list of FilterPipelines.
+
+    Each pipeline's ``filter`` steps and nested ``metric_list`` are normalized.
+    When *cfg* is empty, returns an empty list (the caller provides a default scorer).
+    """
+    if not cfg:
+        return []
+
+    result = []
+    for pipeline in cfg:
+        if "name" not in pipeline or "filter" not in pipeline:
+            raise KeyError(
+                f"'name' and 'function' are required keys for each filter, got {pipeline.keys()} in {cfg}"
+            )
+        entry: FilterPipeline = {
+            "name": pipeline["name"],
+            "filter": [_normalize_filter_step(s) for s in pipeline["filter"]],
+        }
+
+        if "metric_list" in pipeline:
+            entry["metric_list"] = normalize_metric_list(pipeline["metric_list"])
+        result.append(entry)
+    return result

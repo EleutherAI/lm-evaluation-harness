@@ -1,0 +1,11 @@
+# Task with doc_to_choice but no preset (for testing runtime @suffix)
+task: choice_task
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: tests/test_configs/test_data.json
+test_split: test
+doc_to_text: "question"
+doc_to_target: "answer"
+doc_to_choice: "choices"
+output_type: generate_until

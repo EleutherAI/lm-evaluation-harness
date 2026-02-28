@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from lm_eval.api.registry import register_reduction
+from lm_eval.api.registry import register_reduction as reduce
 
 
 if TYPE_CHECKING:
@@ -43,7 +43,7 @@ def _default_k_values(n: int) -> list[int]:
     return sorted({k for k in anchors if 1 <= k <= n})
 
 
-@register_reduction("pass@k")
+@reduce("pass@k")
 def pass_at_k(
     references: Any,
     predictions: Sequence[int] | Sequence[bool],
@@ -80,8 +80,3 @@ def pass_at_k(
                 1.0 - np.prod(1.0 - ki / np.arange(n - c + 1, n + 1))  # type: ignore
             )
     return results
-
-
-def take_first(references, predictions: Sequence):
-    """Return the first repeat's prediction, ignoring all others."""
-    return predictions[0]

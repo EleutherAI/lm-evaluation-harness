@@ -1,0 +1,13 @@
+# Group with a preset child task
+group: preset_group
+task:
+  - task: preset_group_child
+    dataset_path: json
+    dataset_kwargs:
+      data_files:
+        test: tests/test_configs/test_data.json
+    test_split: test
+    doc_to_text: "question"
+    doc_to_target: "answer"
+    doc_to_choice: "choices"
+    preset: mcqa

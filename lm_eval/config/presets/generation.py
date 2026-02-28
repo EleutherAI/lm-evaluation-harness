@@ -13,22 +13,20 @@ class GeneratePreset(PresetConfig):
     # Mode
     output_type: str = "generate_until"
 
-    instruction: str = "Given the following question and four candidate answers (A, B, C and D), choose the best answer."
-    instruction_delimiter: str = "\n"
+    instruction: str = "Given the following question and four candidate answers (A, B, C and D), choose the best answer.\n"
 
     # Question
-    question_prefix: str | None = "Question:"
-    prefix_delimiter: str = " "
+    question_prefix: str | None = "Question: "
 
     # Choices
     choice_labels: str | list[str] | None = "letters"
     choice_delimiter: str = "\n"
-    before_choices: str = "\n"
+
+    # Layout
+    section_separator: str = "\n"
 
     # Answer
-    before_answer: str = "\n"
     answer_instruction: str | None = None  # CoT instruction
-    answer_instruction_delimiter: str = ""  # After answer_instruction
     answer_prompt: str = 'Your response should end with "The best answer is [answer_letter]" where the [answer_letter] is one of A, B, C or D.'
     answer_format: str = "letters"
     gen_prefix: str = "The best answer is"
@@ -46,9 +44,9 @@ class COTGeneratePreset(GeneratePreset):
     preset_name: ClassVar[str | None] = "cot"
 
     instruction: str = (
-        "Given the following problem, reason step by step to find the final answer."
+        "Given the following problem, reason step by step to find the final answer.\n"
     )
-    question_prefix: str = "Problem:"
+    question_prefix: str = "Problem: "
     choice_labels: None = None
     answer_format: str = "full_text"
     answer_prompt: str = 'Your response should end with "The final answer is [answer]" where [answer] is the response to the problem.'

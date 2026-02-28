@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, ClassVar, Literal
-
 from typing_extensions import TypedDict
 
 
@@ -19,45 +18,102 @@ class _DOCTO(TypedDict, extra_items=str):
 
 @dataclass(kw_only=True)
 class PresetConfig:
+    """Declarative prompt configuration for evaluation tasks.
+
+    A preset defines **what** a prompt looks like (instruction, question,
+    choices, answer) and **how** sections are separated, then compiles
+    itself into Jinja templates consumed by ``TaskConfig``.
+
+    Prompt layout produced by ``to_jinja_config()``::
+
+        {instruction}
+        {question_prefix}{question}
+        {section_separator}{choice_label}. {choice}  (repeated)
+        {section_separator}{answer_instruction}{answer_prompt}
+        {target_delimiter}{target}
+        {fewshot_delimiter}
+        ... next example ...
+
+    Subclasses register themselves by setting ``preset_name`` and are
+    looked up via ``PresetConfig.get("name")`` or the YAML
+    ``preset: name`` / ``task@name`` syntax.
+    """
+
     # Registry for preset subclasses
     _registry: ClassVar[dict[str, type[PresetConfig]]] = {}
-    preset_name: ClassVar[str | None] = None  # Set in subclasses to auto-register
+    preset_name: ClassVar[str | None] = None
+    """Set in subclasses to auto-register (e.g. ``preset_name = "mcqa"``)."""
 
-    # Mode
     output_type: OutputType
+    """Model request type: ``"multiple_choice"`` for loglikelihood scoring,
+    ``"generate_until"`` for free-form generation, etc."""
 
     instruction: str | None
-    instruction_delimiter: str  # After instruction
+    r"""Task instruction prepended to every prompt. Include any trailing
+    delimiter (e.g. ``"Choose the best answer.\n"``). ``None`` for no
+    instruction."""
 
-    # Question
-    question_prefix: str | None  # "Question: ", "Problem: "
-    prefix_delimiter: str
+    question_prefix: str | None
+    """Label before the question text. Include trailing whitespace
+    (e.g. ``"Question: "``, ``"Problem: "``). ``None`` for no prefix."""
 
-    # Choices
     choice_labels: str | list[str] | None = None
-    choice_delimiter: str  # Between each choice
-    before_choices: str  # Between question and first choice
+    """How to label answer choices. ``"letters"`` for A/B/C/D,
+    ``"numbers"`` for 1/2/3/4, a custom list like ``["I", "II", "III"]``,
+    or ``None`` to show choices without labels."""
 
-    # Answer
-    before_answer: str  # Between choices/question and answer section
-    answer_instruction: str | None = None  # CoT instruction
-    answer_instruction_delimiter: str  # After answer_instruction
-    answer_prompt: str  # "Answer:", "The answer is", etc.
-    answer_format: str
+    choice_delimiter: str
+    r"""Separator between individual choice items (typically ``"\n"``)."""
+
+    section_separator: str
+    r"""Separator inserted between major prompt sections
+    (question → choices, choices → answer). Typically ``"\n"``."""
+
+    answer_instruction: str | None = None
+    r"""Optional instruction before the answer prompt, used for
+    chain-of-thought (e.g. ``"Think step by step.\n"``). Include any
+    trailing delimiter. ``None`` to omit."""
+
+    answer_prompt: str
+    """Text soliciting the answer (e.g. ``"Answer:"``,
+    ``'Your response should end with "The answer is [X]".'``)."""
+
     gen_prefix: str | None
+    """Constrained-decoding prefix appended to the prompt so the model
+    continues from a known anchor (e.g. ``"The best answer is"``).
+    ``None`` for unconstrained generation."""
 
-    # Fewshot
-    target_delimiter: str  # Between answer_prompt and target
-    fewshot_delimiter: str  # Between examples
+    target_delimiter: str
+    r"""Separator between the prompt and the target value in few-shot
+    examples (e.g. ``" "`` or ``"\n"``)."""
 
-    # Scorer
+    fewshot_delimiter: str
+    r"""Separator between few-shot examples (typically ``"\n\n"``)."""
+
     scorer: str | dict[str, Any] | None
+    """Scoring method name or config. Resolved by the scorer registry
+    (e.g. ``"first_token"``, ``None`` for default)."""
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Auto-register subclasses that define preset_name
         if cls.preset_name is not None:
             PresetConfig._registry[cls.preset_name] = cls
+
+    @property
+    def answer_format(self) -> str:
+        """How the target/ground-truth is formatted for ``generate_until`` tasks.
+
+        ``"letters"`` converts an index to ``A``/``B``/``C``,
+        ``"numbers"`` to ``1``/``2``/``3``, ``"full_text"`` to the choice text.
+        Ignored for ``multiple_choice`` output type.
+        """
+        # Todo: handle custom list of labels if self.choice_labels is a list
+        if self.choice_labels == "letters":
+            return "letters"
+        elif self.choice_labels == "numbers":
+            return "numbers"
+        return "full_text"
 
     @classmethod
     def get(
@@ -120,7 +176,7 @@ class PresetConfig:
                     )
                 chosen_name = selection
             else:
-                # Default to first key
+                # Default to the first key
                 chosen_name = next(iter(spec))
 
             overrides = spec[chosen_name]
@@ -142,13 +198,13 @@ class PresetConfig:
         return sorted(cls._registry.keys())
 
     def _field_ref(self, field: str, for_output: bool = True) -> str:
-        """Convert field name to Jinja reference.
+        """Convert the field name to Jinja reference.
 
         Args:
             field: Field name or Jinja expression
             for_output: If True, wrap in {{ }} for output. If False, return raw for use in control flow.
 
-        If field contains '{{' it's already a Jinja expression.
+        If a field contains, '{{' it's already a Jinja expression.
         """
         if "{{" in field:
             # Already a Jinja expression - extract the inner part for control flow
@@ -169,11 +225,13 @@ class PresetConfig:
 
     @staticmethod
     def _escape_jinja(s: str) -> str:
-        """Escape a string for inclusion in a Jinja template.
+        """No-op currently — returns the string unchanged.
 
-        Jinja templates are raw text, so quotes and backslashes are literal.
-        Only Jinja delimiters ({{ }}, {% %}) would need escaping, but we
-        don't expect those in preset string fields.
+        Marks every site where a preset string field (``instruction``,
+        ``answer_prompt``, etc.) is spliced into a Jinja template. If
+        preset fields ever need to contain literal ``{{``/``{%``
+        delimiters, replace this with real escaping (e.g. wrapping in
+        ``{% raw %}...{% endraw %}``).
         """
         return s
 
@@ -258,35 +316,36 @@ class PresetConfig:
         """Build Jinja template for doc_to_text.
 
         Generates a template that produces:
-        {instruction}{instruction_delimiter}
-        {question_prefix}{prefix_delimiter}{question}
-        {before_choices}{formatted_choices}
-        {before_answer}{answer_instruction}{answer_instruction_delimiter}{answer_prompt}
+        {instruction}
+        {question_prefix}{question}
+        {section_separator}{formatted_choices}
+        {section_separator}{answer_instruction}{answer_prompt}
         """
         template = ""
 
+        # Named section separators — derived from section_separator for now
+        # but kept as local names so they can be split out later if needed.
+        before_choices = self.section_separator
+        before_answer = self.section_separator
+
         # Instruction
         if self.instruction:
-            template += self._escape_jinja(
-                self.instruction + self.instruction_delimiter
-            )
+            template += self._escape_jinja(self.instruction)
 
         # Question prefix and question
         if self.question_prefix:
-            template += self._escape_jinja(self.question_prefix + self.prefix_delimiter)
+            template += self._escape_jinja(self.question_prefix)
         template += self._field_ref(doc_to_text)
 
         # Choices (if applicable)
         if self.choice_labels and doc_to_choice:
-            template += self._escape_jinja(self.before_choices)
+            template += self._escape_jinja(before_choices)
             template += self._build_choices_format_jinja(doc_to_choice)
 
         # Answer section
-        template += self._escape_jinja(self.before_answer)
+        template += self._escape_jinja(before_answer)
         if self.answer_instruction:
-            template += self._escape_jinja(
-                self.answer_instruction + self.answer_instruction_delimiter
-            )
+            template += self._escape_jinja(self.answer_instruction)
         template += self._escape_jinja(self.answer_prompt)
 
         return template
@@ -348,7 +407,7 @@ class PresetConfig:
     def _build_doc_to_target_jinja(
         self, doc_to_target: str, doc_to_choice: str | None
     ) -> str:
-        """Build Jinja template for doc_to_target.
+        """Build a Jinja template for doc_to_target.
 
         For multiple_choice output_type, returns the index.
         For generate_until, returns the formatted answer text.
@@ -363,14 +422,20 @@ class PresetConfig:
         if self.output_type == "multiple_choice":
             # For multiple choice, we need the index
             # If answer is already an index, return it; if it's text, find it in choices
-            assert c_ref is not None, "choices_field required for multiple_choice"
+            if c_ref is None:
+                raise ValueError(
+                    f"Preset '{self.preset_name}' has output_type='multiple_choice' "
+                    f"but no doc_to_choice was provided. Set doc_to_choice in your "
+                    f"task config (e.g. doc_to_choice: choices) so the preset can "
+                    f"build the target template."
+                )
             return (
                 "{% if " + a_raw + " is number %}" + a_out + "{% else %}"
                 "{{ " + c_ref + ".index(" + a_raw + ") }}"
                 "{% endif %}"
             )
         elif self.output_type == "generate_until":
-            # For generate_until, return formatted answer based on answer_format
+            # For generate_until, return a formatted answer based on answer_format
             if self.answer_format == "letters":
                 # Convert index to letter label (A, B, C, D)
                 return (
@@ -397,7 +462,7 @@ class PresetConfig:
         return a_out
 
     def _build_doc_to_choice_jinja(self, doc_to_choice: str | None) -> str | None:
-        """Build Jinja template for doc_to_choice.
+        """Build a Jinja template for doc_to_choice.
 
         Returns choice labels if configured, otherwise the raw choices.
         """
@@ -411,7 +476,7 @@ class PresetConfig:
             # Return raw choices
             return "{{ " + c_ref + " }}"
 
-        # Return labels based on number of choices
+        # Return labels based on a number of choices
         if self.choice_labels == "letters":
             return "{{ 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:" + c_ref + "|length] | list }}"
         elif self.choice_labels == "numbers":
@@ -434,7 +499,7 @@ class PresetConfig:
         The preset consumes them to build Jinja templates, then returns
         overrides that are applied unconditionally to the TaskConfig.
 
-        Returns a dict of TaskConfig-compatible fields including:
+        Returns a dict of TaskConfig-compatible fields including
         - Jinja templates (doc_to_text, doc_to_target, doc_to_choice)
         - Formatting fields (output_type, target_delimiter, etc.)
         - Scorer config (filter_list, metric_list) from extraction

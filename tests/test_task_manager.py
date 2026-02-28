@@ -349,6 +349,23 @@ tag: my_custom_tag
 
         assert "should_ignore" not in result
 
+    def test_index_strips_at_preset_from_key(self, tmp_path):
+        """Task with @preset in name is indexed under the base name."""
+        task_content = """
+task: indexed_task@mcqa
+dataset_path: dummy
+"""
+        (tmp_path / "indexed_task.yaml").write_text(task_content)
+
+        index = TaskIndex()
+        result = index.build([tmp_path])
+
+        # Index key should be the base name (without @preset)
+        assert "indexed_task" in result
+        assert "indexed_task@mcqa" not in result
+        # But the original config retains the full name
+        assert result["indexed_task"].cfg["task"] == "indexed_task@mcqa"
+
 
 # =============================================================================
 # TaskManager Integration Tests
@@ -1183,3 +1200,91 @@ class TestGroupBuilding:
 
         direct_tasks = parent.get_all_tasks(recursive=False)
         assert len(direct_tasks) == 0  # parent only has a subgroup, no direct tasks
+
+
+# =============================================================================
+# Preset Routing Tests
+# =============================================================================
+
+
+class TestPresetRouting:
+    """Test TaskManager preset routing: _load_spec(), match_tasks(), _resolve_path().
+
+    Covers the integration between TaskManager and the preset system —
+    the @suffix parsing, multi-preset selection, and glob matching.
+    """
+
+    @pytest.fixture()
+    def tm(self):
+        test_configs_path = Path(__file__).parent / "test_configs"
+        return TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+    # ---- _load_spec() with preset field in YAML ----
+
+    def test_load_task_with_preset_field(self, tm):
+        """Task with `preset: mcqa` in YAML has MCQ preset applied."""
+        result = tm.load(["preset_task"])
+        task = result["tasks"]["preset_task"]
+        assert task.config.output_type == "multiple_choice"
+        assert "Question:" in task.config.doc_to_text
+
+    # ---- _load_spec() with @suffix runtime preset ----
+
+    def test_load_task_with_at_suffix_mcqa(self, tm):
+        """choice_task@mcqa applies MCQ preset at runtime (task has doc_to_choice)."""
+        result = tm.load(["choice_task@mcqa"])
+        task = result["tasks"]["choice_task"]
+        assert task.config.output_type == "multiple_choice"
+        assert "Question:" in task.config.doc_to_text
+
+    def test_load_at_suffix_overrides_original_output_type(self, tm):
+        """choice_task@mcqa overrides the YAML's output_type=generate_until."""
+        result = tm.load(["choice_task@mcqa"])
+        task = result["tasks"]["choice_task"]
+        # Original YAML has output_type=generate_until, MCQ preset overrides it
+        assert task.config.output_type == "multiple_choice"
+
+    def test_load_at_suffix_generate_on_choice_task(self, tm):
+        """choice_task@generate keeps output_type=generate_until (with scorer)."""
+        result = tm.load(["choice_task@generate"])
+        task = result["tasks"]["choice_task"]
+        assert task.config.output_type == "generate_until"
+        assert "choose the best answer" in task.config.doc_to_text
+
+    # ---- _load_spec() with multi-preset dict + @suffix selection ----
+
+    def test_load_multi_preset_with_selection(self, tm):
+        """preset_multi_task@generate selects the generate variant."""
+        result = tm.load(["preset_multi_task@generate"])
+        task = result["tasks"]["preset_multi_task"]
+        assert task.config.output_type == "generate_until"
+        assert "Generate the answer." in task.config.doc_to_text
+
+    def test_load_multi_preset_default(self, tm):
+        """preset_multi_task with no @suffix defaults to first key (mcqa)."""
+        result = tm.load(["preset_multi_task"])
+        task = result["tasks"]["preset_multi_task"]
+        assert task.config.output_type == "multiple_choice"
+        assert "Pick the right answer." in task.config.doc_to_text
+
+    # ---- match_tasks() with @preset ----
+
+    def test_match_tasks_glob_with_preset(self, tm):
+        """Glob pattern with @preset matches tasks and appends suffix."""
+        matches = tm.match_tasks(["simple_*@mcqa"])
+        assert "simple_task@mcqa" in matches
+        assert "simple_task_b@mcqa" in matches
+
+    def test_match_tasks_exact_with_preset(self, tm):
+        """Exact task name with @preset passes through."""
+        matches = tm.match_tasks(["simple_task@cloze"])
+        assert "simple_task@cloze" in matches
+
+    # ---- _resolve_path() ambiguous children ----
+
+    def test_resolve_path_ambiguous_children_raises(self, tm):
+        """Bare path matching multiple @-suffixed children raises KeyError."""
+        # First load the group so it's built
+        tm.load(["preset_ambiguous_group"])
+        with pytest.raises(KeyError, match="Ambiguous"):
+            tm._resolve_path("preset_ambiguous_group::ambig_child")
