@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 
-class _MetricConfig(TypedDict, total=False):
+class MetricConfig(TypedDict, total=False):
     """Configuration for a single metric in ``metric_list``.
 
     Example YAML::
@@ -95,7 +95,7 @@ class FilterStep(TypedDict, total=False):
 class FilterPipeline(TypedDict, total=False):
     r"""A named filter pipeline with optional per-pipeline metrics.
 
-    Mirrors ``filter_list`` entries in YAML task configs::
+    Mirrors each element of the ``filter_list`` entries in YAML task configs::
 
         filter_list:
           - name: "strict-match"
@@ -117,7 +117,7 @@ class FilterPipeline(TypedDict, total=False):
     """Ordered sequence of filter steps applied to model outputs.
     Steps run in order; each step's output feeds into the next."""
 
-    metric_list: list[_MetricConfig]
+    metric_list: list[MetricConfig]
     """Optional per-pipeline metrics. When set, these metrics are scored
     only on this pipeline's filtered outputs, instead of the task-level
     ``metric_list``."""
@@ -404,7 +404,7 @@ class TaskConfig:
 
     # ── Scoring options ─────────────────────────────────────────────────
 
-    metric_list: list[_MetricConfig] = field(default_factory=list)
+    metric_list: list[MetricConfig] = field(default_factory=list)
     """List of metrics to compute on model outputs. Each entry specifies
     a metric name, optional aggregation function, and whether higher is
     better (e.g. ``[{"metric": "exact_match", "higher_is_better": true}]``)."""

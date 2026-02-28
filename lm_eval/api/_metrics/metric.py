@@ -11,7 +11,7 @@ from typing_extensions import Self, TypeVar
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from lm_eval.config.task import _MetricConfig
+    from lm_eval.config.task import MetricConfig
 
     from ._types import AggregationFn, MetricFn, ReductionFn
 
@@ -93,7 +93,7 @@ class Metric(Generic[_T, _K]):
         _cfg = {k: v for k, v in cfg.items() if k in METRIC_KEYS}
         if len(_cfg) < len(cfg):
             _cfg["kwargs"] = {k: v for k, v in cfg.items() if k not in METRIC_KEYS}
-        return utils.parse_metric(cast("_MetricConfig", _cfg))
+        return utils.parse_metric(cast("MetricConfig", _cfg))
 
     def compute(self, *args: Any, **kwargs: Any) -> _T:
         """Compute the metric for a sample."""

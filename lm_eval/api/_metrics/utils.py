@@ -8,10 +8,10 @@ import numpy as np
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
-    from lm_eval.config.task import _MetricConfig
+    from lm_eval.config.task import MetricConfig
 
 
-def parse_metric(cfg: _MetricConfig):
+def parse_metric(cfg: MetricConfig):
     from lm_eval.api._metrics.metric import Metric
 
     if "metric" not in cfg:
