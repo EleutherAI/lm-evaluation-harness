@@ -6,6 +6,8 @@ import numpy as np
 
 
 if TYPE_CHECKING:
+    from numpy.typing import ArrayLike
+
     from lm_eval.config.task import _MetricConfig
 
 
@@ -87,7 +89,7 @@ def parse_metric(cfg: _MetricConfig):
     )
 
 
-def softmax(x) -> np.ndarray:
+def softmax(x: ArrayLike) -> np.ndarray:
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
