@@ -9,7 +9,7 @@ from ._types import MetricKey, ScoredDoc
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     from lm_eval.api.filter import Filter, FilterEnsemble
     from lm_eval.api.instance import Instance
@@ -37,14 +37,16 @@ class _ScorerCfg(TypedDict):
     """Pipeline identifier (e.g. ``"strict-match"``, ``"none"``)."""
 
     filter: list[FilterStep]
-    """Ordered filter-step configs.  Each entry is a dict with a
-    ``"function"`` key (see :class:`~lm_eval.config.task.FilterStep`).
+    """Ordered filter-step configs.  Each entry follows the
+    :class:`~lm_eval.config.task.FilterStep` shape (``"function"`` key
+    plus optional ``"kwargs"``).
     An empty list ``[]`` signals "no explicit filters" — ``Scorer._build_filter``
     falls back to the scorer's ``default_filter_cfg`` → ``[{"function": "noop"}]``."""
 
     metric_list: list[MetricConfig]
-    """Per-pipeline metric configs.  Each entry is a dict with a
-    ``"metric"`` key (see :class:`~lm_eval.config.task.MetricConfig`).
+    """Per-pipeline metric configs.  Each entry follows the
+    :class:`~lm_eval.config.task.MetricConfig` shape (``"metric"`` key
+    plus optional aggregation/kwargs fields).
     An empty list ``[]`` signals "no explicit metrics" — ``Scorer._build_metrics``
     falls back to ``default_metric_cfg`` → ``DEFAULT_METRIC_REGISTRY``."""
 
@@ -131,10 +133,11 @@ class Scorer:
     @classmethod
     def _build_filter(cls, name: str, cfg: _ScorerCfg) -> FilterEnsemble:
         """Resolve filter config: explicit cfg > ClassVar default > noop fallback."""
-        filter_cfg = (
-            cfg.get("filter") or cls.default_filter_cfg or [{"function": "noop"}]
-        )
-        return cls._resolve_filters(name, filter_cfg)
+        if cfg.get("filter"):
+            return cls._resolve_filters(name, cfg["filter"])
+        if cls.default_filter_cfg:
+            return cls._resolve_filters(name, cls.default_filter_cfg)
+        return cls._resolve_filters(name, [{"function": "noop"}])
 
     @classmethod
     def _build_metrics(
@@ -178,7 +181,9 @@ class Scorer:
 
     @classmethod
     def _resolve_filters(
-        cls, filter_name: str, filter_cfg: list[dict[str, Any] | type[Filter]]
+        cls,
+        filter_name: str,
+        filter_cfg: Sequence[dict[str, Any] | type[Filter]] | Sequence[FilterStep],
     ) -> FilterEnsemble:
         """Build a :class:`FilterEnsemble` from a mixed list.
 
@@ -211,7 +216,9 @@ class Scorer:
 
     @classmethod
     def _resolve_metrics(
-        cls, metric_cfg: list[dict[str, Any] | Metric], output_type: str
+        cls,
+        metric_cfg: Sequence[dict[str, Any] | Metric] | Sequence[MetricConfig],
+        output_type: str,
     ) -> list[Metric]:
         """Build a list of :class:`Metric` objects from a mixed list.
 
