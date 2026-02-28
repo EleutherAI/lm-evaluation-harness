@@ -22,7 +22,7 @@ from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
     _process_results,
 )
-from lm_eval.scorers import ScoredDoc, Scorer
+from lm_eval.scorers import ReducedDoc, ScoredDoc, Scorer
 
 
 if TYPE_CHECKING:
@@ -42,13 +42,13 @@ def _m(d: dict[str, Any]) -> _TaskMetrics:
     return d  # type: ignore[return-value]
 
 
-def _scored_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ScoredDoc]:
-    """Build _scored_docs from flat {metric: [values]} for testing."""
+def _reduced_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ReducedDoc]:
+    """Build _reduced_docs from flat {metric: [values]} for testing."""
     n_docs = max((len(v) for v in metrics_dict.values()), default=0)
-    docs: dict[int, ScoredDoc] = {}
+    docs: dict[int, ReducedDoc] = {}
     for i in range(n_docs):
-        reduced = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
-        docs[i] = ScoredDoc(doc_id=i, reference=None, scores={}, reduced_scores=reduced)
+        values = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
+        docs[i] = ReducedDoc(doc_id=i, values=values)
     return docs
 
 
@@ -57,7 +57,7 @@ def _build_multi_scorer_scorers(
     agg: dict[str, Any] | None = None,
     hib: dict[str, bool] | None = None,
 ) -> list[Scorer]:
-    """Build Scorer objects from tuple-keyed raw_metrics with _scored_docs populated."""
+    """Build Scorer objects from tuple-keyed raw_metrics with _reduced_docs populated."""
     from lm_eval.api.metrics import Metric
 
     agg = agg or {}
@@ -86,7 +86,7 @@ def _build_multi_scorer_scorers(
             filter=noop_filter,
             metrics=metrics,
         )
-        scorer._scored_docs = _scored_docs_from_flat(metrics_dict)
+        scorer._reduced_docs = _reduced_docs_from_flat(metrics_dict)
         scorers.append(scorer)
     return scorers
 
@@ -624,8 +624,8 @@ class TestProcessResultsBugFix:
 
         scorer.set_results(scored_docs)
         reduced_values = [
-            sd.reduced_scores["acc"]
-            for sd in scorer.scored_docs.values()
-            if "acc" in sd.reduced_scores
+            rd.values["acc"]
+            for rd in scorer.reduced_docs.values()
+            if "acc" in rd.values
         ]
         assert len(reduced_values) == 2

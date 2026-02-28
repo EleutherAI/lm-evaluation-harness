@@ -946,22 +946,23 @@ class Task:
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
 
-    def export_raw_metrics(self) -> dict[str, dict[str, list[Any]]]:
+    def export_raw_metrics(self) -> dict[str, dict[str, dict[int, float]]]:
         """Export reduced results from all scorers for distributed gathering.
 
-        Returns {scorer_name: {metric_name: [per_doc_values]}}.
+        Returns ``{scorer_name: {metric_name: {doc_id: value}}}``.
+        Dict-keyed format preserves document identity across ranks.
         """
-        exported: dict[str, dict[str, list[Any]]] = {}
+        exported: dict[str, dict[str, dict[int, float]]] = {}
         for scorer in self._scorers:
             metrics = scorer.export_reduced()
             if metrics:
                 exported[scorer.name] = metrics
         return exported
 
-    def import_raw_metrics(self, data: dict[str, dict[str, list]]) -> None:
+    def import_raw_metrics(self, data: dict[str, dict[str, dict[int, float]]]) -> None:
         """Import merged results into scorers (after distributed gather).
 
-        Rebuilds scored docs from flat metric lists so that
+        Rebuilds reduced docs from dict-keyed metric data so that
         ``scorer.aggregate()`` works.
         """
         for scorer in self._scorers:

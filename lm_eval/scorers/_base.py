@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 from typing_extensions import Self, TypedDict
 
-from ._types import MetricKey, ScoredDoc
+from ._types import MetricKey, ReducedDoc, ScoredDoc
 
 
 if TYPE_CHECKING:
@@ -83,7 +83,10 @@ class Scorer:
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
     context: dict[str, Any] = field(default_factory=dict)
-    _scored_docs: dict[int, ScoredDoc] = field(
+    _raw_docs: dict[int, ScoredDoc] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _reduced_docs: dict[int, ReducedDoc] = field(
         default_factory=dict, init=False, repr=False
     )
 
@@ -314,31 +317,37 @@ class Scorer:
     # Reduction & Aggregation
     # ------------------------------------------------------------------
 
-    def reduce(self, scored_docs: dict[int, ScoredDoc]) -> None:
-        """Reduce per-doc list[T] -> T for each document.
+    def reduce(self, scored_docs: dict[int, ScoredDoc]) -> dict[int, ReducedDoc]:
+        """Reduce per-doc ``list[T]`` → ``T`` for each document.
 
-        Iterates over each scored doc's metrics and applies the matching
-        ``Metric.reduction`` if available, otherwise takes the first value.
+        Pure function: takes :class:`ScoredDoc` objects (immutable raw scores)
+        and returns new :class:`ReducedDoc` objects (immutable scalar values).
 
-        Writes the reduced scalar onto each ``ScoredDoc.reduced_scores``.
+        For each metric in each document:
+
+        * **Single value** — passed through as-is (no reduction needed).
+        * **Multiple values + reduction fn** — calls ``Metric.reduction(reference, values)``.
+          If the reduction returns a dict, composite keys like ``"pass@1(metric)"``
+          are created.
+        * **No reduction fn** — warns and takes the first value.
         """
         metrics_by_name = {m.name: m for m in self.metrics or []}
+        result: dict[int, ReducedDoc] = {}
+
         for sd in scored_docs.values():
-            for metric_name, values in sd.scores.items():
-                if len(values) == 1:
-                    # No reduction needed for single-value metrics
-                    sd.reduced_scores[metric_name] = values[0]
+            values_dict: dict[str, float] = {}
+            for metric_name, score_list in sd.scores.items():
+                if len(score_list) == 1:
+                    values_dict[metric_name] = score_list[0]
                     continue
                 m = metrics_by_name.get(metric_name)
                 if m is not None and m.reduction is not None:
-                    res = m.reduction(sd.reference, values)
+                    res = m.reduction(sd.reference, score_list)
                     if isinstance(res, dict):
-                        # If reduction returns multiple sub-metrics, flatten them into reduced_scores
                         for sub_metric_name, sub_value in res.items():
-                            full_sub_metric_name = f"{sub_metric_name}({metric_name})"
-                            sd.reduced_scores[full_sub_metric_name] = sub_value
+                            values_dict[f"{sub_metric_name}({metric_name})"] = sub_value
                     else:
-                        sd.reduced_scores[metric_name] = res
+                        values_dict[metric_name] = res
                 else:
                     eval_logger.warning(
                         "No reduction function for metric '%s' in scorer '%s'. "
@@ -346,7 +355,11 @@ class Scorer:
                         metric_name,
                         self.name,
                     )
-                    sd.reduced_scores[metric_name] = values[0]
+                    values_dict[metric_name] = score_list[0]
+
+            result[sd.doc_id] = ReducedDoc(doc_id=sd.doc_id, values=values_dict)
+
+        return result
 
     def aggregate(
         self,
@@ -356,7 +369,7 @@ class Scorer:
     ) -> tuple[dict[str, Any], int]:
         """Aggregate metric results and compute stderr.
 
-        Iterates over all metric names present in ``_scored_docs`` (or
+        Iterates over all metric names present in ``_reduced_docs`` (or
         ``metric_results`` if provided) and looks up the ``Metric`` object
         for aggregation/stderr when available.  When *aggregation_overrides*
         is supplied (legacy Python tasks that override ``Task.aggregation()``),
@@ -371,7 +384,9 @@ class Scorer:
         agg: dict[str, Any] = {}
         sample_len = 0
         results = (
-            metric_results if metric_results is not None else self.export_reduced()
+            metric_results
+            if metric_results is not None
+            else self._values_for_aggregation()
         )
         metrics_by_name = {m.name: m for m in self.metrics or []}
 
@@ -424,31 +439,65 @@ class Scorer:
     # ------------------------------------------------------------------
 
     @property
-    def scored_docs(self) -> Mapping[int, ScoredDoc]:
-        return self._scored_docs
+    def raw_docs(self) -> Mapping[int, ScoredDoc]:
+        """Per-document raw scoring results (pre-reduction).
 
-    def export_reduced(self) -> dict[str, list]:
-        """Export {metric_name: [per_doc_values]} from reduced_scores."""
-        metrics: dict[str, list] = {}
-        for sd in self._scored_docs.values():
-            for mn, val in sd.reduced_scores.items():
+        Empty after :meth:`import_reduced` — raw scores only exist on the
+        rank that performed scoring.
+        """
+        return self._raw_docs
+
+    @property
+    def reduced_docs(self) -> Mapping[int, ReducedDoc]:
+        """Per-document reduced results (post-reduction), ready for aggregation."""
+        return self._reduced_docs
+
+    def _values_for_aggregation(self) -> dict[str, list[float]]:
+        """Flat ``{metric: [values]}`` from reduced docs for aggregation.
+
+        Order doesn't matter for commutative aggregations (mean, etc.).
+        """
+        metrics: dict[str, list[float]] = {}
+        for rd in self._reduced_docs.values():
+            for mn, val in rd.values.items():
                 metrics.setdefault(mn, []).append(val)
         return metrics
 
-    def import_reduced(self, metric_data: dict[str, list]) -> None:
-        """Rebuild _scored_docs from flat metric lists (after distributed gather)."""
-        n_docs = max((len(v) for v in metric_data.values()), default=0)
-        self._scored_docs = {}
-        for i in range(n_docs):
-            reduced = {mn: vals[i] for mn, vals in metric_data.items() if i < len(vals)}
-            self._scored_docs[i] = ScoredDoc(
-                doc_id=i, reference=None, scores={}, reduced_scores=reduced
+    def export_reduced(self) -> dict[str, dict[int, float]]:
+        """Export ``{metric_name: {doc_id: value}}`` preserving document identity.
+
+        Used for distributed gathering — dict merge across ranks is both
+        simpler and order-independent compared to positional list concatenation.
+        """
+        metrics: dict[str, dict[int, float]] = {}
+        for rd in self._reduced_docs.values():
+            for mn, val in rd.values.items():
+                metrics.setdefault(mn, {})[rd.doc_id] = val
+        return metrics
+
+    def import_reduced(self, metric_data: dict[str, dict[int, float]]) -> None:
+        """Import merged results after distributed gather, preserving doc IDs.
+
+        Creates :class:`ReducedDoc` objects directly — no ambiguous intermediate
+        state.  Raw scores are not available after import (they live on the
+        source ranks).
+        """
+        self._raw_docs = {}
+        all_ids = sorted({did for vals in metric_data.values() for did in vals})
+        self._reduced_docs = {
+            did: ReducedDoc(
+                doc_id=did,
+                values={
+                    mn: vals[did] for mn, vals in metric_data.items() if did in vals
+                },
             )
+            for did in all_ids
+        }
 
     def set_results(self, scored_docs: dict[int, ScoredDoc]) -> None:
-        """Store scored documents and apply reduction."""
-        self._scored_docs = scored_docs
-        self.reduce(scored_docs)
+        """Store raw scored documents and compute reduction."""
+        self._raw_docs = scored_docs
+        self._reduced_docs = self.reduce(scored_docs)
 
     # ------------------------------------------------------------------
     # Properties
@@ -459,9 +508,9 @@ class Scorer:
         """Return ``{metric_name: bool}`` for all metrics in this scorer."""
         base = {m.name: m.higher_is_better for m in (self.metrics or [])}
         # Inherit higher_is_better for composite keys from their parent metric
-        if self._scored_docs:
-            for sd in self._scored_docs.values():
-                for key in sd.reduced_scores:
+        if self._reduced_docs:
+            for rd in self._reduced_docs.values():
+                for key in rd.values:
                     if key not in base:
                         mk = MetricKey(key, self.name)
                         if mk.parent_metric and mk.parent_metric in base:

@@ -7,7 +7,6 @@ import pathlib
 import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
-
 from typing_extensions import TypedDict, TypeVar, overload
 
 from lm_eval.result_schema import _SampleCount
@@ -319,7 +318,7 @@ def _process_results(
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
             Format: {task_name: {"task": Task, "logged_samples": [...]}}
-            Task objects must have scorer.scored_docs populated
+            Task objects must have scorer.reduced_docs populated
             (via task.process_instances() or task.import_raw_metrics()).
         groups: Dict of group name -> Group
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
@@ -338,7 +337,7 @@ def _process_results(
     Example usage:
         loaded = task_manager.load(['arc', 'hellaswag'])
 
-        # Run evaluation (populates scorer.scored_docs)
+        # Run evaluation (populates scorer.reduced_docs)
         eval_results_acc = {name: {"task": t, "logged_samples": []}
                            for name, t in loaded['tasks'].items()}
 
@@ -464,9 +463,13 @@ def torch_gather_object(
 
 def _merge_rank_metrics(
     all_rank_data: list[dict], task_name: str
-) -> dict[str, dict[str, list]]:
-    """Merge per-task metrics from all ranks by concatenating value lists."""
-    merged: dict[str, dict[str, list]] = {}
+) -> dict[str, dict[str, dict[int, float]]]:
+    """Merge per-task metrics from all ranks by merging doc_id-keyed dicts.
+
+    Each rank exports ``{scorer: {metric: {doc_id: value}}}``.
+    Merging is a dict update — order-independent and preserves doc identity.
+    """
+    merged: dict[str, dict[str, dict[int, float]]] = {}
     for rank_data in all_rank_data:
         if task_name not in rank_data:
             continue
@@ -474,7 +477,7 @@ def _merge_rank_metrics(
             if scorer_name not in merged:
                 merged[scorer_name] = {}
             for metric_name, values in metrics.items():
-                merged[scorer_name].setdefault(metric_name, []).extend(values)
+                merged[scorer_name].setdefault(metric_name, {}).update(values)
     return merged
 
 
@@ -485,9 +488,10 @@ def _build_logged_samples(
 ) -> list[dict[str, Any]]:
     """Build per-document sample logs for a task.
 
-    Reads fields directly from Instance objects and per-doc metrics
-    from ``scorer.scored_docs``.  Instances are already filtered
-    by rank/limit/world_size during ``build_all_requests``.
+    Reads fields directly from Instance objects, reduced metrics from
+    ``scorer.reduced_docs``, and per-repeat raw scores from
+    ``scorer.raw_docs``.  Instances are already filtered by
+    rank/limit/world_size during ``build_all_requests``.
     """
     import json
 
@@ -505,9 +509,9 @@ def _build_logged_samples(
             first = reqs[0]
             doc_id_true = indices[doc_id] if indices else doc_id
             target = first.target
-            sd = scorer.scored_docs.get(doc_id)
+            rd = scorer.reduced_docs.get(doc_id)
 
-            per_doc_metrics = sd.reduced_scores if sd else {}
+            per_doc_metrics = rd.values if rd else {}
 
             example = {
                 "doc_id": doc_id_true,
@@ -533,8 +537,9 @@ def _build_logged_samples(
                 **per_doc_metrics,
             }
             # Include per-repeat scores when repeats > 1
-            if sd:
-                repeats = {k: v for k, v in sd.scores.items() if len(v) > 1}
+            raw = scorer.raw_docs.get(doc_id)
+            if raw:
+                repeats = {k: v for k, v in raw.scores.items() if len(v) > 1}
                 if repeats:
                     example["scores_per_repeat"] = repeats
             logged.append(example)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 
@@ -8,18 +8,31 @@ if TYPE_CHECKING:
     from lm_eval.api._types import Reference
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class ScoredDoc:
-    """Per-document scoring result produced by a Scorer.
+    """Immutable per-document raw scoring result.
 
-    Bundles the document reference and all metric scores together so that
-    downstream reduction never needs to align parallel lists.
+    Created by ``score_doc()`` / ``score_instances()``.  Contains per-repeat
+    values that haven't been reduced yet.  After reduction, a
+    :class:`ReducedDoc` is produced — ``ScoredDoc`` itself is never mutated.
     """
 
     doc_id: int
     reference: Reference
     scores: dict[str, list[float]]  # {metric_name: [per_repeat_values]}
-    reduced_scores: dict[str, float] = field(default_factory=dict)  # post-reduction
+
+
+@dataclass(frozen=True, slots=True)
+class ReducedDoc:
+    """Immutable per-document reduced result, ready for aggregation.
+
+    Created by :meth:`Scorer.reduce` from a :class:`ScoredDoc`, or directly
+    by :meth:`Scorer.import_reduced` after a distributed gather.  Both paths
+    produce the same type — no ambiguous intermediate state.
+    """
+
+    doc_id: int
+    values: dict[str, float]  # {metric_name: scalar_value}
 
 
 @dataclass(frozen=True, slots=True)
