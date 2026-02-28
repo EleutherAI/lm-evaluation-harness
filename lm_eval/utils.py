@@ -154,12 +154,42 @@ def escaped_split(text, sep_char, maxsplit=-1):
 
 
 def handle_arg_string(arg):
-    if arg.lower() == "true":
+    """Attempt to infer and cast the type of a single argument value string.
+
+    Supports:
+    - Booleans: "true"/"false" (case-insensitive)
+    - None: "None" / "none"
+    - Explicit strings: values wrapped in matching quotes are preserved as-is
+      (e.g. ``"123"`` or ``'hello'`` -> str)
+    - Integers: optional sign, digits only (e.g. "42", "-1")
+    - Floats: anything ``float()`` accepts, including scientific notation
+    - Fallback: return as string unchanged
+    """
+    # Strip surrounding whitespace
+    arg = arg.strip()
+
+    # Explicit quoting -> always a string
+    if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in ("'", '"'):
+        return arg[1:-1]
+
+    lower = arg.lower()
+    if lower == "true":
         return True
-    elif arg.lower() == "false":
+    if lower == "false":
         return False
-    elif arg.isnumeric():
-        return int(arg)
+    if lower == "none":
+        return None
+
+    # Try integer first (supports negative numbers unlike str.isnumeric)
+    try:
+        # Guard against strings like "1e3" being parsed as int via float path
+        # Only pure digit strings (with optional leading sign) should become int
+        if arg.lstrip("+-").isdigit() and arg not in ("", "+", "-"):
+            return int(arg)
+    except ValueError:
+        pass
+
+    # Try float (handles decimals, scientific notation, inf, etc.)
     try:
         return float(arg)
     except ValueError:
