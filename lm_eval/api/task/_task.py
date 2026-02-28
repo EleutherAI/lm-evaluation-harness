@@ -30,7 +30,7 @@ from lm_eval.api.utils import (
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
-from lm_eval.config.utils import (
+from lm_eval.config.templates import (
     _coerce_list,
     _coerce_target,
     process_field,

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.utils import ends_with_whitespace
-from lm_eval.config.utils import _coerce_list, _resolve_target_index, process_field
+from lm_eval.config.templates import _coerce_list, _resolve_target_index, process_field
 
 from ._task import Task
 

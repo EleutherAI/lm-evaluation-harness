@@ -469,6 +469,13 @@ class TaskConfig:
     Falls back to ``task`` when not set. Not intended for manual YAML use."""
 
     def __post_init__(self) -> None:
+        self._resolve_preset()
+        self._apply_generation_defaults()
+        self._build_fewshot_config()
+        self._normalize_scoring_config()
+
+    def _resolve_preset(self) -> None:
+        """Parse ``@preset`` from task name and apply preset overrides."""
         # Extract @preset from task name as selection (e.g. "arc_easy@cloze")
         # Runtime _preset_selection takes priority over the YAML task name.
         if self._preset_selection is None and "@" in self.task:
@@ -497,6 +504,8 @@ class TaskConfig:
                 for key, value in overrides.items():
                     setattr(self, key, value)
 
+    def _apply_generation_defaults(self) -> None:
+        """Fill in missing ``generation_kwargs`` with sensible defaults."""
         if self.generation_kwargs:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -527,8 +536,11 @@ class TaskConfig:
                     self.task,
                     self.generation_kwargs,
                 )
-        self.fewshot_config = (
-            FewshotConfig.from_dict(
+
+    def _build_fewshot_config(self) -> None:
+        """Convert a raw ``fewshot_config`` dict to a :class:`FewshotConfig`, inheriting task-level fields."""
+        if isinstance(self.fewshot_config, dict) or self.fewshot_config is None:
+            self.fewshot_config = FewshotConfig.from_dict(
                 self.fewshot_config or {},
                 split=self.fewshot_split,
                 process_docs=self.process_docs,
@@ -539,11 +551,9 @@ class TaskConfig:
                 doc_to_choice=self.doc_to_choice,
                 doc_to_target=self.doc_to_target,
             )
-            if (isinstance(self.fewshot_config, dict) or self.fewshot_config is None)
-            else self.fewshot_config
-        )
 
-        # normalize metrics
+    def _normalize_scoring_config(self) -> None:
+        """Canonicalise ``metric_list`` and ``filter_list`` from raw YAML dicts."""
         self.metric_list = normalize_metric_list(self.metric_list, self.output_type)
         self.filter_list = normalize_filter_list(self.filter_list, self.output_type)
 
