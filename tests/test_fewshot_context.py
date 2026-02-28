@@ -197,7 +197,7 @@ class TestBuildQaTurn:
 
     def test_basic_qa_format(self, task):
         """Basic question-answer produces user + assistant messages."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Question?", a="Answer", tgt_delim=" ", few_delim="\n\n"
         )
 
@@ -210,7 +210,7 @@ class TestBuildQaTurn:
 
     def test_no_answer_format(self, task):
         """Without answer, only user message with no delimiter."""
-        msgs = ConfigurableTask.build_qa_turn(task, q="Question?")
+        msgs = ConfigurableTask._build_qa_turn(task, q="Question?")
 
         assert len(msgs) == 1
         assert msgs[0].role == "user"
@@ -219,7 +219,7 @@ class TestBuildQaTurn:
 
     def test_choice_with_int_answer(self, task):
         """Answer as index into choices list."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task,
             q="Pick one:",
             c=["Apple", "Banana", "Cherry"],
@@ -234,7 +234,7 @@ class TestBuildQaTurn:
 
     def test_answer_as_string_directly(self, task):
         """Answer provided directly as string."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="What is 2+2?", a="4", tgt_delim=" ", few_delim="\n\n"
         )
 
@@ -243,7 +243,7 @@ class TestBuildQaTurn:
 
     def test_answer_as_list(self, task):
         """Answer as list takes first element (multiple targets)."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Question?", a=["first", "second"], tgt_delim=" ", few_delim="\n\n"
         )
 
@@ -251,7 +251,7 @@ class TestBuildQaTurn:
 
     def test_gen_prefix_without_answer(self, task):
         """gen_prefix adds assistant message when no answer."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Question?", gen_prefix="Let me think"
         )
 
@@ -263,7 +263,7 @@ class TestBuildQaTurn:
 
     def test_gen_prefix_with_answer(self, task):
         """gen_prefix prepended to answer (for fewshot examples)."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task,
             q="Question?",
             a="Answer",
@@ -281,7 +281,7 @@ class TestBuildQaTurn:
 
     def test_gen_prefix_spacing_added_when_needed(self, task):
         """Space added between gen_prefix and answer when neither has whitespace."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="Answer", gen_prefix="Prefix:", tgt_delim=" "
         )
 
@@ -289,7 +289,7 @@ class TestBuildQaTurn:
 
     def test_gen_prefix_no_extra_space_when_prefix_has_trailing(self, task):
         """No extra space when gen_prefix ends with whitespace."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="Answer", gen_prefix="Prefix: ", tgt_delim=" "
         )
 
@@ -297,7 +297,7 @@ class TestBuildQaTurn:
 
     def test_gen_prefix_no_extra_space_when_answer_has_leading(self, task):
         """No extra space when answer starts with whitespace."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a=" Answer", gen_prefix="Prefix:", tgt_delim=" "
         )
 
@@ -305,7 +305,7 @@ class TestBuildQaTurn:
 
     def test_gen_prefix_without_answer_preserves_content(self, task):
         """gen_prefix used as-is when no answer (target question)."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task,
             q="Q",
             gen_prefix="The answer is:",
@@ -318,7 +318,7 @@ class TestBuildQaTurn:
 
     def test_gen_prefix_with_trailing_space_without_answer(self, task):
         """gen_prefix with trailing space preserved when no answer."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", gen_prefix="Answer: ", tgt_delim=" "
         )
 
@@ -326,7 +326,7 @@ class TestBuildQaTurn:
 
     def test_custom_delimiters(self, task):
         """Custom delimiters are respected."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="A", tgt_delim="->", few_delim="||"
         )
 
@@ -334,7 +334,7 @@ class TestBuildQaTurn:
 
     def test_empty_delimiters(self, task):
         """Empty delimiters produce no spacing."""
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="A", tgt_delim="", few_delim=""
         )
 
@@ -363,54 +363,54 @@ class TestBuildQaTurn:
         X = tgt_delim (the delimiter between Q and P/A when needed)
         """
         # Row 1: "Q" + None + "A" → "QXA"
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="A", tgt_delim="X", few_delim=""
         )
         assert msgs[0]._delimiter == "X"
         assert messages_to_text(msgs) == "QXA"
 
         # Row 2: "Q" + None + None → "Q"
-        msgs = ConfigurableTask.build_qa_turn(task, q="Q")
+        msgs = ConfigurableTask._build_qa_turn(task, q="Q")
         assert msgs[0]._delimiter == ""
         assert messages_to_text(msgs) == "Q"
 
         # Row 3: "Q" + "P" + None → "QXP"
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", gen_prefix="P", tgt_delim="X"
         )
         assert msgs[0]._delimiter == "X"
         assert messages_to_text(msgs) == "QXP"
 
         # Row 4: "Q" + "P" + "A" → "QXP A"
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="A", gen_prefix="P", tgt_delim="X", few_delim=""
         )
         assert msgs[0]._delimiter == "X"
         assert messages_to_text(msgs) == "QXP A"
 
         # Row 5: "Q\n" + "P" + "A" → "Q\nP A" (q ends with \n, no X needed)
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q\n", a="A", gen_prefix="P", tgt_delim="X", few_delim=""
         )
         assert msgs[0]._delimiter == ""
         assert messages_to_text(msgs) == "Q\nP A"
 
         # Row 6: "Q" + "\nP" + None → "Q\nP" (P starts with \n, no X needed)
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", gen_prefix="\nP", tgt_delim="X"
         )
         assert msgs[0]._delimiter == ""
         assert messages_to_text(msgs) == "Q\nP"
 
         # Row 7: "Q" + "P\n" + "A" → "QXP\nA" (P ends with \n, no extra space before A)
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="A", gen_prefix="P\n", tgt_delim="X", few_delim=""
         )
         assert msgs[0]._delimiter == "X"
         assert messages_to_text(msgs) == "QXP\nA"
 
         # Row 8: "Q" + "P" + "\nA" → "QXP\nA" (A starts with \n, no extra space after P)
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Q", a="\nA", gen_prefix="P", tgt_delim="X", few_delim=""
         )
         assert msgs[0]._delimiter == "X"
@@ -419,7 +419,7 @@ class TestBuildQaTurn:
     def test_raises_on_non_string_question(self, task):
         """Raises AssertionError if question is not a string."""
         with pytest.raises(AssertionError):
-            ConfigurableTask.build_qa_turn(task, q=123, a="A")  # type: ignore
+            ConfigurableTask._build_qa_turn(task, q=123, a="A")  # type: ignore
 
     def test_answer_index_zero_uses_delimiter(self, task):
         """Answer index 0 should still use target delimiter (regression test for #3452).
@@ -428,7 +428,7 @@ class TestBuildQaTurn:
         answer, not as falsy. Previously, a=0 caused the target delimiter to be skipped.
         """
         choices = ["A", "B", "C", "D"]
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Question?", c=choices, a=0, tgt_delim=" ", few_delim="\n\n"
         )
 
@@ -443,7 +443,7 @@ class TestBuildQaTurn:
     def test_answer_index_nonzero_uses_delimiter(self, task):
         """Answer index > 0 should use target delimiter."""
         choices = ["A", "B", "C", "D"]
-        msgs = ConfigurableTask.build_qa_turn(
+        msgs = ConfigurableTask._build_qa_turn(
             task, q="Question?", c=choices, a=2, tgt_delim=" ", few_delim="\n\n"
         )
 

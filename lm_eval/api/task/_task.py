@@ -435,7 +435,7 @@ class Task:
                     q = q[a]
                     a = 0  # choices are a list of len 1.
                 _gen_prefix = self._resolve_field(doc, self._fewshot_cfg.gen_prefix)
-                messages += self.build_qa_turn(
+                messages += self._build_qa_turn(
                     q=q,
                     c=c,
                     a=a,
@@ -451,7 +451,7 @@ class Task:
         )
         if self._multiple_inputs:
             assert isinstance(c, list), "multiple inputs require choices to be a list"
-            return self.multiple_input_context(
+            return self._multiple_input_context(
                 messages,
                 gen_prefix,
                 c,
@@ -461,7 +461,7 @@ class Task:
         assert isinstance(q, str), (
             f"Expected doc_to_text to be a string, got {type(q)}: {q}"
         )
-        messages += self.build_qa_turn(
+        messages += self._build_qa_turn(
             q=q,
             c=c,
             gen_prefix=gen_prefix,
@@ -481,7 +481,7 @@ class Task:
 
         return res
 
-    def build_qa_turn(
+    def _build_qa_turn(
         self,
         *,
         q: str | None,
@@ -558,7 +558,7 @@ class Task:
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 
-    def multiple_input_context(
+    def _multiple_input_context(
         self,
         prev_context: list[Message] | None,
         gen_prefix: str | None,
@@ -587,7 +587,7 @@ class Task:
         prev_context = prev_context or []
         results = []
         for ctx in q:
-            messages = prev_context + self.build_qa_turn(
+            messages = prev_context + self._build_qa_turn(
                 q=ctx, gen_prefix=gen_prefix, tgt_delim=""
             )
             if chat_template:
@@ -947,7 +947,7 @@ class Task:
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
 
-    def export_reduced(self) -> dict[str, dict[int, ReducedDoc]]:
+    def _export_reduced(self) -> dict[str, dict[int, ReducedDoc]]:
         """Export reduced results from all scorers for distributed gathering.
 
         Returns ``{scorer_name: {doc_id: {metric: value}}}``.
@@ -960,7 +960,7 @@ class Task:
                 exported[scorer.name] = docs
         return exported
 
-    def import_reduced(self, data: dict[str, dict[int, ReducedDoc]]) -> None:
+    def _import_reduced(self, data: dict[str, dict[int, ReducedDoc]]) -> None:
         """Import merged results into scorers (after distributed gather).
 
         Rebuilds reduced docs from doc-first data so that

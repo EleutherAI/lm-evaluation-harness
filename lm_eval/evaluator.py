@@ -651,7 +651,7 @@ def evaluate(
                     ]
 
         rank_metrics = {
-            task_name: acc["task"].export_reduced()
+            task_name: acc["task"]._export_reduced()
             for task_name, acc in eval_results_acc.items()
         }
         all_metrics = torch_gather_object(
@@ -660,7 +660,7 @@ def evaluate(
         if RANK == 0:
             for task_name, acc in eval_results_acc.items():
                 merged = _merge_rank_metrics(all_metrics, task_name)  # type: ignore
-                acc["task"].import_reduced(merged)
+                acc["task"]._import_reduced(merged)
 
     if RANK == 0:
         res = _process_results(eval_results_acc, groups, bootstrap_iters)
