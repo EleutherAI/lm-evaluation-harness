@@ -17,9 +17,9 @@ eval_logger = logging.getLogger(__name__)
 def _metric_with_defaults(name: str, kwargs: dict[str, Any]):
     from dataclasses import replace
 
-    from lm_eval.api.registry import _get_metric
+    from lm_eval.api.registry import metric_registry
 
-    metric = _get_metric(name)
+    metric = metric_registry.get(name, None)
     if metric is not None:
         return replace(metric, kwargs=kwargs or {**metric.kwargs})
 
@@ -43,7 +43,7 @@ def _resolve_registry_fn(value, lookup_fn, label: str) -> Callable | None:
 
 def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[Any, Any]:
     from lm_eval.api._metrics.metric import Metric
-    from lm_eval.api.registry import _get_metric, get_aggregation, get_reduction
+    from lm_eval.api.registry import get_aggregation, get_reduction, metric_registry
 
     if "metric" not in cfg:
         raise ValueError(
@@ -57,7 +57,7 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
     # 1) Resolve the base metric from registry or callable
     if isinstance(raw, str):
         # the lambda case as we allow arbitrary metrics to be returned from process_results
-        base = _get_metric(raw)
+        base = metric_registry.get(raw, None)
         if base is None:
             eval_logger.warning(
                 "Metric '%s' not found in registry. Using a placeholder that "
