@@ -101,7 +101,7 @@ class ScorerConfig(TypedDict, total=False):
     the registered scorer class instead of the default metric pipeline.
 
     Can be specified as a plain string (just the scorer name) or as a
-    dict with ``type`` plus extra kwargs forwarded to the scorer
+    dict with ``type`` and optional ``kwargs`` forwarded to the scorer
     constructor.
 
     Example YAML::
@@ -112,7 +112,8 @@ class ScorerConfig(TypedDict, total=False):
         # Dict form with custom kwargs forwarded to the scorer class
         scorer:
           type: ai_judge
-          judge_model: claude-sonnet-4-6
+          kwargs:
+            judge_model: claude-sonnet-4-6
 
     See ``lm_eval/scorers/`` for built-in scorers.  Custom scorers can
     be registered with ``@register_scorer``.
@@ -121,6 +122,11 @@ class ScorerConfig(TypedDict, total=False):
     type: Required[str]
     """Name of a registered scorer (e.g. ``"first_token"``, ``"regex"``,
     ``"choice_match"``). Resolved via ``lm_eval.api.registry.get_scorer``."""
+
+    kwargs: dict[str, Any]
+    """Extra keyword arguments forwarded to the scorer constructor.
+    Scorer subclasses declare these as dataclass fields
+    (e.g. ``judge_model`` on an ``AIJudgeScorer``)."""
 
 
 class FilterPipeline(TypedDict, total=False):

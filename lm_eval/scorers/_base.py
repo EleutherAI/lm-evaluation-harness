@@ -641,7 +641,7 @@ def build_scorer(
 
     if isinstance(scorer_type, dict):
         scorer_name = scorer_type["type"]
-        scorer_kwargs = {k: v for k, v in scorer_type.items() if k != "type"}
+        scorer_kwargs = scorer_type.get("kwargs", {})
     elif isinstance(scorer_type, str):
         scorer_name = scorer_type
 
