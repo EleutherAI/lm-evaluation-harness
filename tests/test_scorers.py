@@ -569,15 +569,14 @@ class TestScorerExportImport:
         }
         return scorer
 
-    def test_export_reduced_dict_keyed(self):
+    def test_export_reduced_doc_first(self):
         scorer = self._populated_scorer()
         exported = scorer.export_reduced()
-        assert "test_metric" in exported
-        assert exported["test_metric"] == {0: 1.0, 1: 0.0}
+        assert exported == {0: {"test_metric": 1.0}, 1: {"test_metric": 0.0}}
 
     def test_import_reduced_rebuilds_reduced_docs(self):
         scorer = _noop_scorer()
-        scorer.import_reduced({"test_metric": {0: 1.0, 1: 0.0}})
+        scorer.import_reduced({0: {"test_metric": 1.0}, 1: {"test_metric": 0.0}})
         assert len(scorer._reduced_docs) == 2
         assert scorer._reduced_docs[0].values["test_metric"] == 1.0
         assert scorer._reduced_docs[1].values["test_metric"] == 0.0
@@ -585,7 +584,7 @@ class TestScorerExportImport:
     def test_import_reduced_preserves_doc_ids(self):
         """Doc IDs survive the export/import roundtrip (not renumbered)."""
         scorer = _noop_scorer()
-        scorer.import_reduced({"test_metric": {5: 1.0, 10: 0.0}})
+        scorer.import_reduced({5: {"test_metric": 1.0}, 10: {"test_metric": 0.0}})
         assert set(scorer._reduced_docs.keys()) == {5, 10}
         assert scorer._reduced_docs[5].doc_id == 5
         assert scorer._reduced_docs[10].doc_id == 10
@@ -603,7 +602,7 @@ class TestScorerExportImport:
     def test_import_reduced_clears_raw_docs(self):
         """After import, raw_docs is explicitly empty (no fake ScoredDocs)."""
         scorer = _noop_scorer()
-        scorer.import_reduced({"test_metric": {0: 1.0, 1: 0.0}})
+        scorer.import_reduced({0: {"test_metric": 1.0}, 1: {"test_metric": 0.0}})
         assert scorer._raw_docs == {}
 
 

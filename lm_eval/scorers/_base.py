@@ -463,35 +463,24 @@ class Scorer:
                 metrics.setdefault(mn, []).append(val)
         return metrics
 
-    def export_reduced(self) -> dict[str, dict[int, float]]:
-        """Export ``{metric_name: {doc_id: value}}`` preserving document identity.
+    def export_reduced(self) -> dict[int, dict[str, float]]:
+        """Export ``{doc_id: {metric: value}}`` for distributed gathering.
 
-        Used for distributed gathering — dict merge across ranks is both
-        simpler and order-independent compared to positional list concatenation.
+        Doc-first format matches :class:`ReducedDoc` layout — no transposition
+        needed.  Merge across ranks is a simple ``dict.update`` since doc IDs
+        are unique per rank.
         """
-        metrics: dict[str, dict[int, float]] = {}
-        for rd in self._reduced_docs.values():
-            for mn, val in rd.values.items():
-                metrics.setdefault(mn, {})[rd.doc_id] = val
-        return metrics
+        return {did: dict(rd.values) for did, rd in self._reduced_docs.items()}
 
-    def import_reduced(self, metric_data: dict[str, dict[int, float]]) -> None:
-        """Import merged results after distributed gather, preserving doc IDs.
+    def import_reduced(self, doc_data: dict[int, dict[str, float]]) -> None:
+        """Import merged doc-first results after distributed gather.
 
-        Creates :class:`ReducedDoc` objects directly — no ambiguous intermediate
-        state.  Raw scores are not available after import (they live on the
-        source ranks).
+        Reconstructs :class:`ReducedDoc` objects directly.  Raw scores are
+        not available after import (they live on the source ranks).
         """
         self._raw_docs = {}
-        all_ids = sorted({did for vals in metric_data.values() for did in vals})
         self._reduced_docs = {
-            did: ReducedDoc(
-                doc_id=did,
-                values={
-                    mn: vals[did] for mn, vals in metric_data.items() if did in vals
-                },
-            )
-            for did in all_ids
+            did: ReducedDoc(doc_id=did, values=vals) for did, vals in doc_data.items()
         }
 
     def set_results(self, scored_docs: dict[int, ScoredDoc]) -> None:

@@ -41,7 +41,6 @@ from lm_eval.scorers import ScoredDoc, build_scorer
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping, Sequence
 
-    from lm_eval._types import OutputType
     from lm_eval.api._types import (
         ChatTemplate,
         Completion,
@@ -52,6 +51,7 @@ if TYPE_CHECKING:
     )
     from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
     from lm_eval.config.task import FewshotConfig
+    from lm_eval.result_schema import OutputType
     from lm_eval.scorers import Scorer
 
 eval_logger = logging.getLogger(__name__)
@@ -946,23 +946,23 @@ class Task:
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
 
-    def export_raw_metrics(self) -> dict[str, dict[str, dict[int, float]]]:
+    def export_reduced(self) -> dict[str, dict[int, dict[str, float]]]:
         """Export reduced results from all scorers for distributed gathering.
 
-        Returns ``{scorer_name: {metric_name: {doc_id: value}}}``.
-        Dict-keyed format preserves document identity across ranks.
+        Returns ``{scorer_name: {doc_id: {metric: value}}}``.
+        Doc-first format preserves document identity across ranks.
         """
-        exported: dict[str, dict[str, dict[int, float]]] = {}
+        exported: dict[str, dict[int, dict[str, float]]] = {}
         for scorer in self._scorers:
-            metrics = scorer.export_reduced()
-            if metrics:
-                exported[scorer.name] = metrics
+            docs = scorer.export_reduced()
+            if docs:
+                exported[scorer.name] = docs
         return exported
 
-    def import_raw_metrics(self, data: dict[str, dict[str, dict[int, float]]]) -> None:
+    def import_reduced(self, data: dict[str, dict[int, dict[str, float]]]) -> None:
         """Import merged results into scorers (after distributed gather).
 
-        Rebuilds reduced docs from dict-keyed metric data so that
+        Rebuilds reduced docs from doc-first data so that
         ``scorer.aggregate()`` works.
         """
         for scorer in self._scorers:

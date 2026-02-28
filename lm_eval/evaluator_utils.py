@@ -319,7 +319,7 @@ def _process_results(
         eval_results_acc: Accumulated metrics from evaluation.
             Format: {task_name: {"task": Task, "logged_samples": [...]}}
             Task objects must have scorer.reduced_docs populated
-            (via task.process_instances() or task.import_raw_metrics()).
+            (via task.process_instances() or task.import_reduced()).
         groups: Dict of group name -> Group
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
@@ -463,21 +463,19 @@ def torch_gather_object(
 
 def _merge_rank_metrics(
     all_rank_data: list[dict], task_name: str
-) -> dict[str, dict[str, dict[int, float]]]:
-    """Merge per-task metrics from all ranks by merging doc_id-keyed dicts.
+) -> dict[str, dict[int, dict[str, float]]]:
+    """Merge per-task reduced docs from all ranks.
 
-    Each rank exports ``{scorer: {metric: {doc_id: value}}}``.
-    Merging is a dict update — order-independent and preserves doc identity.
+    Each rank exports ``{scorer: {doc_id: {metric: value}}}``.
+    Merging is a dict update — order-independent since doc IDs are unique
+    per rank.
     """
-    merged: dict[str, dict[str, dict[int, float]]] = {}
+    merged: dict[str, dict[int, dict[str, float]]] = {}
     for rank_data in all_rank_data:
         if task_name not in rank_data:
             continue
-        for scorer_name, metrics in rank_data[task_name].items():
-            if scorer_name not in merged:
-                merged[scorer_name] = {}
-            for metric_name, values in metrics.items():
-                merged[scorer_name].setdefault(metric_name, {}).update(values)
+        for scorer_name, docs in rank_data[task_name].items():
+            merged.setdefault(scorer_name, {}).update(docs)
     return merged
 
 
