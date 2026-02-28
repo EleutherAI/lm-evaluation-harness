@@ -3,9 +3,8 @@ from __future__ import annotations
 import inspect
 from dataclasses import dataclass, field
 from functools import cache
-from typing import TYPE_CHECKING, Any, Generic, cast
-
-from typing_extensions import Self, TypeVar
+from typing import TYPE_CHECKING, Any, Generic
+from typing_extensions import TypeVar
 
 
 if TYPE_CHECKING:
@@ -16,8 +15,8 @@ if TYPE_CHECKING:
     from ._types import AggregationFn, MetricFn, ReductionFn
 
 
-_T = TypeVar("_T")
-_K = TypeVar("_K")
+_T = TypeVar("_T", default=float)
+_K = TypeVar("_K", default=float)
 
 METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 
@@ -87,15 +86,13 @@ class Metric(Generic[_T, _K]):
             object.__setattr__(self, "reduction", take_first)
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> Self:
+    def from_dict(cls, cfg: dict[str, Any] | MetricConfig) -> Metric[Any, Any]:
         from lm_eval.api._metrics import utils
+        from lm_eval.config.utils import normalize_metric_list
 
-        _cfg = {k: v for k, v in cfg.items() if k in METRIC_KEYS}
-        if len(_cfg) < len(cfg):
-            _cfg["kwargs"] = {k: v for k, v in cfg.items() if k not in METRIC_KEYS}
-        return utils.parse_metric(cast("MetricConfig", _cfg))
+        return utils.parse_metric(normalize_metric_list(cfg))
 
-    def compute(self, *args: Any, **kwargs: Any) -> _T:
+    def compute(self, *args: Any, **kwargs: Any) -> _T | dict[str, list[_T]]:
         """Compute the metric for a sample."""
         return self.fn(*args, **filter_kwargs(self.fn, {**self.kwargs, **kwargs}))
 

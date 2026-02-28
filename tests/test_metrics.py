@@ -15,15 +15,16 @@ import unittest.mock as mock
 import numpy as np
 import pytest
 
+from lm_eval.api._metrics import softmax
 from lm_eval.api._metrics.aggregations import mean, median, perplexity
 from lm_eval.api._metrics.generation import exact_match_fn
 from lm_eval.api._metrics.ll import (
-    acc_fn,
+    acc,
     acc_mutual_info_fn,
-    acc_norm_fn,
-    bpb_fn,
+    acc_norm,
+    bpb,
     brier_score,
-    choice_logprob_fn,
+    choice_logprob,
     logprob_fn,
 )
 from lm_eval.api._metrics.results import LLResults
@@ -32,7 +33,6 @@ from lm_eval.api._metrics.stderr import (
     mean_stderr,
     sample_stddev,
 )
-from lm_eval.api._metrics.utils import softmax
 
 
 # ---------------------------------------------------------------------------
@@ -73,36 +73,36 @@ def _make_ll_results(
 class TestAcc:
     def test_acc_correct(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=1)
-        assert acc_fn(1, pred) == 1
+        assert acc(1, pred) == 1
 
     def test_acc_wrong(self):
         pred = _make_ll_results([-1.0, -2.0, -3.0], targets=1)
         # argmax is 0 but gold is 1
-        assert acc_fn(1, pred) == 0
+        assert acc(1, pred) == 0
 
     def test_acc_single_ll_greedy(self):
         """Single loglikelihood: acc = greedy decode match."""
         pred = _make_ll_results([-1.5], is_greedy=[True], choices=["x"])
-        assert acc_fn(0, pred) == 1
+        assert acc(0, pred) == 1
 
     def test_acc_single_ll_not_greedy(self):
         pred = _make_ll_results([-1.5], is_greedy=[False], choices=["x"])
-        assert acc_fn(0, pred) == 0
+        assert acc(0, pred) == 0
 
     def test_acc_multiple_targets(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[0, 1])
         # argmax=1, which is in [0, 1]
-        assert acc_fn([0, 1], pred, multiple_targets=True) == 1
+        assert acc([0, 1], pred, multiple_targets=True) == 1
 
     def test_acc_multiple_targets_miss(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[0, 2])
         # argmax=1, which is not in [0, 2]
-        assert acc_fn([0, 2], pred, multiple_targets=True) == 0
+        assert acc([0, 2], pred, multiple_targets=True) == 0
 
     def test_acc_multiple_targets_ignores_minus100(self):
         pred = _make_ll_results([-2.0, -1.0, -3.0], targets=[1, -100])
         # argmax=1, -100 is filtered out, so [1] matches
-        assert acc_fn([1, -100], pred, multiple_targets=True) == 1
+        assert acc([1, -100], pred, multiple_targets=True) == 1
 
 
 class TestAccNorm:
@@ -111,7 +111,7 @@ class TestAccNorm:
         # choices:   ["AB", "B", "CDE"]   -> char_len = [2, 1, 3]
         # ll/len:    [-1.0, -1.0, -1.0]   -> tie, argmax = 0
         pred = _make_ll_results([-2.0, -1.0, -3.0], choices=["AB", "B", "CDE"])
-        result = acc_norm_fn(0, pred)
+        result = acc_norm(0, pred)
         assert result == 1  # argmax of normalized is 0
 
     def test_acc_norm_picks_shorter_choice(self):
@@ -119,7 +119,7 @@ class TestAccNorm:
         # choices:   ["A", "AB"]   -> char_len = [1, 2]
         # ll/len:    [-2.0, -1.0]  -> argmax = 1
         pred = _make_ll_results([-2.0, -2.0], choices=["A", "AB"])
-        assert acc_norm_fn(1, pred) == 1
+        assert acc_norm(1, pred) == 1
 
 
 class TestAccMutualInfo:
@@ -149,7 +149,7 @@ class TestAccMutualInfo:
             ],
         )
         # Regular acc picks A (index 0), gold is 1 -> wrong
-        assert acc_fn(1, pred) == 0
+        assert acc(1, pred) == 0
         # Mutual info picks B (index 1), gold is 1 -> correct
         assert acc_mutual_info_fn(1, pred) == 1
 
@@ -178,7 +178,7 @@ class TestBpb:
         # bpb = -lls[0] / byte_len[0] * NAT_TO_BIT
         # byte_len("ab") = 2
         # bpb = 2.0 / 2 * (1/ln2) = 1/ln2 ≈ 1.4427
-        result = bpb_fn(0, pred)
+        result = bpb(0, pred)
         assert result == pytest.approx(1.0 / np.log(2.0), rel=1e-6)
 
 
@@ -194,7 +194,7 @@ class TestChoiceLogprob:
         # log(softmax) at index 1 = lls[1] - logsumexp(lls)
         lls = np.array([-2.0, -1.0, -3.0])
         expected = float(lls[1] - np.logaddexp.reduce(lls))
-        assert choice_logprob_fn(1, pred) == pytest.approx(expected)
+        assert choice_logprob(1, pred) == pytest.approx(expected)
 
 
 # ===========================================================================

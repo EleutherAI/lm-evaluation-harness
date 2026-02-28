@@ -161,6 +161,7 @@ ignore = [
 [tool.ruff.lint.isort]
 combine-as-imports = true
 known-first-party = ["lm_eval"]
+extra-standard-library = ["path", "typing_extensions"]
 lines-after-imports = 2
 
 [tool.ruff.lint.pydocstyle]

@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
-
 from typing_extensions import Required, TypedDict
 
 from lm_eval.defaults import default_gen_kwargs
+
+from .utils import normalize_metric_list
 
 
 if TYPE_CHECKING:
@@ -41,7 +42,7 @@ class MetricConfig(TypedDict, total=False):
             ignore_case: true       # extra kwarg forwarded to the metric fn
     """
 
-    metric: str | Callable
+    metric: Required[str | Callable]
     """Name of a registered metric (e.g. ``"acc"``, ``"exact_match"``,
     ``"bleu"``) or a callable. See ``lm_eval/api/metrics.py`` for
     built-in metrics."""
@@ -541,6 +542,9 @@ class TaskConfig:
             if (isinstance(self.fewshot_config, dict) or self.fewshot_config is None)
             else self.fewshot_config
         )
+
+        # normalize metrics
+        self.metric_list = [normalize_metric_list(x) for x in self.metric_list]
 
     def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
         """Dumps the current config as a dictionary object, as a printable format.

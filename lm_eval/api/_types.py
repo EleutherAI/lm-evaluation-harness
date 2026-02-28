@@ -1,6 +1,5 @@
 from collections.abc import Sequence  # noqa: TC003
 from typing import TYPE_CHECKING, Any, TypeAlias
-
 from typing_extensions import Protocol, TypedDict
 
 

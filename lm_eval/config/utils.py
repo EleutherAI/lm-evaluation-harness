@@ -3,13 +3,15 @@ from __future__ import annotations
 import functools
 import re
 import string
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
-
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 from typing_extensions import overload
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Mapping, Sequence
+
+    from lm_eval.config.task import MetricConfig
 
 _T = TypeVar("_T")
 
@@ -218,3 +220,34 @@ def _resolve_target_index(target, choices, doc) -> int | None:
         )
         return None
     return None
+
+
+def normalize_metric_list(cfg: Mapping[str, Any]) -> MetricConfig:
+    """Normalize a raw YAML metric entry into a proper MetricConfig.
+
+    YAML metric entries mix known fields (``metric``, ``aggregation``, etc.)
+    with arbitrary extra keys that should be forwarded as ``kwargs`` to the
+    metric function. This function separates the two.
+
+    Example::
+
+        >>> normalize_metric_list({"metric": "exact_match", "ignore_case": True})
+        {"metric": "exact_match", "kwargs": {"ignore_case": True}}
+    """
+    from lm_eval.api._metrics.metric import METRIC_KEYS
+
+    if "metric" not in cfg:
+        raise ValueError(
+            f"Each metric_list entry requires a 'metric' field. Got: {dict(cfg)}"
+        )
+    if not isinstance(_m := (cfg["metric"]), (str, Callable)):
+        raise TypeError(
+            f"'metric' must be a string or callable, got {type(_m)} in {cfg}"
+        )
+
+    normalized = {k: v for k, v in cfg.items() if k in METRIC_KEYS}
+    extra_kwargs = {k: v for k, v in cfg.items() if k not in METRIC_KEYS}
+    # Merge with any explicitly provided kwargs (explicit kwargs take priority)
+    normalized["kwargs"] = {**extra_kwargs, **(cfg.get("kwargs", {}))}
+
+    return cast("MetricConfig", normalized)

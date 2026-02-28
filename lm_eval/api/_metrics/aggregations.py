@@ -1,4 +1,5 @@
 import math
+from typing import Any
 
 import numpy as np
 
@@ -6,7 +7,7 @@ from lm_eval.api.registry import register_aggregation
 
 
 @register_aggregation("bypass")
-def bypass_agg(arr):
+def bypass_agg(arr: Any):
     return 999
 
 

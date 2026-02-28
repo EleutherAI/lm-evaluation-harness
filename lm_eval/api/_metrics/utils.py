@@ -1,95 +1,103 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import numpy as np
+import logging
+from typing import TYPE_CHECKING, Any, cast
 
 
 if TYPE_CHECKING:
-    from numpy.typing import ArrayLike
+    from collections.abc import Callable
 
+    from lm_eval.api._metrics.metric import Metric
     from lm_eval.config.task import MetricConfig
 
 
-def parse_metric(cfg: MetricConfig):
+eval_logger = logging.getLogger(__name__)
+
+
+def _metric_with_defaults(name: str, kwargs: dict[str, Any]):
+    from dataclasses import replace
+
+    from lm_eval.api.registry import _get_metric
+
+    metric = _get_metric(name)
+    if metric is not None:
+        return replace(metric, kwargs=kwargs or {**metric.kwargs})
+
+
+def _resolve_registry_fn(value, lookup_fn, label: str) -> Callable | None:
+    """Resolve a string name via *lookup_fn*, pass through callables, or return None."""
+    if value is None:
+        return None
+    if callable(value):
+        return value
+    if isinstance(value, str):
+        fn = lookup_fn(value)
+        if fn is None:
+            raise ValueError(
+                f"{label} '{value}' not found in registry. "
+                f"Please ensure it is registered or provide a callable function directly."
+            )
+        return fn
+    return None
+
+
+def parse_metric(cfg: MetricConfig) -> Metric[Any, Any]:
     from lm_eval.api._metrics.metric import Metric
+    from lm_eval.api.registry import _get_metric, get_aggregation, get_reduction
 
     if "metric" not in cfg:
         raise ValueError(
             f"MetricConfig requires a 'metric' field, either a string reference "
             f"to a registered metric or a callable function. Received {cfg}"
         )
-    _metric = cfg["metric"]
 
-    # look up metric key
-    if isinstance(_metric, str):
-        from lm_eval.api.registry import _get_metric
+    raw = cfg["metric"]
 
-        _metric_name = _metric
-        metric = _get_metric(_metric)
-        # use defaults from metric if not specified in cfg
-        if metric is not None and "aggregation" not in cfg and "reduction" not in cfg:
-            return Metric(
-                name=_metric_name,
-                fn=metric.fn,
-                aggregation=metric.aggregation,
-                reduction=metric.reduction,
-                kwargs=cfg.get("kwargs") or {},
+    # 1) Resolve the base metric from registry or callable
+    if isinstance(raw, str):
+        # the lambda case as we allow arbitrary metrics to be returned from process_results
+        base = _get_metric(raw)
+        if base is None:
+            eval_logger.warning(
+                "Metric '%s' not found in registry. Using a placeholder that "
+                "expects values from 'process_results'.",
+                raw,
             )
+            base = Metric(name=raw, fn=lambda *args, **kwargs: -1.0)
+    elif callable(raw):
+        name = getattr(raw, "__name__", "metric(undefined)")
+        base = Metric(name=name, fn=raw)
+    else:
+        raise TypeError(
+            f"'metric' must be a string or callable, got {type(raw)} in {cfg}"
+        )
 
-        if metric is None:
-            # We allow metrics not in registry (e.g if a user overloads process_results). Create a dummy metric
-            metric = Metric(name=_metric_name, fn=lambda *args, **kwargs: None)
-
-    elif callable(_metric):
-        _metric_name = getattr(_metric, "__name__", "operation")
-        metric = Metric(name=getattr(_metric, "__name__", "operation"), fn=_metric)
-
-    # look up aggregations
-    _agg = cfg.get("aggregation", metric.aggregation)
-    _agg_fn = None
-    if isinstance(_agg, str):
-        from lm_eval.api.registry import get_aggregation
-
-        _agg_fn = get_aggregation(_agg)
-        if _agg_fn is None:
-            raise ValueError(
-                f"Aggregation metric '{_agg}' not found in registry. "
-                f"Please ensure it is registered or provide a callable function directly."
-            )
-    elif callable(_agg):
-        _agg_fn = _agg
-
-    # look up reductions
-    _reduce = cfg.get("reduction", metric.reduction)
-    _reduce_fn = None
-    if isinstance(_reduce, str):
-        from lm_eval.api.registry import get_reduction
-
-        _reduce_fn = get_reduction(_reduce)
-        if _reduce_fn is None:
-            raise ValueError(
-                f"Reduction metric '{_reduce}' not found in registry. "
-                f"Please ensure it is registered or provide a callable function directly."
-            )
-    elif callable(_reduce):
-        _reduce_fn = _reduce
-
-    # higher_is_better semantics
-    _hib = cfg.get("higher_is_better", metric.higher_is_better)
-    _higher_is_better = _hib if _hib is not None else True
+    # 2) Apply cfg overrides, falling back to base metric defaults
+    aggregation = _resolve_registry_fn(
+        cfg.get("aggregation", base.aggregation), get_aggregation, "Aggregation"
+    )
+    reduction = _resolve_registry_fn(
+        cfg.get("reduction", base.reduction), get_reduction, "Reduction"
+    )
+    higher_is_better = cfg.get("higher_is_better", base.higher_is_better)
+    if aggregation is None:
+        eval_logger.warning(
+            "Metric '%s' is defined but has no aggregation. Using default aggregation 'mean'.",
+            base.name,
+        )
+        aggregation = cast("Callable[list[float], float]", get_aggregation("mean"))
+    if higher_is_better is None:
+        eval_logger.debug(
+            "Metric '%s' does not specify 'higher_is_better'. Defaulting to True.",
+            base.name,
+        )
+        higher_is_better = True
 
     return Metric(
-        name=_metric_name,
-        fn=metric.fn,
-        aggregation=_agg_fn,
-        reduction=_reduce_fn,
-        higher_is_better=_higher_is_better,
+        name=base.name,
+        fn=base.fn,
+        aggregation=aggregation,
+        reduction=reduction,
+        higher_is_better=higher_is_better,
         kwargs=cfg.get("kwargs") or {},
     )
-
-
-def softmax(x: ArrayLike) -> np.ndarray:
-    """Compute softmax values for each sets of scores in x."""
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum()
