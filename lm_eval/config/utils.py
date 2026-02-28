@@ -72,6 +72,13 @@ def serialize_config(
 # ── Metric normalization ─────────────────────────────────────────────
 
 
+def _norm_kwargs(cfg: Mapping[str, Any], keys: set[str]) -> dict[str, Any]:
+    return {k: v for k, v in cfg.items() if k in keys} | {
+        "kwargs": {k: v for k, v in cfg.items() if k not in keys and k != "kwargs"}
+        | cfg.get("kwargs", {})
+    }
+
+
 def normalize_metric_cfg(cfg: Mapping[str, Any]) -> MetricConfig:
     """Normalize a raw YAML metric entry into a proper MetricConfig.
 
@@ -84,7 +91,7 @@ def normalize_metric_cfg(cfg: Mapping[str, Any]) -> MetricConfig:
         >>> normalize_metric_cfg({"metric": "exact_match", "ignore_case": True})
         {"metric": "exact_match", "kwargs": {"ignore_case": True}}
     """
-    from lm_eval.api._metrics.metric import METRIC_KEYS
+    METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 
     if "metric" not in cfg:
         raise ValueError(
@@ -95,27 +102,20 @@ def normalize_metric_cfg(cfg: Mapping[str, Any]) -> MetricConfig:
             f"'metric' must be a string or callable, got {type(_m)} in {cfg}"
         )
 
-    normalized = {k: v for k, v in cfg.items() if k in METRIC_KEYS}
-    extra_kwargs = {k: v for k, v in cfg.items() if k not in METRIC_KEYS}
-    # Merge with any explicitly provided kwargs (explicit kwargs take priority)
-    normalized["kwargs"] = {**extra_kwargs, **(cfg.get("kwargs", {}))}
-
-    return cast("MetricConfig", normalized)
+    return cast("MetricConfig", _norm_kwargs(cfg, METRIC_KEYS))
 
 
 def normalize_metric_list(
-    cfg: list[Mapping[str, Any]] | list[MetricConfig], output_type: str
+    cfg: list[Mapping[str, Any]] | list[MetricConfig],
 ) -> list[MetricConfig]:
     """Normalize a raw ``metric_list`` from YAML into a list of MetricConfigs.
 
-    When *cfg* is empty, falls back to the default metrics for *output_type*.
+    Returns an empty list when *cfg* is empty — the scorer layer is
+    responsible for providing defaults (via ``Scorer.default_metric_cfg``
+    or ``DEFAULT_METRIC_REGISTRY``).
     """
     if not cfg:
-        from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
-
-        defaults = DEFAULT_METRIC_REGISTRY.get(output_type, [])
-        return [{"metric": name} for name in defaults]
-
+        return []
     return [normalize_metric_cfg(entry) for entry in cfg]
 
 
@@ -124,7 +124,7 @@ def normalize_metric_list(
 FILTER_STEP_KEYS = {"function", "kwargs"}
 
 
-def _normalize_filter_step(step: Mapping[str, Any]) -> FilterStep:
+def _normalize_filter_step(cfg: Mapping[str, Any]) -> FilterStep:
     r"""Normalize a raw YAML filter step into a proper FilterStep.
 
     Same pattern as :func:`normalize_metric_cfg`: known fields are kept,
@@ -135,18 +135,13 @@ def _normalize_filter_step(step: Mapping[str, Any]) -> FilterStep:
         >>> _normalize_filter_step({"function": "regex", "regex_pattern": r"\\d+"})
         {"function": "regex", "kwargs": {"regex_pattern": "\\\\d+"}}
     """
-    if "function" not in step:
-        raise KeyError(
-            f"Each filter step requires a 'function' field. Got: {dict(step)}"
-        )
-    normalized = {k: v for k, v in step.items() if k in FILTER_STEP_KEYS}
-    extra_kwargs = {k: v for k, v in step.items() if k not in FILTER_STEP_KEYS}
-    normalized["kwargs"] = {**extra_kwargs, **(step.get("kwargs", {}))}
-    return cast("FilterStep", normalized)
+    if "function" not in cfg:
+        raise KeyError(f"Each filter step requires a 'function' field. Got: {cfg}")
+    return cast("FilterStep", _norm_kwargs(cfg, FILTER_STEP_KEYS))
 
 
 def normalize_filter_list(
-    cfg: list[Mapping[str, Any]] | list[FilterPipeline], output_type: str
+    cfg: list[Mapping[str, Any]] | list[FilterPipeline],
 ) -> list[FilterPipeline]:
     """Normalize a raw ``filter_list`` from YAML into a list of FilterPipelines.
 
@@ -168,8 +163,6 @@ def normalize_filter_list(
         }
 
         if "metric_list" in pipeline:
-            entry["metric_list"] = normalize_metric_list(
-                pipeline["metric_list"], output_type
-            )
+            entry["metric_list"] = normalize_metric_list(pipeline["metric_list"])
         result.append(entry)
     return result

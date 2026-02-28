@@ -41,7 +41,7 @@ def _resolve_registry_fn(value, lookup_fn, label: str) -> Callable | None:
     return None
 
 
-def parse_metric(cfg: MetricConfig) -> Metric[Any, Any]:
+def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[Any, Any]:
     from lm_eval.api._metrics.metric import Metric
     from lm_eval.api.registry import _get_metric, get_aggregation, get_reduction
 
@@ -52,6 +52,7 @@ def parse_metric(cfg: MetricConfig) -> Metric[Any, Any]:
         )
 
     raw = cfg["metric"]
+    _output_type = output_type or "generate_until"
 
     # 1) Resolve the base metric from registry or callable
     if isinstance(raw, str):
@@ -63,10 +64,16 @@ def parse_metric(cfg: MetricConfig) -> Metric[Any, Any]:
                 "expects values from 'process_results'.",
                 raw,
             )
-            base = Metric(name=raw, fn=lambda *args, **kwargs: -1.0)
+            base = Metric(
+                name=raw, fn=lambda *args, **kwargs: -1.0, output_type={_output_type}
+            )
+        if output_type and output_type not in base.output_type:
+            raise ValueError(
+                f"metric {base.name} is defined but has output_type '{base.output_type}' which does not match expected output_type(s) '{output_type}'."
+            )
     elif callable(raw):
         name = getattr(raw, "__name__", "metric(undefined)")
-        base = Metric(name=name, fn=raw)
+        base = Metric(name=name, fn=raw, output_type={_output_type})
     else:
         raise TypeError(
             f"'metric' must be a string or callable, got {type(raw)} in {cfg}"
@@ -100,4 +107,5 @@ def parse_metric(cfg: MetricConfig) -> Metric[Any, Any]:
         reduction=reduction,
         higher_is_better=higher_is_better,
         kwargs=cfg.get("kwargs") or {},
+        output_type={_output_type},
     )

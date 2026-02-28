@@ -3,9 +3,9 @@ from __future__ import annotations
 import re
 import string
 from typing import Literal, cast
+from typing_extensions import overload
 
 import numpy as np
-from typing_extensions import overload
 
 from lm_eval.api.registry import register_metric
 

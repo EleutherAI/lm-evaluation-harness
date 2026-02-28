@@ -68,12 +68,18 @@ class Metric(Generic[_T, _K]):
     kwargs: Mapping[str, Any] = field(default_factory=dict)
     aggregation: AggregationFn[_K] | None = None
     higher_is_better: bool = True
-    output_type: str = "multiple_choice"
+    output_type: set[str] = field(default_factory=lambda: {"multiple_choice"})
     reduction: ReductionFn[_T, _K] | None = take_first
 
     def __post_init__(self):
         if not self.name:
             raise ValueError("Metric name must be non-empty.")
+        output_type = (
+            [self.output_type]
+            if isinstance(self.output_type, str)
+            else self.output_type
+        )
+        object.__setattr__(self, "output_type", set(output_type))
         if not callable(self.fn):
             raise TypeError(
                 f"Metric '{self.name}' fn must be callable, got {type(self.fn)}."
@@ -86,11 +92,13 @@ class Metric(Generic[_T, _K]):
             object.__setattr__(self, "reduction", take_first)
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any] | MetricConfig) -> Metric[Any, Any]:
+    def from_dict(
+        cls, cfg: dict[str, Any] | MetricConfig, output_type: str | None = None
+    ) -> Metric[Any, Any]:
         from lm_eval.api._metrics import utils
         from lm_eval.config.utils import normalize_metric_cfg
 
-        return utils.parse_metric(normalize_metric_cfg(cfg))
+        return utils.parse_metric(normalize_metric_cfg(cfg), output_type)
 
     def compute(self, *args: Any, **kwargs: Any) -> _T | dict[str, list[_T]]:
         """Compute the metric for a sample."""

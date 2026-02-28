@@ -553,9 +553,39 @@ class TaskConfig:
             )
 
     def _normalize_scoring_config(self) -> None:
-        """Canonicalise ``metric_list`` and ``filter_list`` from raw YAML dicts."""
-        self.metric_list = normalize_metric_list(self.metric_list, self.output_type)
-        self.filter_list = normalize_filter_list(self.filter_list, self.output_type)
+        """Canonicalise scoring fields into a fully resolved ``filter_list``.
+
+        After this method:
+
+        * ``metric_list`` contains only what the user explicitly provided
+          (empty if nothing was specified — registry defaults are the
+          scorer layer's responsibility).
+        * ``filter_list`` always has at least one entry.  Each entry
+          carries a ``metric_list`` (per-pipeline if provided, otherwise
+          the task-level ``metric_list`` as fallback).
+        * ``scorer`` is normalised to ``dict | None``.
+        """
+        self.metric_list = normalize_metric_list(self.metric_list)
+        self.filter_list = normalize_filter_list(self.filter_list)
+
+        # Distribute task-level metrics as fallback into pipelines that
+        # don't have their own.
+        for pipeline in self.filter_list:
+            pipeline.setdefault("metric_list", list(self.metric_list))
+
+        # When no filter_list is provided, create a default scorer entry.
+        # The ``filter`` key is intentionally omitted so that the scorer
+        # class can apply its own ``default_filter_cfg``; the cast is
+        # safe because ``Scorer._build_filter`` handles a missing key.
+        if not self.filter_list:
+            self.filter_list = cast(
+                "list[FilterPipeline]",
+                [{"name": "none", "metric_list": list(self.metric_list)}],
+            )
+
+        # Normalise scorer type to dict form for consistent downstream handling.
+        if isinstance(self.scorer, str):
+            self.scorer = {"type": self.scorer}
 
     def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
         """Dumps the current config as a dictionary object, as a printable format.

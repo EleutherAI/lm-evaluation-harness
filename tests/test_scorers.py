@@ -162,15 +162,21 @@ class TestBuildScorer:
         assert any(m.name == "my_metric" for m in scorer.metrics)
 
     def test_default_scorer_when_no_cfg(self):
-        global_metrics = [_simple_metric("g_metric")]
-        scorer = build_scorer(
-            output_type="generate_until",
-            global_metrics=global_metrics,
-        )
+        scorer = build_scorer(output_type="generate_until")
         assert isinstance(scorer, GenScorer)
         assert scorer.name == "none"
+        # Falls back to DEFAULT_METRIC_REGISTRY for generate_until
         assert scorer.metrics
-        assert any(m.name == "g_metric" for m in scorer.metrics)
+        assert any(m.name == "exact_match" for m in scorer.metrics)
+
+    def test_cfg_metric_list_overrides_registry(self):
+        scorer = build_scorer(
+            cfg={"name": "test", "metric_list": [{"metric": "exact_match"}]},
+            output_type="generate_until",
+        )
+        assert scorer.metrics
+        assert len(scorer.metrics) == 1
+        assert scorer.metrics[0].name == "exact_match"
 
 
 # ===========================================================================
@@ -183,16 +189,15 @@ class TestScorerFromDict:
 
     def test_explicit_metric_list_takes_precedence(self):
         explicit = _simple_metric("explicit")
-        global_m = _simple_metric("global")
         scorer = GenScorer.from_dict(
             {"name": "test", "metric_list": [explicit]},
-            global_metrics=[global_m],
+            output_type="generate_until",
         )
         assert scorer.metrics
         assert len(scorer.metrics) == 1
         assert scorer.metrics[0].name == "explicit"
 
-    def test_classvar_default_overrides_global(self):
+    def test_classvar_default_overrides_registry(self):
         @dataclass
         class CustomScorer(GenScorer):
             default_metric_cfg: ClassVar[list] = [
@@ -203,18 +208,20 @@ class TestScorerFromDict:
                 }
             ]
 
-        global_m = _simple_metric("global")
-        scorer = CustomScorer.from_dict({"name": "test"}, global_metrics=[global_m])
+        # No metric_list in cfg → class default wins over registry
+        scorer = CustomScorer.from_dict({"name": "test"}, output_type="generate_until")
         assert scorer.metrics
         assert any(m.name == "exact_match" for m in scorer.metrics)
-        assert not any(m.name == "global" for m in scorer.metrics)
 
-    def test_global_metrics_used_as_fallback(self):
-        global_m = _simple_metric("global")
-        scorer = GenScorer.from_dict({"name": "test"}, global_metrics=[global_m])
+    def test_registry_fallback_when_no_metrics(self):
+        scorer = GenScorer.from_dict({"name": "test"}, output_type="generate_until")
         assert scorer.metrics
-        assert len(scorer.metrics) == 1
-        assert scorer.metrics[0].name == "global"
+        # Falls back to DEFAULT_METRIC_REGISTRY for generate_until
+        assert any(m.name == "exact_match" for m in scorer.metrics)
+
+    def test_empty_metrics_when_no_output_type(self):
+        scorer = GenScorer.from_dict({"name": "test"})
+        assert scorer.metrics == []
 
     def test_explicit_filter_takes_precedence(self):
         scorer = GenScorer.from_dict(
@@ -245,7 +252,7 @@ class TestScorerFromDict:
 
     def test_resolve_metrics_rejects_bad_type(self):
         with pytest.raises(TypeError, match="Metric config entries must be"):
-            GenScorer._resolve_metrics([42])  # type:ignore[invalid-argument-type]
+            GenScorer._resolve_metrics([42], "generate_until")  # type:ignore[invalid-argument-type]
 
     def test_resolve_filters_rejects_bad_type(self):
         with pytest.raises(TypeError, match="Filter config entries must be"):

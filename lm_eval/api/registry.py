@@ -464,6 +464,9 @@ reduction_registry: Registry[Callable] = Registry(
 metric_reduction_registry: Registry[Callable] = Registry(
     "metric_reduction", lazy_module=_METRICS_MODULE
 )
+metric_output_type_registry: Registry[str] = Registry(
+    "metric_output_type", lazy_module=_METRICS_MODULE
+)
 
 
 # Backward compat aliases - these now point to Registry instances
@@ -660,6 +663,9 @@ def register_metric(**args):
             red_fn = reduction_registry.get(args["reduction"])
             metric_reduction_registry.register(name, target=red_fn)
 
+        if "output_type" in args:
+            fn.output_type = args["output_type"]
+
         return fn
 
     return decorate
@@ -704,6 +710,7 @@ def _get_metric(name: str) -> Metric | None:
             aggregation=cast("AggregationFn", raw.aggregation),
             reduction=cast("ReductionFn", raw.reduce),
             higher_is_better=hib,
+            output_type=getattr(raw, "output_type", "loglikelihood"),
         )
 
     # Plain function metric — pull agg + hib + reduction from companion registries
@@ -717,8 +724,15 @@ def _get_metric(name: str) -> Metric | None:
             aggregation=agg_fn,
             higher_is_better=hib,
             reduction=red_fn,
+            output_type=getattr(raw, "output_type", "multiple_choice"),
         )
-    return Metric(name=name, fn=raw, aggregation=agg_fn, higher_is_better=hib)
+    return Metric(
+        name=name,
+        fn=raw,
+        aggregation=agg_fn,
+        higher_is_better=hib,
+        output_type=getattr(raw, "output_type", "multiple_choice"),
+    )
 
 
 def get_metric(name: str) -> Callable | None:

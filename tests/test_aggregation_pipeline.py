@@ -15,9 +15,10 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from lm_eval.api.filter import FilterEnsemble
+from lm_eval.api.group import Group
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import Task
-from lm_eval.config.group import AggMetricConfig, Group
+from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
     _process_results,
 )
@@ -110,6 +111,10 @@ class MockTask(Task):
 
     @property
     def task_name(self):
+        return self._task_name
+
+    @property
+    def _qualified_name(self):
         return self._task_name
 
     def dump_config(self) -> dict:

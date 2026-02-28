@@ -14,9 +14,9 @@ from lm_eval import utils
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+    from typing_extensions import Self
 
     from sqlitedict import SqliteDict
-    from typing_extensions import Self
 
     from lm_eval.api._types import LLOutput
     from lm_eval.api.instance import GenInstance, Instance, LLInstance

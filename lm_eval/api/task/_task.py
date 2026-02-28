@@ -165,41 +165,22 @@ class Task:
         return self._sampler_cls(docs, rnd=self._fewshot_seed)
 
     def _build_scorers(self) -> list[Scorer]:
-        """Build scorers from filter_list config, or a default scorer."""
-        from lm_eval.api.metrics import Metric
-        from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
+        """Build scorers from the normalised ``filter_list`` config.
 
-        if self.config.metric_list:
-            global_metrics = [
-                Metric.from_dict({**m_cfg}) for m_cfg in self.config.metric_list
-            ]
-        else:
-            global_metrics = [
-                Metric.from_dict({"metric": metric_name})
-                for metric_name in DEFAULT_METRIC_REGISTRY.get(self.OUTPUT_TYPE, [])
-            ]
-
+        After ``TaskConfig._normalize_scoring_config()``, ``filter_list``
+        is guaranteed to have at least one entry with a resolved
+        ``metric_list``.  This method just iterates and delegates to
+        ``build_scorer``.
+        """
         context = self._build_scorer_context()
-
-        if self.config.filter_list:
-            scorers = [
-                build_scorer(
-                    cfg={**cfg},
-                    global_metrics=global_metrics,
-                    output_type=self.OUTPUT_TYPE,
-                    scorer_type=self.config.scorer,
-                )
-                for cfg in self.config.filter_list
-            ]
-        else:
-            scorers = [
-                build_scorer(
-                    global_metrics=global_metrics,
-                    output_type=self.OUTPUT_TYPE,
-                    scorer_type=self.config.scorer,
-                )
-            ]
-
+        scorers = [
+            build_scorer(
+                cfg={**cfg},
+                output_type=self.OUTPUT_TYPE,
+                scorer_type=self.config.scorer,
+            )
+            for cfg in self.config.filter_list
+        ]
         for s in scorers:
             s.context = context
         return scorers
@@ -1051,11 +1032,11 @@ class Task:
         Rebuilds the scorer pipeline so that only *metric_name* is computed.
         Used by the evaluator for ``predict_only`` mode (metric="bypass").
         """
-        from lm_eval.api.metrics import Metric
-
-        metric = Metric.from_dict({"metric": metric_name})
         self._scorers = [
-            build_scorer(global_metrics=[metric], output_type=self.OUTPUT_TYPE)
+            build_scorer(
+                cfg={"name": "none", "metric_list": [{"metric": metric_name}]},
+                output_type=self.OUTPUT_TYPE,
+            )
         ]
 
     def set_repeats(self, repeats: int) -> None:

@@ -25,8 +25,8 @@ class NoopFilter(Filter):
 @register_filter("take_first")
 class TakeFirstFilter(Filter):
     def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
-        """Take the first resp."""
-        return next(iter(r) for r in resps)
+        """Discard all but the first response per doc."""
+        return ([r[0]] for r in resps)
 
 
 @register_filter("take_first_k")
@@ -57,4 +57,4 @@ class MajorityVoteFilter(Filter):
             counts = Counter(resp)
             return counts.most_common(1)[0][0]
 
-        return (select_majority(r) for r in resps)
+        return ([select_majority(r)] for r in resps)

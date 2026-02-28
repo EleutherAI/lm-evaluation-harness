@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
-
 from typing_extensions import Self
 
 from ._types import MetricKey, ScoredDoc
@@ -63,7 +62,8 @@ class Scorer:
     def from_dict(
         cls,
         cfg: dict[str, Any],
-        global_metrics: list[Metric] | None = None,
+        *,
+        output_type: str | None = None,
         **kwargs: Any,
     ) -> Self:
         """Build a Scorer from a config dict.
@@ -76,19 +76,23 @@ class Scorer:
                     {"function": "regex", "regex_pattern": "..."},
                     {"function": "take_first"},
                 ],
-                "metric_list": [           # optional -- falls back to global_metrics
+                "metric_list": [
                     {"metric": "exact_match", "aggregation": "mean", ...},
                 ],
             }
 
-        Any extra *kwargs* are forwarded to the constructor (e.g. custom
+        *output_type* is used as a last-resort fallback when neither the
+        config nor the class provides metrics (see
+        ``DEFAULT_METRIC_REGISTRY``).
+
+        Any extra *kwargs* are forwarded to the constructor (e.g., custom
         dataclass fields on scorer subclasses).
         """
         name = cfg.get("name", "none")
         return cls(
             name=name,
             filter=cls._build_filter(name, cfg),
-            metrics=cls._build_metrics(cfg, global_metrics or []),
+            metrics=cls._build_metrics(cfg, output_type=output_type),
             **kwargs,
         )
 
@@ -102,23 +106,39 @@ class Scorer:
 
     @classmethod
     def _build_metrics(
-        cls, cfg: dict[str, Any], global_metrics: list[Metric]
+        cls,
+        cfg: dict[str, Any],
+        *,
+        output_type: str | None = None,
     ) -> list[Metric]:
-        """Resolve metric config: explicit cfg > ClassVar default > global_metrics."""
+        """Resolve metric config with a clear 3-tier precedence.
+
+        1. Explicit ``cfg["metric_list"]`` (per-pipeline or task-level)
+        2. ``cls.default_metric_cfg`` (scorer class defaults)
+        3. ``DEFAULT_METRIC_REGISTRY`` based on *output_type*
+        """
         if cfg.get("metric_list"):
-            return cls._resolve_metrics(cfg["metric_list"])
+            return cls._resolve_metrics(cfg["metric_list"], output_type or "")
         if cls.default_metric_cfg is not None:
-            return cls._resolve_metrics(cls.default_metric_cfg)
-        return list(global_metrics)
+            return cls._resolve_metrics(cls.default_metric_cfg, output_type or "")
+        if output_type is not None:
+            from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
+
+            defaults = DEFAULT_METRIC_REGISTRY.get(output_type, [])
+            if defaults:
+                return cls._resolve_metrics(
+                    [{"metric": name} for name in defaults], output_type
+                )
+        return []
 
     @classmethod
-    def default_scorer(cls, global_metrics: list[Metric], name: str = "none") -> Self:
-        """Build the default scorer with the given metrics.
+    def default_scorer(cls, name: str = "none", **kwargs: Any) -> Self:
+        """Build the default scorer (no explicit config).
 
         Filter defaults to ``cls.default_filter_cfg`` if set, otherwise
         ``noop``.
         """
-        return cls.from_dict({"name": name}, global_metrics=global_metrics)
+        return cls.from_dict({"name": name}, **kwargs)
 
     # ------------------------------------------------------------------
     # Resolvers (override for fully custom construction)
@@ -145,7 +165,7 @@ class Scorer:
         for item in filter_cfg:
             if isinstance(item, dict):
                 fn_name = item["function"]
-                kwargs = {k: v for k, v in item.items() if k != "function"}
+                kwargs = item.get("kwargs", {})
                 filter_cls = get_filter(fn_name)
                 filters.append(partial(filter_cls, **kwargs) if kwargs else filter_cls)
             elif isinstance(item, type) and issubclass(item, Filter):
@@ -159,7 +179,7 @@ class Scorer:
 
     @classmethod
     def _resolve_metrics(
-        cls, metric_cfg: list[dict[str, Any] | Metric]
+        cls, metric_cfg: list[dict[str, Any] | Metric], output_type: str
     ) -> list[Metric]:
         """Build a list of :class:`Metric` objects from a mixed list.
 
@@ -176,7 +196,7 @@ class Scorer:
             if isinstance(item, Metric):
                 metrics.append(item)
             elif isinstance(item, dict):
-                metrics.append(Metric.from_dict(item))
+                metrics.append(Metric.from_dict(item, output_type))
             else:
                 raise TypeError(
                     f"Metric config entries must be dicts or Metric instances, "
@@ -563,7 +583,6 @@ class LLScorer(Scorer):
 
 def build_scorer(
     cfg: dict[str, Any] | None = None,
-    global_metrics: list[Metric] | None = None,
     output_type: str | None = None,
     scorer_type: str | dict[str, Any] | None = None,
 ) -> Scorer:
@@ -577,6 +596,9 @@ def build_scorer(
       keys are forwarded to the scorer constructor as kwargs.
     * **None** — fall back to :class:`GenScorer` / :class:`LLScorer`
       based on *output_type*.
+
+    Metrics are resolved inside ``Scorer.from_dict`` with a 3-tier
+    precedence: cfg > scorer class default > DEFAULT_METRIC_REGISTRY.
     """
     scorer_kwargs: dict[str, Any] = {}
     scorer_name: str | None = None
@@ -606,11 +628,11 @@ def build_scorer(
         )
 
     if cfg is not None:
-        return cls.from_dict(cfg, global_metrics=global_metrics, **scorer_kwargs)
+        return cls.from_dict(cfg, output_type=output_type, **scorer_kwargs)
     if scorer_kwargs:
         return cls.from_dict(
-            {"name": scorer_name}, global_metrics=global_metrics, **scorer_kwargs
+            {"name": scorer_name}, output_type=output_type, **scorer_kwargs
         )
     if scorer_name is not None:
-        return cls.default_scorer(global_metrics or [], name=scorer_name)
-    return cls.default_scorer(global_metrics or [])
+        return cls.default_scorer(name=scorer_name, output_type=output_type)
+    return cls.default_scorer(output_type=output_type)
