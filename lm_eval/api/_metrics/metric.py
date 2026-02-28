@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from ._types import AggregationFn, MetricFn, ReductionFn
 
 
-_T = TypeVar("_T", default=float)
-_K = TypeVar("_K", default=float)
+_T = TypeVar("_T", default=float, infer_variance=True)
+_K = TypeVar("_K", default=float, infer_variance=True)
 
 METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 

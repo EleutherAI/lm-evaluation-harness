@@ -52,13 +52,13 @@ if TYPE_CHECKING:
     from lm_eval.api.instance import AdditionalArgs, GenInstance, Instance, LLInstance
     from lm_eval.config.task import FewshotConfig
     from lm_eval.result_schema import OutputType
-    from lm_eval.scorers import Scorer
+    from lm_eval.scorers import ReducedDoc, Scorer
 
 eval_logger = logging.getLogger(__name__)
 
 
 class Task:
-    """A task represents an entire benchmark including its dataset, problems, answers, and evaluation methods.
+    """A task represents an entire benchmark, including its dataset, problems, answers, and evaluation methods.
 
     See BoolQ for a simple example implementation.
 
@@ -175,7 +175,7 @@ class Task:
         context = self._build_scorer_context()
         scorers = [
             build_scorer(
-                cfg={**cfg},
+                cfg={**cfg},  # type:ignore[invalid-argument-type]
                 output_type=self.OUTPUT_TYPE,
                 scorer_type=self.config.scorer,
             )
@@ -947,7 +947,7 @@ class Task:
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
 
-    def export_reduced(self) -> dict[str, dict[int, dict[str, float]]]:
+    def export_reduced(self) -> dict[str, dict[int, ReducedDoc]]:
         """Export reduced results from all scorers for distributed gathering.
 
         Returns ``{scorer_name: {doc_id: {metric: value}}}``.
@@ -960,7 +960,7 @@ class Task:
                 exported[scorer.name] = docs
         return exported
 
-    def import_reduced(self, data: dict[str, dict[int, dict[str, float]]]) -> None:
+    def import_reduced(self, data: dict[str, dict[int, ReducedDoc]]) -> None:
         """Import merged results into scorers (after distributed gather).
 
         Rebuilds reduced docs from doc-first data so that

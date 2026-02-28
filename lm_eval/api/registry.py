@@ -710,7 +710,7 @@ def _get_metric(name: str) -> Metric | None:
             aggregation=cast("AggregationFn", raw.aggregation),
             reduction=cast("ReductionFn", raw.reduce),
             higher_is_better=hib,
-            output_type=getattr(raw, "output_type", "loglikelihood"),
+            output_type=set(getattr(raw, "output_type", ["loglikelihood"])),
         )
 
     # Plain function metric — pull agg + hib + reduction from companion registries
@@ -724,14 +724,14 @@ def _get_metric(name: str) -> Metric | None:
             aggregation=agg_fn,
             higher_is_better=hib,
             reduction=red_fn,
-            output_type=getattr(raw, "output_type", "multiple_choice"),
+            output_type=set(getattr(raw, "output_type", ["multiple_choice"])),
         )
     return Metric(
         name=name,
         fn=raw,
         aggregation=agg_fn,
         higher_is_better=hib,
-        output_type=getattr(raw, "output_type", "multiple_choice"),
+        output_type=set(getattr(raw, "output_type", ["multiple_choice"])),
     )
 
 
