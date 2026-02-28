@@ -655,33 +655,41 @@ def get_scorer(scorer_name: str) -> type[Scorer]:
 # =============================================================================
 
 
-def register_metric(**args):
-    """Decorator to register a metric as a lazily-built ``Metric`` object.
+def register_metric(
+    metric: str,
+    *,
+    higher_is_better: bool = True,
+    aggregation: str | None = None,
+    reduction: str | None = None,
+    output_type: str | list[str] = "multiple_choice",
+) -> Callable[[Callable], Callable]:
+    """Decorator to register a function or class as a named ``Metric``.
 
-    Stores a ``_Deferred`` factory in ``metric_registry``. The actual
-    ``Metric`` dataclass is constructed on first ``.get()`` call, keeping
-    import-time work minimal.
+    The metric is constructed lazily on first use, keeping import-time
+    work minimal.
 
     Args:
-        **args: Keyword arguments including
-            - metric: Name to register the metric under (required)
-            - higher_is_better: Whether higher scores are better (default True)
-            - aggregation: Name of aggregation function to use
-            - reduction: Name of reduction function to use
-            - output_type: str or list of output type names
+        metric: Name to register the metric under
+        higher_is_better: Whether higher scores are better (default True)
+        aggregation: Name of aggregation function to use
+        reduction: Name of reduction function to use
+        output_type: str or list of output type names
 
     Returns:
         Decorator function
     """
+    args: dict[str, Any] = {
+        "metric": metric,
+        "higher_is_better": higher_is_better,
+        "output_type": output_type,
+    }
+    if aggregation is not None:
+        args["aggregation"] = aggregation
+    if reduction is not None:
+        args["reduction"] = reduction
 
-    def decorate(fn):
-        name = args.get("metric")
-        if not name:
-            eval_logger.warning(
-                "register_metric missing required 'metric' argument, skipping %s",
-                getattr(fn, "__name__", fn),
-            )
-            return fn
+    def decorate(fn: Callable) -> Callable:
+        name = metric
 
         def _build():
             from lm_eval.api._metrics.metric import Metric, take_first

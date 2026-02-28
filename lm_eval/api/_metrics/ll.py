@@ -40,7 +40,7 @@ def _multiple_targets(_target: int | list[int], _result: int):
 
 
 @metric(
-    metric="acc",
+    "acc",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
@@ -66,7 +66,7 @@ def acc(
 
 
 @metric(
-    metric="acc_norm",
+    "acc_norm",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -85,7 +85,7 @@ def acc_norm(
 
 
 @metric(
-    metric="acc_bytes",
+    "acc_bytes",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -104,7 +104,7 @@ def acc_bytes(
 
 
 @metric(
-    metric="acc_mutual_info",
+    "acc_mutual_info",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -128,7 +128,7 @@ def acc_mutual_info_fn(
 
 
 @metric(
-    metric="exact_match_mc",
+    "exact_match_mc",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -150,7 +150,7 @@ def exact_match_mc(references: int | list[int], predictions: LLResults) -> int:
 
 
 @metric(
-    metric="bpb",
+    "bpb",
     higher_is_better=False,
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
@@ -167,7 +167,7 @@ def bpb(references: int, predictions: LLResults) -> float:
 
 
 @metric(
-    metric="logprob",
+    "logprob",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
@@ -178,7 +178,7 @@ def logprob_fn(references: int, predictions: LLResults) -> float:
 
 
 @metric(
-    metric="choice_logprob",
+    "choice_logprob",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -194,7 +194,7 @@ def choice_logprob(references: int, predictions: LLResults) -> float:
 
 
 @metric(
-    metric="choice_prob_norm",
+    "choice_prob_norm",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -211,7 +211,7 @@ def choice_prob_norm(references: int, predictions: LLResults) -> float:
 
 
 @metric(
-    metric="choice_logprob_norm",
+    "choice_logprob_norm",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
@@ -232,7 +232,7 @@ def choice_logprob_norm(references: int, predictions: LLResults) -> float:
 
 
 @metric(
-    metric="brier_score",
+    "brier_score",
     higher_is_better=False,
     output_type="multiple_choice",
     aggregation="mean",
@@ -251,7 +251,7 @@ def brier_score(references: int, predictions: LLResults) -> float:
 
 
 @metric(
-    metric="bypass",
+    "bypass",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice", "generate_until"],
     aggregation="bypass",

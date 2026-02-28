@@ -82,7 +82,7 @@ def exact_match_fn(
     **kwargs,
 ) -> dict[str, list[int]]: ...
 @metric(
-    metric="exact_match",
+    "exact_match",
     higher_is_better=True,
     output_type="generate_until",
     aggregation="mean",

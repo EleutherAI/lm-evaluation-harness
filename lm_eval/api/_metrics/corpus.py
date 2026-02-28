@@ -97,11 +97,7 @@ class BrierScore(CorpusMetric["LLResults", float]):
 # ---------------------------------------------------------------------------
 
 
-@metric(
-    metric="perplexity",
-    higher_is_better=False,
-    output_type="loglikelihood",
-)
+@metric("perplexity", higher_is_better=False, output_type="loglikelihood")
 class Perplexity(CorpusMetric["LLResults", float]):
     """Corpus-level perplexity for loglikelihood tasks.
 
@@ -128,11 +124,7 @@ def _weighted_mean(items):
     return sum(a) / sum(b)
 
 
-@metric(
-    metric="word_perplexity",
-    higher_is_better=False,
-    output_type="loglikelihood_rolling",
-)
+@metric("word_perplexity", higher_is_better=False, output_type="loglikelihood_rolling")
 class WordPerplexity(CorpusMetric["LLResults", tuple[float, int]]):
     """Corpus-level word perplexity for rolling loglikelihood tasks.
 
@@ -175,9 +167,7 @@ class BytePerplexity(CorpusMetric["LLResults", tuple[float, int]]):
 
 
 @metric(
-    metric="bits_per_byte",
-    higher_is_better=False,
-    output_type="loglikelihood_rolling",
+    metric="bits_per_byte", higher_is_better=False, output_type="loglikelihood_rolling"
 )
 class BitsPerByte(CorpusMetric["LLResults", tuple[float, int]]):
     """Corpus-level bits-per-byte for rolling loglikelihood tasks.
@@ -273,7 +263,7 @@ class _SacrebleuCorpusMetric(CorpusMetric["GenPred", tuple[list[str], list[str]]
         return refs, preds
 
 
-@metric(metric="bleu", higher_is_better=True, output_type="generate_until")
+@metric("bleu", higher_is_better=True, output_type="generate_until")
 class Bleu(_SacrebleuCorpusMetric):
     """BLEU score for generated text.
 
@@ -291,7 +281,7 @@ class Bleu(_SacrebleuCorpusMetric):
         return sacrebleu.corpus_bleu(preds, refs).score
 
 
-@metric(metric="chrf", higher_is_better=True, output_type="generate_until")
+@metric("chrf", higher_is_better=True, output_type="generate_until")
 class Chrf(_SacrebleuCorpusMetric):
     """chrF++ score for generated text.
 
@@ -309,7 +299,7 @@ class Chrf(_SacrebleuCorpusMetric):
         return sacrebleu.corpus_chrf(preds, refs).score
 
 
-@metric(metric="ter", higher_is_better=False, output_type="generate_until")
+@metric("ter", higher_is_better=False, output_type="generate_until")
 class Ter(_SacrebleuCorpusMetric):
     """Translation Error Rate for generated text.
 
@@ -332,7 +322,7 @@ class Ter(_SacrebleuCorpusMetric):
 # ---------------------------------------------------------------------------
 
 
-@metric(metric="f1", higher_is_better=True, output_type="multiple_choice")
+@metric("f1", higher_is_better=True, output_type="multiple_choice")
 class F1(CorpusMetric["LLResults", tuple[int, int]]):
     """F1 score for multiple choice tasks.
 
@@ -353,7 +343,7 @@ class F1(CorpusMetric["LLResults", tuple[int, int]]):
         return float(np.max(f1_score(golds, preds)))
 
 
-@metric(metric="mcc", higher_is_better=True, output_type="multiple_choice")
+@metric("mcc", higher_is_better=True, output_type="multiple_choice")
 class MCC(CorpusMetric["LLResults", tuple[int, int]]):
     """Matthews Correlation Coefficient for multiple choice tasks.
 
@@ -374,11 +364,7 @@ class MCC(CorpusMetric["LLResults", tuple[int, int]]):
         return float(matthews_corrcoef(golds, preds))
 
 
-@metric(
-    metric="likelihood",
-    higher_is_better=True,
-    output_type="multiple_choice",
-)
+@metric("likelihood", higher_is_better=True, output_type="multiple_choice")
 class Likelihood(CorpusMetric["LLResults", tuple[int, "tuple[NDArray[float64], ...]"]]):
     """Raw log-likelihoods of all choices paired with the gold index.
 
