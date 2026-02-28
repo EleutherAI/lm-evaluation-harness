@@ -21,15 +21,15 @@ from .defaults import (
     LMEVAL_HASHMM,
 )
 from .evaluator_utils import (
-    ResultAcc,  # noqa: TC001
     _build_logged_samples,
+    _get_sample_size,
     _handle_back_comp,
     _log_rank_zero,
+    _log_selected_tasks_,
     _merge_rank_metrics,
+    _print_writeout,
     _process_results,
-    get_sample_size,
-    log_selected_tasks_,
-    print_writeout,
+    _ResultAcc,  # noqa: TC001
     run_task_tests,
     torch_gather_object,
 )
@@ -318,7 +318,7 @@ def simple_evaluate(
     loaded = task_manager.load(tasks)
 
     # Log selected tasks with hierarchy
-    log_selected_tasks_(loaded["tasks"], loaded["groups"])
+    _log_selected_tasks_(loaded["tasks"], loaded["groups"])
 
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
@@ -509,7 +509,7 @@ def evaluate(
         groups, eval_tasks = task_dict.get("groups", {}), task_dict.get("tasks", {})
 
     # Initialize accumulators for per-sample metrics and logged samples
-    eval_results_acc: dict[str, ResultAcc] = {
+    eval_results_acc: dict[str, _ResultAcc] = {
         task_name: {
             "task": task_obj,
             "logged_samples": [],
@@ -550,7 +550,7 @@ def evaluate(
         desc="Building contexts on all ranks",
         disable=lm.rank != 0,
     ):
-        limit = get_sample_size(task, limit_arg)
+        limit = _get_sample_size(task, limit_arg)
         task.build_all_requests(
             limit=limit,
             samples=samples.get(task_name, None) if samples is not None else samples,
@@ -575,7 +575,7 @@ def evaluate(
             extra={"all_ranks": True},
         )
         if write_out:
-            print_writeout(task)
+            _print_writeout(task)
         # aggregate Instances by LM method requested to get output.
         for instance in task.instances:
             reqtype = instance.request_type

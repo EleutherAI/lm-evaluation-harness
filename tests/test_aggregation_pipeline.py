@@ -2,7 +2,7 @@
 """End-to-end tests for the aggregation pipeline: raw per-sample values → task aggregation → group aggregation.
 
 Tests the full path through:
-  _compute_task_aggregations → _collect_results → aggregate_groups
+  _compute_task_aggregations → _collect_results → _aggregate_groups
   (wrapped by _process_results)
 """
 
@@ -27,7 +27,7 @@ from lm_eval.scorers import ScoredDoc, Scorer
 
 if TYPE_CHECKING:
     from lm_eval.evaluator_utils import (
-        ResultAcc,
+        _ResultAcc,
     )
     from lm_eval.result_schema import _TaskMetrics
 
@@ -160,8 +160,8 @@ class MockTask(Task):
 def _make_acc(
     task: MockTask,
     raw_metrics: dict[tuple[str, str], list],
-) -> ResultAcc:
-    """Build ResultAcc and populate task scorers with scored_docs."""
+) -> _ResultAcc:
+    """Build _ResultAcc and populate task scorers with scored_docs."""
     task._scorers = _build_multi_scorer_scorers(
         raw_metrics, agg=task._agg, hib=task._hib
     )
