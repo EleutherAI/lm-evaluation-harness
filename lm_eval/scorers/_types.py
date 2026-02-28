@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 
 if TYPE_CHECKING:
@@ -22,17 +22,13 @@ class ScoredDoc:
     scores: dict[str, list[float]]  # {metric_name: [per_repeat_values]}
 
 
-@dataclass(frozen=True, slots=True)
-class ReducedDoc:
-    """Immutable per-document reduced result, ready for aggregation.
+ReducedDoc: TypeAlias = dict[str, float]
+"""Per-document reduced result: ``{metric_name: scalar_value}``.
 
-    Created by :meth:`Scorer.reduce` from a :class:`ScoredDoc`, or directly
-    by :meth:`Scorer.import_reduced` after a distributed gather.  Both paths
-    produce the same type — no ambiguous intermediate state.
-    """
-
-    doc_id: int
-    values: dict[str, float]  # {metric_name: scalar_value}
+The doc_id is the key in the containing ``dict[int, ReducedDoc]``.
+Created by :meth:`Scorer.reduce` from a :class:`ScoredDoc`, or directly
+by :meth:`Scorer.import_reduced` after a distributed gather.
+"""
 
 
 @dataclass(frozen=True, slots=True)

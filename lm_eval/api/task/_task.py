@@ -939,6 +939,7 @@ class Task:
         sample_len = 0
         for scorer in self._scorers:
             result, count = scorer.aggregate(
+                scorer.reduced_docs,
                 bootstrap_iters=bootstrap_iters,
                 aggregation_overrides=custom_agg,
             )

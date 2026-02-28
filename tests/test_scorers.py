@@ -18,7 +18,7 @@ from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
 from lm_eval.scorers._base import GenScorer, LLScorer, build_scorer
-from lm_eval.scorers._types import ReducedDoc, ScoredDoc
+from lm_eval.scorers._types import ScoredDoc
 
 
 # ---------------------------------------------------------------------------
@@ -459,7 +459,7 @@ class TestScorerReduce:
             0: ScoredDoc(doc_id=0, reference="ref", scores={"test_metric": [0.5]}),
         }
         reduced = scorer.reduce(scored_docs)
-        assert reduced[0].values["test_metric"] == 0.5
+        assert reduced[0]["test_metric"] == 0.5
 
     def test_multi_value_uses_metric_reduction(self):
         def _mean_reduction(references, values):
@@ -480,7 +480,7 @@ class TestScorerReduce:
             0: ScoredDoc(doc_id=0, reference="ref", scores={"test_metric": [1, 0, 1]}),
         }
         reduced = scorer.reduce(scored_docs)
-        assert reduced[0].values["test_metric"] == pytest.approx(2 / 3)
+        assert reduced[0]["test_metric"] == pytest.approx(2 / 3)
 
     def test_dict_reduction_creates_composite_keys(self):
         """Reduction returning {"pass@1": 1.0} → "pass@1(metric)" key."""
@@ -503,10 +503,10 @@ class TestScorerReduce:
             0: ScoredDoc(doc_id=0, reference="ref", scores={"metric": [1, 0, 1]}),
         }
         reduced = scorer.reduce(scored_docs)
-        assert "pass@1(metric)" in reduced[0].values
-        assert "pass@3(metric)" in reduced[0].values
-        assert reduced[0].values["pass@1(metric)"] == 1.0
-        assert reduced[0].values["pass@3(metric)"] == 0.8
+        assert "pass@1(metric)" in reduced[0]
+        assert "pass@3(metric)" in reduced[0]
+        assert reduced[0]["pass@1(metric)"] == 1.0
+        assert reduced[0]["pass@3(metric)"] == 0.8
 
     def test_missing_reduction_warns_and_takes_first(self, caplog):
         _metric = Metric(
@@ -529,17 +529,17 @@ class TestScorerReduce:
         }
         with caplog.at_level(logging.WARNING, logger="lm_eval.scorers._base"):
             reduced = scorer.reduce(scored_docs)
-        assert reduced[0].values["unknown_metric"] == 10
+        assert reduced[0]["unknown_metric"] == 10
         assert "No reduction function" in caplog.text
 
-    def test_reduce_returns_reduced_doc_type(self):
+    def test_reduce_returns_dict(self):
         scorer = _noop_scorer()
         scored_docs = {
             0: ScoredDoc(doc_id=0, reference="ref", scores={"test_metric": [0.5]}),
         }
         reduced = scorer.reduce(scored_docs)
-        assert isinstance(reduced[0], ReducedDoc)
-        assert reduced[0].doc_id == 0
+        assert isinstance(reduced[0], dict)
+        assert "test_metric" in reduced[0]
 
     def test_set_results_stores_raw_and_reduced(self):
         scorer = _noop_scorer()
@@ -549,8 +549,8 @@ class TestScorerReduce:
         }
         scorer.set_results(scored_docs)
         assert scorer._raw_docs is scored_docs
-        assert scorer._reduced_docs[0].values["test_metric"] == 0.7
-        assert scorer._reduced_docs[1].values["test_metric"] == 0.3
+        assert scorer._reduced_docs[0]["test_metric"] == 0.7
+        assert scorer._reduced_docs[1]["test_metric"] == 0.3
 
 
 # ===========================================================================
@@ -564,8 +564,8 @@ class TestScorerExportImport:
     def _populated_scorer(self) -> GenScorer:
         scorer = _noop_scorer()
         scorer._reduced_docs = {
-            0: ReducedDoc(doc_id=0, values={"test_metric": 1.0}),
-            1: ReducedDoc(doc_id=1, values={"test_metric": 0.0}),
+            0: {"test_metric": 1.0},
+            1: {"test_metric": 0.0},
         }
         return scorer
 
@@ -578,16 +578,14 @@ class TestScorerExportImport:
         scorer = _noop_scorer()
         scorer.import_reduced({0: {"test_metric": 1.0}, 1: {"test_metric": 0.0}})
         assert len(scorer._reduced_docs) == 2
-        assert scorer._reduced_docs[0].values["test_metric"] == 1.0
-        assert scorer._reduced_docs[1].values["test_metric"] == 0.0
+        assert scorer._reduced_docs[0]["test_metric"] == 1.0
+        assert scorer._reduced_docs[1]["test_metric"] == 0.0
 
     def test_import_reduced_preserves_doc_ids(self):
         """Doc IDs survive the export/import roundtrip (not renumbered)."""
         scorer = _noop_scorer()
         scorer.import_reduced({5: {"test_metric": 1.0}, 10: {"test_metric": 0.0}})
         assert set(scorer._reduced_docs.keys()) == {5, 10}
-        assert scorer._reduced_docs[5].doc_id == 5
-        assert scorer._reduced_docs[10].doc_id == 10
 
     def test_export_import_roundtrip(self):
         scorer = self._populated_scorer()

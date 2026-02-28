@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 from typing_extensions import Self, TypedDict
 
-from ._types import MetricKey, ReducedDoc, ScoredDoc
+from ._types import MetricKey, ScoredDoc
 
 
 if TYPE_CHECKING:
@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from lm_eval.api.instance import Instance
     from lm_eval.api.metrics import Metric
     from lm_eval.config.task import FilterStep, MetricConfig, ScorerConfig
+
+    from ._types import ReducedDoc
 
 eval_logger = logging.getLogger(__name__)
 
@@ -321,7 +323,7 @@ class Scorer:
         """Reduce per-doc ``list[T]`` → ``T`` for each document.
 
         Pure function: takes :class:`ScoredDoc` objects (immutable raw scores)
-        and returns new :class:`ReducedDoc` objects (immutable scalar values).
+        and returns ``{doc_id: {metric: scalar}}`` dicts ready for aggregation.
 
         For each metric in each document:
 
@@ -335,7 +337,7 @@ class Scorer:
         result: dict[int, ReducedDoc] = {}
 
         for sd in scored_docs.values():
-            values_dict: dict[str, float] = {}
+            values_dict: ReducedDoc = {}
             for metric_name, score_list in sd.scores.items():
                 if len(score_list) == 1:
                     values_dict[metric_name] = score_list[0]
@@ -357,37 +359,37 @@ class Scorer:
                     )
                     values_dict[metric_name] = score_list[0]
 
-            result[sd.doc_id] = ReducedDoc(doc_id=sd.doc_id, values=values_dict)
+            result[sd.doc_id] = values_dict
 
         return result
 
     def aggregate(
         self,
-        metric_results: Mapping[str, list[Any]] | None = None,
+        reduced_docs: Mapping[int, ReducedDoc],
         bootstrap_iters: int | None = 100000,
         aggregation_overrides: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int]:
-        """Aggregate metric results and compute stderr.
+        """Aggregate reduced docs and compute stderr.
 
-        Iterates over all metric names present in ``_reduced_docs`` (or
-        ``metric_results`` if provided) and looks up the ``Metric`` object
-        for aggregation/stderr when available.  When *aggregation_overrides*
-        is supplied (legacy Python tasks that override ``Task.aggregation()``),
-        those functions take precedence over the ``mean`` fallback for metrics
-        not covered by a ``Metric`` object.
+        Pure function: takes ``{doc_id: {metric: value}}`` and produces
+        aggregated ``"metric,scorer"`` keyed results.  When
+        *aggregation_overrides* is supplied (legacy Python tasks that override
+        ``Task.aggregation()``), those functions take precedence over the
+        ``mean`` fallback for metrics not covered by a ``Metric`` object.
 
         Returns ``(agg_metrics, sample_len)`` where keys are in
         ``"metric,{self.name}"`` / ``"metric_stderr,{self.name}"`` format.
         """
         from lm_eval.api.metrics import mean, stderr_for_metric
 
+        # Transpose doc-first → metric-first: {metric: [values]}
+        results: dict[str, list[float]] = {}
+        for rd in reduced_docs.values():
+            for mn, val in rd.items():
+                results.setdefault(mn, []).append(val)
+
         agg: dict[str, Any] = {}
         sample_len = 0
-        results = (
-            metric_results
-            if metric_results is not None
-            else self._values_for_aggregation()
-        )
         metrics_by_name = {m.name: m for m in self.metrics or []}
 
         for metric_name, values in results.items():
@@ -452,36 +454,23 @@ class Scorer:
         """Per-document reduced results (post-reduction), ready for aggregation."""
         return self._reduced_docs
 
-    def _values_for_aggregation(self) -> dict[str, list[float]]:
-        """Flat ``{metric: [values]}`` from reduced docs for aggregation.
-
-        Order doesn't matter for commutative aggregations (mean, etc.).
-        """
-        metrics: dict[str, list[float]] = {}
-        for rd in self._reduced_docs.values():
-            for mn, val in rd.values.items():
-                metrics.setdefault(mn, []).append(val)
-        return metrics
-
-    def export_reduced(self) -> dict[int, dict[str, float]]:
+    def export_reduced(self) -> dict[int, ReducedDoc]:
         """Export ``{doc_id: {metric: value}}`` for distributed gathering.
 
-        Doc-first format matches :class:`ReducedDoc` layout — no transposition
-        needed.  Merge across ranks is a simple ``dict.update`` since doc IDs
-        are unique per rank.
+        Since ``ReducedDoc`` is a plain ``dict[str, float]``, this is a
+        shallow copy.  Merge across ranks is a simple ``dict.update``
+        since doc IDs are unique per rank.
         """
-        return {did: dict(rd.values) for did, rd in self._reduced_docs.items()}
+        return dict(self._reduced_docs)
 
-    def import_reduced(self, doc_data: dict[int, dict[str, float]]) -> None:
-        """Import merged doc-first results after distributed gather.
+    def import_reduced(self, doc_data: dict[int, ReducedDoc]) -> None:
+        """Import merged results after distributed gather.
 
-        Reconstructs :class:`ReducedDoc` objects directly.  Raw scores are
-        not available after import (they live on the source ranks).
+        Raw scores are not available after import (they live on the
+        source ranks).
         """
         self._raw_docs = {}
-        self._reduced_docs = {
-            did: ReducedDoc(doc_id=did, values=vals) for did, vals in doc_data.items()
-        }
+        self._reduced_docs = dict(doc_data)
 
     def set_results(self, scored_docs: dict[int, ScoredDoc]) -> None:
         """Store raw scored documents and compute reduction."""
@@ -499,7 +488,7 @@ class Scorer:
         # Inherit higher_is_better for composite keys from their parent metric
         if self._reduced_docs:
             for rd in self._reduced_docs.values():
-                for key in rd.values:
+                for key in rd:
                     if key not in base:
                         mk = MetricKey(key, self.name)
                         if mk.parent_metric and mk.parent_metric in base:

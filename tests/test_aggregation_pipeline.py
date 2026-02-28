@@ -22,7 +22,7 @@ from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
     _process_results,
 )
-from lm_eval.scorers import ReducedDoc, ScoredDoc, Scorer
+from lm_eval.scorers import ScoredDoc, Scorer
 
 
 if TYPE_CHECKING:
@@ -42,13 +42,14 @@ def _m(d: dict[str, Any]) -> _TaskMetrics:
     return d  # type: ignore[return-value]
 
 
-def _reduced_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ReducedDoc]:
+def _reduced_docs_from_flat(
+    metrics_dict: dict[str, list],
+) -> dict[int, dict[str, float]]:
     """Build _reduced_docs from flat {metric: [values]} for testing."""
     n_docs = max((len(v) for v in metrics_dict.values()), default=0)
-    docs: dict[int, ReducedDoc] = {}
+    docs: dict[int, dict[str, float]] = {}
     for i in range(n_docs):
-        values = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
-        docs[i] = ReducedDoc(doc_id=i, values=values)
+        docs[i] = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
     return docs
 
 
@@ -624,8 +625,6 @@ class TestProcessResultsBugFix:
 
         scorer.set_results(scored_docs)
         reduced_values = [
-            rd.values["acc"]
-            for rd in scorer.reduced_docs.values()
-            if "acc" in rd.values
+            rd["acc"] for rd in scorer.reduced_docs.values() if "acc" in rd
         ]
         assert len(reduced_values) == 2

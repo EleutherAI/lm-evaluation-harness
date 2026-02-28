@@ -22,7 +22,7 @@ from lm_eval.evaluator_utils import (
     get_sample_size,
     propagate_higher_is_better_,
 )
-from lm_eval.scorers import MetricKey, ReducedDoc, ScoredDoc, Scorer
+from lm_eval.scorers import MetricKey, ScoredDoc, Scorer
 
 
 if TYPE_CHECKING:
@@ -61,13 +61,14 @@ def _build_mock_scorers(
     return [Scorer(name="none", filter=noop_filter, metrics=metrics)]
 
 
-def _reduced_docs_from_flat(metrics_dict: dict[str, list]) -> dict[int, ReducedDoc]:
+def _reduced_docs_from_flat(
+    metrics_dict: dict[str, list],
+) -> dict[int, dict[str, float]]:
     """Build _reduced_docs from flat {metric: [values]} for testing."""
     n_docs = max((len(v) for v in metrics_dict.values()), default=0)
-    docs: dict[int, ReducedDoc] = {}
+    docs: dict[int, dict[str, float]] = {}
     for i in range(n_docs):
-        values = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
-        docs[i] = ReducedDoc(doc_id=i, values=values)
+        docs[i] = {mn: vals[i] for mn, vals in metrics_dict.items() if i < len(vals)}
     return docs
 
 
@@ -926,18 +927,6 @@ class TestScoredDoc:
         assert set(sd.scores.keys()) == {"acc", "f1"}
 
 
-class TestReducedDoc:
-    def test_frozen(self):
-        rd = ReducedDoc(doc_id=0, values={"acc": 1.0})
-        with pytest.raises(AttributeError):
-            rd.doc_id = 1  # type: ignore[misc]
-
-    def test_construction(self):
-        rd = ReducedDoc(doc_id=5, values={"acc": 0.9, "f1": 0.8})
-        assert rd.doc_id == 5
-        assert rd.values == {"acc": 0.9, "f1": 0.8}
-
-
 # ---------------------------------------------------------------------------
 # TestMetricKey
 # ---------------------------------------------------------------------------
@@ -1037,14 +1026,14 @@ class TestScorerAggregationComposite:
 
     def test_aggregate_uses_parent_aggregation(self):
         scorer = self._make_scorer_with_composite()
-        agg, sample_len = scorer.aggregate(bootstrap_iters=0)
+        agg, sample_len = scorer.aggregate(scorer.reduced_docs, bootstrap_iters=0)
         assert agg["pass@1(exact_match),none"] == pytest.approx(0.5)
         assert agg["pass@5(exact_match),none"] == pytest.approx(0.5)
         assert sample_len == 4
 
     def test_aggregate_composite_stderr_present(self):
         scorer = self._make_scorer_with_composite()
-        agg, _ = scorer.aggregate(bootstrap_iters=100)
+        agg, _ = scorer.aggregate(scorer.reduced_docs, bootstrap_iters=100)
         assert "pass@1(exact_match)_stderr,none" in agg
         assert "pass@5(exact_match)_stderr,none" in agg
 

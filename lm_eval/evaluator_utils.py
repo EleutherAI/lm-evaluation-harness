@@ -509,7 +509,7 @@ def _build_logged_samples(
             target = first.target
             rd = scorer.reduced_docs.get(doc_id)
 
-            per_doc_metrics = rd.values if rd else {}
+            per_doc_metrics = rd or {}
 
             example = {
                 "doc_id": doc_id_true,
