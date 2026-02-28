@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
-from typing_extensions import Self
+from typing_extensions import Self, TypedDict
 
 from ._types import MetricKey, ScoredDoc
 
@@ -14,8 +14,39 @@ if TYPE_CHECKING:
     from lm_eval.api.filter import Filter, FilterEnsemble
     from lm_eval.api.instance import Instance
     from lm_eval.api.metrics import Metric
+    from lm_eval.config.task import FilterStep, MetricConfig, ScorerConfig
 
 eval_logger = logging.getLogger(__name__)
+
+
+class _ScorerCfg(TypedDict):
+    """Normalised per-pipeline config consumed by :meth:`Scorer.from_dict`.
+
+    Each ``TaskConfig.filter_list`` entry becomes one ``_ScorerCfg`` passed
+    to :func:`build_scorer`.  After ``TaskConfig._normalize_scoring_config()``,
+    all three keys are guaranteed present:
+
+    * ``name`` — pipeline identifier.
+    * ``filter`` — filter steps, or ``[]`` to fall back to the scorer's
+      ``default_filter_cfg`` (→ ``noop``).
+    * ``metric_list`` — metric configs, or ``[]`` to fall back to
+      ``default_metric_cfg`` (→ ``DEFAULT_METRIC_REGISTRY``).
+    """
+
+    name: str
+    """Pipeline identifier (e.g. ``"strict-match"``, ``"none"``)."""
+
+    filter: list[FilterStep]
+    """Ordered filter-step configs.  Each entry is a dict with a
+    ``"function"`` key (see :class:`~lm_eval.config.task.FilterStep`).
+    An empty list ``[]`` signals "no explicit filters" — ``Scorer._build_filter``
+    falls back to the scorer's ``default_filter_cfg`` → ``[{"function": "noop"}]``."""
+
+    metric_list: list[MetricConfig]
+    """Per-pipeline metric configs.  Each entry is a dict with a
+    ``"metric"`` key (see :class:`~lm_eval.config.task.MetricConfig`).
+    An empty list ``[]`` signals "no explicit metrics" — ``Scorer._build_metrics``
+    falls back to ``default_metric_cfg`` → ``DEFAULT_METRIC_REGISTRY``."""
 
 
 @dataclass(kw_only=True)
@@ -61,14 +92,15 @@ class Scorer:
     @classmethod
     def from_dict(
         cls,
-        cfg: dict[str, Any],
+        cfg: _ScorerCfg,
         *,
         output_type: str | None = None,
         **kwargs: Any,
     ) -> Self:
-        """Build a Scorer from a config dict.
+        """Build a Scorer from a normalised pipeline config.
 
-        Expected shape::
+        *cfg* is a :class:`_ScorerCfg` produced by
+        ``TaskConfig._normalize_scoring_config()``::
 
             {
                 "name": "strict-match",
@@ -97,7 +129,7 @@ class Scorer:
         )
 
     @classmethod
-    def _build_filter(cls, name: str, cfg: dict[str, Any]) -> FilterEnsemble:
+    def _build_filter(cls, name: str, cfg: _ScorerCfg) -> FilterEnsemble:
         """Resolve filter config: explicit cfg > ClassVar default > noop fallback."""
         filter_cfg = (
             cfg.get("filter") or cls.default_filter_cfg or [{"function": "noop"}]
@@ -107,7 +139,7 @@ class Scorer:
     @classmethod
     def _build_metrics(
         cls,
-        cfg: dict[str, Any],
+        cfg: _ScorerCfg,
         *,
         output_type: str | None = None,
     ) -> list[Metric]:
@@ -138,7 +170,7 @@ class Scorer:
         Filter defaults to ``cls.default_filter_cfg`` if set, otherwise
         ``noop``.
         """
-        return cls.from_dict({"name": name}, **kwargs)
+        return cls.from_dict({"name": name, "filter": [], "metric_list": []}, **kwargs)
 
     # ------------------------------------------------------------------
     # Resolvers (override for fully custom construction)
@@ -582,18 +614,22 @@ class LLScorer(Scorer):
 
 
 def build_scorer(
-    cfg: dict[str, Any] | None = None,
+    cfg: _ScorerCfg | None = None,
     output_type: str | None = None,
-    scorer_type: str | dict[str, Any] | None = None,
+    scorer_type: str | ScorerConfig | None = None,
 ) -> Scorer:
     """Construct the appropriate scorer subclass.
+
+    *cfg* is a :class:`_ScorerCfg` (normalised pipeline config from
+    ``TaskConfig.filter_list``).
 
     *scorer_type* can be:
 
     * **str** — scorer name, resolved from the scorer registry
       (e.g. ``"first_token"`` → :class:`FirstTokenScorer`).
-    * **dict** — ``{"type": "scorer_name", ...kwargs}`` where extra
-      keys are forwarded to the scorer constructor as kwargs.
+    * :class:`~lm_eval.config.task.ScorerConfig` **dict** —
+      ``{"type": "scorer_name", ...kwargs}`` where extra keys are
+      forwarded to the scorer constructor as kwargs.
     * **None** — fall back to :class:`GenScorer` / :class:`LLScorer`
       based on *output_type*.
 
@@ -630,8 +666,11 @@ def build_scorer(
     if cfg is not None:
         return cls.from_dict(cfg, output_type=output_type, **scorer_kwargs)
     if scorer_kwargs:
+        assert scorer_name is not None  # set in the same branch as scorer_kwargs
         return cls.from_dict(
-            {"name": scorer_name}, output_type=output_type, **scorer_kwargs
+            {"name": scorer_name, "filter": [], "metric_list": []},
+            output_type=output_type,
+            **scorer_kwargs,
         )
     if scorer_name is not None:
         return cls.default_scorer(name=scorer_name, output_type=output_type)

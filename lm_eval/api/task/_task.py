@@ -1034,7 +1034,11 @@ class Task:
         """
         self._scorers = [
             build_scorer(
-                cfg={"name": "none", "metric_list": [{"metric": metric_name}]},
+                cfg={
+                    "name": "none",
+                    "filter": [],
+                    "metric_list": [{"metric": metric_name}],
+                },
                 output_type=self.OUTPUT_TYPE,
             )
         ]

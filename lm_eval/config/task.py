@@ -93,6 +93,36 @@ class FilterStep(TypedDict, total=False):
     or ``{"filter_fn": "!function utils.my_filter"}`` for ``"custom"``)."""
 
 
+class ScorerConfig(TypedDict, total=False):
+    """Configuration for a registered scorer.
+
+    A scorer encapsulates the full filter → score → reduce → aggregate
+    pipeline. When ``scorer`` is set on a task, scoring is delegated to
+    the registered scorer class instead of the default metric pipeline.
+
+    Can be specified as a plain string (just the scorer name) or as a
+    dict with ``type`` plus extra kwargs forwarded to the scorer
+    constructor.
+
+    Example YAML::
+
+        # String shorthand — equivalent to {"type": "first_token"}
+        scorer: first_token
+
+        # Dict form with custom kwargs forwarded to the scorer class
+        scorer:
+          type: ai_judge
+          judge_model: claude-sonnet-4-6
+
+    See ``lm_eval/scorers/`` for built-in scorers.  Custom scorers can
+    be registered with ``@register_scorer``.
+    """
+
+    type: Required[str]
+    """Name of a registered scorer (e.g. ``"first_token"``, ``"regex"``,
+    ``"choice_match"``). Resolved via ``lm_eval.api.registry.get_scorer``."""
+
+
 class FilterPipeline(TypedDict, total=False):
     r"""A named filter pipeline with optional per-pipeline metrics.
 
@@ -418,9 +448,14 @@ class TaskConfig:
     strategies from a single evaluation run (e.g. ``"strict-match"``
     and ``"maj@64"`` on GSM8k)."""
 
-    scorer: str | dict[str, Any] | None = None
+    scorer: str | ScorerConfig | None = None
     """A registered scorer name or inline scorer config. When set, scoring
-    is delegated to this scorer instead of the default metric pipeline."""
+    is delegated to this scorer instead of the default metric pipeline.
+
+    Accepts a string (e.g. ``"first_token"``) which is normalised to
+    ``{"type": "first_token"}`` in ``__post_init__``, or a full
+    :class:`ScorerConfig` dict with extra kwargs forwarded to the scorer
+    constructor."""
 
     repeats: int = 1
     """Number of times to repeat each instance. Only used for generation
@@ -563,7 +598,7 @@ class TaskConfig:
         * ``filter_list`` always has at least one entry.  Each entry
           carries a ``metric_list`` (per-pipeline if provided, otherwise
           the task-level ``metric_list`` as fallback).
-        * ``scorer`` is normalised to ``dict | None``.
+        * ``scorer`` is normalised to :class:`ScorerConfig` ``| None``.
         """
         self.metric_list = normalize_metric_list(self.metric_list)
         self.filter_list = normalize_filter_list(self.filter_list)
@@ -574,14 +609,13 @@ class TaskConfig:
             pipeline.setdefault("metric_list", list(self.metric_list))
 
         # When no filter_list is provided, create a default scorer entry.
-        # The ``filter`` key is intentionally omitted so that the scorer
-        # class can apply its own ``default_filter_cfg``; the cast is
-        # safe because ``Scorer._build_filter`` handles a missing key.
+        # ``filter`` is empty so that the scorer class can apply its own
+        # ``default_filter_cfg`` (the ``or`` chain in ``_build_filter``
+        # treats ``[]`` the same as a missing key).
         if not self.filter_list:
-            self.filter_list = cast(
-                "list[FilterPipeline]",
-                [{"name": "none", "metric_list": list(self.metric_list)}],
-            )
+            self.filter_list = [
+                {"name": "none", "filter": [], "metric_list": list(self.metric_list)}
+            ]
 
         # Normalise scorer type to dict form for consistent downstream handling.
         if isinstance(self.scorer, str):
