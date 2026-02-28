@@ -3,42 +3,42 @@ from typing import Any
 
 import numpy as np
 
-from lm_eval.api.registry import register_aggregation
+from lm_eval.api.registry import register_aggregation as aggregation
 
 
-@register_aggregation("bypass")
+@aggregation("bypass")
 def bypass_agg(arr: Any):
     return 999
 
 
-@register_aggregation("nanmean")
+@aggregation("nanmean")
 def nanmean(arr):
     if len(arr) == 0 or all(np.isnan(arr)):
         return np.nan
     return np.nanmean(arr)
 
 
-@register_aggregation("mean")
+@aggregation("mean")
 def mean(arr):
     return sum(arr) / len(arr)
 
 
-@register_aggregation("median")
+@aggregation("median")
 def median(arr):
     return sorted(arr)[len(arr) // 2]
 
 
-@register_aggregation("perplexity")
+@aggregation("perplexity")
 def perplexity(items):
     return math.exp(-mean(items))
 
 
-@register_aggregation("weighted_perplexity")
+@aggregation("weighted_perplexity")
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
 
 
-@register_aggregation("bits_per_byte")
+@aggregation("bits_per_byte")
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
 

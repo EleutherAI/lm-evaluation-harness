@@ -14,7 +14,7 @@ import numpy as np
 
 NAT_TO_BIT = 1.0 / np.log(2.0)
 
-from lm_eval.api.registry import register_metric
+from lm_eval.api.registry import register_metric as metric
 
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ def _multiple_targets(_target: int | list[int], _result: int):
     return int(any(_result == t for t in _target))
 
 
-@register_metric(
+@metric(
     metric="acc",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice"],
@@ -51,7 +51,7 @@ def acc(
     """Accuracy.
 
     For multiple-choice (multiple lls): 1 if argmax(lls) matches gold.
-    For single loglikelihood (one ll): 1 if the continuation was decoded greedily.
+    For a single loglikelihood (one ll): 1 if the continuation was decoded greedily.
     """
     if len(predictions.lls) == 1:
         # Plain loglikelihood: acc = greedy decode match
@@ -65,7 +65,7 @@ def acc(
     return int(pred == int(references))
 
 
-@register_metric(
+@metric(
     metric="acc_norm",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -84,7 +84,7 @@ def acc_norm(
     return int(pred == int(references))
 
 
-@register_metric(
+@metric(
     metric="acc_bytes",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -103,7 +103,7 @@ def acc_bytes(
     return int(pred == int(references))
 
 
-@register_metric(
+@metric(
     metric="acc_mutual_info",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -127,7 +127,7 @@ def acc_mutual_info_fn(
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
+@metric(
     metric="exact_match_mc",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -149,7 +149,7 @@ def exact_match_mc(references: int | list[int], predictions: LLResults) -> int:
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
+@metric(
     metric="bpb",
     higher_is_better=False,
     output_type=["loglikelihood", "multiple_choice"],
@@ -166,7 +166,7 @@ def bpb(references: int, predictions: LLResults) -> float:
     ) * NAT_TO_BIT
 
 
-@register_metric(
+@metric(
     metric="logprob",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice"],
@@ -177,7 +177,7 @@ def logprob_fn(references: int, predictions: LLResults) -> float:
     return (predictions.lls[references]).item()
 
 
-@register_metric(
+@metric(
     metric="choice_logprob",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -193,7 +193,7 @@ def choice_logprob(references: int, predictions: LLResults) -> float:
     return (lls[references] - np.logaddexp.reduce(lls)).item()
 
 
-@register_metric(
+@metric(
     metric="choice_prob_norm",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -210,7 +210,7 @@ def choice_prob_norm(references: int, predictions: LLResults) -> float:
     return np.exp(log_weights[references] - np.logaddexp.reduce(log_weights)).item()
 
 
-@register_metric(
+@metric(
     metric="choice_logprob_norm",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -231,7 +231,7 @@ def choice_logprob_norm(references: int, predictions: LLResults) -> float:
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
+@metric(
     metric="brier_score",
     higher_is_better=False,
     output_type="multiple_choice",
@@ -250,7 +250,7 @@ def brier_score(references: int, predictions: LLResults) -> float:
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
+@metric(
     metric="bypass",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice", "generate_until"],

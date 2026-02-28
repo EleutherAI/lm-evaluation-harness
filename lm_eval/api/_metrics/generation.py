@@ -7,7 +7,7 @@ from typing_extensions import overload
 
 import numpy as np
 
-from lm_eval.api.registry import register_metric
+from lm_eval.api.registry import register_metric as metric
 
 
 ### the code used in the `exact_match_hf_evaluate` function is ported from
@@ -81,7 +81,7 @@ def exact_match_fn(
     multiple_targets: Literal[False] = ...,
     **kwargs,
 ) -> dict[str, list[int]]: ...
-@register_metric(
+@metric(
     metric="exact_match",
     higher_is_better=True,
     output_type="generate_until",

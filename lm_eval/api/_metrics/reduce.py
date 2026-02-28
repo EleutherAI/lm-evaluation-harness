@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from lm_eval.api.registry import register_reduction
+from lm_eval.api.registry import register_reduction as reduce
 
 
 if TYPE_CHECKING:
@@ -43,7 +43,7 @@ def _default_k_values(n: int) -> list[int]:
     return sorted({k for k in anchors if 1 <= k <= n})
 
 
-@register_reduction("pass@k")
+@reduce("pass@k")
 def pass_at_k(
     references: Any,
     predictions: Sequence[int] | Sequence[bool],

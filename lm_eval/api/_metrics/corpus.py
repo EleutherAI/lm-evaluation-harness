@@ -5,11 +5,11 @@ import math
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Generic
-
-import numpy as np
 from typing_extensions import TypeVar
 
-from lm_eval.api.registry import register_metric
+import numpy as np
+
+from lm_eval.api.registry import register_metric as metric
 from lm_eval.utils import warning_once
 
 
@@ -97,7 +97,7 @@ class BrierScore(CorpusMetric["LLResults", float]):
 # ---------------------------------------------------------------------------
 
 
-@register_metric(
+@metric(
     metric="perplexity",
     higher_is_better=False,
     output_type="loglikelihood",
@@ -128,7 +128,7 @@ def _weighted_mean(items):
     return sum(a) / sum(b)
 
 
-@register_metric(
+@metric(
     metric="word_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
@@ -151,7 +151,7 @@ class WordPerplexity(CorpusMetric["LLResults", tuple[float, int]]):
         return math.exp(-_weighted_mean(items))
 
 
-@register_metric(
+@metric(
     metric="byte_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
@@ -174,7 +174,7 @@ class BytePerplexity(CorpusMetric["LLResults", tuple[float, int]]):
         return math.exp(-_weighted_mean(items))
 
 
-@register_metric(
+@metric(
     metric="bits_per_byte",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
@@ -273,7 +273,7 @@ class _SacrebleuCorpusMetric(CorpusMetric["GenPred", tuple[list[str], list[str]]
         return refs, preds
 
 
-@register_metric(metric="bleu", higher_is_better=True, output_type="generate_until")
+@metric(metric="bleu", higher_is_better=True, output_type="generate_until")
 class Bleu(_SacrebleuCorpusMetric):
     """BLEU score for generated text.
 
@@ -291,7 +291,7 @@ class Bleu(_SacrebleuCorpusMetric):
         return sacrebleu.corpus_bleu(preds, refs).score
 
 
-@register_metric(metric="chrf", higher_is_better=True, output_type="generate_until")
+@metric(metric="chrf", higher_is_better=True, output_type="generate_until")
 class Chrf(_SacrebleuCorpusMetric):
     """chrF++ score for generated text.
 
@@ -309,7 +309,7 @@ class Chrf(_SacrebleuCorpusMetric):
         return sacrebleu.corpus_chrf(preds, refs).score
 
 
-@register_metric(metric="ter", higher_is_better=False, output_type="generate_until")
+@metric(metric="ter", higher_is_better=False, output_type="generate_until")
 class Ter(_SacrebleuCorpusMetric):
     """Translation Error Rate for generated text.
 
@@ -332,7 +332,7 @@ class Ter(_SacrebleuCorpusMetric):
 # ---------------------------------------------------------------------------
 
 
-@register_metric(metric="f1", higher_is_better=True, output_type="multiple_choice")
+@metric(metric="f1", higher_is_better=True, output_type="multiple_choice")
 class F1(CorpusMetric["LLResults", tuple[int, int]]):
     """F1 score for multiple choice tasks.
 
@@ -353,7 +353,7 @@ class F1(CorpusMetric["LLResults", tuple[int, int]]):
         return float(np.max(f1_score(golds, preds)))
 
 
-@register_metric(metric="mcc", higher_is_better=True, output_type="multiple_choice")
+@metric(metric="mcc", higher_is_better=True, output_type="multiple_choice")
 class MCC(CorpusMetric["LLResults", tuple[int, int]]):
     """Matthews Correlation Coefficient for multiple choice tasks.
 
@@ -374,7 +374,7 @@ class MCC(CorpusMetric["LLResults", tuple[int, int]]):
         return float(matthews_corrcoef(golds, preds))
 
 
-@register_metric(
+@metric(
     metric="likelihood",
     higher_is_better=True,
     output_type="multiple_choice",
@@ -401,7 +401,7 @@ class Likelihood(CorpusMetric["LLResults", tuple[int, "tuple[NDArray[float64], .
 # # ---------------------------------------------------------------------------
 #
 #
-# @register_metric(
+# @metric(
 #     metric="acc_all",
 #     higher_is_better=True,
 #     output_type="loglikelihood",
