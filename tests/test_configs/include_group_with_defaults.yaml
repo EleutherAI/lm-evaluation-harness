@@ -1,0 +1,6 @@
+# Group using include: with a path to shared task defaults
+group: include_group_with_defaults
+include: task_defaults.yaml
+task:
+  - include_task_fs0
+  - include_task_fs1

@@ -1,0 +1,8 @@
+# Group using include: with inline task field overrides
+group: include_group_inline
+include:
+  num_fewshot: 7
+  doc_to_text: "Inline question: {{question}}"
+task:
+  - include_task_fs0
+  - include_task_fs1

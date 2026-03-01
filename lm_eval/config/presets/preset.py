@@ -362,7 +362,13 @@ class PresetConfig:
         if self.output_type == "multiple_choice":
             # For multiple choice, we need the index
             # If answer is already an index, return it; if it's text, find it in choices
-            assert c_ref is not None, "choices_field required for multiple_choice"
+            if c_ref is None:
+                raise ValueError(
+                    f"Preset '{self.preset_name}' has output_type='multiple_choice' "
+                    f"but no doc_to_choice was provided. Set doc_to_choice in your "
+                    f"task config (e.g. doc_to_choice: choices) so the preset can "
+                    f"build the target template."
+                )
             return (
                 "{% if " + a_raw + " is number %}" + a_out + "{% else %}"
                 "{{ " + c_ref + ".index(" + a_raw + ") }}"
