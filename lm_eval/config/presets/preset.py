@@ -16,6 +16,61 @@ class _DOCTO(TypedDict, extra_items=str):
     doc_to_choice: str | None
 
 
+_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def _label_at_index(choice_labels: str | list[str] | None, index_expr: str) -> str:
+    """Return a Jinja expression for the label at a 0-based index.
+
+    Args:
+        choice_labels: ``"letters"``, ``"numbers"``, a custom list, or ``None``.
+        index_expr: Jinja expression evaluating to a 0-based integer
+            (e.g. ``"loop.index0"``, ``"answer"``).
+
+    Examples::
+
+        >>> _label_at_index("letters", "loop.index0")
+        "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[loop.index0]"
+        >>> _label_at_index("numbers", "answer")
+        "answer + 1"
+        >>> _label_at_index(["I", "II", "III"], "loop.index0")
+        "['I', 'II', 'III'][loop.index0]"
+    """
+    if choice_labels == "letters":
+        return f"'{_LETTERS}'[{index_expr}]"
+    elif choice_labels == "numbers":
+        return f"{index_expr} + 1"
+    elif isinstance(choice_labels, list):
+        return f"{choice_labels!s}[{index_expr}]"
+    return "''"
+
+
+def _labels_up_to(choice_labels: str | list[str] | None, count_expr: str) -> str:
+    """Return a Jinja expression for the list of labels up to *count_expr*.
+
+    Args:
+        choice_labels: ``"letters"``, ``"numbers"``, a custom list, or ``None``.
+        count_expr: Jinja expression evaluating to an integer count
+            (e.g. ``"_num_choices"``, ``"choices|length"``).
+
+    Examples::
+
+        >>> _labels_up_to("letters", "_num_choices")
+        "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:_num_choices]|list"
+        >>> _labels_up_to("numbers", "choices|length")
+        "range(1, choices|length + 1)|list"
+        >>> _labels_up_to(["I", "II", "III"], "_num_choices")
+        "['I', 'II', 'III'][:_num_choices]"
+    """
+    if choice_labels == "letters":
+        return f"'{_LETTERS}'[:{count_expr}]|list"
+    elif choice_labels == "numbers":
+        return f"range(1, {count_expr} + 1)|list"
+    elif isinstance(choice_labels, list):
+        return f"{choice_labels!s}[:{count_expr}]"
+    return "''"
+
+
 @dataclass(kw_only=True)
 class PresetConfig:
     """Declarative prompt configuration for evaluation tasks.
@@ -346,19 +401,11 @@ class PresetConfig:
         c_ref = self._field_ref(doc_to_choice, for_output=False)
         preamble = "{% set _num_choices = " + c_ref + "|length %}"
 
-        if self.choice_labels == "letters":
-            preamble += (
-                "{% set _choice_labels = "
-                "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:_num_choices]|list %}"
-            )
-        elif self.choice_labels == "numbers":
-            preamble += "{% set _choice_labels = range(1, _num_choices + 1)|list %}"
-        elif isinstance(self.choice_labels, list):
-            preamble += (
-                "{% set _choice_labels = "
-                + str(self.choice_labels)
-                + "[:_num_choices] %}"
-            )
+        preamble += (
+            "{% set _choice_labels = "
+            + _labels_up_to(self.choice_labels, "_num_choices")
+            + " %}"
+        )
 
         preamble += (
             "{% set _choice_list_and = "
@@ -462,15 +509,7 @@ class PresetConfig:
         c_ref = self._field_ref(doc_to_choice, for_output=False)
         delim = self._escape_jinja(self.choice_delimiter)
 
-        if self.choice_labels == "letters":
-            labels_expr = "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[loop.index0]"
-        elif self.choice_labels == "numbers":
-            labels_expr = "loop.index"
-        elif isinstance(self.choice_labels, list):
-            labels_list = str(self.choice_labels)
-            labels_expr = f"{labels_list}[loop.index0]"
-        else:
-            labels_expr = "''"
+        labels_expr = _label_at_index(self.choice_labels, "loop.index0")
 
         return (
             "{% for choice in " + c_ref + " %}"
@@ -511,18 +550,11 @@ class PresetConfig:
             )
         elif self.output_type == "generate_until":
             # For generate_until, return a formatted answer based on answer_format
-            if self.answer_format == "letters":
-                # Convert index to letter label (A, B, C, D)
+            if self.answer_format in ("letters", "numbers"):
+                # Convert index to label (A/B/C or 1/2/3)
                 return (
                     "{% if " + a_raw + " is number %}"
-                    "{{ 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[" + a_raw + "] }}"
-                    "{% else %}" + a_out + "{% endif %}"
-                )
-            elif self.answer_format == "numbers":
-                # Convert index to 1-based number (1, 2, 3, 4)
-                return (
-                    "{% if " + a_raw + " is number %}"
-                    "{{ " + a_raw + " + 1 }}"
+                    "{{ " + _label_at_index(self.choice_labels, a_raw) + " }}"
                     "{% else %}" + a_out + "{% endif %}"
                 )
             elif self.answer_format == "full_text" and c_ref:
@@ -551,16 +583,8 @@ class PresetConfig:
             # Return raw choices
             return "{{ " + c_ref + " }}"
 
-        # Return labels based on a number of choices
-        if self.choice_labels == "letters":
-            return "{{ 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:" + c_ref + "|length] | list }}"
-        elif self.choice_labels == "numbers":
-            return "{{ range(1, " + c_ref + "|length + 1) | list }}"
-        elif isinstance(self.choice_labels, list):
-            labels_str = str(self.choice_labels)
-            return "{{ " + labels_str + "[:" + c_ref + "|length] }}"
-
-        return "{{ " + c_ref + " }}"
+        # Return labels based on the number of choices
+        return "{{ " + _labels_up_to(self.choice_labels, c_ref + "|length") + " }}"
 
     def to_task_config(
         self,
