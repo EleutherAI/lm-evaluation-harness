@@ -285,8 +285,6 @@ class LoglikelihoodTask(Task):
             f"For loglikelihood tasks, the target should be a string representing the continuation to score. Got {cont} of type {type(cont)}. Please check your doc_to_target implementation."
         )
         arguments = (ctx, cont)
-        if self._multiple_targets:
-            metadata.setdefault("metric_kwargs", {})["multiple_targets"] = True
 
         return [
             Instance(
