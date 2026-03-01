@@ -78,12 +78,6 @@ class PresetConfig:
     """Text soliciting the answer (e.g. ``"Answer:"``,
     ``'Your response should end with "The answer is [X]".'``)."""
 
-    answer_format: str
-    """How the target/ground-truth is formatted for ``generate_until``
-    tasks. ``"letters"`` converts an index to ``A``/``B``/``C``,
-    ``"numbers"`` to ``1``/``2``/``3``, ``"full_text"`` to the choice
-    text. Ignored for ``multiple_choice`` output type."""
-
     gen_prefix: str | None
     """Constrained-decoding prefix appended to the prompt so the model
     continues from a known anchor (e.g. ``"The best answer is"``).
@@ -105,6 +99,21 @@ class PresetConfig:
         # Auto-register subclasses that define preset_name
         if cls.preset_name is not None:
             PresetConfig._registry[cls.preset_name] = cls
+
+    @property
+    def answer_format(self) -> str:
+        """How the target/ground-truth is formatted for ``generate_until`` tasks.
+
+        ``"letters"`` converts an index to ``A``/``B``/``C``,
+        ``"numbers"`` to ``1``/``2``/``3``, ``"full_text"`` to the choice text.
+        Ignored for ``multiple_choice`` output type.
+        """
+        # Todo: handle custom list of labels if self.choice_labels is a list
+        if self.choice_labels == "letters":
+            return "letters"
+        elif self.choice_labels == "numbers":
+            return "numbers"
+        return "full_text"
 
     @classmethod
     def get(
