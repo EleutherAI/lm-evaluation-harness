@@ -542,7 +542,7 @@ class TemplateAPI(TemplateLM):
             return answers
         # If the retries also fail
         except BaseException as e:
-            eval_logger.error(f"Exception:{repr(e)}, {outputs}, retrying.")
+            eval_logger.error(f"Exception:{repr(e)}, {locals().get('outputs', '(no outputs)')}, retrying.")
             raise e
         finally:
             if acquired:
