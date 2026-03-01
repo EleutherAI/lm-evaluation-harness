@@ -6,7 +6,6 @@ to exercise the full chain without requiring heavy fixtures or model inference.
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from typing import ClassVar
 
@@ -508,13 +507,7 @@ class TestScorerReduce:
         assert reduced[0]["pass@1(metric)"] == 1.0
         assert reduced[0]["pass@3(metric)"] == 0.8
 
-    def test_missing_reduction_warns_and_takes_first(self, caplog):
-        _metric = Metric(
-            name="test_metric",
-            fn=lambda refs, preds: {"test_metric": [1]},
-            aggregation=mean,
-            reduction=None,
-        )
+    def test_missing_reduction_raises_on_multiple_values(self):
         # Metric.__post_init__ forces reduction=take_first when None, so
         # we need a scorer with no matching metric for the scored metric name
         scorer = GenScorer(
@@ -527,10 +520,8 @@ class TestScorerReduce:
                 doc_id=0, reference="ref", scores={"unknown_metric": [10, 20, 30]}
             ),
         }
-        with caplog.at_level(logging.WARNING, logger="lm_eval.scorers._base"):
-            reduced = scorer.reduce(scored_docs)
-        assert reduced[0]["unknown_metric"] == 10
-        assert "No reduction function" in caplog.text
+        with pytest.raises(ValueError, match="no reduction function"):
+            scorer.reduce(scored_docs)
 
     def test_reduce_returns_dict(self):
         scorer = _noop_scorer()
