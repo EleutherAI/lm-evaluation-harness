@@ -10,6 +10,7 @@ which run at **parse time** to canonicalise raw YAML dicts.
 from __future__ import annotations
 
 import functools
+import logging
 import re
 import string
 from typing import TYPE_CHECKING, Any, Literal, TypeVar
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
+eval_logger = logging.getLogger(__name__)
 # ── Jinja helpers ────────────────────────────────────────────────────
 
 
@@ -168,9 +170,6 @@ def _coerce_target(value, parse_list=False):
 
 
 def _resolve_target_index(target, choices, doc) -> int | None:
-    import logging
-
-    eval_logger = logging.getLogger(__name__)
     if isinstance(target, (int, float)):
         idx = int(target)
         if idx < len(choices):
