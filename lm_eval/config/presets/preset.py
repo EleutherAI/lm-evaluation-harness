@@ -383,7 +383,8 @@ class PresetConfig:
         {section_separator}{formatted_choices}
         {section_separator}{answer_instruction}{answer_prompt}
         """
-        template = self._build_preamble_jinja(doc_to_choice)
+        preamble = self._build_preamble_jinja(doc_to_choice)
+        template = ""
 
         # Named section separators — derived from section_separator for now
         # but kept as local names so they can be split out later if needed.
@@ -410,6 +411,17 @@ class PresetConfig:
             template += self.answer_instruction
         # answer_prompt may contain Jinja refs like {{ _choice_list_or }}
         template += self.answer_prompt
+
+        # Only prepend the preamble if the body actually references
+        # any of the computed variables; skip it to keep templates clean.
+        _PREAMBLE_VARS = (
+            "_num_choices",
+            "_choice_labels",
+            "_choice_list_and",
+            "_choice_list_or",
+        )
+        if preamble and any(v in template for v in _PREAMBLE_VARS):
+            template = preamble + template
 
         return template
 
