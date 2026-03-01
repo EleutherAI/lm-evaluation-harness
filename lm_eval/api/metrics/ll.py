@@ -39,6 +39,17 @@ def _multiple_targets(_target: int | list[int], _result: int):
     return int(any(_result == t for t in _target))
 
 
+def _check_acc(references: int | list[int], pred: int, multiple_targets: bool) -> int:
+    """Shared accuracy check: handle multiple targets or single-reference comparison."""
+    if multiple_targets:
+        return _multiple_targets(references, pred)
+    if isinstance(references, list):
+        raise TypeError(
+            "Multiple targets not supported for acc metric without multiple_targets=True"
+        )
+    return int(pred == int(references))
+
+
 @metric(
     "acc",
     higher_is_better=True,
@@ -57,12 +68,7 @@ def acc(
         # Plain loglikelihood: acc = greedy decode match
         return int(predictions.is_greedy[0])
     pred = int(np.argmax(predictions.lls))
-    if multiple_targets:
-        return _multiple_targets(references, pred)
-    assert not isinstance(references, list), (
-        "Multiple targets not supported for acc metric without multiple_targets=True"
-    )
-    return int(pred == int(references))
+    return _check_acc(references, pred, multiple_targets)
 
 
 @metric(
@@ -76,12 +82,7 @@ def acc_norm(
 ) -> int:
     """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
     pred = np.argmax(predictions.lls / predictions.char_len()).item()
-    if multiple_targets:
-        return _multiple_targets(references, pred)
-    assert not isinstance(references, list), (
-        "Multiple targets not supported for acc metric without multiple_targets=True"
-    )
-    return int(pred == int(references))
+    return _check_acc(references, pred, multiple_targets)
 
 
 @metric(
@@ -95,12 +96,7 @@ def acc_bytes(
 ) -> int:
     """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
     pred = np.argmax(predictions.lls / predictions.byte_len()).item()
-    if multiple_targets:
-        return _multiple_targets(references, pred)
-    assert not isinstance(references, list), (
-        "Multiple targets not supported for acc metric without multiple_targets=True"
-    )
-    return int(pred == int(references))
+    return _check_acc(references, pred, multiple_targets)
 
 
 @metric(
@@ -114,12 +110,7 @@ def acc_mutual_info_fn(
 ) -> int:
     """Mutual-information-weighted accuracy: picks the choice with the highest ``ll - ll_unconditional``."""
     pred = np.argmax(predictions.lls_mutual_info).item()
-    if multiple_targets:
-        return _multiple_targets(references, pred)
-    assert not isinstance(references, list), (
-        "Multiple targets not supported for acc metric without multiple_targets=True"
-    )
-    return int(pred == int(references))
+    return _check_acc(references, pred, multiple_targets)
 
 
 # ---------------------------------------------------------------------------
