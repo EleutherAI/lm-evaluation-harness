@@ -58,7 +58,8 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
 
     # 1) Resolve the base metric from registry or callable
     if isinstance(raw, str):
-        # in the lambda case as we allow arbitrary metrics to be returned from process_results
+        # Allow arbitrary metric names for legacy tasks that return values from process_results.
+        # The placeholder fn raises if actually called — process_results tasks never call it.
         base = metric_registry.get(raw, None)
         if base is None:
             eval_logger.warning(
@@ -66,8 +67,20 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
                 "expects values from 'process_results'.",
                 raw,
             )
+            _missing_name = raw  # capture for closure
+
+            def _unregistered_metric_placeholder(*args, **kwargs):
+                raise RuntimeError(
+                    f"Metric '{_missing_name}' was not found in the registry and its "
+                    f"placeholder function was called. This usually means the metric "
+                    f"name is misspelled or the task does not implement "
+                    f"'process_results' to provide values for this metric."
+                )
+
             base = Metric(
-                name=raw, fn=lambda *args, **kwargs: -1.0, output_type={_output_type}
+                name=raw,
+                fn=_unregistered_metric_placeholder,
+                output_type={_output_type},
             )
         if output_type and output_type not in base.output_type:
             raise ValueError(

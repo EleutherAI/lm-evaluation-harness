@@ -736,7 +736,12 @@ def register_metric(
         try:
             metric_registry.register(name, target=_Deferred(_build))
         except ValueError:
-            eval_logger.warning("Failed to register metric '%s'", name, exc_info=True)
+            eval_logger.error(
+                "Failed to register metric '%s'. This metric will NOT be available.",
+                name,
+                exc_info=True,
+            )
+            raise
 
         return fn
 
