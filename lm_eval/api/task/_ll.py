@@ -200,13 +200,12 @@ class MultipleChoiceTask(Task):
         doc_to_choice: Callable[[Doc], list[str]] | str | list[str] | None = None,
     ) -> list[str] | None:
         choices = super().doc_to_choice(doc, doc_to_choice)
-        if (
-            choices is not None
-            and not isinstance(choices, list)
-            and not isinstance(choices[0], str)
-        ):
+        if choices and not isinstance(choices[0], str):
             eval_logger.warning(
-                "doc_to_choice should return a list of strings representing the answer choices. Skipping ..."
+                "doc_to_choice should return a list of strings, but got "
+                "list of %s: %choices Skipping ...",
+                type(choices[0]).__name__,
+                repr(choices),
             )
             return None
         if self._multiple_inputs:
@@ -286,8 +285,6 @@ class LoglikelihoodTask(Task):
             f"For loglikelihood tasks, the target should be a string representing the continuation to score. Got {cont} of type {type(cont)}. Please check your doc_to_target implementation."
         )
         arguments = (ctx, cont)
-        if self._multiple_targets:
-            metadata.setdefault("metric_kwargs", {})["multiple_targets"] = True
 
         return [
             Instance(

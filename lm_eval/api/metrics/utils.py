@@ -58,7 +58,8 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
 
     # 1) Resolve the base metric from registry or callable
     if isinstance(raw, str):
-        # in the lambda case as we allow arbitrary metrics to be returned from process_results
+        # Allow arbitrary metric names for legacy tasks that return values from process_results.
+        # The placeholder fn raises if actually called — process_results tasks never call it.
         base = metric_registry.get(raw, None)
         if base is None:
             eval_logger.warning(
@@ -66,8 +67,20 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
                 "expects values from 'process_results'.",
                 raw,
             )
+            _missing_name = raw  # capture for closure
+
+            def _unregistered_metric_placeholder(*args, **kwargs):
+                raise RuntimeError(
+                    f"Metric '{_missing_name}' was not found in the registry and its "
+                    f"placeholder function was called. This usually means the metric "
+                    f"name is misspelled or the task does not implement "
+                    f"'process_results' to provide values for this metric."
+                )
+
             base = Metric(
-                name=raw, fn=lambda *args, **kwargs: -1.0, output_type={_output_type}
+                name=raw,
+                fn=_unregistered_metric_placeholder,
+                output_type={_output_type},
             )
         if output_type and output_type not in base.output_type:
             raise ValueError(
@@ -91,7 +104,10 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
     higher_is_better = cfg.get("higher_is_better", base.higher_is_better)
     if aggregation is None:
         eval_logger.warning(
-            "Metric '%s' is defined but has no aggregation. Using default aggregation 'mean'.",
+            "Metric '%s' has no aggregation function after checking all fallback "
+            "layers. Defaulting to 'mean'. WARNING: this will produce INCORRECT "
+            "results for corpus-level metrics (BLEU, perplexity, F1, etc.). "
+            "Set 'aggregation' explicitly in your metric config if 'mean' is not intended.",
             base.name,
         )
         aggregation = cast("Callable[list[float], float]", get_aggregation("mean"))

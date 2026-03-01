@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import abc
 import asyncio
 import copy
 import itertools
 import json
 import logging
-from collections.abc import Awaitable, Callable, Iterable
 from functools import cached_property
 from typing import (
     TYPE_CHECKING,
@@ -29,13 +30,16 @@ from importlib.util import find_spec
 from io import BytesIO
 
 from lm_eval import utils
-from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable, Iterable
+
     from PIL import Image
+
+    from lm_eval.api.instance import Instance
 
 
 eval_logger = logging.getLogger(__name__)
@@ -52,20 +56,18 @@ class JsonChatStr(NamedTuple):
 
 
 def create_image_prompt(
-    imgs: list["Image.Image"], chat: dict, fmt: str = "PNG"
-) -> dict:
-    """Parameters
-    ----------
-    img : list[PIL.Image.Image]
-        The list of images to encode to base64
-    chat : dict
-    fmt : str, optional
-        Any format Pillow understands (e.g. "PNG", "JPEG").
+    imgs: list[Image.Image], chat: list[dict[str, Any]], fmt: str = "PNG"
+) -> list[dict[str, Any]]:
+    """Format multimodal image prompt.
+
+    Args:
+        imgs : list[PIL.Image.Image]: The list of images to encode to base64
+        chat : dict: The chat history in the format of list[dict["role": "user"/"system", "content": str, "type": "text"],...]
+        fmt : Any format Pillow understands (e.g. "PNG", "JPEG").
         Defaults to "PNG".
 
     Returns:
-    -------
-    dict
+        The chat history with the images encoded as base64 and added to the content of the last user message.
     """
     images = []
     for img in imgs:
@@ -258,7 +260,7 @@ class TemplateAPI(TemplateLM):
         messages: list[list[int]] | list[str] | list[JsonChatStr],
         generate=False,
     ) -> list[list[int]] | list[dict] | list[str] | str:
-        """Helper method to transform the prompt into the expected API input format. messages consist of batched requests"""
+        """Helper method to transform the prompt into the expected API input format. messages consist of batched requests."""
         if isinstance(messages[0], JsonChatStr):
             # for chat completions we need to decode the json string to list[dict,...]
             assert self._batch_size == 1, (
@@ -535,7 +537,11 @@ class TemplateAPI(TemplateLM):
             return answers
         # If the retries also fail
         except BaseException as e:
-            eval_logger.error(f"Exception:{e!r}, {outputs}, retrying.")
+            eval_logger.error(
+                "Exception:%r, %s, retrying.",
+                e,
+                locals().get("outputs", "(no outputs)"),
+            )
             raise
         finally:
             if acquired:
@@ -617,7 +623,7 @@ class TemplateAPI(TemplateLM):
         res = []
 
         def _collate(req: LogLikelihoodInputs):
-            """Defines the key for the sorted method"""
+            """Defines the key for the sorted method."""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch
