@@ -155,7 +155,7 @@ def normalize_filter_list(
     for pipeline in cfg:
         if "name" not in pipeline or "filter" not in pipeline:
             raise KeyError(
-                f"'name' and 'function' are required keys for each filter, got {pipeline.keys()} in {cfg}"
+                f"'name' and 'filter' are required keys for each filter pipeline, got {list(pipeline.keys())} in {cfg}"
             )
         entry: FilterPipeline = {
             "name": pipeline["name"],
