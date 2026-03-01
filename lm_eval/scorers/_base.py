@@ -351,13 +351,13 @@ class Scorer:
                     else:
                         values_dict[metric_name] = res
                 else:
-                    eval_logger.warning(
-                        "No reduction function for metric '%s' in scorer '%s'. "
-                        "Falling back to first value.",
-                        metric_name,
-                        self.name,
+                    raise ValueError(
+                        f"Metric '{metric_name}' in scorer '{self.name}' has "
+                        f"{len(score_list)} values per document (repeats > 1) "
+                        f"but no reduction function is configured. Set a "
+                        f"reduction (e.g., 'take_first', 'pass@k', 'mean') in "
+                        f"your metric config, or set repeats to 1."
                     )
-                    values_dict[metric_name] = score_list[0]
 
             result[sd.doc_id] = values_dict
 
@@ -410,10 +410,11 @@ class Scorer:
             elif aggregation_overrides and metric_name in aggregation_overrides:
                 agg_fn = aggregation_overrides[metric_name]
             else:
-                eval_logger.warning(
+                eval_logger.error(
                     "No aggregation function for metric '%s' in scorer '%s'. "
-                    "Falling back to mean. This may produce incorrect results "
-                    "for corpus-level metrics.",
+                    "Defaulting to 'mean'. WARNING: this will produce INCORRECT "
+                    "results for corpus-level metrics (BLEU, perplexity, F1, etc.). "
+                    "Set 'aggregation' explicitly in your metric config.",
                     metric_name,
                     self.name,
                 )

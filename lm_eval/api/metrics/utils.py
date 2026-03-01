@@ -104,7 +104,10 @@ def parse_metric(cfg: MetricConfig, output_type: str | None = None) -> Metric[An
     higher_is_better = cfg.get("higher_is_better", base.higher_is_better)
     if aggregation is None:
         eval_logger.warning(
-            "Metric '%s' is defined but has no aggregation. Using default aggregation 'mean'.",
+            "Metric '%s' has no aggregation function after checking all fallback "
+            "layers. Defaulting to 'mean'. WARNING: this will produce INCORRECT "
+            "results for corpus-level metrics (BLEU, perplexity, F1, etc.). "
+            "Set 'aggregation' explicitly in your metric config if 'mean' is not intended.",
             base.name,
         )
         aggregation = cast("Callable[list[float], float]", get_aggregation("mean"))

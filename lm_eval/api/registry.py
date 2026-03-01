@@ -466,9 +466,12 @@ class _MetricRegistry(Registry):
         try:
             metric = result._factory()
         except Exception:
-            eval_logger.warning("Failed to resolve metric '%s'", alias, exc_info=True)
-            if default is not _MISSING:
-                return default
+            eval_logger.error(
+                "Failed to resolve deferred metric '%s'. This is a bug in "
+                "the metric definition, not a missing metric.",
+                alias,
+                exc_info=True,
+            )
             raise
         # Cache the resolved Metric for future lookups
         with self._lock:
