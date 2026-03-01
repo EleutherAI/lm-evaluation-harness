@@ -349,8 +349,8 @@ tag: my_custom_tag
 
         assert "should_ignore" not in result
 
-    def test_index_strips_at_preset_from_key(self, tmp_path):
-        """Task with @preset in name is indexed under the base name."""
+    def test_index_strips_at_format_from_key(self, tmp_path):
+        """Task with @format in name is indexed under the base name."""
         task_content = """
 task: indexed_task@mcqa
 dataset_path: dummy
@@ -360,7 +360,7 @@ dataset_path: dummy
         index = TaskIndex()
         result = index.build([tmp_path])
 
-        # Index key should be the base name (without @preset)
+        # Index key should be the base name (without @format)
         assert "indexed_task" in result
         assert "indexed_task@mcqa" not in result
         # But the original config retains the full name
@@ -1203,15 +1203,15 @@ class TestGroupBuilding:
 
 
 # =============================================================================
-# Preset Routing Tests
+# Format Routing Tests
 # =============================================================================
 
 
 class TestPresetRouting:
-    """Test TaskManager preset routing: _load_spec(), match_tasks(), _resolve_path().
+    """Test TaskManager format routing: _load_spec(), match_tasks(), _resolve_path().
 
-    Covers the integration between TaskManager and the preset system —
-    the @suffix parsing, multi-preset selection, and glob matching.
+    Covers the integration between TaskManager and the format system —
+    the @suffix parsing, multi-format selection, and glob matching.
     """
 
     @pytest.fixture()
@@ -1219,19 +1219,19 @@ class TestPresetRouting:
         test_configs_path = Path(__file__).parent / "test_configs"
         return TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
-    # ---- _load_spec() with preset field in YAML ----
+    # ---- _load_spec() with format field in YAML ----
 
-    def test_load_task_with_preset_field(self, tm):
-        """Task with `preset: mcqa` in YAML has MCQ preset applied."""
+    def test_load_task_with_format_field(self, tm):
+        """Task with `formats: mcqa` in YAML has MCQ format applied."""
         result = tm.load(["preset_task"])
         task = result["tasks"]["preset_task"]
         assert task.config.output_type == "multiple_choice"
         assert "Question:" in task.config.doc_to_text
 
-    # ---- _load_spec() with @suffix runtime preset ----
+    # ---- _load_spec() with @suffix runtime format ----
 
     def test_load_task_with_at_suffix_mcqa(self, tm):
-        """choice_task@mcqa applies MCQ preset at runtime (task has doc_to_choice)."""
+        """choice_task@mcqa applies MCQ format at runtime (task has doc_to_choice)."""
         result = tm.load(["choice_task@mcqa"])
         task = result["tasks"]["choice_task"]
         assert task.config.output_type == "multiple_choice"
@@ -1241,7 +1241,7 @@ class TestPresetRouting:
         """choice_task@mcqa overrides the YAML's output_type=generate_until."""
         result = tm.load(["choice_task@mcqa"])
         task = result["tasks"]["choice_task"]
-        # Original YAML has output_type=generate_until, MCQ preset overrides it
+        # Original YAML has output_type=generate_until, MCQ format overrides it
         assert task.config.output_type == "multiple_choice"
 
     def test_load_at_suffix_generate_on_choice_task(self, tm):
@@ -1251,32 +1251,32 @@ class TestPresetRouting:
         assert task.config.output_type == "generate_until"
         assert "choose the best answer" in task.config.doc_to_text
 
-    # ---- _load_spec() with multi-preset dict + @suffix selection ----
+    # ---- _load_spec() with multi-format dict + @suffix selection ----
 
-    def test_load_multi_preset_with_selection(self, tm):
+    def test_load_multi_format_with_selection(self, tm):
         """preset_multi_task@generate selects the generate variant."""
         result = tm.load(["preset_multi_task@generate"])
         task = result["tasks"]["preset_multi_task"]
         assert task.config.output_type == "generate_until"
         assert "Generate the answer." in task.config.doc_to_text
 
-    def test_load_multi_preset_default(self, tm):
+    def test_load_multi_format_default(self, tm):
         """preset_multi_task with no @suffix defaults to first key (mcqa)."""
         result = tm.load(["preset_multi_task"])
         task = result["tasks"]["preset_multi_task"]
         assert task.config.output_type == "multiple_choice"
         assert "Pick the right answer." in task.config.doc_to_text
 
-    # ---- match_tasks() with @preset ----
+    # ---- match_tasks() with @format ----
 
-    def test_match_tasks_glob_with_preset(self, tm):
-        """Glob pattern with @preset matches tasks and appends suffix."""
+    def test_match_tasks_glob_with_format(self, tm):
+        """Glob pattern with @format matches tasks and appends suffix."""
         matches = tm.match_tasks(["simple_*@mcqa"])
         assert "simple_task@mcqa" in matches
         assert "simple_task_b@mcqa" in matches
 
-    def test_match_tasks_exact_with_preset(self, tm):
-        """Exact task name with @preset passes through."""
+    def test_match_tasks_exact_with_format(self, tm):
+        """Exact task name with @format passes through."""
         matches = tm.match_tasks(["simple_task@cloze"])
         assert "simple_task@cloze" in matches
 

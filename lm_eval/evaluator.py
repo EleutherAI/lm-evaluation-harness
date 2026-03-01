@@ -24,6 +24,7 @@ from .evaluator_utils import (
     _build_logged_samples,
     _get_sample_size,
     _handle_back_comp,
+    _has_bypass_metric,
     _log_rank_zero,
     _log_selected_tasks_,
     _merge_rank_metrics,
@@ -125,7 +126,7 @@ def simple_evaluate(
         delete_requests_cache (bool): Deletes all the request cache if set to
             `True`. `None` if not desired.
         limit (int | float | None): Limit the number of examples per task (only
-            use this for testing). If <1, limit is a percentage of the total
+            use this for testing). If <1, the limit is a percentage of the total
             number of examples.
         samples (dict | None): Dictionary indicating which examples should be
             tested in each task, e.g.,
@@ -163,9 +164,9 @@ def simple_evaluate(
         torch_random_seed (int): Random seed for torch. If set to None, the seed
             will not be set.
         fewshot_random_seed (int): Random seed for fewshot sampler random generator.
-            If set to None, the seed of generator will be set to None.
+            If set to None, the seed of the generator will be set to None.
         confirm_run_unsafe_code (bool): Whether to confirm running tasks marked
-            as unsafe (e.g. code execution tasks).
+            as unsafe (e.g., code execution tasks).
         metadata (dict | None): Additional metadata to be added to the task
             manager. Will get passed to the download function of the task.
 
@@ -496,12 +497,12 @@ def evaluate(
         eval_logger.info("Evaluating examples for tasks %s", list(samples.keys()))
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
-    # stores the amount to pad out reqs per req. type so that
-    # number of fwd passes per distributed rank is equal
+    # stores the amount to pad out reqs per req type so that
+    # the number of fwd passes per distributed rank is equal
     padding_requests = defaultdict(int)
 
     # Initialize groups and tasks
-    # handle back compact. Assume if "tasks" not present, then using old nested.
+    # handle back compact. Assume if "tasks" key is not present, then using old nested.
     if "tasks" not in task_dict:
         groups, eval_tasks = _handle_back_comp(cast("_NestedDict", task_dict))
     else:
@@ -516,17 +517,12 @@ def evaluate(
         }
         for task_name, task_obj in eval_tasks.items()
     }
-    if not log_samples and any(
-        m.name == "bypass"
-        for task_obj in eval_tasks.values()
-        for scorer in getattr(task_obj, "scorers", [])
-        for m in (scorer.metrics or [])
-    ):
+    if not log_samples and _has_bypass_metric(eval_tasks):
         raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
 
     # validation checks:
     # 1.are we running code that is marked as unsafe.
-    # 2.are we running multimodal task <-> non-multimodal model class, or vice-versa.
+    # 2.are we running multimodal task <-> non-multimodal model class, or vice versa.
     incompatible_tasks = []
     for task_name, task in eval_tasks.items():
         if getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
@@ -594,7 +590,7 @@ def evaluate(
                 if task.OUTPUT_TYPE == "multiple_choice"
                 else task.OUTPUT_TYPE
             )
-            # compute number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
+            # compute the number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
             numpad = max(gathered_item) - gathered_item[lm.rank]
             # todo: may not account for padding in cases like SquadV2 which has multiple req types
             padding_requests[reqtype] += numpad
@@ -612,10 +608,10 @@ def evaluate(
             for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
-        # run requests through model
+        # run requests through the model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
-        # put responses from model into a list of length K for each request.
+        # put responses from the model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs, strict=True):
             req.resps.append(x)
 

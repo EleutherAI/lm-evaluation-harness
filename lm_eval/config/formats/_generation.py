@@ -3,12 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import ClassVar
 
-from .preset import PresetConfig
+from ._base import FormatConfig
 
 
 @dataclass(kw_only=True)
-class GeneratePreset(PresetConfig):
-    preset_name: ClassVar[str | None] = "generate"
+class GenerateFormat(FormatConfig):
+    format_name: ClassVar[str | None] = "generate"
 
     # Mode
     output_type: str = "generate_until"
@@ -39,8 +39,8 @@ class GeneratePreset(PresetConfig):
 
 
 @dataclass(kw_only=True)
-class COTGeneratePreset(GeneratePreset):
-    preset_name: ClassVar[str | None] = "cot"
+class COTGenFormat(GenerateFormat):
+    format_name: ClassVar[str | None] = "cot"
 
     instruction: str = (
         "Given the following problem, reason step by step to find the final answer.\n"

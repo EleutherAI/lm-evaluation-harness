@@ -11,7 +11,6 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
-
 from typing_extensions import deprecated
 
 # Import TaskManager
@@ -53,7 +52,7 @@ def get_task_name_from_config(task_config: Mapping[str, str]) -> str:
 
 def get_task_name_from_object(task_object):
     if hasattr(task_object, "config"):
-        return task_object._config["task"]
+        return task_object.config["task"]
 
     # TODO: scrap this
     # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting

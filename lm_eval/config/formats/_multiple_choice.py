@@ -3,12 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import ClassVar
 
-from .preset import PresetConfig
+from ._base import FormatConfig
 
 
 @dataclass(kw_only=True)
-class MCQPreset(PresetConfig):
-    preset_name: ClassVar[str | None] = "mcqa"
+class MCQAFormat(FormatConfig):
+    format_name: ClassVar[str | None] = "mcqa"
 
     # Mode
     output_type: str = "multiple_choice"
@@ -39,7 +39,7 @@ class MCQPreset(PresetConfig):
 
 
 @dataclass(kw_only=True)
-class ClozePreset(MCQPreset):
-    preset_name: ClassVar[str | None] = "cloze"
+class ClozeFormat(MCQAFormat):
+    format_name: ClassVar[str | None] = "cloze"
 
     choice_labels: str | list[str] | None = None

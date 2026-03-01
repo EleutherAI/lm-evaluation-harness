@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from lm_eval.api.group import Group
 from lm_eval.api.task import Task
-from lm_eval.config.group import AggMetricConfig, Group
+from lm_eval.config.group import AggMetricConfig
 
 
 if TYPE_CHECKING:
@@ -23,6 +24,10 @@ class MockTask(Task):
 
     @property
     def task_name(self):
+        return self._task_name
+
+    @property
+    def _qualified_name(self):
         return self._task_name
 
     def has_training_docs(self):
@@ -65,7 +70,7 @@ class TestAggMetricConfig:
         assert config.filter_list is None
 
     def test_explicit_filter_list(self):
-        """Test that explicit filter_list is preserved."""
+        """Test that the explicit filter_list is preserved."""
         config = AggMetricConfig(metric="acc", filter_list=["none"])
         assert config.filter_list == ["none"]
 
@@ -76,7 +81,7 @@ class TestAggMetricConfig:
         assert isinstance(config.filter_list, list)
 
     def test_empty_filter_list(self):
-        """Test that empty filter_list is preserved."""
+        """Test that the empty filter_list is preserved."""
         config = AggMetricConfig(metric="acc", filter_list=[])
         assert config.filter_list == []
 

@@ -15,8 +15,12 @@ if TYPE_CHECKING:
     from lm_eval.api.instance import LLInstance
 
 
-_count_bytes = lambda x: len(x.encode("utf-8"))
-_count_words = lambda x: len(re.split(r"\s+", x))
+def _count_bytes(x: str) -> int:
+    return len(x.encode("utf-8"))
+
+
+def _count_words(x: str) -> int:
+    return len(re.split(r"\s+", x))
 
 
 def _empty_array():

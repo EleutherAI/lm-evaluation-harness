@@ -579,3 +579,13 @@ def _handle_back_comp(
                 tasks[key] = value
 
     return groups, tasks
+
+
+def _has_bypass_metric(eval_tasks: dict[str, Task]) -> bool:
+    """Check if any task uses the 'bypass' metric (requires log_samples=True)."""
+    return any(
+        m.name == "bypass"
+        for task_obj in eval_tasks.values()
+        for scorer in getattr(task_obj, "scorers", [])
+        for m in (scorer.metrics or [])
+    )
