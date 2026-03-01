@@ -13,7 +13,7 @@ class GeneratePreset(PresetConfig):
     # Mode
     output_type: str = "generate_until"
 
-    instruction: str = "Given the following question and four candidate answers (A, B, C and D), choose the best answer.\n"
+    instruction: str = "Given the following question and {{ _num_choices }} candidate answers ({{ _choice_list_and }}), choose the best answer.\n"
 
     # Question
     question_prefix: str | None = "Question: "
@@ -27,8 +27,7 @@ class GeneratePreset(PresetConfig):
 
     # Answer
     answer_instruction: str | None = None  # CoT instruction
-    answer_prompt: str = 'Your response should end with "The best answer is [answer_letter]" where the [answer_letter] is one of A, B, C or D.'
-    answer_format: str = "letters"
+    answer_prompt: str = 'Your response should end with "The best answer is [answer_letter]" where the [answer_letter] is one of {{ _choice_list_or }}.'
     gen_prefix: str = "The best answer is"
 
     # Fewshot
@@ -48,6 +47,5 @@ class COTGeneratePreset(GeneratePreset):
     )
     question_prefix: str = "Problem: "
     choice_labels: None = None
-    answer_format: str = "full_text"
     answer_prompt: str = 'Your response should end with "The final answer is [answer]" where [answer] is the response to the problem.'
     gen_prefix: None = None

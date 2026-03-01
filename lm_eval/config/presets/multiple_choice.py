@@ -28,7 +28,6 @@ class MCQPreset(PresetConfig):
     # Answer
     answer_instruction: str | None = None  # CoT instruction
     answer_prompt: str = "Answer:"
-    answer_format: str = "letters"
     gen_prefix: str | None = None
 
     # Fewshot
@@ -44,4 +43,3 @@ class ClozePreset(MCQPreset):
     preset_name: ClassVar[str | None] = "cloze"
 
     choice_labels: str | list[str] | None = None
-    answer_format: str = "full_text"

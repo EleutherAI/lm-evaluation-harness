@@ -37,6 +37,20 @@ class PresetConfig:
     Subclasses register themselves by setting ``preset_name`` and are
     looked up via ``PresetConfig.get("name")`` or the YAML
     ``preset: name`` / ``task@name`` syntax.
+
+    Derived Jinja variables
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    When ``choice_labels`` and ``doc_to_choice`` are set, a preamble of
+    ``{% set %}`` blocks is emitted at the top of the template, making
+    the following variables available inside ``instruction``,
+    ``answer_prompt``, and other fields that accept ``{{ }}`` refs:
+
+    - ``_num_choices`` — number of choices (int), e.g. ``4``
+    - ``_choice_labels`` — label list, e.g. ``['A', 'B', 'C', 'D']``
+    - ``_choice_list_and`` — natural-language with "and",
+      e.g. ``"A, B, C and D"``
+    - ``_choice_list_or`` — natural-language with "or",
+      e.g. ``"A, B, C or D"``
     """
 
     # Registry for preset subclasses
@@ -310,17 +324,66 @@ class PresetConfig:
             "doc_to_choice": self._build_doc_to_choice_jinja(doc_to_choice),
         }
 
+    def _build_preamble_jinja(self, doc_to_choice: str | None) -> str:
+        r"""Emit ``{% set %}`` blocks that compute choice-derived variables.
+
+        These variables are available to ``instruction``, ``answer_prompt``,
+        and other fields that may contain ``{{ }}`` references:
+
+        - ``_num_choices`` — integer count of choices
+        - ``_choice_labels`` — list of label strings (e.g. ``['A', 'B', 'C', 'D']``)
+        - ``_choice_list_and`` — natural-language enumeration with "and"
+          (e.g. ``"A, B, C and D"``)
+        - ``_choice_list_or`` — same but with "or"
+          (e.g. ``"A, B, C or D"``)
+
+        Returns an empty string when ``doc_to_choice`` is None or
+        ``choice_labels`` is not set.
+        """
+        if not doc_to_choice or not self.choice_labels:
+            return ""
+
+        c_ref = self._field_ref(doc_to_choice, for_output=False)
+        preamble = "{% set _num_choices = " + c_ref + "|length %}"
+
+        if self.choice_labels == "letters":
+            preamble += (
+                "{% set _choice_labels = "
+                "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:_num_choices]|list %}"
+            )
+        elif self.choice_labels == "numbers":
+            preamble += "{% set _choice_labels = range(1, _num_choices + 1)|list %}"
+        elif isinstance(self.choice_labels, list):
+            preamble += (
+                "{% set _choice_labels = "
+                + str(self.choice_labels)
+                + "[:_num_choices] %}"
+            )
+
+        preamble += (
+            "{% set _choice_list_and = "
+            "_choice_labels[:-1]|join(', ') ~ ' and ' ~ _choice_labels[-1]|string %}"
+        )
+        preamble += (
+            "{% set _choice_list_or = "
+            "_choice_labels[:-1]|join(', ') ~ ' or ' ~ _choice_labels[-1]|string %}"
+        )
+
+        return preamble
+
     def _build_doc_to_text_jinja(
         self, doc_to_text: str, doc_to_choice: str | None
     ) -> str:
         """Build Jinja template for doc_to_text.
 
         Generates a template that produces:
+        {preamble}
         {instruction}
         {question_prefix}{question}
         {section_separator}{formatted_choices}
         {section_separator}{answer_instruction}{answer_prompt}
         """
+        preamble = self._build_preamble_jinja(doc_to_choice)
         template = ""
 
         # Named section separators — derived from section_separator for now
@@ -328,9 +391,9 @@ class PresetConfig:
         before_choices = self.section_separator
         before_answer = self.section_separator
 
-        # Instruction
+        # Instruction (may contain Jinja refs like {{ _num_choices }})
         if self.instruction:
-            template += self._escape_jinja(self.instruction)
+            template += self.instruction
 
         # Question prefix and question
         if self.question_prefix:
@@ -345,8 +408,20 @@ class PresetConfig:
         # Answer section
         template += self._escape_jinja(before_answer)
         if self.answer_instruction:
-            template += self._escape_jinja(self.answer_instruction)
-        template += self._escape_jinja(self.answer_prompt)
+            template += self.answer_instruction
+        # answer_prompt may contain Jinja refs like {{ _choice_list_or }}
+        template += self.answer_prompt
+
+        # Only prepend the preamble if the body actually references
+        # any of the computed variables; skip it to keep templates clean.
+        _PREAMBLE_VARS = (
+            "_num_choices",
+            "_choice_labels",
+            "_choice_list_and",
+            "_choice_list_or",
+        )
+        if preamble and any(v in template for v in _PREAMBLE_VARS):
+            template = preamble + template
 
         return template
 

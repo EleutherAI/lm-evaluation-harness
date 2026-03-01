@@ -600,39 +600,39 @@ class TestTargetFormats:
     """Test different answer_format values in doc_to_target."""
 
     def test_letters_format_numeric_answer(self):
-        preset = GeneratePreset(answer_format="letters")
+        preset = GeneratePreset(choice_labels="letters")
         cfg = preset.to_jinja_config()
         rendered = render(cfg["doc_to_target"], {"answer": 0, "choices": ["a"]})
         assert rendered.strip() == "A"
 
     def test_letters_format_text_answer(self):
-        preset = GeneratePreset(answer_format="letters")
+        preset = GeneratePreset(choice_labels="letters")
         cfg = preset.to_jinja_config()
         rendered = render(cfg["doc_to_target"], {"answer": "B"})
         assert rendered.strip() == "B"
 
     def test_numbers_format_numeric_answer(self):
-        preset = GeneratePreset(answer_format="numbers")
+        preset = GeneratePreset(choice_labels="numbers")
         cfg = preset.to_jinja_config()
         rendered = render(cfg["doc_to_target"], {"answer": 0, "choices": ["a"]})
         # numbers is 1-based: index 0 -> "1"
         assert rendered.strip() == "1"
 
     def test_numbers_format_text_answer(self):
-        preset = GeneratePreset(answer_format="numbers")
+        preset = GeneratePreset(choice_labels="numbers")
         cfg = preset.to_jinja_config()
         rendered = render(cfg["doc_to_target"], {"answer": "42"})
         assert rendered.strip() == "42"
 
     def test_full_text_format_numeric_answer(self):
-        preset = GeneratePreset(answer_format="full_text")
+        preset = GeneratePreset(choice_labels=None)
         cfg = preset.to_jinja_config()
         rendered = render(cfg["doc_to_target"], MCQ_DOC)
         # index 2 -> choices[2] = "Paris"
         assert rendered.strip() == "Paris"
 
     def test_full_text_format_text_answer(self):
-        preset = GeneratePreset(answer_format="full_text")
+        preset = GeneratePreset(choice_labels=None)
         cfg = preset.to_jinja_config()
         rendered = render(cfg["doc_to_target"], {"answer": "freeform text"})
         assert rendered.strip() == "freeform text"
@@ -993,7 +993,7 @@ class TestIntegerDocToTarget:
 
     def test_integer_target_generate_numbers(self):
         """Integer target with numbers format converts to 1-based."""
-        preset = GeneratePreset(answer_format="numbers")
+        preset = GeneratePreset(choice_labels="numbers")
         cfg = preset.to_jinja_config(doc_to_target=0)
         rendered = render(cfg["doc_to_target"], MCQ_DOC)
         # Constant 0 → 0 + 1 = 1
