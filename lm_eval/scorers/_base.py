@@ -333,7 +333,7 @@ class Scorer:
           are created.
         * **No reduction fn** — warns and takes the first value.
         """
-        metrics_by_name = {m.name: m for m in self.metrics or []}
+        metrics_by_name = self._metrics_by_name
         result: dict[int, ReducedDoc] = {}
 
         for sd in scored_docs.values():
@@ -390,7 +390,7 @@ class Scorer:
 
         agg: dict[str, Any] = {}
         sample_len = 0
-        metrics_by_name = {m.name: m for m in self.metrics or []}
+        metrics_by_name = self._metrics_by_name
 
         for metric_name, values in results.items():
             if not values:
@@ -481,6 +481,11 @@ class Scorer:
     # ------------------------------------------------------------------
     # Properties
     # ------------------------------------------------------------------
+
+    @property
+    def _metrics_by_name(self) -> dict[str, Metric]:
+        """Lookup table: metric name → Metric object."""
+        return {m.name: m for m in self.metrics or []}
 
     @property
     def higher_is_better(self) -> dict[str, bool]:
@@ -698,15 +703,6 @@ def build_scorer(
             f"Pass an explicit scorer_type or use a known output_type."
         )
 
-    if cfg is not None:
-        return cls.from_dict(cfg, output_type=output_type, **scorer_kwargs)
-    if scorer_kwargs:
-        assert scorer_name is not None  # set in the same branch as scorer_kwargs
-        return cls.from_dict(
-            {"name": scorer_name, "filter": [], "metric_list": []},
-            output_type=output_type,
-            **scorer_kwargs,
-        )
-    if scorer_name is not None:
-        return cls.default_scorer(name=scorer_name, output_type=output_type)
-    return cls.default_scorer(output_type=output_type)
+    if cfg is None:
+        cfg = {"name": scorer_name or "none", "filter": [], "metric_list": []}
+    return cls.from_dict(cfg, output_type=output_type, **scorer_kwargs)
