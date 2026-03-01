@@ -21,10 +21,11 @@ class MCQPreset(PresetConfig):
     # Choices
     choice_labels: str | list[str] | None = "letters"
     choice_delimiter: str = "\n"
-    before_choices: str = "\n"
+
+    # Layout
+    section_separator: str = "\n"
 
     # Answer
-    before_answer: str = "\n"
     answer_instruction: str | None = None  # CoT instruction
     answer_prompt: str = "Answer:"
     answer_format: str = "letters"

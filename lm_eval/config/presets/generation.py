@@ -21,10 +21,11 @@ class GeneratePreset(PresetConfig):
     # Choices
     choice_labels: str | list[str] | None = "letters"
     choice_delimiter: str = "\n"
-    before_choices: str = "\n"
+
+    # Layout
+    section_separator: str = "\n"
 
     # Answer
-    before_answer: str = "\n"
     answer_instruction: str | None = None  # CoT instruction
     answer_prompt: str = 'Your response should end with "The best answer is [answer_letter]" where the [answer_letter] is one of A, B, C or D.'
     answer_format: str = "letters"

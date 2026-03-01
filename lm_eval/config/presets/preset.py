@@ -18,36 +18,87 @@ class _DOCTO(TypedDict, extra_items=str):
 
 @dataclass(kw_only=True)
 class PresetConfig:
+    """Declarative prompt configuration for evaluation tasks.
+
+    A preset defines **what** a prompt looks like (instruction, question,
+    choices, answer) and **how** sections are separated, then compiles
+    itself into Jinja templates consumed by ``TaskConfig``.
+
+    Prompt layout produced by ``to_jinja_config()``::
+
+        {instruction}
+        {question_prefix}{question}
+        {section_separator}{choice_label}. {choice}  (repeated)
+        {section_separator}{answer_instruction}{answer_prompt}
+        {target_delimiter}{target}
+        {fewshot_delimiter}
+        ... next example ...
+
+    Subclasses register themselves by setting ``preset_name`` and are
+    looked up via ``PresetConfig.get("name")`` or the YAML
+    ``preset: name`` / ``task@name`` syntax.
+    """
+
     # Registry for preset subclasses
     _registry: ClassVar[dict[str, type[PresetConfig]]] = {}
-    preset_name: ClassVar[str | None] = None  # Set in subclasses to auto-register
+    preset_name: ClassVar[str | None] = None
+    """Set in subclasses to auto-register (e.g. ``preset_name = "mcqa"``)."""
 
-    # Mode
     output_type: OutputType
+    """Model request type: ``"multiple_choice"`` for loglikelihood scoring,
+    ``"generate_until"`` for free-form generation, etc."""
 
     instruction: str | None
+    r"""Task instruction prepended to every prompt. Include any trailing
+    delimiter (e.g. ``"Choose the best answer.\n"``). ``None`` for no
+    instruction."""
 
-    # Question
-    question_prefix: str | None  # "Question: ", "Problem: "
+    question_prefix: str | None
+    """Label before the question text. Include trailing whitespace
+    (e.g. ``"Question: "``, ``"Problem: "``). ``None`` for no prefix."""
 
-    # Choices
     choice_labels: str | list[str] | None = None
-    choice_delimiter: str  # Between each choice
-    before_choices: str  # Between question and first choice
+    """How to label answer choices. ``"letters"`` for A/B/C/D,
+    ``"numbers"`` for 1/2/3/4, a custom list like ``["I", "II", "III"]``,
+    or ``None`` to show choices without labels."""
 
-    # Answer
-    before_answer: str  # Between choices/question and answer section
-    answer_instruction: str | None = None  # CoT instruction
-    answer_prompt: str  # "Answer:", "The answer is", etc.
+    choice_delimiter: str
+    r"""Separator between individual choice items (typically ``"\n"``)."""
+
+    section_separator: str
+    r"""Separator inserted between major prompt sections
+    (question → choices, choices → answer). Typically ``"\n"``."""
+
+    answer_instruction: str | None = None
+    r"""Optional instruction before the answer prompt, used for
+    chain-of-thought (e.g. ``"Think step by step.\n"``). Include any
+    trailing delimiter. ``None`` to omit."""
+
+    answer_prompt: str
+    """Text soliciting the answer (e.g. ``"Answer:"``,
+    ``'Your response should end with "The answer is [X]".'``)."""
+
     answer_format: str
+    """How the target/ground-truth is formatted for ``generate_until``
+    tasks. ``"letters"`` converts an index to ``A``/``B``/``C``,
+    ``"numbers"`` to ``1``/``2``/``3``, ``"full_text"`` to the choice
+    text. Ignored for ``multiple_choice`` output type."""
+
     gen_prefix: str | None
+    """Constrained-decoding prefix appended to the prompt so the model
+    continues from a known anchor (e.g. ``"The best answer is"``).
+    ``None`` for unconstrained generation."""
 
-    # Fewshot
-    target_delimiter: str  # Between answer_prompt and target
-    fewshot_delimiter: str  # Between examples
+    target_delimiter: str
+    r"""Separator between the prompt and the target value in few-shot
+    examples (e.g. ``" "`` or ``"\n"``)."""
 
-    # Scorer
+    fewshot_delimiter: str
+    r"""Separator between few-shot examples (typically ``"\n\n"``)."""
+
     scorer: str | dict[str, Any] | None
+    """Scoring method name or config. Resolved by the scorer registry
+    (e.g. ``"first_token"``, ``None`` for default)."""
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -258,10 +309,15 @@ class PresetConfig:
         Generates a template that produces:
         {instruction}
         {question_prefix}{question}
-        {before_choices}{formatted_choices}
-        {before_answer}{answer_instruction}{answer_prompt}
+        {section_separator}{formatted_choices}
+        {section_separator}{answer_instruction}{answer_prompt}
         """
         template = ""
+
+        # Named section separators — derived from section_separator for now
+        # but kept as local names so they can be split out later if needed.
+        before_choices = self.section_separator
+        before_answer = self.section_separator
 
         # Instruction
         if self.instruction:
@@ -274,11 +330,11 @@ class PresetConfig:
 
         # Choices (if applicable)
         if self.choice_labels and doc_to_choice:
-            template += self._escape_jinja(self.before_choices)
+            template += self._escape_jinja(before_choices)
             template += self._build_choices_format_jinja(doc_to_choice)
 
         # Answer section
-        template += self._escape_jinja(self.before_answer)
+        template += self._escape_jinja(before_answer)
         if self.answer_instruction:
             template += self._escape_jinja(self.answer_instruction)
         template += self._escape_jinja(self.answer_prompt)
