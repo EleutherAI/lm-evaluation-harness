@@ -167,7 +167,7 @@ class PresetConfig:
                     )
                 chosen_name = selection
             else:
-                # Default to first key
+                # Default to the first key
                 chosen_name = next(iter(spec))
 
             overrides = spec[chosen_name]
@@ -189,13 +189,13 @@ class PresetConfig:
         return sorted(cls._registry.keys())
 
     def _field_ref(self, field: str, for_output: bool = True) -> str:
-        """Convert field name to Jinja reference.
+        """Convert the field name to Jinja reference.
 
         Args:
             field: Field name or Jinja expression
             for_output: If True, wrap in {{ }} for output. If False, return raw for use in control flow.
 
-        If field contains '{{' it's already a Jinja expression.
+        If a field contains, '{{' it's already a Jinja expression.
         """
         if "{{" in field:
             # Already a Jinja expression - extract the inner part for control flow
@@ -398,7 +398,7 @@ class PresetConfig:
     def _build_doc_to_target_jinja(
         self, doc_to_target: str, doc_to_choice: str | None
     ) -> str:
-        """Build Jinja template for doc_to_target.
+        """Build a Jinja template for doc_to_target.
 
         For multiple_choice output_type, returns the index.
         For generate_until, returns the formatted answer text.
@@ -426,7 +426,7 @@ class PresetConfig:
                 "{% endif %}"
             )
         elif self.output_type == "generate_until":
-            # For generate_until, return formatted answer based on answer_format
+            # For generate_until, return a formatted answer based on answer_format
             if self.answer_format == "letters":
                 # Convert index to letter label (A, B, C, D)
                 return (
@@ -453,7 +453,7 @@ class PresetConfig:
         return a_out
 
     def _build_doc_to_choice_jinja(self, doc_to_choice: str | None) -> str | None:
-        """Build Jinja template for doc_to_choice.
+        """Build a Jinja template for doc_to_choice.
 
         Returns choice labels if configured, otherwise the raw choices.
         """
@@ -467,7 +467,7 @@ class PresetConfig:
             # Return raw choices
             return "{{ " + c_ref + " }}"
 
-        # Return labels based on number of choices
+        # Return labels based on a number of choices
         if self.choice_labels == "letters":
             return "{{ 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:" + c_ref + "|length] | list }}"
         elif self.choice_labels == "numbers":
@@ -490,7 +490,7 @@ class PresetConfig:
         The preset consumes them to build Jinja templates, then returns
         overrides that are applied unconditionally to the TaskConfig.
 
-        Returns a dict of TaskConfig-compatible fields including:
+        Returns a dict of TaskConfig-compatible fields including
         - Jinja templates (doc_to_text, doc_to_target, doc_to_choice)
         - Formatting fields (output_type, target_delimiter, etc.)
         - Scorer config (filter_list, metric_list) from extraction

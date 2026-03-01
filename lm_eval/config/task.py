@@ -623,7 +623,7 @@ class TaskConfig:
                 {"name": "none", "filter": [], "metric_list": list(self.metric_list)}
             ]
 
-        # Normalise scorer type to dict form for consistent downstream handling.
+        # Normalise the scorer type to a dict form for consistent downstream handling.
         if isinstance(self.scorer, str):
             self.scorer = {"type": self.scorer}
 
@@ -631,7 +631,7 @@ class TaskConfig:
         """Dumps the current config as a dictionary object, as a printable format.
 
         null fields will not be printed.
-        Used for dumping results alongside full task configuration
+        Used for dumping results alongside a full task configuration
 
         :return: dict
             A printable dictionary version of the TaskConfig object.
