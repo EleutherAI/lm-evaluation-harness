@@ -167,7 +167,7 @@ class TestGet:
         preset = PresetConfig.get(spec)
         assert isinstance(preset, MCQPreset)
         # Should have default MCQPreset values
-        assert preset.question_prefix == "Question:"
+        assert preset.question_prefix == "Question: "
 
     def test_get_multi_preset_dict_string_redirect(self):
         """When an override value is a string, redirect to that preset."""
@@ -255,7 +255,7 @@ class TestMCQPreset:
     def test_defaults(self):
         assert self.preset.output_type == "multiple_choice"
         assert self.preset.instruction is None
-        assert self.preset.question_prefix == "Question:"
+        assert self.preset.question_prefix == "Question: "
         assert self.preset.choice_labels == "letters"
         assert self.preset.answer_prompt == "Answer:"
         assert self.preset.scorer is None
@@ -428,7 +428,7 @@ class TestCOTGeneratePreset:
         assert self.preset.answer_format == "full_text"
 
     def test_question_prefix_is_problem(self):
-        assert self.preset.question_prefix == "Problem:"
+        assert self.preset.question_prefix == "Problem: "
 
     def test_jinja_doc_to_text_no_choices(self):
         cfg = self.preset.to_jinja_config()

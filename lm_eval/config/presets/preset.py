@@ -26,11 +26,9 @@ class PresetConfig:
     output_type: OutputType
 
     instruction: str | None
-    instruction_delimiter: str  # After instruction
 
     # Question
     question_prefix: str | None  # "Question: ", "Problem: "
-    prefix_delimiter: str
 
     # Choices
     choice_labels: str | list[str] | None = None
@@ -40,7 +38,6 @@ class PresetConfig:
     # Answer
     before_answer: str  # Between choices/question and answer section
     answer_instruction: str | None = None  # CoT instruction
-    answer_instruction_delimiter: str  # After answer_instruction
     answer_prompt: str  # "Answer:", "The answer is", etc.
     answer_format: str
     gen_prefix: str | None
@@ -168,11 +165,13 @@ class PresetConfig:
 
     @staticmethod
     def _escape_jinja(s: str) -> str:
-        """Escape a string for inclusion in a Jinja template.
+        """No-op currently — returns the string unchanged.
 
-        Jinja templates are raw text, so quotes and backslashes are literal.
-        Only Jinja delimiters ({{ }}, {% %}) would need escaping, but we
-        don't expect those in preset string fields.
+        Marks every site where a preset string field (``instruction``,
+        ``answer_prompt``, etc.) is spliced into a Jinja template. If
+        preset fields ever need to contain literal ``{{``/``{%``
+        delimiters, replace this with real escaping (e.g. wrapping in
+        ``{% raw %}...{% endraw %}``).
         """
         return s
 
@@ -257,22 +256,20 @@ class PresetConfig:
         """Build Jinja template for doc_to_text.
 
         Generates a template that produces:
-        {instruction}{instruction_delimiter}
-        {question_prefix}{prefix_delimiter}{question}
+        {instruction}
+        {question_prefix}{question}
         {before_choices}{formatted_choices}
-        {before_answer}{answer_instruction}{answer_instruction_delimiter}{answer_prompt}
+        {before_answer}{answer_instruction}{answer_prompt}
         """
         template = ""
 
         # Instruction
         if self.instruction:
-            template += self._escape_jinja(
-                self.instruction + self.instruction_delimiter
-            )
+            template += self._escape_jinja(self.instruction)
 
         # Question prefix and question
         if self.question_prefix:
-            template += self._escape_jinja(self.question_prefix + self.prefix_delimiter)
+            template += self._escape_jinja(self.question_prefix)
         template += self._field_ref(doc_to_text)
 
         # Choices (if applicable)
@@ -283,9 +280,7 @@ class PresetConfig:
         # Answer section
         template += self._escape_jinja(self.before_answer)
         if self.answer_instruction:
-            template += self._escape_jinja(
-                self.answer_instruction + self.answer_instruction_delimiter
-            )
+            template += self._escape_jinja(self.answer_instruction)
         template += self._escape_jinja(self.answer_prompt)
 
         return template
