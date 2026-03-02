@@ -45,6 +45,44 @@ def task_config():
 
 
 @pytest.fixture
+def make_task():
+    """Factory fixture that creates a real Task with minimal config and no dataset loading.
+
+    Usage:
+        task = make_task("my_task")
+        task = make_task("my_task", output_type="multiple_choice")
+        task = make_task("my_task", metric_list=[{"metric": "acc"}])
+    """
+
+    def _make(
+        task_name: str = "test_task",
+        output_type: str = "generate_until",
+        n_eval_docs: int = 0,
+        **config_overrides,
+    ) -> Task:
+        defaults = {
+            "dataset_path": "dummy",
+            "test_split": "test",
+            "generation_kwargs": {
+                "until": ["\n"],
+                "temperature": 0,
+                "do_sample": False,
+            },
+        }
+        defaults.update(config_overrides)
+        cfg = TaskConfig(
+            task=task_name,
+            output_type=output_type,  # type: ignore[arg-type]
+            **defaults,
+        )
+        task = Task.from_config(cfg)
+        task._dataset = {"test": [{}] * n_eval_docs}
+        return task
+
+    return _make
+
+
+@pytest.fixture
 def mock_configurable_task(task_config):
     """Mock Task with real TaskConfig (and FewshotConfig via __post_init__)."""
     task = Mock(spec=Task)

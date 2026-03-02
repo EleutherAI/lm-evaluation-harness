@@ -156,7 +156,7 @@ fixable = [
     "SIM", "TC", "UP", "W605",
 ]
 ignore = [
-    "D417", "D10",
+    "C408", "D417", "D10",
     "E11", "E402", "E501", "E701",
     "E731", "E741", "SIM108",
     "SIM105", "SIM401", # flake8-simplify

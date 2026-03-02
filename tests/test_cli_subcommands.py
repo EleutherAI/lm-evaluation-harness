@@ -376,65 +376,45 @@ class TestValidateCommand:
 class TestEvaluatorConfigTaskLoading:
     """Test EvaluatorConfig task loading."""
 
-    @patch("lm_eval.tasks.TaskManager")
-    def test_process_tasks_comma_separated_in_list(self, mock_task_manager):
+    def test_process_tasks_comma_separated_in_list(self):
         """Test that process_tasks splits comma-separated tasks from CLI (nargs='*')."""
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
-        mock_tm_instance = MagicMock()
-        mock_tm_instance.match_tasks.side_effect = lambda x: x
-        mock_task_manager.return_value = mock_tm_instance
-
         # Simulate CLI input: --tasks hellaswag,arc_easy
         # argparse with nargs="*" gives ["hellaswag,arc_easy"]
-        cfg = EvaluatorConfig(tasks=["hellaswag,arc_easy"])
+        cfg = EvaluatorConfig(tasks=["hellaswag,arc_easy"], include_defaults=False)
         cfg._configure()
         cfg.process_tasks()
 
         # Should have split the comma-separated string
-        assert mock_tm_instance.match_tasks.call_count == 2
-        mock_tm_instance.match_tasks.assert_any_call(["hellaswag"])
-        mock_tm_instance.match_tasks.assert_any_call(["arc_easy"])
+        assert sorted(cfg.tasks) == ["arc_easy", "hellaswag"]
 
-    @patch("lm_eval.tasks.TaskManager")
-    def test_process_tasks_mixed_comma_and_space_separated(self, mock_task_manager):
+    def test_process_tasks_mixed_comma_and_space_separated(self):
         """Test process_tasks handles mixed comma and space-separated tasks."""
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
-        mock_tm_instance = MagicMock()
-        mock_tm_instance.match_tasks.side_effect = lambda x: x
-        mock_task_manager.return_value = mock_tm_instance
-
         # Simulate CLI input: --tasks hellaswag,arc_easy winogrande
         # argparse with nargs="*" gives ["hellaswag,arc_easy", "winogrande"]
-        cfg = EvaluatorConfig(tasks=["hellaswag,arc_easy", "winogrande"])
+        cfg = EvaluatorConfig(
+            tasks=["hellaswag,arc_easy", "winogrande"], include_defaults=False
+        )
         cfg._configure()
         cfg.process_tasks()
 
         # Should have split comma-separated and kept space-separated
-        assert mock_tm_instance.match_tasks.call_count == 3
-        mock_tm_instance.match_tasks.assert_any_call(["hellaswag"])
-        mock_tm_instance.match_tasks.assert_any_call(["arc_easy"])
-        mock_tm_instance.match_tasks.assert_any_call(["winogrande"])
+        assert sorted(cfg.tasks) == ["arc_easy", "hellaswag", "winogrande"]
 
-    @patch("lm_eval.tasks.TaskManager")
-    def test_process_tasks_string_comma_separated(self, mock_task_manager):
+    def test_process_tasks_string_comma_separated(self):
         """Test process_tasks splits comma-separated string (from YAML)."""
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
-        mock_tm_instance = MagicMock()
-        mock_tm_instance.match_tasks.side_effect = lambda x: x
-        mock_task_manager.return_value = mock_tm_instance
-
         # Simulate YAML input: tasks: "hellaswag,arc_easy"
-        cfg = EvaluatorConfig(tasks="hellaswag,arc_easy")
+        cfg = EvaluatorConfig(tasks="hellaswag,arc_easy", include_defaults=False)
         cfg._configure()
         cfg.process_tasks()
 
         # Should have split the comma-separated string
-        assert mock_tm_instance.match_tasks.call_count == 2
-        mock_tm_instance.match_tasks.assert_any_call(["hellaswag"])
-        mock_tm_instance.match_tasks.assert_any_call(["arc_easy"])
+        assert sorted(cfg.tasks) == ["arc_easy", "hellaswag"]
 
     def test_custom_yaml_file_relative_path(self, tmp_path):
         """Test loading custom task config via a relative path (fixes #3425)."""
@@ -454,6 +434,7 @@ doc_to_target: "{{answer}}"
         cfg = EvaluatorConfig(
             tasks=[str(task_yaml)],
             output_path=str(tmp_path),
+            include_defaults=False,
         )
         cfg._configure()
         tm = cfg.process_tasks()  # noqa: F841
@@ -470,6 +451,7 @@ doc_to_target: "{{answer}}"
         cfg = EvaluatorConfig(
             tasks=[str(tmp_path / "nonexistent.yaml")],
             output_path=str(tmp_path),
+            include_defaults=False,
         )
         cfg._configure()
 

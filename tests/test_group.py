@@ -6,59 +6,11 @@ from typing import TYPE_CHECKING
 import pytest
 
 from lm_eval.api.group import Group
-from lm_eval.api.task import Task
 from lm_eval.config.group import AggMetricConfig
 
 
 if TYPE_CHECKING:
     from lm_eval.result_schema import _TaskMetrics
-
-
-class MockTask(Task):
-    """Minimal mock task for testing."""
-
-    VERSION = 0
-
-    def __init__(self, task_name: str):
-        self._task_name = task_name
-
-    @property
-    def task_name(self):
-        return self._task_name
-
-    @property
-    def _qualified_name(self):
-        return self._task_name
-
-    def has_training_docs(self):
-        return False
-
-    def has_validation_docs(self):
-        return False
-
-    def has_test_docs(self):
-        return True
-
-    def test_docs(self):
-        return []
-
-    def doc_to_text(self, doc):
-        return ""
-
-    def doc_to_target(self, doc):
-        return ""
-
-    def construct_requests(self, doc, ctx, **kwargs):
-        return []
-
-    def process_results(self, doc, results):
-        return {}
-
-    def aggregation(self):
-        return {}
-
-    def higher_is_better(self):
-        return {}
 
 
 class TestAggMetricConfig:
@@ -104,11 +56,10 @@ class TestAggMetricConfig:
 class TestGroupFilterDiscovery:
     """Tests for filter auto-discovery in Group.aggregate()."""
 
-    def setup_method(self):
-        """Set up common test fixtures."""
-        # Create mock tasks
-        self.task_a = MockTask("task_a")
-        self.task_b = MockTask("task_b")
+    @pytest.fixture(autouse=True)
+    def _tasks(self, make_task):
+        self.task_a = make_task("task_a")
+        self.task_b = make_task("task_b")
 
         # Create task metrics with multiple filters
         self.task_metrics: dict[str, _TaskMetrics] = {
@@ -199,10 +150,10 @@ class TestGroupFilterDiscovery:
 class TestGroupAggregation:
     """Tests for Group.aggregate() with filter auto-discovery."""
 
-    def setup_method(self):
-        """Set up common test fixtures."""
-        self.task_a = MockTask("task_a")
-        self.task_b = MockTask("task_b")
+    @pytest.fixture(autouse=True)
+    def _tasks(self, make_task):
+        self.task_a = make_task("task_a")
+        self.task_b = make_task("task_b")
 
         self.task_metrics: dict[str, _TaskMetrics] = {
             "task_a": {
@@ -420,15 +371,15 @@ class TestGroupAggregation:
         assert result["sample_count"]["acc_norm,prefix"] == 100
         assert result["sample_count"]["acc_norm,custom"] == 100
 
-    def test_sample_count_per_metric_with_asymmetric_filters(self):
+    def test_sample_count_per_metric_with_asymmetric_filters(self, make_task):
         """Per-metric sample_count reflects contributing tasks; sample_len is the total."""
         metrics = {
             "task_a": {"sample_len": 100, "acc,none": 0.8, "acc,prefix": 0.85},
             "task_b": {"sample_len": 200, "acc,none": 0.9},  # no prefix
         }
         group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
-        group.add(MockTask("task_a"))
-        group.add(MockTask("task_b"))
+        group.add(make_task("task_a"))
+        group.add(make_task("task_b"))
         result = group.aggregate(metrics)
         assert result["sample_len"] == 300  # total across all leaf tasks
         assert result["sample_count"]["acc,none"] == 300  # both tasks contribute
@@ -438,10 +389,10 @@ class TestGroupAggregation:
 class TestGroupWeightedAggregation:
     """Test weighted aggregation with filter auto-discovery."""
 
-    def test_weighted_aggregation_auto_discovery(self):
+    def test_weighted_aggregation_auto_discovery(self, make_task):
         """Test that weight_by_size works correctly with auto-discovery."""
-        task_a = MockTask("task_a")
-        task_b = MockTask("task_b")
+        task_a = make_task("task_a")
+        task_b = make_task("task_b")
 
         # task_a has 100 sample_len, task_b has 200 sample_len
         metrics = {
@@ -487,10 +438,10 @@ class TestGroupWeightedAggregation:
 class TestGroupEdgeCases:
     """Test edge cases for Group aggregation."""
 
-    def test_no_aggregation_config(self):
+    def test_no_aggregation_config(self, make_task):
         """Test group with no aggregation config."""
         group = Group(name="test_group")
-        task = MockTask("task_a")
+        task = make_task("task_a")
         group.add(task)
 
         result = group.aggregate({"task_a": {"acc,none": 0.85}})
@@ -498,13 +449,13 @@ class TestGroupEdgeCases:
         # Should only return alias and name
         assert result == {"alias": "test_group", "name": "test_group"}
 
-    def test_task_not_in_metrics(self):
+    def test_task_not_in_metrics(self, make_task):
         """Test when a task is in the group but not in metrics dict."""
         group = Group(
             name="test_group", aggregate_metric_list=[AggMetricConfig(metric="acc")]
         )
-        task_a = MockTask("task_a")
-        task_b = MockTask("task_b")
+        task_a = make_task("task_a")
+        task_b = make_task("task_b")
         group.add(task_a)
         group.add(task_b)
 
@@ -522,15 +473,15 @@ class TestGroupEdgeCases:
         assert "acc,none" in result
         assert result["acc,none"] == 0.85
 
-    def test_metric_missing_in_some_tasks(self, caplog):
+    def test_metric_missing_in_some_tasks(self, make_task, caplog):
         """Test when a metric is missing in some tasks."""
         import logging
 
         group = Group(
             name="test_group", aggregate_metric_list=[AggMetricConfig(metric="acc")]
         )
-        task_a = MockTask("task_a")
-        task_b = MockTask("task_b")
+        task_a = make_task("task_a")
+        task_b = make_task("task_b")
         group.add(task_a)
         group.add(task_b)
 
@@ -570,9 +521,10 @@ class TestGroupEdgeCases:
 class TestGroup:
     """Tests for Group core container API."""
 
-    def setup_method(self):
-        self.task_a = MockTask("task_a")
-        self.task_b = MockTask("task_b")
+    @pytest.fixture(autouse=True)
+    def _tasks(self, make_task):
+        self.task_a = make_task("task_a")
+        self.task_b = make_task("task_b")
 
     # --- add / remove / get ---
 
@@ -729,14 +681,14 @@ class TestGroup:
 class TestGroupSerialization:
     """Tests for Group serialization and deserialization."""
 
-    def test_to_dict_round_trip(self):
+    def test_to_dict_round_trip(self, make_task):
         group = Group(
             name="mmlu",
             alias="MMLU",
             aggregate_metric_list=[AggMetricConfig(metric="acc", filter_list=["none"])],
             metadata={"version": 1},
         )
-        task = MockTask("task_a")
+        task = make_task("task_a")
         group.add(task)
 
         d = group.to_dict()

@@ -299,7 +299,7 @@ class TestExactMatch:
     def test_multiple_targets_single_ref_fallback(self):
         result = exact_match_fn(
             references=["a"], predictions=["a"], multiple_targets=True
-        )
+        )  # type:ignore[no-matching-overload]
         assert result["exact_match"] == [1]
 
 

@@ -149,6 +149,9 @@ class EvaluatorConfig:
     include_path: str | None = None
     """Additional directory path for external tasks."""
 
+    include_defaults: bool = True
+    """Whether to include built-in tasks from lm_eval/tasks/."""
+
     gen_kwargs: dict = field(default_factory=dict)
     """Generation arguments passed to the model. Overrides task-level defaults."""
 
@@ -344,15 +347,16 @@ class EvaluatorConfig:
         # Create a task manager with metadata
         task_manager = TaskManager(
             include_path=self.include_path,
+            include_defaults=self.include_defaults,
             metadata=self.metadata or {},
         )
 
         # Normalize tasks to a list
         # We still allow tasks in the form task1,task2
         task_list = (
-            self.tasks.split(",")
+            [t.strip() for t in self.tasks.split(",")]
             if isinstance(self.tasks, str)
-            else [t for task in self.tasks for t in task.split(",")]
+            else [t.strip() for task in self.tasks for t in task.split(",")]
         )
 
         # Handle directory input
@@ -379,7 +383,7 @@ class EvaluatorConfig:
             else:
                 # Custom config file(s) - support glob patterns
                 matches = []
-                for yaml_file in Path().glob(task):
+                for yaml_file in (task_path := Path(task)).parent.glob(task_path.name):
                     config = load_yaml(yaml_file, resolve_func=False)
                     matches.append(config)
             match_dict[task] = matches

@@ -17,7 +17,6 @@ import pytest
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.group import Group
 from lm_eval.api.metrics import mean
-from lm_eval.api.task import Task
 from lm_eval.config.group import AggMetricConfig
 from lm_eval.evaluator_utils import (
     _process_results,
@@ -26,6 +25,7 @@ from lm_eval.scorers import ScoredDoc, Scorer
 
 
 if TYPE_CHECKING:
+    from lm_eval.api.task import Task
     from lm_eval.evaluator_utils import (
         _ResultAcc,
     )
@@ -92,78 +92,15 @@ def _build_multi_scorer_scorers(
     return scorers
 
 
-class MockTask(Task):
-    """Lightweight mock satisfying the Task ABC."""
-
-    VERSION = 1
-
-    def __init__(
-        self,
-        task_name: str,
-        agg: dict | None = None,
-        hib: dict | None = None,
-        n_eval_docs: int = 100,
-    ):
-        self._task_name = task_name
-        self._agg = agg or {}
-        self._hib = hib or {}
-        self._n_eval_docs = n_eval_docs
-        self._scorers = []
-
-    @property
-    def task_name(self):
-        return self._task_name
-
-    @property
-    def _qualified_name(self):
-        return self._task_name
-
-    def dump_config(self) -> dict:
-        return {"task_alias": self._task_name}
-
-    def aggregation(self):
-        return dict(self._agg)
-
-    def higher_is_better(self):
-        return dict(self._hib)
-
-    @property
-    def eval_docs(self):
-        return [None] * self._n_eval_docs
-
-    # ABC stubs
-    def has_training_docs(self):
-        return False
-
-    def has_validation_docs(self):
-        return False
-
-    def has_test_docs(self):
-        return True
-
-    def test_docs(self):
-        return [{}] * self._n_eval_docs
-
-    def doc_to_text(self, doc):
-        return ""
-
-    def doc_to_target(self, doc):
-        return ""
-
-    def construct_requests(self, doc, ctx, **kwargs):
-        return []
-
-    def process_results(self, doc, results):
-        return {}
-
-
 def _make_acc(
-    task: MockTask,
+    task: Task,
     raw_metrics: dict[tuple[str, str], list],
+    agg: dict[str, Any] | None = None,
+    hib: dict[str, bool] | None = None,
 ) -> _ResultAcc:
     """Build _ResultAcc and populate task scorers with scored_docs."""
     task._scorers = _build_multi_scorer_scorers(
-        raw_metrics, agg=task._agg, hib=task._hib
+        raw_metrics, agg=agg or {}, hib=hib or {}
     )
     return {
         "task": task,
@@ -179,13 +116,14 @@ def _make_acc(
 class TestTaskToGroupPipeline:
     """End-to-end: raw per-sample values flow through task agg into group agg."""
 
-    def test_single_task_single_group(self):
+    def test_single_task_single_group(self, make_task):
         """One task, one group — group metric == task metric."""
-        task = MockTask("t1", agg={"acc": mean}, n_eval_docs=4)
+        task = make_task("t1", n_eval_docs=4)
         group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         group.add(task)
 
-        acc = {"t1": _make_acc(task, {("acc", "none"): [1.0, 0.0, 1.0, 0.0]})}
+        agg = {"acc": mean}
+        acc = {"t1": _make_acc(task, {("acc", "none"): [1.0, 0.0, 1.0, 0.0]}, agg=agg)}
         result = _process_results(acc, groups={"g": group}, bootstrap_iters=0)
 
         # Task metrics
@@ -196,10 +134,10 @@ class TestTaskToGroupPipeline:
         assert result.metrics["g"]["acc,none"] == pytest.approx(0.5)
         assert result.metrics["g"]["sample_len"] == 4
 
-    def test_two_tasks_weighted_group(self):
+    def test_two_tasks_weighted_group(self, make_task):
         """Two tasks with different sizes — group uses weighted average."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=2)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=4)
+        t1 = make_task("t1", n_eval_docs=2)
+        t2 = make_task("t2", n_eval_docs=4)
 
         group = Group(
             name="g",
@@ -208,10 +146,13 @@ class TestTaskToGroupPipeline:
         group.add(t1)
         group.add(t2)
 
+        agg = {"acc": mean}
         acc = {
-            "t1": _make_acc(t1, {("acc", "none"): [1.0, 1.0]}),  # mean=1.0, n=2
+            "t1": _make_acc(
+                t1, {("acc", "none"): [1.0, 1.0]}, agg=agg
+            ),  # mean=1.0, n=2
             "t2": _make_acc(
-                t2, {("acc", "none"): [0.0, 0.0, 0.0, 1.0]}
+                t2, {("acc", "none"): [0.0, 0.0, 0.0, 1.0]}, agg=agg
             ),  # mean=0.25, n=4
         }
         result = _process_results(acc, groups={"g": group}, bootstrap_iters=0)
@@ -220,10 +161,10 @@ class TestTaskToGroupPipeline:
         assert result.metrics["g"]["acc,none"] == pytest.approx(0.5)
         assert result.metrics["g"]["sample_len"] == 6
 
-    def test_two_tasks_unweighted_group(self):
+    def test_two_tasks_unweighted_group(self, make_task):
         """Two tasks — unweighted means simple average of task means."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=2)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=4)
+        t1 = make_task("t1", n_eval_docs=2)
+        t2 = make_task("t2", n_eval_docs=4)
 
         group = Group(
             name="g",
@@ -232,24 +173,28 @@ class TestTaskToGroupPipeline:
         group.add(t1)
         group.add(t2)
 
+        agg = {"acc": mean}
         acc = {
-            "t1": _make_acc(t1, {("acc", "none"): [1.0, 1.0]}),  # mean=1.0
-            "t2": _make_acc(t2, {("acc", "none"): [0.0, 0.0, 0.0, 1.0]}),  # mean=0.25
+            "t1": _make_acc(t1, {("acc", "none"): [1.0, 1.0]}, agg=agg),  # mean=1.0
+            "t2": _make_acc(
+                t2, {("acc", "none"): [0.0, 0.0, 0.0, 1.0]}, agg=agg
+            ),  # mean=0.25
         }
         result = _process_results(acc, groups={"g": group}, bootstrap_iters=0)
 
         # Unweighted: (1.0 + 0.25) / 2 = 0.625
         assert result.metrics["g"]["acc,none"] == pytest.approx(0.625)
 
-    def test_sample_len_is_total_not_per_filter(self):
+    def test_sample_len_is_total_not_per_filter(self, make_task):
         """Group sample_len is total across all leaf tasks, not filter-dependent."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=3)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=2)
+        t1 = make_task("t1", n_eval_docs=3)
+        t2 = make_task("t2", n_eval_docs=2)
 
         group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         group.add(t1)
         group.add(t2)
 
+        agg = {"acc": mean}
         # t1 has both filters, t2 only has "none"
         acc = {
             "t1": _make_acc(
@@ -258,12 +203,14 @@ class TestTaskToGroupPipeline:
                     ("acc", "none"): [0.0, 1.0, 1.0],
                     ("acc", "prefix"): [0.5, 0.5, 0.5],
                 },
+                agg=agg,
             ),
             "t2": _make_acc(
                 t2,
                 {
                     ("acc", "none"): [1.0, 1.0],
                 },
+                agg=agg,
             ),
         }
         result = _process_results(acc, groups={"g": group}, bootstrap_iters=0)
@@ -275,10 +222,10 @@ class TestTaskToGroupPipeline:
         assert result.metrics["g"]["sample_count"]["acc,none"] == 5  # both tasks
         assert result.metrics["g"]["sample_count"]["acc,prefix"] == 3  # only t1
 
-    def test_multiple_metrics_sample_count(self):
+    def test_multiple_metrics_sample_count(self, make_task):
         """sample_count is correct when tasks report different metrics."""
-        t1 = MockTask("t1", agg={"acc": mean, "f1": mean}, n_eval_docs=3)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=2)
+        t1 = make_task("t1", n_eval_docs=3)
+        t2 = make_task("t2", n_eval_docs=2)
 
         group = Group(
             name="g",
@@ -297,12 +244,14 @@ class TestTaskToGroupPipeline:
                     ("acc", "none"): [0.8, 0.9, 0.7],
                     ("f1", "none"): [0.6, 0.7, 0.8],
                 },
+                agg={"acc": mean, "f1": mean},
             ),
             "t2": _make_acc(
                 t2,
                 {
                     ("acc", "none"): [0.5, 0.5],
                 },
+                agg={"acc": mean},
             ),
         }
         result = _process_results(acc, groups={"g": group}, bootstrap_iters=0)
@@ -315,10 +264,10 @@ class TestTaskToGroupPipeline:
 class TestNestedGroupPipeline:
     """Tests for nested group hierarchies (parent → child → tasks)."""
 
-    def test_two_level_hierarchy(self):
+    def test_two_level_hierarchy(self, make_task):
         """Parent group aggregates child group which aggregates tasks."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=2)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=2)
+        t1 = make_task("t1", n_eval_docs=2)
+        t2 = make_task("t2", n_eval_docs=2)
 
         child = Group(
             name="child",
@@ -333,9 +282,10 @@ class TestNestedGroupPipeline:
         )
         parent.add(child)
 
+        agg = {"acc": mean}
         acc = {
-            "t1": _make_acc(t1, {("acc", "none"): [1.0, 1.0]}),  # mean=1.0
-            "t2": _make_acc(t2, {("acc", "none"): [0.0, 0.0]}),  # mean=0.0
+            "t1": _make_acc(t1, {("acc", "none"): [1.0, 1.0]}, agg=agg),  # mean=1.0
+            "t2": _make_acc(t2, {("acc", "none"): [0.0, 0.0]}, agg=agg),  # mean=0.0
         }
         result = _process_results(
             acc, groups={"parent": parent, "child": child}, bootstrap_iters=0
@@ -349,10 +299,10 @@ class TestNestedGroupPipeline:
         assert result.metrics["parent"]["acc,none"] == pytest.approx(0.5)
         assert result.metrics["parent"]["sample_len"] == 4
 
-    def test_parent_with_mixed_children(self):
+    def test_parent_with_mixed_children(self, make_task):
         """Parent has both a subgroup and a direct task."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=2)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=2)
+        t1 = make_task("t1", n_eval_docs=2)
+        t2 = make_task("t2", n_eval_docs=2)
 
         subgroup = Group(
             name="sub",
@@ -367,9 +317,10 @@ class TestNestedGroupPipeline:
         parent.add(subgroup)
         parent.add(t2)
 
+        agg = {"acc": mean}
         acc = {
-            "t1": _make_acc(t1, {("acc", "none"): [0.8, 0.6]}),  # mean=0.7
-            "t2": _make_acc(t2, {("acc", "none"): [1.0, 1.0]}),  # mean=1.0
+            "t1": _make_acc(t1, {("acc", "none"): [0.8, 0.6]}, agg=agg),  # mean=0.7
+            "t2": _make_acc(t2, {("acc", "none"): [1.0, 1.0]}, agg=agg),  # mean=1.0
         }
         result = _process_results(
             acc, groups={"parent": parent, "sub": subgroup}, bootstrap_iters=0
@@ -386,19 +337,20 @@ class TestNestedGroupPipeline:
 class TestGroupStderrPipeline:
     """Tests that stderr flows correctly through the pipeline."""
 
-    def test_group_stderr_aggregated(self):
+    def test_group_stderr_aggregated(self, make_task):
         """Group produces pooled stderr from task stderrs."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=50)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=50)
+        t1 = make_task("t1", n_eval_docs=50)
+        t2 = make_task("t2", n_eval_docs=50)
 
         group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         group.add(t1)
         group.add(t2)
 
+        agg = {"acc": mean}
         # Use enough samples to get meaningful stderrs
         acc = {
-            "t1": _make_acc(t1, {("acc", "none"): [1.0, 0.0] * 25}),
-            "t2": _make_acc(t2, {("acc", "none"): [1.0, 0.0] * 25}),
+            "t1": _make_acc(t1, {("acc", "none"): [1.0, 0.0] * 25}, agg=agg),
+            "t2": _make_acc(t2, {("acc", "none"): [1.0, 0.0] * 25}, agg=agg),
         }
         result = _process_results(acc, groups={"g": group}, bootstrap_iters=100)
 
@@ -410,14 +362,14 @@ class TestGroupStderrPipeline:
         assert isinstance(result.metrics["g"]["acc_stderr,none"], float)
         assert result.metrics["g"]["acc_stderr,none"] > 0
 
-    def test_group_stderr_na_when_task_has_single_sample(self):
+    def test_group_stderr_na_when_task_has_single_sample(self, make_task):
         """If a task has only 1 sample, its stderr is N/A → group stderr is N/A."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=1)
+        t1 = make_task("t1", n_eval_docs=1)
 
         group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         group.add(t1)
 
-        acc = {"t1": _make_acc(t1, {("acc", "none"): [1.0]})}
+        acc = {"t1": _make_acc(t1, {("acc", "none"): [1.0]}, agg={"acc": mean})}
         result = _process_results(acc, groups={"g": group}, bootstrap_iters=100)
 
         assert result.metrics["t1"]["acc_stderr,none"] == "N/A"
@@ -427,15 +379,16 @@ class TestGroupStderrPipeline:
 class TestGroupAggregationWarnings:
     """Tests for warning logs during group aggregation."""
 
-    def test_warns_when_metric_missing_in_some_tasks(self, caplog):
+    def test_warns_when_metric_missing_in_some_tasks(self, make_task, caplog):
         """Log warning when a metric exists in some tasks but not others."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=3)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=2)
+        t1 = make_task("t1", n_eval_docs=3)
+        t2 = make_task("t2", n_eval_docs=2)
 
         group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         group.add(t1)
         group.add(t2)
 
+        agg = {"acc": mean}
         # t1 has both filters, t2 only has "none" → warning for "prefix"
         acc = {
             "t1": _make_acc(
@@ -444,12 +397,14 @@ class TestGroupAggregationWarnings:
                     ("acc", "none"): [0.8, 0.9, 0.7],
                     ("acc", "prefix"): [0.5, 0.5, 0.5],
                 },
+                agg=agg,
             ),
             "t2": _make_acc(
                 t2,
                 {
                     ("acc", "none"): [1.0, 1.0],
                 },
+                agg=agg,
             ),
         }
         with caplog.at_level(logging.WARNING):
@@ -464,9 +419,9 @@ class TestGroupAggregationWarnings:
         assert "t2" in prefix_warnings[0]
         assert "1/2" in prefix_warnings[0]
 
-    def test_warns_when_metric_missing_in_all_tasks(self, caplog):
+    def test_warns_when_metric_missing_in_all_tasks(self, make_task, caplog):
         """Log warning when no tasks have the requested metric."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=2)
+        t1 = make_task("t1", n_eval_docs=2)
 
         group = Group(
             name="g",
@@ -476,7 +431,7 @@ class TestGroupAggregationWarnings:
         )
         group.add(t1)
 
-        acc = {"t1": _make_acc(t1, {("acc", "none"): [0.5, 0.5]})}
+        acc = {"t1": _make_acc(t1, {("acc", "none"): [0.5, 0.5]}, agg={"acc": mean})}
         with caplog.at_level(logging.WARNING):
             _process_results(acc, groups={"g": group}, bootstrap_iters=0)
 
@@ -487,18 +442,19 @@ class TestGroupAggregationWarnings:
         assert len(missing_warnings) == 1
         assert "nonexistent,none" in missing_warnings[0]
 
-    def test_no_warning_when_all_tasks_have_metric(self, caplog):
+    def test_no_warning_when_all_tasks_have_metric(self, make_task, caplog):
         """No warning when every task has the metric."""
-        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=2)
-        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=2)
+        t1 = make_task("t1", n_eval_docs=2)
+        t2 = make_task("t2", n_eval_docs=2)
 
         group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         group.add(t1)
         group.add(t2)
 
+        agg = {"acc": mean}
         acc = {
-            "t1": _make_acc(t1, {("acc", "none"): [0.8, 0.9]}),
-            "t2": _make_acc(t2, {("acc", "none"): [0.7, 0.6]}),
+            "t1": _make_acc(t1, {("acc", "none"): [0.8, 0.9]}, agg=agg),
+            "t2": _make_acc(t2, {("acc", "none"): [0.7, 0.6]}, agg=agg),
         }
         with caplog.at_level(logging.WARNING):
             _process_results(acc, groups={"g": group}, bootstrap_iters=0)
@@ -516,17 +472,6 @@ class TestGroupAggregationWarnings:
 # ---------------------------------------------------------------------------
 # TestProcessResultsBugFix
 # ---------------------------------------------------------------------------
-
-
-class _ProcessResultMockTask(MockTask):
-    """MockTask whose process_results returns actual metrics (legacy path)."""
-
-    def __init__(self, task_name: str, pr_fn, **kw):
-        super().__init__(task_name, **kw)
-        self._pr_fn = pr_fn
-
-    def process_results(self, doc, results):
-        return self._pr_fn(doc, results)
 
 
 def _make_instance(doc_id: int, *, doc: dict, target: str, filter_key: str, resps):
@@ -554,14 +499,12 @@ class TestProcessResultsBugFix:
     from ``Instance.target``.
     """
 
-    def test_scored_docs_have_references(self):
+    def test_scored_docs_have_references(self, make_task):
         """_try_process_results populates ScoredDoc.reference from Instance.target."""
         # process_results returns {"acc": score} for each doc
         scores_by_doc = {0: 1.0, 1: 0.0, 2: 1.0}
-        task = _ProcessResultMockTask(
-            "t_legacy",
-            pr_fn=lambda doc, results: {"acc": results[0]},
-        )
+        task = make_task("t_legacy")
+        task.process_results = lambda doc, results: {"acc": results[0]}
 
         instances: dict[int, list] = {}
         for doc_id in range(3):
@@ -584,15 +527,13 @@ class TestProcessResultsBugFix:
             assert "acc" in sd.scores
             assert sd.scores["acc"] == [scores_by_doc[i]]
 
-    def test_path_reduce_succeeds(self):
+    def test_path_reduce_succeeds(self, make_task):
         """Ensure reduce() works on ScoredDoc from the legacy path (no crash)."""
         from lm_eval.api.filter import FilterEnsemble
         from lm_eval.api.metrics import Metric
 
-        task = _ProcessResultMockTask(
-            "t_legacy",
-            pr_fn=lambda doc, results: {"acc": results[0]},
-        )
+        task = make_task("t_legacy")
+        task.process_results = lambda doc, results: {"acc": results[0]}
 
         instances: dict[int, list] = {}
         for doc_id, score in enumerate([1.0, 0.0]):
