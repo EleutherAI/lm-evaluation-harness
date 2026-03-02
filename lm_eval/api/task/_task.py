@@ -451,11 +451,11 @@ class Task:
             self.doc_to_target(doc),
         )
         if self._multiple_inputs:
-            assert isinstance(c, list), "multiple inputs require choices to be a list"
+            assert isinstance(q, list), "multiple inputs require choices to be a list"
             return self._multiple_input_context(
                 messages,
                 gen_prefix,
-                c,
+                q,
                 chat_template=chat_template if apply_chat_template else None,
                 fewshot_as_multiturn=fewshot_as_multiturn,
             )

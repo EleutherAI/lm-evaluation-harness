@@ -9,6 +9,7 @@ doc_to_target: !function preprocess_winogrande.doc_to_target
 doc_to_choice: !function preprocess_winogrande.doc_to_choice
 should_decontaminate: true
 doc_to_decontamination_query: sentence
+multiple_inputs: true
 metric_list:
   - metric: acc
     aggregation: mean

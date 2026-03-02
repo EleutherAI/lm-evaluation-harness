@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from lm_eval.api.instance import Instance
-from lm_eval.api.utils import ends_with_whitespace
+from lm_eval.api.utils import ends_with_whitespace, requires_delimiter
 from lm_eval.config.templates import _coerce_list, _resolve_target_index, process_field
 
 from ._task import Task
@@ -34,6 +34,11 @@ class MultipleChoiceTask(Task):
             )
         self.config.repeats = 1
 
+    @staticmethod
+    def _ll_pair(ctx: str, delimiter: str, *, cont: str) -> tuple[str, str]:
+        """Create a (context, continuation) pair for loglikelihood scoring, adding the target_delimiter if needed."""
+        return ctx, f"{delimiter if requires_delimiter(ctx, cont) else ''}{cont}"
+
     def construct_requests(
         self,
         doc: dict[str, Any],
@@ -51,10 +56,11 @@ class MultipleChoiceTask(Task):
         target = self.doc_to_target(doc)
         if not choices or target is None:
             eval_logger.warning(
-                "No choices=%s or target=%s found for doc:\n\n%s\n\nSkipping this instance.",
+                "[%s] No choices=%s or target=%s found for doc_id: %r. Skipping this instance.",
+                self.task_name,
                 choices,
                 target,
-                doc,
+                doc_id,
             )
             return None
         target_delimiter = self.config.target_delimiter
@@ -66,30 +72,40 @@ class MultipleChoiceTask(Task):
                 else ""
             )
 
-        if isinstance(ctx, list) and isinstance(ctx[0], dict):
-            # Message list context: delegate entirely to _build_chat_arguments
-            return self._build_chat_arguments(
-                doc=doc,
-                ctx=cast("list[dict[str, str]]", ctx),
-                choices=choices,
-                target_delimiter=target_delimiter,
-                target=target,
-                doc_id=doc_id,
-                metadata=_metadata,
-                **kwargs,
-            )
-
-        # From here on, ctx should always be a str (or list[str] for multiple_inputs)
-        if self._multiple_inputs:
-            arguments = self._multiple_input_args(
-                context=cast("list[str]", ctx),
-                choices=choices,
-                target_delimiter=target_delimiter,
-            )
-        else:
-            arguments = [
-                (cast("str", ctx), f"{target_delimiter}{cont}") for cont in choices
-            ]
+        match ctx:
+            case list() if isinstance(ctx[0], dict):
+                # Message list context: delegate entirely to _build_chat_arguments
+                return self._build_chat_arguments(
+                    doc=doc,
+                    ctx=cast("list[dict[str, str]]", ctx),
+                    choices=choices,
+                    target_delimiter=target_delimiter,
+                    target=target,
+                    doc_id=doc_id,
+                    metadata=_metadata,
+                    **kwargs,
+                )  # (list[dict, str], str) args
+            case list() if self._multiple_inputs:
+                # multiple-inputs have ctx: list[str]
+                arguments = self._multiple_input_args(
+                    context=cast("list[str]", ctx),
+                    choices=choices,
+                    target_delimiter=target_delimiter,
+                )
+            case _:
+                # From here on, ctx should always be a str
+                if not isinstance(ctx, str):
+                    eval_logger.warning(
+                        "[%s] Context should be either a string or a list of messages (dicts), but got type %s with value %r for doc_id: %r. Skipping this instance.",
+                        self.task_name,
+                        type(ctx),
+                        ctx,
+                        doc_id,
+                    )
+                    return None
+                arguments = [
+                    self._ll_pair(ctx, target_delimiter, cont=cont) for cont in choices
+                ]
 
         # If any scorer uses acc_mutual_info, we need unconditional loglikelihoods.
         # This computes log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
@@ -127,7 +143,10 @@ class MultipleChoiceTask(Task):
         assert choices is not None and target_delimiter is not None, (
             "choices and target_delimiter must be provided to create acc_mutual_info auxiliary arguments"
         )
-        return [(context, f"{target_delimiter}{choice}") for choice in choices]
+        return [
+            MultipleChoiceTask._ll_pair(context, target_delimiter, cont=choice)
+            for choice in choices
+        ]
 
     def _build_chat_arguments(
         self,
@@ -179,7 +198,18 @@ class MultipleChoiceTask(Task):
         assert len(choices) == 1, (
             "For multiple input tasks, there should only be one choice"
         )
-        return [(cxt, f"{target_delimiter}{choices[0]}") for cxt in context]
+        cont = choices[0]
+        return (
+            [
+                MultipleChoiceTask._ll_pair(cxt, target_delimiter, cont=cont)
+                for cxt in context
+            ]
+            if cont != ""
+            else [
+                MultipleChoiceTask._ll_pair("", target_delimiter, cont=cxt)
+                for cxt in context
+            ]
+        )
 
     def doc_to_text(
         self,
@@ -223,6 +253,10 @@ class MultipleChoiceTask(Task):
     ) -> int | list[int] | None:
         target = super().doc_to_target(doc, doc_to_target)
         choices = self.doc_to_choice(doc)
+        if self._multiple_inputs:
+            choices = self.doc_to_text(
+                doc
+            )  # for multiple input tasks, the "choices" are actually the multiple text inputs
         if not choices:
             eval_logger.warning(
                 "No choices found for doc:\n\n%s\n\nCannot map non int target to choice index.",

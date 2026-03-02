@@ -175,14 +175,20 @@ def _resolve_target_index(target, choices, doc) -> int | None:
         if idx < len(choices):
             return idx
         eval_logger.warning(
-            f"Target index '{idx}' out of range for choices {choices} for doc:\n\n{doc}\n\n"
+            "Target index %r out of range for choices %s for doc:%s",
+            idx,
+            choices,
+            f"\n\n{doc}\n\n",
         )
         return None
     if isinstance(target, str):
         if target in choices:
             return choices.index(target)
         eval_logger.warning(
-            f"Target '{target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+            "Target %r not found in choices %s for doc:%s",
+            target,
+            choices,
+            f"\n\n{doc}\n\n",
         )
         return None
     return None
