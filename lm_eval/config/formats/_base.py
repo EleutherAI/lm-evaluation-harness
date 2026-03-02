@@ -72,7 +72,7 @@ def _labels_up_to(choice_labels: str | list[str] | None, count_expr: str) -> str
 
 
 @dataclass(kw_only=True)
-class PresetConfig:
+class FormatConfig:
     """Declarative prompt configuration for evaluation tasks.
 
     A preset defines **what** a prompt looks like (instruction, question,
@@ -109,7 +109,7 @@ class PresetConfig:
     """
 
     # Registry for preset subclasses
-    _registry: ClassVar[dict[str, type[PresetConfig]]] = {}
+    _registry: ClassVar[dict[str, type[FormatConfig]]] = {}
     preset_name: ClassVar[str | None] = None
     """Set in subclasses to auto-register (e.g. ``preset_name = "mcqa"``)."""
 
@@ -167,7 +167,7 @@ class PresetConfig:
         super().__init_subclass__(**kwargs)
         # Auto-register subclasses that define preset_name
         if cls.preset_name is not None:
-            PresetConfig._registry[cls.preset_name] = cls
+            FormatConfig._registry[cls.preset_name] = cls
 
     @property
     def answer_format(self) -> str:
@@ -187,10 +187,10 @@ class PresetConfig:
     @classmethod
     def get(
         cls,
-        spec: str | dict | PresetConfig | None,
+        spec: str | dict | FormatConfig | None,
         *,
         selection: str | None = None,
-    ) -> PresetConfig | None:
+    ) -> FormatConfig | None:
         """Resolve preset from string, dict, or instance.
 
         Args:
@@ -211,7 +211,7 @@ class PresetConfig:
         """
         if spec is None:
             return None
-        if isinstance(spec, PresetConfig):
+        if isinstance(spec, FormatConfig):
             return spec
 
         if isinstance(spec, str):

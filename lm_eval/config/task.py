@@ -529,9 +529,9 @@ class TaskConfig:
         # Resolve preset: it consumes doc_to_* as inputs (field mappings)
         # and returns overrides that are applied unconditionally.
         if self.preset is not None:
-            from lm_eval.config.presets import PresetConfig
+            from lm_eval.config.formats import FormatConfig
 
-            resolved = PresetConfig.get(self.preset, selection=self._preset_selection)
+            resolved = FormatConfig.get(self.preset, selection=self._preset_selection)
             if resolved is not None:
                 overrides = resolved.to_task_config(
                     doc_to_text=self.doc_to_text

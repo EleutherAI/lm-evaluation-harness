@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import ClassVar
 
-from .preset import PresetConfig
+from ._base import FormatConfig
 
 
 @dataclass(kw_only=True)
-class GeneratePreset(PresetConfig):
+class GenerateFormat(FormatConfig):
     preset_name: ClassVar[str | None] = "generate"
 
     # Mode
@@ -39,7 +39,7 @@ class GeneratePreset(PresetConfig):
 
 
 @dataclass(kw_only=True)
-class COTGeneratePreset(GeneratePreset):
+class COTGeneratePreset(GenerateFormat):
     preset_name: ClassVar[str | None] = "cot"
 
     instruction: str = (
