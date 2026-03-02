@@ -375,15 +375,13 @@ class TestMetricRegistry:
         assert m.higher_is_better is True
         assert m.aggregation is mean_agg
 
-    def test_register_metric_duplicate_warns(self, caplog):
-        """Test that re-registering a built-in metric name logs a warning."""
-        import logging
-
+    def test_register_metric_duplicate_raises(self):
+        """Test that re-registering a built-in metric name raises ValueError."""
         from lm_eval.api import metrics  # noqa: F401
 
         assert "exact_match" in metric_registry
 
-        with caplog.at_level(logging.WARNING, logger="lm_eval.api.registry"):
+        with pytest.raises(ValueError, match="already registered"):
 
             @register_metric(
                 metric="exact_match",
@@ -392,8 +390,6 @@ class TestMetricRegistry:
             )
             def custom_exact_match(**kwargs):
                 return 0
-
-        assert "Failed to register metric 'exact_match'" in caplog.text
 
     def test_builtin_metrics_loaded(self):
         """Test that built-in metrics are loaded."""

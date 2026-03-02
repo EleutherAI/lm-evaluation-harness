@@ -37,6 +37,7 @@ def _envbool(var: str, default: bool = False) -> bool:
 LOGGING_LEVEL = os.environ.get("LMEVAL_LOG_LEVEL", "INFO")
 LMEVAL_HASHMM = _envbool("LMEVAL_HASHMM", default=True)
 DISABLE_MULTIPROC = _envbool("LMEVAL_DISABLE_MULTIPROC", default=False)
+LIMIT_DF = os.environ.get("LMEVAL_LIMIT", "")
 
 
 def INVALID(*context: str) -> str:

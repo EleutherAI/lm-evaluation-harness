@@ -130,9 +130,17 @@ def load_dataset_splits(
     """
     import datasets
 
+    from lm_eval.defaults import LIMIT_DF
+
+    _limit = LIMIT_DF if LIMIT_DF.isdigit() else ""
     unique_splits = list({s for s in split if s is not None}) if split else None
     # if split != None, load_dataset returns a list of Datasets, otherwise, it returns a single DatasetDict
-    loaded = datasets.load_dataset(path, name, split=unique_splits or None, **kwargs)
+    loaded = datasets.load_dataset(
+        path,
+        name,
+        split=[f"{x}[:{_limit}]" for x in unique_splits] if unique_splits else None,
+        **kwargs,
+    )
     return (
         datasets.DatasetDict(dict(zip(unique_splits, loaded, strict=True)))
         if unique_splits

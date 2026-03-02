@@ -8,7 +8,7 @@ from ._base import FormatConfig
 
 @dataclass(kw_only=True)
 class MCQAFormat(FormatConfig):
-    preset_name: ClassVar[str | None] = "mcqa"
+    format_name: ClassVar[str | None] = "mcqa"
 
     # Mode
     output_type: str = "multiple_choice"
@@ -39,7 +39,7 @@ class MCQAFormat(FormatConfig):
 
 
 @dataclass(kw_only=True)
-class ClozePreset(MCQAFormat):
-    preset_name: ClassVar[str | None] = "cloze"
+class ClozeFormat(MCQAFormat):
+    format_name: ClassVar[str | None] = "cloze"
 
     choice_labels: str | list[str] | None = None

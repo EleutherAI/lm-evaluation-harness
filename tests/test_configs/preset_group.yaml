@@ -1,4 +1,4 @@
-# Group with a preset child task
+# Group with a format child task
 group: preset_group
 task:
   - task: preset_group_child
@@ -10,4 +10,4 @@ task:
     doc_to_text: "question"
     doc_to_target: "answer"
     doc_to_choice: "choices"
-    preset: mcqa
+    formats: mcqa

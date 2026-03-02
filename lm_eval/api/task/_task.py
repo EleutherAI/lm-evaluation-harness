@@ -230,15 +230,16 @@ class Task:
             assert self._dataset_path is not None, (
                 "dataset_path must be set in TaskConfig or class attribute"
             )
+            splits = [
+                self.config.training_split,
+                self.config.validation_split,
+                self.config.test_split,
+                self.config.fewshot_split,
+            ]
             self._dataset = load_dataset_splits(
                 path=self._dataset_path,
                 name=self._dataset_name,
-                split=[
-                    self.config.training_split,
-                    self.config.validation_split,
-                    self.config.test_split,
-                    self.config.fewshot_split,
-                ],
+                split=[x for x in splits if x is not None],
                 **self.config.dataset_kwargs,
             )
 

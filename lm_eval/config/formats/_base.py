@@ -75,7 +75,7 @@ def _labels_up_to(choice_labels: str | list[str] | None, count_expr: str) -> str
 class FormatConfig:
     """Declarative prompt configuration for evaluation tasks.
 
-    A preset defines **what** a prompt looks like (instruction, question,
+    A format defines **what** a prompt looks like (instruction, question,
     choices, answer) and **how** sections are separated, then compiles
     itself into Jinja templates consumed by ``TaskConfig``.
 
@@ -89,9 +89,9 @@ class FormatConfig:
         {fewshot_delimiter}
         ... next example ...
 
-    Subclasses register themselves by setting ``preset_name`` and are
-    looked up via ``PresetConfig.get("name")`` or the YAML
-    ``preset: name`` / ``task@name`` syntax.
+    Subclasses register themselves by setting ``format_name`` and are
+    looked up via ``FormatConfig.get("name")`` or the YAML
+    ``format: name`` / ``task@name`` syntax.
 
     Derived Jinja variables
     ~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,10 +108,10 @@ class FormatConfig:
       e.g. ``"A, B, C or D"``
     """
 
-    # Registry for preset subclasses
+    # Registry for format subclasses
     _registry: ClassVar[dict[str, type[FormatConfig]]] = {}
-    preset_name: ClassVar[str | None] = None
-    """Set in subclasses to auto-register (e.g. ``preset_name = "mcqa"``)."""
+    format_name: ClassVar[str | None] = None
+    """Set in subclasses to auto-register (e.g. ``format_name = "mcqa"``)."""
 
     output_type: OutputType
     """Model request type: ``"multiple_choice"`` for loglikelihood scoring,
@@ -165,9 +165,9 @@ class FormatConfig:
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        # Auto-register subclasses that define preset_name
-        if cls.preset_name is not None:
-            FormatConfig._registry[cls.preset_name] = cls
+        # Auto-register subclasses that define format_name
+        if cls.format_name is not None:
+            FormatConfig._registry[cls.format_name] = cls
 
     @property
     def answer_format(self) -> str:
@@ -191,23 +191,23 @@ class FormatConfig:
         *,
         selection: str | None = None,
     ) -> FormatConfig | None:
-        """Resolve preset from string, dict, or instance.
+        """Resolve format from string, dict, or instance.
 
         Args:
             spec: One of:
-                - str: Preset name ("mcqa", "cot", "generate")
-                - dict with "type" key: single preset with overrides
+                - str: Format name ("mcqa", "cot", "generate")
+                - dict with "type" key: single format with overrides
                   ``{"type": "mcqa", "instruction": "..."}``
-                - dict keyed by preset names: multi-preset lookup table
+                - dict keyed by format names: multi-format lookup table
                   ``{"mcqa": {"instruction": "..."}, "generate": {...}}``
-                - PresetConfig: Already instantiated
-                - None: No preset
-            selection: Which preset to pick from a multi-preset dict.
+                - FormatConfig: Already instantiated
+                - None: No format
+            selection: Which format to pick from a multi-format dict.
                 Comes from ``task@selection`` syntax. If None, uses the
                 first key as default.
 
         Returns:
-            PresetConfig instance or None
+            FormatConfig instance or None
         """
         if spec is None:
             return None
@@ -218,29 +218,29 @@ class FormatConfig:
             template_cls = cls._registry.get(spec)
             if template_cls is None:
                 raise ValueError(
-                    f"Unknown preset: {spec}. Available: {cls.list_presets()}"
+                    f"Unknown format: {spec}. Available: {cls.registered()}"
                 )
             return template_cls()  # type: ignore
 
         if isinstance(spec, dict):
-            # Single preset with overrides: {"type": "mcqa", "instruction": "..."}
+            # Single format with overrides: {"type": "mcqa", "instruction": "..."}
             if "type" in spec:
                 spec_copy = spec.copy()
                 template_type = spec_copy.pop("type")
                 template_cls = cls._registry.get(template_type)
                 if template_cls is None:
                     raise ValueError(
-                        f"Unknown preset type: {template_type}. "
-                        f"Available: {cls.list_presets()}"
+                        f"Unknown format type: {template_type}. "
+                        f"Available: {cls.registered()}"
                     )
                 return template_cls(**spec_copy)
 
-            # Multi-preset lookup: {"mcqa": {...}, "generate": {...}}
-            # Keys are preset names, values are override dicts (or None)
+            # Multi-format lookup: {"mcqa": {...}, "generate": {...}}
+            # Keys are format names, values are override dicts (or None)
             if selection is not None:
                 if selection not in spec:
                     raise ValueError(
-                        f"Preset '{selection}' not found in task presets. "
+                        f"Format '{selection}' not found in task formats. "
                         f"Available: {list(spec.keys())}"
                     )
                 chosen_name = selection
@@ -252,18 +252,18 @@ class FormatConfig:
             if overrides is None:
                 overrides = {}
             elif isinstance(overrides, str):
-                # Allow shorthand: {"mcqa": "some_other_preset"}
+                # Allow shorthand: {"mcqa": "some_other_format"}
                 return cls.get(overrides)
             return cls.get({"type": chosen_name, **overrides})
 
         raise TypeError(
-            f"Invalid preset spec type: {type(spec)}. "
-            f"Expected str, dict, PresetConfig, or None."
+            f"Invalid format spec type: {type(spec)}. "
+            f"Expected str, dict, FormatConfig, or None."
         )
 
     @classmethod
-    def list_presets(cls) -> list[str]:
-        """List all registered preset names."""
+    def registered(cls) -> list[str]:
+        """List all registered format names."""
         return sorted(cls._registry.keys())
 
     def _field_ref(self, field: str, for_output: bool = True) -> str:
@@ -296,9 +296,9 @@ class FormatConfig:
     def _escape_jinja(s: str) -> str:
         """No-op currently — returns the string unchanged.
 
-        Marks every site where a preset string field (``instruction``,
+        Marks every site where a format string field (``instruction``,
         ``answer_prompt``, etc.) is spliced into a Jinja template. If
-        preset fields ever need to contain literal ``{{``/``{%``
+        format fields ever need to contain literal ``{{``/``{%``
         delimiters, replace this with real escaping (e.g. wrapping in
         ``{% raw %}...{% endraw %}``).
         """
@@ -313,7 +313,7 @@ class FormatConfig:
         r"""Generate Jinja templates for TaskConfig fields.
 
         The doc_to_* parameters are field mappings from the task config that
-        tell the preset which document fields to reference in templates.
+        tell the format which document fields to reference in templates.
 
         Args:
             doc_to_text: Field name or Jinja expression for the question text.
@@ -538,9 +538,9 @@ class FormatConfig:
             # If answer is already an index, return it; if it's text, find it in choices
             if c_ref is None:
                 raise ValueError(
-                    f"Preset '{self.preset_name}' has output_type='multiple_choice' "
+                    f"Format '{self.format_name}' has output_type='multiple_choice' "
                     f"but no doc_to_choice was provided. Set doc_to_choice in your "
-                    f"task config (e.g. doc_to_choice: choices) so the preset can "
+                    f"task config (e.g. doc_to_choice: choices) so the format can "
                     f"build the target template."
                 )
             return (
@@ -592,10 +592,10 @@ class FormatConfig:
         doc_to_choice: str | list[str] | None = "choices",
         doc_to_target: str = "answer",
     ) -> dict[str, Any]:
-        """Expand preset into TaskConfig field overrides.
+        """Expand format into TaskConfig field overrides.
 
         The doc_to_* parameters are field mappings from the task config.
-        The preset consumes them to build Jinja templates, then returns
+        The format consumes them to build Jinja templates, then returns
         overrides that are applied unconditionally to the TaskConfig.
 
         Returns a dict of TaskConfig-compatible fields including

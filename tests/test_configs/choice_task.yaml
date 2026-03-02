@@ -1,4 +1,4 @@
-# Task with doc_to_choice but no preset (for testing runtime @suffix)
+# Task with doc_to_choice but no format (for testing runtime @suffix)
 task: choice_task
 dataset_path: json
 dataset_kwargs:

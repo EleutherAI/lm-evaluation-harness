@@ -115,7 +115,7 @@ class TaskIndex:
                 )
 
             case Kind.TASK | Kind.PY_TASK:
-                # Index key is base name (strip @preset); cfg keeps full name.
+                # Index key is base name (strip @format); cfg keeps full name.
                 name = cfg["task"].split("@", 1)[0]
                 if name in index_:
                     log.warning(

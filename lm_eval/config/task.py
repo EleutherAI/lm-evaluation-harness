@@ -11,7 +11,7 @@ from .utils import normalize_filter_list, normalize_metric_list
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Sequence
+    from collections.abc import Callable, Iterable, Mapping, Sequence
     from typing import Literal
 
     from lm_eval.api._types import (
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
         LLOutput,
     )
     from lm_eval.api.instance import OutputType
+    from lm_eval.api.metrics import AggregationFn, MetricFn, ReductionFn
 
     _OutputType = OutputType | Literal["multiple_choice"]
 
@@ -42,20 +43,20 @@ class MetricConfig(TypedDict, total=False):
             ignore_case: true       # extra kwarg forwarded to the metric fn
     """
 
-    metric: Required[str | Callable]
+    metric: Required[str | MetricFn]
     """Name of a registered metric (e.g. ``"acc"``, ``"exact_match"``,
     ``"bleu"``) or a callable. See ``lm_eval/api/metrics.py`` for
     built-in metrics."""
 
-    aggregation: str | Callable | None
+    aggregation: str | AggregationFn | None
     """How per-document metric values are combined into a single score
-    (e.g. ``"mean"``, ``"median"``). Defaults to the metric's registered
-    aggregation if not set."""
+    (e.g. ``"mean"``, ``"median"``). Can be a registered aggregation or a callable.
+    Defaults to the metric's registered aggregation if not set."""
 
-    reduction: str | Callable | None
+    reduction: str | ReductionFn | None
     """How per-instance repeated values are reduced before aggregation
-    (e.g. when ``repeats > 1``). Defaults to the metric's registered
-    reduction if not set."""
+    (e.g. when ``repeats > 1``). Can be a registered reduction or a callable.
+    Defaults to the metric's registered reduction if not set."""
 
     higher_is_better: bool | None
     """Whether a higher metric value indicates better performance.
@@ -63,8 +64,9 @@ class MetricConfig(TypedDict, total=False):
 
     kwargs: dict[str, Any] | None
     """Extra keyword arguments forwarded to the metric function
-    (e.g. ``{"ignore_case": true}`` for ``exact_match``). Keys not in
-    ``METRIC_KEYS`` are also treated as kwargs."""
+    (e.g. ``{"ignore_case": true}`` for ``exact_match``) Extreneous fields are also.
+    treated as kwargs.
+    """
 
 
 class FilterStep(TypedDict, total=False):
@@ -167,7 +169,7 @@ class FewshotConfig:
     These fields override the parent TaskConfig fields when formatting
     few-shot examples (as opposed to the test example).
 
-    note: num_fewshot is also runtime dependent, so is not included here.
+    note: num_fewshot is also runtime-dependent, so is not included here.
     """
 
     sampler: str = "default"
@@ -240,12 +242,11 @@ class FewshotConfig:
     @classmethod
     def from_dict(
         cls,
-        cfg: dict,
+        cfg: Mapping[str, Any],
         *,
         # inherited from TaskConfig if not specified
         fewshot_split: str | None = None,
-        process_docs: Callable[[Iterable[dict[str, Any]]], list[dict[str, Any]]]
-        | None = None,
+        process_docs: Callable[[Iterable[dict[str, Any]]], list[Doc]] | None = None,
         fewshot_delimiter: str | None = None,
         target_delimiter: str | None = None,
         gen_prefix: str | None = None,
@@ -294,17 +295,17 @@ class TaskConfig:
 
     task: str
     """Unique task identifier used for registration and CLI selection
-    (e.g. ``--tasks arc_easy``). Append ``@<preset>`` to select a prompt
-    preset at runtime (e.g. ``"arc_easy@cloze"``)."""
+    (e.g. ``--tasks arc_easy``). Append ``@<formats>`` to select a prompt
+    formats at runtime (e.g. ``"arc_easy@cloze"``)."""
 
     task_alias: str | None = None
     """Optional display name shown in result tables instead of ``task``."""
 
-    preset: str | dict[str, str] | None = None
-    """Prompt preset to apply. Can be a registered preset name (e.g. ``"cloze"``,
-    ``"mcq"``), or an inline dict of PresetConfig fields. When set, the preset's
+    formats: str | dict[str, str] | None = None
+    """Prompt formats to apply. Can be a registered formats name (e.g. ``"cloze"``,
+    ``"mcq"``), or an inline dict of [FormatConfig][.formats.FormatConfig] fields. When set, the format's
     template overrides ``doc_to_text``, ``doc_to_target``, ``output_type``, etc.
-    If None and ``task`` contains ``@``, the suffix is used as the preset name."""
+    If None and ``task`` contains ``@``, the suffix is used as the formats name."""
 
     output_type: _OutputType = "generate_until"
     """The type of model request to construct for each document.
@@ -499,7 +500,7 @@ class TaskConfig:
     ``version`` key. The ``num_fewshot`` key overrides the displayed n-shot
     column in result tables. Also passed to ``custom_dataset`` at runtime to pass arbitrary kwargs"""
 
-    _preset_selection: str | None = None
+    _formats_selection: str | None = None
     """Internal field. Holds the ``@suffix`` parsed from the task name
     (e.g. ``"cloze"`` from ``"arc_easy@cloze"``). Set automatically
     in ``__post_init__``; should not be set in YAML configs."""
@@ -510,28 +511,28 @@ class TaskConfig:
     Falls back to ``task`` when not set. Not intended for manual YAML use."""
 
     def __post_init__(self) -> None:
-        self._resolve_preset()
+        self._resolve_formats()
         self._apply_generation_defaults()
         self._build_fewshot_config()
         self._normalize_scoring_config()
 
-    def _resolve_preset(self) -> None:
-        """Parse ``@preset`` from task name and apply preset overrides."""
-        # Extract @preset from task name as selection (e.g. "arc_easy@cloze")
-        # Runtime _preset_selection takes priority over the YAML task name.
-        if self._preset_selection is None and "@" in self.task:
-            self._preset_selection = self.task.rsplit("@", 1)[1]
+    def _resolve_formats(self) -> None:
+        """Parse ``@formats`` from the task name and apply formats overrides."""
+        # Extract @formats from the task name as selection (e.g. "arc_easy@cloze")
+        # Runtime _formats_selection takes priority over the YAML task name.
+        if self._formats_selection is None and "@" in self.task:
+            self._formats_selection = self.task.rsplit("@", 1)[1]
 
-        # If no preset: field, the selection itself becomes the preset
-        if self.preset is None:
-            self.preset = self._preset_selection
+        # If no formats: field, the selection itself becomes the formats
+        if self.formats is None:
+            self.formats = self._formats_selection
 
-        # Resolve preset: it consumes doc_to_* as inputs (field mappings)
+        # Resolve formats: it consumes doc_to_* as inputs (field mappings)
         # and returns overrides that are applied unconditionally.
-        if self.preset is not None:
+        if self.formats is not None:
             from lm_eval.config.formats import FormatConfig
 
-            resolved = FormatConfig.get(self.preset, selection=self._preset_selection)
+            resolved = FormatConfig.get(self.formats, selection=self._formats_selection)
             if resolved is not None:
                 overrides = resolved.to_task_config(
                     doc_to_text=self.doc_to_text
@@ -579,7 +580,9 @@ class TaskConfig:
                 )
 
     def _build_fewshot_config(self) -> None:
-        """Convert a raw ``fewshot_config`` dict to a :class:`FewshotConfig`, inheriting task-level fields."""
+        """Convert a raw ``fewshot_config`` dict to a [FewshotConfig][FewshotConfig], inheriting task-level fields."""
+        if isinstance(self.fewshot_config, FewshotConfig):
+            return
         if isinstance(self.fewshot_config, dict) or self.fewshot_config is None:
             self.fewshot_config = FewshotConfig.from_dict(
                 self.fewshot_config or {},
@@ -604,7 +607,7 @@ class TaskConfig:
         * ``filter_list`` always has at least one entry.  Each entry
           carries a ``metric_list`` (per-pipeline if provided, otherwise
           the task-level ``metric_list`` as fallback).
-        * ``scorer`` is normalised to :class:`ScorerConfig` ``| None``.
+        * ``scorer`` is normalised to [ScorerConfig][ScorerConfig] | None.
         """
         self.metric_list = normalize_metric_list(self.metric_list)
         self.filter_list = normalize_filter_list(self.filter_list)

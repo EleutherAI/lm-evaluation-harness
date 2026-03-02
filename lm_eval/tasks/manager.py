@@ -5,7 +5,6 @@ from collections import defaultdict
 from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
-
 from typing_extensions import NotRequired, TypedDict, deprecated
 
 from lm_eval import utils
@@ -168,7 +167,7 @@ class TaskManager:
                 )
             child_key = "::".join(parts[: i + 1])
             child = current.get(child_key)
-            # Bare name without @preset — find the child whose key
+            # Bare name without @format — find the child whose key
             # matches after stripping the @suffix (e.g. "group::task"
             # matches "group::task@mcqa").
             if child is None and "@" not in parts[i]:
@@ -203,7 +202,7 @@ class TaskManager:
             Task, Group, or list[Task] (for tags)
         """
         match spec:
-            # Registered name (possibly with @preset selector)
+            # Registered name (possibly with @format selector)
             case str():
                 # Try exact match first (handles "arc_easy@mcqa" registered names)
                 entry = self._entry(spec)
@@ -216,10 +215,10 @@ class TaskManager:
                 if "::" in spec:
                     return self._resolve_path(spec)
 
-                # If spec has @, try base name with preset as runtime override
+                # If spec has @, try base name with format as runtime override
                 if "@" in spec:
-                    base_name, preset_selection = spec.rsplit("@", 1)
-                    overrides = {"_preset_selection": preset_selection}
+                    base_name, format_selection = spec.rsplit("@", 1)
+                    overrides = {"_formats_selection": format_selection}
                     entry = self._entry(base_name)
                     if entry:
                         return self._factory.build(
@@ -354,8 +353,8 @@ class TaskManager:
     def match_tasks(self, task_list: list[str]) -> list[str]:
         """Match task names using glob patterns.
 
-        Handles task@preset syntax: strips @preset for matching,
-        returns the original (with @preset) so _load_spec can parse it.
+        Handles task@format syntax: strips @format for matching,
+        returns the original (with @format) so _load_spec can parse it.
         """
         results = []
         for pattern in task_list:

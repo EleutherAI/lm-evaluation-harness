@@ -1,13 +1,13 @@
 # Import subclasses to trigger registration via __init_subclass__
 from ._base import FormatConfig
-from ._generation import COTGeneratePreset, GenerateFormat
-from ._multiple_choice import ClozePreset, MCQAFormat
+from ._generation import COTGenFormat, GenerateFormat
+from ._multiple_choice import ClozeFormat, MCQAFormat
 
 
 __all__ = [
-    "COTGeneratePreset",
-    "ClozePreset",
+    "COTGenFormat",
+    "ClozeFormat",
+    "FormatConfig",
     "GenerateFormat",
     "MCQAFormat",
-    "FormatConfig",
 ]

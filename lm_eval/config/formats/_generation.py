@@ -8,7 +8,7 @@ from ._base import FormatConfig
 
 @dataclass(kw_only=True)
 class GenerateFormat(FormatConfig):
-    preset_name: ClassVar[str | None] = "generate"
+    format_name: ClassVar[str | None] = "generate"
 
     # Mode
     output_type: str = "generate_until"
@@ -39,8 +39,8 @@ class GenerateFormat(FormatConfig):
 
 
 @dataclass(kw_only=True)
-class COTGeneratePreset(GenerateFormat):
-    preset_name: ClassVar[str | None] = "cot"
+class COTGenFormat(GenerateFormat):
+    format_name: ClassVar[str | None] = "cot"
 
     instruction: str = (
         "Given the following problem, reason step by step to find the final answer.\n"
