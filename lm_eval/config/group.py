@@ -12,13 +12,16 @@ if TYPE_CHECKING:
 class AggMetricConfig:
     """Configuration for how to aggregate a metric across a group's children.
 
-    Maps to the entries in ``aggregate_metric_list`` in a group YAML file::
+    Maps to the entries in ``aggregate_metric_list`` in a group YAML file.
 
+    Example:
+        ```yaml
         aggregate_metric_list:
           - metric: acc
             filter_list: ["none"]
             aggregation: mean
             weight_by_size: true
+        ```
     """
 
     metric: str
@@ -60,8 +63,8 @@ class GroupConfig:
     from YAML are fed through this dataclass so that loose input types
     (single strings, bare dicts, etc.) are normalized into canonical forms.
 
-    Example YAML::
-
+    Example:
+        ```yaml
         group: mmlu
         group_alias: MMLU
         task:
@@ -78,6 +81,7 @@ class GroupConfig:
             weight_by_size: true
         metadata:
           version: 1.0
+        ```
     """
 
     group: str
@@ -99,16 +103,17 @@ class GroupConfig:
     of key-value pairs. When a path is given it is resolved relative to the
     group YAML file's directory.
 
-    Example (path)::
-
+    Example (path):
+        ```yaml
         group: my_bench
         include: shared_defaults.yaml
         task:
           - task_a
           - task_b
+        ```
 
-    Example (inline)::
-
+    Example (inline):
+        ```yaml
         group: my_bench
         include:
           num_fewshot: 5
@@ -116,6 +121,7 @@ class GroupConfig:
         task:
           - task_a
           - task_b
+        ```
     """
 
     # Accepts loose YAML input; __post_init__ normalizes to list[AggMetricConfig] | None

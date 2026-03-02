@@ -21,10 +21,10 @@ class Filter(Protocol[_T]):
 
     Filters transform raw model outputs (instance.resps) into a form suitable for metric
     computation.  They operate on **all docs of a task at once**,
-    receiving a 2-D structure::
+    receiving a 2-D structure:
 
-        outer (Iterable) — one entry per doc
-        inner (Sequence)  — one entry per repeat of that doc
+    - outer (Iterable) — one entry per doc
+    - inner (Sequence) — one entry per repeat of that doc
 
     Multiple filters can be chained via [FilterEnsemble][FilterEnsemble].
     ``T`` is the response element type:

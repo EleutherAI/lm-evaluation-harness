@@ -34,13 +34,14 @@ eval_logger = logging.getLogger(__name__)
 class MetricConfig(TypedDict, total=False):
     """Configuration for a single metric in ``metric_list``.
 
-    Example YAML::
-
+    Example:
+        ```yaml
         metric_list:
           - metric: exact_match
             aggregation: mean
             higher_is_better: true
             ignore_case: true       # extra kwarg forwarded to the metric fn
+        ```
     """
 
     metric: Required[str | MetricFn]
@@ -72,8 +73,8 @@ class MetricConfig(TypedDict, total=False):
 class FilterStep(TypedDict, total=False):
     r"""A single filter step in a pipeline.
 
-    Example::
-
+    Example:
+        ```yaml
         - function: "regex"
           kwargs:
             regex_pattern: "#### (\\\\-?[0-9\\\\.\\\\,]+)"
@@ -81,7 +82,7 @@ class FilterStep(TypedDict, total=False):
         - function: "custom"
           kwargs:
             filter_fn: !function my_custom_filter_fn
-
+        ```
     """
 
     function: Required[str]
@@ -106,8 +107,8 @@ class ScorerConfig(TypedDict, total=False):
     dict with ``type`` and optional ``kwargs`` forwarded to the scorer
     constructor.
 
-    Example YAML::
-
+    Example:
+        ```yaml
         # String shorthand — equivalent to {"type": "first_token"}
         scorer: first_token
 
@@ -116,6 +117,7 @@ class ScorerConfig(TypedDict, total=False):
           type: ai_judge
           kwargs:
             judge_model: claude-sonnet-4-6
+        ```
 
     See ``lm_eval/scorers/`` for built-in scorers.  Custom scorers can
     be registered with ``@register_scorer``.
@@ -134,8 +136,10 @@ class ScorerConfig(TypedDict, total=False):
 class FilterPipeline(TypedDict, total=False):
     r"""A named filter pipeline with optional per-pipeline metrics.
 
-    Mirrors each element of the ``filter_list`` entries in YAML task configs::
+    Mirrors each element of the ``filter_list`` entries in YAML task configs.
 
+    Example:
+        ```yaml
         filter_list:
           - name: "strict-match"
             filter:
@@ -146,6 +150,7 @@ class FilterPipeline(TypedDict, total=False):
                 - metric: "exact_match"
           - name: "loose-match"
             ...
+        ```
     """
 
     name: Required[str]
@@ -280,15 +285,16 @@ class TaskConfig:
     Maps 1:1 with the YAML task config files under ``lm_eval/tasks/``.
     Every key in a task YAML corresponds to a field here.
 
-    Example YAML::
-
-        task: arc_easy@cloze
-        dataset_path: allenai/ai2_arc
-        dataset_name: ARC-Easy
+    Example:
+        ```yaml
+        task: arc_easy @ cloze
+        dataset_path: allenai / ai2_arc
+        dataset_name: ARC - Easy
         test_split: test
         doc_to_text: "{{question}}"
         doc_to_target: "{{choices.label.index(answerKey)}}"
         doc_to_choice: "{{choices.text}}"
+        ```
     """
 
     # ── Task naming / registry ──────────────────────────────────────────

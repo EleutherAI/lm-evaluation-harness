@@ -86,8 +86,7 @@ def normalize_metric_cfg(cfg: Mapping[str, Any]) -> MetricConfig:
     with arbitrary extra keys that should be forwarded as ``kwargs`` to the
     metric function. This function separates the two.
 
-    Example::
-
+    Examples:
         >>> normalize_metric_cfg({"metric": "exact_match", "ignore_case": True})
         {"metric": "exact_match", "kwargs": {"ignore_case": True}}
     """
@@ -130,8 +129,7 @@ def _normalize_filter_step(cfg: Mapping[str, Any]) -> FilterStep:
     Same pattern as [normalize_metric_cfg][normalize_metric_cfg]: known fields are kept,
     extra keys (e.g. ``regex_pattern``) are collected into ``kwargs``.
 
-    Example::
-
+    Examples:
         >>> _normalize_filter_step({"function": "regex", "regex_pattern": r"\\d+"})
         {"function": "regex", "kwargs": {"regex_pattern": "\\\\d+"}}
     """

@@ -69,8 +69,8 @@ class LM(abc.ABC):
         - IMPORTANT: We maximize the amount of context for each prediction. Specifically, for inputs that we break into
           multiple chunks, the last input will still a full-sized context.
 
-        Example::
-
+        Example:
+            ```text
             Input tokens: [ 0 1 2 3 4 5 6 7 8 9 ]
             Prefix: BOS/EOS
             Max context length: 4
@@ -88,6 +88,7 @@ class LM(abc.ABC):
             Observe that:
               1. Each token is predicted exactly once
               2. For the last pair, we provide the full context, but only score the last two tokens
+            ```
 
         Args:
             requests: List of ``Instance`` objects. Each ``Instance.args`` is a ``(Literal[""], string)`` tuple containing
@@ -97,7 +98,7 @@ class LM(abc.ABC):
         Returns:
             A list of ``(logprob, Literal[False])`` tuples — the log-probability of the string
             conditioned on the BOS/EOS token (or ``prefix_token_id``).
-            Second element is always False since this method does not compute greedy likelihood.
+            The second element is always False since this method does not compute greedy likelihood.
         """
         ...
 
@@ -267,7 +268,7 @@ class CachingLM:
     def __getattr__(self, attr: str) -> Any:
         lm_attr = getattr(self.lm, attr)
         if attr not in ["loglikelihood", "loglikelihood_rolling", "generate_until"]:
-            eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
+            eval_logger.debug("Passing through attribute '%s' to underlying LM", attr)
             return lm_attr
 
         def _fn(requests: list[Instance]) -> list[Instance]:
@@ -276,7 +277,9 @@ class CachingLM:
             warned = False
             # figure out which ones are cached and which ones are new
             eval_logger.info(
-                f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
+                "Loading '%s' responses from cache '%s' where possible...",
+                attr,
+                self.cache_db,
             )
             for req in tqdm(requests, desc="Checking cached requests"):
                 hsh = hash_args(attr, req.args)
@@ -285,7 +288,8 @@ class CachingLM:
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
                     if not warned:
                         eval_logger.warning(
-                            f"Arguments to lm.generate_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
+                            "Arguments to lm.generate_until() '%s' include non-deterministic sampling. Caching will not be performed for such requests.",
+                            req.args[1],
                         )
                         warned = True
                     res.append(None)
@@ -300,7 +304,9 @@ class CachingLM:
                     res.append(None)
                     remaining_reqs.append(req)
             eval_logger.info(
-                f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
+                "Cached requests: %d, Requests remaining: %d",
+                len(requests) - len(remaining_reqs),
+                len(remaining_reqs),
             )
             # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs) if remaining_reqs else []

@@ -27,8 +27,7 @@ def _label_at_index(choice_labels: str | list[str] | None, index_expr: str) -> s
         index_expr: Jinja expression evaluating to a 0-based integer
             (e.g. ``"loop.index0"``, ``"answer"``).
 
-    Examples::
-
+    Examples:
         >>> _label_at_index("letters", "loop.index0")
         "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[loop.index0]"
         >>> _label_at_index("numbers", "answer")
@@ -53,8 +52,7 @@ def _labels_up_to(choice_labels: str | list[str] | None, count_expr: str) -> str
         count_expr: Jinja expression evaluating to an integer count
             (e.g. ``"_num_choices"``, ``"choices|length"``).
 
-    Examples::
-
+    Examples:
         >>> _labels_up_to("letters", "_num_choices")
         "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:_num_choices]|list"
         >>> _labels_up_to("numbers", "choices|length")
@@ -79,8 +77,9 @@ class FormatConfig:
     choices, answer) and **how** sections are separated, then compiles
     itself into Jinja templates consumed by ``TaskConfig``.
 
-    Prompt layout produced by ``to_jinja_config()``::
+    Prompt layout produced by ``to_jinja_config()``:
 
+        ```text
         {instruction}
         {question_prefix}{question}
         {section_separator}{choice_label}. {choice}  (repeated)
@@ -88,6 +87,7 @@ class FormatConfig:
         {target_delimiter}{target}
         {fewshot_delimiter}
         ... next example ...
+        ```
 
     Subclasses register themselves by setting ``format_name`` and are
     looked up via ``FormatConfig.get("name")`` or the YAML
@@ -485,18 +485,22 @@ class FormatConfig:
 
         Returns:
             A Jinja template string. For example, with
-            ``choice_labels="letters"`` and ``doc_to_choice="choices"``::
+            ``choice_labels="letters"`` and ``doc_to_choice="choices"``:
 
+                ```jinja
                 {% for choice in choices %}
                     {{ 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[loop.index0] }}. {{ choice }}
                 {% endfor %}
+                ```
 
             Which renders (given ``choices = ["Paris", "London", "Berlin"]``)
-            as::
+            as:
 
+                ```text
                 A. Paris
                 B. London
                 C. Berlin
+                ```
 
             Label style is controlled by ``self.choice_labels``:
 

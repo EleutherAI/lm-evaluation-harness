@@ -327,26 +327,30 @@ def _process_results(
 
     Returns:
         _EvalAcc dataclass with:
-        - metrics: Dict of task/group metrics
-        - configs: Task configurations
-        - versions: Task versions
-        - num_fewshot: Number of few-shot examples
-        - higher_is_better: Metric direction info
-        - samples: Sample-level results
-        - n_samples: Original and effective sample counts per task
-        - groups: Groups dict for traversal
+            - metrics: Dict of task/group metrics
+            - configs: Task configurations
+            - versions: Task versions
+            - num_fewshot: Number of few-shot examples
+            - higher_is_better: Metric direction info
+            - samples: Sample-level results
+            - n_samples: Original and effective sample counts per task
+            - groups: Groups dict for traversal
 
-    Example usage:
-        loaded = task_manager.load(['arc', 'hellaswag'])
+    Example:
+        ```python
+        loaded = task_manager.load(["arc", "hellaswag"])
 
         # Run evaluation (populates scorer.reduced_docs)
-        eval_results_acc = {name: {"task": t, "logged_samples": []}
-                           for name, t in loaded['tasks'].items()}
+        eval_results_acc = {
+            name: {"task": t, "logged_samples": []}
+            for name, t in loaded["tasks"].items()
+        }
 
-        results = _process_results(eval_results_acc, loaded['groups'])
+        results = _process_results(eval_results_acc, loaded["groups"])
 
         # Convert to EvalResults dict
         eval_results = results._to_eval_results()
+        ```
     """
     # Collect task results (includes aggregation)
     results = _agg_and_collect(eval_results_acc, groups or {}, bootstrap_iters)
@@ -552,9 +556,8 @@ def _handle_back_comp(
 ) -> tuple[dict[str, Group], dict[str, Task]]:
     """Handle backward compatibility for the legacy nested-dict task format.
 
-    The legacy ``load_task_or_group`` returns::
-
-        {ConfigurableGroup: {task_name: Task, ...}, task_name: Task, ...}
+    The legacy ``load_task_or_group`` returns
+    ``{ConfigurableGroup: {task_name: Task, ...}, task_name: Task, ...}``.
 
     This converts it into the ``(groups, tasks)`` tuple expected by the
     new evaluator code path.

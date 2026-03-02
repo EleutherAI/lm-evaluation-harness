@@ -50,12 +50,13 @@ class TaskManager:
         include_defaults: Whether to include built-in tasks from lm_eval/tasks/.
         metadata: Extra metadata to attach to all loaded tasks.
 
-    Example::
-
+    Example:
+        ```python
         tm = TaskManager(include_path="my_tasks/")
         result = tm.load(["mmlu", "hellaswag"])
-        result["tasks"]   # {name: Task, ...}
+        result["tasks"]  # {name: Task, ...}
         result["groups"]  # {name: Group, ...}
+        ```
     """
 
     def __init__(

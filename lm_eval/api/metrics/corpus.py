@@ -49,10 +49,9 @@ class CorpusMetric(ABC, Generic[_R, _T]):
     Corpus-level metrics are computed across multiple samples
     and typically require aggregation of intermediate results.
 
-    Data flow::
-
-        __call__(references, predictions: _R) -> _T      # per document intermediate result
-        aggregation(list[_T])          -> float   # corpus level
+    Data flow:
+        ``__call__(references, predictions: _R) -> _T`` # per document intermediate result
+        ``aggregation(list[_T]) -> float`` # corpus level
     """
 
     @abstractmethod

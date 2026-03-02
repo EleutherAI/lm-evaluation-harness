@@ -27,10 +27,10 @@ nav = [
   ]},
   { "API Reference" = [
     "api/index.md",
-    { "Running Evaluations" = [
-      { "Entry Points" = "api/entry_points.md" },
+    { "Entry Points" = [
+      { "Evaluate" = "api/entry_points.md" },
       { "TaskManager" = "api/lm_eval.tasks.md" },
-      { "Evaluation Config" = "api/evaluation_config.md" },
+      { "CLI" = "api/evaluation_config.md" },
     ]},
     { "Models" = [
       { "Available Backends" = "api/lm_eval.models.md" },
@@ -75,9 +75,7 @@ default_handler = "python"
 
 [project.plugins.mkdocstrings.handlers.python]
 paths = ["."]
-inventories = [
-  "https://typing-extensions.readthedocs.io/en/latest/objects.inv",
-]
+inventories = []
 
 [project.plugins.mkdocstrings.handlers.python.options]
 show_source = true

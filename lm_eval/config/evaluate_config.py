@@ -44,8 +44,8 @@ class EvaluatorConfig:
     The configuration handles argument parsing, validation, and preprocessing
     to ensure properly structured and validated.
 
-    Example::
-
+    Example:
+        ```python
         # From CLI arguments
         config = EvaluatorConfig.from_cli(args)
 
@@ -59,6 +59,7 @@ class EvaluatorConfig:
             tasks=["hellaswag", "arc_easy"],
             num_fewshot=5,
         )
+        ```
     """
 
     # Core evaluation parameters
