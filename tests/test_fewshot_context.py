@@ -6,8 +6,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from lm_eval.api._utils import Message, maybe_delimit, multiturn_to_singleturn
 from lm_eval.api.task import ConfigurableTask
-from lm_eval.api.utils import Message, maybe_delimit, multiturn_to_singleturn
 
 
 # =============================================================================

@@ -22,7 +22,12 @@ def __getattr__(name):
         from .evaluator import simple_evaluate
 
         return simple_evaluate
+
+    elif name == "TaskManager":
+        from .tasks.manager import TaskManager
+
+        return TaskManager
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-__all__ = ["__version__", "evaluate", "simple_evaluate"]
+__all__ = ["__version__", "evaluate", "simple_evaluate", "TaskManager"]

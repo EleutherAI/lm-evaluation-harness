@@ -4,8 +4,8 @@ import logging
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal, cast
 
+from lm_eval.api._utils import ends_with_whitespace, requires_delimiter
 from lm_eval.api.instance import Instance
-from lm_eval.api.utils import ends_with_whitespace, requires_delimiter
 from lm_eval.config.templates import _coerce_list, _resolve_target_index, process_field
 
 from ._task import Task

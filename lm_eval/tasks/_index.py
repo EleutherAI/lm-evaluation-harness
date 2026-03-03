@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ._yaml_loader import load_yaml
@@ -10,10 +11,10 @@ from ._yaml_loader import load_yaml
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
-    from pathlib import Path
 
 log = logging.getLogger(__name__)
 _IGNORE_DIRS = {"__pycache__", ".ipynb_checkpoints"}
+_TASKS_DIR = Path(__file__).parent
 
 
 class Kind(Enum):
@@ -31,6 +32,15 @@ class Entry:
     yaml_path: Path | None  # None for generated / py-only entries
     cfg: Mapping[str, Any] | None = None
     tags: set[str] = field(default_factory=set)
+
+
+def _short_path(path: Path | None) -> Path | None:
+    if path is None:
+        return path
+    try:
+        return path.relative_to(_TASKS_DIR)
+    except ValueError:
+        return path
 
 
 class TaskIndex:
@@ -68,8 +78,8 @@ class TaskIndex:
                     log.warning(
                         "Task '%s' from %s overrides existing task from %s",
                         name,
-                        entry.yaml_path,
-                        index[name].yaml_path,
+                        _short_path(entry.yaml_path),
+                        _short_path(index[name].yaml_path),
                     )
                 index[name] = entry
 
@@ -100,10 +110,11 @@ class TaskIndex:
                 grp_name = cfg["group"]
 
                 if grp_name in index_:
-                    log.debug(
-                        f"Duplicate group name '{grp_name}' found. "
-                        f"Already registered from: {index_[grp_name].yaml_path}. "
-                        f"Skipping duplicate from: {path}"
+                    log.info(
+                        "Duplicate group name %r found. Already registered from: %s. Skipping duplicate from: %s",
+                        grp_name,
+                        _short_path(index_[grp_name].yaml_path),
+                        _short_path(path),
                     )
                     return
                 index_[grp_name] = Entry(
@@ -118,10 +129,11 @@ class TaskIndex:
                 # Index key is base name (strip @format); cfg keeps full name.
                 name = cfg["task"].split("@", 1)[0]
                 if name in index_:
-                    log.warning(
-                        f"Duplicate task name '{name}' found. "
-                        f"Already registered from: {index_[name].yaml_path}. "
-                        f"Skipping duplicate from: {path}"
+                    log.info(
+                        "Duplicate task name %r found. Already registered from: %s. Skipping duplicate from: %r",
+                        name,
+                        _short_path(index_[name].yaml_path),
+                        _short_path(path),
                     )
                     return
                 index_[name] = Entry(

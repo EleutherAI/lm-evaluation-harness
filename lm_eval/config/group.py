@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -145,6 +149,13 @@ class GroupConfig:
                 AggMetricConfig(**item) if isinstance(item, dict) else item  # type:ignore[invalid-argument-type]
                 for item in self.aggregate_metric_list
             ]
+        else:
+            eval_logger.warning(
+                "[Group '%s] has no `aggregate_metric_list` set — "
+                "group-level aggregations will not be computed. "
+                "To enable them, add an `aggregate_metric_list` to the group config.",
+                self.group,
+            )
 
     def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
         from lm_eval.config.utils import serialize_config

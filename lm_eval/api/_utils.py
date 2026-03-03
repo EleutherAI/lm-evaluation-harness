@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing_extensions import TypeVar
@@ -15,6 +16,8 @@ if TYPE_CHECKING:
 
 
 _T = TypeVar("_T")
+
+eval_logger = logging.getLogger(__name__)
 
 
 def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") -> str:
@@ -118,6 +121,42 @@ def normalize_to_list(x: dict[str, _T | list[_T]]) -> dict[str, list[_T]]:
     return {k: v if isinstance(v, list) else [v] for k, v in x.items()}
 
 
+def _resolve_dataset_path(path: str) -> str:
+    """Resolve a HF Hub dataset ID to a local path if ``LM_EVAL_DATASET_DIR`` is set.
+
+    When the env var points to a root directory containing cloned HF dataset
+    repos (preserving the ``org/repo`` structure), any matching local directory
+    is used instead of fetching from the Hub.
+
+    Example:
+        ```bash
+        export LM_EVAL_DATASET_DIR=/data/datasets
+        # /data/datasets/allenai/ai2_arc/  exists locally
+        ```
+
+        ```python
+        _resolve_dataset_path("allenai/ai2_arc")
+        # -> "/data/datasets/allenai/ai2_arc"
+        ```
+    """
+    import os
+    from pathlib import Path
+
+    dataset_dir = os.environ.get("LM_EVAL_DATASET_DIR")
+    if dataset_dir:
+        local = Path(dataset_dir) / path
+        if local.is_dir():
+            return str(local)
+        else:
+            eval_logger.warning(
+                "LM_EVAL_DATASET_DIR is set to '%s' but '%s' was not found locally. "
+                "Falling back to HF Hub.",
+                dataset_dir,
+                local,
+            )
+    return path
+
+
 def load_dataset_splits(
     path: str,
     name: str | None,
@@ -132,6 +171,7 @@ def load_dataset_splits(
 
     from lm_eval.defaults import LIMIT_DF
 
+    path = _resolve_dataset_path(path)
     _limit = LIMIT_DF if LIMIT_DF.isdigit() else ""
     unique_splits = list({s for s in split if s is not None}) if split else None
     # if split != None, load_dataset returns a list of Datasets, otherwise, it returns a single DatasetDict

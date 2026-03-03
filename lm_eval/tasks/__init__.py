@@ -69,7 +69,7 @@ def _log_task_dict(task_dict: dict, task_manager: TaskManager) -> None:
     from lm_eval.api.task import Task
 
     def pretty_print_task(task_name: str, indent: int):
-        entry = task_manager.task_index.get(task_name)
+        entry = task_manager._task_index.get(task_name)
         if entry and entry.yaml_path:
             yaml_path = Path(entry.yaml_path)
             lm_eval_tasks_path = Path(__file__).parent
@@ -80,22 +80,22 @@ def _log_task_dict(task_dict: dict, task_manager: TaskManager) -> None:
         else:
             display_path = "N/A"
         pad = "  " * indent
-        eval_logger.info(f"{pad}Task: {task_name} ({display_path})")
+        eval_logger.info(f"{pad}Task: {task_name} ({display_path})")  # noqa: G004
 
     def _log_nested(d: dict, indent: int = 0) -> None:
         for key, value in d.items():
             if isinstance(key, ConfigurableGroup):
                 pad = "  " * indent
                 label = "Group" if indent == 0 else "Subgroup"
-                eval_logger.info(f"{pad}{label}: {key.group}")
+                eval_logger.info(f"{pad}{label}: {key.group}")  # noqa: G004
                 if isinstance(value, dict):
                     _log_nested(value, indent + 1)
                 else:
-                    eval_logger.info(f"{pad}  {key}: {value}")
+                    eval_logger.info(f"{pad}  {key}: {value}")  # noqa: G004
             elif isinstance(key, str) and isinstance(value, Task):
                 pretty_print_task(key, indent)
             else:
-                eval_logger.info(f"{'  ' * indent}{key}: {value}")
+                eval_logger.info(f"{'  ' * indent}{key}: {value}")  # noqa: G004
 
     eval_logger.info("Selected tasks:")
     _log_nested(task_dict)

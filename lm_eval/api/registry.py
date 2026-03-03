@@ -10,10 +10,10 @@ filters, and other components in the lm_eval framework.
 from lm_eval.api.registry import register_model
 from lm_eval.api.model import LM
 
+
 @register_model("my-model")
 class MyModel(LM):
-    def __init__(self, **kwargs):
-        ...
+    def __init__(self, **kwargs): ...
 ```
 
 ### Registering with Lazy Loading
@@ -466,11 +466,10 @@ class _MetricRegistry(Registry):
         try:
             metric = result._factory()
         except Exception:
-            eval_logger.error(
+            eval_logger.exception(
                 "Failed to resolve deferred metric '%s'. This is a bug in "
                 "the metric definition, not a missing metric.",
                 alias,
-                exc_info=True,
             )
             raise
         # Cache the resolved Metric for future lookups
@@ -583,7 +582,9 @@ def register_filter(name: str):
 
     def decorate(cls):
         if name in filter_registry:
-            eval_logger.info(f"Registering filter `{name}` that is already in Registry")
+            eval_logger.info(
+                "Registering filter `%s` that is already in Registry", name
+            )
         # Use Registry's public API for registration
         filter_registry.register(name)(cls)
         return cls
@@ -608,7 +609,7 @@ def get_filter(filter_name: str | Callable) -> Callable:
     try:
         return filter_registry.get(cast("str", filter_name))
     except KeyError:
-        eval_logger.warning(f"filter `{filter_name}` is not registered!")
+        eval_logger.warning("filter `%s` is not registered!", filter_name)
         raise
 
 
@@ -739,10 +740,9 @@ def register_metric(
         try:
             metric_registry.register(name, target=_Deferred(_build))
         except ValueError:
-            eval_logger.error(
+            eval_logger.exception(
                 "Failed to register metric '%s'. This metric will NOT be available.",
                 name,
-                exc_info=True,
             )
             raise
 
@@ -797,7 +797,7 @@ def get_reduction(name: str) -> Callable | None:
     try:
         return reduction_registry.get(name)
     except KeyError:
-        eval_logger.warning(f"{name} not a registered reduction!")
+        eval_logger.warning("%s not a registered reduction!", name)
         return None
 
 
@@ -813,5 +813,5 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
     try:
         return aggregation_registry.get(name)
     except KeyError:
-        eval_logger.warning(f"{name} not a registered aggregation metric!")
+        eval_logger.warning("%s not a registered aggregation metric!", name)
         return None

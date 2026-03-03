@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import TYPE_CHECKING, Any, Generic
 from typing_extensions import TypedDict, TypeVar
 
@@ -25,7 +25,7 @@ class AdditionalArgs(TypedDict, total=False):
 @dataclass
 class Instance(Generic[InputT, OutputT]):
     request_type: OutputType
-    doc: dict[str, Any]
+    doc: dict[str, Any] = field(repr=False)
     arguments: InputT
     task_name: str
     doc_id: int = field(kw_only=True)
@@ -50,6 +50,16 @@ class Instance(Generic[InputT, OutputT]):
         return (
             self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
         )
+
+    def __repr__(self):
+        _fields = ", ".join(
+            f"{f.name}={getattr(self, f.name)!r}"
+            for f in fields(self)
+            if f.repr
+            and (v := getattr(self, f.name)) is not None
+            and (v or isinstance(v, (int, float, bool)))
+        )
+        return f"{type(self).__name__}({_fields})"
 
 
 LLInstance = Instance[LLArgs, list[LLOutput]]

@@ -66,7 +66,7 @@ def test_python_task_inclusion(
         verbosity="INFO", include_path=str(custom_task_files_dir)
     )
     # check if python tasks enters the global task_index
-    assert custom_task_name in task_manager.task_index
+    assert custom_task_name in task_manager._task_index
     # check if subtask is present
     assert custom_task_name in task_manager.all_subtasks
     # check if tag is present
@@ -364,7 +364,10 @@ dataset_path: dummy
         assert "indexed_task" in result
         assert "indexed_task@mcqa" not in result
         # But the original config retains the full name
-        assert result["indexed_task"].cfg["task"] == "indexed_task@mcqa"
+        assert (
+            result["indexed_task"].cfg is not None
+            and result["indexed_task"].cfg["task"] == "indexed_task@mcqa"
+        )
 
 
 # =============================================================================
@@ -411,7 +414,7 @@ class TestTaskManagerIntegration:
         subtasks = shared_task_manager.all_subtasks
         assert len(subtasks) > 0
         for t in subtasks[:5]:  # Check first 5
-            entry = shared_task_manager.task_index[t]
+            entry = shared_task_manager._task_index[t]
             assert entry.kind in (Kind.TASK, Kind.PY_TASK)
 
     def test_all_tags_property(self, shared_task_manager):
@@ -640,7 +643,7 @@ metadata:
             )
 
             # Check task metadata using Entry object API
-            entry = task_manager.task_index["custom_arc_task"]
+            entry = task_manager._task_index["custom_arc_task"]
             assert entry.kind == Kind.TASK
             assert custom_dir in str(entry.yaml_path)
 
@@ -689,7 +692,7 @@ metadata:
             )
 
             # Check task metadata using Entry object API
-            entry = task_manager.task_index["arc_custom_generation"]
+            entry = task_manager._task_index["arc_custom_generation"]
             assert entry.kind == Kind.TASK
             assert custom_dir in str(entry.yaml_path)
 
@@ -1036,12 +1039,11 @@ class TestGroupBuilding:
 
     # ---- group-level config propagation ----
 
-    def test_group_level_config_propagates_to_children(self, tm):
-        """Config keys set at the group level (outside GROUP_ONLY_KEYS) should propagate to all children as defaults."""
+    def test_group_include_propagates_to_children(self, tm):
+        """Config keys set via the group's include: field should propagate to all children as defaults."""
         loaded = tm.load(["propagation_group"])
         tasks = loaded["tasks"]
 
-        assert len(tasks) == 2
         for name, task in tasks.items():
             assert task.config.num_fewshot == 42, (
                 f"{name}: expected num_fewshot=42 from group, "
@@ -1049,8 +1051,10 @@ class TestGroupBuilding:
             )
 
     def test_caller_overrides_beat_group_defaults(self, tm):
-        """Caller-supplied overrides should take precedence over group-level config values."""
-        loaded = tm.load([{"group": "propagation_group", "num_fewshot": 0}])
+        """Caller-supplied overrides should take precedence over group include defaults."""
+        loaded = tm.load(
+            ["propagation_group"], {"propagation_group": {"num_fewshot": 0}}
+        )
         tasks = loaded["tasks"]
 
         for name, task in tasks.items():
@@ -1058,6 +1062,36 @@ class TestGroupBuilding:
                 f"{name}: expected num_fewshot=0 from caller override, "
                 f"got {task.config.num_fewshot}"
             )
+
+    def test_caller_overrides_via_mapping(self, tm):
+        """The overrides mapping (name → config dict) applies to string specs."""
+        loaded = tm.load(
+            ["simple_task"],
+            overrides={"simple_task": {"num_fewshot": 77}},
+        )
+        task = loaded["tasks"]["simple_task"]
+        assert task.config.num_fewshot == 77
+
+    def test_caller_overrides_mapping_ignores_dict_specs(self, tm):
+        """Dict specs carry overrides inline; the overrides mapping is not applied."""
+        loaded = tm.load(
+            [{"task": "simple_task", "num_fewshot": 0}],
+            overrides={"simple_task": {"num_fewshot": 99}},
+        )
+        task = loaded["tasks"]["simple_task"]
+        assert task.config.num_fewshot == 0
+
+    def test_caller_overrides_mapping_unmatched_warns(self, tm, caplog):
+        """Override entries that don't match any spec log a warning."""
+        with caplog.at_level(logging.WARNING, logger="lm_eval.tasks.manager"):
+            loaded = tm.load(
+                ["simple_task"],
+                overrides={"nonexistent": {"num_fewshot": 99}},
+            )
+        task = loaded["tasks"]["simple_task"]
+        # simple_task.yaml has num_fewshot=1 — unmatched override is not applied
+        assert task.config.num_fewshot == 1
+        assert "nonexistent" in caplog.text
 
     # ---- mixed member types ----
 
@@ -1288,3 +1322,249 @@ class TestPresetRouting:
         tm.load(["preset_ambiguous_group"])
         with pytest.raises(KeyError, match="Ambiguous"):
             tm._resolve_path("preset_ambiguous_group::ambig_child")
+
+
+# =============================================================================
+# Factory Helper Unit Tests
+# =============================================================================
+
+
+class TestFactoryHelpers:
+    """Unit tests for the extracted TaskFactory helper methods.
+
+    Covers: _resolve_member, _merge_metadata, _compute_child_overrides.
+    These are tested in isolation (no YAML loading needed).
+    """
+
+    @pytest.fixture()
+    def factory(self):
+        from lm_eval.tasks._factory import TaskFactory
+
+        return TaskFactory(meta={"run_id": "test-run"})
+
+    @pytest.fixture()
+    def factory_no_meta(self):
+        from lm_eval.tasks._factory import TaskFactory
+
+        return TaskFactory()
+
+    # ---- _resolve_member ----
+
+    def test_resolve_member_string(self):
+        """String item returns (name, parent_overrides)."""
+        from lm_eval.tasks._factory import TaskFactory
+
+        parent_overrides = {"num_fewshot": 5}
+        name, effective = TaskFactory._resolve_member(
+            "my_task", parent_overrides, "group"
+        )
+        assert name == "my_task"
+        assert effective == {"num_fewshot": 5}
+
+    def test_resolve_member_string_no_overrides(self):
+        """String item with None overrides returns empty dict."""
+        from lm_eval.tasks._factory import TaskFactory
+
+        name, effective = TaskFactory._resolve_member("my_task", None, "group")
+        assert name == "my_task"
+        assert effective == {}
+
+    def test_resolve_member_dict_with_task(self):
+        """Dict with 'task' key merges item overrides on top of parent."""
+        from lm_eval.tasks._factory import TaskFactory
+
+        parent = {"num_fewshot": 5}
+        item = {"task": "my_task", "num_fewshot": 10, "doc_to_text": "Q: {{q}}"}
+        name, effective = TaskFactory._resolve_member(item, parent, "group")
+        assert name == "my_task"
+        # Item overrides win over parent
+        assert effective["num_fewshot"] == 10
+        assert effective["doc_to_text"] == "Q: {{q}}"
+        # task key passes through (stripped later by _build_task)
+        assert effective["task"] == "my_task"
+
+    def test_resolve_member_dict_without_task_or_group_raises(self):
+        """Dict missing both 'task' and 'group' raises ValueError."""
+        from lm_eval.tasks._factory import TaskFactory
+
+        with pytest.raises(ValueError, match="must have 'task' or 'group' key"):
+            TaskFactory._resolve_member({"num_fewshot": 5}, {}, "group")
+
+    def test_resolve_member_invalid_type_raises(self):
+        """Non-str/dict item raises TypeError."""
+        from lm_eval.tasks._factory import TaskFactory
+
+        with pytest.raises(TypeError, match="Unsupported sub-entry"):
+            TaskFactory._resolve_member(42, {}, "group")  # type: ignore[arg-type]
+
+    # ---- _merge_metadata ----
+
+    def test_merge_metadata_none_existing(self, factory):
+        """None existing metadata produces only factory meta + config_source."""
+        result = factory._merge_metadata(None, "test.yaml")
+        assert result["run_id"] == "test-run"
+        assert result["config_source"] == "test.yaml"
+
+    def test_merge_metadata_dict_existing(self, factory):
+        """Existing dict metadata is preserved, factory meta merged on top."""
+        result = factory._merge_metadata({"version": "1.0"}, "test.yaml")
+        assert result["version"] == "1.0"
+        assert result["run_id"] == "test-run"
+        assert result["config_source"] == "test.yaml"
+
+    def test_merge_metadata_non_dict_wrapped(self, factory):
+        """Non-dict metadata is wrapped in {'_metadata': value}."""
+        result = factory._merge_metadata("some string", "test.yaml")
+        assert result["_metadata"] == "some string"
+        assert result["run_id"] == "test-run"
+
+    def test_merge_metadata_factory_meta_wins(self, factory):
+        """Factory meta keys take precedence over existing metadata."""
+        result = factory._merge_metadata({"run_id": "old"}, "test.yaml")
+        assert result["run_id"] == "test-run"
+
+    def test_merge_metadata_no_factory_meta(self, factory_no_meta):
+        """With no factory meta, only existing + config_source are present."""
+        result = factory_no_meta._merge_metadata({"version": "1.0"}, "inline")
+        assert result == {"version": "1.0", "config_source": "inline"}
+
+    # ---- _compute_child_overrides ----
+
+    def test_compute_child_overrides_include_defaults(self, factory):
+        """Include defaults become the lowest-priority overrides."""
+        include = {"num_fewshot": 5, "doc_to_text": "Q: {{q}}"}
+        result = factory._compute_child_overrides(None, include, None)
+        assert result["num_fewshot"] == 5
+        assert result["doc_to_text"] == "Q: {{q}}"
+
+    def test_compute_child_overrides_caller_beats_include(self, factory):
+        """Caller overrides take precedence over include defaults."""
+        include = {"num_fewshot": 5}
+        caller = {"num_fewshot": 0}
+        result = factory._compute_child_overrides(caller, include, None)
+        assert result["num_fewshot"] == 0
+
+    def test_compute_child_overrides_caller_structural_keys_stripped(self, factory):
+        """Structural keys in caller overrides are filtered out."""
+        caller = {"num_fewshot": 3, "group": "should_not_appear", "task": ["x"]}
+        result = factory._compute_child_overrides(caller, None, None)
+        assert result["num_fewshot"] == 3
+        assert "group" not in result
+        assert "task" not in result
+
+    def test_compute_child_overrides_include_inline_dict(self, factory):
+        """Inline include dict provides defaults."""
+        include = {"num_fewshot": 10, "doc_to_text": "Q: {{q}}"}
+        result = factory._compute_child_overrides(None, include, None)
+        assert result["num_fewshot"] == 10
+        assert result["doc_to_text"] == "Q: {{q}}"
+
+    def test_compute_child_overrides_full_precedence(self, factory):
+        """Full precedence: include < caller."""
+        include = {"num_fewshot": 10}
+        caller = {"num_fewshot": 99}
+        result = factory._compute_child_overrides(caller, include, None)
+        assert result["num_fewshot"] == 99
+
+
+# =============================================================================
+# Factory Build-by-Kind Integration Tests
+# =============================================================================
+
+
+class TestBuildByKind:
+    """Integration tests for _build_group_ref and _build_by_kind.
+
+    These test the refactored methods through the public load() API
+    to verify they produce the same results as before the refactor.
+    """
+
+    @pytest.fixture()
+    def tm(self):
+        test_configs_path = Path(__file__).parent / "test_configs"
+        return TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+    # ---- _build_by_kind: registered TASK ----
+
+    def test_build_task_from_registry(self, tm):
+        """String member referencing a registered task builds correctly."""
+        loaded = tm.load(["mixed_members_group"])
+        task = loaded["tasks"]["mixed_members_group::simple_task"]
+        assert task.task_name == "simple_task"
+
+    # ---- _build_by_kind: registered GROUP ----
+
+    def test_build_group_from_registry(self, tm):
+        """String member referencing a registered group builds with children."""
+        loaded = tm.load(["group_ref_parent"])
+        groups = loaded["groups"]
+        assert "include_group" in groups
+        assert len(groups["include_group"].get_all_tasks()) == 3
+
+    # ---- _build_by_kind: TAG expansion ----
+
+    def test_build_tag_expands_to_tasks(self, tm):
+        """Tag member in a group expands to individual tasks."""
+        loaded = tm.load(["tag_subgroup"])
+        tasks = loaded["tasks"]
+        # tag_subgroup references tag "test_tag" which contains tag_task_1, tag_task_2, tag_task_3
+        tag_tasks = [n for n in tasks if n.startswith("tag_subgroup::tag_task_")]
+        assert len(tag_tasks) == 3
+
+    # ---- _build_by_kind: inline task (not in registry) ----
+
+    def test_build_inline_task_namespaced(self, tm):
+        """Inline task dict (not in registry) gets namespaced under parent group."""
+        loaded = tm.load(
+            [
+                {
+                    "group": "inline_test",
+                    "task": [
+                        {
+                            "task": "made_up_task",
+                            "dataset_path": "json",
+                            "dataset_kwargs": {
+                                "data_files": {
+                                    "test": "tests/test_configs/test_data.json"
+                                }
+                            },
+                            "output_type": "multiple_choice",
+                            "doc_to_text": "{{question}}",
+                            "doc_to_target": "{{choices[answer]}}",
+                            "test_split": "test",
+                        }
+                    ],
+                }
+            ]
+        )
+        tasks = loaded["tasks"]
+        assert "inline_test::made_up_task" in tasks
+        task = tasks["inline_test::made_up_task"]
+        assert task.config.task_alias == "made_up_task"
+
+    # ---- _build_group_ref: existing group with overrides ----
+
+    def test_group_ref_existing_merges_overrides(self, tm):
+        """Existing group referenced via {group: name, ...} merges overrides."""
+        loaded = tm.load(["group_ref_parent"])
+        include_grp = loaded["groups"]["include_group"]
+        for task in include_grp.get_all_tasks():
+            assert task.config.num_fewshot == 99
+
+    # ---- _build_group_ref: inline group (not in registry) ----
+
+    def test_group_ref_inline_creates_namespaced_group(self, tm):
+        """Inline group definition creates a namespaced subgroup."""
+        loaded = tm.load(["mixed_members_group"])
+        groups = loaded["groups"]
+        assert "mixed_members_group::mixed_inline_sub" in groups
+        inline = groups["mixed_members_group::mixed_inline_sub"]
+        assert len(inline.get_all_tasks()) == 1
+
+    # ---- dict spec with task key + overrides ----
+
+    def test_dict_member_with_task_overrides(self, tm):
+        """Dict member {task: name, key: val} applies overrides to the task."""
+        loaded = tm.load(["mixed_members_group"])
+        task_b = loaded["tasks"]["mixed_members_group::simple_task_b"]
+        assert task_b.config.num_fewshot == 7

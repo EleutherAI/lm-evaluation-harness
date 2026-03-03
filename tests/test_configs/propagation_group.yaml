@@ -1,7 +1,14 @@
-# Group that sets config keys at the group level.
+# Group that sets config defaults via include.
 # Children should inherit these values.
 group: propagation_group
-num_fewshot: 42
+include:
+  num_fewshot: 42
 task:
   - simple_task
   - simple_task_b
+  - group: child_group
+    include:
+      num_fewshot: 100
+      doc_to_text: "Child question: {{question}}"
+    task:
+      - simple_task

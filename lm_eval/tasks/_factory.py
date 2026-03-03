@@ -32,6 +32,21 @@ class TaskFactory:
     def __init__(self, *, meta: dict[str, Any] | None = None):
         self._meta: dict[str, Any] = meta or {}
 
+    def _merge_metadata(self, existing: Any, config_source: str) -> dict[str, Any]:
+        """Merge *existing* metadata with runtime metadata (``self._meta``).
+
+        Handles ``None``, missing, and non-dict metadata values.
+        Always sets ``config_source`` on the result. joins if existing.
+        """
+        if existing is None:
+            metadata: dict[str, Any] = {}
+        elif not isinstance(existing, dict):
+            metadata = {"_metadata": existing}
+        else:
+            metadata = existing
+        _config_source = str(metadata.get("config_source", "")) + f",{config_source}"
+        return {**metadata, **self._meta, "config_source": config_source}
+
     # ---------------------------------------------------------------- public API
 
     def build(
@@ -67,8 +82,8 @@ class TaskFactory:
         """Build and return a Task."""
         cfg = self._load_full_config(entry, overrides)
 
-        # Remove structural keys that aren't part of task config
-        for key in ("tag", "group", "task_list"):
+        # Remove YAML indexing fields that aren't part of task config
+        for key in ("tag", "task_list"):
             cfg.pop(key, None)
 
         task_name = cfg["task"]
@@ -103,37 +118,16 @@ class TaskFactory:
         # Parse through GroupConfig (normalizes aggregate_metric_list, task, etc.)
         group_cfg = GroupConfig(**group_dict)
 
-        # Merge runtime metadata
-        group_cfg.metadata = (group_cfg.metadata or {}) | self._meta
-        group_cfg.metadata.setdefault(
-            "config_source", str(yaml_path) if yaml_path else "inline"
+        group_cfg.metadata = self._merge_metadata(
+            group_cfg.metadata, str(yaml_path) if yaml_path else "inline"
         )
 
         # Build Group object via existing from_config
         group = Group.from_config(group_cfg)
 
-        # Resolve include → explicit task defaults
-        include_overrides = self._resolve_include(group_cfg.include, yaml_path)
-
-        # Implicit task-level overrides = everything NOT a group structural key
-        # (backward compat for groups that put task fields at top level)
-        group_task_overrides = {
-            k: v for k, v in raw_cfg.items() if k not in GROUP_FIELD_NAMES
-        }
-
-        # Filter group structural keys from caller overrides so they don't
-        # leak into child task configs (e.g. task: ["arc_easy"] from the
-        # group spec should not clobber a child's task: "arc_easy" string).
-        caller_task_overrides = {
-            k: v for k, v in (overrides or {}).items() if k not in GROUP_FIELD_NAMES
-        }
-
-        # Merge: implicit top-level < include < caller overrides
-        merged_overrides = {
-            **group_task_overrides,
-            **include_overrides,
-            **caller_task_overrides,
-        }
+        merged_overrides = self._compute_child_overrides(
+            overrides, group_cfg.include, yaml_path
+        )
 
         # Build children from task: list (references to existing tasks/groups/tags)
         task_field = raw_cfg.get("task")
@@ -145,6 +139,32 @@ class TaskFactory:
 
         return group
 
+    def _compute_child_overrides(
+        self,
+        caller_overrides: Mapping[str, Any] | None,
+        include: str | Mapping[str, Any] | None,
+        yaml_path: Path | None,
+    ) -> dict[str, Any]:
+        """Compute the effective overrides that will be passed to child tasks.
+
+        Merge precedence (lowest → highest):
+            1. **Include defaults** — loaded from the ``include:`` field
+               (a YAML path or inline dict on the group config).
+            2. **Caller overrides** — runtime overrides passed by the user
+               (e.g. via ``load(specs, overrides={...})``) with structural
+               group keys (``group``, ``task``, ``include``, …) stripped so
+               they don't leak into child task configs.
+        """
+        include_defaults = self._resolve_include(include, yaml_path)
+
+        caller_task_overrides = {
+            k: v
+            for k, v in (caller_overrides or {}).items()
+            if k not in GROUP_FIELD_NAMES
+        }
+
+        return {**include_defaults, **caller_task_overrides}
+
     def _build_group_members(
         self,
         member_list: list[str | dict[str, Any]],
@@ -153,110 +173,152 @@ class TaskFactory:
         registry: dict[str, Entry],
         yaml_path: Path | None = None,
     ) -> list[Task | Group]:
-        """Build group members from task: list syntax.
+        """Build group members from the ``task:`` list in a group config.
 
-        Handles references to existing tasks, groups, tags, and inline group definitions.
-        Each item can be:
-        - str: name of existing task/group/tag
-        - dict with 'task': task reference with overrides
-        - dict with 'group': checks registry, otherwise new inline subgroup definition
-
-        Returns:
-            List of Task | Group objects
+        Each item can be a string name, a ``{task: ...}`` dict, or a
+        ``{group: ...}`` dict.  See the individual ``_build_*`` helpers
+        for how each form is handled.
         """
         children: list[Task | Group] = []
-
         for item in member_list:
-            # Normalize - extract base_name and item_overrides
-            if isinstance(item, str):
-                base_name = item
-                item_overrides = overrides or {}
-            elif isinstance(item, dict):
-                # Dict with 'group' key — either a reference to an
-                # existing group (with overrides) or a true inline definition.
-                if "group" in item:
-                    name = item["group"]
-                    if name in registry:
-                        # Existing group referenced with overrides
-                        inline_overrides = {
-                            k: v for k, v in item.items() if k != "group"
-                        }
-                        merged = {**(overrides or {}), **inline_overrides}
-                        child_obj = self.build(
-                            registry[name],
-                            overrides=merged,
-                            registry=registry,
-                        )
-                        children.append(cast("Group", child_obj))
-                    else:
-                        # True inline group (not in registry)
-                        name = f"{group_name}::{name}"
-                        children.append(
-                            self._build_group(
-                                name, item, overrides, registry, yaml_path
-                            )
-                        )
-                    continue
-
-                if "task" not in item:
-                    raise ValueError(
-                        f"Dict entry in group '{group_name}' must have 'task' or 'group' key, got: {list(item.keys())}"
+            if isinstance(item, dict) and "group" in item:
+                children.append(
+                    self._build_group_ref(
+                        item, group_name, overrides, registry, yaml_path
                     )
-                base_name = item["task"]
-                item_overrides = {**overrides, **item} if overrides else item
+                )
             else:
-                raise TypeError(
-                    f"Unsupported sub-entry {item!r} in group '{group_name}'"
-                )
-
-            # Handle inline task (not in registry)
-            if base_name not in registry:
-                namespaced = f"{group_name}::{base_name}"
-                task_cfg: dict[str, Any] = {
-                    **item_overrides,
-                    "task": namespaced,
-                    "_qualified_name": namespaced,
-                }
-                task_cfg.setdefault("task_alias", base_name)
-                task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
-                task_cfg["metadata"]["config_source"] = (
-                    str(yaml_path) if yaml_path else "inline"
-                )
-                children.append(Task.from_config(task_cfg))
-                continue
-
-            # Build based on entry kind
-            child_entry = registry[base_name]
-            match child_entry:
-                case Entry(kind=Kind.GROUP):
-                    child_obj = self.build(
-                        child_entry, overrides=item_overrides, registry=registry
+                base_name, effective = self._resolve_member(item, overrides, group_name)
+                children.extend(
+                    self._build_by_kind(
+                        base_name, effective, group_name, registry, yaml_path
                     )
-                    children.append(cast("Group", child_obj))
-
-                case Entry(kind=Kind.TAG):
-                    for task_name in sorted(child_entry.tags):
-                        namespaced = f"{group_name}::{task_name}"
-                        child_obj = self.build(
-                            registry[task_name],
-                            overrides={"_qualified_name": namespaced, **item_overrides},
-                            registry=registry,
-                        )
-                        children.append(cast("Task", child_obj))
-                        registry[namespaced] = registry[task_name]
-
-                case _:
-                    # TASK or PY_TASK
-                    namespaced = f"{group_name}::{base_name}"
-                    child_obj = self.build(
-                        child_entry,
-                        overrides={"_qualified_name": namespaced, **item_overrides},
-                        registry=registry,
-                    )
-                    children.append(cast("Task", child_obj))
-                    registry[namespaced] = child_entry
-
+                )
         return children
+
+    # -- member helpers (called from _build_group_members) -----------------
+
+    @staticmethod
+    def _resolve_member(
+        item: str | dict[str, Any],
+        overrides: Mapping[str, Any] | None,
+        group_name: str,
+    ) -> tuple[str, Mapping[str, Any]]:
+        """Normalize a member-list item into ``(base_name, effective_overrides)``.
+
+        Handles two forms:
+        - **str**: bare task/group/tag name — inherits parent overrides as-is.
+        - **dict with 'task'**: task reference with per-item overrides merged
+          on top of the parent overrides.
+        """
+        if isinstance(item, str):
+            return item, overrides or {}
+
+        if isinstance(item, dict):
+            if "task" not in item:
+                raise ValueError(
+                    f"Dict entry in group '{group_name}' must have 'task' or "
+                    f"'group' key, got: {list(item.keys())}"
+                )
+            base_name = item["task"]
+            effective = {**overrides, **item} if overrides else item
+            return base_name, effective
+
+        raise TypeError(f"Unsupported sub-entry {item!r} in group '{group_name}'")
+
+    def _build_group_ref(
+        self,
+        item: dict[str, Any],
+        group_name: str,
+        overrides: Mapping[str, Any] | None,
+        registry: dict[str, Entry],
+        yaml_path: Path | None,
+    ) -> Group:
+        """Build a ``{group: ...}`` member-list entry.
+
+        Two sub-cases:
+        - **Name in registry**: reference to an existing group — merge the
+          dict's extra keys as overrides on top of the parent overrides.
+        - **Name not in registry**: true inline group definition — namespace
+          it under the parent and build from the raw dict.
+        """
+        name = item["group"]
+        if name in registry:
+            inline_overrides = {k: v for k, v in item.items() if k != "group"}
+            merged = {**(overrides or {}), **inline_overrides}
+            return cast(
+                "Group", self.build(registry[name], overrides=merged, registry=registry)
+            )
+
+        # Inline group definition (not registered)
+        namespaced = f"{group_name}::{name}"
+        return self._build_group(namespaced, item, overrides, registry, yaml_path)
+
+    def _build_by_kind(
+        self,
+        base_name: str,
+        overrides: Mapping[str, Any],
+        group_name: str,
+        registry: dict[str, Entry],
+        yaml_path: Path | None,
+    ) -> list[Task | Group]:
+        """Look up *base_name* in the registry and build by entry kind.
+
+        Returns a list because TAG entries expand to multiple tasks.
+        For TASK/PY_TASK/GROUP a single-element list is returned.
+
+        If *base_name* is not in the registry it is treated as an inline
+        task definition (namespaced under *group_name*).
+        """
+        namespaced = f"{group_name}::{base_name}"
+
+        # Inline task — not in the registry
+        if base_name not in registry:
+            task_cfg: dict[str, Any] = {
+                **overrides,
+                "task": namespaced,
+                "_qualified_name": namespaced,
+            }
+            task_cfg.setdefault("task_alias", base_name)
+            task_cfg["metadata"] = self._merge_metadata(
+                task_cfg.get("metadata"), str(yaml_path) if yaml_path else "inline"
+            )
+            return [Task.from_config(task_cfg)]
+
+        entry = registry[base_name]
+
+        if entry.kind is Kind.GROUP:
+            return [
+                cast("Group", self.build(entry, overrides=overrides, registry=registry))
+            ]
+
+        if entry.kind is Kind.TAG:
+            tasks: list[Task | Group] = []
+            for task_name in sorted(entry.tags):
+                ns = f"{group_name}::{task_name}"
+                tasks.append(
+                    cast(
+                        "Task",
+                        self.build(
+                            registry[task_name],
+                            overrides={"_qualified_name": ns, **overrides},
+                            registry=registry,
+                        ),
+                    )
+                )
+            return tasks
+
+        # TASK or PY_TASK
+        return [
+            cast(
+                "Task",
+                self.build(
+                    entry,
+                    overrides={"_qualified_name": namespaced, **overrides},
+                    registry=registry,
+                ),
+            )
+        ]
 
     @staticmethod
     def _resolve_include(
@@ -308,7 +370,7 @@ class TaskFactory:
         for name in sorted(entry.tags):
             if name not in registry:
                 eval_logger.warning(
-                    f"Tag '{entry.name}' references unknown task '{name}', skipping."
+                    "Tag %r references unknown task %r, skipping.", entry.name, name
                 )
                 continue
             tasks.append(self._build_task(registry[name], overrides))
@@ -325,7 +387,7 @@ class TaskFactory:
             cfg = {**entry.cfg}
         else:
             eval_logger.debug(
-                f"Entry '{entry.name}' has no YAML or inline config; using placeholder."
+                "Entry %r has no YAML or inline config; using placeholder.", entry.name
             )
             cfg: dict[str, Any] = {
                 "metadata": {"config": "unknown"}
@@ -333,11 +395,8 @@ class TaskFactory:
 
         if overrides:
             cfg = {**cfg, **overrides}
-        cfg["metadata"] = (
-            m if isinstance(m := cfg.get("metadata", {}), dict) else {"_metadata": m}
-        ) | self._meta  # type: ignore
-        cfg["metadata"]["config_source"] = (
-            str(entry.yaml_path) if entry.yaml_path else "inline"
+        cfg["metadata"] = self._merge_metadata(
+            cfg.get("metadata"), str(entry.yaml_path) if entry.yaml_path else "inline"
         )
         return cfg
 

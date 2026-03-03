@@ -68,7 +68,7 @@ sparsify = ["sparsify"]
 # Task specific dependencies
 acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 audiolm_qwen = ["librosa", "soundfile"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece", "ruff"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
@@ -147,18 +147,11 @@ extend-select = [
      # flake8-bandit, simplify, pyupgrade, invalid-escape-sequence
     "S", "SIM", "S307", "UP", "W605",
 ]
-fixable = [
-     # bugbear, pydocstyle, pycodestyle, unused-import
-    "B", "C4","D", "E", "F401",
-    # refurb, unsorted-imports, ruff-specific
-    "FURB", "I001", "RUF",
-    # simplify, type-checking, pyupgrade, invalid-escape
-    "SIM", "TC", "UP", "W605",
-]
+fixable = ["ALL"]
 ignore = [
-    "C408", "D417", "D10",
+    "C408", "D417", "D10","D100",
     "E11", "E402", "E501", "E701",
-    "E731", "E741", "SIM108",
+    "E731", "E741", "PERF401","SIM108",
     "SIM105", "SIM401", # flake8-simplify
     "S311", "S701",  "S101" # bandits, assert-used
 ]
@@ -166,7 +159,6 @@ ignore = [
 [tool.ruff.lint.extend-per-file-ignores]
  # unused-import, import-shadowed-by-loop-var, undefined-local-with-import-star, undefined-local-with-import-star-usage
 "__init__.py" = ["F401", "F402", "F403", "F405", "F822"]
-"lm_eval/api/metrics.py" = ["F401", "F403"]   # unused-import
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

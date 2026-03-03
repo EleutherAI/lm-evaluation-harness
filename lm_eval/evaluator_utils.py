@@ -1,3 +1,5 @@
+"""Utilities used in evaluate.py."""
+
 from __future__ import annotations
 
 import logging
@@ -126,18 +128,31 @@ class _EvalAcc:
 
 
 def _print_writeout(task: Task) -> None:
+    from pprint import pformat
+
     for inst in task.instances:
         # print the prompt for the first few documents
         if inst.doc_id is not None and inst.doc_id < 1:
             eval_logger.info(
                 "Task: %s; document %s; context prompt (starting on next line):\
-    \n%s\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n%s\n(end of target on previous line)",
-                task,
+    \n%s\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n%r\n(end of target on previous line)",
+                task.task_name,
                 inst.doc_id,
                 inst.args[0],
                 task.doc_to_target(inst.doc),
             )
-            eval_logger.info("Request: %s", inst)
+            eval_logger.info(
+                "Request:\n%s",
+                pformat(
+                    {
+                        k: v
+                        for k, v in vars(inst).items()
+                        if k != "doc"
+                        and v is not None
+                        and (v or isinstance(v, (int, float, bool)))
+                    }
+                ),
+            )
             break
 
 
@@ -499,7 +514,7 @@ def _build_logged_samples(
     """
     import json
 
-    from lm_eval.api.utils import group_by_doc_id
+    from lm_eval.api._utils import group_by_doc_id
     from lm_eval.utils import handle_non_serializable, hash_string
 
     logged: list[dict[str, Any]] = []

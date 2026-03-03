@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import logging
 import warnings
 from collections import defaultdict
+from copy import deepcopy
 from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -9,7 +11,6 @@ from typing_extensions import NotRequired, TypedDict, deprecated
 
 from lm_eval import utils
 from lm_eval.api.group import Group
-from lm_eval.api.task import Task
 
 from ._factory import TaskFactory
 from ._index import Kind, TaskIndex
@@ -17,45 +18,57 @@ from ._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
+    from collections.abc import Iterable, Mapping, Sequence
+
+    from lm_eval.api.task import Task
 
     from ._index import Entry
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 class TaskDict(TypedDict):
     """Return type of [TaskManager.load][TaskManager.load].
 
-    Attributes:
-        tasks: Flat mapping of task name to Task for every leaf task.
-        groups: Flat mapping of group name to Group.
-        group_map: Mapping of each group name to its direct child names (not recursive).
+    Example:
+        ```python
+        loaded = task_manager.load(["mmlu", "arc_easy"])
+        loaded["tasks"]  # {"mmlu_abstract_algebra": Task, "arc_easy": Task, ...}
+        loaded["groups"]  # {"mmlu": Group}
+        loaded["group_map"]  # {"mmlu": ["mmlu_abstract_algebra", ...]}
+        ```
     """
 
     tasks: dict[str, Task]
+    """Flat mapping of every leaf task name to its [Task][lm_eval.api.task.Task]."""
+
     groups: NotRequired[dict[str, Group]]
+    """Flat mapping of every group name to its [Group][lm_eval.api.group.Group]."""
+
     group_map: NotRequired[dict[str, list[str]]]
+    """Each group's direct children (not recursive)."""
 
 
 class TaskManager:
     """Central entry point for discovering and loading evaluation tasks.
 
-    On construction, scans one or more directories for YAML task configs and
-    builds an in-memory index of every known task, group, and tag.  Callers
-    then use [load][load] to instantiate tasks by name, glob pattern, file
-    path, or inline config dict.
+    Scans directories for YAML task configs and builds an in-memory index
+    of every known task, group, and tag. Use [load][.load] to instantiate
+    tasks by name, glob, file path, or override dict.
 
     Args:
-        verbosity: Logging level (deprecated, use standard logging instead).
-        include_path: Custom paths to scan for task configs (takes precedence).
-        include_defaults: Whether to include built-in tasks from lm_eval/tasks/.
-        metadata: Extra metadata to attach to all loaded tasks.
+        verbosity: Deprecated — use standard logging instead.
+        include_path: Extra directories to scan (take precedence over defaults).
+        include_defaults: Scan built-in ``lm_eval/tasks/`` directory.
+        metadata: Attached to every loaded task (e.g. model args).
 
     Example:
         ```python
         tm = TaskManager(include_path="my_tasks/")
-        result = tm.load(["mmlu", "hellaswag"])
-        result["tasks"]  # {name: Task, ...}
-        result["groups"]  # {name: Group, ...}
+        loaded = tm.load(["mmlu", "hellaswag"])
+        loaded["tasks"]  # {"mmlu_..": Task, "hellaswag": Task, ...}
+        loaded["groups"]  # {"mmlu": Group}
         ```
     """
 
@@ -128,7 +141,7 @@ class TaskManager:
         return self._all_tags
 
     @property
-    def task_index(self) -> dict[str, Entry]:
+    def _task_index(self) -> dict[str, Entry]:
         """Raw index mapping names to Entry objects."""
         return self._index
 
@@ -137,7 +150,9 @@ class TaskManager:
         """Get the Entry for a given task/group/tag name from the index."""
         return self._index.get(name)
 
-    def _resolve_path(self, spec: str) -> Task | Group:
+    def _resolve_path(
+        self, spec: str, overrides: dict[str, Any] | None = None
+    ) -> Task | Group:
         """Resolve a ``::``-separated path to an inline subgroup or task.
 
         Loads the root group from the index, then walks down the hierarchy
@@ -147,6 +162,7 @@ class TaskManager:
 
         Args:
             spec: A path like ``"group::subgroup"`` or ``"group::sub::task"``.
+            overrides: Runtime overrides propagated when building the root group.
 
         Returns:
             The Task or Group at the end of the path.
@@ -154,7 +170,7 @@ class TaskManager:
         parts = spec.split("::")
         root_name = parts[0]
 
-        root = self._load_spec(root_name)
+        root = self._load_spec(root_name, overrides=overrides)
         if not isinstance(root, Group):
             raise KeyError(f"Root '{root_name}' in path '{spec}' is not a group")
 
@@ -191,17 +207,22 @@ class TaskManager:
 
         return current
 
-    def _load_spec(self, spec: str | Mapping[str, Any]) -> Task | Group | list[Task]:
+    def _load_spec(
+        self, spec: str | Mapping[str, Any], overrides: dict[str, Any] | None = None
+    ) -> Task | Group | list[Task]:
         """Load a task/group/tag by name, file path, or inline config.
 
         Args:
             spec: Task name (str), YAML file path, ``::``-separated path
                   (e.g. ``"group::subgroup::task"``), or dict with
                   "task"/"group" key.
+            overrides: Runtime config overrides (e.g. ``num_fewshot``).
+                  Should **not** contain ``task``/``group`` identification keys.
 
         Returns:
             Task, Group, or list[Task] (for tags)
         """
+        overrides = overrides or {}
         match spec:
             # Registered name (possibly with @format selector)
             case str():
@@ -209,28 +230,31 @@ class TaskManager:
                 entry = self._entry(spec)
                 if entry:
                     return self._factory.build(
-                        entry, overrides=None, registry=self._index
+                        entry, overrides=overrides, registry=self._index
                     )
 
                 # Handle :: path for inline groups/tasks
                 if "::" in spec:
-                    return self._resolve_path(spec)
+                    return self._resolve_path(spec, overrides=overrides)
 
-                # If spec has @, try base name with format as runtime override
+                # If spec has @, try the base name with format as a runtime override
                 if "@" in spec:
                     base_name, format_selection = spec.rsplit("@", 1)
-                    overrides = {"_formats_selection": format_selection}
+                    fmt_overrides = {
+                        "_formats_selection": format_selection,
+                        **overrides,
+                    }
                     entry = self._entry(base_name)
                     if entry:
                         return self._factory.build(
-                            entry, overrides=overrides, registry=self._index
+                            entry, overrides=fmt_overrides, registry=self._index
                         )
 
                 # check if it's a path
                 entry = TaskIndex.entry_from_path(Path(spec))
                 if entry:
                     return self._factory.build(
-                        entry, overrides=None, registry=self._index
+                        entry, overrides=overrides, registry=self._index
                     )
                 raise KeyError(
                     f"Spec '{spec}' is not a registered task/group/tag name or valid YAML path"
@@ -239,8 +263,15 @@ class TaskManager:
             case dict():
                 _entry = TaskIndex.entry_from_config(spec)
                 if _entry:
+                    # Identity keys are already captured in the Entry;
+                    # pass only actual config overrides to the factory.
+                    config_overrides = {
+                        k: v for k, v in spec.items() if k not in ("task", "group")
+                    }
                     return self._factory.build(
-                        _entry, overrides=spec, registry=self._index
+                        _entry,
+                        overrides={**config_overrides, **overrides},
+                        registry=self._index,
                     )
                 raise ValueError(
                     "Invalid config dict: must contain 'task' or 'group' key"
@@ -250,34 +281,50 @@ class TaskManager:
 
     def load(
         self,
-        task_list: str
-        | list[str]
-        | list[str | Task | Group | dict[str, Any]]
-        | Task
-        | Group
-        | dict[str, Any],
+        specs: Sequence[str | Mapping[str, Any]],
+        overrides: Mapping[str, Mapping[str, Any]] | None = None,
     ) -> TaskDict:
-        """Load tasks/groups and return organized result.
+        """Resolve task specs into concrete [Task][lm_eval.api.task.Task] and [Group][lm_eval.api.group.Group] objects.
 
-        Groups contain their children (Tasks and sub-Groups) directly.
-        Tags expand to individual Tasks.
+        Accepts name strings, config dicts, or a mix. Groups and
+        tags references are expanded into their leaf tasks.
+
+        Example:
+            ```python
+            loaded = task_manager.load(
+                ["mmlu", "arc_easy"],
+                overrides={
+                    "arc_easy": {"num_fewshot": 5},
+                    "mmlu": {"num_fewshot": 3},
+                },
+            )
+            loaded["tasks"]  # {"mmlu_..": Task, ... "arc_easy": Task, ...}
+            loaded["groups"]  # {"mmlu": Group}
+            ```
 
         Args:
-            task_list: Single task name or list of task names
+            specs: One or more task specs — a name string or a full config
+                dict (e.g. ``{"task": "arc_easy", "doc_to_text": ..., ...}``).
+            overrides: Optional mapping of task/group name to config overrides
+                (e.g. ``{"arc_easy": {"num_fewshot": 5}}``). Only applied to
+                string specs; dict specs carry their overrides inline.
 
         Returns:
-            Dict with:
-            - tasks: {task_name: Task} flat dict of all leaf tasks
-            - groups: {group_name: Group} flat dict of all groups
-            - group_map: {group_name: [child_names]}
+            A [TaskDict][TaskDict] containing the loaded ``"tasks"``, ``"groups"``,
+            and a ``"group_map"`` of each group to its immediate children.
         """
-        if not isinstance(task_list, list):
-            task_list = [task_list]  # type: ignore
+        if not isinstance(specs, list):
+            specs = [specs]  # type: ignore
+        _overrides = cast("dict[str, dict[str, Any]]", deepcopy(overrides or {}))
 
         # Build all requested items
         built: list[Task | Group] = []
-        for spec in cast("Iterable", task_list):
-            obj = self._load_spec(spec) if not isinstance(spec, (Task, Group)) else spec  # type:ignore[invalid-argument-type]
+        for spec in cast("Iterable", specs):
+            # Dict specs are self-contained — they carry overrides inline
+            # String specs look up by name in the overrides mapping
+            spec_overrides = {} if isinstance(spec, dict) else _overrides.pop(spec, {})
+
+            obj = self._load_spec(spec, overrides=spec_overrides)
             # Tags return list[Task], flatten
             if isinstance(obj, list):
                 obj = cast("list[Task]", obj)
@@ -301,6 +348,13 @@ class TaskManager:
 
         for item in built:
             collect(item)
+
+        if _overrides:
+            eval_logger.warning(
+                "Unused overrides (no matching spec): %s",
+                ", ".join(sorted(_overrides)),
+            )
+
         return {
             "tasks": tasks,
             "groups": groups,
@@ -311,18 +365,19 @@ class TaskManager:
 
     @deprecated("Use TaskManager.load(), which returns flat dicts of tasks and groups.")
     def load_task_or_group(self, task_list: str | list[str | dict]) -> dict:
-        """Legacy loader that returns the old nested-dict format.
+        """Deprecated — use [load][.load] instead.
 
-        Wraps [load][.load] but converts the result into ``{ConfigurableGroup: {task_name: Task, ...}, ...}``
-        dicts expected by callers.  New code should use [load][.load] instead.
+        Returns the old nested-dict format where groups are keyed by
+        [ConfigurableGroup][lm_eval.api.group.ConfigurableGroup] and
+        standalone tasks by name.
 
         Args:
-            task_list: Single task name or list of task names/dicts.
+            task_list: Task name(s) or override dicts.
 
         Returns:
-            Nested dict keyed by [ConfigurableGroup][lm_eval.api.group.ConfigurableGroup] (for groups) or
-            ``task_name`` (for standalone tasks), with leaf values being
-            [Task][lm_eval.api.task.Task] instances.
+            Nested dict — groups are keyed by ``ConfigurableGroup`` objects, standalone
+                tasks by name. Subgroups recurse, e.g.
+                ``{CG: {sub_CG: {task: Task, ...}, task: Task, ...}, ...}``.
         """
         import collections
 

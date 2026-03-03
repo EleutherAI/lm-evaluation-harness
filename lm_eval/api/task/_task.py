@@ -9,6 +9,7 @@ from itertools import chain
 from typing import (
     TYPE_CHECKING,
     Any,
+    ClassVar,
     Literal,
     cast,
 )
@@ -17,7 +18,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.utils import (
+from lm_eval.api._utils import (
     Message,
     _build_cache_key,
     group_by_doc_id,
@@ -72,7 +73,7 @@ class Task:
     DATASET_PATH: str | None = None
     DATASET_NAME: str | None = None
     MULTIMODAL: bool = False
-    _registry = {}
+    _registry: ClassVar[dict[str, type[Task]]] = {}
 
     @classmethod
     def from_config(cls, config: TaskConfig | dict[str, Any]):

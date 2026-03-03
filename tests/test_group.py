@@ -1,16 +1,72 @@
 # type:ignore[invalid-assignment]
 """Tests for Group class and filter auto-discovery functionality."""
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
 from lm_eval.api.group import Group
 from lm_eval.config.group import AggMetricConfig
+from lm_eval.tasks import TaskManager
 
 
 if TYPE_CHECKING:
     from lm_eval.result_schema import _TaskMetrics
+
+
+# =====================================================================
+# Config override precedence
+# =====================================================================
+
+
+class TestConfigPrecedence:
+    """Traces ``num_fewshot`` on **simple_task** through every override layer.
+
+    simple_task.yaml defines ``num_fewshot: 1``.
+
+    For any given config key, the outermost layer that sets it wins.
+    Layers that don't set a key leave it untouched.
+
+    Precedence (lowest → highest):
+
+        Task YAML  <  group ``include:``   <  runtime override
+            1              42                     0
+    """
+
+    @pytest.fixture()
+    def tm(self):
+        return TaskManager(
+            include_path=str(Path(__file__).parent / "test_configs"),
+            include_defaults=False,
+        )
+
+    def test_precedence_order(self, tm):
+        T = "simple_task"  # simple_task.yaml → num_fewshot: 1
+
+        # ── 1. Original task's own YAML ──────────────────────────────
+        r = tm.load([T])
+        assert r["tasks"][T].config.num_fewshot == 1
+
+        # ── 2. Group include: overrides task YAML ───────────
+        # propagation_group.yaml → include: {num_fewshot: 42}
+        r = tm.load(["propagation_group"])
+        assert r["tasks"][f"propagation_group::{T}"].config.num_fewshot == 42
+
+        # ── 2.5 sub groups override child-level ───────────
+        # child_group → include: {num_fewshot: 100, doc_to_text: "Child question: {{question}}"}
+        _cfg = r["tasks"][f"propagation_group::child_group::{T}"].config
+        assert _cfg.num_fewshot == 42 and _cfg.num_fewshot != 100, (
+            "Child group should not override parent group"
+        )
+        assert _cfg.doc_to_text == "Child question: {{question}}"
+
+        # ── 3. Runtime overrides beats group include ──────────
+        r = tm.load(
+            ["propagation_group"],
+            overrides={"propagation_group": {"num_fewshot": 0}},
+        )
+        assert r["tasks"][f"propagation_group::{T}"].config.num_fewshot == 0
 
 
 class TestAggMetricConfig:

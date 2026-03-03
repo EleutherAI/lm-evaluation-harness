@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import torch
 
+from lm_eval.api._utils import maybe_delimit, requires_delimiter
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
     mean,
@@ -268,7 +269,7 @@ class TestCollator:
 
     @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 9)])
     def test_generations(self, batch_size, end):
-        _collate_gen = lambda x: (-len(x[0]), x[0])  # noqa: E731
+        _collate_gen = lambda x: (-len(x[0]), x[0])
 
         generation_samples = self.make_generate_sample(int(end))
         gens = Collator(generation_samples, _collate_gen, group_by="gen_kwargs")
@@ -298,7 +299,7 @@ class TestCollator:
 
     @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 3)])
     def test_loglikelihood(self, batch_size, end):
-        _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
+        _collate_log = lambda x: (-len(x[1]), tuple(x[1]))
         loglikelihood_samples = self.make_loglikelihood_sample(int(end))
         loglikelihoods = Collator(
             loglikelihood_samples,
@@ -325,7 +326,7 @@ class TestCollator:
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        _collate_log = _collate  # noqa: E731
+        _collate_log = _collate
         loglikelihood_samples = self.make_loglikelihood_sample_group()
         loglikelihoods = Collator(
             loglikelihood_samples,
@@ -539,10 +540,6 @@ def test_apply_chat_template(monkeypatch):
     chat_history = [{"role": "user", "content": "Hello"}]
     rendered = tokenizer.apply_chat_template(chat_history)
     assert rendered == "Hello"
-
-
-# Tests for lm_eval.api.utils
-from lm_eval.api.utils import maybe_delimit, requires_delimiter
 
 
 class TestRequiresDelimiter:
