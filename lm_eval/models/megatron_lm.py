@@ -308,6 +308,11 @@ class MegatronLMEval(LM):
 
     def _initialize_megatron(self, **kwargs):
         """Initialize Megatron distributed environment and load model."""
+        # Avoid torch.compile/inductor runtime failures when torch/triton versions are mismatched.
+        # Users can still override these env vars externally before launch if needed.
+        os.environ.setdefault("TORCHDYNAMO_DISABLE", "1")
+        os.environ.setdefault("TORCH_COMPILE_DISABLE", "1")
+
         from megatron.training import (
             get_args,
             get_model,
@@ -450,17 +455,40 @@ class MegatronLMEval(LM):
                 """Build GPT model."""
                 from megatron.core.models.gpt import GPTModel
                 from megatron.core.models.gpt.gpt_layer_specs import (
+                    get_gpt_decoder_block_spec,
                     get_gpt_layer_local_spec,
                     get_gpt_layer_with_transformer_engine_spec,
+                )
+                from megatron.core.models.gpt.heterogeneous.heterogeneous_layer_specs import (
+                    get_gpt_heterogeneous_layer_spec,
                 )
 
                 # Get config from args if not provided
                 if config is None:
                     config = core_transformer_config_from_args(args)
 
-                # Select layer spec
+                # Select layer spec.
+                # For MoE models, use decoder block spec so each layer follows moe_layer_freq.
                 transformer_impl = getattr(args, "transformer_impl", "local")
-                if transformer_impl == "transformer_engine":
+                use_transformer_engine = transformer_impl == "transformer_engine"
+                if args.num_experts:
+                    assert config.transformer_impl != "inference_optimized", (
+                        "MoE is not supported with inference_optimized transformer_impl."
+                    )
+                    transformer_layer_spec = get_gpt_decoder_block_spec(
+                        config,
+                        use_transformer_engine=use_transformer_engine,
+                        normalization=getattr(args, "normalization", None),
+                        qk_l2_norm=getattr(args, "qk_l2_norm", False),
+                    )
+                elif args.heterogeneous_layers_config_path is not None:
+                    assert config.transformer_impl != "inference_optimized", (
+                        "Heterogeneous layers are not supported with inference_optimized transformer_impl."
+                    )
+                    transformer_layer_spec = get_gpt_heterogeneous_layer_spec(
+                        config, use_transformer_engine=use_transformer_engine
+                    )
+                elif use_transformer_engine:
                     transformer_layer_spec = get_gpt_layer_with_transformer_engine_spec(
                         getattr(args, "num_experts", None),
                         getattr(args, "moe_grouped_gemm", False),
@@ -485,13 +513,42 @@ class MegatronLMEval(LM):
                 )
 
                 try:
-                    transformer_layer_spec.submodules.self_attention.params[
-                        "attn_mask_type"
-                    ] = AttnMaskType.arbitrary
+                    updated = 0
+
+                    # Single layer spec.
+                    self_attention = getattr(
+                        getattr(transformer_layer_spec, "submodules", None),
+                        "self_attention",
+                        None,
+                    )
+                    params = getattr(self_attention, "params", None)
+                    if isinstance(params, dict):
+                        params["attn_mask_type"] = AttnMaskType.arbitrary
+                        updated += 1
+
+                    # Decoder block spec (list of layer specs).
+                    layer_specs = getattr(transformer_layer_spec, "layer_specs", None)
+                    if layer_specs is not None:
+                        for layer_spec in layer_specs:
+                            layer_self_attention = getattr(
+                                getattr(layer_spec, "submodules", None),
+                                "self_attention",
+                                None,
+                            )
+                            layer_params = getattr(layer_self_attention, "params", None)
+                            if isinstance(layer_params, dict):
+                                layer_params["attn_mask_type"] = AttnMaskType.arbitrary
+                                updated += 1
+
+                    if updated == 0:
+                        eval_logger.warning(
+                            "No self_attention params found to override attn_mask_type; "
+                            "proceeding with original spec defaults."
+                        )
                 except Exception as e:
                     raise RuntimeError(
                         "Failed to override attn_mask_type on transformer_layer_spec. "
-                        "Expected transformer_layer_spec.submodules.self_attention.params to exist."
+                        "Expected ModuleSpec or decoder block layer specs with self_attention.params."
                     ) from e
 
                 model = GPTModel(
@@ -587,6 +644,23 @@ class MegatronLMEval(LM):
     def accelerator(self):
         """Return accelerator interface for distributed operations (NeMo-style)."""
         return self._Accelerator(self._world_size, self._device)
+
+    def all_gather(self, tensor: torch.Tensor) -> torch.Tensor:
+        """All-gather a tensor across data-parallel ranks."""
+        return self.accelerator.gather(tensor)
+
+    def gather_object(self, obj, dst: int = 0):
+        """Gather Python objects and return list on dst, None on others."""
+        if not torch.distributed.is_initialized() or self.world_size == 1:
+            return [obj]
+
+        gathered_objects = [None] * self.world_size
+        torch.distributed.all_gather_object(gathered_objects, obj)
+        return gathered_objects if self.rank == dst else None
+
+    def barrier(self) -> None:
+        """Synchronize processes."""
+        self.accelerator.wait_for_everyone()
 
     class _Accelerator:
         """
