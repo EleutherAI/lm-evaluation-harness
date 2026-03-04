@@ -5,10 +5,6 @@ validation_split: null
 test_split: test
 fewshot_split: test
 doc_to_target: "{{choices.label.index(answer)}}"
-process_docs: !function utils.add_original_index
-fewshot_config:
-  sampler: !function utils.PrecedingWrapSampler
-  split: test
 metric_list:
   - metric: acc
     aggregation: mean
@@ -17,4 +13,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 1.0
+  version: 1.1
