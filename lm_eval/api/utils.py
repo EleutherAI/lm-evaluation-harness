@@ -19,7 +19,14 @@ def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") 
 
 def requires_delimiter(prefix: str, suffix: str) -> bool:
     """Return True if neither string has whitespace at the join boundary."""
+    if prefix == "":
+        return False
     return not (prefix[-1].isspace() or suffix[0].isspace())
+
+
+def ends_with_whitespace(s: str) -> bool:
+    """Return True if the string ends with whitespace."""
+    return bool(s) and s[-1].isspace()
 
 
 @dataclass
@@ -83,3 +90,11 @@ def format_turn(content: str, role: str, type: str | None = None) -> dict[str, s
         if not type
         else {"type": type, "role": role, "content": content}
     )
+
+
+def random_task_id():
+    """Generate a random 8-character alphanumeric task ID."""
+    import random
+    import string
+
+    return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))

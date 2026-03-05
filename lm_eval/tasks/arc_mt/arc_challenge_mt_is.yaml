@@ -1,4 +1,4 @@
-group:
+tag:
   - arc_challenge_mt
 task: arc_challenge_mt_is
 dataset_path: mideind/icelandic-arc-challenge

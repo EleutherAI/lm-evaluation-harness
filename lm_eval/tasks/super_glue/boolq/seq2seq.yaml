@@ -1,7 +1,7 @@
 tag:
   - super-glue-lm-eval-v1-seq2seq
 task: "boolq-seq2seq"
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: boolq
 output_type: generate_until
 training_split: train

@@ -67,13 +67,15 @@ def request_caching_arg_to_dict(cache_requests: str | None) -> dict[str, bool]:
     """Convert a request caching argument to a dictionary."""
     if cache_requests is None:
         return {}
-    request_caching_args = {
+    if cache_requests not in {"true", "refresh", "delete"}:
+        raise argparse.ArgumentTypeError(
+            f"invalid value '{cache_requests}' (choose from true, refresh, delete)"
+        )
+    return {
         "cache_requests": cache_requests in {"true", "refresh"},
         "rewrite_requests_cache": cache_requests == "refresh",
         "delete_requests_cache": cache_requests == "delete",
     }
-
-    return request_caching_args
 
 
 def check_argument_types(parser: argparse.ArgumentParser) -> None:
@@ -112,7 +114,7 @@ def key_val_to_dict(args: str) -> dict[str, Any]:
     if not args:
         return res
 
-    for k, v in (item.split("=") for item in args.split(",")):
+    for k, v in (item.split("=", 1) for item in args.split(",")):
         v = handle_cli_value_string(v)
         if k in res:
             eval_logger.warning(f"Overwriting key '{k}': {res[k]!r} -> {v!r}")

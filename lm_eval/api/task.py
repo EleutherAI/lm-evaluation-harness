@@ -33,8 +33,10 @@ from lm_eval.api.registry import (
 )
 from lm_eval.api.utils import (
     Message,
+    ends_with_whitespace,
     maybe_delimit,
     multiturn_to_singleturn,
+    random_task_id,
     requires_delimiter,
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
@@ -466,7 +468,7 @@ class Task(abc.ABC):
                     "A `random.Random` generator argument must be provided to `rnd`"
                 )
 
-        description = description if description else ""
+        description = description or ""
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -607,6 +609,10 @@ class Task(abc.ABC):
     def resolve_field(doc: dict[str, Any], field: str | None = None):
         if field:
             return doc[field] if field in doc else utils.apply_template(field, doc)
+
+    @property
+    def task_name(self) -> str:
+        return getattr(self.config, "task", None) or random_task_id()
 
 
 class ConfigurableTask(Task):
@@ -1096,6 +1102,7 @@ class ConfigurableTask(Task):
             answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
             msgs.append(Message("assistant", answer_text, few_delim))
         elif gen_prefix:
+            # For gen-prefix, the delimiter is added in construct_requests
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 
@@ -1127,7 +1134,7 @@ class ConfigurableTask(Task):
         """
         # for multiple inputs, q is list[str]
         res_ = []
-        prev_context = prev_context if prev_context else []
+        prev_context = prev_context or []
         contexts = [
             prev_context
             + self.build_qa_turn(
@@ -1368,7 +1375,12 @@ class ConfigurableTask(Task):
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
             if apply_chat_template:
-                target_delimiter = ""
+                target_delimiter = (
+                    self.config.target_delimiter
+                    if self.config.gen_prefix
+                    and not ends_with_whitespace(self.config.gen_prefix)
+                    else ""
+                )
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
@@ -1652,8 +1664,8 @@ class ConfigurableTask(Task):
         return getattr(self._config, key, None)
 
     @property
-    def task_name(self) -> Any:
-        return getattr(self.config, "task", None)
+    def task_name(self) -> str:
+        return getattr(self.config, "task", random_task_id())
 
     def __repr__(self):
         return (

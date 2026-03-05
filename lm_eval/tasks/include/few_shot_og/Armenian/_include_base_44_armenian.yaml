@@ -1,4 +1,4 @@
-group: include_base_44_armenian
+group: include_base_44_armenian_few_shot_og
 task:
 - include_base_44_armenian_few_shot_og_driving_license
 - include_base_44_armenian_few_shot_og_social_science
@@ -8,4 +8,4 @@ aggregate_metric_list:
 - metric: acc
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 0.1
