@@ -422,7 +422,11 @@ class TemplateLM(LM):
             A list of ``(logprob, is_greedy)`` tuples, one per request.
         """
         new_reqs = []
-        for context, continuation in [req.args for req in requests]:
+        for context, continuation in tqdm(
+            [req.args for req in requests],
+            desc="Tokenizing inputs",
+            disable=disable_tqdm,
+        ):
             if context == "":
                 continuation_enc = self.tok_encode(
                     continuation, add_special_tokens=False
