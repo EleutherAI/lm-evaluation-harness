@@ -30,6 +30,7 @@ output/
 data/
 temp/
 test_logs/
+results/
 
 # Caching
 lm_eval/caching/.cache
