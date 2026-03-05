@@ -7,7 +7,7 @@ import random
 import time
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, cast
-
+from transformers import GenerationConfig
 import numpy as np
 
 import lm_eval.api.model
@@ -226,8 +226,23 @@ def simple_evaluate(
             f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
             "Ensure 'do_sample=True' for non-greedy decoding!"
         )
+        
         if not gen_kwargs:
-            gen_kwargs = None
+            gen_kwargs = {}
+
+        model_args_dict = model_args
+        if isinstance(model_args_dict, str):
+            model_args_dict = simple_parse_args_string(model_args_dict)
+
+        model_id = model_args_dict["pretrained"]
+        generation_config = GenerationConfig.from_pretrained(model_id)
+        
+        for key in ["top_p", "top_k", "temperature"]:
+            if key not in gen_kwargs:
+                eval_logger.info(f"Setting gen_kwargs {key}={getattr(generation_config, key)} from the model default generation_config.json.")
+                gen_kwargs[key] = getattr(generation_config, key)
+            else:
+                eval_logger.info(f"{model_name} default {key}={getattr(generation_config, key)} overriden by user set {key}={gen_kwargs[key]}")
 
     if isinstance(model, str):
         if model_args is None:
