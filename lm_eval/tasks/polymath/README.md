@@ -21,7 +21,7 @@ author={Yiming Wang and Pei Zhang and Jialong Tang and Haoran Wei and Baosong Ya
 journal={arXiv preprint arXiv:2504.18428},
 year={2025},
 primaryClass={cs.CL},
-url={https://arxiv.org/abs/2504.18428}, 
+url={https://arxiv.org/abs/2504.18428},
 }
 ```
 
@@ -85,4 +85,3 @@ If other tasks on this dataset are already supported:
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
 * [ ] Checked for equivalence with v0.3.0 LM Evaluation Harness
-

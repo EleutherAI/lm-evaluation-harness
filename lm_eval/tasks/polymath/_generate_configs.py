@@ -26,14 +26,31 @@ Usage:
 
 import argparse
 import os
+
 import yaml
 
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
 LANGUAGES = [
-    "ar", "bn", "de", "en", "es", "fr", "id", "it", "ja",
-    "ko", "ms", "pt", "ru", "sw", "te", "th", "vi", "zh"
+    "ar",
+    "bn",
+    "de",
+    "en",
+    "es",
+    "fr",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "ms",
+    "pt",
+    "ru",
+    "sw",
+    "te",
+    "th",
+    "vi",
+    "zh",
 ]
 
 DIFFICULTIES = ["low", "medium", "high", "top"]
@@ -42,6 +59,7 @@ TEMPLATE_NAME = "_template_yaml"
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
+
 
 def make_task_yaml(language: str, difficulty: str, split: str) -> dict:
     """Single task config for one language × difficulty combination."""
@@ -96,8 +114,10 @@ def make_top_level_group_yaml() -> dict:
 
 # ── YAML serialisation ────────────────────────────────────────────────────────
 
+
 class _PolyMathDumper(yaml.Dumper):
     """Custom dumper that avoids mutating the global yaml.Dumper singleton."""
+
     pass
 
 
@@ -134,6 +154,7 @@ def _fix_function_tag(text: str) -> str:
 
 # ── Writer ────────────────────────────────────────────────────────────────────
 
+
 def write_yaml(path: str, data: dict) -> None:
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     if os.path.exists(path):
@@ -145,6 +166,7 @@ def write_yaml(path: str, data: dict) -> None:
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+
 
 def generate(output_dir: str) -> None:
     total = 0
