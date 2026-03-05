@@ -3,6 +3,7 @@ from __future__ import annotations
 import gc
 import logging
 import os
+from collections import defaultdict
 from importlib.metadata import version
 from importlib.util import find_spec
 from multiprocessing import Process, Queue
@@ -722,13 +723,140 @@ class VLLM(TemplateLM):
         # reorder all group of results back to original unsorted form
         return re_ords.get_original(res)
 
-    def _loglikelihood_tokens(
+    def _loglikelihood_single_token(
         self,
         requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
-    ) -> list[tuple[float, bool]]:  # type:ignore[invalid-method-override]
-        max_cxt_len = self.max_length - 1  # vLLM requires at least one generation token
+    ) -> list[tuple[float, bool]]:
+        """
+        Multiple choice evaluation for single-token choice (e.g. MMLU pro).
+        Groups requests by context and evaluates all choices in a single forward pass.
+        Supports batching of unique contexts for efficiency.
+
+        Returns similar output as the usual code path in `_loglikelihood_tokens`.
+        """
+        # Group requests sharing the same context (e.g. same multi-choice question).
+        context_groups = defaultdict(list)
+        for idx, (cache_key, context_enc, continuation_enc) in enumerate(requests):
+            # Use context as grouping key.
+            ctx_key = tuple(context_enc)
+            context_groups[ctx_key].append(
+                (idx, cache_key, context_enc, continuation_enc)
+            )
+
+        # Create a list of unique contexts with their associated request groups
+        unique_contexts = list(context_groups.items())
+
+        # Output indexed by original request position
+        results = [None] * len(requests)
+
+        batch_size = (
+            int(self.batch_size) if self.batch_size != "auto" else len(unique_contexts)
+        )
+
+        pbar = tqdm(
+            total=len(unique_contexts),
+            disable=disable_tqdm,
+            desc="Running loglikelihood requests (multi-choice tasks, single token answers)",
+        )
+
+        for batch_start in range(0, len(unique_contexts), batch_size):
+            batch_end = min(batch_start + batch_size, len(unique_contexts))
+            batch_contexts = unique_contexts[batch_start:batch_end]
+
+            batch_context_encs = []
+            for _, group in batch_contexts:
+                context_enc = group[0][2]
+
+                if len(context_enc) > self.max_length - 1:
+                    eval_logger.warning(
+                        f"Context length {len(context_enc)} exceeds max length - 1 ({self.max_length - 1}). Truncating context."
+                    )
+                    context_enc = context_enc[-(self.max_length - 1) :]
+
+                batch_context_encs.append(context_enc)
+
+            # Generate 1 token with logprobs to get the distribution over the next token.
+            # We need max_tokens=1 and logprobs set to get the top logprobs for the generated token.
+            sampling_params = SamplingParams(
+                temperature=0,
+                max_tokens=1,
+                logprobs=10,
+                prompt_logprobs=0,
+                detokenize=False,
+            )
+
+            # Generate for the entire batch.
+            outputs = self._model_generate(
+                requests=batch_context_encs,
+                generate=True,
+                sampling_params=sampling_params,
+            )
+
+            # Process outputs for each context in the batch.
+            for (_, group), output in zip(batch_contexts, outputs, strict=True):
+                if not output.outputs or not output.outputs[0].logprobs:
+                    raise ValueError("No logprobs returned from generation")
+
+                # Get logprobs for the first (and only) generated token
+                next_token_logprobs_dict = {
+                    token: logprob.logprob
+                    for token, logprob in output.outputs[0].logprobs[0].items()
+                }
+
+                # Find the token with max logprob
+                if next_token_logprobs_dict:
+                    greedy_token = max(
+                        next_token_logprobs_dict, key=next_token_logprobs_dict.get
+                    )
+                else:
+                    greedy_token = None
+
+                # Now assign logprobs to each choice in the group
+                for idx, cache_key, _, continuation_enc in group:
+                    if len(continuation_enc) != 1:
+                        raise ValueError(
+                            f"Expected single token continuation, got {len(continuation_enc)} tokens."
+                        )
+
+                    choice_token = continuation_enc[0]
+
+                    # is_greedy: Whether argmax matches given continuation exactly
+                    if choice_token not in next_token_logprobs_dict:
+                        # Token not in top-k logprobs, assign very low probability
+                        # This is accurate since it's not in the top-k
+                        eval_logger.debug(
+                            f"Choice token {choice_token} not in top-k logprobs, assigning low probability"
+                        )
+                        logprob = -1e10
+                        is_greedy = False
+                    else:
+                        logprob = next_token_logprobs_dict[choice_token]
+                        is_greedy = choice_token == greedy_token
+
+                    results[idx] = (logprob, is_greedy)
+
+                    if cache_key is not None:
+                        self.cache_hook.add_partial(
+                            "loglikelihood", cache_key, results[idx]
+                        )
+
+                pbar.update(1)
+
+        pbar.close()
+        return results
+
+    def _loglikelihood_multiple_tokens(
+        self,
+        requests: list[tuple[tuple[str, str], list[int], list[int]]],
+        disable_tqdm: bool = False,
+    ) -> list[tuple[float, bool]]:
+        """
+        Traditional loglikelihood evaluation for multi-token continuations.
+        Processes each request with prompt + continuation concatenated.
+        """
         res = []
+        max_cxt_len = self.max_length - 1  # vLLM requires at least one generation token
 
         def _collate(x):
             toks = x[1] + x[2]
@@ -743,7 +871,7 @@ class VLLM(TemplateLM):
         pbar = tqdm(
             total=len(requests),
             disable=disable_tqdm,
-            desc="Running loglikelihood requests",
+            desc="Running loglikelihood requests (multi-choice tasks, multiple tokens answers)",
         )
         for chunk in chunks:
             inputs = []
@@ -782,6 +910,49 @@ class VLLM(TemplateLM):
                 pbar.update(1)
         pbar.close()
         return re_ord.get_original(res)
+
+    def _loglikelihood_tokens(
+        self,
+        requests: list[tuple[tuple[str, str], list[int], list[int]]],
+        disable_tqdm: bool = False,
+    ) -> list[tuple[float, bool]]:  # type:ignore[invalid-method-override]
+        # Separate requests by their continuation length.
+        single_token_requests = []
+        multi_token_requests = []
+        single_token_indices = []
+        multi_token_indices = []
+
+        for idx, req in enumerate(requests):
+            if len(req[2]) == 1:  # req[2] is continuation_enc.
+                single_token_requests.append(req)
+                single_token_indices.append(idx)
+            else:
+                multi_token_requests.append(req)
+                multi_token_indices.append(idx)
+
+        results = [None] * len(requests)
+
+        # Code path for samples with a single continuation token.
+        if single_token_requests:
+            single_token_results = self._loglikelihood_single_token(
+                single_token_requests, disable_tqdm=disable_tqdm
+            )
+            for idx, result in zip(
+                single_token_indices, single_token_results, strict=True
+            ):
+                results[idx] = result
+
+        # Code path for samples with multiple continuation tokens.
+        if multi_token_requests:
+            multi_token_results = self._loglikelihood_multiple_tokens(
+                multi_token_requests, disable_tqdm=disable_tqdm
+            )
+            for idx, result in zip(
+                multi_token_indices, multi_token_results, strict=True
+            ):
+                results[idx] = result
+
+        return results
 
     @staticmethod
     def _parse_logprobs(tokens: list, outputs, ctxlen: int) -> tuple[float, bool]:
