@@ -7,7 +7,8 @@ output_type: generate_until
 training_split: train
 fewshot_split: train
 test_split: test
-doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: 'Q: {{question}}
+  A(Please follow the summarize the result at the end with the format of "The answer is xxx", where xx is the result.):'
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
   - metric: exact_match
