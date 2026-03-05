@@ -1,0 +1,7 @@
+"dataset_name": "tuk_Latn-zsm_Latn"
+"doc_to_target": "{{sentence_zsm_Latn}}"
+"doc_to_text": "{{sentence_tuk_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tuk_Latn-zsm_Latn"
+"test_split": "dev"
