@@ -95,9 +95,10 @@ class SteeredModel(HFLM):
 
         if steer_path.endswith(".pt") or steer_path.endswith(".pth"):
             with open(steer_path, "rb") as f:
-                steer_config: dict[str, dict[str, Any]] = torch.load(
-                    f, weights_only=True
-                )
+                # steer_config: dict[str, dict[str, Any]] = torch.load(
+                #     f, weights_only=True
+                # )
+                steer_config = torch.load(f, weights_only=False)
         elif steer_path.endswith(".csv"):
             steer_config = self.derive_steer_config(steer_path)
         else:
