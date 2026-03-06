@@ -1,0 +1,7 @@
+task: mmlu_cf_history
+task_alias: history
+test_split: History_val
+fewshot_split: History_dev
+description: "There is a single choice question (with answers). Answer the question by replying A, B, C or D.\n\n"
+tag: mmlu_cf_social_sciences_tasks
+include: _default_template_yaml
