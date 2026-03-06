@@ -13,9 +13,24 @@ except ModuleNotFoundError as e:
     ) from e
 
 
+def clean_summary_text(text):
+    """Remove newlines from summaries."""
+    text = text.replace("\n\n", " ")
+    text = text.replace("\n", "")
+    return text
+
+
+def clean_summaries(dataset):
+    """Clean newlines from all summaries in the dataset."""
+    def clean_doc(doc):
+        doc["summaries"] = [clean_summary_text(s) for s in doc["summaries"]]
+        return doc
+    
+    return dataset.map(clean_doc)
+
+
 ROUGE_SCORER = None
 BERTSCORE = None
-
 
 def process_results(doc, results):
     completion = results[0]
