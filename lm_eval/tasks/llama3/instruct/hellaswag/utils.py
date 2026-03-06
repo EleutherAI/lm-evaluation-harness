@@ -1,0 +1,1 @@
+from lm_eval.tasks.hellaswag.utils import process_docs  # noqa: F401

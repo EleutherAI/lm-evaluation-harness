@@ -1,0 +1,15 @@
+group: math_llama
+task:
+  - math_algebra_llama
+  - math_counting_and_prob_llama
+  - math_geometry_llama
+  - math_intermediate_algebra_llama
+  - math_num_theory_llama
+  - math_prealgebra_llama
+  - math_precalc_llama
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

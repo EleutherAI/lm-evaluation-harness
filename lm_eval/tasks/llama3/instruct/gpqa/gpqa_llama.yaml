@@ -1,0 +1,34 @@
+include: ../../../gpqa/zeroshot/gpqa_diamond_zeroshot.yaml
+task: gpqa_diamond_llama
+dataset_path: Idavidrein/gpqa
+dataset_name: gpqa_diamond
+output_type: generate_until
+doc_to_text: "Answer the following multiple choice question. The last line of your response should be of the following format: 'The best answer is (X)' where X is one of A, B, C or D.\nQuestion: {{Question}}\nA. {{choice1}}\nB. {{choice2}}\nC. {{choice3}}\nD. {{choice4}}"
+doc_to_target: "{{answer}}"
+num_fewshot: 0
+generation_kwargs:
+  do_sample: false
+  max_gen_toks: 1024
+  temperature: 0
+  until: []
+filter_list:
+  - name: strict_match
+    filter:
+      - function: regex
+        regex_pattern: "best answer is \\(?(A|B|C|D)\\)?"
+        group_select: -1
+      - function: take_first
+  - name: flexible_extract
+    filter:
+      - function: regex
+        regex_pattern: "\\(?(A|B|C|D)\\)?"
+        group_select: -1
+      - function: take_first
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0
