@@ -227,8 +227,8 @@ class LM(abc.ABC):
 
 
 ### SQLite-based caching of LM responses
-def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args))
+def hash_args(attr: str, args: Iterable[Any], model_id: str = "") -> str:
+    dat = json.dumps([attr, model_id] + list(args))
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
@@ -236,29 +236,35 @@ class CacheHook:
     def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
         if cachinglm is None:
             self.dbdict: SqliteDict | None = None
+            self.model_id: str = ""
             return
 
         self.dbdict = cachinglm.dbdict
+        self.model_id = cachinglm.model_id
 
     def add_partial(self, attr: str, req: Iterable[Any], res: Any) -> None:
         if self.dbdict is None:
             return
-        hsh = hash_args(attr, req)
+        hsh = hash_args(attr, req, model_id=self.model_id)
         self.dbdict[hsh] = res
 
 
 class CachingLM:
-    def __init__(self, lm: LM, cache_db: str) -> None:
+    def __init__(self, lm: LM, cache_db: str, model_id: str = "") -> None:
         """LM wrapper that returns cached results when available, falling back to the underlying model.
 
         Args:
             lm: The underlying language model to wrap.
             cache_db: Path to the SQLite cache database.
+            model_id: A string identifying the model. Included in cache keys
+                so that different models sharing the same cache DB file do not
+                return each other's results.
         """
         from sqlitedict import SqliteDict
 
         self.lm: LM = lm
         self.cache_db: str = cache_db
+        self.model_id: str = model_id
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
@@ -281,7 +287,7 @@ class CachingLM:
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
             for req in tqdm(requests, desc="Checking cached requests"):
-                hsh = hash_args(attr, req.args)
+                hsh = hash_args(attr, req.args, model_id=self.model_id)
                 if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
@@ -316,7 +322,7 @@ class CachingLM:
                 res[resptr] = r
 
                 # caching
-                hsh = hash_args(attr, req.args)
+                hsh = hash_args(attr, req.args, model_id=self.model_id)
                 self.dbdict[hsh] = r
             self.dbdict.commit()
 
