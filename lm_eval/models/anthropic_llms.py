@@ -371,7 +371,7 @@ class AnthropicChat(LocalCompletionsAPI):
         self,
         string: str,
         left_truncate_len=None,
-        add_special_tokens=None,
+        add_special_tokens=True,
         **kwargs,
     ) -> List[str]:
         return [string]
