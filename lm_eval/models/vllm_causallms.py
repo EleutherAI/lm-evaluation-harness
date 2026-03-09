@@ -357,17 +357,17 @@ class VLLM(TemplateLM):
 
     @overload
     def tok_encode(
-        self, string: str, add_special_tokens=None, **kwargs
+        self, string: str, add_special_tokens=True, **kwargs
     ) -> list[int]: ...
     @overload
     def tok_encode(
-        self, string: list[str], add_special_tokens=None, **kwargs
+        self, string: list[str], add_special_tokens=True, **kwargs
     ) -> list[list[int]]: ...
 
     def tok_encode(
         self,
         string: str | list[str],
-        add_special_tokens=None,
+        add_special_tokens=True,
         **kwargs,
     ) -> list[int] | list[list[int]]:  # type:ignore[invalid-method-override]
         assert self.tokenizer
