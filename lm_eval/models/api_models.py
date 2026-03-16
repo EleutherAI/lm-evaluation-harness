@@ -538,7 +538,8 @@ class TemplateAPI(TemplateLM):
             )
             if cache_keys:
                 for res, cache in zip(answers, cache_keys):
-                    self.cache_hook.add_partial(cache_method, cache, res)
+                    if res is not None:
+                        self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         # If the retries also fail
         except BaseException as e:
