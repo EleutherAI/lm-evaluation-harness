@@ -169,3 +169,6 @@ lines-after-imports = 2
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 ignore-var-parameters = true
+
+[tool.pytest]
+testpaths = ["tests"]
