@@ -48,10 +48,3 @@ examples/wandb/
 
 #uv
 uv.lock
-
-# job scripts
-*.sh
-
-# error and output files
-*.err
-*.out
