@@ -1,0 +1,33 @@
+dataset_path: EleutherAI/hendrycks_math
+process_docs: !function utils.process_docs
+output_type: generate_until
+training_split: train
+test_split: test
+doc_to_text: "Solve the following math problem step by step. The last line of your response should be of the form \"The final answer is $ANSWER$\" where $ANSWER$ is the answer to the problem.\nProblem: {{problem}}\n"
+process_results: !function utils.process_results
+doc_to_target: "{{answer}}"
+generation_kwargs:
+  until: []
+  do_sample: false
+  temperature: 0
+  max_gen_toks: 1024
+num_fewshot: 0
+filter_list:
+  - name: strict_match
+    filter:
+      - function: regex
+        regex_pattern: "final answer is \\$?(.+?)\\$?"
+        group_select: -1
+      - function: take_first
+  - name: flexible_extract
+    filter:
+      - function: regex
+        regex_pattern: "\\$?([\\-0-9\\.\\,\\/\\\\]+)\\$?"
+        group_select: -1
+      - function: take_first
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

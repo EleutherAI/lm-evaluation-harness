@@ -1,0 +1,10 @@
+include: ../../../ifeval/ifeval.yaml
+task: ifeval_llama
+num_fewshot: 0
+generation_kwargs:
+  until: []
+  do_sample: false
+  temperature: 0
+  max_gen_toks: 1280
+metadata:
+  version: 1.0
