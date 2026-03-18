@@ -2,7 +2,7 @@
 
 import pytest
 
-from lm_eval.tasks.jfinqa.utils import (
+from .utils import (
     NUMERICAL_TOLERANCE,
     _extract_answer,
     _normalize,
