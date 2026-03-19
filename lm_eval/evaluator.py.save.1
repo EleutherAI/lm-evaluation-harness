@@ -623,13 +623,9 @@ def evaluate(
                 doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
                 responses = [
-                    req.filtered_resps.get(filter_key, "")
-                    for req in requests
-]
-]
+    req.filtered_resps.get(filter_key, "")
+    for req in requests
 
-metrics = task.process_results(doc, responses)
-                )
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {

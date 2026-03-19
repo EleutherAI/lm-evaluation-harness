@@ -123,7 +123,8 @@ def simple_evaluate(
             for the tasks.
         write_out (bool): If True, write out an example document and model input
             for checking task integrity.
-        log_samples (bool): If True, write out all model outputs and documents for
+        log_samples (bool): If True, write out all model 
+outputs and documents for
             per-sample measurement and post-hoc analysis.
         evaluation_tracker (EvaluationTracker | None): Tracker for logging
             experiment configuration and results.
@@ -622,13 +623,8 @@ def evaluate(
             for doc_id, doc in doc_iterator:
                 doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
-                responses = [
-                    req.filtered_resps.get(filter_key, "")
-                    for req in requests
-]
-]
-
-metrics = task.process_results(doc, responses)
+                metrics = task.process_results(
+                    doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)

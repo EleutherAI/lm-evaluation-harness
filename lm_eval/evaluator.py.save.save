@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 
 import itertools
 import json
@@ -123,7 +123,8 @@ def simple_evaluate(
             for the tasks.
         write_out (bool): If True, write out an example document and model input
             for checking task integrity.
-        log_samples (bool): If True, write out all model outputs and documents for
+        log_samples (bool): If True, write out all model 
+outputs and documents for
             per-sample measurement and post-hoc analysis.
         evaluation_tracker (EvaluationTracker | None): Tracker for logging
             experiment configuration and results.
@@ -611,7 +612,7 @@ def evaluate(
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps:
+        for filter_key in txgit restore lm_eval/evaluator.pygit restore lm_eval/evaluator.pygit restore lm_eval/evaluator.pygit restore lm_eval/evaluator.pygit restore lm_eval/evaluator.pyfiltered_resps:
             indices = samples.get(task_name, None) if samples is not None else None
             doc_iterator = task.doc_iterator(
                 rank=RANK,
@@ -622,13 +623,8 @@ def evaluate(
             for doc_id, doc in doc_iterator:
                 doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
-                responses = [
-                    req.filtered_resps.get(filter_key, "")
-                    for req in requests
-]
-]
-
-metrics = task.process_results(doc, responses)
+                metrics = task.process_results(
+                    doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)
@@ -659,8 +655,8 @@ metrics = task.process_results(doc, responses)
                 for metric, value in metrics.items():
                     acc["raw_metrics"][(metric, filter_key)].append(value)
 
-    if WORLD_SIZE > 1:
-        # Gather all sample metrics across ranks, keyed by task name.
+    if WORLD_SIZE > 1: zsprmn@ONCU:~/lm-evaluation-harness$ # Gather all sample metrics across ranks, keyed by task name.
+
         if log_samples:
             rank_samples = {
                 task_name: acc["logged_samples"]
