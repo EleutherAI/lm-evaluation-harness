@@ -1,0 +1,6 @@
+include: _ifbench.yml
+task: ifbench_ifbench-constraints_single-turn
+dataset_name: ifbench_constraints
+test_split: test
+dataset_path: allenai/IFBench_multi-turn
+doc_to_text: "{{prompt}}"
