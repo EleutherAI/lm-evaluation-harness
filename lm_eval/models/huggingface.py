@@ -351,11 +351,11 @@ class HFLM(TemplateLM):
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
-        self.chat_template_args = (
-            chat_template_args or {} | dict(enable_thinking=enable_thinking)
-            if enable_thinking is not None
-            else {}
-        )
+        base_chat_template_args = chat_template_args or {}
+        if enable_thinking is not None:
+            self.chat_template_args = base_chat_template_args | {"enable_thinking": enable_thinking}
+        else:
+            self.chat_template_args = base_chat_template_args
 
         self.add_bos_token = add_bos_token
 
