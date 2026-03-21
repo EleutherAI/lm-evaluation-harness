@@ -32,7 +32,8 @@ dependencies = [
     "dill",
     "word2number",
     "more_itertools",
-    "typing_extensions"
+    "typing_extensions",
+    "zeno-client>=0.1.16",
 ]
 
 [tool.setuptools.packages.find]
