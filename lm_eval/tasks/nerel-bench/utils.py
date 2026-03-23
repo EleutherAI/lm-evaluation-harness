@@ -10,7 +10,7 @@ try:
     ru_stemmer = nltk.stem.snowball.RussianStemmer()
 except ImportError:
     print("Can not import nltk. If you try to score nerel-bench, do `pip install nltk`")
-    
+
 try:
     import sacrebleu
 except ImportError:
@@ -47,8 +47,8 @@ def normalize_answer(sentence: str, apply_stemmer: bool = True) -> str:
     if len(words) == 0:
         return ""
     return " ".join(words).strip()
-    
-    
+
+
 def chrf(predictions, references, **kwargs) -> float:
     """
     Calculate average chrf score for all examples.
@@ -58,10 +58,10 @@ def chrf(predictions, references, **kwargs) -> float:
         raise ValueError(
             f"The predictions do not correspond to the references! {num_samples} != {len(references)}"
         )
-    
+
     if num_samples == 0:
         return 0.0
-    
+
     total_score = 0.0
     for pred, ref in zip(predictions, references, strict=True):
         score = (
@@ -71,19 +71,19 @@ def chrf(predictions, references, **kwargs) -> float:
             / 100.0
         )
         total_score += score
-    
+
     return total_score / num_samples
 
 
 def f1(predictions, references, **kwargs) -> float:
     """
     Calculate F1 score for entity recognition based on line-by-line comparison.
-    
+
     Args:
         predictions: List of predicted strings (length 1 for single prediction)
         references: List of reference strings (length 1 for single reference)
         **kwargs: Additional keyword arguments (ignored)
-    
+
     Returns:
         float: F1 score between 0 and 1
     """
@@ -178,8 +178,8 @@ def fewshot_samples_for_re() -> list[dict]:
         for sample in source_fewshots
     ]
     return processed_fewshots
-    
-    
+
+
 def fewshot_samples_for_ned() -> list[dict]:
     input_instruction = "Вы — система генерации контекстных объяснений именованных сущностей в тексте.\n\nЗадача: объясните, что означает указанная именованная сущность в контексте предоставленного текста. Объяснение должно раскрывать не общее словарное значение сущности, а её конкретный смысл, роль и значимость именно в данном тексте.\n\nПравила:\n\n1. Напишите краткое объяснение — одно-два предложения.\n2. Начните с обобщённой характеристики сущности (что это такое в данном тексте), затем раскройте ключевые контекстные обстоятельства, последствия или связи, которые делают эту сущность значимой в тексте.\n3. Опирайтесь только на информацию из текста. Не привлекайте внешние знания, если они не подтверждены текстом.\n4. Формулируйте объяснение обобщённо, через роли и функции, а не через перечисление конкретных имён и деталей, — если только сущность сама не является конкретным именем или объектом.\n5. Не цитируйте текст дословно — перефразируйте своими словами.\n6. Не добавляйте заголовков, пояснений, оговорок, метакомментариев — только текст объяснения.\n\nИменованная сущность: {normalized_entity_in_text}\n\nТекст:\n\n```text\n{source_text}\n```"
     source_fewshots = [
@@ -207,8 +207,8 @@ def fewshot_samples_for_ned() -> list[dict]:
         for sample in source_fewshots
     ]
     return processed_fewshots
-    
-    
+
+
 def fewshot_samples_for_rd() -> list[dict]:
     input_instruction = "Вы — система объяснения семантических отношений между именованными сущностями в тексте.\n\nЗадача: на основе предоставленного текста определите и объясните, в чём состоит отношение между двумя именованными сущностями. Объяснение должно раскрывать, как именно эти сущности связаны в контексте данного конкретного текста.\n\nПравила:\n\n1. Напишите краткое объяснение — одно-два предложения.\n2. Объяснение должно быть привязано к содержанию текста, а не к общим знаниям. Опирайтесь только на информацию из текста.\n3. Включите в объяснение ключевые контекстные детали из текста, которые раскрывают суть отношения между этими сущностями.\n4. Не цитируйте текст дословно — перефразируйте своими словами.\n5. Не добавляйте информацию, которой нет в тексте.\n6. Если в тексте нет достаточных оснований для какого-либо отношения между данными сущностями, напишите ровно одну фразу: «Отношения между этими сущностями нет.»\n7. Не добавляйте заголовков, пояснений, оговорок, метакомментариев — только текст объяснения.\n\nПервая именованная сущность: {first_entity_in_text}\n\nВторая именованная сущность: {second_entity_in_text}\n\nТекст:\n\n```text\n{source_text}\n```"
     source_fewshots = [
