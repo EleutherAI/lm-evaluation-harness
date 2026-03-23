@@ -2,11 +2,11 @@
 
 ## Paper
 
-Title: `NEREL-bench: A Benchmark for Evaluating LLMs on Russian Knowledge Graph Construction Tasks`
+Title: **NEREL-bench: A Benchmark for Evaluating LLMs on Russian Knowledge Graph Construction Tasks**
 
 NEREL-bench is a benchmark dataset designed to evaluate the capabilities of Large Language Models (LLMs) in performing knowledge graph construction tasks on Russian-language texts. The benchmark comprises four distinct configurations targeting specific aspects of knowledge graph construction: entity recognition, entity definition generation, relation extraction, and relation definition generation. All tasks are critical for evaluating whether an LLM can effectively construct a knowledge graph suitable for GraphRAG and similar knowledge-intensive approaches.
 
-Homepage: `https://huggingface.co/datasets/bond005/NEREL_bench`
+Homepage: [https://huggingface.co/datasets/bond005/NEREL_bench](https://huggingface.co/datasets/bond005/NEREL_bench)
 
 ### Citation
 
