@@ -14,7 +14,9 @@ except ImportError:
 try:
     import sacrebleu
 except ImportError:
-    print("Can not import sacrebleu. If you try to score nerel-bench, do `pip install sacrebleu`")
+    print(
+        "Can not import sacrebleu. If you try to score nerel-bench, do `pip install sacrebleu`"
+    )
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
@@ -35,14 +37,12 @@ def normalize_answer(sentence: str, apply_stemmer: bool = True) -> str:
     words = list(
         filter(
             lambda it2: (len(it2) > 0) and it2.isalnum(),
-            [it1.strip() for it1 in nltk.wordpunct_tokenize(sentence_)]
+            [it1.strip() for it1 in nltk.wordpunct_tokenize(sentence_)],
         )
     )
     if apply_stemmer:
         words = list(
-            filter(
-                lambda it2: len(it2) > 0, [ru_stemmer.stem(it1) for it1 in words]
-            )
+            filter(lambda it2: len(it2) > 0, [ru_stemmer.stem(it1) for it1 in words])
         )
     if len(words) == 0:
         return ""
@@ -64,9 +64,12 @@ def chrf(predictions, references, **kwargs) -> float:
     
     total_score = 0.0
     for pred, ref in zip(predictions, references, strict=True):
-        score = sacrebleu.sentence_chrf(
-            normalize_answer(pred), [normalize_answer(ref)]
-        ).score / 100.0
+        score = (
+            sacrebleu.sentence_chrf(
+                normalize_answer(pred), [normalize_answer(ref)]
+            ).score
+            / 100.0
+        )
         total_score += score
     
     return total_score / num_samples
@@ -87,8 +90,8 @@ def f1(predictions, references, **kwargs) -> float:
     num_samples = len(predictions)
     if num_samples != len(references):
         raise ValueError(
-        f"The predictions do not correspond to the references! {num_samples} != {len(references)}"
-    )
+            f"The predictions do not correspond to the references! {num_samples} != {len(references)}"
+        )
     num_same = 0
     num_predicted = 0
     num_reference = 0
@@ -96,13 +99,13 @@ def f1(predictions, references, **kwargs) -> float:
         predicted_entities = set(
             filter(
                 lambda it2: len(it2) > 0,
-                [normalize_answer(it1) for it1 in predictions[sample_idx].split("\n")]
+                [normalize_answer(it1) for it1 in predictions[sample_idx].split("\n")],
             )
         )
         reference_entities = set(
             filter(
                 lambda it2: len(it2) > 0,
-                [normalize_answer(it1) for it1 in references[sample_idx].split("\n")]
+                [normalize_answer(it1) for it1 in references[sample_idx].split("\n")],
             )
         )
         common = predicted_entities & reference_entities
@@ -136,7 +139,7 @@ def fewshot_samples_for_ner() -> list[dict]:
             "instruction": input_instruction,
             "context": "{\"source_text\": \"Внучка императора Японии обручилась с простолюдином Принцесса Мако Акисино Принцесса Мако Акисино, внучка императора Японии Акихито, официально объявила о помолвке со своим студенческим другом. 25-летняя принцесса — первая внучка императора Акихито и императрицы Митико, старшая дочь принца Акисино и принцессы Акисино (Кико). Избранником 25-летней принцессы стал её ровесник Кей Комуро, сотрудник юридической фирмы, с которым она познакомилась пять лет назад в Международном христианском университете (International Christian University) в Токио. Пара объявила о помолвке на специально собранной по этому поводу пресс-конференции. По словам принцессы Мако, в будущем супруге её привлекла «солнечная улыбка». Брак был одобрен императором, однако мезальянс будет означать для принцессы потерю титула. Японское законодательство не ограничивает мужчин императорской династии в выборе жены, однако для женщин той же семьи предусмотрены иные правила. «Я с детства знала, что после замужества потеряю свой статус, — рассказала принцесса. — Но хотя я и помогала императору и сама в меру своих возможностей исполняла официальные обязанности как член императорской семьи, мне в то же время очень дорога моя собственная жизнь». Официально о предстоящей свадьбе объявили только сейчас, хотя впервые о планах помолвки стало известно ещё в мае 2017 года. Известие о помолвке принцессы породило в японском обществе дискуссии по вопросу о необходимости выхода принцесс из состава императорской семьи в случае брака с простолюдинами. Кроме принцессы Мако в составе императорской семьи есть ещё шесть незамужних принцесс. Единственный представитель мужского пола в младшем поколении императорской семьи — принц Хисахито, младший брат принцессы Мако.\"}",
             "true_answer": "император Японии\nимператор\nЯпония\nобручиться с простолюдином\nпринцесса\nМако Акисино\nАкисино\nАкихито\nпомолвка\n25-летний\nпринц\nпервая\nимператрица\nМитико\nКико\n25-летняя\nКей Комуро\nсотрудник юридической фирмы\nпять лет назад\nМеждународный христианский университет\nхристианский\nТокио\nпресс-конференция\nяпонский\nмай 2017 года\nшесть\nХисахито",
-        }
+        },
     ]
     processed_fewshots = [
         {
@@ -223,7 +226,7 @@ def fewshot_samples_for_rd() -> list[dict]:
             "instruction": input_instruction,
             "context": "{\"first_entity_in_text\": \"Хисахито\", \"second_entity_in_text\": \"принц\", \"source_text\": \"Внучка императора Японии обручилась с простолюдином Принцесса Мако Акисино Принцесса Мако Акисино, внучка императора Японии Акихито, официально объявила о помолвке со своим студенческим другом. 25-летняя принцесса — первая внучка императора Акихито и императрицы Митико, старшая дочь принца Акисино и принцессы Акисино (Кико). Избранником 25-летней принцессы стал её ровесник Кей Комуро, сотрудник юридической фирмы, с которым она познакомилась пять лет назад в Международном христианском университете (International Christian University) в Токио. Пара объявила о помолвке на специально собранной по этому поводу пресс-конференции. По словам принцессы Мако, в будущем супруге её привлекла «солнечная улыбка». Брак был одобрен императором, однако мезальянс будет означать для принцессы потерю титула. Японское законодательство не ограничивает мужчин императорской династии в выборе жены, однако для женщин той же семьи предусмотрены иные правила. «Я с детства знала, что после замужества потеряю свой статус, — рассказала принцесса. — Но хотя я и помогала императору и сама в меру своих возможностей исполняла официальные обязанности как член императорской семьи, мне в то же время очень дорога моя собственная жизнь». Официально о предстоящей свадьбе объявили только сейчас, хотя впервые о планах помолвки стало известно ещё в мае 2017 года. Известие о помолвке принцессы породило в японском обществе дискуссии по вопросу о необходимости выхода принцесс из состава императорской семьи в случае брака с простолюдинами. Кроме принцессы Мако в составе императорской семьи есть ещё шесть незамужних принцесс. Единственный представитель мужского пола в младшем поколении императорской семьи — принц Хисахито, младший брат принцессы Мако.\"}",
             "true_answer": "Принц Хисахито является представителем мужского пола в младшем поколении императорской семьи.",
-        }
+        },
     ]
     processed_fewshots = [
         {
