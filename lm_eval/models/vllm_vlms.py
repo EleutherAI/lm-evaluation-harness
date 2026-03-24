@@ -73,6 +73,36 @@ class VLLM_VLM(VLLM):
         )
         self.chat_applied: bool = False
 
+    @staticmethod
+    def _convert_numbered_placeholders(
+        text: str, placeholder: str, max_images: int
+    ) -> str:
+        """Replace generic <image> placeholders with numbered <|image_N|> tokens.
+
+        Models like Phi-3.5-vision require sequentially numbered image tokens
+        (e.g. ``<|image_1|>``, ``<|image_2|>``) instead of a generic
+        ``<image>`` placeholder. vLLM validates these numbered tokens during
+        prompt processing and raises an ``AssertionError`` if they are missing.
+        """
+        result = text
+        for i in range(1, max_images + 1):
+            if placeholder not in result:
+                break
+            result = result.replace(placeholder, f"<|image_{i}|>", 1)
+        return result
+
+    def _needs_numbered_image_placeholders(self) -> bool:
+        """Detect models that require numbered image placeholders.
+
+        Returns True for models whose processor does not natively support
+        multimodal chat templates *and* whose tokenizer vocabulary contains
+        the ``<|image_1|>`` token, indicating the model expects the numbered
+        ``<|image_N|>`` format (e.g. Phi-3.5-vision).
+        """
+        if self._supports_processor_chat_template():
+            return False
+        return "<|image_1|>" in self.tokenizer.get_vocab()
+
     def tok_batch_multimodal_encode(
         self,
         strings: list[str],  # note that input signature of this fn is different
@@ -91,6 +121,13 @@ class VLLM_VLM(VLLM):
                     self.max_images,
                 )
                 for string in strings
+            ]
+        elif self._needs_numbered_image_placeholders():
+            strings = [
+                self._convert_numbered_placeholders(
+                    s, DEFAULT_IMAGE_PLACEHOLDER, self.max_images
+                )
+                for s in strings
             ]
 
         outputs = []
@@ -154,10 +191,35 @@ class VLLM_VLM(VLLM):
             )
         return outputs
 
+    def _supports_processor_chat_template(self) -> bool:
+        """Check if the processor natively supports multimodal chat templates.
+
+        Some processors (e.g. Phi3VProcessor) lack a `chat_template` attribute,
+        requiring a fallback to the tokenizer for chat template formatting.
+        """
+        return hasattr(self.processor, "apply_chat_template") and hasattr(
+            self.processor, "chat_template"
+        )
+
     def apply_chat_template(
         self, chat_history: list[dict[str, Any]], add_generation_prompt=True
     ) -> str:
         self.chat_applied = True
+
+        if not self._supports_processor_chat_template():
+            # Fall back to tokenizer for models whose processor does not have
+            # a chat_template (e.g. Phi-3.5-vision). Keep content as plain
+            # strings so the tokenizer can handle them directly.
+            eval_logger.info(
+                "Processor does not support chat templates, "
+                "falling back to tokenizer.apply_chat_template"
+            )
+            return self.tokenizer.apply_chat_template(
+                chat_history,
+                add_generation_prompt=add_generation_prompt,
+                tokenize=False,
+            )
+
         if not self.interleave:
             for content in chat_history:
                 c = []
