@@ -13,6 +13,7 @@ process_results: !function utils.process_results
 doc_to_target: "{{answer}}"
 generation_kwargs:
   until: []
+  max_gen_toks: 16384
 metric_list:
   - metric: exact_match
     aggregation: mean
