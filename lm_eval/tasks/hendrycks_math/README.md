@@ -10,6 +10,11 @@ NOTE: This task corresponds to the MATH (`hendrycks_math`) implementation at htt
 
 Homepage: https://github.com/hendrycks/math
 
+## Changes
+
+### v1.1
+- Answer extraction now tries `\boxed{}` from the model response before falling back to `$...$` delimiters. This aligns with the `aime` task behavior and fixes zero accuracy for models that output `\boxed{}` formatted answers.
+
 
 ## Citation
 ```
