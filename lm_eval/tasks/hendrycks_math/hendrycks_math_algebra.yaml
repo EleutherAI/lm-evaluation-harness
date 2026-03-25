@@ -7,17 +7,18 @@ dataset_name: algebra
 output_type: generate_until
 training_split: train
 test_split: test
-doc_to_text: "Problem: {{problem}}\nAnswer:"
+description: "Here is a math problem, let's think succinctly step by step and find the solution. Your answer should end with '$$\\boxed{answer}$$' where [answer] is just the final number or expression that solves the problem.\n"
+doc_to_text: "Problem: {{problem}}\n"
 process_results: !function utils.process_results
 doc_to_target: "{{answer}}"
 generation_kwargs:
-  until:
-    - "Problem:"
-  do_sample: false
-  temperature: 0
+  until: []
 metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
+  - metric: flexible_match
+    aggregation: mean
+    higher_is_better: true
 metadata:
-  version: 1.0
+  version: 2.0
