@@ -72,6 +72,7 @@ class VLLM_VLM(VLLM):
             trust_remote_code=trust_remote_code,
         )
         self.chat_applied: bool = False
+        self._chat_template_warning_issued: bool = False
 
     @staticmethod
     def _convert_numbered_placeholders(
@@ -95,13 +96,13 @@ class VLLM_VLM(VLLM):
         """Detect models that require numbered image placeholders.
 
         Returns True for models whose processor does not natively support
-        multimodal chat templates *and* whose tokenizer vocabulary contains
-        the ``<|image_1|>`` token, indicating the model expects the numbered
-        ``<|image_N|>`` format (e.g. Phi-3.5-vision).
+        multimodal chat templates, indicating that the tokenizer fallback
+        was used and generic ``<image>`` placeholders may need to be
+        converted to the ``<|image_N|>`` format (e.g. Phi-3.5-vision).
+        The conversion is safe to apply unconditionally in this case
+        since it is a no-op when no ``<image>`` tokens are present.
         """
-        if self._supports_processor_chat_template():
-            return False
-        return "<|image_1|>" in self.tokenizer.get_vocab()
+        return not self._supports_processor_chat_template()
 
     def tok_batch_multimodal_encode(
         self,
@@ -207,13 +208,12 @@ class VLLM_VLM(VLLM):
         self.chat_applied = True
 
         if not self._supports_processor_chat_template():
-            # Fall back to tokenizer for models whose processor does not have
-            # a chat_template (e.g. Phi-3.5-vision). Keep content as plain
-            # strings so the tokenizer can handle them directly.
-            eval_logger.info(
-                "Processor does not support chat templates, "
-                "falling back to tokenizer.apply_chat_template"
-            )
+            if not self._chat_template_warning_issued:
+                eval_logger.info(
+                    "Processor does not support chat templates, "
+                    "falling back to tokenizer.apply_chat_template"
+                )
+                self._chat_template_warning_issued = True
             return self.tokenizer.apply_chat_template(
                 chat_history,
                 add_generation_prompt=add_generation_prompt,
