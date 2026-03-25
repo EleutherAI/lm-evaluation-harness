@@ -119,7 +119,8 @@ def process_results_flex(doc: dict, results: List[str]) -> Dict[str, int]:
     # Normalize to plain integer and also accept thousands-comma form, so both directions work:
     # e.g., target "58,500" → also accept "58500"; target "7452714" → also accept "7,452,714"
     # doc_id=217: "11,\! 111,\! 111,\! 100" (spaces after \!) → also accept "11111111100"
-    t_numeric = re.sub(r"[,\s\\!]", "", target)
+    # doc_id=242: "\$32,\!348" (currency prefix \$) → also accept "32348"
+    t_numeric = re.sub(r"[,\s\\!$]", "", target)
     if re.match(r"^\d+$", t_numeric):
         t_formatted = f"{int(t_numeric):,}"
         if t_numeric != target:
