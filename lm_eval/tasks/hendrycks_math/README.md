@@ -14,6 +14,7 @@ Homepage: https://github.com/hendrycks/math
 
 ### v1.1
 - Answer extraction now tries `\boxed{}` from the model response before falling back to `$...$` delimiters. This aligns with the `aime` task behavior and fixes zero accuracy for models that output `\boxed{}` formatted answers.
+- Support for multiple `\boxed{}` answers (e.g. `\boxed{3}, \boxed{5}, \boxed{7}` is extracted as `3, 5, 7`). Duplicate boxes are deduplicated.
 
 
 ## Citation

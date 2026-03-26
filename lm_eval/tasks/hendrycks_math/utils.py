@@ -20,10 +20,23 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     response = results[0]
 
     # Try to extract \boxed{} from the response (matches aime task behavior)
-    boxed = last_boxed_only_string(response)
-    if boxed is not None:
+    # First check for multiple \boxed{} (e.g. \boxed{3}, \boxed{5}, \boxed{7})
+    all_boxed = find_all_boxed_strings(response)
+    # Deduplicate while preserving order (models often repeat the final answer)
+    seen = set()
+    unique_boxed = []
+    for b in all_boxed:
+        if b not in seen:
+            seen.add(b)
+            unique_boxed.append(b)
+    if len(unique_boxed) > 1:
         try:
-            answer = remove_boxed(boxed)
+            answer = ", ".join(remove_boxed(b) for b in unique_boxed)
+        except AssertionError:
+            answer = None
+    elif len(unique_boxed) == 1:
+        try:
+            answer = remove_boxed(all_boxed[0])
         except AssertionError:
             answer = None
     else:
@@ -106,6 +119,40 @@ def last_boxed_only_string(string):
         retval = string[idx : right_brace_idx + 1]
 
     return retval
+
+
+def find_all_boxed_strings(string):
+    """Find all \\boxed{} occurrences in a string, handling nested braces."""
+    results = []
+    search_start = 0
+    while True:
+        idx = string.find("\\boxed", search_start)
+        if idx < 0:
+            break
+        # Skip if this is \boxed (space-separated, not brace)
+        after = idx + len("\\boxed")
+        if after >= len(string) or string[after] != "{":
+            search_start = after
+            continue
+        # Find matching closing brace
+        i = after
+        num_left_braces_open = 0
+        right_brace_idx = None
+        while i < len(string):
+            if string[i] == "{":
+                num_left_braces_open += 1
+            if string[i] == "}":
+                num_left_braces_open -= 1
+                if num_left_braces_open == 0:
+                    right_brace_idx = i
+                    break
+            i += 1
+        if right_brace_idx is not None:
+            results.append(string[idx : right_brace_idx + 1])
+            search_start = right_brace_idx + 1
+        else:
+            search_start = after
+    return results
 
 
 def fix_fracs(string):
