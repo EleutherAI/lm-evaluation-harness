@@ -4,6 +4,7 @@ import copy
 import itertools
 import json
 import logging
+import os
 from functools import cached_property
 from typing import (
     TYPE_CHECKING,
@@ -44,6 +45,13 @@ from lm_eval.models.utils import Collator, chunks, configure_pad_token
 if TYPE_CHECKING:
     from PIL import Image
 
+# Set a placeholder to use as model output when the returned answer is "None"
+# This commonly occurs when the model runs out of tokens during the thinking
+# process and returns an empty answer but no error.
+# Default value is an empty string, but it can be edited if this is problematic.
+LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = os.environ.get(
+    "LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER", ""
+)
 
 eval_logger = logging.getLogger(__name__)
 
@@ -538,8 +546,11 @@ class TemplateAPI(TemplateLM):
             )
             if cache_keys:
                 for res, cache in zip(answers, cache_keys):
-                    if res is not None:
-                        self.cache_hook.add_partial(cache_method, cache, res)
+                    if res is None:
+                        # Patch "None" answer with consistent value (async and sync calls)
+                        res = LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER
+                    # Add to cache
+                    self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         # If the retries also fail
         except BaseException as e:
@@ -776,7 +787,8 @@ class TemplateAPI(TemplateLM):
                         eval_logger.warning(
                             "API returned null content. Check reasoning_content field or generation limits..."
                         )
-                        res.append("")
+                        # Patch "None" answer with consistent value (async and sync calls)
+                        res.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
                     else:
                         res.append(generated_text)
 
