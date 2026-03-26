@@ -21,6 +21,8 @@ from typing import (
     Union,
 )
 
+from lm_eval.tasks.super_glue.wsc.t5_utils import clean
+
 
 try:
     import requests
@@ -533,7 +535,7 @@ class TemplateAPI(TemplateLM):
                 # raising exception will retry the request
                 response.raise_for_status()
                 outputs = await response.json()
-            answers = (
+            tmp_answers = (
                 self.parse_generations(
                     outputs=outputs,
                 )
@@ -544,12 +546,21 @@ class TemplateAPI(TemplateLM):
                     ctxlens=ctxlens,
                 )
             )
+
+            # Convert `None`` values to `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER` string to maintain consistency
+            answers = []
+            for a in tmp_answers:
+                if a is None:
+                    eval_logger.warning(
+                        (f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. ")
+                        ("Check reasoning_content field or generation limits.")
+                    )
+                    answers.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
+                else:
+                    answers.append(a)
+
             if cache_keys:
                 for res, cache in zip(answers, cache_keys):
-                    if res is None:
-                        # Patch "None" answer with consistent value (async and sync calls)
-                        res = LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER
-                    # Add to cache
                     self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         # If the retries also fail
@@ -829,15 +840,9 @@ class TemplateAPI(TemplateLM):
                         )
                     )
                 )
-                # Convert None values to empty strings to maintain consistency
+                # Append results to res list
                 for r in results:
-                    if r is None:
-                        eval_logger.warning(
-                            "API returned null content. Check reasoning_content field or generation limits."
-                        )
-                        res.append("")
-                    else:
-                        res.append(r)
+                    res.append(r)
 
         return re_ord.get_original(res)
 
