@@ -88,25 +88,25 @@ def test_evaluator(
             ["ai2_arc"],
             10,
             "hf",
-            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+            "pretrained=EleutherAI/pythia-14m-deduped,dtype=float32,device=cpu",
         ),
         (
             ["mmlu_stem"],
             10,
             "hf",
-            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+            "pretrained=EleutherAI/pythia-14m-deduped,dtype=float32,device=cpu",
         ),
         (
             ["lambada_openai"],
             10,
             "hf",
-            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+            "pretrained=EleutherAI/pythia-14m-deduped,dtype=float32,device=cpu",
         ),
         (
             ["wikitext"],
             10,
             "hf",
-            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+            "pretrained=EleutherAI/pythia-14m-deduped,dtype=float32,device=cpu",
         ),
     ],
     ids=lambda d: f"{d}",
@@ -155,10 +155,11 @@ def test_printed_results(
                 tol = 0.3 if on_ci else 0.5
                 assert abs(t1_item_f - t2_item_f) < tol
             except ValueError:
-                assert t1_item == t2_item
-                # # Locally, values may differ slightly causing column width
-                # # changes. Skip separator lines and compare content stripped.
-                # t1_s = t1_item.strip().rstrip("-:").rstrip("-")
-                # t2_s = t2_item.strip().rstrip("-:").rstrip("-")
-                # if t1_s or t2_s:  # skip separator-only cells
+                # Strip whitespace so column-width differences
+                # (caused by value precision changes) don't fail the test.
+                # Also ignore separator-line cells (e.g. "------:").
+                t1_s = t1_item.strip().rstrip("-:").rstrip("-")
+                t2_s = t2_item.strip().rstrip("-:").rstrip("-")
+                if t1_s or t2_s:
+                    assert t1_s == t2_s
                 #     assert t1_s == t2_s

@@ -110,6 +110,98 @@ class HFLM(TemplateLM):
         chat_template_args: dict[str, Any] | None = None,
         **kwargs,
     ) -> None:
+        """Initialize an HFLM instance for evaluating HuggingFace models.
+
+        Args:
+            pretrained: The model to evaluate. Either a HuggingFace Hub model ID
+                (e.g. ``"meta-llama/Llama-3.1-8B"``), a local path to a model
+                directory, or a pre-initialized ``transformers.PreTrainedModel``
+                instance. When passing a pre-initialized model, many other
+                arguments (device, parallelize, dtype, etc.) are ignored.
+            backend: Which model backend to use. ``"default"`` auto-detects from
+                the model config. ``"causal"`` forces a decoder-only
+                (AutoModelForCausalLM) backend. ``"seq2seq"`` forces an
+                encoder-decoder (AutoModelForSeq2SeqLM) backend.
+            revision: The specific model revision to use (branch name, tag, or
+                commit hash) on the HuggingFace Hub. Defaults to ``"main"``.
+            subfolder: Subfolder within the model repository on the Hub where
+                model files are stored.
+            tokenizer: Tokenizer to use for encoding inputs. Can be a HuggingFace
+                Hub ID, a local path, or a pre-initialized tokenizer instance. If
+                ``None``, defaults to the tokenizer associated with ``pretrained``.
+            truncation: Whether to truncate input sequences that exceed the
+                model's ``max_length``. If ``False``, inputs longer than
+                ``max_length`` will raise an error.
+            logits_cache: Whether to cache and reuse logits across requests that
+                share the same context. When enabled, requests are grouped by
+                context and only the final differing token is computed per group,
+                which speeds up single-token loglikelihood tasks.
+            max_length: Maximum input sequence length in tokens. If ``None``,
+                auto-detected from the model config (``n_positions``,
+                ``max_position_embeddings``, or ``n_ctx``). Falls back to 2048
+                if the config does not specify a value.
+            device: Device to place the model on (e.g. ``"cuda"``, ``"cpu"``,
+                ``"cuda:0"``, ``"mps"``). Ignored when using ``parallelize=True``
+                or multi-process ``accelerate launch``.
+            dtype: Data type for model weights. Can be a string (``"float16"``,
+                ``"bfloat16"``, ``"float32"``) or a ``torch.dtype``. ``"auto"``
+                uses the dtype specified in the model config.
+            softmax_dtype: Override dtype for softmax computation, which can help
+                with numerical stability. If ``None``, uses the model's default
+                dtype.
+            mixed_precision_dtype: Override dtype for forward pass computation in
+                mixed precision mode. If ``None``, no mixed precision is applied.
+            batch_size: Batch size for evaluation. Can be an integer for a fixed
+                batch size, or ``"auto"`` to enable automatic batch size detection
+                that starts from ``max_batch_size`` and scales down on OOM. Use
+                ``"auto:N"`` to set the scaling factor (default 1).
+            max_batch_size: Upper bound for batch size when using automatic batch
+                size detection (``batch_size="auto"``).
+            trust_remote_code: Whether to allow loading and executing custom model
+                code from the HuggingFace Hub repository.
+            use_fast_tokenizer: Whether to use a fast (Rust-based) tokenizer if
+                available. Fast tokenizers are generally faster but may have
+                slight behavioral differences from the Python-based versions.
+            add_bos_token: Whether to prepend the beginning-of-sequence token to
+                inputs. If ``None``, uses the tokenizer's default behavior.
+            prefix_token_id: Token ID to use as a prefix for loglikelihood
+                computations on empty contexts. If ``None``, defaults to the
+                tokenizer's BOS token ID (or EOS if BOS is unavailable).
+            parallelize: Whether to naively split the model across multiple GPUs
+                using ``device_map="auto"``. For more fine-grained control,
+                use ``accelerate launch`` instead.
+            max_memory_per_gpu: Maximum memory to allocate per GPU when
+                ``parallelize=True``. Can be an integer (bytes) or a string
+                (e.g. ``"10GiB"``).
+            max_cpu_memory: Maximum CPU memory to use for offloading when
+                ``parallelize=True``. Can be an integer (bytes) or a string
+                (e.g. ``"30GiB"``).
+            offload_folder: Directory for disk offloading when the model does
+                not fit in GPU and CPU memory combined. Only used when
+                ``parallelize=True``.
+            peft: Path or HuggingFace Hub ID of a PEFT (LoRA, etc.) adapter to
+                load on top of the base model.
+            delta: Path or HuggingFace Hub ID of delta weights to apply to the
+                base model (added to the pretrained weights).
+            autogptq: Whether to load the model using AutoGPTQ quantization.
+                Can be ``True`` to auto-detect, or a string path to a quantized
+                model checkpoint.
+            gptqmodel: Whether to load the model using GPTQModel instead of
+                AutoGPTQ.
+            gguf_file: Path to a GGUF file for loading quantized models in the
+                GGUF format.
+            think_end_token: End-of-thinking delimiter token for models that
+                support reasoning traces. Can be a token string or integer token
+                ID. When set, the model's response is split at this token and
+                only the portion after it is used as the final answer.
+            enable_thinking: Whether to enable thinking/reasoning mode in the
+                chat template. Passed as an argument to the chat template
+                formatter.
+            chat_template_args: Additional keyword arguments to pass to the
+                chat template when formatting inputs.
+            **kwargs: Additional keyword arguments forwarded to the model
+                constructor (e.g. ``transformers.AutoModelForCausalLM.from_pretrained``).
+        """
         super().__init__()
         # optionally: take in an already-initialized transformers.PreTrainedModel
         if not isinstance(pretrained, str):
@@ -142,6 +234,8 @@ class HFLM(TemplateLM):
                 gpus = torch.npu.device_count()
             elif "xpu" in device_type:
                 gpus = torch.xpu.device_count()
+            elif "hpu" in device_type:
+                gpus = torch.hpu.device_count()
             else:
                 # Fallback to CUDA count for compatibility
                 gpus = torch.cuda.device_count()
@@ -155,6 +249,7 @@ class HFLM(TemplateLM):
                     + ["mps", "mps:0"]
                     + [f"npu:{i}" for i in range(gpus)]
                     + [f"xpu:{i}" for i in range(gpus)]
+                    + [f"hpu:{i}" for i in range(gpus)]
                 )
                 if device and device in device_list:
                     self._device = torch.device(device)
@@ -644,11 +739,15 @@ class HFLM(TemplateLM):
                 )
                 if compute_dtype := model_kwargs.get("bnb_4bit_compute_dtype"):
                     model_kwargs["bnb_4bit_compute_dtype"] = get_dtype(compute_dtype)
-
+            dtype_arg = (
+                "dtype"
+                if vparse(transformers.__version__) >= vparse("4.56.0")
+                else "torch_dtype"
+            )
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,
-                dtype=get_dtype(dtype),
+                **{dtype_arg: get_dtype(dtype)},
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
                 quantization_config=quantization_config,
@@ -728,10 +827,15 @@ class HFLM(TemplateLM):
                 eval_logger.warning(
                     "Delta weights might trigger unexpected behavior when used with AutoGPTQ."
                 )
+                dtype_arg = (
+                    "dtype"
+                    if vparse(transformers.__version__) >= vparse("4.56.0")
+                    else "torch_dtype"
+                )
             _model_delta = self.AUTO_MODEL_CLASS.from_pretrained(
                 delta,
                 revision=revision,
-                dtype=get_dtype(dtype),
+                **{dtype_arg: get_dtype(dtype)},
                 trust_remote_code=trust_remote_code,
                 **model_kwargs,
             )
