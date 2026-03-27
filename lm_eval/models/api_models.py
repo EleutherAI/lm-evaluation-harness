@@ -21,9 +21,6 @@ from typing import (
     Union,
 )
 
-from lm_eval.tasks.super_glue.wsc.t5_utils import clean
-
-
 try:
     import requests
     from aiohttp import ClientSession, ClientTimeout, TCPConnector
