@@ -663,6 +663,10 @@ class VLLM(TemplateLM):
         )
         # for each different set of kwargs, we execute all requests, by batch.
         eos = self.tokenizer.decode(self.eot_token_id)
+        # ChatGLM: eos_token_id can be a low id that decodes to "" while tokenizer_config's
+        # eos_token (e.g. "</s>") is correct — prefer the string when decode is empty.
+        if not eos and getattr(self.tokenizer, "eos_token", None):
+            eos = self.tokenizer.eos_token
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk, strict=True)
             context, context_encoding = zip(*context_and_encoding, strict=True)
