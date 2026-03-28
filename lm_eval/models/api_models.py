@@ -549,8 +549,7 @@ class TemplateAPI(TemplateLM):
             for a in tmp_answers:
                 if a is None:
                     eval_logger.warning(
-                        (f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. ")
-                        ("Check reasoning_content field or generation limits.")
+                        f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. Check reasoning_content field or generation limits."
                     )
                     answers.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
                 else:
@@ -793,7 +792,7 @@ class TemplateAPI(TemplateLM):
                     # even if generation failed (generated_text is None)
                     if generated_text is None:
                         eval_logger.warning(
-                            "API returned null content. Check reasoning_content field or generation limits..."
+                            f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. Check reasoning_content field or generation limits."
                         )
                         # Patch "None" answer with consistent value (async and sync calls)
                         res.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
