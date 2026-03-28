@@ -1,0 +1,11 @@
+include: _infinitebench_common_yaml
+task: infinitebench_number_string
+test_split: number_string
+process_results: !function utils.process_results_int_match
+description: "There is an important info hidden inside a lot of irrelevant text. Find it. I will quiz you about the important information there.\n\n"
+doc_to_text: "{{context}}\n\n{{input}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 12
+  until: ["\n"]
