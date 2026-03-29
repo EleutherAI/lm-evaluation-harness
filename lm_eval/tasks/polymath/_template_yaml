@@ -17,4 +17,3 @@ metric_list:
   - metric: math_verify
     aggregation: mean
     higher_is_better: true
-

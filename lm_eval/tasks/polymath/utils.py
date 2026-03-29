@@ -1,9 +1,7 @@
 import logging
-import re
-import signal
+
 import datasets
-from importlib.metadata import version
-from typing import Dict, List, Optional
+
 
 # Adapted from lm_eval/tasks/minerva_math/utils.py [1].
 # Key differences: evaluation relies exclusively on math_verify's symbolic parsing,
@@ -15,20 +13,21 @@ from typing import Dict, List, Optional
 eval_logger = logging.getLogger(__name__)
 
 try:
-    import antlr4
-    from math_verify import parse, verify
-    from math_verify.parser import LatexExtractionConfig, ExprExtractionConfig
+    from importlib.metadata import version as get_version
 
-    assert version("antlr4-python3-runtime").startswith("4.11")
+    from math_verify import parse, verify
+    from math_verify.parser import ExprExtractionConfig, LatexExtractionConfig
+
+    assert get_version("antlr4-python3-runtime").startswith("4.11")
 except (ModuleNotFoundError, AssertionError) as e:
     raise type(e)(
         "`math_verify` and `antlr4-python3-runtime==4.11` are required because the evaluation logic "
-        "relies on symbolic parsing to verify mathematical equivalence."
+        "relies on symbolic parsing to verify mathematical equivalence. "
         "Please install the required packages via pip install lm-eval[math] or pip install -e .[math]"
     ) from e
 
 
-def aggregate_dw_acc(answers: Dict[str, float]) -> float:
+def aggregate_dw_acc(answers: dict[str, float]) -> float:
     """
     Compute the Difficulty-Weighted Accuracy (DW-ACC). See section "2.5 Benchmark Score: Difficulty-Weighted Accuracy"
         in the PolyMAth paper (https://arxiv.org/pdf/2504.18428).
@@ -66,7 +65,7 @@ def process_results(doc: dict, results: list[str]) -> dict[str, int]:
             extraction_config=[
                 LatexExtractionConfig(boxed_match_priority=0),
                 ExprExtractionConfig(),
-            ]
+            ],
         ),
     )
     return {"math_verify": 1 if _mvres else 0}
@@ -83,5 +82,5 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             "answer": doc["answer"],
         }
         return out_doc
-    return dataset.map(_process_doc)
 
+    return dataset.map(_process_doc)
