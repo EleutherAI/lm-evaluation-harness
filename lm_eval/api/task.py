@@ -88,6 +88,7 @@ class Task(abc.ABC):
         cache_dir: str | None = None,
         download_mode: datasets.DownloadMode | None = None,
         config: Mapping | None = None,  # Union[dict, TaskConfig]
+        defer_download: bool = False,
     ) -> None:
         """
         :param data_dir: str
@@ -109,8 +110,19 @@ class Task(abc.ABC):
                 Reuse download with fresh dataset.
             - `datasets.DownloadMode.FORCE_REDOWNLOAD`
                 Fresh download and fresh dataset.
+        :param defer_download: bool
+            If True, the dataset will not be downloaded during initialization.
+            Call ``task.download()`` explicitly before running the task.
         """
-        self.download(data_dir, cache_dir, download_mode)
+        self._data_dir = data_dir
+        self._cache_dir = cache_dir
+        self._download_mode = download_mode
+        self._dataset_downloaded = False
+
+        if defer_download:
+            self.dataset = None
+        else:
+            self.download(data_dir, cache_dir, download_mode)
         self._training_docs: list | None = None
         self._fewshot_docs: list | None = None
         self._instances: list[Instance] | None = None
@@ -122,6 +134,14 @@ class Task(abc.ABC):
             None  # purposely induce errors in case of improper usage
         )
 
+    def _check_dataset_available(self) -> None:
+        """Raise an error if the dataset has not been downloaded yet."""
+        if not self._dataset_downloaded:
+            raise RuntimeError(
+                f"Task '{type(self).__name__}' dataset has not been downloaded yet. "
+                "Call task.download() before accessing the dataset."
+            )
+
     def download(
         self,
         data_dir: str | None = None,
@@ -130,6 +150,9 @@ class Task(abc.ABC):
     ) -> None:
         """Downloads and returns the task dataset.
         Override this method to download the dataset from a custom API.
+
+        Can be called with no arguments when using deferred download;
+        in that case, the parameters from ``__init__`` are used.
 
         :param data_dir: str
             Stores the path to a local folder containing the `Task`'s data files.
@@ -152,6 +175,14 @@ class Task(abc.ABC):
             - `datasets.DownloadMode.FORCE_REDOWNLOAD`
                 Fresh download and fresh dataset.
         """
+        # Use stored params as fallback for no-arg calls (deferred download)
+        if data_dir is None:
+            data_dir = self._data_dir
+        if cache_dir is None:
+            cache_dir = self._cache_dir
+        if download_mode is None:
+            download_mode = self._download_mode
+
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
@@ -159,6 +190,7 @@ class Task(abc.ABC):
             cache_dir=cache_dir,
             download_mode=download_mode,
         )
+        self._dataset_downloaded = True
 
     @property
     def config(self) -> TaskConfig:
@@ -626,7 +658,11 @@ class ConfigurableTask(Task):
         cache_dir=None,
         download_mode=None,
         config: dict | None = None,
+        defer_download: bool = False,
     ) -> None:  # TODO no super() call here
+        self._dataset_downloaded = False
+        self._defer_download = defer_download
+
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -750,7 +786,10 @@ class ConfigurableTask(Task):
                     )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
-        self.download(self.config.dataset_kwargs)
+        if defer_download:
+            self.dataset = None
+        else:
+            self.download(self.config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -783,6 +822,15 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
+        if not defer_download:
+            self._post_download_init()
+
+    def _post_download_init(self) -> None:
+        """Initialize components that require the dataset to be downloaded.
+
+        Called at the end of __init__ (after filters and prompt setup) when
+        defer_download=False, or explicitly via download() when defer_download=True.
+        """
         if (_fs_docs := self.fewshot_docs()) is not None:
             config_sampler: str | type[samplers.ContextSampler] = (
                 self.fewshot_cfg.sampler if self.config.fewshot_config else "default"
@@ -855,6 +903,10 @@ class ConfigurableTask(Task):
     def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
         from packaging.version import parse as vparse
 
+        # Use stored config kwargs as fallback for no-arg calls (deferred download)
+        if dataset_kwargs is None:
+            dataset_kwargs = self.config.dataset_kwargs
+
         if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
             dataset_kwargs.pop("trust_remote_code", None)
         if isinstance(self.config.custom_dataset, Callable):
@@ -871,6 +923,14 @@ class ConfigurableTask(Task):
                 name=self.DATASET_NAME,
                 **dataset_kwargs if dataset_kwargs is not None else {},
             )
+        self._dataset_downloaded = True
+
+        # When download() is called after a deferred init, run the
+        # post-download initialization that was skipped during __init__.
+        # Not called during __init__ because prompt/filters aren't set yet.
+        if self._defer_download:
+            self._defer_download = False
+            self._post_download_init()
 
     def has_training_docs(self) -> bool:
         return self.config.training_split is not None
@@ -883,6 +943,7 @@ class ConfigurableTask(Task):
 
     def training_docs(self) -> datasets.Dataset:
         if self.has_training_docs():
+            self._check_dataset_available()
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.training_split]
@@ -891,6 +952,7 @@ class ConfigurableTask(Task):
 
     def validation_docs(self) -> datasets.Dataset:
         if self.has_validation_docs():
+            self._check_dataset_available()
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.validation_split]
@@ -899,12 +961,14 @@ class ConfigurableTask(Task):
 
     def test_docs(self) -> datasets.Dataset:
         if self.has_test_docs():
+            self._check_dataset_available()
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
         if (split := self.fewshot_cfg.split) is not None:
+            self._check_dataset_available()
             if (process_docs := self.fewshot_cfg.process_docs) is not None:
                 return process_docs(self.dataset[split])
             return self.dataset[split]
