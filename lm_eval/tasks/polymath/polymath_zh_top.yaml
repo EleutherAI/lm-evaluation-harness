@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_zh_top
+dataset_name: zh
+test_split: top

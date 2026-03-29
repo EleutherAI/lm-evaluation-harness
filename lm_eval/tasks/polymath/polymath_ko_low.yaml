@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_ko_low
+dataset_name: ko
+test_split: low
