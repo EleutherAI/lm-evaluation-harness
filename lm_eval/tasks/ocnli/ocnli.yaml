@@ -1,0 +1,19 @@
+task: ocnli
+dataset_path: clue
+dataset_name: ocnli
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "前提：{{sentence1}}\n假设：{{sentence2}}\n这两句话之间的关系是："
+doc_to_target: label
+doc_to_choice:
+  - "中性"
+  - "蕴含"
+  - "矛盾"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
