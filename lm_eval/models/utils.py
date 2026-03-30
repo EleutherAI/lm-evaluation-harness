@@ -603,7 +603,12 @@ def flatten_image_list(images: list[list]):
 
 
 def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> list[str]:
-    """Ensures that the `until` parameter is a list of stop sequences and includes the EOS token."""
+    """Ensures that the `until` parameter is a list of stop sequences and includes the EOS token.
+
+    Empty or whitespace-only stop sequences are filtered out before returning,
+    since some tokenizers (e.g. ChatGLM2/3) may decode their EOS token to an
+    empty string which would cause downstream errors in sampling backends.
+    """
     if isinstance(until, str):
         until = [until]
     elif until is None:
@@ -613,8 +618,9 @@ def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> lis
             f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
         )
 
-    if eos is not None and eos not in until:
+    if eos is not None and eos.strip() and eos not in until:
         until.append(eos)
+    until = [s for s in until if s.strip()]
     return until
 
 

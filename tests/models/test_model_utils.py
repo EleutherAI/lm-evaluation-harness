@@ -1,6 +1,6 @@
 import pytest
 
-from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
+from lm_eval.models.utils import handle_stop_sequences, maybe_truncate, normalize_gen_kwargs, truncate_tokens
 
 
 class TestTruncateTokens:
@@ -299,3 +299,56 @@ class TestNormalizeGenKwargs:
         original_copy = original.copy()
         normalize_gen_kwargs(original)
         assert original == original_copy
+
+
+class TestHandleStopSequences:
+    """Tests for handle_stop_sequences utility function."""
+
+    def test_string_until_converted_to_list(self):
+        result = handle_stop_sequences("stop", eos=None)
+        assert result == ["stop"]
+
+    def test_none_until_returns_empty_list(self):
+        result = handle_stop_sequences(None, eos=None)
+        assert result == []
+
+    def test_list_until_passed_through(self):
+        result = handle_stop_sequences(["a", "b"], eos=None)
+        assert result == ["a", "b"]
+
+    def test_eos_appended_when_not_in_until(self):
+        result = handle_stop_sequences(["a"], eos="b")
+        assert result == ["a", "b"]
+
+    def test_eos_not_duplicated_when_already_in_until(self):
+        result = handle_stop_sequences(["a", "b"], eos="b")
+        assert result == ["a", "b"]
+
+    def test_empty_eos_filtered_out(self):
+        """ChatGLM2/3 tokenizers decode EOS to empty string - must not crash vLLM."""
+        result = handle_stop_sequences(None, eos="")
+        assert result == []
+
+    def test_whitespace_only_eos_filtered_out(self):
+        result = handle_stop_sequences(None, eos="   ")
+        assert result == []
+
+    def test_empty_strings_in_until_list_filtered_out(self):
+        result = handle_stop_sequences(["valid", "", "  ", "also_valid"], eos=None)
+        assert result == ["valid", "also_valid"]
+
+    def test_empty_eos_with_valid_until(self):
+        result = handle_stop_sequences(["stop1"], eos="")
+        assert result == ["stop1"]
+
+    def test_valid_eos_preserved(self):
+        result = handle_stop_sequences([], eos="<|endoftext|>")
+        assert result == ["<|endoftext|>"]
+
+    def test_invalid_type_raises_value_error(self):
+        with pytest.raises(ValueError):
+            handle_stop_sequences(123, eos=None)
+
+    def test_none_eos_with_none_until(self):
+        result = handle_stop_sequences(None, eos=None)
+        assert result == []
