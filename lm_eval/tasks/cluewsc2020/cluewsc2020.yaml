@@ -1,0 +1,18 @@
+task: cluewsc2020
+dataset_path: clue
+dataset_name: cluewsc2020
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "在以下文本中，'{{target.span2_text}}'是否指代'{{target.span1_text}}'？\n{{text}}\n答案："
+doc_to_target: label
+doc_to_choice:
+  - "是"
+  - "否"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
