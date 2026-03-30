@@ -1,0 +1,16 @@
+task: c3
+dataset_path: clue
+dataset_name: c3
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+process_docs: !function utils.process_docs
+doc_to_text: "{{context|join('')}}{{context|length>0 and '\\n' or ''}}问题：{{question}}"
+doc_to_target: "{{answer_index}}"
+doc_to_choice: "{{choice}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
