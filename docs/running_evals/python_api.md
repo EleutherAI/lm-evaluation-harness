@@ -8,27 +8,9 @@ The library provides three main ways to run evaluations programmatically:
 
 | Function | Use Case |
 |----------|----------|
-| `simple_evaluate()` | Most common - accepts model name strings or LM objects |
-| `EvaluatorConfig` | Config-based - load settings from YAML or dataclass |
-| `evaluate()` | Low-level - full control over task dictionaries |
-
----
-
-## Quick Start
-
-The simplest way to run an evaluation:
-
-```python
-import lm_eval
-
-results = lm_eval.simple_evaluate(
-    model="hf",
-    model_args="pretrained=gpt2",
-    tasks=["hellaswag"],
-)
-
-print(results["results"])
-```
+| `simple_evaluate()` | Most common — accepts model name strings or LM objects |
+| `EvaluatorConfig` | Config-based — load settings from YAML or dataclass |
+| `evaluate()` | Low-level — full control over task dictionaries |
 
 ---
 
@@ -95,14 +77,13 @@ results = lm_eval.simple_evaluate(
 | `batch_size` | int or str | Batch size or "auto" |
 | `device` | str | Device (cuda, cpu, mps) |
 | `limit` | int or float | Limit examples per task |
-| `log_samples` | bool | Save model inputs/outputs |
+| `repeats` | int | Number of repeated runs per sample (for self-consistency) |
+| `log_samples` | bool | Save model inputs/outputs (default: `True`) |
 | `task_manager` | TaskManager | For external tasks |
 | `gen_kwargs` | dict | Generation arguments |
 | `apply_chat_template` | bool or str | Use chat template |
 | `system_instruction` | str | System prompt |
 | `fewshot_as_multiturn` | bool | Multi-turn few-shot |
-
-See [`lm_eval/evaluator.py`](../lm_eval/evaluator.py) for the complete parameter list.
 
 ### Return Value
 
@@ -112,8 +93,8 @@ See [`lm_eval/evaluator.py`](../lm_eval/evaluator.py) for the complete parameter
 {
     "results": {
         "task_name": {
-            "metric_name": value,
-            "metric_name,stderr": stderr_value,
+            "metric_name,filter_name": value,
+            "metric_name,filter_name_stderr": stderr_value,
         }
     },
     "configs": {...},      # Task configurations
@@ -124,6 +105,80 @@ See [`lm_eval/evaluator.py`](../lm_eval/evaluator.py) for the complete parameter
     "samples": {...},      # If log_samples=True
 }
 ```
+
+---
+
+## Using `TaskManager.load()`
+
+The `TaskManager.load()` method is the modern way to build task dictionaries. It supports name strings, config dicts, runtime overrides, and the `@format` / `::` path syntax.
+
+### Basic Usage
+
+```python
+from lm_eval.tasks import TaskManager
+
+tm = TaskManager()
+loaded = tm.load(["hellaswag", "arc_easy"])
+
+loaded["tasks"]      # {"hellaswag": Task, "arc_easy": Task}
+loaded["groups"]     # {} (no groups requested)
+loaded["group_map"]  # {}
+```
+
+### Loading Groups
+
+When you request a group, `load()` expands it into its leaf tasks and tracks the group structure:
+
+```python
+loaded = tm.load(["mmlu"])
+
+loaded["tasks"]      # {"mmlu_abstract_algebra": Task, "mmlu_anatomy": Task, ...}
+loaded["groups"]     # {"mmlu": Group}
+loaded["group_map"]  # {"mmlu": ["mmlu_abstract_algebra", "mmlu_anatomy", ...]}
+```
+
+### Runtime Overrides
+
+Override task config fields at load time without modifying YAML files:
+
+```python
+loaded = tm.load(
+    ["mmlu", "arc_easy"],
+    overrides={
+        "arc_easy": {"num_fewshot": 5},
+        "mmlu": {"num_fewshot": 3},
+    },
+)
+```
+
+Overrides apply to the named task or group. For groups, overrides propagate to all child tasks at evaluation time. Note that `group_map` itself only records each group's direct children — recursive propagation is handled by the evaluator.
+
+### Inline Config Dicts
+
+You can mix name strings with full config dicts:
+
+```python
+loaded = tm.load([
+    "hellaswag",                    # by name
+    {                               # inline config
+        "task": "my_task",
+        "dataset_path": "my_org/my_data",
+        "test_split": "test",
+        "doc_to_text": "question",
+        "doc_to_target": "answer",
+    },
+])
+```
+
+### Return Type: `TaskDict`
+
+`TaskManager.load()` returns a `TaskDict` TypedDict:
+
+| Key | Type | Description |
+|---|---|---|
+| `tasks` | `dict[str, Task]` | Flat mapping of every leaf task name to its Task object |
+| `groups` | `dict[str, Group]` | Flat mapping of every group name to its Group object |
+| `group_map` | `dict[str, list[str]]` | Each group's direct children (not recursive) |
 
 ---
 
@@ -175,11 +230,8 @@ config = EvaluatorConfig(
     log_samples=True,
 )
 
-# Validate and process
 task_manager = config.process_tasks()
 ```
-
-### Config Fields
 
 See the [Configuration Guide](config_files.md#config-schema) for all available fields.
 
@@ -189,45 +241,24 @@ See the [Configuration Guide](config_files.md#config-schema) for all available f
 
 The `evaluate()` function provides lower-level control, accepting pre-built task dictionaries.
 
-### With Custom Task Objects
-
 ```python
 import lm_eval
-from lm_eval.tasks import TaskManager, get_task_dict
+from lm_eval.tasks import TaskManager
 from lm_eval.models.huggingface import HFLM
 
 # Initialize model
 lm = HFLM(pretrained="gpt2", batch_size=16)
 
-# Build task dictionary
-task_manager = TaskManager(include_path="/path/to/custom/tasks")
-task_dict = get_task_dict(
-    ["hellaswag", "my_custom_task"],
-    task_manager
-)
+# Build task dictionary using TaskManager.load()
+tm = TaskManager()
+loaded = tm.load(["hellaswag", "my_custom_task"])
 
 # Run evaluation
 results = lm_eval.evaluate(
     lm=lm,
-    task_dict=task_dict,
+    task_dict=loaded,
     num_fewshot=5,
     limit=100,
-)
-```
-
-### Mixed Task Sources
-
-```python
-from lm_eval.tasks import get_task_dict
-
-# Combine different task sources
-task_dict = get_task_dict(
-    [
-        "mmlu",                           # Stock task name
-        "my_custom_task",                 # From include_path
-        {"task": "inline_task", ...},     # Inline config dict
-    ],
-    task_manager
 )
 ```
 
@@ -275,7 +306,7 @@ results = lm_eval.simple_evaluate(
 )
 ```
 
-For detailed guidance on implementing custom models, see the [Model Guide](model_guide.md).
+For detailed guidance on implementing custom models, see the [Custom Model Backend](../extending/custom_model.md) guide.
 
 ---
 

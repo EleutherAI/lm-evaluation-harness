@@ -10,21 +10,32 @@ edit_uri = "edit/main/docs/"
 nav = [
   { "Home" = "index.md" },
   { "Getting Started" = [
-    { "User Guide" = "interface.md" },
-    { "Python API" = "python-api.md" },
-    { "Configuration Files" = "config_files.md" },
+    { "Quickstart" = "getting_started/quickstart.md" },
+    { "Installation" = "getting_started/installation.md" },
+    { "Concepts & Architecture" = "getting_started/concepts.md" },
   ]},
-  { "Guides" = [
-    { "Model Guide" = "model_guide.md" },
-    { "API Model Guide" = "API_guide.md" },
-    { "New Task Guide" = "new_task_guide.md" },
-    { "Task Configuration" = "task_guide.md" },
+  { "Running Evaluations" = [
+    { "CLI Reference" = "running_evals/cli_reference.md" },
+    { "Python API" = "running_evals/python_api.md" },
+    { "Configuration Files" = "running_evals/config_files.md" },
+    { "Chat Templates" = "running_evals/chat_templates.md" },
+    { "Common Pitfalls" = "running_evals/common_pitfalls.md" },
   ]},
-  { "Advanced" = [
-    { "Chat Templates" = "chat-template-readme.md" },
-    { "Decontamination" = "decontamination.md" },
-    { "Common Pitfalls" = "footguns.md" },
+  { "Writing Tasks" = [
+    { "Your First Task" = "writing_tasks/your_first_task.md" },
+    { "Prompt Formats" = "writing_tasks/prompt_formats.md" },
+    { "Scoring & Metrics" = "writing_tasks/scoring_and_metrics.md" },
+    { "Filters" = "writing_tasks/filters.md" },
+    { "Groups & Benchmarks" = "writing_tasks/groups_and_benchmarks.md" },
+    { "Task Configuration Reference" = "writing_tasks/task_config_reference.md" },
   ]},
+  { "Extending the Framework" = [
+    { "Custom Model Backend" = "extending/custom_model.md" },
+    { "API Model Backend" = "extending/api_model.md" },
+    { "Custom Scorers" = "extending/custom_scorers.md" },
+    { "Custom Metrics & Filters" = "extending/custom_metrics_and_filters.md" },
+  ]},
+  { "Migrating from v0.4" = "migration_v0_5.md" },
   { "API Reference" = [
     "api/index.md",
     { "Entry Points" = [
@@ -50,7 +61,7 @@ nav = [
       { "Filters" = "api/lm_eval.filters.md" },
     ]},
   ]},
-  { "Contributing" = "CONTRIBUTING.md" },
+  { "Contributing" = "contributing.md" },
 ]
 
 [project.theme]

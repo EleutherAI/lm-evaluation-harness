@@ -1,6 +1,8 @@
-# Prompt Formats Guide
+# Prompt Formats
 
-Formats let you control **how prompts are assembled** for evaluation tasks — instruction, question layout, choice labeling, answer solicitation — without writing Jinja templates by hand.
+Once you have a basic task working ([Your First Task](your_first_task.md)), formats let you control **how prompts are assembled** — instruction, question layout, choice labeling, answer solicitation — without writing Jinja templates by hand.
+
+Formats consume your `doc_to_text`, `doc_to_target`, and `doc_to_choice` field mappings and produce full Jinja templates plus config overrides (`output_type`, delimiters, scorers, etc.) automatically.
 
 ## Quick Start
 
@@ -23,9 +25,9 @@ The `formats` field tells lm-eval to apply the `mcqa` format, which auto-generat
 No YAML changes needed — append `@format_name` to the task on the CLI:
 
 ```bash
-lm_eval --tasks my_task@mcqa --model_args ...
-lm_eval --tasks my_task@generate --model_args ...
-lm_eval --tasks my_task@cloze --model_args ...
+lm-eval run --tasks my_task@mcqa --model hf --model_args pretrained=gpt2
+lm-eval run --tasks my_task@generate --model hf --model_args pretrained=gpt2
+lm-eval run --tasks my_task@cloze --model hf --model_args pretrained=gpt2
 ```
 
 This is the fastest way to try different prompt styles on the same underlying dataset.
@@ -86,7 +88,7 @@ Your response should end with "The final answer is [answer]" where [answer] is t
 
 ## How It Works
 
-A format **consumes** your `doc_to_text`, `doc_to_target`, and `doc_to_choice` field mappings and **produces** Jinja templates plus config overrides (`output_type`, `target_delimiter`, `fewshot_delimiter`, `scorer`, etc.) that are applied to the task config automatically.
+A format **consumes** your `doc_to_text`, `doc_to_target`, and `doc_to_choice` field mappings and **produces** Jinja templates plus config overrides that are applied to the task config automatically.
 
 ```
 Your YAML fields:                  Format generates:
@@ -153,7 +155,7 @@ formats:
 
 ## Multi-Format Tasks
 
-Override multiple formats in one YAML, then select at runtime with `@`:
+Define multiple formats in one YAML, then select at runtime with `@`:
 
 ```yaml
 task: my_task
@@ -172,26 +174,11 @@ formats:
 Then run either variant:
 
 ```bash
-lm_eval --tasks my_task@mcqa ...
-lm_eval --tasks my_task@generate ...
+lm-eval run --tasks my_task@mcqa --model hf --model_args pretrained=gpt2
+lm-eval run --tasks my_task@generate --model hf --model_args pretrained=gpt2
 ```
 
 When no `@suffix` is given, the **first key** is used as the default (here, `mcqa`).
-
----
-
-## Using `@` With Any Task
-# TODO: should probably not allow
-The `@` suffix works even on tasks that **don't** declare a `formats:` field — the suffix is resolved against the global format registry:
-
-```bash
-# These work on any task that has doc_to_choice set:
-lm_eval --tasks arc_easy@mcqa ...
-lm_eval --tasks arc_easy@cloze ...
-lm_eval --tasks arc_easy@generate ...
-```
-
-The task just needs `doc_to_text`, `doc_to_target`, and (for choice-based formats) `doc_to_choice` to be set in its YAML.
 
 ---
 
@@ -261,8 +248,8 @@ answer_prompt: 'Your response should end with "The best answer is [answer_letter
 │    --tasks my_task@cot        # chain-of-thought            │
 │                                                             │
 │  BUILT-IN FORMATS:                                          │
-│    mcqa     → loglikelihood, A/B/C/D labels                 │
-│    cloze    → loglikelihood, no labels                      │
+│    mcqa     → multiple_choice, A/B/C/D labels               │
+│    cloze    → multiple_choice, no labels                    │
 │    generate → free generation, letter answer extraction     │
 │    cot      → free generation, step-by-step reasoning       │
 │                                                             │

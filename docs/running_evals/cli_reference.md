@@ -1,8 +1,4 @@
-# User Guide
-
-This document details the interface exposed by `lm-eval` and provides details on what flags are available to users.
-
-## Command-line Interface
+# CLI Reference
 
 The `lm-eval` CLI is organized into subcommands:
 
@@ -26,27 +22,6 @@ lm-eval ls -h           # Show options for list command
 
 ---
 
-## Quick Start
-
-```bash
-# List available tasks
-lm-eval ls tasks
-
-# Basic evaluation
-lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
-
-# With few-shot examples
-lm-eval run --model hf --model_args pretrained=gpt2 --tasks arc_easy --num_fewshot 5
-
-# Save results and model outputs
-lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag --output_path ./results/ --log_samples
-
-# Use a config file
-lm-eval run --config eval_config.yaml
-```
-
----
-
 ## `lm-eval run`
 
 Run evaluations on language models.
@@ -55,7 +30,7 @@ Run evaluations on language models.
 lm-eval run --model <model> --tasks <task> [options]
 ```
 
-### Quick Examples
+### Examples
 
 ```bash
 # Basic evaluation with HuggingFace model
@@ -71,13 +46,33 @@ lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs
 lm-eval run --config my_config.yaml --tasks mmlu
 ```
 
+### Task selection
+
+Tasks can be specified by name, group, tag, or path. You can also apply **formats** and navigate **nested groups** using special syntax:
+
+```bash
+# Apply a format at runtime with @
+lm-eval run --tasks my_task@mcqa --model hf --model_args pretrained=gpt2
+
+# Try different prompt formats on the same dataset
+lm-eval run --tasks hellaswag@generate --model hf --model_args pretrained=gpt2
+lm-eval run --tasks hellaswag@cloze --model hf --model_args pretrained=gpt2
+
+# Address a specific subtask within a group with ::
+lm-eval run --tasks mmlu::mmlu_anatomy --model hf --model_args pretrained=gpt2
+```
+
+The `@format` suffix tells lm-eval to apply a [prompt format](../writing_tasks/prompt_formats.md) (e.g., `mcqa`, `cloze`, `generate`, `cot`) at runtime without modifying the task YAML.
+
+The `::` path syntax navigates nested groups: `group::subgroup::task`.
+
 ### Model and Tasks
 
 | Argument | Short | Description |
 |----------|-------|-------------|
 | `--model` | `-M` | Model type/provider name (default: `hf`). See [supported models](https://github.com/EleutherAI/lm-evaluation-harness#model-apis-and-inference-servers). |
-| `--model_args` | `-a` | Model constructor arguments as `key=val key2=val2` or `key=val,key2=val2`. For HuggingFace models, see [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/huggingface.py) for available arguments. |
-| `--tasks` | `-t` | Space or comma-separated list of task names or groups. Use `lm-eval ls tasks` to see available tasks. |
+| `--model_args` | `-a` | Model constructor arguments as `key=val key2=val2` or `key=val,key2=val2`. |
+| `--tasks` | `-t` | Space or comma-separated list of task names, groups, or tags. Supports `@format` suffix and `::` path syntax. |
 | `--apply_chat_template` | | Apply chat template to prompts. Use without argument for default template, or specify template name. |
 | `--limit` | `-L` | Limit examples per task. Integer for count, float (0.0-1.0) for percentage. **For testing only.** |
 | `--use_cache` | `-c` | Path prefix for SQLite cache of model responses (e.g., `/path/to/cache_`). |
@@ -182,6 +177,7 @@ lm-eval ls [tasks|groups|subtasks|tags] [--include_path DIR]
 | `subtasks` | List only individual subtasks (e.g., `mmlu_anatomy`, `hellaswag`). |
 | `tags` | List task tags (e.g., `reasoning`, `knowledge`). |
 | `--include_path` | Additional directory for external task definitions. |
+| `--pattern` | Filter tasks matching a glob pattern (e.g., `"mmlu*"`). |
 
 ### Task Organization
 
@@ -197,6 +193,9 @@ lm-eval ls tasks
 
 # List only task groups
 lm-eval ls groups
+
+# Filter tasks by pattern
+lm-eval ls tasks --pattern "arc*"
 
 # Include external tasks
 lm-eval ls tasks --include_path /path/to/external/tasks
@@ -249,17 +248,12 @@ lm-eval validate --tasks my_custom_task --include_path ./custom_tasks
 
 ---
 
-## Python API
-
-For programmatic usage, see the [Python API Guide](python-api.md).
-
----
-
 ## Environment Variables
 
 | Variable | Description |
 |----------|-------------|
 | `LMEVAL_LOG_LEVEL` | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
-| `LM_HARNESS_CACHE_PATH` | Path for cached requests (default: `lm_eval/cache/.cache`). |
+| `LM_HARNESS_CACHE_PATH` | Path for cached requests (default: `lm_eval/caching/.cache`). |
+| `LM_EVAL_DATASET_DIR` | Local fallback directory for datasets. If set, checked before downloading from HuggingFace Hub. |
 | `HF_TOKEN` | HuggingFace Hub token for private datasets/models. |
 | `TOKENIZERS_PARALLELISM` | Set to `false` to avoid tokenizer warnings (auto-set by CLI). |

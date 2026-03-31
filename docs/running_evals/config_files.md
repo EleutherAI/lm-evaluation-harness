@@ -1,4 +1,4 @@
-# Configuration Guide
+# Configuration Files
 
 This guide explains how to use YAML configuration files with `lm-eval` to define reusable evaluation settings.
 
@@ -22,7 +22,7 @@ lm-eval run --config eval_config.yaml --tasks mmlu --limit 100
 
 ## Quick Reference
 
-All configuration keys correspond directly to CLI arguments. See the [CLI Reference](interface.md#lm-eval-run) for detailed descriptions of each option.
+All configuration keys correspond directly to CLI arguments. See the [CLI Reference](cli_reference.md#lm-eval-run) for detailed descriptions of each option.
 
 ## Config Schema
 
@@ -77,11 +77,10 @@ log_samples: true
 
 wandb_args:
   project: llm-evals
-  name: mistral-7b-instruct
+  name: gpt2-eval
   tags:
-    - mistral
-    - instruct
-    - production
+    - gpt2
+    - baseline
 
 hf_hub_log_args:
   hub_results_org: my-org
@@ -94,7 +93,7 @@ hf_hub_log_args:
 
 ## Programmatic Usage
 
-For loading config files in Python, see the [Python API Guide](python-api.md#using-evaluatorconfig).
+For loading config files in Python, see the [Python API Guide](python_api.md#using-evaluatorconfig).
 
 ---
 
