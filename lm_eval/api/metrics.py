@@ -38,7 +38,7 @@ def mean(arr):
 
 @register_aggregation("median")
 def median(arr):
-    return arr[len(arr) // 2]
+    return np.median(arr)
 
 
 # Certain metrics must be calculated across all documents in a benchmark.
