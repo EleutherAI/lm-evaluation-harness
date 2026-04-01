@@ -365,8 +365,15 @@ class EvaluatorConfig:
             else [t for task in self.tasks for t in task.split(",")]
         )
 
-        # Handle directory input
-        if len(task_list) == 1 and Path(task_list[0]).is_dir():
+        # Handle directory input — but only if the name is not already a registered task.
+        # A local directory whose name matches a registered task (e.g. an output folder
+        # named "mbpp") would otherwise shadow the real task, resulting in an empty task
+        # list and a confusing "No tasks specified" error.
+        if (
+            len(task_list) == 1
+            and Path(task_list[0]).is_dir()
+            and not task_manager.match_tasks([task_list[0]])
+        ):
             task_names = []
             yaml_path = Path(task_list[0]) / "*.yaml"
             for yaml_file in glob.glob(str(yaml_path)):
@@ -374,6 +381,12 @@ class EvaluatorConfig:
                 task_names.append(config)
             self.tasks = task_names
             return task_manager
+        elif len(task_list) == 1 and Path(task_list[0]).is_dir():
+            eval_logger.warning(
+                f"A local directory named '{task_list[0]}' exists but a registered task "
+                f"with the same name was found — using the registered task. "
+                f"To load tasks from a directory, use --include_path or rename the directory."
+            )
 
         # Normalize paths and deduplicate
         task_list = [
