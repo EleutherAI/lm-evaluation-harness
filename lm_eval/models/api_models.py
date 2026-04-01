@@ -538,11 +538,12 @@ class TemplateAPI(TemplateLM):
             )
             if cache_keys:
                 for res, cache in zip(answers, cache_keys):
-                    self.cache_hook.add_partial(cache_method, cache, res)
+                    if res is not None:
+                        self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         # If the retries also fail
         except BaseException as e:
-            eval_logger.error(f"Exception:{repr(e)}, {outputs}, retrying.")
+            eval_logger.error(f"Exception:{repr(e)}, {locals().get('outputs', '(no outputs)')}, retrying.")
             raise e
         finally:
             if acquired:

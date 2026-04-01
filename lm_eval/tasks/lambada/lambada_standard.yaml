@@ -1,7 +1,7 @@
 tag:
   - lambada
 task: lambada_standard
-dataset_path: lambada
+dataset_path: cimec/lambada
 dataset_name: null
 output_type: loglikelihood
 validation_split: validation

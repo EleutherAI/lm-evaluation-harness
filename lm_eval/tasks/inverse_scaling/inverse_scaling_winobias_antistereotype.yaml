@@ -1,5 +1,3 @@
-group:
-  - inverse_scaling_mc
 task: inverse_scaling_winobias_antistereotype
 dataset_path: mathemakitten/winobias_antistereotype_test_v5
 output_type: multiple_choice

@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import TYPE_CHECKING, Any
 
+from lm_eval.defaults import default_gen_kwargs
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -145,15 +147,7 @@ class TaskConfig(dict):
         else:
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
-                self.generation_kwargs = {
-                    "until": (
-                        None
-                        if self.fewshot_delimiter is None
-                        else [self.fewshot_delimiter]
-                    ),
-                    "do_sample": False,
-                    "temperature": 0,
-                }
+                self.generation_kwargs = default_gen_kwargs(self.fewshot_delimiter)
                 eval_logger.warning(
                     f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
                 )

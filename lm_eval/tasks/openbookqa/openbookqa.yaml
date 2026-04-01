@@ -1,5 +1,5 @@
 task: openbookqa
-dataset_path: openbookqa
+dataset_path: allenai/openbookqa
 dataset_name: main
 output_type: multiple_choice
 training_split: train
