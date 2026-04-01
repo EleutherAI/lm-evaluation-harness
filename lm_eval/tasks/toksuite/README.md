@@ -176,18 +176,49 @@ If other tasks on this dataset are already supported:
 
 ## Reproducing Results in the Paper
 As part of TokSuite, we are interested in two metrics: 1) raw accuracy on each subtask 2) the drop in accuracy compared to the canonical form of each example.
-One needs to cross-reference the results on the canonical subset and the perturbed subtask to compute 2. Below, we outline steps to reproduce the robustness metric and tables in the paper.
+One needs to cross-reference the results on the canonical subset and the perturbed subtask to compute, hence these metrics need to be computed manually after the evaluation is run. Below, we outline steps to reproduce the robustness metric and tables in the paper.
 
 We are interested in the measure of robustness, which is the relative performance drop compared to the canonical (i.e. most natural form) represented as
-    $$\frac {(\textrm{Acc}_\textrm{can} - \textrm{Acc}_\textrm{pert})} {\textrm{Acc}_\textrm{can}}$$
-, where $\textrm{Acc}_\textrm{can}$ is the mean accuracy on the corresponding canonical subset and $\textrm{Acc}_\textrm{pert}$ corresponds to the mean accuracy in the consider subtask or group.
+    $$\frac {(\textrm{Acc}_\textrm{can} - \textrm{Acc}_\textrm{pert})} {\textrm{Acc}_\textrm{can}},$$
+where $\textrm{Acc}_\textrm{can}$ is the mean accuracy on the corresponding canonical subset and $\textrm{Acc}_\textrm{pert}$ corresponds to the mean accuracy in the consider subtask or group. Below, we outline ways to reproduce tables from the paper.
 
-To compute this we need to log all samples and operate on the sample level so we suggest running the benchmark as
+To compute this metric, TokSuite provides additional metadata in the task configs, e.g. corresponding canonical task (named as `canonical_task`) and number of samples in this perturbed subset (named as `num_samples`) so that we can recompute the weighted average.
+
+Another way is to log all samples and operate on the sample level however, it is easier to run benchmark all together and run the processing on the results files. Running the benchmark on a 1 to 2B parameter model does not take more than 10 minutes on an L40S gpu.
+
+1. Run the benchmark
 ```bash
 OUTPUT_PATH="/tmp/lm_eval/toksuite"
-OUTPUT_PATH="/scratch/gsa/lm_eval/toksuite"
 mkdir -p $OUTPUT_PATH
 lm-eval --model hf --model_args pretrained="toksuite/gpt2,tokenizer=openai-community/gpt2" \
     --tasks toksuite --log_samples \
     --output_path=$OUTPUT_PATH
+```
+
+2. Process results, pass either "latex", "markdown", or "dataframe" to get the formatted table
+
+```python
+from pathlib import Path
+results_paths = [
+    list(Path("/tmp/lm_eval/toksuite/openai-community__gpt2").rglob("results*.json"))[-1],
+    ### more models if you ran them
+    ]
+from lm_eval.tasks.toksuite.utils import LATEX_TABLE_CATEGORIES, get_table_str
+tab = get_table_str(results_paths, output_format="latex")
+print(tab)
+```
+
+3. Reporting accuracies is also easy
+```python
+from pathlib import Path
+results_paths = [
+    list(Path("/tmp/lm_eval/toksuite/openai-community__gpt2").rglob("results*.json"))[-1],
+    ### more models if you ran them
+    ]
+from lm_eval.tasks.toksuite.utils import get_accuracy_table_str, get_canonical_performance_table_str, LATEX_TABLE_CATEGORIES_CANONICAL
+tab = get_accuracy_table_str(results_paths)
+print(tab)
+## or simply the canonical accuracies
+canonical_accuracies = get_canonical_performance_table_str(results_path, latex_table_categories=LATEX_TABLE_CATEGORIES_CANONICAL, latex_column_data=LATEX_TABLE_CATEGORIES_CANONICAL.keys())
+print(canonical_accuracies)
 ```

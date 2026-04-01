@@ -5,10 +5,10 @@ doc_to_choice: choices
 doc_to_target: answer
 doc_to_text: '{{ question.strip() }}'
 metadata:
+  canonical_task: toksuite_chinese_canonical
   description: Tokenization robustness evaluation dataset
   version: 1.0.2
   num_samples: 40
-  canonical_task: toksuite_chinese_canonical
   task_pretty_name: null
 metric_list:
 - aggregation: mean

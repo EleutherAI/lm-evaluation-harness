@@ -8,12 +8,23 @@ aggregate_metric_list:
 
 group: toksuite_abridged
 task:
+  - group: toksuite_canonical
+    task:
+      - toksuite_english_canonical
+      - toksuite_farsi_canonical
+      - toksuite_italian_canonical
+      - toksuite_chinese_canonical
+      - toksuite_turkish_canonical
+      - toksuite_math_canonical
+      - toksuite_stem_canonical
   - group: toksuite_non_eng_input_medium_challenges
     task:
       - toksuite_turkish_english_keyboard
       - toksuite_italian_english_keyboard
       - toksuite_farsi_arabic_keyboard_for_farsi
+      - toksuite_farsi_romanization
       - toksuite_farsi_number_romanization
+      - toksuite_chinese_partially_romanized
       - toksuite_chinese_traditional
       - toksuite_chinese_romanization
   - group: toksuite_non_eng_diacritics
@@ -77,10 +88,6 @@ task:
       - toksuite_stem_double_struck
       - toksuite_stem_enclosed_characters
       - toksuite_stem_unicode_formatting
-
-
-# lm-eval --model hf --model_args pretrained=openai-community/gpt2 --tasks toksuite_math --log_samples --output_path=/tmp/lm-eval/toksuite
-
 
 metadata:
   description: Tokenization robustness evaluation dataset
