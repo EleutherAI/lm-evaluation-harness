@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-gle_Latn-lvs_Latn"
+"dataset_name": "gle_Latn-lvs_Latn"
+"doc_to_text": "Irish phrase: {{sentence_gle_Latn}}\nStandard Latvian phrase:"
+"doc_to_decontamination_query": "{{sentence_gle_Latn}}"
+"doc_to_target": "{{sentence_lvs_Latn}}"

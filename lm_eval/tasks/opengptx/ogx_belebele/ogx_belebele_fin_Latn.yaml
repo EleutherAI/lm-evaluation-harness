@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_fin_Latn"
+"test_split": "fin_Latn"
+"fewshot_split": "fin_Latn"
+"doc_to_text": "Kohta: {{flores_passage}}\nKysymys: {{question}}\nVastaus:"

@@ -1,0 +1,10 @@
+"include": "_default_gsm8kx_template_yaml"
+"task": "ogx_gsm8kx_lv"
+"dataset_name": "LV"
+"doc_to_text": "Jautājums: {{question}}\nAtbilde:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Jautājums:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

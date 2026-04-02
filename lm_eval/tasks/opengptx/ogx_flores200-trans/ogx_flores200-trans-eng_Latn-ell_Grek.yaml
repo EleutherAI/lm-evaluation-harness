@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-eng_Latn-ell_Grek"
+"dataset_name": "eng_Latn-ell_Grek"
+"doc_to_text": "English phrase: {{sentence_eng_Latn}}\nModern Greek (1453-) phrase:"
+"doc_to_decontamination_query": "{{sentence_eng_Latn}}"
+"doc_to_target": "{{sentence_ell_Grek}}"

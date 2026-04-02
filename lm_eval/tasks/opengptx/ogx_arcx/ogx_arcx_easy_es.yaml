@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_easy_es"
+"dataset_name": "easy_ES"
+"doc_to_text": "Pregunta: {{question}}\nRespuesta:"
+"doc_to_decontamination_query": "Pregunta: {{question}}\nRespuesta:"

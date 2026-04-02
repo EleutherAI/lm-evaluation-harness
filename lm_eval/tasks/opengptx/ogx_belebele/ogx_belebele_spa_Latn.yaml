@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_spa_Latn"
+"test_split": "spa_Latn"
+"fewshot_split": "spa_Latn"
+"doc_to_text": "Pasaje: {{flores_passage}}\nPregunta: {{question}}\nRespuesta:"

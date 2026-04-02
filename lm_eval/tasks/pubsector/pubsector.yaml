@@ -1,0 +1,55 @@
+task: pubsector
+dataset_path: json
+dataset_name: null
+output_type: generate_until
+dataset_kwargs:
+  data_files: /rwthfs/cluster.rz.rwth-aachen.de/hpcwork/rwth1961/gov_teuken/data/evaluation/data/finetuning_datasets/pubsector_finetuning_data_top_10_percent.jsonl #/home/anbh299g/code/GovTeuken/synthetic-datagen/resources/data/generated_synthetic_data/ce_bgh_00000_de_synthetic_fixed.jsonl 
+validation_split: train
+doc_to_text: "\
+  {% set prompt_qa = '\
+  Question: Was ist die Hauptstadt von Deutschland?\n\
+  Context: Die Hauptstadt von Deutschland ist Berlin.\n\
+  Answer: Die Hauptstadt Deutschlands ist Berlin, bekannt für seine Geschichte und Kultur.\n\n\
+
+  Question: Wann fiel die Berliner Mauer?\n\
+  Context: Die Berliner Mauer war ein Symbol der Teilung Deutschlands und fiel am 9. November 1989.\n\
+  Answer: Die Berliner Mauer fiel am 9. November 1989.\n\n\
+
+  Question: Was ist die Hauptstadt von Frankreich?\n\
+  Context: Die Hauptstadt von Frankreich ist Paris, bekannt für ihre Kunst, Mode und Kultur.\n\
+  Answer: Die Hauptstadt von Frankreich ist Paris, bekannt für ihre Kunst, Mode und Kultur.\n\n\
+
+  Question: Was ist die Quadratwurzel von Banane?\n\
+  Context: Die Quadratwurzel ist eine mathematische Operation, die auf Zahlen angewendet wird, nicht auf Objekte oder Wörter. \"Banane\" ist eine Frucht und hat keinen numerischen Wert.\n\
+  Answer: Ich habe keinen Kommentar.\n\n\
+
+  Question: Wie funktioniert ein Teleskop?\n\
+  Context: Teleskope sind optische Instrumente, die Licht von fernen Objekten sammeln und vergrößern, sodass Astronomen Himmelskörper beobachten können. Sie verwenden Linsen oder Spiegel, um Licht zu fokussieren.\n\
+  Answer: Teleskope verwenden Linsen oder Spiegel, um Licht zu fokussieren und Objekte näher erscheinen zu lassen.\n\n\
+
+  Question: Wo fanden die Olympischen Spiele 1992 statt?\n\
+  Context: Die Olympischen Spiele sind eine internationale Sportveranstaltung, die alle vier Jahre in verschiedenen Gastgeberstädten stattfindet. Die Olympischen Sommerspiele 1992 waren bemerkenswert für die Teilnahme vieler neu unabhängiger Nationen.\n\
+  Answer: Die Olympischen Spiele 1992 fanden in Barcelona, Spanien, statt.
+  '%}\
+  {{prompt_qa + '\n\nQuestion: ' + question + '\nContext: ' + context + '\nAnswer:'}}"
+
+doc_to_target: "{{answer}}"
+process_docs: !function utils.process_docs_gen
+process_results: !function utils.process_results_gen
+should_decontaminate: True
+doc_to_decontamination_query: question
+metric_list:
+  - metric: bleu
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge1
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge2
+    aggregation: mean
+    higher_is_better: true
+  - metric: rougeL
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
