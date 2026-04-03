@@ -1590,6 +1590,13 @@ class HFLM(TemplateLM):
                 **kwargs,
             )
 
+            generated_length = cont.shape[-1] - context_enc.shape[-1]
+
+            if generated_length == max_gen_toks:
+                eval_logger.warning(
+                    f"Generated {generated_length} which is equal to `max_gen_toks`. The end performance may be low simply due to too short allowed generations."
+                )
+
             cont_toks_list = cont.tolist()
             for cont_toks, context in zip(cont_toks_list, contexts, strict=True):
                 # discard context + left-padding toks if using causal decoder-only LM
@@ -1603,10 +1610,23 @@ class HFLM(TemplateLM):
                         for i, token in enumerate(cont_toks)
                         if token == self.think_end_token
                     ]
+                    if len(think_token_indices) < 2:
+                        eval_logger.warning(
+                            f"The token think_end_token={self.think_end_token} was not found. max_gen_toks is likely too small for a thinking model. Got think_token_indices={think_token_indices}, generated cont_toks (decoded): `{repr(self.tokenizer.decode(cont_toks))}`."
+                        )
+
                     if think_token_indices:
                         cont_toks = cont_toks[think_token_indices[-1] + 1 :]
 
                 s = self.tok_decode(cont_toks)
+
+                for stop_sequence in until:
+                    stop_length = len(stop_sequence)
+
+                    if s[-stop_length:] == stop_sequence:
+                        eval_logger.warning(
+                            f"Sequence generation stopped due to the stop sequence: `{repr(stop_sequence)}`. This may or may not be expected."
+                        )
 
                 # Strip leading whitespace if we removed thinking tokens
                 if isinstance(self.think_end_token, int):

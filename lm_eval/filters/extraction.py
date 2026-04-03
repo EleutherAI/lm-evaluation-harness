@@ -1,9 +1,13 @@
+import logging
 import re
 import sys
 import unicodedata
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 @register_filter("regex")
@@ -48,9 +52,15 @@ class RegexFilter(Filter):
                         if match:
                             match = match[0]
                         else:
+                            eval_logger.debug(
+                                f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
+                            )
                             match = self.fallback
                     match = match.strip()
                 else:
+                    eval_logger.debug(
+                        f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
+                    )
                     match = self.fallback
                 filtered.append(match)
             return filtered
@@ -91,7 +101,14 @@ class POSFilter(Filter):
             if isinstance(result, str):
                 result = extract_tagged_tokens(result)
             pos_tags.extend(pos for _, pos in result)
-            return pos_tags if pos_tags else self.fallback
+            if pos_tags:
+                return pos_tags
+            else:
+                eval_logger.debug(
+                    f"No match in the output in POSFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(result)}`"
+                )
+
+                return self.fallback
 
         def filter_set(inst):
             filtered = []
@@ -230,6 +247,9 @@ class MultiChoiceRegexFilter(RegexFilter):
                             without_paren_fallback_regex, resp, without_paren_to_target
                         )
                 if not match:
+                    eval_logger.debug(
+                        f"No match in the output in MultiChoiceRegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
+                    )
                     match = self.fallback
                 filtered.append(match)
             filtered_resps.append(filtered)

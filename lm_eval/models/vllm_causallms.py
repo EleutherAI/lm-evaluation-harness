@@ -708,6 +708,20 @@ class VLLM(TemplateLM):
                 cont, context, _cache_gen_kwargs, strict=True
             ):
                 generated_text: str = output.outputs[0].text
+
+                if self.think_end_token is not None and self.think_end_token not in generated_text:
+                    eval_logger.warning(
+                        f"Could not find an answer in the generated sequence (sequence end): {repr(generated_text[-50:])}"
+                    )
+
+                for stop_sequence in until:
+                    stop_length = len(stop_sequence)
+
+                    if generated_text[-stop_length:] == stop_sequence:
+                        eval_logger.warning(
+                            f"Sequence generation stopped due to the stop sequence: `{repr(stop_sequence)}`. This may or may not be expected."
+                        )
+
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
                     generated_text, _gen_kwargs.get("until"), self.think_end_token
