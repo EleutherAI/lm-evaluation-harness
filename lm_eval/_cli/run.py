@@ -241,6 +241,14 @@ class Run(SubCommand):
             metavar="<path>",
             help="Additional directory for external tasks",
         )
+        task_group.add_argument(
+            "--include_package",
+            nargs="+",
+            action=SplitArgs,
+            default=None,
+            metavar="<module>",
+            help="Additional module path(s) or Python file(s) to import before evaluation",
+        )
 
         # Logging and Tracking
         logging_group = self._parser.add_argument_group("logging and tracking")
@@ -345,6 +353,7 @@ class Run(SubCommand):
 
         # Create and validate config (most validation now occurs in EvaluationConfig)
         cfg = EvaluatorConfig.from_cli(args)
+        cfg.import_custom_modules()
 
         from lm_eval import simple_evaluate
         from lm_eval.loggers import EvaluationTracker, WandbLogger
@@ -444,7 +453,7 @@ class Run(SubCommand):
             )
 
             if cfg.log_samples:
-                for task_name, _ in results["configs"].items():
+                for task_name in results["configs"].keys():
                     evaluation_tracker.save_results_samples(
                         task_name=task_name, samples=samples[task_name]
                     )

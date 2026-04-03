@@ -46,6 +46,7 @@ All configuration keys correspond directly to CLI arguments. See the [CLI Refere
 | `system_instruction` | string/null | `null` | System prompt |
 | `fewshot_as_multiturn` | bool/null | `null` | Multi-turn few-shot |
 | `include_path` | string/null | `null` | External tasks path |
+| `include_package` | string/list/null | `null` | External Python module(s) to import before evaluation |
 | `gen_kwargs` | dict | `{}` | Generation arguments |
 | `wandb_args` | dict | `{}` | W&B init arguments |
 | `hf_hub_log_args` | dict | `{}` | HF Hub logging |

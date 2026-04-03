@@ -148,6 +148,12 @@ class EvaluatorConfig:
     include_path: str | None = field(
         default=None, metadata={"help": "Additional dir path for external tasks"}
     )
+    include_package: str | list[str] | None = field(
+        default=None,
+        metadata={
+            "help": "Module path(s) or Python file(s) to import before evaluation"
+        },
+    )
     gen_kwargs: dict = field(
         default_factory=dict,
         metadata={"help": "Arguments for model generation. Will update Task defaults"},
@@ -323,6 +329,13 @@ class EvaluatorConfig:
                     if (samples_path := Path(cast("str", self.samples))).is_file():
                         self.samples = json.loads(samples_path.read_text())
 
+        if isinstance(self.include_package, str):
+            self.include_package = [
+                item.strip()
+                for item in self.include_package.split(",")
+                if item.strip()
+            ]
+
         # Set up metadata by merging model_args and metadata.
         if self.model_args is None:
             self.model_args = {}
@@ -330,6 +343,24 @@ class EvaluatorConfig:
             self.metadata = {}
 
         self.metadata = self.model_args | self.metadata
+
+        return self
+
+    def import_custom_modules(self) -> "EvaluatorConfig":
+        """Import external modules so they can register models, metrics, or filters."""
+        if not self.include_package:
+            return self
+
+        from lm_eval.utils import import_module_from_specifier
+
+        packages = (
+            self.include_package
+            if isinstance(self.include_package, list)
+            else [self.include_package]
+        )
+        for specifier in packages:
+            import_module_from_specifier(specifier)
+            eval_logger.info(f"Imported external module: {specifier}")
 
         return self
 
