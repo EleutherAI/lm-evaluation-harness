@@ -240,6 +240,13 @@ class VLLM(TemplateLM):
             "enable_thinking", enable_thinking
         )
 
+        self.enable_thinking = enable_thinking
+
+        if enable_thinking and think_end_token is None:
+            raise ValueError(
+                f"Got {enable_thinking=}, but {think_end_token=}. think_end_token is required when using `enable_thinking=True`. Please provide it, and refer to https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md."
+            )
+
         if parse_version(version("vllm")) >= parse_version("0.8.3"):
             kwargs_resolve_hf_chat_template = {
                 "tokenizer": self.tokenizer,

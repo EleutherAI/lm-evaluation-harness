@@ -359,7 +359,9 @@ class HFLM(TemplateLM):
         self.enable_thinking = enable_thinking
 
         if enable_thinking and think_end_token is None:
-            raise ValueError("think_end_token is required when using enable_thinking")
+            raise ValueError(
+                f"Got {enable_thinking=}, but {think_end_token=}. think_end_token is required when using `enable_thinking=True`. Please provide it, and refer to https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md."
+            )
 
         self.add_bos_token = add_bos_token
 
