@@ -15,21 +15,49 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
+def extract_math_answer(text: str) -> str:
+    """Extract a math answer from model output.
+
+    Handles multiple LaTeX formats that models commonly produce:
+      - $...$ (inline math)
+      - \\[...\\] (display math)
+      - \\boxed{...} (boxed answer, possibly nested)
+      - \\fbox{...} (alternative boxed answer)
+    Falls back to the full text if no pattern matches.
+    """
+    import re
+
+    if text is None:
+        return ""
+
+    # 1. Try to extract from \boxed{...} (most specific, handles nested braces)
+    boxed_match = last_boxed_only_string(text)
+    if boxed_match is not None:
+        extracted = remove_boxed(boxed_match)
+        if extracted is not None:
+            return extracted
+
+    # 2. Try \[...\] (display math)
+    display_matches = re.findall(r"\\\[(.+?)\\\]", text, re.DOTALL)
+    if display_matches:
+        # Take the last display math block (final answer is usually last)
+        return display_matches[-1].strip()
+
+    # 3. Try $...$ (inline math)
+    indices = [pos for pos, char in enumerate(text) if char == "$"]
+    if len(indices) >= 2:
+        return text[indices[0] + 1 : indices[-1]]
+
+    # 4. Fallback: return full text
+    return text
+
+
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = extract_math_answer(results[0])
 
-    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
-        retval = 1
+    retval = 1 if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))) else 0
 
-    results = {
-        "exact_match": retval,
-    }
-    return results
+    return {"exact_match": retval}
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
