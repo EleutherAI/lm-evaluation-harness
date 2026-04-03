@@ -356,6 +356,10 @@ class HFLM(TemplateLM):
             if enable_thinking is not None
             else {}
         )
+        self.enable_thinking = enable_thinking
+
+        if enable_thinking and think_end_token is None:
+            raise ValueError("think_end_token is required when using enable_thinking")
 
         self.add_bos_token = add_bos_token
 
@@ -1415,6 +1419,11 @@ class HFLM(TemplateLM):
                     "attn_mask": batched_encoder_mask,
                     "labels": batched_conts,
                 }
+
+            if self.enable_thinking:
+                raise ValueError(
+                    "enable_thinking=True is not compatible with loglikelihood tasks. Please use generative tasks only."
+                )
 
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps, **call_kwargs),
