@@ -1,0 +1,5 @@
+include: _tydiqa_goldp_common_yaml
+task: tydiqa_goldp_id
+doc_to_text: "Konteks: {{context}}\n\nPertanyaan: {{question}}\n\nJawaban:"
+process_docs: !function utils.process_docs_id
+process_results: !function utils.process_results_id

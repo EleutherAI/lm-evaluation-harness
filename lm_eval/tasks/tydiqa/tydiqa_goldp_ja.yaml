@@ -1,0 +1,5 @@
+include: _tydiqa_goldp_common_yaml
+task: tydiqa_goldp_ja
+doc_to_text: "文脈: {{context}}\n\n質問: {{question}}\n\n回答:"
+process_docs: !function utils.process_docs_ja
+process_results: !function utils.process_results_ja
