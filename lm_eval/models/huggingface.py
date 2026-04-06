@@ -1612,7 +1612,7 @@ class HFLM(TemplateLM):
                     ]
                     if len(think_token_indices) < 1:
                         eval_logger.warning(
-                            f"The token think_end_token={self.think_end_token} was not found in the generated sequence. `max_gen_toks` may be too small for the thinking model. Got think_token_indices={think_token_indices}, generated cont_toks (decoded, last 200 characters): `{repr(self.tokenizer.decode(cont_toks[-200:]))}`."
+                            f"The token think_end_token={self.think_end_token} was not found in the generated sequence. max_gen_toks={max_gen_toks} may be too small for the thinking model. Got think_token_indices={think_token_indices}, generated cont_toks (decoded, last 200 characters): `{repr(self.tokenizer.decode(cont_toks[-200:]))}`."
                         )
 
                     if think_token_indices:
