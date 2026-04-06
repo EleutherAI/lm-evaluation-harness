@@ -146,7 +146,7 @@ lm-eval run --config my_config.yaml --tasks mmlu
 Models like Qwen3 or DeepSeek-R1 can produce a chain-of-thought reasoning trace before their final answer. To strip this thinking trace before metrics are computed, use the `think_end_token` and `enable_thinking` model arguments (passed via `--model_args`).
 
 - `enable_thinking`: Activates thinking mode in the chat template (passed as a kwarg to `apply_chat_template`).
-- `think_end_token`: The delimiter marking the end of the thinking section. Everything up to and including the last occurrence of this token is discarded from the output.
+- `think_end_token`: The delimiter marking the end of the thinking section. Everything up to and including the last occurrence of this token is discarded from the output. **This option is required when using `enable_thinking=True`.**
 
 With the `vllm` or `sglang` backends, `think_end_token` must be a **string** (e.g. `</think>`):
 

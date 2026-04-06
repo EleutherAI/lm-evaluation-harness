@@ -151,7 +151,7 @@ class VLLM(TemplateLM):
         data_parallel_size: int = 1,
         lora_local_path: str | None = None,
         # VLLM: enable thinking tags in the prompt.
-        enable_thinking: bool = True,
+        enable_thinking: bool | None = None,
         chat_template_args: dict | None = None,
         # End marker for thinking tags - splits to get response after this token (if provided).
         think_end_token: str | None = None,
@@ -561,6 +561,18 @@ class VLLM(TemplateLM):
                 lora_request=self.lora_request,
             )
             return outputs
+
+    def loglikelihood(
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[tuple[float, bool]]:
+        if self.enable_thinking:
+            task_names = {req.task_name for req in requests if req.task_name}
+            raise ValueError(
+                f"enable_thinking=True is not compatible with loglikelihood tasks. "
+                f"Please use generative tasks only when using `enable_thinking=True`. "
+                f"Triggered by task(s): {', '.join(sorted(task_names))}"
+            )
+        return super().loglikelihood(requests, disable_tqdm=disable_tqdm)
 
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False

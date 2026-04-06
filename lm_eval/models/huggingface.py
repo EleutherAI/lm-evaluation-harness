@@ -1153,6 +1153,18 @@ class HFLM(TemplateLM):
 
         return logits
 
+    def loglikelihood(
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[tuple[float, bool]]:
+        if self.enable_thinking:
+            task_names = {req.task_name for req in requests if req.task_name}
+            raise ValueError(
+                f"enable_thinking=True is not compatible with loglikelihood tasks. "
+                f"Please use generative tasks only when using `enable_thinking=True`. "
+                f"Triggered by task(s): {', '.join(sorted(task_names))}"
+            )
+        return super().loglikelihood(requests, disable_tqdm=disable_tqdm)
+
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[float]:
@@ -1421,11 +1433,6 @@ class HFLM(TemplateLM):
                     "attn_mask": batched_encoder_mask,
                     "labels": batched_conts,
                 }
-
-            if self.enable_thinking:
-                raise ValueError(
-                    "enable_thinking=True is not compatible with loglikelihood tasks. Please use generative tasks only."
-                )
 
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps, **call_kwargs),
