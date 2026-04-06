@@ -219,17 +219,14 @@ def simple_evaluate(
             "No tasks specified, or no tasks found. Please verify the task names."
         )
 
-    if not gen_kwargs:
-        gen_kwargs = {}
-
-    if isinstance(gen_kwargs, str):
-        gen_kwargs = simple_parse_args_string(gen_kwargs)
-    eval_logger.warning(
-        f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
-        "Ensure 'do_sample=True' for non-greedy decoding!"
-    )
-
-    if not gen_kwargs:
+    if gen_kwargs:
+        if isinstance(gen_kwargs, str):
+            gen_kwargs = simple_parse_args_string(gen_kwargs)
+        eval_logger.warning(
+            f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
+            "Ensure 'do_sample=True' for non-greedy decoding!"
+        )
+    else:
         gen_kwargs = {}
 
     model_args_dict = model_args
@@ -315,7 +312,7 @@ def simple_evaluate(
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
         if task_obj.get_config("output_type") == "generate_until":
-            task_gen_kwargs = task_obj.get_config("generation_kwargs") or {}
+            task_gen_kwargs = task_obj.generation_kwargs if task_obj.generation_kwargs is not None else {}
 
             # Apply model defaults only for keys not set by the task YAML or CLI
             for key, value in generation_kwargs_defaults.items():
@@ -330,7 +327,7 @@ def simple_evaluate(
             # Write back model defaults (needed if generation_kwargs was None)
             task_obj.set_config(key="generation_kwargs", value=task_gen_kwargs)
 
-            # CLI gen_kwargs override task YAML (applied last so they win)
+            # CLI gen_kwargs override task YAML / override model defaults.
             if gen_kwargs:
                 task_obj.set_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
