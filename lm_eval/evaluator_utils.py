@@ -68,7 +68,7 @@ def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
         else:
             cur_path = cur_path.parent.resolve()
     raise FileNotFoundError(
-        f"Unable to find package root within {max_layers} upwards" + f"of {start_path}"
+        f"Unable to find package root within {max_layers} upwards of {start_path}"
     )
 
 
