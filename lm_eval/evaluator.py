@@ -312,7 +312,7 @@ def simple_evaluate(
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
         if task_obj.get_config("output_type") == "generate_until":
-            task_gen_kwargs = task_obj.generation_kwargs if task_obj.generation_kwargs is not None else {}
+            task_gen_kwargs = task_obj.get_config("generation_kwargs") or {}
 
             # Apply model defaults only for keys not set by the task YAML or CLI
             for key, value in generation_kwargs_defaults.items():
