@@ -4,7 +4,7 @@ import json
 import logging
 import os
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from tqdm import tqdm
 
@@ -233,7 +233,7 @@ def hash_args(attr: str, args: Iterable[Any]) -> str:
 
 
 class CacheHook:
-    def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
+    def __init__(self, cachinglm: "CachingLM | None") -> None:
         if cachinglm is None:
             self.dbdict: SqliteDict | None = None
             return
