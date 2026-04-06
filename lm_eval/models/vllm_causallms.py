@@ -719,7 +719,7 @@ class VLLM(TemplateLM):
 
                 if self.think_end_token is not None and self.think_end_token not in generated_text:
                     eval_logger.warning(
-                        f"The token think_end_token=`{self.think_end_token}` was not found in the generated sequence. max_gen_toks={max_gen_toks} may be too small for the thinking model. Generated text (decoded, last 200 characters): `{repr(generated_text[-200:])}`."
+                        f"The token think_end_token=`{self.think_end_token}` was not found in the generated sequence. max_gen_toks={max_gen_toks} may be too small for the thinking model, consider using `--gen_kwargs max_gen_toks=xxx` with a larger value. Generated text (decoded, last 200 characters): `{repr(generated_text[-200:])}`."
                     )
 
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
