@@ -1594,7 +1594,7 @@ class HFLM(TemplateLM):
 
             if generated_length == max_gen_toks:
                 eval_logger.warning(
-                    f"Generated {generated_length} which is equal to `max_gen_toks`. The end performance may be low simply due to too short allowed generations."
+                    f"Generated {generated_length} tokens which is equal to `max_gen_toks`, an answer may be missing due to a too small `max_gen_toks` budget or bad model performance."
                 )
 
             cont_toks_list = cont.tolist()
@@ -1610,9 +1610,9 @@ class HFLM(TemplateLM):
                         for i, token in enumerate(cont_toks)
                         if token == self.think_end_token
                     ]
-                    if len(think_token_indices) < 2:
+                    if len(think_token_indices) < 1:
                         eval_logger.warning(
-                            f"The token think_end_token={self.think_end_token} was not found. max_gen_toks is likely too small for a thinking model. Got think_token_indices={think_token_indices}, generated cont_toks (decoded): `{repr(self.tokenizer.decode(cont_toks))}`."
+                            f"The token think_end_token={self.think_end_token} was not found in the generated sequence. `max_gen_toks` may be too small for the thinking model. Got think_token_indices={think_token_indices}, generated cont_toks (decoded, last 200 characters): `{repr(self.tokenizer.decode(cont_toks[-200:]))}`."
                         )
 
                     if think_token_indices:

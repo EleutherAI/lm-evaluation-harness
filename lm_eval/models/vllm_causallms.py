@@ -711,7 +711,7 @@ class VLLM(TemplateLM):
 
                 if self.think_end_token is not None and self.think_end_token not in generated_text:
                     eval_logger.warning(
-                        f"Could not find an answer in the generated sequence (sequence end): {repr(generated_text[-50:])}"
+                            f"The token think_end_token=`{self.think_end_token}` was not found in the generated sequence. `max_gen_toks` may be too small for the thinking model. Generated text (decoded, last 200 characters): `{repr(self.tokenizer.decode(generated_text[-200:]))}`."
                     )
 
                 for stop_sequence in until:

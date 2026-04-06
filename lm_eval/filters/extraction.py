@@ -53,13 +53,13 @@ class RegexFilter(Filter):
                             match = match[0]
                         else:
                             eval_logger.debug(
-                                f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
+                                f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as incorrect. Response (last 200 characters): `{repr(resp[-200:])}`, regex: {self.regex}."
                             )
                             match = self.fallback
                     match = match.strip()
                 else:
                     eval_logger.debug(
-                        f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
+                        f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as incorrect. Response (last 200 characters): `{repr(resp[-200:])}`, regex: {self.regex}."
                     )
                     match = self.fallback
                 filtered.append(match)
@@ -105,7 +105,7 @@ class POSFilter(Filter):
                 return pos_tags
             else:
                 eval_logger.debug(
-                    f"No match in the output in POSFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(result)}`"
+                    f"No match in the output in POSFilter! Using fallback {self.fallback}, likely rated as incorrect. Response (last 200 characters): `{repr(result[-200:])}`, regex: {self.regex}."
                 )
 
                 return self.fallback
@@ -248,7 +248,7 @@ class MultiChoiceRegexFilter(RegexFilter):
                         )
                 if not match:
                     eval_logger.debug(
-                        f"No match in the output in MultiChoiceRegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
+                        f"No match in the output in MultiChoiceRegexFilter! Using fallback {self.fallback}, likely rated as incorrect. Response (last 200 characters): `{repr(resp[-200:])}`, regex: {self.regex}."
                     )
                     match = self.fallback
                 filtered.append(match)
