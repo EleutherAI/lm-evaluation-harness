@@ -239,12 +239,10 @@ def simple_evaluate(
     model_id = model_args_dict["pretrained"]
     generation_config = GenerationConfig.from_pretrained(model_id)
 
-    for key in ["top_p", "top_k", "temperature"]:
-        if key not in gen_kwargs:
-            eval_logger.info(f"Setting gen_kwargs {key}={getattr(generation_config, key)} from the model default generation_config.json.")
-            gen_kwargs[key] = getattr(generation_config, key)
-        else:
-            eval_logger.info(f"{model_name} default {key}={getattr(generation_config, key)} overriden by user set {key}={gen_kwargs[key]}")
+    generation_kwargs_defaults = {}
+    for key in ["top_p", "top_k", "temperature", "do_sample"]:
+        if hasattr(generation_config, key):
+            generation_kwargs_defaults[key] = getattr(generation_config, key)
 
     if isinstance(model, str):
         if model_args is None:
@@ -317,7 +315,23 @@ def simple_evaluate(
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
         if task_obj.get_config("output_type") == "generate_until":
-            if gen_kwargs is not None:
+            task_gen_kwargs = task_obj.get_config("generation_kwargs") or {}
+
+            # Apply model defaults only for keys not set by the task YAML or CLI
+            for key, value in generation_kwargs_defaults.items():
+                if key not in task_gen_kwargs and key not in gen_kwargs:
+                    eval_logger.info(f"{task_name}: Setting gen_kwargs {key}={value} from the model default generation_config.json.")
+                    task_gen_kwargs[key] = value
+                else:
+                    source = "cli" if key in gen_kwargs else "task config"
+                    effective = gen_kwargs[key] if key in gen_kwargs else task_gen_kwargs[key]
+                    eval_logger.info(f"{task_name}: Model default generation argument {key}={value} overridden by {source} {key}={effective}.")
+
+            # Write back model defaults (needed if generation_kwargs was None)
+            task_obj.set_config(key="generation_kwargs", value=task_gen_kwargs)
+
+            # CLI gen_kwargs override task YAML (applied last so they win)
+            if gen_kwargs:
                 task_obj.set_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
                 )
