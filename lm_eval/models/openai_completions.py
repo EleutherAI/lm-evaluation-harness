@@ -220,13 +220,14 @@ class LocalChatCompletion(LocalCompletionsAPI):
                     tmp[choices["index"]] = (
                         msg.get("content"),
                         msg.get("tool_calls", None),
+                        msg.get("reasoning", None),
                     )
             except Exception as e:
                 # account for cases that generation is blocked by content filter,
                 # which is common for Azure OpenAI Service,
                 # not sure if need to account for multiple choices
                 eval_logger.warning(f"Could not parse generations: {e}")
-                tmp = [("", None)]
+                tmp = [("", None, None)]
             res = res + tmp
         return res
 

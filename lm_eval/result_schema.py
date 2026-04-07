@@ -198,6 +198,11 @@ class SampleResult(TypedDict, extra_items=float):
     Only present for models that support tool calling.
     Each entry is either a list of tool call dicts or None if no tool was called."""
 
+    reasoning: NotRequired[list[list[str | None]]]
+    """Reasoning text from the model (if any).  Per-request × repeats.
+    Only present for models that support reasoning output.
+    Each entry is either a reasoning string or None if no reasoning was provided."""
+
     filter: str
     """Name of the filter applied (e.g. ``"none"``, ``"strict-match"``)."""
 

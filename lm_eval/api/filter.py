@@ -28,13 +28,14 @@ class Filter(ABC):
         [<filtered resps for instance 0>, <filtered resps for instance 1>]
         """
         return resps
-    
 
-    def apply_wkwargs(self, resps: Union[List, Iterable], docs: List[dict], **kwargs) -> Iterable:
+    def apply_wkwargs(
+        self, resps: Union[List, Iterable], docs: List[dict], **kwargs
+    ) -> Iterable:
         """
         Same behaviour as `apply` but with the added parsing of keyword arguments, for backward compatibility.
 
-        This function is intended to be used when the model response (or part of it) is produced, for example, in the 
+        This function is intended to be used when the model response (or part of it) is produced, for example, in the
         `tool_calls` or `reasoning` field of a chat generation request.
         By default this will fallback to normal apply, ignoring any additional argument.
         """
@@ -58,11 +59,18 @@ class FilterEnsemble:
         resps = [inst.resps for inst in instances]
         docs = [inst.doc for inst in instances]
         tool_calls, has_tools = self.get_tool_calls(resps, instances)
+        reasoning, has_reasoning = self.get_reasoning(resps, instances)
 
         for f in self.filters:
-            # apply filters in sequence
+            # apply filters in sequence - pass kwargs conditionally based on what's available
+            kwargs = {}
             if has_tools:
-                resps = f().apply_wkwargs(resps, docs, tool_calls=tool_calls)
+                kwargs["tool_calls"] = tool_calls
+            if has_reasoning:
+                kwargs["reasoning"] = reasoning
+
+            if kwargs:
+                resps = f().apply_wkwargs(resps, docs, **kwargs)
             else:
                 resps = f().apply(resps, docs)
 
@@ -71,8 +79,8 @@ class FilterEnsemble:
         for inst, resp in zip(instances, resps):
             inst.filtered_resps[self.name] = resp
 
-    def get_tool_calls(self, resps: List[str], instances: List[Instance]) -> List[dict]:
-         # Check if tool_calls are actually populated (non-empty)
+    def get_tool_calls(self, resps: List[str], instances: List[Instance]) -> tuple:
+        # Check if tool_calls are actually populated (non-empty)
         has_tool_calls = any(inst.tool_calls for inst in instances)
 
         if has_tool_calls:
@@ -89,3 +97,22 @@ class FilterEnsemble:
             tool_calls = [[None] * len(resp) for resp in resps]
 
         return tool_calls, has_tool_calls
+
+    def get_reasoning(self, resps: List[str], instances: List[Instance]) -> tuple:
+        # Check if reasoning is actually populated (non-empty)
+        has_reasoning = any(inst.reasoning for inst in instances)
+
+        if has_reasoning:
+            reasoning = [inst.reasoning for inst in instances]
+            # Verify all reasoning lists have same length as resps
+            if all(len(r) == len(resp) for r, resp in zip(reasoning, resps)):
+                # Valid: reasoning is present and aligned
+                pass
+            else:
+                # Mismatch: fall back to None padding
+                reasoning = [[None] * len(resp) for resp in resps]
+        else:
+            # No reasoning present, patch with Nones
+            reasoning = [[None] * len(resp) for resp in resps]
+
+        return reasoning, has_reasoning
