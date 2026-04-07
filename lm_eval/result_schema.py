@@ -193,6 +193,11 @@ class SampleResult(TypedDict, extra_items=float):
     Generation: ``list[str]``.
     Multiple-choice: ``list[list[str]]`` — per-choice ``[log_prob, is_greedy]``."""
 
+    tool_calls: NotRequired[list[list[dict | None]]]
+    """Tool calls made by the model (if any).  Per-request × repeats.
+    Only present for models that support tool calling.
+    Each entry is either a list of tool call dicts or None if no tool was called."""
+
     filter: str
     """Name of the filter applied (e.g. ``"none"``, ``"strict-match"``)."""
 

@@ -586,8 +586,16 @@ def evaluate(
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
+        # If the model returns (content, tool_calls) tuples (e.g. LocalChatCompletion),
+        # unpack them: store the text content in resps (preserving the expected str contract)
+        # and store tool_calls separately on the Instance for use in custom tasks.
         for x, req in zip(resps, cloned_reqs, strict=True):
-            req.resps.append(x)
+            if isinstance(x, tuple) and len(x) == 2:
+                content, tool_calls = x
+                req.resps.append(content)
+                req.tool_calls.append(tool_calls)
+            else:
+                req.resps.append(x)
 
         if lm.world_size > 1:
             lm.barrier()
@@ -636,6 +644,7 @@ def evaluate(
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
+                        "tool_calls": [req.tool_calls for req in requests],
                         "filter": filter_key,
                         "metrics": list(metrics.keys()),
                         "doc_hash": hash_string(

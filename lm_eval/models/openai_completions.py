@@ -208,7 +208,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         }
 
     @staticmethod
-    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[tuple]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -216,13 +216,17 @@ class LocalChatCompletion(LocalCompletionsAPI):
             try:
                 tmp = [None] * len(out["choices"])
                 for choices in out["choices"]:
-                    tmp[choices["index"]] = choices["message"]["content"]
+                    msg = choices["message"]
+                    tmp[choices["index"]] = (
+                        msg.get("content"),
+                        msg.get("tool_calls", None),
+                    )
             except Exception as e:
                 # account for cases that generation is blocked by content filter,
                 # which is common for Azure OpenAI Service,
                 # not sure if need to account for multiple choices
                 eval_logger.warning(f"Could not parse generations: {e}")
-                tmp = [""]
+                tmp = [("", None)]
             res = res + tmp
         return res
 

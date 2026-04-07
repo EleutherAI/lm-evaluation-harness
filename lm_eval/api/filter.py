@@ -28,6 +28,17 @@ class Filter(ABC):
         [<filtered resps for instance 0>, <filtered resps for instance 1>]
         """
         return resps
+    
+
+    def apply_wkwargs(self, resps: Union[List, Iterable], docs: List[dict], **kwargs) -> Iterable:
+        """
+        Same behaviour as `apply` but with the added parsing of keyword arguments, for backward compatibility.
+
+        This function is intended to be used when the model response (or part of it) is produced, for example, in the 
+        `tool_calls` or `reasoning` field of a chat generation request.
+        By default this will fallback to normal apply, ignoring any additional argument.
+        """
+        return self.apply(resps, docs)
 
 
 @dataclass
@@ -43,14 +54,38 @@ class FilterEnsemble:
     filters: List[Callable[[], Filter]]
 
     def apply(self, instances: List[Instance]) -> None:
-        resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
-        resps, docs = list(resps), list(docs)
+        # Unpack instances
+        resps = [inst.resps for inst in instances]
+        docs = [inst.doc for inst in instances]
+        tool_calls, has_tools = self.get_tool_calls(resps, instances)
 
         for f in self.filters:
             # apply filters in sequence
-            resps = f().apply(resps, docs)
+            if has_tools:
+                resps = f().apply_wkwargs(resps, docs, tool_calls=tool_calls)
+            else:
+                resps = f().apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
         for inst, resp in zip(instances, resps):
             inst.filtered_resps[self.name] = resp
+
+    def get_tool_calls(self, resps: List[str], instances: List[Instance]) -> List[dict]:
+         # Check if tool_calls are actually populated (non-empty)
+        has_tool_calls = any(inst.tool_calls for inst in instances)
+
+        if has_tool_calls:
+            tool_calls = [inst.tool_calls for inst in instances]
+            # Verify all tool_calls lists have same length as resps
+            if all(len(tc) == len(resp) for tc, resp in zip(tool_calls, resps)):
+                # Valid: tool_calls are present and aligned
+                pass
+            else:
+                # Mismatch: fall back to None padding
+                tool_calls = [[None] * len(resp) for resp in resps]
+        else:
+            # No tool_calls present, patch with Nones
+            tool_calls = [[None] * len(resp) for resp in resps]
+
+        return tool_calls, has_tool_calls
