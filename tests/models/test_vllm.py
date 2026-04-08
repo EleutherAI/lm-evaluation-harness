@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from lm_eval import tasks
@@ -46,3 +48,10 @@ class Test_VLLM:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
         for x in res:
             assert isinstance(x, float)
+
+    def test_loglikelihood_rejects_enable_thinking(self) -> None:
+        with patch.object(self.LM, "enable_thinking", True):
+            with pytest.raises(ValueError) as exc_info:
+                self.LM.loglikelihood(self.MULTIPLE_CH)
+            assert "arc_easy" in str(exc_info.value)
+            assert "enable_thinking=True" in str(exc_info.value)
