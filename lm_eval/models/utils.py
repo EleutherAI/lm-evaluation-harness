@@ -931,6 +931,12 @@ def postprocess_generated_text(
                 # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
                 generation = generation.split(term)[0]
     if think_end_token:
+        if think_end_token not in generation:
+            eval_logger.warning(
+                f"The token think_end_token=`{think_end_token}` was not found in the generated sequence. "
+                "`max_gen_toks` may be too small for the thinking model. "
+                f"Got generated text (last 200 characters): `{repr(generation[-200:])}`."
+            )
         generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation

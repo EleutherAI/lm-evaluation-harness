@@ -1608,6 +1608,13 @@ class HFLM(TemplateLM):
                 **kwargs,
             )
 
+            generated_length = cont.shape[-1] - context_enc.shape[-1]
+
+            if generated_length == max_gen_toks:
+                eval_logger.warning(
+                    f"Generated {generated_length} tokens which is equal to `max_gen_toks`, an answer may be missing due to a too small `max_gen_toks` budget or bad model performance."
+                )
+
             cont_toks_list = cont.tolist()
             for cont_toks, context in zip(cont_toks_list, contexts, strict=True):
                 # discard context + left-padding toks if using causal decoder-only LM
@@ -1621,10 +1628,23 @@ class HFLM(TemplateLM):
                         for i, token in enumerate(cont_toks)
                         if token == self.think_end_token
                     ]
+                    if len(think_token_indices) < 1:
+                        eval_logger.warning(
+                            f"The token think_end_token={self.think_end_token} was not found in the generated sequence. max_gen_toks={max_gen_toks} may be too small for the thinking model, consider using `--gen_kwargs max_gen_toks=xxx` with a larger value. Got think_token_indices={think_token_indices}, generated cont_toks (decoded, last 200 characters): `{repr(self.tokenizer.decode(cont_toks[-200:]))}`."
+                        )
+
                     if think_token_indices:
                         cont_toks = cont_toks[think_token_indices[-1] + 1 :]
 
                 s = self.tok_decode(cont_toks)
+
+                for stop_sequence in until:
+                    stop_length = len(stop_sequence)
+
+                    if s[-stop_length:] == stop_sequence:
+                        eval_logger.warning(
+                            f"Sequence generation stopped due to the stop sequence: `{repr(stop_sequence)}`. This may or may not be expected."
+                        )
 
                 # Strip leading whitespace if we removed thinking tokens
                 if isinstance(self.think_end_token, int):

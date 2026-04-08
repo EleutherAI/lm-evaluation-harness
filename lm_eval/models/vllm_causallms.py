@@ -727,6 +727,20 @@ class VLLM(TemplateLM):
                 cont, context, _cache_gen_kwargs, strict=True
             ):
                 generated_text: str = output.outputs[0].text
+
+                for stop_sequence in until:
+                    stop_length = len(stop_sequence)
+
+                    if generated_text[-stop_length:] == stop_sequence:
+                        eval_logger.warning(
+                            f"Sequence generation stopped due to the stop sequence: `{repr(stop_sequence)}`. This may or may not be expected."
+                        )
+
+                if self.think_end_token is not None and self.think_end_token not in generated_text:
+                    eval_logger.warning(
+                        f"The token think_end_token=`{self.think_end_token}` was not found in the generated sequence. max_gen_toks={max_gen_toks} may be too small for the thinking model, consider using `--gen_kwargs max_gen_toks=xxx` with a larger value. Generated text (decoded, last 200 characters): `{repr(generated_text[-200:])}`."
+                    )
+
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
                     generated_text, _gen_kwargs.get("until"), self.think_end_token
