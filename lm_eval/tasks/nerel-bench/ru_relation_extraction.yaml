@@ -1,0 +1,15 @@
+tag:
+- nerel-bench
+task: ru_relation_extraction
+task_alias: RuRelationExtraction
+dataset_name: relation_extraction
+include: _template_yaml
+metric_list:
+  - metric: !function utils.f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.fewshot_samples_for_re
