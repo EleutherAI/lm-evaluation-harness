@@ -1,5 +1,4 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
-# Adapted from cruxeval_evaluation for lm-evaluation-harness integration
 
 import contextlib
 import faulthandler
@@ -9,15 +8,9 @@ import os
 import platform
 import signal
 import tempfile
-from concurrent.futures import ProcessPoolExecutor
-from typing import Optional
 
 import numpy as np
 
-
-# ============================================================================
-# Code Execution Utilities (from utils_execute.py)
-# ============================================================================
 
 class TimeoutException(Exception):
     pass
@@ -223,7 +216,7 @@ def check_correctness(check_program, timeout=3):
 
 
 # ============================================================================
-# Pass@k Calculation (from utils_general.py)
+# Pass@k Calculation
 # ============================================================================
 
 def _pass_at_k(n, c, k):
@@ -237,50 +230,6 @@ def _pass_at_k(n, c, k):
     if n - c < k:
         return 1.0
     return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))
-
-
-def evaluate_score(args):
-    """
-    Evaluate a single sample's generations.
-    
-    :param args: tuple of (generations, (code, input, output), mode)
-    :return: list of boolean execution results
-    """
-    gs, (c, i, o), mode = args
-
-    execution_results = []
-    for g in gs:
-        if mode == "input" and "f(" not in g:
-            execution_results.append(False)
-        elif mode == "output" and f"f({i})" in g:
-            execution_results.append(False)
-        else:
-            code_to_execute = f"{c}\nassert {o} == {g}"
-            execution_results.append(check_correctness(code_to_execute, 3))
-    
-    if True not in execution_results:
-        execution_results = [False] * len(gs)
-    return execution_results
-
-
-def evaluate_score_single(code: str, input_val: str, output_val: str, generation: str, mode: str) -> bool:
-    """
-    Evaluate a single generation.
-    
-    :param code: the function code
-    :param input_val: the input value
-    :param output_val: the expected output value
-    :param generation: the model generation to evaluate
-    :param mode: 'input' or 'output'
-    :return: boolean indicating if the generation is correct
-    """
-    if mode == "input" and "f(" not in generation:
-        return False
-    elif mode == "output" and f"f({input_val})" in generation:
-        return False
-    else:
-        code_to_execute = f"{code}\nassert {output_val} == {generation}"
-        return check_correctness(code_to_execute, 3)
 
 
 # ============================================================================
@@ -336,9 +285,19 @@ def build_predictions_input(resps: list[list[str]], docs: list[dict]) -> list[li
     return [[extract_code_input(doc, r, False) for r in resp] for resp, doc in zip(resps, docs)]
 
 
+def build_predictions_input_cot(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+    """Build executable code predictions for input prediction task (CoT variant)."""
+    return [[extract_code_input(doc, r, True) for r in resp] for resp, doc in zip(resps, docs)]
+
+
 def build_predictions_output(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
     """Build executable code predictions for output prediction task."""
     return [[extract_code_output(doc, r, False) for r in resp] for resp, doc in zip(resps, docs)]
+
+
+def build_predictions_output_cot(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+    """Build executable code predictions for output prediction task (CoT variant)."""
+    return [[extract_code_output(doc, r, True) for r in resp] for resp, doc in zip(resps, docs)]
 
 
 def extract_code_output(doc: dict, generation: str, cot: bool) -> str:
@@ -429,8 +388,9 @@ def extract_code_input(doc: dict, generation: str, cot: bool) -> str:
     # Clean up common artifacts
     gen = gen.split('\n')[0]  # Take first line only
     gen = gen.split('#')[0].strip()  # Remove comments
-    
-    return f'assert f({gen})=={doc["output"]}'
+
+    code = doc['code']
+    return f'{code}\nassert f({gen})=={doc["output"]}'
 
 
 # ============================================================================
@@ -469,57 +429,3 @@ def list_fewshot_samples_input():
             "is_fewshot": True,
         },
     ]
-
-
-# ============================================================================
-# Batch Evaluation Functions (for parallel processing)
-# ============================================================================
-
-def evaluate_generations_batch(
-    generations: list[list[str]], 
-    docs: list[dict], 
-    mode: str,
-    k_values: list[int] = None
-) -> dict:
-    """
-    Evaluate a batch of generations using parallel processing.
-    
-    :param generations: list of lists of generations for each sample
-    :param docs: list of document dictionaries with code, input, output
-    :param mode: 'input' or 'output'
-    :param k_values: list of k values to compute pass@k for
-    :return: dictionary with evaluation results
-    """
-    if k_values is None:
-        k_values = [1, 2, 4, 8, 16, 32, 64]
-    
-    references = [(doc["code"], doc["input"], doc["output"]) for doc in docs]
-    
-    # Run evaluation in parallel
-    with ProcessPoolExecutor() as executor:
-        args_list = zip(generations, references, [mode] * len(generations))
-        results = executor.map(evaluate_score, args_list)
-    all_scores = list(results)
-    
-    # Compute pass@k scores
-    pass_at_k_scores = {k: [] for k in k_values}
-    
-    for execution_result in all_scores:
-        c, n = execution_result.count(True), len(execution_result)
-        for kv in k_values:
-            pass_at_k_scores[kv].append(_pass_at_k(n, c, kv))
-    
-    # Aggregate results
-    result = {}
-    for kv in k_values:
-        scores = pass_at_k_scores[kv]
-        result[f"pass@{kv}"] = np.mean(scores) * 100 if scores else 0.0
-        result[f"pass@{kv}_var"] = np.var(scores) if scores else 0.0
-    
-    result["raw_scores"] = all_scores
-    result["per_sample_pass_at_k"] = {
-        i: {f"pass@{kv}": pass_at_k_scores[kv][i] for kv in k_values}
-        for i in range(len(all_scores))
-    }
-    
-    return result

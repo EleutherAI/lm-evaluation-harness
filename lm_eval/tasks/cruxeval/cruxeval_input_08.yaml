@@ -12,3 +12,5 @@ generation_kwargs:
   max_gen_toks: 1024
   do_sample: True
   temperature: 0.8
+metadata:
+  version: 1.0

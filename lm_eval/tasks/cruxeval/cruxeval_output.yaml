@@ -26,3 +26,5 @@ num_fewshot: 2
 fewshot_config:
   sampler: first_n
   samples: !function utils.list_fewshot_samples_output
+metadata:
+  version: 1.0
