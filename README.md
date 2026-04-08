@@ -327,6 +327,84 @@ Note that it is recommended to substitute the `python` command by `torchrun --np
 
 Not supported yet: multi-node evaluation and combinations of data replication with tensor or pipeline parallelism.
 
+### Megatron-LM models
+
+[Megatron-LM](https://github.com/NVIDIA/Megatron-LM) is NVIDIA's large-scale transformer training framework. This backend allows direct evaluation of Megatron-LM checkpoints without conversion.
+
+**Requirements:**
+- Megatron-LM must be installed or accessible via `MEGATRON_PATH` environment variable
+- PyTorch with CUDA support
+
+**Setup:**
+
+```bash
+# Set environment variable pointing to Megatron-LM installation
+export MEGATRON_PATH=/path/to/Megatron-LM
+```
+
+**Basic usage (single GPU):**
+
+```bash
+lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_type=HuggingFaceTokenizer,tokenizer_model=/path/to/tokenizer \
+    --tasks hellaswag \
+    --batch_size 1
+```
+
+**Supported checkpoint formats:**
+- Standard Megatron checkpoints (`model_optim_rng.pt`)
+- Distributed checkpoints (`.distcp` format, auto-detected)
+
+#### Parallelism Modes
+
+The Megatron-LM backend supports the following parallelism modes:
+
+| Mode | Configuration | Description |
+|------|---------------|-------------|
+| Single GPU | `devices=1` (default) | Standard single GPU evaluation |
+| Data Parallelism | `devices>1, TP=1` | Each GPU has a full model replica, data is distributed |
+| Tensor Parallelism | `TP == devices` | Model layers are split across GPUs |
+| Expert Parallelism | `EP == devices, TP=1` | For MoE models, experts are distributed across GPUs |
+
+> [!Note]
+> - Pipeline Parallelism (PP > 1) is not currently supported.
+> - Expert Parallelism (EP) cannot be combined with Tensor Parallelism (TP).
+
+**Data Parallelism (4 GPUs, each with full model replica):**
+
+```bash
+torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=4 \
+    --tasks hellaswag
+```
+
+**Tensor Parallelism (TP=2):**
+
+```bash
+torchrun --nproc-per-node=2 -m lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=2,tensor_model_parallel_size=2 \
+    --tasks hellaswag
+```
+
+**Expert Parallelism for MoE models (EP=4):**
+
+```bash
+torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
+    --model_args load=/path/to/moe_checkpoint,tokenizer_model=/path/to/tokenizer,devices=4,expert_model_parallel_size=4 \
+    --tasks hellaswag
+```
+
+**Using extra_args for additional Megatron options:**
+
+```bash
+lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,extra_args="--no-rope-fusion --trust-remote-code" \
+    --tasks hellaswag
+```
+
+> [!Note]
+> The `--use-checkpoint-args` flag is enabled by default, which loads model architecture parameters from the checkpoint. For checkpoints converted via Megatron-Bridge, this typically includes all necessary model configuration.
+
 #### Multi-GPU evaluation with OpenVINO models
 
 Pipeline parallelism during evaluation is supported with OpenVINO models
@@ -396,28 +474,23 @@ https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/overview
 To use Windows ML, install the required dependencies:
 
 ```bash
-pip install wasdk-Microsoft.Windows.AI.MachineLearning[all] wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap
-# The onnxruntime-winml package is not published to PyPI yet. Please install it from the ort-nightly feed
-pip install --pre --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --extra-index-url https://pypi.org/simple onnxruntime-winml onnxruntime-genai-winml
+pip install wasdk-Microsoft.Windows.AI.MachineLearning[all] wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap onnxruntime-windowsml onnxruntime-genai-winml
 ```
 
-Evaluate a LLM ONNX model on NPU/GPU/CPU on Windows AI PC:
+Evaluate an ONNX Runtime GenAI LLM on NPU/GPU/CPU on Windows:
 
 ```bash
 lm_eval --model winml \
-    --model_args pretrained=/path/to/onnx/model,device=npu \
+    --model_args pretrained=/path/to/onnx/model \
     --tasks mmlu \
     --batch_size 1
 ```
 
-Supported devices: `npu`, `gpu`, `cpu`.
+> [!Note]
+> The Windows ML backend is ONLY for ONNX Runtime GenAI model format. Models targeting `transformers.js` won't work. You can verify this by finding the `genai_config.json` file in the model folder.
 
 > [!Note]
-> The Windows ML backend is optimized for ONNX models in GenAI format. Models must be converted to ONNX format before evaluation. The backend automatically detects and uses available Windows ML execution providers. (Model Conversion Guide, Microsoft AI Took Kit
-https://code.visualstudio.com/docs/intelligentapps/modelconversion)
-
-> [!Tip]
-> For best performance on NPU/GPU-enabled devices (e.g., Intel, Qualcomm, AMD, NVIDIA), use `device=npu or device=gpu`. The backend will automatically configure the appropriate execution provider.
+> To run an ONNX Runtime GenAI model on the target device, you MUST convert the original model to that vendor and device type. Converted models won't work / work well on other vendor or device types. To learn more on model conversion, please visit [Microsoft AI Tool Kit](https://code.visualstudio.com/docs/intelligentapps/modelconversion)
 
 ### Model APIs and Inference Servers
 
@@ -456,8 +529,10 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | Mamba                                                                                                                     | :heavy_check_mark:                                                                                      | `mamba_ssm`                                         | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces)                                                                                                                                                                                                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Huggingface Optimum (Causal LMs)                                                                                          | :heavy_check_mark:                                                                                      | `openvino`                                          | Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                                                                                                                                                                                                                            | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Huggingface Optimum-intel IPEX (Causal LMs)                                                                               | :heavy_check_mark:                                                                                      | `ipex`                                              | Any decoder-only AutoModelForCausalLM                                                                                                                                                                                                                                                                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
+| Huggingface Optimum-habana (Causal LMs)                                                                               | :heavy_check_mark:                                                                                      | `habana`                                              | Any decoder-only AutoModelForCausalLM                                                                                                                                                                                                                                                                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Neuron via AWS Inf2 (Causal LMs)                                                                                          | :heavy_check_mark:                                                                                      | `neuronx`                                           | Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                                                                                                                                                                                            | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | NVIDIA NeMo                                                                                                               | :heavy_check_mark:                                                                                      | `nemo_lm`                                           | [All supported models](https://docs.nvidia.com/nemo-framework/user-guide/24.09/nemotoolkit/core/core.html#nemo-models)                                                                                                                                                                                                                                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
+| NVIDIA Megatron-LM                                                                                                        | :heavy_check_mark:                                                                                      | `megatron_lm`                                       | [Megatron-LM GPT models](https://github.com/NVIDIA/Megatron-LM) (standard and distributed checkpoints)                                                                                                                                                                                                                                                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Watsonx.ai                                                                                                                | :heavy_check_mark:                                                                                      | `watsonx_llm`                                       | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                                                                                                                                                                                                                 | `generate_until` `loglikelihood`                                               |
 | Windows ML                                                                                           | :heavy_check_mark:                                                                                      | `winml`                                             | [ONNX models in GenAI format](https://code.visualstudio.com/docs/intelligentapps/modelconversion)                                                                                                                                                                                                                                                                                                                                 | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | [Your local inference server!](docs/API_guide.md)                                                                         | :heavy_check_mark:                                                                                      | `local-completions` or `local-chat-completions`     | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                                                                                                                                                                                                                         | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
@@ -701,6 +776,7 @@ These extras install dependencies required to run specific model backends:
 | gptqmodel      | GPTQModel quantized models                       |
 | ibm_watsonx_ai | IBM watsonx.ai models                            |
 | ipex           | Intel IPEX backend                               |
+| habana         | Intel Gaudi backend                              |
 | optimum        | Intel OpenVINO models                            |
 | neuronx        | AWS Inferentia2 instances                        |
 | winml          | Windows ML (ONNX Runtime GenAI) - CPU/GPU/NPU    |

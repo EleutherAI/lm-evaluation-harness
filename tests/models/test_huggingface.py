@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import tokenizers
@@ -10,9 +11,11 @@ import torch
 from packaging.version import parse as parse_version
 
 from lm_eval import tasks
-from lm_eval.api.instance import Instance
 from lm_eval.models.huggingface import HFLM
 
+
+if TYPE_CHECKING:
+    from lm_eval.api.instance import Instance
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
@@ -22,7 +25,7 @@ TEST_STRING = "foo bar"
 
 class Test_HFLM:
     torch.use_deterministic_algorithms(True)
-    task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
+    task_list = task_manager.load(["arc_easy", "gsm8k", "wikitext"])["tasks"]
     version_minor = sys.version_info.minor
     multiple_choice_task = task_list["arc_easy"]  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)

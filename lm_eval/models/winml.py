@@ -6,12 +6,8 @@ hardware backends including NPUs, GPUs, and CPUs. It's particularly useful for
 running inference on Windows devices with dedicated Neural Processing Units.
 
 Example usage:
-    lm_eval --model winml --model_args pretrained=path/to/onnx/model.onnx,device=npu --tasks hellaswag
+    lm_eval --model winml --model_args pretrained=path/to/onnx/model.onnx --tasks hellaswag
 
-Supported devices:
-    - npu: Neural Processing Unit (recommended for efficiency)
-    - gpu: Graphics Processing Unit
-    - cpu: Central Processing Unit
 """
 
 import logging
@@ -71,17 +67,16 @@ class WindowsML(TemplateLM):
     def __init__(
         self,
         pretrained: str,
-        device: str = "cpu",
         max_length: int | None = 4096,
         batch_size: int = 1,
         max_batch_size: int = 64,
+        **kwargs,
     ) -> None:
         """
         Initialize WindowsML model.
 
         Args:
             pretrained: Path to ONNX model file or directory containing model files
-            device: Target device ('npu', 'gpu', 'cpu')
             max_length: Maximum sequence length
             batch_size: Batch size for inference
             max_batch_size: Maximum batch size for auto-batching
@@ -93,7 +88,6 @@ class WindowsML(TemplateLM):
 
         # Store configuration
         self.pretrained = pretrained
-        self.device = device.lower()
         self.max_length = max_length or self._DEFAULT_MAX_LENGTH
         self.batch_size = batch_size
         self.max_batch_size = max_batch_size
