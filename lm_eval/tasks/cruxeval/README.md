@@ -43,29 +43,12 @@ Homepage: https://crux-eval.github.io
 The scoring logic was validated against the original CRUXEval reference implementation
 ([facebookresearch/cruxeval](https://github.com/facebookresearch/cruxeval)) using the
 CodeLlama-7B generations provided in the reference repo (`sample_codellama-7b_temp0.2`).
-
-The comparison script (`lm_eval/tasks/cruxeval/compare_cruxeval.py`) re-scores the same postprocessed
-generations with both pipelines and reports per-sample disagreements.
+Both pipelines were run on the same postprocessed generations across all 800 samples.
 
 | Mode   | Reference pass@1 | lm-eval pass@1 | Reference pass@5 | lm-eval pass@5 | Disagreements |
 |--------|-----------------|----------------|-----------------|----------------|---------------|
 | output | 34.2%           | 34.2%          | 40.3%           | 40.3%          | 0 / 800       |
 | input  | 36.0%           | 36.0%          | 45.0%           | 45.0%          | 0 / 800       |
-
-To reproduce:
-
-```bash
-# Clone the reference repo alongside lm-evaluation-harness
-git clone https://github.com/facebookresearch/cruxeval ../cruxeval
-
-python lm_eval/tasks/cruxeval/compare_cruxeval.py \
-    --generations ../cruxeval/samples/model_generations/sample_codellama-7b_temp0.2_output/generations.json \
-    --mode output
-
-python lm_eval/tasks/cruxeval/compare_cruxeval.py \
-    --generations ../cruxeval/samples/model_generations/sample_codellama-7b_temp0.2_input/generations.json \
-    --mode input
-```
 
 ### Checklist
 
