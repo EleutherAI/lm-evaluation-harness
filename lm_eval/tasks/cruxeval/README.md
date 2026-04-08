@@ -23,12 +23,6 @@ Homepage: https://crux-eval.github.io
 }
 ```
 
-### Groups and Tasks
-
-#### Groups
-
-* Not part of a group yet.
-
 #### Tasks
 
 - `cruxeval_input`: Input prediction — given a function and its output, predict a valid input. pass@1 at temperature 0.2. Matches the published evaluation setup from the paper.
@@ -38,24 +32,12 @@ Homepage: https://crux-eval.github.io
 - `cruxeval_output_08`: Output prediction at temperature 0.8 for pass@5 evaluation. Matches the published pass@5 setup from the paper.
 - `cruxeval_output_cot`: Output prediction with chain-of-thought reasoning prompting.
 
-### Reference Implementation Comparison
-
-The scoring logic was validated against the original CRUXEval reference implementation
-([facebookresearch/cruxeval](https://github.com/facebookresearch/cruxeval)) using the
-CodeLlama-7B generations provided in the reference repo (`sample_codellama-7b_temp0.2`).
-Both pipelines were run on the same postprocessed generations across all 800 samples.
-
-| Mode   | Reference pass@1 | lm-eval pass@1 | Reference pass@5 | lm-eval pass@5 | Disagreements |
-|--------|-----------------|----------------|-----------------|----------------|---------------|
-| output | 34.2%           | 34.2%          | 40.3%           | 40.3%          | 0 / 800       |
-| input  | 36.0%           | 36.0%          | 45.0%           | 45.0%          | 0 / 800       |
-
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
