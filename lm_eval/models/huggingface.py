@@ -1324,6 +1324,14 @@ class HFLM(TemplateLM):
             else None
         )
 
+        if batch_fn is not None:
+            # Reset cached batch sizes so that auto-detection runs against the
+            # current set of requests.  Without this, a batch size detected for
+            # short-sequence requests (e.g. ARC) is silently reused for
+            # long-sequence requests (e.g. MMLU), causing CUDA OOM.
+            # See: https://github.com/EleutherAI/lm-evaluation-harness/issues/1678
+            self.batch_sizes = {}
+
         chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
         pbar = tqdm(
             total=len(requests),
