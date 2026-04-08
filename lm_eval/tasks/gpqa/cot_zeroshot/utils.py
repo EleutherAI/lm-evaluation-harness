@@ -14,7 +14,7 @@ def preprocess(text):
         return " "
     text = text.strip()
     text = text.replace(" [title]", ". ")
-    text = re.sub(r"\[\w+\]", "", text)
+
     text = text.replace("  ", " ")
     return text
 
