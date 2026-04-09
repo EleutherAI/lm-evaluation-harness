@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_ell_Grek"
+"test_split": "ell_Grek"
+"fewshot_split": "ell_Grek"
+"doc_to_text": "Απόσπασμα: {{flores_passage}}\nΕρώτηση: {{question}}\nΑπάντηση:"

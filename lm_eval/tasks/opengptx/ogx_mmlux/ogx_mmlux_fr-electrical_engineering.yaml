@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "electrical_engineering_FR"
+"task": "ogx_mmlux_fr-electrical_engineering"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRéponse:"
+"description": "Les questions suivantes sont des questions à choix multiples (avec\
+  \ réponses) sur le génie électrique."

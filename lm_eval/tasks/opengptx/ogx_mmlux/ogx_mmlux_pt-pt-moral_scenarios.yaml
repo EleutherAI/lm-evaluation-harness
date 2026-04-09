@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "moral_scenarios_PT-PT"
+"task": "ogx_mmlux_pt-pt-moral_scenarios"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nResposta:"
+"description": "Seguem-se perguntas de escolha múltipla (com respostas) sobre cenários\
+  \ morais."

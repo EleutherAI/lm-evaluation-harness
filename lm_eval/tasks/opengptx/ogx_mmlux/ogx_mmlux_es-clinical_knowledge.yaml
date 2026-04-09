@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "clinical_knowledge_ES"
+"task": "ogx_mmlux_es-clinical_knowledge"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRespuesta:"
+"description": "A continuación se presentan preguntas tipo test (con respuesta) sobre\
+  \ conocimientos clínicos."

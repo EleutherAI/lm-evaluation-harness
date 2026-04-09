@@ -1,0 +1,15 @@
+group: flores200
+dataset_path: facebook/flores
+test_split: devtest
+validation_split: dev
+should_decontaminate: true
+doc_to_text: ""
+doc_to_target: "{{sentence}}"
+output_type: loglikelihood_rolling
+doc_to_decontamination_query: "{{sentence}}"
+metric_list:
+  - metric: nll
+    aggregation: nll
+    higher_is_better: false
+metadata:
+  version: 1

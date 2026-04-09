@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-por_Latn-ces_Latn"
+"dataset_name": "por_Latn-ces_Latn"
+"doc_to_text": "Portuguese phrase: {{sentence_por_Latn}}\nCzech phrase:"
+"doc_to_decontamination_query": "{{sentence_por_Latn}}"
+"doc_to_target": "{{sentence_ces_Latn}}"

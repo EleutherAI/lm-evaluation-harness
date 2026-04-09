@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-bul_Cyrl-hun_Latn"
+"dataset_name": "bul_Cyrl-hun_Latn"
+"doc_to_text": "Bulgarian phrase: {{sentence_bul_Cyrl}}\nHungarian phrase:"
+"doc_to_decontamination_query": "{{sentence_bul_Cyrl}}"
+"doc_to_target": "{{sentence_hun_Latn}}"

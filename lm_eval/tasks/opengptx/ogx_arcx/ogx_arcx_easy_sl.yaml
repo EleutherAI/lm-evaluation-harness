@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_easy_sl"
+"dataset_name": "easy_SL"
+"doc_to_text": "Vprašanje: {{question}}\nOdgovor:"
+"doc_to_decontamination_query": "Vprašanje: {{question}}\nOdgovor:"

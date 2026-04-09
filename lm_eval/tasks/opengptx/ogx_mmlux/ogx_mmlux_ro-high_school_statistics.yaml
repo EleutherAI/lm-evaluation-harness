@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "high_school_statistics_RO"
+"task": "ogx_mmlux_ro-high_school_statistics"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRăspuns:"
+"description": "Următoarele sunt întrebări cu alegere multiplă (cu răspunsuri) despre\
+  \ statistica de liceu."

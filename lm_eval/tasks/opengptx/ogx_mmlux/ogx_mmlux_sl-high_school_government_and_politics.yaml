@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "high_school_government_and_politics_SL"
+"task": "ogx_mmlux_sl-high_school_government_and_politics"
+"group": "ogx_mmlux_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdgovor:"
+"description": "V nadaljevanju so vprašanja (z odgovori) o vladi in politiki v srednji\
+  \ šoli."

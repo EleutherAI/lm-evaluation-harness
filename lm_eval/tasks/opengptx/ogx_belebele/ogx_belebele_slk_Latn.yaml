@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_slk_Latn"
+"test_split": "slk_Latn"
+"fewshot_split": "slk_Latn"
+"doc_to_text": "Pasáž: {{flores_passage}}\nOtázka: {{question}}\nOdpoveď:"

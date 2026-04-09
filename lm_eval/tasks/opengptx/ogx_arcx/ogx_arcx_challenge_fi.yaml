@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_challenge_fi"
+"dataset_name": "challenge_FI"
+"doc_to_text": "Kysymys: {{question}}\nVastaa:"
+"doc_to_decontamination_query": "Kysymys: {{question}}\nVastaa:"
