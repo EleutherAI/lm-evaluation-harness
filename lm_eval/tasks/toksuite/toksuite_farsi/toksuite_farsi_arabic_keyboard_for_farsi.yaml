@@ -1,0 +1,7 @@
+dataset_name: toksuite_farsi_arabic_keyboard_for_farsi
+include: toksuite_farsi_base.yaml
+task: toksuite_farsi_arabic_keyboard_for_farsi
+metadata:
+  canonical_task: toksuite_farsi_canonical
+  task_pretty_name: Arabic Keyboard for Farsi
+  num_samples: 40

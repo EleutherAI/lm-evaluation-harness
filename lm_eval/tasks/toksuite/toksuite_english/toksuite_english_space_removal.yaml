@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_space_removal
+include: toksuite_english_base.yaml
+task: toksuite_english_space_removal
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Space removal
+  num_samples: 40

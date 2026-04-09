@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_canonical
+include: toksuite_stem_base.yaml
+task: toksuite_stem_canonical
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: Canonical
+  num_samples: 44

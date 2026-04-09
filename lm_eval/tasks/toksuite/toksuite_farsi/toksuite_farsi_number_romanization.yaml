@@ -1,0 +1,7 @@
+dataset_name: toksuite_farsi_number_romanization
+include: toksuite_farsi_base.yaml
+task: toksuite_farsi_number_romanization
+metadata:
+  canonical_task: toksuite_farsi_canonical
+  task_pretty_name: Number Romanization
+  num_samples: 13

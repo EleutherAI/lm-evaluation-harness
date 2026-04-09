@@ -1,0 +1,94 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+
+group: toksuite_abridged
+task:
+  - group: toksuite_canonical
+    task:
+      - toksuite_english_canonical
+      - toksuite_farsi_canonical
+      - toksuite_italian_canonical
+      - toksuite_chinese_canonical
+      - toksuite_turkish_canonical
+      - toksuite_math_canonical
+      - toksuite_stem_canonical
+  - group: toksuite_non_eng_input_medium_challenges
+    task:
+      - toksuite_turkish_english_keyboard
+      - toksuite_italian_english_keyboard
+      - toksuite_farsi_arabic_keyboard_for_farsi
+      - toksuite_farsi_romanization
+      - toksuite_farsi_number_romanization
+      - toksuite_chinese_partially_romanized
+      - toksuite_chinese_traditional
+      - toksuite_chinese_romanization
+  - group: toksuite_non_eng_diacritics
+    task:
+      - toksuite_chinese_optional_diacritics
+      - toksuite_farsi_optional_diacritics
+  - group: toksuite_eng_orthographic_and_grammar_errors
+    task:
+      - toksuite_english_orthographic_errors
+      - toksuite_english_grammatical_errors
+  - group: toksuite_non_eng_orthographic_and_grammar_errors
+    task:
+      - toksuite_turkish_orthographic_errors
+      - toksuite_turkish_grammatical_errors
+      - toksuite_italian_orthographic_errors
+      - toksuite_italian_grammatical_errors
+  - group: toksuite_eng_morphological_challenges
+    task:
+      - toksuite_english_contractions
+      - toksuite_english_inflections
+  - group: toksuite_non_eng_morphological_challenges
+    task:
+      - toksuite_italian_contractions
+      - toksuite_turkish_derivations
+      - toksuite_turkish_inflections
+  - group: toksuite_eng_noise
+    task:
+      - toksuite_english_keyboard_proximity_errors
+      - toksuite_english_ocr_errors
+      - toksuite_stem_character_deletion
+      - toksuite_english_character_deletion
+      - toksuite_english_space_removal
+      - toksuite_math_space_removal
+      - toksuite_stem_space_removal
+      - toksuite_stem_typographical_errors
+  - group: toksuite_non_eng_noise
+    task:
+      - toksuite_italian_plausible_diacritics_errors
+      - toksuite_italian_keyboard_proximity_errors
+      - toksuite_farsi_keyboard_proximity_errors
+      - toksuite_turkish_keyboard_proximity_errors
+      - toksuite_chinese_keyboard_proximity_errors
+      - toksuite_chinese_ocr_errors
+      - toksuite_chinese_space_removal
+      - toksuite_turkish_typographical_errors
+      - toksuite_italian_typographical_errors
+      - toksuite_chinese_word_spacing_zero-width_characters_extra_space
+      - toksuite_farsi_word_spacing_zero-width_characters_extra_space
+  - group: toksuite_math_latex
+    task:
+      - toksuite_stem_latex
+      - toksuite_math_latex
+  - group: toksuite_stem_formatting
+    task:
+      - toksuite_stem_unusual_formatting
+  - group: toksuite_unicode_characters
+    task:
+      - toksuite_stem_fullwidth_characters
+      - toksuite_math_decorative_unicode
+      - toksuite_english_scripted_text
+      - toksuite_stem_double_struck
+      - toksuite_stem_enclosed_characters
+      - toksuite_stem_unicode_formatting
+
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2

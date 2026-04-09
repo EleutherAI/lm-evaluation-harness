@@ -1,0 +1,9 @@
+dataset_name: toksuite_math_turkish
+include: toksuite_math_base.yaml
+task: toksuite_math_turkish
+metadata:
+  canonical_task: toksuite_math_canonical
+  task_pretty_name: Turkish
+  num_samples: 21
+  version: 1.0.2
+  canonical_task: toksuite_math_canonical

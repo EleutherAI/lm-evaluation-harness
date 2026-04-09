@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_character_deletion
+include: toksuite_stem_base.yaml
+task: toksuite_stem_character_deletion
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: "Character deletion"
+  num_samples: 44

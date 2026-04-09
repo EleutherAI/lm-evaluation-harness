@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_morpheme_separation
+include: toksuite_stem_base.yaml
+task: toksuite_stem_morpheme_separation
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: "Morpheme separation"
+  num_samples: 34

@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_emoji_substitution
+include: toksuite_english_base.yaml
+task: toksuite_english_emoji_substitution
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Emoji substitution
+  num_samples: 44

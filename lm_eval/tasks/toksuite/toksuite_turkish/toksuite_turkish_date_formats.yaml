@@ -1,0 +1,7 @@
+dataset_name: toksuite_turkish_date_formats
+include: toksuite_turkish_base.yaml
+task: toksuite_turkish_date_formats
+metadata:
+  canonical_task: toksuite_turkish_canonical
+  task_pretty_name: Date formats
+  num_samples: 11

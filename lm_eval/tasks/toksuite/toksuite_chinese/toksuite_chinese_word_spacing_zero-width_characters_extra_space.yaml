@@ -1,0 +1,7 @@
+dataset_name: toksuite_chinese_word_spacing_zero-width_characters_extra_space
+include: toksuite_chinese_base.yaml
+task: toksuite_chinese_word_spacing_zero-width_characters_extra_space
+metadata:
+  canonical_task: toksuite_chinese_canonical
+  task_pretty_name: Word Spacing/Zero-width characters/Extra Space
+  num_samples: 40

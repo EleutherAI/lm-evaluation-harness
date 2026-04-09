@@ -1,0 +1,7 @@
+dataset_name: toksuite_chinese_equivalent_expressions
+include: toksuite_chinese_base.yaml
+task: toksuite_chinese_equivalent_expressions
+metadata:
+  canonical_task: toksuite_chinese_canonical
+  task_pretty_name: Equivalent expressions
+  num_samples: 40
