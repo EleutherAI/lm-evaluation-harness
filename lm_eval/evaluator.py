@@ -271,6 +271,14 @@ def simple_evaluate(
 
     if use_cache is not None:
         eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
+        # Build a model identifier so that different models sharing the same
+        # cache DB file produce distinct cache keys (see #2715).
+        if isinstance(model, str):
+            _model_id = (
+                f"{model}__{model_args}" if model_args else model
+            )
+        else:
+            _model_id = type(model).__name__
         lm = lm_eval.api.model.CachingLM(
             lm,
             use_cache
@@ -279,6 +287,7 @@ def simple_evaluate(
             + "_rank"
             + str(lm.rank)
             + ".db",
+            model_id=_model_id,
         )
 
     if task_manager is None:
