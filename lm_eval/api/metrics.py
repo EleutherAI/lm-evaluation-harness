@@ -442,12 +442,12 @@ def is_non_str_iterable(obj):
 
 def _sacreformat(refs, preds):
     """Format refs and preds for sacrebleu corpus calculation. It is very particular"""
-    # Sacrebleu expects (List[str], List[List[str])
+    # Sacrebleu expects (List[str], List[List[str]])
     #   e.g. sacrebleu.corpus_bleu([pred_t], [[ref1_stream], [ref2_stream], ...])
 
     # Note [ref1_stream] is the first reference for each pred.
     # So lists are size N and (M, N) for N preds and M possible refs for each pred
-    # This is a different order of dimensions that I would expect
+    # This is a different order of dimensions than I would expect
 
     # We expect refs to be List[str] or List[List[str]], the outer list corresponding to preds
     # Must become List[List[str]] with the inner list corresponding to preds
@@ -456,7 +456,7 @@ def _sacreformat(refs, preds):
     if not is_non_str_iterable(refs[0]):
         refs = [[ref] for ref in refs]
     refs = list(zip(*refs))
-    # Note the number of refs in each ref list much match the number of preds
+    # Note the number of refs in each ref list must match the number of preds
 
     # We expect preds to be List[str] or List[List[str]]. Must become List[str]
     if not is_non_str_iterable(preds):
@@ -474,7 +474,7 @@ def _sacreformat(refs, preds):
 class _bootstrap_internal:
     """
     Pool worker: `(i, xs)` → `n` bootstrap replicates
-    of `f(xs)`using a RNG seeded with `i`.
+    of `f(xs)` using a RNG seeded with `i`.
     """
 
     def __init__(self, f: Callable[[Sequence[T]], float], n: int) -> None:
@@ -496,7 +496,7 @@ def _bootstrap_internal_no_mp(
 ) -> list[float]:
     """
     Single-process fallback: compute `iters` bootstrap replicates
-    of statistic`f(xs)`, chunked (≤ 1000 draws).
+    of statistic `f(xs)`, chunked (≤ 1000 draws).
     """
     res = []
     chunk_size = min(1000, iters)
