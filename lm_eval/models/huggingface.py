@@ -99,7 +99,6 @@ class HFLM(TemplateLM):
         offload_folder: str | os.PathLike | None = "./offload",
         # Tensor Parallelism options
         tp_plan: str | dict | None = None,
-        tp_size: int | None = None,
         # PEFT, delta weights and quantization options
         peft: str | None = None,
         delta: str | None = None,
@@ -186,11 +185,8 @@ class HFLM(TemplateLM):
                 across multiple GPUs using PyTorch's DTensor. Set to
                 ``"auto"`` to use the model's predefined TP plan. Mutually
                 exclusive with ``parallelize``. Requires launching with
-                ``torchrun`` or ``accelerate launch``.
-            tp_size: Number of devices to use for tensor parallelism. If
-                ``None``, defaults to the total number of processes launched
-                by ``torchrun`` (i.e. ``WORLD_SIZE``). Must be ≤
-                ``--nproc-per-node``.
+                ``torchrun`` or ``accelerate launch``. The number of
+                processes (``--nproc-per-node``) determines the TP degree.
             peft: Path or HuggingFace Hub ID of a PEFT (LoRA, etc.) adapter to
                 load on top of the base model.
             delta: Path or HuggingFace Hub ID of delta weights to apply to the
@@ -357,7 +353,6 @@ class HFLM(TemplateLM):
                 trust_remote_code=trust_remote_code,
                 parallelize=parallelize,
                 tp_plan=tp_plan,
-                tp_size=tp_size,
                 gpus=gpus,
                 max_memory_per_gpu=max_memory_per_gpu,
                 max_cpu_memory=max_cpu_memory,
@@ -741,7 +736,6 @@ class HFLM(TemplateLM):
         offload_folder: str | None = "./offload",
         # Tensor Parallelism options
         tp_plan: str | dict | None = None,
-        tp_size: int | None = None,
         # PEFT, delta weights and quantization options
         peft: str | None = None,
         delta: str | None = None,
@@ -768,8 +762,6 @@ class HFLM(TemplateLM):
         if tp_plan is not None:
             # TP mode: tp_plan and device_map are mutually exclusive in transformers
             model_kwargs["tp_plan"] = tp_plan
-            if tp_size is not None:
-                model_kwargs["tp_size"] = int(tp_size)
         else:
             model_kwargs.update(
                 self._get_accelerate_args(
