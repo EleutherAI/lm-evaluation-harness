@@ -10,9 +10,11 @@ import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
 
 from lm_eval.utils import (
+    get_file_task_name,
     get_latest_filename,
     get_results_filenames,
     get_sample_results_filenames,
+    sanitize_model_name,
 )
 
 
@@ -52,6 +54,58 @@ def sanitize_string(model_args_raw: Union[str, dict]) -> str:
     )
 
 
+def get_model_files(model_dir: Path) -> list[str]:
+    """Return the files that live directly inside a candidate model directory."""
+    return [path.as_posix() for path in model_dir.iterdir() if path.is_file()]
+
+
+def discover_model_dirs(data_path: Union[str, Path]) -> list[Path]:
+    """Find directories under data_path that contain aggregated result files."""
+    data_root = Path(data_path)
+    candidate_dirs = [data_root] + sorted(
+        (path for path in data_root.rglob("*") if path.is_dir()),
+        key=lambda path: path.as_posix(),
+    )
+    model_dirs = [
+        path for path in candidate_dirs if get_results_filenames(get_model_files(path))
+    ]
+
+    if not model_dirs:
+        raise ValueError(
+            f"No model result directories found under {data_root}. "
+            "Expected folders containing results_*.json files."
+        )
+
+    return model_dirs
+
+
+def get_model_name(model_dir: Path, data_root: Path) -> str:
+    """Build a Zeno-safe display name for a model directory under data_root."""
+    relative_model_dir = model_dir.relative_to(data_root)
+    model_name = (
+        relative_model_dir.as_posix()
+        if relative_model_dir != Path(".")
+        else model_dir.name
+    )
+    return sanitize_model_name(model_name)
+
+
+def get_latest_results_file(model_dir: Path) -> str:
+    """Return the latest aggregated results file for a model directory."""
+    model_results_filenames = get_results_filenames(get_model_files(model_dir))
+    return get_latest_filename(model_results_filenames)
+
+
+def get_latest_sample_results_file(model_dir: Path, task: str) -> str:
+    """Return the latest sample results file for a task in a model directory."""
+    model_sample_filenames = [
+        path
+        for path in get_sample_results_filenames(get_model_files(model_dir))
+        if get_file_task_name(Path(path).name) == task
+    ]
+    return get_latest_filename(model_sample_filenames)
+
+
 def main():
     """Upload the results of your benchmark tasks to the Zeno AI evaluation platform.
 
@@ -61,29 +115,26 @@ def main():
 
     client = ZenoClient(os.environ["ZENO_API_KEY"])
 
-    # Get all model subfolders from the parent data folder.
-    models = [
-        os.path.basename(os.path.normpath(f))
-        for f in os.scandir(Path(args.data_path))
-        if f.is_dir()
-    ]
-
-    assert len(models) > 0, "No model directories found in the data_path."
+    data_root = Path(args.data_path)
+    model_dirs = discover_model_dirs(data_root)
+    model_names = {
+        model_dir: get_model_name(model_dir, data_root) for model_dir in model_dirs
+    }
 
     # Get the tasks from the latest results file of the first model.
-    tasks = set(tasks_for_model(models[0], args.data_path))
+    tasks = set(tasks_for_model(model_dirs[0]))
 
     # Get tasks names from the latest results file for each model
     # Get intersection of tasks for all models
-    for model in models:
+    for model_dir in model_dirs:
         old_tasks = tasks.copy()
         task_count = len(tasks)
-        model_tasks = set(tasks_for_model(model, args.data_path))
+        model_tasks = set(tasks_for_model(model_dir))
         tasks.intersection(set(model_tasks))
 
         if task_count != len(tasks):
             eval_logger.warning(
-                f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {old_tasks}. Taking intersection {tasks}"
+                f"All models must have the same tasks. {model_names[model_dir]} has tasks: {model_tasks} but have already recorded tasks: {old_tasks}. Taking intersection {tasks}"
             )
 
     assert len(tasks) > 0, (
@@ -92,23 +143,16 @@ def main():
 
     for task in tasks:
         # Upload data for all models
-        for model_index, model in enumerate(models):
+        for model_index, model_dir in enumerate(model_dirs):
+            model = model_names[model_dir]
             # Get latest results and sample results for a model
-            model_dir = Path(args.data_path, model)
-            model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
-            model_results_filenames = get_results_filenames(model_files)
-            model_sample_filenames = get_sample_results_filenames(model_files)
-            latest_results = get_latest_filename(
-                [Path(f).name for f in model_results_filenames]
-            )
-            latest_sample_results = get_latest_filename(
-                [Path(f).name for f in model_sample_filenames if task in f]
-            )
+            latest_results = get_latest_results_file(model_dir)
+            latest_sample_results = get_latest_sample_results_file(model_dir, task)
             # Load the model_args, which can be either a string or a dictionary
             model_args = sanitize_string(
                 json.load(
                     open(
-                        Path(args.data_path, model, latest_results),
+                        latest_results,
                         encoding="utf-8",
                     )
                 )["config"]["model_args"]
@@ -117,7 +161,7 @@ def main():
             print(model_args)
             data = []
             with open(
-                Path(args.data_path, model, latest_sample_results),
+                latest_sample_results,
                 "r",
                 encoding="utf-8",
             ) as file:
@@ -125,7 +169,7 @@ def main():
                     data.append(json.loads(line.strip()))
 
             configs = json.load(
-                open(Path(args.data_path, model, latest_results), encoding="utf-8")
+                open(latest_results, encoding="utf-8")
             )["configs"]
             config = configs[task]
 
@@ -160,21 +204,17 @@ def main():
             )
 
 
-def tasks_for_model(model: str, data_path: str):
+def tasks_for_model(model_dir: Path):
     """Get the tasks for a specific model.
 
     Args:
-        model (str): The name of the model.
-        data_path (str): The path to the data.
+        model_dir (Path): The path to the model results directory.
 
     Returns:
         list: A list of tasks for the model.
     """
     # get latest model results for a given name
-    model_dir = Path(data_path, model)
-    model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
-    model_results_filenames = get_results_filenames(model_files)
-    latest_results = get_latest_filename(model_results_filenames)
+    latest_results = get_latest_results_file(model_dir)
     config = (json.load(open(latest_results, encoding="utf-8"))["configs"],)
     return list(config[0].keys())
 
