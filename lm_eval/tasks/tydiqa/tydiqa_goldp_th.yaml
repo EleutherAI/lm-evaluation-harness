@@ -1,0 +1,5 @@
+include: _tydiqa_goldp_common_yaml
+task: tydiqa_goldp_th
+doc_to_text: "บริบท: {{context}}\n\nคำถาม: {{question}}\n\nคำตอบ:"
+process_docs: !function utils.process_docs_th
+process_results: !function utils.process_results_th
