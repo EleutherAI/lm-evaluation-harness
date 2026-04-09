@@ -1,0 +1,7 @@
+"dataset_name": "tso_Latn-tpi_Latn"
+"doc_to_target": "{{sentence_tpi_Latn}}"
+"doc_to_text": "{{sentence_tso_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tso_Latn-tpi_Latn"
+"test_split": "dev"
