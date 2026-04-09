@@ -15,21 +15,56 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
+def _extract_answer_strict(text: str) -> str:
+    """Original strict extraction: pull answer from $...$ inline math only."""
+    indices = [pos for pos, char in enumerate(text) if char == "$"]
     if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+        return text
+    return text[indices[0] + 1 : indices[-1]]
 
-    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
-        retval = 1
 
-    results = {
-        "exact_match": retval,
+def _extract_answer_flexible(text: str) -> str:
+    """Flexible extraction that handles multiple LaTeX answer formats.
+
+    Tries formats in priority order:
+      1. \\boxed{...} — most specific, handles nested braces
+      2. \\[...\\] — LaTeX display math
+      3. $...$ — inline math (same as strict)
+      4. Full text fallback
+    """
+    import re
+
+    # 1. Try \boxed{...} (handles nested braces via last_boxed_only_string)
+    boxed_match = last_boxed_only_string(text)
+    if boxed_match is not None:
+        extracted = remove_boxed(boxed_match)
+        if extracted is not None:
+            return extracted
+
+    # 2. Try \[...\] (display math) — take last match (final answer)
+    display_matches = re.findall(r"\\\[(.+?)\\\]", text, re.DOTALL)
+    if display_matches:
+        return display_matches[-1].strip()
+
+    # 3. Try $...$ (inline math)
+    indices = [pos for pos, char in enumerate(text) if char == "$"]
+    if len(indices) >= 2:
+        return text[indices[0] + 1 : indices[-1]]
+
+    # 4. Fallback: return full text
+    return text
+
+
+def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+    ref_answer = remove_boxed(last_boxed_only_string(doc["solution"]))
+
+    strict_answer = _extract_answer_strict(results[0])
+    flexible_answer = _extract_answer_flexible(results[0])
+
+    return {
+        "exact_match": 1 if is_equiv(strict_answer, ref_answer) else 0,
+        "flexible_extract": 1 if is_equiv(flexible_answer, ref_answer) else 0,
     }
-    return results
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
