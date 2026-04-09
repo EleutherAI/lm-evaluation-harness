@@ -100,7 +100,7 @@ class MyCustomLM(LM):
 
 Using this decorator results in the class being added to an accounting of the usable LM types maintained internally to the library at `lm_eval.api.registry.MODEL_REGISTRY`. See `lm_eval.api.registry` for more detail on what sorts of registries and decorators exist in the library!
 
-**Tip: be sure to import your model in `lm_eval/models/__init__.py!`**
+**Tip:** when contributing a built-in model backend, import it in `lm_eval/models/__init__.py`. For local experiments or external integrations, you can instead pass `--include_package path/to/my_model.py` (or a dotted module path) at runtime.
 
 ## Testing
 

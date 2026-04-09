@@ -207,6 +207,26 @@ class TestRunCommand:
         )
         assert args.model_args == {"pretrained": "gpt2", "device": "cuda"}
 
+    def test_run_command_include_package_args(self):
+        """Test Run command include_package parsing."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        args = parser.parse_args(
+            [
+                "run",
+                "--include_package",
+                "custom.module",
+                "other.module,C:/models/custom_model.py",
+            ]
+        )
+        assert args.include_package == [
+            "custom.module",
+            "other.module",
+            "C:/models/custom_model.py",
+        ]
+
     def test_run_command_batch_size(self):
         """Test Run command batch size arguments."""
         parser = argparse.ArgumentParser()
@@ -261,6 +281,7 @@ class TestRunCommand:
         mock_cfg_instance.output_path = None
         mock_cfg_instance.hf_hub_log_args = {}
         mock_cfg_instance.include_path = None
+        mock_cfg_instance.include_package = None
         mock_cfg_instance.tasks = ["hellaswag"]
         mock_cfg_instance.model = "hf"
         mock_cfg_instance.model_args = {"pretrained": "gpt2"}
@@ -269,6 +290,7 @@ class TestRunCommand:
         mock_cfg_instance.num_fewshot = 0
         mock_cfg_instance.batch_size = 1
         mock_cfg_instance.log_samples = False
+        mock_cfg_instance.import_custom_modules.return_value = mock_cfg_instance
         mock_cfg_instance.process_tasks.return_value = MagicMock()
         mock_config.from_cli.return_value = mock_cfg_instance
 
@@ -292,6 +314,7 @@ class TestRunCommand:
             run_cmd._execute(args)
 
         mock_config.from_cli.assert_called_once()
+        mock_cfg_instance.import_custom_modules.assert_called_once_with()
         mock_simple_evaluate.assert_called_once()
         mock_make_table.assert_called_once()
 
@@ -628,6 +651,61 @@ class TestEvaluatorConfigFromCLI:
 
         with pytest.raises(ValueError, match="output_path"):
             EvaluatorConfig.from_cli(ns)
+
+    def test_include_package_string_normalized_to_list(self):
+        """Test include_package string config is normalized to a list."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(
+            tasks=["hellaswag"], include_package="pkg.one,C:/models/custom_model.py"
+        )._process_arguments()
+
+        assert cfg.include_package == ["pkg.one", "C:/models/custom_model.py"]
+
+    def test_import_custom_modules_registers_external_model(self, tmp_path):
+        """Test importing an external module registers its model."""
+        import sys
+
+        from lm_eval.api.registry import get_model, model_registry
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        module_path = tmp_path / "external_model.py"
+        module_path.write_text(
+            """
+from lm_eval.api.model import LM
+from lm_eval.api.registry import register_model
+
+
+@register_model("external-test-model-1457")
+class ExternalTestModel(LM):
+    def loglikelihood(self, requests):
+        return []
+
+    def loglikelihood_rolling(self, requests):
+        return []
+
+    def generate_until(self, requests):
+        return []
+""".strip(),
+            encoding="utf-8",
+        )
+
+        original_registry = dict(model_registry._objs)
+        original_modules = set(sys.modules)
+        try:
+            cfg = EvaluatorConfig(
+                tasks=["hellaswag"], include_package=[str(module_path)]
+            )._process_arguments()
+            cfg.import_custom_modules()
+
+            model_cls = get_model("external-test-model-1457")
+            assert model_cls.__name__ == "ExternalTestModel"
+        finally:
+            model_registry._objs.clear()
+            model_registry._objs.update(original_registry)
+            for module_name in set(sys.modules) - original_modules:
+                if module_name.startswith("_lm_eval_external_"):
+                    sys.modules.pop(module_name, None)
 
 
 class TestCLIUtils:

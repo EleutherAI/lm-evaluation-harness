@@ -2,12 +2,14 @@ import collections
 import fnmatch
 import functools
 import hashlib
+import importlib
 import importlib.util
 import inspect
 import json
 import logging
 import os
 import re
+import sys
 import threading
 from collections.abc import Callable, Generator
 from dataclasses import asdict, is_dataclass
@@ -601,6 +603,54 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
 
     function = getattr(module, function_name)
     return function
+
+
+def import_module_from_specifier(specifier: str):
+    """Import a module from either a Python module path or a filesystem path.
+
+    Args:
+        specifier: Dotted module path (e.g. ``my_pkg.models``), path to a Python
+            file, or path to a package directory containing ``__init__.py``.
+
+    Returns:
+        The imported module.
+    """
+    path = Path(specifier).expanduser()
+    if path.exists():
+        path = path.resolve()
+        if path.is_dir():
+            init_file = path / "__init__.py"
+            if not init_file.is_file():
+                raise ValueError(
+                    f"Cannot import package from {path}: missing __init__.py"
+                )
+            parent = str(path.parent)
+            if parent not in sys.path:
+                sys.path.insert(0, parent)
+            return importlib.import_module(path.name)
+
+        if path.suffix != ".py":
+            raise ValueError(
+                f"Cannot import module from {path}: expected a .py file or package directory"
+            )
+
+        module_name = (
+            f"_lm_eval_external_{path.stem}_"
+            f"{hashlib.sha256(str(path).encode('utf-8')).hexdigest()[:12]}"
+        )
+        if module_name in sys.modules:
+            return sys.modules[module_name]
+
+        spec = importlib.util.spec_from_file_location(module_name, path.as_posix())
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Could not import module from {path}")
+
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        return module
+
+    return importlib.import_module(specifier)
 
 
 def regex_replace(string, pattern, repl, count: int = 0):
