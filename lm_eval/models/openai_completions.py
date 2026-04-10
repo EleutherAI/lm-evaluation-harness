@@ -223,11 +223,12 @@ class LocalChatCompletion(LocalCompletionsAPI):
                         msg.get("reasoning", None),
                     )
             except Exception as e:
-                # account for cases that generation is blocked by content filter,
-                # which is common for Azure OpenAI Service,
-                # not sure if need to account for multiple choices
-                eval_logger.warning(f"Could not parse generations: {e}")
-                tmp = [("", None, None)]
+                # This point is only reached if the backend returned 200 but the
+                # payload is not OpenAI API compatible. We cannot safely assume
+                # this means that the model refused to answer, we must throw an
+                # error so the user inspects the issue.
+                eval_logger.error(f"Could not parse generations: {e}")
+                raise e
             res = res + tmp
         return res
 
