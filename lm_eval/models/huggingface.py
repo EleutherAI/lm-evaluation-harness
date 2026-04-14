@@ -352,10 +352,16 @@ class HFLM(TemplateLM):
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
         self.chat_template_args = (
-            chat_template_args or {} | dict(enable_thinking=enable_thinking)
+            (chat_template_args or {}) | dict(enable_thinking=enable_thinking)
             if enable_thinking is not None
-            else {}
+            else (chat_template_args or {})
         )
+        self.enable_thinking = enable_thinking
+
+        if enable_thinking and think_end_token is None:
+            raise ValueError(
+                f"Got {enable_thinking=}, but {think_end_token=}. think_end_token is required when using `enable_thinking=True`. Please provide it, and refer to https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md."
+            )
 
         self.add_bos_token = add_bos_token
 
@@ -1146,6 +1152,18 @@ class HFLM(TemplateLM):
             logits = logits[:contlen]
 
         return logits
+
+    def loglikelihood(
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[tuple[float, bool]]:
+        if self.enable_thinking:
+            task_names = {req.task_name for req in requests if req.task_name}
+            raise ValueError(
+                f"enable_thinking=True is not compatible with loglikelihood tasks. "
+                f"Please use generative tasks only when using `enable_thinking=True`. "
+                f"Triggered by task(s): {', '.join(sorted(task_names))}"
+            )
+        return super().loglikelihood(requests, disable_tqdm=disable_tqdm)
 
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False
