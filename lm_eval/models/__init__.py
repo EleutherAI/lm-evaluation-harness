@@ -45,13 +45,14 @@ MODEL_MAPPING = {
     "openai-chat-completions": "lm_eval.models.openai_completions:OpenAIChatCompletion",
     "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
+    "habana": "lm_eval.models.optimum_habana:HabanaLM",
     "sglang": "lm_eval.models.sglang_causallms:SGLangLM",
     "sglang-generate": "lm_eval.models.sglang_generate_API:SGLANGGENERATEAPI",
-    "steered": "lm_eval.models.hf_steered:SteeredHF",
+    "steered": "lm_eval.models.hf_steered:SteeredModel",
     "textsynth": "lm_eval.models.textsynth:TextSynthLM",
     "vllm": "lm_eval.models.vllm_causallms:VLLM",
     "vllm-vlm": "lm_eval.models.vllm_vlms:VLLM_VLM",
-    "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:IBMWatsonxAI",
+    "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:WatsonxLLM",
     "winml": "lm_eval.models.winml:WindowsML",
 }
 

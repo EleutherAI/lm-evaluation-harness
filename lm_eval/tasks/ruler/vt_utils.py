@@ -139,7 +139,6 @@ def sys_vartrack_w_noise_random(
     remove_newline_tab=False,
 ):
     write_jsons = []
-    tokens_to_generate = tokens_to_generate
 
     # Find the perfect num_noises
     num_noises = incremental
