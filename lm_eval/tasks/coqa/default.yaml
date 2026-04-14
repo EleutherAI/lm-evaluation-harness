@@ -3,11 +3,12 @@ dataset_path: EleutherAI/coqa
 output_type: generate_until
 training_split: train
 validation_split: validation
+process_docs: !function utils.process_docs
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
 process_results: !function utils.process_results
 should_decontaminate: true
-doc_to_decontamination_query: "{{story}} {{question.input_text|join('\n')}}"
+doc_to_decontamination_query: "{{story}} {{questions|join('\n')}}"
 generation_kwargs:
   until:
     - "\nQ:"
@@ -19,4 +20,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 3.0
+  version: 4.0
