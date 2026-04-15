@@ -98,10 +98,7 @@ class POSFilter(Filter):
             if isinstance(result, str):
                 result = extract_tagged_tokens(result)
             pos_tags.extend(pos for _, pos in result)
-            if pos_tags:
-                return pos_tags
-            else:
-                return self.fallback
+            return pos_tags if pos_tags else self.fallback
 
         def filter_set(inst):
             filtered = []
