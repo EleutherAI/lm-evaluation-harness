@@ -1,13 +1,9 @@
-import logging
 import re
 import sys
 import unicodedata
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
-
-
-eval_logger = logging.getLogger(__name__)
 
 
 @register_filter("regex")
@@ -240,9 +236,6 @@ class MultiChoiceRegexFilter(RegexFilter):
                             without_paren_fallback_regex, resp, without_paren_to_target
                         )
                 if not match:
-                    eval_logger.debug(
-                        f"No match in the output in MultiChoiceRegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
-                    )
                     match = self.fallback
                 filtered.append(match)
             filtered_resps.append(filtered)
