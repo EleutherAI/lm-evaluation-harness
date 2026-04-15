@@ -36,6 +36,7 @@ from lm_eval.models.utils import (
     has_bos_prefix,
     normalize_gen_kwargs,
     postprocess_generated_text,
+    set_diagnostic_attributes,
 )
 from lm_eval.models.utils_hf import (
     clear_torch_cache,
@@ -1509,6 +1510,9 @@ class HFLM(TemplateLM):
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[str]:
         res = []
+        full_resps: list[str] = []
+        stop_reasons: list[str] = []
+        found_answers: list[bool] = []
 
         def _collate(req: tuple[str, dict]):
             """Defines the key for the sorted method"""
@@ -1614,6 +1618,8 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
+                generated_length = len(cont_toks)
+
                 # Handle integer think_end_token: find last occurrence and strip tokens after it
                 if isinstance(self.think_end_token, int):
                     think_token_indices = [
@@ -1626,24 +1632,50 @@ class HFLM(TemplateLM):
 
                 s = self.tok_decode(cont_toks)
 
+                # Detect stop reason and answer-not-found
+                answer_found = True
+                if generated_length >= max_gen_toks:
+                    stop_reason = "max_gen_toks"
+                    answer_found = False
+                else:
+                    stop_reason = "natural"
+
+                if self.think_end_token is not None and self.think_end_token not in (
+                    cont_toks if isinstance(self.think_end_token, int) else s
+                ):
+                    answer_found = False
+
+                # Save raw text before postprocessing
+                full_resps.append(s)
+
                 # Strip leading whitespace if we removed thinking tokens
                 if isinstance(self.think_end_token, int):
                     s = s.lstrip()
 
                 # Apply post-processing: remove stop sequences and string-based thinking tokens
-                s = postprocess_generated_text(
-                    generation=s,
-                    stop=until,
-                    think_end_token=self.think_end_token
-                    if isinstance(self.think_end_token, str)
-                    else None,
-                )
+                if not answer_found and self.think_end_token is not None:
+                    s = ""
+                else:
+                    s = postprocess_generated_text(
+                        generation=s,
+                        stop=until,
+                        think_end_token=self.think_end_token
+                        if isinstance(self.think_end_token, str)
+                        else None,
+                    )
                 res.append(s)
+                stop_reasons.append(stop_reason)
+                found_answers.append(answer_found)
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)
+        stop_reasons = re_ords.get_original(stop_reasons)
+        found_answers = re_ords.get_original(found_answers)
+        full_resps = re_ords.get_original(full_resps)
+
+        set_diagnostic_attributes(requests, stop_reasons, found_answers, full_resps)
 
         pbar.close()
 

@@ -55,15 +55,9 @@ class RegexFilter(Filter):
                         if match:
                             match = match[0]
                         else:
-                            eval_logger.debug(
-                                f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
-                            )
                             match = self.fallback
                     match = match.strip()
                 else:
-                    eval_logger.debug(
-                        f"No match in the output in RegexFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(resp)}`, regex: {self.regex}"
-                    )
                     match = self.fallback
                 filtered.append(match)
             return filtered
@@ -107,10 +101,6 @@ class POSFilter(Filter):
             if pos_tags:
                 return pos_tags
             else:
-                eval_logger.debug(
-                    f"No match in the output in POSFilter! Using fallback {self.fallback}, likely rated as WRONG. Response: `{repr(result)}`"
-                )
-
                 return self.fallback
 
         def filter_set(inst):

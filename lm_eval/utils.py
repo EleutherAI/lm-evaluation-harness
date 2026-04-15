@@ -510,7 +510,12 @@ def _aggregate_diagnostic_stats(
                 invalid_filter[fk] = invalid_filter.get(fk, 0) + cnt
             for fk, cnt in s.get("filter_total", {}).items():
                 filter_total[fk] = filter_total.get(fk, 0) + cnt
+        # A group is generative if any leaf task is generative
+        has_generative = any(
+            s.get("output_type") == "generate_until" for s in leaf_stats
+        )
         result[group_name] = {
+            "output_type": "generate_until" if has_generative else "non_generative",
             "answer_not_found": answer_not_found,
             "total": total,
             "invalid_filter": invalid_filter,
@@ -525,8 +530,6 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
     column_name = "Groups" if column == "groups" else "Tasks"
 
-    from lm_eval.defaults import LOGGING_LEVEL
-
     raw_diagnostic_stats = result_dict.get("diagnostic_stats", {})
     group_subtasks = result_dict.get("group_subtasks", {})
     diagnostic_stats = (
@@ -534,7 +537,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         if raw_diagnostic_stats
         else {}
     )
-    has_diag = bool(diagnostic_stats) and LOGGING_LEVEL == "DEBUG"
+    has_diag = bool(diagnostic_stats)
 
     all_headers = [
         column_name,
@@ -612,20 +615,25 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
                 row += ["", ""]
 
             if has_diag:
-                # answer-not-found: proportion, shown for every row
-                diag_total = task_diag.get("total", 0)
-                if diag_total > 0:
-                    not_found_pct = task_diag["answer_not_found"] / diag_total
-                    row.append(f"{not_found_pct:.4f}")
+                is_generative = task_diag.get("output_type") == "generate_until"
+                if not is_generative:
+                    row.append("N/A")
+                    row.append("N/A")
                 else:
-                    row.append("")
-                # invalid-filter: proportion per filter_key
-                f_total = task_diag.get("filter_total", {}).get(f, 0)
-                if f_total > 0:
-                    inv_count = task_diag.get("invalid_filter", {}).get(f, 0)
-                    row.append(f"{inv_count / f_total:.4f}")
-                else:
-                    row.append("")
+                    # answer-not-found: proportion, shown for every row
+                    diag_total = task_diag.get("total", 0)
+                    if diag_total > 0:
+                        not_found_pct = task_diag["answer_not_found"] / diag_total
+                        row.append(f"{not_found_pct:.4f}")
+                    else:
+                        row.append("")
+                    # invalid-filter: proportion per filter_key
+                    f_total = task_diag.get("filter_total", {}).get(f, 0)
+                    if f_total > 0:
+                        inv_count = task_diag.get("invalid_filter", {}).get(f, 0)
+                        row.append(f"{inv_count / f_total:.4f}")
+                    else:
+                        row.append("")
 
             values.append(row)
             k = ""

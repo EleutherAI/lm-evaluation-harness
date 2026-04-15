@@ -29,6 +29,7 @@ from lm_eval.models.utils import (
     maybe_truncate,
     normalize_gen_kwargs,
     postprocess_generated_text,
+    set_diagnostic_attributes,
     undistribute,
 )
 from lm_eval.utils import (
@@ -645,7 +646,7 @@ class VLLM(TemplateLM):
 
     def generate_until(
         self, requests: list[Instance], disable_tqdm: bool = False
-    ) -> tuple[list[str], list[str], list[bool], list[str]]:
+    ) -> list[str]:
         assert self.tokenizer
         res = []
         full_resps: list[str] = []
@@ -731,14 +732,6 @@ class VLLM(TemplateLM):
             ):
                 generated_text: str = output.outputs[0].text
 
-                # Detect answer-not-found (think_end_token missing)
-                answer_found = True
-                if self.think_end_token is not None and self.think_end_token not in generated_text:
-                    eval_logger.warning(
-                        f"Could not find an answer in the generated sequence (sequence end): {repr(generated_text[-50:])}"
-                    )
-                    answer_found = False
-
                 # Detect stop reason from vLLM's native finish_reason
                 vllm_finish = output.outputs[0].finish_reason  # "stop" or "length"
                 vllm_stop = output.outputs[0].stop_reason      # the specific stop string/token, or None
@@ -746,6 +739,13 @@ class VLLM(TemplateLM):
                     stop_reason = "max_gen_toks"
                 else:
                     stop_reason = "natural"
+
+                # Detect answer-not-found: either think_end_token missing or generation hit max_gen_toks without a stop sequence.
+                answer_found = True
+                if self.think_end_token is not None and self.think_end_token not in generated_text:
+                    answer_found = False
+                if vllm_finish == "length":
+                    answer_found = False
 
                 for stop_sequence in until:
                     stop_length = len(stop_sequence)
@@ -780,12 +780,14 @@ class VLLM(TemplateLM):
 
         pbar.close()
         # reorder all group of results back to original unsorted form
-        return (
-            re_ords.get_original(res),
-            re_ords.get_original(stop_reasons),
-            re_ords.get_original(found_answers),
-            re_ords.get_original(full_resps),
-        )
+        res = re_ords.get_original(res)
+        stop_reasons = re_ords.get_original(stop_reasons)
+        found_answers = re_ords.get_original(found_answers)
+        full_resps = re_ords.get_original(full_resps)
+
+        set_diagnostic_attributes(requests, stop_reasons, found_answers, full_resps)
+
+        return res
 
     def _loglikelihood_tokens(
         self,

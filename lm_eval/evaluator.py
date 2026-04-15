@@ -583,33 +583,16 @@ def evaluate(
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
-        result = getattr(lm, reqtype)(cloned_reqs)
+        resps = getattr(lm, reqtype)(cloned_reqs)
 
-        # generate_until returns (texts, stop_reasons, found_answers, full_resps);
-        # other request types return a flat list.
-        if isinstance(result, tuple):
-            resps, stop_reasons, found_answers, full_resps = result
-        else:
-            resps = result
-            stop_reasons = None
-            found_answers = None
-            full_resps = None
+        # Diagnostic attributes (stop_reasons, found_answers, full_resps)
+        # are set directly on the Instance objects by backends that support
+        # them (e.g. hf, vllm). See generate_until in each backend.
+        # TODO: all generate_until backends should set these attributes.
 
         # put responses from model into a list of length K for each request.
-        for i, (x, req) in enumerate(zip(resps, cloned_reqs, strict=True)):
+        for x, req in zip(resps, cloned_reqs, strict=True):
             req.resps.append(x)
-            if stop_reasons is not None:
-                if not hasattr(req, "stop_reasons"):
-                    req.stop_reasons = []
-                req.stop_reasons.append(stop_reasons[i])
-            if found_answers is not None:
-                if not hasattr(req, "found_answers"):
-                    req.found_answers = []
-                req.found_answers.append(found_answers[i])
-            if full_resps is not None:
-                if not hasattr(req, "full_resps"):
-                    req.full_resps = []
-                req.full_resps.append(full_resps[i])
 
         if lm.world_size > 1:
             lm.barrier()
@@ -749,6 +732,7 @@ def evaluate(
         # Store per-task diagnostic stats
         diagnostic_stats[task_name] = {
             "version": task.VERSION,
+            "output_type": task.OUTPUT_TYPE,
             "answer_not_found": not_found_count,
             "total": doc_count,
             "invalid_filter": dict(invalid_count),

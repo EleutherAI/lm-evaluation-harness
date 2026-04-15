@@ -29,6 +29,8 @@ if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase
     from transformers.configuration_utils import PretrainedConfig
 
+    from lm_eval.api.instance import Instance
+
 
 class GenKwargs(TypedDict, total=False):
     do_sample: bool
@@ -934,6 +936,32 @@ def postprocess_generated_text(
         generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation
+
+
+def set_diagnostic_attributes(
+    requests: list[Instance],
+    stop_reasons: list[str],
+    found_answers: list[bool],
+    full_resps: list[str],
+) -> None:
+    """Set diagnostic attributes on request Instance objects.
+
+    Appends per-generation diagnostic info to each request, mirroring the
+    pattern used for ``req.resps``.  Called by generate_until backends
+    (e.g. hf, vllm) after reordering results back to the original order.
+    """
+    for req, stop_reason, answer_found, full_resp in zip(
+        requests, stop_reasons, found_answers, full_resps, strict=True
+    ):
+        if not hasattr(req, "stop_reasons"):
+            req.stop_reasons = []
+        req.stop_reasons.append(stop_reason)
+        if not hasattr(req, "found_answers"):
+            req.found_answers = []
+        req.found_answers.append(answer_found)
+        if not hasattr(req, "full_resps"):
+            req.full_resps = []
+        req.full_resps.append(full_resp)
 
 
 def has_bos_prefix(sequence: str, bos_str: str | Iterable[str] | None = None) -> bool:
