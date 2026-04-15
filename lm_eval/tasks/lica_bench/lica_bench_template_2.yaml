@@ -1,0 +1,4 @@
+task: lica_bench_template_2
+include: _template_yaml
+task_alias: template-2
+custom_dataset: !function utils.build_template_2

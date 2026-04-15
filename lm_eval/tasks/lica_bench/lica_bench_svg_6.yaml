@@ -1,0 +1,4 @@
+task: lica_bench_svg_6
+include: _template_yaml
+task_alias: svg-6
+custom_dataset: !function utils.build_svg_6

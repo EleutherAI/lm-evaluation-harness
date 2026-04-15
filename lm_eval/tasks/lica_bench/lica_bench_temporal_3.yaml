@@ -1,0 +1,4 @@
+task: lica_bench_temporal_3
+include: _template_yaml
+task_alias: temporal-3
+custom_dataset: !function utils.build_temporal_3
