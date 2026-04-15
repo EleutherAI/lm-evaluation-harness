@@ -11,7 +11,6 @@ from time import sleep
 from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 import jinja2
-import ray
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
@@ -172,7 +171,6 @@ class VLLM(TemplateLM):
         )
         kwargs.pop("device", None)
         self.think_end_token = think_end_token
-        self.V1 = os.environ.get("VLLM_USE_V1", "1") != "0"
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
         # truncation strategy for inputs exceeding max length
@@ -208,10 +206,8 @@ class VLLM(TemplateLM):
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
-            self.model_args["distributed_executor_backend"] = (
-                "ray"
-                if not self.V1
-                else self.model_args.get("distributed_executor_backend", None)
+            self.model_args["distributed_executor_backend"] = self.model_args.get(
+                "distributed_executor_backend", None
             )
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
@@ -446,41 +442,7 @@ class VLLM(TemplateLM):
             sampling_params = cast(
                 "list[SamplingParams]", [sampling_params] * len(requests)
             )
-        if self.data_parallel_size > 1 and not self.V1:
-            # vLLM hangs if resources are set in ray.remote
-            # also seems to only work with decorator and not with ray.remote() fn
-            # see https://github.com/vllm-project/vllm/issues/973
-            @ray.remote
-            def run_inference_one_model(
-                model_args: dict,
-                sampling_params: list[SamplingParams],
-                requests: list[list[int]],
-                lora_request: LoRARequest,
-            ):
-                llm = LLM(**model_args)
-                return llm.generate(
-                    [TokensPrompt(prompt_token_ids=request) for request in requests],
-                    sampling_params=sampling_params,
-                    lora_request=lora_request,
-                )
-
-            # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
-            # interleaved important to balance context lengths across workers
-            requests = [list(x) for x in distribute(self.data_parallel_size, requests)]  # type: ignore
-            sampling_params = [
-                list(sp) for sp in distribute(self.data_parallel_size, sampling_params)
-            ]  # type: ignore
-            inputs = (
-                (self.model_args, sp, req, self.lora_request)
-                for req, sp in zip(requests, sampling_params, strict=True)  # type: ignore
-            )
-            object_refs = [run_inference_one_model.remote(*x) for x in inputs]
-            results = ray.get(object_refs)
-            # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
-            ray.shutdown()
-            # flatten results
-            return undistribute(results)
-        elif self.data_parallel_size > 1:
+        if self.data_parallel_size > 1:
             # based on https://github.com/vllm-project/vllm/blob/a04720bc36401d831cb048c3917b9e58173d9c1d/examples/offline_inference/data_parallel.py
             dp_size = self.data_parallel_size
             dp_master_ip = os.environ.get("VLLM_DP_MASTER_IP", "127.0.0.1")
