@@ -167,7 +167,10 @@ class MultiChoiceRegexFilter(RegexFilter):
             if match:
                 match = match[self.group_select]
                 if isinstance(match, tuple):
-                    match = [m for m in match if m][0]
+                    non_empty = [m for m in match if m]
+                    if not non_empty:
+                        return self.fallback
+                    match = non_empty[0]
                 match = match.strip()
                 if match and match in convert_dict:
                     match = convert_dict[match]
