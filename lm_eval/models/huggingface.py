@@ -32,6 +32,7 @@ from lm_eval.models.utils import (
     Collator,
     _add_special_kwargs,
     configure_pad_token,
+    detect_stop_reason_and_answer_found,
     handle_stop_sequences,
     has_bos_prefix,
     normalize_gen_kwargs,
@@ -104,7 +105,7 @@ class HFLM(TemplateLM):
         autogptq: bool | str | None = False,
         gptqmodel: bool | None = False,
         gguf_file: str | None = None,
-        # end token for thinking, either the string or int token id.
+        # end token for thinking (string or int token id, converted to string).
         # splits to get response after this token (if provided).
         think_end_token: str | int | None = None,
         enable_thinking: bool | None = None,
@@ -342,11 +343,9 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
-        self.think_end_token = (
-            int(think_end_token)
-            if (isinstance(think_end_token, str) and think_end_token.isdigit())
-            else think_end_token
-        )
+        if isinstance(think_end_token, str) and think_end_token.isdigit():
+            think_end_token = self.tokenizer.decode(int(think_end_token))
+        self.think_end_token: str | None = think_end_token
         self.truncation = truncation
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
@@ -1620,48 +1619,25 @@ class HFLM(TemplateLM):
 
                 generated_length = len(cont_toks)
 
-                # Handle integer think_end_token: find last occurrence and strip tokens after it
-                if isinstance(self.think_end_token, int):
-                    think_token_indices = [
-                        i
-                        for i, token in enumerate(cont_toks)
-                        if token == self.think_end_token
-                    ]
-                    if think_token_indices:
-                        cont_toks = cont_toks[think_token_indices[-1] + 1 :]
-
                 s = self.tok_decode(cont_toks)
 
-                # Detect stop reason and answer-not-found
-                answer_found = True
-                if generated_length >= max_gen_toks:
-                    stop_reason = "max_gen_toks"
-                    answer_found = False
-                else:
-                    stop_reason = "natural"
-
-                if self.think_end_token is not None and self.think_end_token not in (
-                    cont_toks if isinstance(self.think_end_token, int) else s
-                ):
-                    answer_found = False
+                stop_reason, answer_found = detect_stop_reason_and_answer_found(
+                    hit_max_gen_toks=generated_length >= max_gen_toks,
+                    generated_text=s,
+                    think_end_token=self.think_end_token,
+                    stop_sequences=until,
+                )
 
                 # Save raw text before postprocessing
                 full_resps.append(s)
 
-                # Strip leading whitespace if we removed thinking tokens
-                if isinstance(self.think_end_token, int):
-                    s = s.lstrip()
-
-                # Apply post-processing: remove stop sequences and string-based thinking tokens
                 if not answer_found and self.think_end_token is not None:
                     s = ""
                 else:
                     s = postprocess_generated_text(
                         generation=s,
                         stop=until,
-                        think_end_token=self.think_end_token
-                        if isinstance(self.think_end_token, str)
-                        else None,
+                        think_end_token=self.think_end_token,
                     )
                 res.append(s)
                 stop_reasons.append(stop_reason)

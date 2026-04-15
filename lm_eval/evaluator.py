@@ -694,8 +694,6 @@ def evaluate(
                     if is_invalid:
                         invalid_sample_list[filter_key].append(diag_example)
 
-                # --- End diagnostic checks ---
-
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
@@ -727,7 +725,7 @@ def evaluate(
 
             is_first_filter = False
 
-        # Store per-task diagnostic stats
+        # Store per-task diagnostic stats.
         diagnostic_stats[task_name] = {
             "version": task.VERSION,
             "output_type": task.OUTPUT_TYPE,

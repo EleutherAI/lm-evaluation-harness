@@ -24,6 +24,7 @@ from lm_eval.models.utils import (
     Collator,
     _add_special_kwargs,
     configure_pad_token,
+    detect_stop_reason_and_answer_found,
     handle_stop_sequences,
     has_bos_prefix,
     maybe_truncate,
@@ -732,29 +733,20 @@ class VLLM(TemplateLM):
             ):
                 generated_text: str = output.outputs[0].text
 
-                # Detect stop reason from vLLM's native finish_reason
+                # Detect stop reason and answer-not-found
                 vllm_finish = output.outputs[0].finish_reason  # "stop" or "length"
                 vllm_stop = output.outputs[0].stop_reason      # the specific stop string/token, or None
-                if vllm_finish == "length":
-                    stop_reason = "max_gen_toks"
-                else:
-                    stop_reason = "natural"
 
-                # Detect answer-not-found: either think_end_token missing or generation hit max_gen_toks without a stop sequence.
-                answer_found = True
-                if self.think_end_token is not None and self.think_end_token not in generated_text:
-                    answer_found = False
-                if vllm_finish == "length":
-                    answer_found = False
+                stop_reason, answer_found = detect_stop_reason_and_answer_found(
+                    hit_max_gen_toks=vllm_finish == "length",
+                    generated_text=generated_text,
+                    think_end_token=self.think_end_token,
+                    stop_sequences=until,
+                )
 
-                for stop_sequence in until:
-                    stop_length = len(stop_sequence)
-
-                    if generated_text[-stop_length:] == stop_sequence:
-                        eval_logger.warning(
-                            f"Sequence generation stopped due to the stop sequence: `{repr(stop_sequence)}`. This may or may not be expected."
-                        )
-                        stop_reason = f"stop_sequence:{vllm_stop}"
+                # Override with vLLM's native stop reason for richer diagnostics
+                if stop_reason.startswith("stop_sequence:") and vllm_stop is not None:
+                    stop_reason = f"stop_sequence:{vllm_stop}"
 
                 # Save the raw text before postprocessing (includes thinking content)
                 full_resps.append(generated_text)

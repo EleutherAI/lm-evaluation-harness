@@ -938,6 +938,43 @@ def postprocess_generated_text(
     return generation
 
 
+def detect_stop_reason_and_answer_found(
+    hit_max_gen_toks: bool,
+    generated_text: str,
+    think_end_token: str | None = None,
+    stop_sequences: list[str] | None = None,
+) -> tuple[str, bool]:
+    """Determine stop reason and whether the answer was found.
+
+    Args:
+        hit_max_gen_toks: Whether generation was truncated by the token limit.
+        generated_text: The raw generated text (before postprocessing), used
+            to detect think_end_token presence and stop sequence hits.
+        think_end_token: The end-of-thinking token string, or None when
+            thinking is not enabled.
+        stop_sequences: List of stop sequences to check at the end of
+            generated_text.
+
+    Returns:
+        (stop_reason, answer_found) tuple.
+    """
+    if hit_max_gen_toks:
+        return "max_gen_toks", False
+
+    stop_reason = "natural"
+    if stop_sequences and generated_text:
+        for stop_sequence in stop_sequences:
+            if stop_sequence and generated_text.endswith(stop_sequence):
+                stop_reason = f"stop_sequence:{stop_sequence}"
+                break
+
+    answer_found = True
+    if think_end_token is not None and think_end_token not in generated_text:
+        answer_found = False
+
+    return stop_reason, answer_found
+
+
 def set_diagnostic_attributes(
     requests: list[Instance],
     stop_reasons: list[str],
