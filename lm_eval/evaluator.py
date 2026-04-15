@@ -645,7 +645,6 @@ def evaluate(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
 
-                # --- Diagnostic checks ---
                 filter_doc_count[filter_key] += 1
 
                 # Check answer-not-found (once per doc, on first filter_key)
@@ -660,7 +659,6 @@ def evaluate(
                         not_found_count += 1
                         is_not_found = True
 
-                if is_first_filter:
                     doc_count += 1
 
                 # Check invalid-filter (per filter_key), excluding answer-not-found
