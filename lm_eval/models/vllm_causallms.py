@@ -645,9 +645,12 @@ class VLLM(TemplateLM):
 
     def generate_until(
         self, requests: list[Instance], disable_tqdm: bool = False
-    ) -> list[str]:
+    ) -> tuple[list[str], list[str], list[bool], list[str]]:
         assert self.tokenizer
         res = []
+        full_resps: list[str] = []
+        stop_reasons: list[str] = []
+        found_answers: list[bool] = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests), strict=True)
@@ -727,11 +730,49 @@ class VLLM(TemplateLM):
                 cont, context, _cache_gen_kwargs, strict=True
             ):
                 generated_text: str = output.outputs[0].text
+
+                # Detect answer-not-found (think_end_token missing)
+                answer_found = True
+                if self.think_end_token is not None and self.think_end_token not in generated_text:
+                    eval_logger.warning(
+                        f"Could not find an answer in the generated sequence (sequence end): {repr(generated_text[-50:])}"
+                    )
+                    answer_found = False
+
+                # Detect stop reason from vLLM's native finish_reason
+                vllm_finish = output.outputs[0].finish_reason  # "stop" or "length"
+                vllm_stop = output.outputs[0].stop_reason      # the specific stop string/token, or None
+                if vllm_finish == "length":
+                    stop_reason = "max_gen_toks"
+                else:
+                    stop_reason = "natural"
+
+                for stop_sequence in until:
+                    stop_length = len(stop_sequence)
+
+                    if generated_text[-stop_length:] == stop_sequence:
+                        eval_logger.warning(
+                            f"Sequence generation stopped due to the stop sequence: `{repr(stop_sequence)}`. This may or may not be expected."
+                        )
+                        stop_reason = f"stop_sequence:{vllm_stop}"
+
+                # Save the raw text before postprocessing (includes thinking content)
+                full_resps.append(generated_text)
+
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                generated_text = postprocess_generated_text(
-                    generated_text, _gen_kwargs.get("until"), self.think_end_token
-                )
+                if not answer_found:
+                    # think_end_token was expected but not found — the model
+                    # never finished thinking.  Return empty so filters don't
+                    # extract a spurious answer from the reasoning content.
+                    generated_text = ""
+                else:
+                    generated_text = postprocess_generated_text(
+                        generated_text, _gen_kwargs.get("until"), self.think_end_token
+                    )
+
                 res.append(generated_text)
+                stop_reasons.append(stop_reason)
+                found_answers.append(answer_found)
                 self.cache_hook.add_partial(
                     "generate_until", (_context, _gen_kwargs), generated_text
                 )
@@ -739,7 +780,12 @@ class VLLM(TemplateLM):
 
         pbar.close()
         # reorder all group of results back to original unsorted form
-        return re_ords.get_original(res)
+        return (
+            re_ords.get_original(res),
+            re_ords.get_original(stop_reasons),
+            re_ords.get_original(found_answers),
+            re_ords.get_original(full_resps),
+        )
 
     def _loglikelihood_tokens(
         self,
