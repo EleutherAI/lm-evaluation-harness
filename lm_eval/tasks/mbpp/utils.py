@@ -1,28 +1,34 @@
 import re
-from typing import Union
+from functools import lru_cache
 
 import evaluate as hf_evaluate
 
 
-try:
+_CODE_BLOCK_PATTERN = re.compile(
+    r"```(?:[^\n`]*)\n(.*?)(?:\n```|\Z)",
+    re.DOTALL,
+)
+
+
+@lru_cache(maxsize=1)
+def _load_pass_at_k():
     pass_at_k = hf_evaluate.load("code_eval")
 
-    # run simple test to check code execution is enabled before model generation
+    # Run a simple test to check code execution is enabled before model generation.
     test_cases = ["assert add(2, 3)==5"]
     candidates = [["def add(a,b): return a*b"]]
-    results = pass_at_k.compute(references=test_cases, predictions=candidates, k=[1])
-except Exception as e:
-    raise e
+    pass_at_k.compute(references=test_cases, predictions=candidates, k=[1])
+    return pass_at_k
 
 
 def pass_at_1(
-    references: Union[str, list[str]], predictions: Union[str, list[list[str]]]
+    references: str | list[str], predictions: str | list[list[str]]
 ) -> float:
     if isinstance(references, str):
         references = [references]
     if isinstance(predictions[0], str):
         predictions = [[p] for p in predictions]
-    return pass_at_k.compute(
+    return _load_pass_at_k().compute(
         references=references,
         predictions=predictions,
         k=[1],
@@ -30,18 +36,19 @@ def pass_at_1(
 
 
 def extract_code_blocks(text: str) -> str:
-    # Pattern to match ```...``` blocks
-    pattern = r"```(?:\w+)?\n?(.*?)\n?```"
-    # (+ ```) as we add the opening "```python" to the gen_prefix
-    matches = re.findall(pattern, r"```" + text, re.DOTALL)
-    # if no matches, try to match ```...``` blocks (after removing the language)
-    if not matches:
-        text_without_lang = re.sub(r"```python", "```", text)
-        matches = re.findall(pattern, text_without_lang, re.DOTALL)
-    if not matches:
-        return ""
-    else:
-        return matches[0]
+    normalized_text = text.replace("\r\n", "\n")
+
+    # Prefer an explicit fenced block if the model emitted one itself.
+    match = _CODE_BLOCK_PATTERN.search(normalized_text)
+    if match:
+        return match.group(1)
+
+    # mbpp_instruct opens a code fence in the prompt via `gen_prefix`, so many
+    # model outputs start directly with Python code and may or may not emit the
+    # closing fence. Reconstruct that missing opening fence for extraction.
+    synthesized_text = f"```python\n{normalized_text}"
+    match = _CODE_BLOCK_PATTERN.search(synthesized_text)
+    return match.group(1) if match else ""
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
