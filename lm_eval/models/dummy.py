@@ -37,7 +37,7 @@ class DummyLM(LM):
             res.append("lol")
             if self.write_out:
                 print(request.arguments[0])
-                print(f"gen_kwargs: {request.arguments[0]}")
+                print(f"gen_kwargs: {request.arguments[1]}")
             assert request.arguments[0].strip() != ""
 
         return res
