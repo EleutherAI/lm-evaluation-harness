@@ -232,6 +232,25 @@ def hash_args(attr: str, args: Iterable[Any]) -> str:
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
+def _is_sampling_gen_kwargs(gen_kwargs: Any) -> bool:
+    # do_sample=False is not decisive: openai_completions drops it before
+    # dispatch but forwards temperature. top_k<2 degenerates to greedy.
+    if not isinstance(gen_kwargs, dict):
+        return False
+    if gen_kwargs.get("do_sample") is True:
+        return True
+    temperature = gen_kwargs.get("temperature")
+    if temperature is not None and temperature > 0:
+        return True
+    top_p = gen_kwargs.get("top_p")
+    if top_p is not None and top_p < 1.0:
+        return True
+    top_k = gen_kwargs.get("top_k")
+    if top_k is not None and top_k > 1:
+        return True
+    return False
+
+
 class CacheHook:
     def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
         if cachinglm is None:
@@ -243,6 +262,16 @@ class CacheHook:
     def add_partial(self, attr: str, req: Iterable[Any], res: Any) -> None:
         if self.dbdict is None:
             return
+        # skip sampled generate_until writes -- never read back. deterministic
+        # repeats>1 still writes args-only rows here; the wrapper reads under
+        # repeat-aware keys, so those rows are harmless orphans.
+        if attr == "generate_until":
+            try:
+                gen_kwargs = req[1] if len(req) > 1 else None  # type: ignore[index]
+            except TypeError:
+                gen_kwargs = None
+            if _is_sampling_gen_kwargs(gen_kwargs):
+                return
         hsh = hash_args(attr, req)
         self.dbdict[hsh] = res
 
@@ -273,18 +302,24 @@ class CachingLM:
             return lm_attr
 
         def _fn(requests: list["Instance"]) -> list["Instance"]:
-            res = []
-            remaining_reqs = []
+            res: list[Any] = []
+            remaining_reqs: list["Instance"] = []
+            # key for each remaining req; None => don't cache this result
+            remaining_keys: list[Optional[str]] = []
             warned = False
-            # figure out which ones are cached and which ones are new
+            occurrence: dict[str, int] = {}
+
             eval_logger.info(
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
             for req in tqdm(requests, desc="Checking cached requests"):
-                hsh = hash_args(attr, req.args)
-                if attr == "generate_until" and req.args[1].get("do_sample", False):
-                    # when we are doing non-greedy generation, don't use the cache
-                    # (else every "randomly sampled" generation would be identical for repeats > 1).
+                if getattr(req, "is_padding", False):
+                    res.append(None)
+                    remaining_reqs.append(req)
+                    remaining_keys.append(None)
+                    continue
+
+                if attr == "generate_until" and _is_sampling_gen_kwargs(req.args[1]):
                     if not warned:
                         eval_logger.warning(
                             f"Arguments to lm.generate_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
@@ -292,7 +327,11 @@ class CachingLM:
                         warned = True
                     res.append(None)
                     remaining_reqs.append(req)
-                elif hsh in self.dbdict:
+                    remaining_keys.append(None)
+                    continue
+
+                hsh = self._cache_key(attr, req, occurrence)
+                if hsh in self.dbdict:
                     ob = self.dbdict[hsh]
 
                     assert ob is not None
@@ -301,28 +340,59 @@ class CachingLM:
                 else:
                     res.append(None)
                     remaining_reqs.append(req)
+                    remaining_keys.append(hsh)
             eval_logger.info(
                 f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
             )
-            # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs) if remaining_reqs else []
 
-            # stick the new ones back into the list and also cache any of the new ones
             resptr = 0
-            for req, r in zip(remaining_reqs, rem_res, strict=True):
+            for req, r, hsh in zip(
+                remaining_reqs, rem_res, remaining_keys, strict=True
+            ):
                 while res[resptr] is not None:
                     resptr += 1
 
                 res[resptr] = r
 
-                # caching
-                hsh = hash_args(attr, req.args)
-                self.dbdict[hsh] = r
+                if hsh is not None:
+                    self.dbdict[hsh] = r
             self.dbdict.commit()
 
             return res
 
         return _fn
+
+    @staticmethod
+    def _cache_key(
+        attr: str, req: "Instance", occurrence: dict[str, int]
+    ) -> str:
+        # Legacy args-only key for:
+        #   - non-generate_until requests (deterministic, no repeats>1 uses)
+        #   - single-sample generate_until (keeps pre-existing caches valid)
+        if attr != "generate_until":
+            return hash_args(attr, req.args)
+
+        repeats = req.repeats if req.repeats is not None else 1
+        if repeats <= 1 and req.repeat_idx == 0:
+            return hash_args(attr, req.args)
+
+        if req.task_name is not None and req.doc_id is not None:
+            extras: list[Any] = [
+                req.task_name,
+                req.doc_id,
+                req.idx,
+                req.repeat_idx,
+            ]
+        else:
+            # no task metadata: count duplicates within this call instead.
+            # two logical reqs with identical args get conflated here.
+            counter_key = json.dumps([attr, list(req.args)], default=str)
+            slot = occurrence.get(counter_key, 0)
+            occurrence[counter_key] = slot + 1
+            extras = [slot]
+
+        return hash_args(attr, list(req.args) + extras)
 
     def get_cache_hook(self) -> "CacheHook":
         return CacheHook(self)
