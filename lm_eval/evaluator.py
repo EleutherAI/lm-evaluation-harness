@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import itertools
 import json
 import logging
@@ -573,20 +574,27 @@ def evaluate(
     # execute each type of request
     for reqtype, reqs in requests.items():
         eval_logger.info(f"Running {reqtype} requests")
-        # create `K` copies of each request `req` based off `K = req.repeats`
+        # shallow-copy K clones per req; resps stays shared with the original
         cloned_reqs = []
         for req in reqs:
-            cloned_reqs.extend([req] * req.repeats)
+            for i in range(req.repeats):
+                cloned_reqs.append(dataclasses.replace(req, repeat_idx=i))
 
         if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
+            pad_req = reqs[-1]
             for _ in range(padding_requests[reqtype]):
-                cloned_reqs.extend([req] * req.repeats)
+                for i in range(pad_req.repeats):
+                    cloned_reqs.append(
+                        dataclasses.replace(pad_req, repeat_idx=i, is_padding=True)
+                    )
 
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs, strict=True):
+            if req.is_padding:
+                continue
             req.resps.append(x)
 
         if lm.world_size > 1:
