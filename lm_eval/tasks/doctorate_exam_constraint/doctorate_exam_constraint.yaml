@@ -1,0 +1,31 @@
+tag:
+  - quantitative
+  - high_difficulty
+task: doctorate_exam_constraint
+custom_dataset: !function utils.load_local_jsonl
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: train
+fewshot_split: null
+doc_to_text: "{{prompt}}"
+doc_to_target: ""
+metric_list:
+  - metric: keyword_acc
+    aggregation: mean
+    higher_is_better: true
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+    - "</s>"
+    - "<|im_end|>"
+    - "\n\n"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 512
+repeats: 1
+num_fewshot: 0
+metadata:
+  version: 1.0
+  description: "高难度定量基准评测任务 - 严格校验模型输出是否完整包含所有期望关键词"
