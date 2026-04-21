@@ -146,7 +146,12 @@ class EvaluatorConfig:
 
     # External tasks and generation
     include_path: str | None = field(
-        default=None, metadata={"help": "Additional dir path for external tasks"}
+        default=None,
+        metadata={"help": "Directory for external tasks or a .py file to import"},
+    )
+    include_module: list[str] | None = field(
+        default=None,
+        metadata={"help": "Dotted module path(s) to import before evaluation"},
     )
     gen_kwargs: dict = field(
         default_factory=dict,
@@ -267,6 +272,10 @@ class EvaluatorConfig:
 
     def _configure(self):
         """Validate configuration and preprocess fields after creation."""
+        from lm_eval._include import import_user_modules
+
+        import_user_modules(self.include_path, self.include_module)
+
         self._validate_arguments()._process_arguments()._set_trust_remote_code()
 
         return self
@@ -345,15 +354,15 @@ class EvaluatorConfig:
         import glob
         import itertools
 
+        from lm_eval._include import task_discovery_path
         from lm_eval.tasks import TaskManager
         from lm_eval.tasks._yaml_loader import load_yaml
 
         # if metadata manually passed use that:
         self.metadata = metadata or self.metadata
 
-        # Create task manager with metadata
         task_manager = TaskManager(
-            include_path=self.include_path,
+            include_path=task_discovery_path(self.include_path),
             metadata=self.metadata or {},
         )
 
