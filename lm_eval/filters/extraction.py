@@ -22,7 +22,7 @@ class RegexFilter(Filter):
         fallback: str = "[invalid]",
     ) -> None:
         """
-        pass a string `regex` to run `re.compile(r"regex")` on.
+        Pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
         """
         self.regex_pattern = regex_pattern
@@ -41,7 +41,14 @@ class RegexFilter(Filter):
                 if not isinstance(resp, str):
                     resp = ""
                 if resp == "":
-                    filtered.append("[missing]")
+                    # Distinguish empty responses from regex-no-match in
+                    # diagnostic logs when the default fallback is in use.
+                    # Respect any custom fallback verbatim to preserve
+                    # task-specific semantics (some tasks branch on the
+                    # exact fallback string).
+                    filtered.append(
+                        "[missing]" if self.fallback == "[invalid]" else self.fallback
+                    )
                     continue
                 match = self.regex.findall(resp)
                 if match:
@@ -73,7 +80,7 @@ class POSFilter(Filter):
         fallback=None,
     ) -> None:
         """
-        pass a string `regex` to run `re.compile(r"regex")` on.
+        Pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
         """
         if fallback is None:
@@ -94,7 +101,7 @@ class POSFilter(Filter):
             if isinstance(result, str):
                 result = extract_tagged_tokens(result)
             pos_tags.extend(pos for _, pos in result)
-            return pos_tags if pos_tags else self.fallback
+            return pos_tags or self.fallback
 
         def filter_set(inst):
             filtered = []
@@ -224,7 +231,11 @@ class MultiChoiceRegexFilter(RegexFilter):
             filtered = []
             for resp in r:
                 if isinstance(resp, str) and resp == "":
-                    filtered.append("[missing]")
+                    # See RegexFilter.apply: keep the diagnostic [missing]
+                    # label only when the default fallback is in use.
+                    filtered.append(
+                        "[missing]" if self.fallback == "[invalid]" else self.fallback
+                    )
                     continue
                 match = find_match(self.regex, resp)
                 if not match:
