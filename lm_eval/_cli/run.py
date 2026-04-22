@@ -419,6 +419,7 @@ class Run(SubCommand):
         if results is not None:
             if cfg.log_samples:
                 samples = results.pop("samples")
+            diagnostic_samples = results.pop("diagnostic_samples", {})
 
             dumped = json.dumps(
                 results, indent=2, default=handle_non_serializable, ensure_ascii=False
@@ -448,6 +449,20 @@ class Run(SubCommand):
                     evaluation_tracker.save_results_samples(
                         task_name=task_name, samples=samples[task_name]
                     )
+
+                # Save diagnostic samples (answer-not-found / invalid-filter)
+                for task_name, diagnostic_values in diagnostic_samples.items():
+                    if diagnostic_values.get("not_found"):
+                        evaluation_tracker.save_results_samples(
+                            task_name=f"not_found_{task_name}",
+                            samples=diagnostic_values["not_found"],
+                        )
+                    for filter_key, inv_samples in diagnostic_values.get("invalid", {}).items():
+                        if inv_samples:
+                            evaluation_tracker.save_results_samples(
+                                task_name=f"invalid_{task_name}",
+                                samples=inv_samples,
+                            )
 
             if (
                 evaluation_tracker.push_results_to_hub

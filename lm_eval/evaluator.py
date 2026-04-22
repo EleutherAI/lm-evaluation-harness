@@ -585,6 +585,11 @@ def evaluate(
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
+        # Diagnostic attributes (stop_reasons, found_answers, full_resps)
+        # are set directly on the Instance objects by backends that support
+        # them (e.g. hf, vllm). See generate_until in each backend.
+        # TODO: all generate_until backends should set these attributes.
+
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs, strict=True):
             req.resps.append(x)
@@ -596,9 +601,21 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
+
+    # Diagnostic tracking for answer-not-found and invalid-filter cases
+    diagnostic_stats: dict[str, dict] = {}
+    diagnostic_samples: dict[str, dict] = {}
+
     for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
         task = acc["task"]
         task.apply_filters()
+
+        # Per-task diagnostic counters
+        not_found_count = 0
+        invalid_count: dict[str, int] = defaultdict(int)
+        doc_count = 0
+        not_found_sample_list: list[dict] = []
+        invalid_sample_list: dict[str, list[dict]] = defaultdict(list)
 
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
@@ -611,6 +628,8 @@ def evaluate(
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
+        is_first_filter = True
+        filter_doc_count: dict[str, int] = defaultdict(int)
         for filter_key in task.instances[0].filtered_resps:
             indices = samples.get(task_name, None) if samples is not None else None
             doc_iterator = task.doc_iterator(
@@ -625,6 +644,56 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
+
+                filter_doc_count[filter_key] += 1
+
+                # Check answer-not-found (once per doc, on first filter_key)
+                is_not_found = False
+                if is_first_filter:
+                    # Use found_answers metadata set by the model's generate_until
+                    if any(
+                        not fa
+                        for req in requests
+                        for fa in getattr(req, "found_answers", [True])
+                    ):
+                        not_found_count += 1
+                        is_not_found = True
+
+                    doc_count += 1
+
+                # Check invalid-filter (per filter_key), excluding answer-not-found
+                is_invalid = False
+                if not is_not_found:
+                    filtered_vals = [req.filtered_resps[filter_key] for req in requests]
+                    is_invalid = any(f == "[invalid]" for f in filtered_vals)
+                    if is_invalid:
+                        invalid_count[filter_key] += 1
+
+                # Build sample dict for diagnostic JSONL output
+                if log_samples and (is_not_found or is_invalid):
+                    target = task.doc_to_target(doc)
+                    diag_example = {
+                        "doc_id": doc_id_true,
+                        "doc": doc,
+                        "target": target,
+                        "arguments": [req.args for req in requests],
+                        "resps": [req.resps for req in requests],
+                        "full_resps": [
+                            getattr(req, "full_resps", []) for req in requests
+                        ],
+                        "filtered_resps": [
+                            req.filtered_resps[filter_key] for req in requests
+                        ],
+                        "filter": filter_key,
+                        "stop_reasons": [
+                            getattr(req, "stop_reasons", []) for req in requests
+                        ],
+                    }
+                    if is_not_found:
+                        not_found_sample_list.append(diag_example)
+                    if is_invalid:
+                        invalid_sample_list[filter_key].append(diag_example)
+
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
@@ -653,6 +722,22 @@ def evaluate(
                     acc["logged_samples"].append(example)
                 for metric, value in metrics.items():
                     acc["raw_metrics"][(metric, filter_key)].append(value)
+
+            is_first_filter = False
+
+        # Store per-task diagnostic stats.
+        diagnostic_stats[task_name] = {
+            "version": task.VERSION,
+            "output_type": task.OUTPUT_TYPE,
+            "answer_not_found": not_found_count,
+            "total": doc_count,
+            "invalid_filter": dict(invalid_count),
+            "filter_total": dict(filter_doc_count),
+        }
+        diagnostic_samples[task_name] = {
+            "not_found": not_found_sample_list,
+            "invalid": dict(invalid_sample_list),
+        }
 
     if WORLD_SIZE > 1:
         # Gather all sample metrics across ranks, keyed by task name.
@@ -695,6 +780,10 @@ def evaluate(
             if LMEVAL_HASHMM and hasattr(lm, "MULTIMODAL"):
                 samples = hash_dict_images(samples)
 
-        return res._to_eval_results(samples=samples)
+        eval_results = res._to_eval_results(samples=samples)
+        eval_results["diagnostic_stats"] = diagnostic_stats
+        if log_samples:
+            eval_results["diagnostic_samples"] = diagnostic_samples
+        return eval_results
     else:
         return None

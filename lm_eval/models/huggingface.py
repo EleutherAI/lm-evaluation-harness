@@ -32,10 +32,12 @@ from lm_eval.models.utils import (
     Collator,
     _add_special_kwargs,
     configure_pad_token,
+    detect_stop_reason_and_answer_found,
     handle_stop_sequences,
     has_bos_prefix,
     normalize_gen_kwargs,
     postprocess_generated_text,
+    set_diagnostic_attributes,
 )
 from lm_eval.models.utils_hf import (
     clear_torch_cache,
@@ -103,7 +105,7 @@ class HFLM(TemplateLM):
         autogptq: bool | str | None = False,
         gptqmodel: bool | None = False,
         gguf_file: str | None = None,
-        # end token for thinking, either the string or int token id.
+        # end token for thinking (string or int token id, converted to string).
         # splits to get response after this token (if provided).
         think_end_token: str | int | None = None,
         enable_thinking: bool | None = None,
@@ -341,11 +343,23 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
-        self.think_end_token = (
-            int(think_end_token)
-            if (isinstance(think_end_token, str) and think_end_token.isdigit())
-            else think_end_token
-        )
+        # Accept either a string (matched as a substring of the decoded
+        # generation) or an integer token id (matched directly against the
+        # generated token id list — more robust for tokenizers whose single-
+        # token decode does not line up with the joint decode of the full
+        # sequence, e.g. leading-whitespace BPE tokens).  Digit-only strings
+        # are treated as ids for backwards compatibility.
+        if isinstance(think_end_token, str) and think_end_token.isdigit():
+            think_end_token = int(think_end_token)
+
+        self.think_end_token_id: int | None
+        self.think_end_token: str | None
+        if isinstance(think_end_token, int):
+            self.think_end_token_id = think_end_token
+            self.think_end_token = self.tokenizer.decode([think_end_token])
+        else:
+            self.think_end_token_id = None
+            self.think_end_token = think_end_token
         self.truncation = truncation
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
@@ -1509,6 +1523,9 @@ class HFLM(TemplateLM):
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[str]:
         res = []
+        full_resps: list[str] = []
+        stop_reasons: list[str] = []
+        found_answers: list[bool] = []
 
         def _collate(req: tuple[str, dict]):
             """Defines the key for the sorted method"""
@@ -1614,36 +1631,65 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
-                # Handle integer think_end_token: find last occurrence and strip tokens after it
-                if isinstance(self.think_end_token, int):
-                    think_token_indices = [
-                        i
-                        for i, token in enumerate(cont_toks)
-                        if token == self.think_end_token
-                    ]
-                    if think_token_indices:
-                        cont_toks = cont_toks[think_token_indices[-1] + 1 :]
+                generated_length = len(cont_toks)
 
                 s = self.tok_decode(cont_toks)
 
-                # Strip leading whitespace if we removed thinking tokens
-                if isinstance(self.think_end_token, int):
-                    s = s.lstrip()
-
-                # Apply post-processing: remove stop sequences and string-based thinking tokens
-                s = postprocess_generated_text(
-                    generation=s,
-                    stop=until,
-                    think_end_token=self.think_end_token
-                    if isinstance(self.think_end_token, str)
-                    else None,
+                stop_reason, answer_found = detect_stop_reason_and_answer_found(
+                    hit_max_gen_toks=generated_length >= max_gen_toks,
+                    generated_text=s,
+                    think_end_token=self.think_end_token,
+                    stop_sequences=until,
                 )
+
+                # Save raw text before postprocessing
+                full_resps.append(s)
+
+                # Prefer id-based matching when think_end_token was given
+                # as a token id.
+                think_end_idx: int | None = None
+                if self.think_end_token_id is not None:
+                    think_end_idx = max(
+                        (
+                            i
+                            for i, t in enumerate(cont_toks)
+                            if t == self.think_end_token_id
+                        ),
+                        default=None,
+                    )
+                    answer_found = think_end_idx is not None
+                    if not answer_found:
+                        s = ""
+
+
+                if not answer_found and self.think_end_token is not None:
+                    s = ""
+                elif think_end_idx is not None:
+                    # Strip tokens up to and including the last think_end
+                    # occurrence, then decode the remaining answer tokens.
+                    s = self.tok_decode(cont_toks[think_end_idx + 1 :]).lstrip()
+                    s = postprocess_generated_text(
+                        generation=s, stop=until, think_end_token=None
+                    )
+                else:
+                    s = postprocess_generated_text(
+                        generation=s,
+                        stop=until,
+                        think_end_token=self.think_end_token,
+                    )
                 res.append(s)
+                stop_reasons.append(stop_reason)
+                found_answers.append(answer_found)
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)
+        stop_reasons = re_ords.get_original(stop_reasons)
+        found_answers = re_ords.get_original(found_answers)
+        full_resps = re_ords.get_original(full_resps)
+
+        set_diagnostic_attributes(requests, stop_reasons, found_answers, full_resps)
 
         pbar.close()
 

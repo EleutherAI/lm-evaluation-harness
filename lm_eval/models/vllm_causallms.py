@@ -24,11 +24,13 @@ from lm_eval.models.utils import (
     Collator,
     _add_special_kwargs,
     configure_pad_token,
+    detect_stop_reason_and_answer_found,
     handle_stop_sequences,
     has_bos_prefix,
     maybe_truncate,
     normalize_gen_kwargs,
     postprocess_generated_text,
+    set_diagnostic_attributes,
     undistribute,
 )
 from lm_eval.utils import (
@@ -648,6 +650,9 @@ class VLLM(TemplateLM):
     ) -> list[str]:
         assert self.tokenizer
         res = []
+        full_resps: list[str] = []
+        stop_reasons: list[str] = []
+        found_answers: list[bool] = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests), strict=True)
@@ -727,11 +732,40 @@ class VLLM(TemplateLM):
                 cont, context, _cache_gen_kwargs, strict=True
             ):
                 generated_text: str = output.outputs[0].text
-                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                generated_text = postprocess_generated_text(
-                    generated_text, _gen_kwargs.get("until"), self.think_end_token
+
+                # Detect stop reason and answer-not-found
+                vllm_finish = output.outputs[0].finish_reason  # "stop" or "length"
+                vllm_stop = output.outputs[0].stop_reason      # the specific stop string/token, or None
+
+                stop_reason, answer_found = detect_stop_reason_and_answer_found(
+                    hit_max_gen_toks=vllm_finish == "length",
+                    generated_text=generated_text,
+                    think_end_token=self.think_end_token,
+                    stop_sequences=until,
                 )
+
+                # Override with vLLM's native stop reason for richer diagnostics
+                if stop_reason.startswith("stop_sequence:") and vllm_stop is not None:
+                    stop_reason = f"stop_sequence:{vllm_stop}"
+
+                # Save the raw text before postprocessing (includes thinking content)
+                full_resps.append(generated_text)
+
+                # When thinking is enabled but the model never emitted
+                # think_end_token, blank the output so downstream filters
+                # don't extract a spurious answer from the reasoning
+                # trace.  For non-thinking runs we keep the (possibly
+                # truncated) text so filters can still attempt extraction.
+                if not answer_found and self.think_end_token is not None:
+                    generated_text = ""
+                else:
+                    generated_text = postprocess_generated_text(
+                        generated_text, _gen_kwargs.get("until"), self.think_end_token
+                    )
+
                 res.append(generated_text)
+                stop_reasons.append(stop_reason)
+                found_answers.append(answer_found)
                 self.cache_hook.add_partial(
                     "generate_until", (_context, _gen_kwargs), generated_text
                 )
@@ -739,7 +773,14 @@ class VLLM(TemplateLM):
 
         pbar.close()
         # reorder all group of results back to original unsorted form
-        return re_ords.get_original(res)
+        res = re_ords.get_original(res)
+        stop_reasons = re_ords.get_original(stop_reasons)
+        found_answers = re_ords.get_original(found_answers)
+        full_resps = re_ords.get_original(full_resps)
+
+        set_diagnostic_attributes(requests, stop_reasons, found_answers, full_resps)
+
+        return res
 
     def _loglikelihood_tokens(
         self,

@@ -472,11 +472,72 @@ def _build_hierarchy_info(
     return depth_map, ordered
 
 
+def _aggregate_diagnostic_stats(
+    diagnostic_stats: dict[str, dict],
+    group_subtasks: dict[str, list[str]],
+) -> dict[str, dict]:
+    """Aggregate diagnostic stats for groups by summing leaf-task counts.
+
+    Returns a new dict with entries for both leaf tasks and groups.
+    """
+    result = dict(diagnostic_stats)  # start with leaf tasks
+
+    def _get_leaves(name: str) -> list[str]:
+        """Recursively collect leaf task names under a group."""
+        children = group_subtasks.get(name, [])
+        if not children:
+            return [name]
+        leaves = []
+        for child in children:
+            leaves.extend(_get_leaves(child))
+        return leaves
+
+    for group_name in group_subtasks:
+        if group_name in result:
+            continue  # already a leaf task
+        leaves = _get_leaves(group_name)
+        leaf_stats = [result[l] for l in leaves if l in result]
+        if not leaf_stats:
+            continue
+        # Sum counts across leaves
+        total = sum(s["total"] for s in leaf_stats)
+        answer_not_found = sum(s["answer_not_found"] for s in leaf_stats)
+        # Merge invalid_filter and filter_total dicts
+        invalid_filter: dict[str, int] = {}
+        filter_total: dict[str, int] = {}
+        for s in leaf_stats:
+            for fk, cnt in s.get("invalid_filter", {}).items():
+                invalid_filter[fk] = invalid_filter.get(fk, 0) + cnt
+            for fk, cnt in s.get("filter_total", {}).items():
+                filter_total[fk] = filter_total.get(fk, 0) + cnt
+        # A group is generative if any leaf task is generative
+        has_generative = any(
+            s.get("output_type") == "generate_until" for s in leaf_stats
+        )
+        result[group_name] = {
+            "output_type": "generate_until" if has_generative else "non_generative",
+            "answer_not_found": answer_not_found,
+            "total": total,
+            "invalid_filter": invalid_filter,
+            "filter_total": filter_total,
+        }
+    return result
+
+
 def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
     column_name = "Groups" if column == "groups" else "Tasks"
+
+    raw_diagnostic_stats = result_dict.get("diagnostic_stats", {})
+    group_subtasks = result_dict.get("group_subtasks", {})
+    diagnostic_stats = (
+        _aggregate_diagnostic_stats(raw_diagnostic_stats, group_subtasks)
+        if raw_diagnostic_stats
+        else {}
+    )
+    has_diag = bool(diagnostic_stats)
 
     all_headers = [
         column_name,
@@ -489,6 +550,8 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         "",
         "Stderr",
     ]
+    if has_diag:
+        all_headers += ["answer-not-found", "invalid-filter"]
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
@@ -498,7 +561,6 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
     values = []
 
     # Build depth map and hierarchical key ordering from group_subtasks
-    group_subtasks = result_dict.get("group_subtasks", {})
     depth_map, hierarchical_keys = _build_hierarchy_info(
         group_subtasks, set(result_dict[column].keys())
     )
@@ -515,6 +577,9 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         version = result_dict["versions"].get(k, "    N/A")
         n = str(result_dict.get("n-shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
+
+        # Diagnostic stats for this task/group
+        task_diag = diagnostic_stats.get(k, {})
 
         display_name = dic.pop("alias", k)
         ## alias takes care of name, and we don't print sample_len
@@ -541,12 +606,36 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
             v = f"{v:.4f}" if isinstance(v, float) else v
 
+            row = [k, version, f, n, m, hib, v]
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
                 se = "   N/A" if se == "N/A" else f"{se:.4f}"
-                values.append([k, version, f, n, m, hib, v, "±", se])
+                row += ["±", se]
             else:
-                values.append([k, version, f, n, m, hib, v, "", ""])
+                row += ["", ""]
+
+            if has_diag:
+                is_generative = task_diag.get("output_type") == "generate_until"
+                if not is_generative:
+                    row.append("N/A")
+                    row.append("N/A")
+                else:
+                    # answer-not-found: proportion, shown for every row
+                    diag_total = task_diag.get("total", 0)
+                    if diag_total > 0:
+                        not_found_pct = task_diag["answer_not_found"] / diag_total
+                        row.append(f"{not_found_pct:.4f}")
+                    else:
+                        row.append("")
+                    # invalid-filter: proportion per filter_key
+                    f_total = task_diag.get("filter_total", {}).get(f, 0)
+                    if f_total > 0:
+                        inv_count = task_diag.get("invalid_filter", {}).get(f, 0)
+                        row.append(f"{inv_count / f_total:.4f}")
+                    else:
+                        row.append("")
+
+            values.append(row)
             k = ""
             version = ""
     md_writer.value_matrix = values

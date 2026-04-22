@@ -29,6 +29,8 @@ if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase
     from transformers.configuration_utils import PretrainedConfig
 
+    from lm_eval.api.instance import Instance
+
 
 class GenKwargs(TypedDict, total=False):
     do_sample: bool
@@ -934,6 +936,74 @@ def postprocess_generated_text(
         generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation
+
+
+def detect_stop_reason_and_answer_found(
+    hit_max_gen_toks: bool,
+    generated_text: str,
+    think_end_token: str | None = None,
+    stop_sequences: list[str] | None = None,
+) -> tuple[str, bool]:
+    """Determine stop reason and whether the answer was found.
+
+    Args:
+        hit_max_gen_toks: Whether generation was truncated by the token limit.
+        generated_text: The raw generated text (before postprocessing), used
+            to detect think_end_token presence and stop sequence hits.
+        think_end_token: The end-of-thinking token string, or None when
+            thinking is not enabled.
+        stop_sequences: List of stop sequences to check at the end of
+            generated_text.
+
+    Returns:
+        (stop_reason, answer_found) tuple.
+        - ``length``: token limit hit
+        - ``stop``: EOS / model-decided stop
+        - ``stop_sequence:<seq>``: user-provided stop string matched
+    """
+
+    stop_reason = "stop"
+    if hit_max_gen_toks:
+        stop_reason = "length"
+    else:
+        if stop_sequences and generated_text:
+            for stop_sequence in stop_sequences:
+                if stop_sequence and generated_text.endswith(stop_sequence):
+                    stop_reason = f"stop_sequence:{stop_sequence}"
+                    break
+
+    # When thinking is enabled, completion hinges on whether the model
+    # emitted its end-of-thinking marker. Otherwise, completion means
+    # the model stopped on its own rather than being cut off.
+    answer_found = think_end_token in generated_text if think_end_token is not None else not hit_max_gen_toks
+
+    return stop_reason, answer_found
+
+
+def set_diagnostic_attributes(
+    requests: list[Instance],
+    stop_reasons: list[str],
+    found_answers: list[bool],
+    full_resps: list[str],
+) -> None:
+    """Set diagnostic attributes on request Instance objects.
+
+    Appends per-generation diagnostic info to each request, mirroring the
+    pattern used for ``req.resps``.  Called by generate_until backends
+    (e.g. hf, vllm) after reordering results back to the original order.
+    """
+    for req, stop_reason, answer_found, full_resp in zip(
+        requests, stop_reasons, found_answers, full_resps, strict=True
+    ):
+        if not hasattr(req, "stop_reasons"):
+            req.stop_reasons = []
+        req.stop_reasons.append(stop_reason)
+        if not hasattr(req, "found_answers"):
+            req.found_answers = []
+        req.found_answers.append(answer_found)
+        if not hasattr(req, "full_resps"):
+            req.full_resps = []
+        req.full_resps.append(full_resp)
 
 
 def has_bos_prefix(sequence: str, bos_str: str | Iterable[str] | None = None) -> bool:
