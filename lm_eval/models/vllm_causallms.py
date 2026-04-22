@@ -751,11 +751,12 @@ class VLLM(TemplateLM):
                 # Save the raw text before postprocessing (includes thinking content)
                 full_resps.append(generated_text)
 
-                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                if not answer_found:
-                    # think_end_token was expected but not found — the model
-                    # never finished thinking.  Return empty so filters don't
-                    # extract a spurious answer from the reasoning content.
+                # When thinking is enabled but the model never emitted
+                # think_end_token, blank the output so downstream filters
+                # don't extract a spurious answer from the reasoning
+                # trace.  For non-thinking runs we keep the (possibly
+                # truncated) text so filters can still attempt extraction.
+                if not answer_found and self.think_end_token is not None:
                     generated_text = ""
                 else:
                     generated_text = postprocess_generated_text(

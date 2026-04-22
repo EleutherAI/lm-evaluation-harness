@@ -957,20 +957,25 @@ def detect_stop_reason_and_answer_found(
 
     Returns:
         (stop_reason, answer_found) tuple.
+        - ``length``: token limit hit
+        - ``stop``: EOS / model-decided stop
+        - ``stop_sequence:<seq>``: user-provided stop string matched
     """
+
+    stop_reason = "stop"
     if hit_max_gen_toks:
-        return "max_gen_toks", False
+        stop_reason = "length"
+    else:
+        if stop_sequences and generated_text:
+            for stop_sequence in stop_sequences:
+                if stop_sequence and generated_text.endswith(stop_sequence):
+                    stop_reason = f"stop_sequence:{stop_sequence}"
+                    break
 
-    stop_reason = "natural"
-    if stop_sequences and generated_text:
-        for stop_sequence in stop_sequences:
-            if stop_sequence and generated_text.endswith(stop_sequence):
-                stop_reason = f"stop_sequence:{stop_sequence}"
-                break
-
-    answer_found = True
-    if think_end_token is not None and think_end_token not in generated_text:
-        answer_found = False
+    # When thinking is enabled, completion hinges on whether the model
+    # emitted its end-of-thinking marker. Otherwise, completion means
+    # the model stopped on its own rather than being cut off.
+    answer_found = think_end_token in generated_text if think_end_token is not None else not hit_max_gen_toks
 
     return stop_reason, answer_found
 

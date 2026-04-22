@@ -343,9 +343,23 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
+        # Accept either a string (matched as a substring of the decoded
+        # generation) or an integer token id (matched directly against the
+        # generated token id list — more robust for tokenizers whose single-
+        # token decode does not line up with the joint decode of the full
+        # sequence, e.g. leading-whitespace BPE tokens).  Digit-only strings
+        # are treated as ids for backwards compatibility.
         if isinstance(think_end_token, str) and think_end_token.isdigit():
-            think_end_token = self.tokenizer.decode(int(think_end_token))
-        self.think_end_token: str | None = think_end_token
+            think_end_token = int(think_end_token)
+
+        self.think_end_token_id: int | None
+        self.think_end_token: str | None
+        if isinstance(think_end_token, int):
+            self.think_end_token_id = think_end_token
+            self.think_end_token = self.tokenizer.decode([think_end_token])
+        else:
+            self.think_end_token_id = None
+            self.think_end_token = think_end_token
         self.truncation = truncation
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
@@ -1631,8 +1645,32 @@ class HFLM(TemplateLM):
                 # Save raw text before postprocessing
                 full_resps.append(s)
 
+                # Prefer id-based matching when think_end_token was given
+                # as a token id.
+                think_end_idx: int | None = None
+                if self.think_end_token_id is not None:
+                    think_end_idx = max(
+                        (
+                            i
+                            for i, t in enumerate(cont_toks)
+                            if t == self.think_end_token_id
+                        ),
+                        default=None,
+                    )
+                    answer_found = think_end_idx is not None
+                    if not answer_found:
+                        s = ""
+
+
                 if not answer_found and self.think_end_token is not None:
                     s = ""
+                elif think_end_idx is not None:
+                    # Strip tokens up to and including the last think_end
+                    # occurrence, then decode the remaining answer tokens.
+                    s = self.tok_decode(cont_toks[think_end_idx + 1 :]).lstrip()
+                    s = postprocess_generated_text(
+                        generation=s, stop=until, think_end_token=None
+                    )
                 else:
                     s = postprocess_generated_text(
                         generation=s,
