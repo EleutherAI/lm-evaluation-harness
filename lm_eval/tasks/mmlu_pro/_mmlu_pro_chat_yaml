@@ -13,6 +13,7 @@ filter_list:
     filter:
       - function: "regex"
         regex_pattern: 'answer is \(?([ABCDEFGHIJ])\)?'
+        group_select: -1
       - function: "take_first"
 generation_kwargs:
   until: []
