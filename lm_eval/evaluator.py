@@ -590,10 +590,6 @@ def evaluate(
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
-        # If the model returns tuples with content and optional fields like
-        # tool_calls/reasoning, unpack them: store the text content in resps
-        # (preserving the expected str contract) and store additional fields
-        # separately on the Instance.
         for x, req in zip(resps, cloned_reqs, strict=True):
             req.resps.append(x)
 
