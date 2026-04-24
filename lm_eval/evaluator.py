@@ -72,6 +72,7 @@ def simple_evaluate(
     evaluation_tracker: EvaluationTracker | None = None,
     system_instruction: str | None = None,
     apply_chat_template: bool | str = False,
+    doc_as_chat_template: bool = False,
     fewshot_as_multiturn: bool = True,
     gen_kwargs: str | dict[str, str | float | int] | None = None,
     task_manager: TaskManager | None = None,
@@ -360,6 +361,7 @@ def simple_evaluate(
         log_samples=True if predict_only else log_samples,
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
+        doc_as_chat_template=doc_as_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
@@ -423,6 +425,7 @@ def evaluate(
     log_samples: bool = True,
     system_instruction: str | None = None,
     apply_chat_template: bool | str = False,
+    doc_as_chat_template: bool | str = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
@@ -533,9 +536,10 @@ def evaluate(
             rewrite_requests_cache=rewrite_requests_cache,
             system_instruction=system_instruction,
             apply_chat_template=bool(apply_chat_template),
+            doc_as_chat_template=doc_as_chat_template,
             fewshot_as_multiturn=fewshot_as_multiturn,
             chat_template=getattr(lm, "apply_chat_template", None)
-            if apply_chat_template
+            if (apply_chat_template or doc_as_chat_template)
             else None,
             tokenizer_name=getattr(lm, "tokenizer_name", "")
             if apply_chat_template
@@ -586,6 +590,10 @@ def evaluate(
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
+        # If the model returns tuples with content and optional fields like
+        # tool_calls/reasoning, unpack them: store the text content in resps
+        # (preserving the expected str contract) and store additional fields
+        # separately on the Instance.
         for x, req in zip(resps, cloned_reqs, strict=True):
             req.resps.append(x)
 

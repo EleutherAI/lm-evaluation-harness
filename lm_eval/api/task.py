@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import json
 import logging
 import random
 import re
@@ -276,6 +277,7 @@ class Task(abc.ABC):
         rewrite_requests_cache: bool = False,
         system_instruction: str | None = None,
         apply_chat_template: bool = False,
+        doc_as_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Callable | None = None,
         tokenizer_name: str = "",
@@ -287,6 +289,7 @@ class Task(abc.ABC):
 
         cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
         cache_key += "-chat_template" if apply_chat_template else ""
+        cache_key += "-doc_as_chat_template" if doc_as_chat_template else ""
         cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
         cache_key += (
             f"-system_prompt_hash{utils.hash_string(system_instruction)}"
@@ -341,6 +344,7 @@ class Task(abc.ABC):
                 else self.config.num_fewshot,
                 system_instruction=system_instruction,
                 apply_chat_template=apply_chat_template,
+                doc_as_chat_template=doc_as_chat_template,
                 fewshot_as_multiturn=fewshot_as_multiturn,
                 chat_template=chat_template,
                 gen_prefix=self.doc_to_prefix(doc),
@@ -936,6 +940,7 @@ class ConfigurableTask(Task):
         num_fewshot: int,
         system_instruction: str | None = None,
         apply_chat_template: bool = False,
+        doc_as_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Callable[..., str] | None = None,
         gen_prefix: str | None = None,
@@ -965,79 +970,96 @@ class ConfigurableTask(Task):
                 multiple-input tasks (e.g., Winogrande where each choice becomes a
                 separate context).
         """
-        messages = []
+
         chat_template = (
-            partial(chat_template, add_generation_prompt=not gen_prefix)
-            if chat_template
-            else None
-        )
-        description = self.resolve_field(doc, self.config.description) or ""
-        system_prompt = maybe_delimit(
-            system_instruction, description, self.config.fewshot_delimiter
-        )
-        if system_prompt:
-            messages.append(Message("system", system_prompt))
-
-        if num_fewshot > 0:
-            for fs_doc in self.sampler.sample(
-                n=num_fewshot,
-                eval_doc=doc
-                if self.fewshot_cfg.split == self.config.test_split
-                else None,
-            ):
-                q, c, a = (
-                    self.doc_to_text(fs_doc, self.fewshot_cfg.doc_to_text),
-                    self.doc_to_choice(fs_doc, self.fewshot_cfg.doc_to_choice)
-                    if self.fewshot_cfg.doc_to_choice
-                    else None,
-                    self.doc_to_target(fs_doc, self.fewshot_cfg.doc_to_target),
-                )
-                _gen_prefix = self.resolve_field(doc, self.fewshot_cfg.gen_prefix)
-                # for multiple inputs, q: int, c: list[str], target: str
-                # TODO: fix this hacky way of handling multiple inputs
-                if self.multiple_input:
-                    q = cast("str", c[q])  # type: ignore
-                    c = None
-                # TODO: fix types
-                messages += self.build_qa_turn(
-                    q=q,
-                    c=c,
-                    a=a,
-                    gen_prefix=_gen_prefix,
-                    tgt_delim=self.fewshot_cfg.target_delimiter,
-                    few_delim=self.fewshot_cfg.fewshot_delimiter,
-                )
-
-        q, c, a = (
-            self.doc_to_text(doc),
-            self.doc_to_choice(doc) if self.config.doc_to_choice else None,
-            self.doc_to_target(doc),
-        )
-        if self.multiple_input:
-            assert isinstance(c, list), "multiple inputs require choices to be a list"
-            return self.multiple_input_context(
-                messages,
-                gen_prefix,
-                c,
-                chat_template=chat_template if apply_chat_template else None,
-                fewshot_as_multiturn=fewshot_as_multiturn,
+                partial(chat_template, add_generation_prompt=not gen_prefix)
+                if chat_template
+                else None
             )
-        messages += self.build_qa_turn(
-            q=q,
-            c=c,
-            gen_prefix=gen_prefix,
-            tgt_delim=self.config.target_delimiter,
-            few_delim="",
-        )
-        if apply_chat_template and chat_template:
-            res = (
-                [m.to_dict() for m in messages]
-                if fewshot_as_multiturn
-                else multiturn_to_singleturn(messages)
-            )
+        
+        if doc_as_chat_template:
+            # The doc is a chat template, use it
+            try:
+                res = json.loads(self.doc_to_text(doc))
+            except json.JSONDecodeError as e:
+                raise ValueError(
+                    f"Failed to parse doc_to_text output as JSON with --doc_as_chat_template: {e}"
+                ) from e
+
+            # Apply template
             res = chat_template(res)
+
         else:
-            res = "".join(m.to_text() for m in messages)
+            # Contruct the correct data format for the doc
+            messages = []
+            
+            description = self.resolve_field(doc, self.config.description) or ""
+            system_prompt = maybe_delimit(
+                system_instruction, description, self.config.fewshot_delimiter
+            )
+            if system_prompt:
+                messages.append(Message("system", system_prompt))
+
+            if num_fewshot > 0:
+                for fs_doc in self.sampler.sample(
+                    n=num_fewshot,
+                    eval_doc=doc
+                    if self.fewshot_cfg.split == self.config.test_split
+                    else None,
+                ):
+                    q, c, a = (
+                        self.doc_to_text(fs_doc, self.fewshot_cfg.doc_to_text),
+                        self.doc_to_choice(fs_doc, self.fewshot_cfg.doc_to_choice)
+                        if self.fewshot_cfg.doc_to_choice
+                        else None,
+                        self.doc_to_target(fs_doc, self.fewshot_cfg.doc_to_target),
+                    )
+                    _gen_prefix = self.resolve_field(doc, self.fewshot_cfg.gen_prefix)
+                    # for multiple inputs, q: int, c: list[str], target: str
+                    # TODO: fix this hacky way of handling multiple inputs
+                    if self.multiple_input:
+                        q = cast("str", c[q])  # type: ignore
+                        c = None
+                    # TODO: fix types
+                    messages += self.build_qa_turn(
+                        q=q,
+                        c=c,
+                        a=a,
+                        gen_prefix=_gen_prefix,
+                        tgt_delim=self.fewshot_cfg.target_delimiter,
+                        few_delim=self.fewshot_cfg.fewshot_delimiter,
+                    )
+
+            q, c, a = (
+                self.doc_to_text(doc),
+                self.doc_to_choice(doc) if self.config.doc_to_choice else None,
+                self.doc_to_target(doc),
+            )
+            if self.multiple_input:
+                assert isinstance(c, list), "multiple inputs require choices to be a list"
+                return self.multiple_input_context(
+                    messages,
+                    gen_prefix,
+                    c,
+                    chat_template=chat_template if apply_chat_template else None,
+                    fewshot_as_multiturn=fewshot_as_multiturn,
+                )
+            messages += self.build_qa_turn(
+                q=q,
+                c=c,
+                gen_prefix=gen_prefix,
+                tgt_delim=self.config.target_delimiter,
+                few_delim="",
+            )
+            if apply_chat_template and chat_template:
+                res = (
+                    [m.to_dict() for m in messages]
+                    if fewshot_as_multiturn
+                    else multiturn_to_singleturn(messages)
+                )
+                res = chat_template(res)
+            else:
+                res = "".join(m.to_text() for m in messages)
 
         return res
 
