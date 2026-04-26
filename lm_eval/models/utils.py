@@ -42,7 +42,7 @@ def chunks(_iter, n: int = 0, fn=None):
     """Divides an iterable into chunks of specified size or based on a given function. Useful for batching.
 
     Args:
-    - iter: The input iterable to be divided into chunks.
+    - _iter: The input iterable to be divided into chunks.
     - n: An integer representing the size of each chunk. Default is 0.
     - fn: A function that takes the current index and the iterable as arguments and returns the size of the chunk. Default is None.
 
@@ -199,7 +199,7 @@ def retry_on_specific_exceptions(
 
     For example, to use for OpenAI, do the following:
     ```
-    from openai import RateLimitError.
+    from openai import RateLimitError
 
     # Recommend specifying max_retries to avoid infinite loops!
     @retry_on_specific_exceptions([RateLimitError], max_retries=3)
@@ -463,8 +463,8 @@ class Collator:
     ) -> Iterator[T]:
         """Divides an iterable into chunks of specified size or based on a given function. Useful for batching.
 
-        Parameters:
-        - iter: The input iterable to be divided into chunks.
+        Args:
+        - _iter: The input iterable to be divided into chunks.
         - n: An integer representing the size of each chunk. Default is 0.
         - fn: A function that takes the current index and the iterable as arguments and returns the size of the chunk. Default is None.
 
@@ -545,7 +545,7 @@ def configure_pad_token(
 def replace_placeholders(
     string: str, default_placeholder: str, image_token: str, max_images: int
 ):
-    """Utility to replace  <image> placeholder tags by model-specific image tokens like <|image_pad|>.
+    """Utility to replace <image> placeholder tags by model-specific image tokens like <|image_pad|>.
 
     A utility function used for local multimodal models. It locates all `placeholder` string
     occurrences in the given input `string_` and replaces the first `max_count` instances with
