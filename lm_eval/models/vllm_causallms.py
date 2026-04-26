@@ -111,7 +111,7 @@ class VLLM(TemplateLM):
         self.truncation_side = truncation_side
         self.data_parallel_size = int(data_parallel_size)
         if self.data_parallel_size > 1 and not find_spec("ray"):
-            raise ImportError(
+            raise ModuleNotFoundError(
                 "ray is required for data parallelism. Please install ray using `pip install ray`."
             )
         self.model_args = {
@@ -384,7 +384,7 @@ class VLLM(TemplateLM):
             # correctly; without it the inner LLM sees 0 devices and asserts
             # in gpu_worker.init_device.
             @ray.remote(num_gpus=self.tensor_parallel_size)
-            def dp_worker(
+            def dp_replica(
                 model_args: dict,
                 sampling_params: list[SamplingParams],
                 requests: list[list[int]],
@@ -426,7 +426,7 @@ class VLLM(TemplateLM):
                 (self.model_args, sp, req, self.lora_request)
                 for req, sp in zip(requests, sampling_params, strict=True)  # type: ignore
             )
-            object_refs = [dp_worker.remote(*x) for x in inputs]
+            object_refs = [dp_replica.remote(*x) for x in inputs]
             results = ray.get(object_refs)
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
             ray.shutdown()
