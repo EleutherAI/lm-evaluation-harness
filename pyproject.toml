@@ -54,7 +54,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 # Model backend dependencies
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 hf = ["transformers>=4.1","torch>=1.8", "accelerate>=0.26.0", "peft>=0.2.0",]
-vllm = ["vllm>=0.4.2"]
+vllm = ["vllm>=0.18"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 ipex = ["optimum-intel"]
