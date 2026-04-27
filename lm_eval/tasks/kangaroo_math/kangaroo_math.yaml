@@ -1,0 +1,49 @@
+task: kangaroo_math
+dataset_path: DFKI-SLT/kangaroo_math_benchmark  # the name of the dataset on the HF Hub.
+dataset_name: null  # the dataset configuration to use
+dataset_kwargs: null  # any extra keyword arguments
+
+training_split: null
+validation_split: null
+test_split: train
+
+doc_to_image:
+  - image
+doc_to_text: "<image>Du bist ein mathematisches Assistenzsystem für Multiple-Choice-Aufgaben. Analysiere das Bild und wähle die korrekte Antwort: A, B, C, D oder E. Antworte nur mit einem einzigen Buchstaben, der die richtige Antwort darstellt, z.B. 'X' wobei X = A, B, C, D oder E."
+doc_to_target: ground_truth
+
+# doc_to_choice:
+#   - "A"
+#   - "B"
+#   - "C"
+#   - "D"
+#   - "E"
+# output_type: multiple_choice
+
+output_type: generate_until
+generation_kwargs:
+  max_gen_toks: 5
+  temperature: 0.0
+  do_sample: false
+#   until:
+#     - "\n\n"
+
+# filter_list:
+#   - name: regex
+#     regex_pattern: "[A-E]"
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+  # - metric: acc
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: acc_norm
+  #   aggregation: mean
+  #   higher_is_better: true
+
+metadata:
+  version: 0.1
