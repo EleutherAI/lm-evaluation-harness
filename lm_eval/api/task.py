@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 import ast
 import logging
+import os
 import random
 import re
 from collections.abc import Callable, Iterable, Iterator, Mapping
@@ -695,6 +696,14 @@ class ConfigurableTask(Task):
                         "'metric' key not provided for an entry in 'metric_list', must be specified!"
                     )
                 metric_name = metric_config["metric"]
+
+                # For named llm_judge variants, use the named key to allow multiple judges
+                # e.g., metric_name="llm_judge" with name="accuracy" -> metric_key="llm_judge_accuracy"
+                if metric_name == "llm_judge" and "name" in metric_config:
+                    metric_key = f"llm_judge_{metric_config['name']}"
+                else:
+                    metric_key = metric_name
+
                 kwargs = {
                     key: metric_config[key]
                     for key in metric_config
@@ -707,50 +716,54 @@ class ConfigurableTask(Task):
                 )
 
                 if self.config.process_results is not None:
-                    self._metric_fn_list[metric_name] = None
-                    self._metric_fn_kwargs[metric_name] = {}
+                    self._metric_fn_list[metric_key] = None
+                    self._metric_fn_kwargs[metric_key] = {}
                 elif callable(metric_name):
                     metric_fn = metric_name.__call__
                     metric_name = metric_name.__name__
-                    self._metric_fn_list[metric_name] = metric_fn
-                    self._metric_fn_kwargs[metric_name] = kwargs
+                    self._metric_fn_list[metric_key] = metric_fn
+                    self._metric_fn_kwargs[metric_key] = kwargs
                 else:
-                    self._metric_fn_list[metric_name] = get_metric(
+                    self._metric_fn_list[metric_key] = get_metric(
                         metric_name, hf_evaluate_metric
                     )
-                    self._metric_fn_kwargs[metric_name] = kwargs
+                    self._metric_fn_kwargs[metric_key] = kwargs
 
                 if "aggregation" in metric_config:
                     agg_name = metric_config["aggregation"]
                     if isinstance(agg_name, str):
-                        self._aggregation_list[metric_name] = get_aggregation(agg_name)
+                        self._aggregation_list[metric_key] = get_aggregation(agg_name)
                     elif callable(agg_name):  # noqa: E721
-                        self._aggregation_list[metric_name] = metric_config[
+                        self._aggregation_list[metric_key] = metric_config[
                             "aggregation"
                         ]
                 else:
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_metric_aggregation(metric_name)
                     eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
+                        f"[Task: {self.config.task}] metric {metric_key} is defined, but aggregation is not. "
                         f"using default "
                         f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
                     )
-                    self._aggregation_list[metric_name] = metric_agg
+                    self._aggregation_list[metric_key] = metric_agg
 
                 if "higher_is_better" in metric_config:
-                    self._higher_is_better[metric_name] = metric_config[
+                    self._higher_is_better[metric_key] = metric_config[
                         "higher_is_better"
                     ]
                 else:
                     eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
+                        f"[Task: {self.config.task}] metric {metric_key} is defined, but higher_is_better is not. "
                         f"using default "
                         f"higher_is_better={is_higher_better(metric_name)}"
                     )
-                    self._higher_is_better[metric_name] = is_higher_better(metric_name)
+                    self._higher_is_better[metric_key] = is_higher_better(metric_name)
 
-        self.download(self.config.dataset_kwargs)
+        try:
+            self.download(self.config.dataset_kwargs)
+        except Exception as e:
+            eval_logger.error(f"error loading dataset for {self.config.task}")
+            raise e
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -1594,6 +1607,30 @@ class ConfigurableTask(Task):
                 gold = type(result)(gold)
 
             for metric in self._metric_fn_list.keys():
+                # LLM Judge uses passthrough pattern - evaluation happens in aggregation
+                # Check for both "llm_judge" and named variants like "llm_judge_accuracy"
+                if metric == "llm_judge" or metric.startswith("llm_judge_"):
+                    # Skip LLM judge metrics unless explicitly enabled via --run_llm_judge
+                    if not os.environ.get("LM_EVAL_RUN_LLM_JUDGE"):
+                        continue
+                    # Pass (reference, prediction, doc, config) tuple for batch evaluation
+                    # Include task_name in config for output file naming
+                    llm_judge_config = self._metric_fn_kwargs[metric].copy()
+                    llm_judge_config["task_name"] = self.config.task
+                    # Merge extra_llm_judge_fields from metadata into config for template variable access
+                    # This allows base configs to define variables that child configs can override
+                    if hasattr(self.config, "metadata") and self.config.metadata:
+                        extra_fields = self.config.metadata.get(
+                            "extra_llm_judge_fields", {}
+                        )
+                        if extra_fields:
+                            for key, value in extra_fields.items():
+                                if key not in llm_judge_config:
+                                    llm_judge_config[key] = value
+                    # metric is already the correct key (e.g., "llm_judge" or "llm_judge_accuracy")
+                    result_dict[metric] = (gold, result, doc, llm_judge_config)
+                    continue
+
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1614,10 +1651,11 @@ class ConfigurableTask(Task):
                     else:
                         for gold_option in gold:
                             try:
+                                metric_kwargs = self._metric_fn_kwargs[metric].copy()
                                 result_score = self._metric_fn_list[metric](
                                     references=[gold_option],
                                     predictions=[result],
-                                    **self._metric_fn_kwargs[metric],
+                                    **metric_kwargs,
                                 )
                             except (
                                 TypeError
@@ -1632,10 +1670,11 @@ class ConfigurableTask(Task):
                         result_score = 1.0 if any(scores) else 0.0
                 else:
                     try:
+                        metric_kwargs = self._metric_fn_kwargs[metric].copy()
                         result_score = self._metric_fn_list[metric](
                             references=[gold],
                             predictions=[result],
-                            **self._metric_fn_kwargs[metric],
+                            **metric_kwargs,
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
