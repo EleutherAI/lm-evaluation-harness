@@ -93,6 +93,13 @@ tasks = [
     "lm_eval[multilingual]",
     "lm_eval[ruler]",
 ]
+ifbench = [
+    "emoji>=2.14.0",
+    "immutabledict>=4.3.1",
+    "langdetect>=1.0.9",
+    "nltk>=3.9.3",
+    "syllapy>=0.7.2",
+]
 
 [dependency-groups]
 dev = [
