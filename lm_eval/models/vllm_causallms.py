@@ -63,7 +63,7 @@ class VLLM(TemplateLM):
         pretrained: str,
         dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
         revision: str | None = None,
-        trust_remote_code: bool | None = False,
+        trust_remote_code: bool = False,
         tokenizer: str | None = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: str | None = None,
@@ -77,7 +77,6 @@ class VLLM(TemplateLM):
         max_length: int | None = None,
         max_model_len: int | None = None,
         seed: int = 1234,
-        gpu_memory_utilization: float = 0.9,
         data_parallel_size: int = 1,
         lora_local_path: str | None = None,
         # VLLM: enable thinking tags in the prompt.
@@ -116,7 +115,6 @@ class VLLM(TemplateLM):
             )
         self.model_args = {
             "model": pretrained,
-            "gpu_memory_utilization": float(gpu_memory_utilization),
             "revision": revision,
             "dtype": dtype,
             "tokenizer": tokenizer,
@@ -179,7 +177,9 @@ class VLLM(TemplateLM):
                 f"Got {enable_thinking=}, but {think_end_token=}. think_end_token is required when using `enable_thinking=True`. Please provide it, and refer to https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md."
             )
 
-        if parse_version(version("vllm")) >= parse_version("0.8.3"):
+        if parse_version(version("vllm")) >= parse_version("0.8.3") and hasattr(
+            self.tokenizer, "name_or_path"
+        ):
             kwargs_resolve_hf_chat_template = {
                 "tokenizer": self.tokenizer,
                 "chat_template": None,
@@ -319,6 +319,14 @@ class VLLM(TemplateLM):
             **kwargs,
             **_add_special_kwargs(add_special_tokens, self.add_bos_token),
         }
+        # MistralTokenizer.__call__ has a strict signature with no **kwargs and
+        # only accepts add_special_tokens/truncation/max_length, so skip the
+        # HF-only return_attention_mask optimization for it.
+        extra_call_kwargs = (
+            {"return_attention_mask": False}
+            if hasattr(self.tokenizer, "name_or_path")
+            else {}
+        )
 
         # this is to handle chat templates, which usually add bos token.
         # this handles a mixed case where some messages have bos token and some don't,
@@ -337,7 +345,7 @@ class VLLM(TemplateLM):
             enc_has = (
                 self.tokenizer(
                     strs_has,
-                    return_attention_mask=False,
+                    **extra_call_kwargs,
                     **kwargs_off,
                 ).input_ids
                 if strs_has
@@ -347,7 +355,7 @@ class VLLM(TemplateLM):
         enc_not = (
             self.tokenizer(
                 strs_not,
-                return_attention_mask=False,
+                **extra_call_kwargs,
                 **special_tokens_kwargs,
             ).input_ids
             if strs_not
