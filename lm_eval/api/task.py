@@ -1612,6 +1612,7 @@ class ConfigurableTask(Task):
                         )[metric]
                         result_score = 1.0 if scores > 0.0 else 0.0
                     else:
+                        dict_scores: dict = {}
                         for gold_option in gold:
                             try:
                                 result_score = self._metric_fn_list[metric](
@@ -1626,9 +1627,41 @@ class ConfigurableTask(Task):
                                     [gold_option, result]
                                 )
                             if isinstance(result_score, dict):
-                                # TODO: this handles the case where HF evaluate returns a dict.
-                                result_score = result_score[metric]
+                                # HF evaluate metrics (e.g. ``bertscore``) return
+                                # a dict whose keys are sub-metrics and may NOT
+                                # contain ``metric``. Preserve legacy behaviour
+                                # when ``metric`` is one of the keys; otherwise
+                                # accumulate per-key scores so all sub-metrics
+                                # surface (mirroring the single-target path
+                                # below). Fixes #1302.
+                                if metric in result_score:
+                                    result_score = result_score[metric]
+                                else:
+                                    for k, v in result_score.items():
+                                        dict_scores.setdefault(k, []).append(v)
+                                    continue
                             scores.append(result_score)
+                        if dict_scores:
+                            for k, vals in dict_scores.items():
+                                # ``any`` over per-gold sub-metric values; mirror
+                                # the boolean-collapse semantics already used
+                                # below for non-dict multiple_target results.
+                                result_dict[k] = 1.0 if any(vals) else 0.0
+                                if (
+                                    metric in self._aggregation_list
+                                    and k not in self._aggregation_list
+                                ):
+                                    self._aggregation_list[k] = self._aggregation_list[
+                                        metric
+                                    ]
+                                if (
+                                    metric in self._higher_is_better
+                                    and k not in self._higher_is_better
+                                ):
+                                    self._higher_is_better[k] = self._higher_is_better[
+                                        metric
+                                    ]
+                            continue
                         result_score = 1.0 if any(scores) else 0.0
                 else:
                     try:

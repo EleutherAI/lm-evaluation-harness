@@ -214,10 +214,87 @@ def test_dict_metric_uses_custom_aggregation():
     assert agg_metrics["pass@3,none"] == 1.5
 
 
+def _make_multi_target_task(metric_fn, metric_name="bertscore"):
+    """Build a generate_until + multiple_target task with a custom metric."""
+    config = {
+        "task": "test_multi_target_dict",
+        "output_type": "generate_until",
+        "metric_list": [
+            {"metric": metric_name, "aggregation": "mean", "higher_is_better": True}
+        ],
+        "doc_to_text": "{{q}}",
+        "doc_to_target": "{{a}}",
+        "target_delimiter": " ",
+    }
+    task = MockConfigurableTask()
+    task._config = TaskConfig(**config)
+    task.OUTPUT_TYPE = "generate_until"
+    task.multiple_target = 1
+    task._metric_fn_list = {metric_name: metric_fn}
+    task._metric_fn_kwargs = {metric_name: {}}
+    task._aggregation_list = {metric_name: None}
+    task._higher_is_better = {metric_name: True}
+    task.doc_to_choice = lambda doc: None
+    return task
+
+
+def test_multi_target_hf_dict_metric_no_keyerror():
+    """Regression test for #1302: HF-evaluate-style metrics on multiple_target
+    tasks must not raise KeyError when the returned dict's keys don't match
+    the metric's registered name (e.g. ``bertscore`` returns precision/recall/f1).
+    """
+
+    def hf_like(references, predictions, **kwargs):
+        # mimic huggingface/evaluate `bertscore.compute(...)` shape
+        return {
+            "precision": [0.8],
+            "recall": [0.7],
+            "f1": [0.75],
+            "hashcode": "bert-base",
+        }
+
+    task = _make_multi_target_task(hf_like, metric_name="bertscore")
+    task.doc_to_target = lambda doc: ["alpha", "beta"]
+
+    # No KeyError, all sub-metric keys surface in the result dict.
+    result = task.process_results({"q": "?", "a": "alpha"}, ["alpha"])
+
+    assert "precision" in result, f"missing 'precision' in {result}"
+    assert "recall" in result, f"missing 'recall' in {result}"
+    assert "f1" in result, f"missing 'f1' in {result}"
+    # the bare metric name must NOT appear (no such key in returned dict)
+    assert "bertscore" not in result
+
+    # aggregation/higher_is_better registered for sub-keys
+    assert "precision" in task._higher_is_better
+    assert task._higher_is_better["precision"] is True
+
+
+def test_multi_target_dict_metric_with_matching_key_legacy():
+    """Backwards compatibility: when the dict DOES contain the metric name as
+    a key (e.g. ``{"exact_match": 0.0}``), the legacy single-value extraction
+    behaviour is preserved — score is still ``1.0 if any(scores) else 0.0``.
+    """
+
+    def returns_metric_keyed_dict(references, predictions, **kwargs):
+        # gold "alpha" matches result "alpha" -> 1.0 ; gold "beta" -> 0.0
+        match = 1.0 if references[0] == predictions[0] else 0.0
+        return {"my_metric": match, "extra_info": "ignored"}
+
+    task = _make_multi_target_task(returns_metric_keyed_dict, metric_name="my_metric")
+    task.doc_to_target = lambda doc: ["alpha", "beta"]
+    result = task.process_results({"q": "?", "a": "alpha"}, ["alpha"])
+    assert "my_metric" in result, f"missing 'my_metric' in {result}"
+    # any(gold_alpha=1.0, gold_beta=0.0) -> 1.0
+    assert result["my_metric"] == 1.0
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()
     test_acc_mutual_info_without_metric()
     test_bootstrap_internal_no_mp()
     test_dict_metric_uses_custom_aggregation()
+    test_multi_target_hf_dict_metric_no_keyerror()
+    test_multi_target_dict_metric_with_matching_key_legacy()
     print("All tests passed!")
