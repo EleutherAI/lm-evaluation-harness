@@ -4,6 +4,7 @@ import copy
 import itertools
 import json
 import logging
+import os
 from functools import cached_property
 from typing import (
     TYPE_CHECKING,
@@ -19,7 +20,6 @@ from typing import (
     Tuple,
     Union,
 )
-
 
 try:
     import requests
@@ -44,6 +44,13 @@ from lm_eval.models.utils import Collator, chunks, configure_pad_token
 if TYPE_CHECKING:
     from PIL import Image
 
+# Set a placeholder to use as model output when the returned answer is "None"
+# This commonly occurs when the model runs out of tokens during the thinking
+# process and returns an empty answer but no error.
+# Default value is an empty string, but it can be edited if this is problematic.
+LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = os.environ.get(
+    "LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER", ""
+)
 
 eval_logger = logging.getLogger(__name__)
 
@@ -525,7 +532,7 @@ class TemplateAPI(TemplateLM):
                 # raising exception will retry the request
                 response.raise_for_status()
                 outputs = await response.json()
-            answers = (
+            tmp_answers = (
                 self.parse_generations(
                     outputs=outputs,
                 )
@@ -536,10 +543,21 @@ class TemplateAPI(TemplateLM):
                     ctxlens=ctxlens,
                 )
             )
+
+            # Convert `None`` values to `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER` string to maintain consistency
+            answers = []
+            for a in tmp_answers:
+                if a is None:
+                    eval_logger.warning(
+                        f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. Check reasoning_content field or generation limits."
+                    )
+                    answers.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
+                else:
+                    answers.append(a)
+
             if cache_keys:
                 for res, cache in zip(answers, cache_keys):
-                    if res is not None:
-                        self.cache_hook.add_partial(cache_method, cache, res)
+                    self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         # If the retries also fail
         except BaseException as e:
@@ -774,9 +792,10 @@ class TemplateAPI(TemplateLM):
                     # even if generation failed (generated_text is None)
                     if generated_text is None:
                         eval_logger.warning(
-                            "API returned null content. Check reasoning_content field or generation limits..."
+                            f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. Check reasoning_content field or generation limits."
                         )
-                        res.append("")
+                        # Patch "None" answer with consistent value (async and sync calls)
+                        res.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
                     else:
                         res.append(generated_text)
 
@@ -817,15 +836,9 @@ class TemplateAPI(TemplateLM):
                         )
                     )
                 )
-                # Convert None values to empty strings to maintain consistency
+                # Append results to res list
                 for r in results:
-                    if r is None:
-                        eval_logger.warning(
-                            "API returned null content. Check reasoning_content field or generation limits."
-                        )
-                        res.append("")
-                    else:
-                        res.append(r)
+                    res.append(r)
 
         return re_ord.get_original(res)
 
