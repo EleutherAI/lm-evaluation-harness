@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_sw_top
+dataset_name: sw
+test_split: top
