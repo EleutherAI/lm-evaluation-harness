@@ -7,7 +7,12 @@ output_type: generate_until
 training_split: train
 fewshot_split: train
 test_split: train
-doc_to_text: "Question: {{Problem}}\nAnswer:"
+doc_to_text: |
+  Solve the following AIME problem.
+
+  {{ Problem }}
+
+  Answer:
 doc_to_target: "{{Answer}}"
 process_results: !function utils.process_results
 metric_list:
