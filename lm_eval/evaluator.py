@@ -619,12 +619,14 @@ def evaluate(
                 world_size=WORLD_SIZE,
                 samples=indices,
             )
+
             for doc_id, doc in doc_iterator:
                 doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
+
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
