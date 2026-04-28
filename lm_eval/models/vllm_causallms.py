@@ -109,6 +109,13 @@ class VLLM(TemplateLM):
         # truncation strategy for inputs exceeding max length
         self.truncation_side = truncation_side
         self.data_parallel_size = int(data_parallel_size)
+        if self.data_parallel_size > 1 and kwargs.get("enable_expert_parallel", False):
+            raise ValueError(
+                "data_parallel_size > 1 is not supported with enable_expert_parallel=True. "
+                "lm-eval dispatches data parallelism through independent Ray workers, which "
+                "does not provide a single coordinated MoE expert-parallel engine. "
+                "Use tensor_parallel_size > 1 with data_parallel_size=1 instead."
+            )
         if self.data_parallel_size > 1 and not find_spec("ray"):
             raise ModuleNotFoundError(
                 "ray is required for data parallelism. Please install ray using `pip install ray`."
