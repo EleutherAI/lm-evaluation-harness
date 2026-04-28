@@ -10,6 +10,19 @@ NOTE: This task corresponds to the MATH (`hendrycks_math`) implementation at htt
 
 Homepage: https://github.com/hendrycks/math
 
+## Changes
+
+### v1.1
+- Answer extraction now tries `\boxed{}` from the model response before falling back to `$...$` delimiters. This aligns with the `aime` task behavior and fixes zero accuracy for models that output `\boxed{}` formatted answers.
+- Support for multiple `\boxed{}` answers (e.g. `\boxed{3}, \boxed{5}, \boxed{7}` is extracted as `3, 5, 7`). Duplicate boxes are deduplicated.
+- Optional SymPy symbolic equivalence fallback and `math_verify` metric (see below).
+
+## Optional enhanced equivalence (`pip install lm-eval[math]`)
+
+When `sympy` is installed, `is_equiv` falls back to symbolic comparison via `sympy.simplify` when string matching fails. This handles cases like `9a + 11` vs `11 + 9a` or `\dfrac{1}{2}` vs `\frac{1}{2}` that are mathematically equivalent but differ as strings. Without `sympy`, the task uses string-only comparison (original behavior).
+
+When `math_verify` is installed, an additional `math_verify` metric is reported alongside `exact_match`, providing robust LaTeX-aware answer verification (same as in `minerva_math`).
+
 
 ## Citation
 ```
