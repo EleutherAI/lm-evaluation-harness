@@ -1,0 +1,11 @@
+group: mmlu_cf
+task:
+  - mmlu_cf_stem
+  - mmlu_cf_social_sciences
+  - mmlu_cf_humanities
+  - mmlu_cf_other
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true
+metadata:
+  version: 1.0

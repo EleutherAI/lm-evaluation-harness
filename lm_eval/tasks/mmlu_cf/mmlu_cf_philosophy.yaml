@@ -1,0 +1,7 @@
+task: mmlu_cf_philosophy
+task_alias: philosophy
+test_split: Philosophy_val
+fewshot_split: Philosophy_dev
+description: "There is a single choice question (with answers). Answer the question by replying A, B, C or D.\n\n"
+tag: mmlu_cf_humanities_tasks
+include: _default_template_yaml
