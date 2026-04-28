@@ -905,6 +905,10 @@ def postprocess_generated_text(
     Returns:
         str: The processed generation - text before stop sequences and after thinking sections.
     """
+    # Strip thinking content first so stop sequences apply to the response,
+    # not to the reasoning trace (which often contains \n\n etc.)
+    if think_end_token:
+        generation = generation.split(think_end_token)[-1].lstrip()
     if stop:
         stop = [stop] if isinstance(stop, str) else stop
         for term in stop:
@@ -912,8 +916,6 @@ def postprocess_generated_text(
                 # ignore '' separator,
                 # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
                 generation = generation.split(term)[0]
-    if think_end_token:
-        generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation
 
