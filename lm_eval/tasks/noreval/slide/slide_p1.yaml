@@ -1,0 +1,4 @@
+task: slide_p1
+include: _slide_yaml
+doc_to_text: "Tekst: {{text}}\nHvilket språk er teksten skrevet på? Alternativer:\n- A) Bokmål\n- B) Nynorsk\n- C) Dansk\n- D) Svensk\n- E) Et annet språk\nRiktig svar:"
+doc_to_choice: ["A)", "B)", "C)", "D)", "E)"]

@@ -1,0 +1,6 @@
+tag: noropenbookqa_no_fact_nno
+task: noropenbookqa_no_fact_nno_p0
+dataset_name: nn
+include: ../_noropenbookqa_yaml
+doc_to_text: "{{question_stem}}"
+doc_to_choice: "{{choices.text}}"
