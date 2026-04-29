@@ -1,0 +1,16 @@
+group: lica_bench_typography
+task:
+  - lica_bench_typography_1
+  - lica_bench_typography_2
+  - lica_bench_typography_3
+  - lica_bench_typography_4
+  - lica_bench_typography_5
+  - lica_bench_typography_6
+  - lica_bench_typography_7
+  - lica_bench_typography_8
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.1
