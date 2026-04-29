@@ -1,6 +1,11 @@
 task: pubmedqa
-dataset_path: bigbio/pubmed_qa
-dataset_name: pubmed_qa_labeled_fold0_source
+dataset_path: qiaojin/pubmed_qa
+dataset_name: pqa_labeled
+dataset_kwargs:
+  split:
+    train: train[:500]
+    validation: train[:50]
+    test: train[500:]
 output_type: multiple_choice
 training_split: train
 validation_split: validation
