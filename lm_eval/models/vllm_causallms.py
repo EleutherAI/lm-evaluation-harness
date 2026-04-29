@@ -313,7 +313,7 @@ class VLLM(TemplateLM):
             return []
 
         _string: list[str] = [string] if isinstance(string, str) else string
-        _bos_token = self.tokenizer.decode(self.prefix_token_id)
+        _bos_token = self.tokenizer.decode(self.prefix_token_id) if self.prefix_token_id is not None else ""
 
         special_tokens_kwargs = {
             **kwargs,
