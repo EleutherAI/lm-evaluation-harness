@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -7,6 +7,32 @@ from lm_eval.api.instance import Instance
 
 
 task_manager = tasks.TaskManager()
+
+
+class TestVLLMValidation:
+    """Tests for VLLM constructor validation."""
+
+    vllm = pytest.importorskip("vllm")
+
+    def test_data_parallel_with_expert_parallel_raises(self):
+        """data_parallel_size > 1 with enable_expert_parallel=True must raise."""
+        from lm_eval.models.vllm_causallms import VLLM
+
+        with (
+            patch.multiple(
+                "lm_eval.models.vllm_causallms",
+                find_spec=lambda name: None if name == "ray" else MagicMock(),
+                LLM=MagicMock(),
+                get_tokenizer=MagicMock(return_value=MagicMock()),
+            ),
+            patch("transformers.AutoConfig.from_pretrained", MagicMock()),
+            pytest.raises(ValueError, match=r"data_parallel_size > 1.*expert_parallel"),
+        ):
+            VLLM(
+                pretrained="mock-model",
+                data_parallel_size=2,
+                enable_expert_parallel=True,
+            )
 
 
 @pytest.mark.skip(reason="requires CUDA")
