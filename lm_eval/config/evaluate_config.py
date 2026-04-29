@@ -132,6 +132,12 @@ class EvaluatorConfig:
             "help": "Apply chat template to prompt. Either True, or a string identifying the tokenizer template."
         },
     )
+    doc_as_chat_template: bool = field(
+        default=False,
+        metadata={
+            "help": "Interpret doc_to_text output as JSON chat history (list of message dicts)."
+        },
+    )
     fewshot_as_multiturn: bool | None = field(
         default=None,
         metadata={
@@ -291,6 +297,14 @@ class EvaluatorConfig:
         if (self.log_samples or self.predict_only) and not self.output_path:
             raise ValueError(
                 "Specify --output_path if providing --log_samples or --predict_only"
+            )
+
+        # doc_as_chat_template and apply_chat_template are mutually exclusive
+        if self.doc_as_chat_template and self.apply_chat_template:
+            raise ValueError(
+                "Cannot use both --doc_as_chat_template and --apply_chat_template. "
+                "--doc_as_chat_template directly parses JSON chat history, "
+                "--apply_chat_template applies the \"role\"/\"content\" fields and (optionally) tokenizer templates."
             )
 
         # Handle fewshot_as_multiturn logic:

@@ -101,6 +101,12 @@ class Run(SubCommand):
             help="Apply chat template to prompts (optional template name)",
         )
         model_group.add_argument(
+            "--doc_as_chat_template",
+            action="store_true",
+            default=False,
+            help="Interpret doc_to_text output as JSON chat history (list of message dicts).",
+        )
+        model_group.add_argument(
             "--limit",
             "-L",
             type=float,
@@ -402,6 +408,7 @@ class Run(SubCommand):
             evaluation_tracker=evaluation_tracker,
             system_instruction=cfg.system_instruction,
             apply_chat_template=cfg.apply_chat_template,
+            doc_as_chat_template=cfg.doc_as_chat_template,
             fewshot_as_multiturn=cfg.fewshot_as_multiturn,
             gen_kwargs=cfg.gen_kwargs,
             task_manager=task_manager,
