@@ -5,7 +5,7 @@ test_split: test
 num_fewshot: 0
 output_type: generate_until
 doc_to_target: completion
-process_results: !function utils.process_results
+process_results: !function lm_eval.tasks.noreval.noridiom.utils.process_results
 generation_kwargs:
   until:
     - "\n"
