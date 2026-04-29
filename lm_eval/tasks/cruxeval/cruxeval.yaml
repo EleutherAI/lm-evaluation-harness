@@ -1,0 +1,6 @@
+task: cruxeval
+dataset_path: cruxeval-org/cruxeval
+unsafe_code: true
+output_type: generate_until
+test_split: test
+
