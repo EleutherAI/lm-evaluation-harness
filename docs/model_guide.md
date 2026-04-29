@@ -24,6 +24,8 @@ touch lm_eval/models/<my_model_filename>.py
 
 **Tip: this filename should not shadow package names! For example, naming your file `anthropic.py` is disallowed since the API's name on pypi is `anthropic`, but naming it `anthropic_llms.py` works with no problems.**
 
+For a copy-pasteable starting point that wires up `Collator`, partial caching, and the optional chat-template hooks, see [`templates/new_template_model/`](../templates/new_template_model). Copy `template.py` into `lm_eval/models/` and follow the `# TODO:` markers.
+
 ## Interface
 
 All models must subclass the `lm_eval.api.model.LM` class.
@@ -183,9 +185,62 @@ class MyCustomLM(LM):
 
 If not implemented for a given model type, the flags `--apply_chat_template` , `--fewshot_as_multiturn`, and `--system_instruction` cannot be used.
 
+## Batching, ordering, and caching
+
+The harness ships with a few small utilities that any local-LM implementation should know about. They live in `lm_eval/models/utils.py`, `lm_eval/utils.py`, and `lm_eval/api/model.py`.
+
+### `Collator` — length-sorted batching
+
+`Collator` takes a list of requests, sorts them by a key you provide (typically descending input length), and yields batches of size `n`. Sorting by length keeps padding minimal and makes the longest example run first, so OOMs are caught early instead of after hours of work.
+
+```python
+from lm_eval.models.utils import Collator
+
+def _len(req):  # req is (context, gen_kwargs)
+    return -len(self.tok_encode(req[0]))
+
+collator = Collator(
+    [r.args for r in requests],
+    sort_fn=_len,
+    group_by="gen_kwargs",  # keep requests with matching generation params together
+)
+for batch in collator.get_batched(n=self.batch_size):
+    ...
+# After processing, restore the harness's expected order:
+return collator.get_original(results)
+```
+
+The `group_by` argument is important for `generate_until`: most backends can't mix different `until` strings or `max_gen_toks` values inside a single forward pass. Setting `group_by="gen_kwargs"` keeps each batch homogeneous.
+
+### `Reorderer` — for simple length-sort cases
+
+`lm_eval.utils.Reorderer` is the lightweight predecessor of `Collator`: it just sorts requests by a key, lets you process them in sorted order, and unsorts the results. Use it when you don't need grouping by gen_kwargs or context-prefix sharing — e.g. for `loglikelihood` where each request is independent.
+
+### Partial caching with `cache_hook`
+
+When the user passes `--use_cache <db_path>`, the harness wraps your model with `CachingLM`, which intercepts the three request methods and short-circuits any request whose hash is already in the SQLite cache. To make sure intermediate progress is also persisted (useful for long evaluations that may be interrupted), call `self.cache_hook.add_partial(...)` after each request:
+
+```python
+self.cache_hook.add_partial("generate_until", (context, gen_kwargs), output)
+```
+
+The first argument is the method name, the second is the request payload (must match what `CachingLM` will hash on the next run), and the third is the result. When `--use_cache` was not set, `add_partial` is a no-op.
+
+## Common pitfalls / FAQ
+
+- **Filename shadows a pypi package.** Don't name your file `anthropic.py`, `openai.py`, etc. Use a suffix like `anthropic_llms.py`.
+- **Forgot to import in `lm_eval/models/__init__.py`.** The `@register_model` decorator runs only when the module is imported. Without the import, `--model <name>` will fail with "not found".
+- **Returning the wrong tuple type.** `loglikelihood` returns `list[tuple[float, bool]]`, `loglikelihood_rolling` returns `list[float]`, `generate_until` returns `list[str]`. Mismatches show up as obscure errors deep in the evaluator.
+- **Off-by-one in loglikelihood indexing.** See the diagram in the [Interface](#interface) section: the final continuation token is *not* fed in. If your accuracy looks off-by-one or stuck at chance, suspect this first.
+- **Mixing `gen_kwargs` inside a batch.** Use `Collator(group_by="gen_kwargs")` so requests with different `until` / `max_gen_toks` don't end up in the same forward pass.
+- **Forgetting `collator.get_original(results)`.** The harness assumes responses are in the same order as the input requests, not in length-sorted order.
+- **Whitespace-only stop strings.** Some backends (Anthropic, certain hosted APIs) reject `"\n\n"` as a stop sequence. Filter `[s for s in until if s and s.strip()]` before sending.
+- **Setting `batch_size="auto"` without auto-detection.** If you accept the string, you also need to either implement auto-batch-size or fall back to a sensible default; otherwise `int("auto")` will crash.
+- **Skipping the smoke test.** Always run `--limit 5 --log_samples` against an existing task (e.g. `sciq` for MCQ, `gsm8k` for generative) before opening the PR — the per-sample log will reveal prompt-formatting bugs that aggregate metrics hide.
+
 ## Other
 
-**Pro tip**: In order to make the Evaluation Harness overestimate total runtimes rather than underestimate it, HuggingFace models come in-built with the ability to provide responses on data points in *descending order by total input length* via `lm_eval.utils.Reorderer`. Take a look at `lm_eval.models.hf_causal.HFLM` to see how this is done, and see if you can implement it in your own model!
+**Pro tip**: In order to make the Evaluation Harness overestimate total runtimes rather than underestimate it, HuggingFace models process data points in *descending order by total input length* via `Collator` / `Reorderer`. Take a look at `lm_eval.models.huggingface.HFLM` to see how this is done, and consider implementing the same pattern in your own model.
 
 ## Conclusion
 
