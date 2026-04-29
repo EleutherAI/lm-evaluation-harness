@@ -43,6 +43,10 @@ None
 * `gpqa_{main, diamond, extended}_cot_zeroshot`
 * `gpqa_{main, diamond, extended}_cot_n_shot`
 
+### Changelog
+
+* **v2.1** (PR #3735): narrowed the answer-preprocessing regex from `\[.*?\]` to `\[\w+\]`. The previous pattern stripped any bracketed content, which destroyed mathematical expressions like `[ (T_1 - T_2) / (T1*T2)]` in answer choices (e.g. GPQA-Diamond Q171). PR #3735
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
