@@ -282,6 +282,14 @@ class Run(SubCommand):
             help="Weights & Biases config arguments key=val key2=val2",
         )
         logging_group.add_argument(
+            "--trackio_args",
+            default=None,
+            nargs="+",
+            action=MergeDictAction,
+            metavar="<args>",
+            help="Trackio init arguments key=val key2=val2 (e.g. project=my-evals)",
+        )
+        logging_group.add_argument(
             "--hf_hub_log_args",
             default=None,
             nargs="+",
@@ -347,12 +355,14 @@ class Run(SubCommand):
         cfg = EvaluatorConfig.from_cli(args)
 
         from lm_eval import simple_evaluate
-        from lm_eval.loggers import EvaluationTracker, WandbLogger
+        from lm_eval.loggers import EvaluationTracker, TrackioLogger, WandbLogger
         from lm_eval.utils import handle_non_serializable, make_table
 
         # Set up logging
         if cfg.wandb_args:
             wandb_logger = WandbLogger(cfg.wandb_args, cfg.wandb_config_args)
+        if cfg.trackio_args:
+            trackio_logger = TrackioLogger(cfg.trackio_args)
 
         # Set up evaluation tracker
         if cfg.output_path:
@@ -438,6 +448,16 @@ class Run(SubCommand):
                 except Exception as e:
                     eval_logger.info(f"Logging to W&B failed: {e}")
 
+            # Trackio logging
+            if cfg.trackio_args:
+                try:
+                    trackio_logger.post_init(results)
+                    trackio_logger.log_eval_result()
+                    if cfg.log_samples:
+                        trackio_logger.log_eval_samples(samples)
+                except Exception as e:
+                    eval_logger.info(f"Logging to Trackio failed: {e}")
+
             # Save results
             evaluation_tracker.save_results_aggregated(
                 results=results, samples=samples if cfg.log_samples else None
@@ -468,3 +488,6 @@ class Run(SubCommand):
 
             if cfg.wandb_args:
                 wandb_logger.run.finish()
+
+            if cfg.trackio_args:
+                trackio_logger.finish()
