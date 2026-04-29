@@ -736,7 +736,7 @@ class RephraseChecker(Instruction):
 
     def strip_changes(self, response):
         """Strips off the changes."""
-        return re.sub(r"\*.*\*", "", response)
+        return re.sub(r"\*.*?\*", "", response)
 
 
 class KeywordChecker(Instruction):
