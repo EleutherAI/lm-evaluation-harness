@@ -14,7 +14,7 @@ MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 OVERRIDE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 
 
-PATH = OVERRIDE_PATH if OVERRIDE_PATH else f"{MODULE_DIR}/.cache"
+PATH = OVERRIDE_PATH or f"{MODULE_DIR}/.cache"
 
 # This should be sufficient for uniqueness
 HASH_INPUT = "EleutherAI-lm-evaluation-harness"
@@ -57,12 +57,11 @@ def load_from_cache(file_name: str, cache: bool = False):
         path = _cache_file_path(file_name)
 
         with open(path, "rb") as file:
-            cached_task_dict = dill.loads(file.read())
+            cached_task_dict = dill.loads(file.read())  # noqa: S301
             return cached_task_dict
 
-    except Exception:
-        eval_logger.debug(f"{file_name} is not cached, generating...")
-        pass
+    except Exception:  # noqa: BLE001
+        eval_logger.debug("%s is not cached, generating...", file_name)
 
 
 def save_to_cache(file_name, obj):
@@ -71,7 +70,7 @@ def save_to_cache(file_name, obj):
 
     file_path = _cache_file_path(file_name)
 
-    eval_logger.debug(f"Saving {file_path} to cache...")
+    eval_logger.debug("Saving %s to cache...", file_path)
     with open(file_path, "wb") as file:
         file.write(dill.dumps(obj))
 
