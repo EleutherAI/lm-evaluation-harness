@@ -1,14 +1,19 @@
 import copy
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
-from lm_eval.loggers.utils import _handle_non_serializable, remove_none_pattern  # noqa: F401
+from lm_eval.loggers.utils import (  # noqa: F401
+    _handle_non_serializable,
+    remove_none_pattern,
+)
 
 
 logger = logging.getLogger(__name__)
 
 
-def _sample_to_trace(trackio_module, sample: Dict[str, Any], task_name: str, output_type: str):
+def _sample_to_trace(
+    trackio_module, sample: dict[str, Any], task_name: str, output_type: str
+):
     """Build a trackio.Trace from a single eval sample.
 
     Picks the most natural prompt/response pair for each task output_type and
@@ -20,34 +25,61 @@ def _sample_to_trace(trackio_module, sample: Dict[str, Any], task_name: str, out
 
     args = sample.get("arguments") or {}
     if output_type == "loglikelihood":
-        first = args.get("arg_0", {}) if isinstance(args, dict) else (args[0] if args else {})
-        prompt = first.get("arg_0", "") if isinstance(first, dict) else (first[0] if first else "")
+        first = (
+            args.get("arg_0", {})
+            if isinstance(args, dict)
+            else (args[0] if args else {})
+        )
+        prompt = (
+            first.get("arg_0", "")
+            if isinstance(first, dict)
+            else (first[0] if first else "")
+        )
         filt = sample.get("filtered_resps")
         if filt:
-            logprob, is_greedy = filt[0] if isinstance(filt[0], (list, tuple)) else (filt[0], None)
-            response = (
-                f"continuation log-prob: {logprob}"
-                + (f"\n\ngreedy={bool(is_greedy)}" if is_greedy is not None else "")
+            logprob, is_greedy = (
+                filt[0] if isinstance(filt[0], (list, tuple)) else (filt[0], None)
+            )
+            response = f"continuation log-prob: {logprob}" + (
+                f"\n\ngreedy={bool(is_greedy)}" if is_greedy is not None else ""
             )
     elif output_type == "multiple_choice":
-        first = args.get("arg_0", {}) if isinstance(args, dict) else (args[0] if args else {})
-        prompt = first.get("arg_0", "") if isinstance(first, dict) else (first[0] if first else "")
+        first = (
+            args.get("arg_0", {})
+            if isinstance(args, dict)
+            else (args[0] if args else {})
+        )
+        prompt = (
+            first.get("arg_0", "")
+            if isinstance(first, dict)
+            else (first[0] if first else "")
+        )
         filt = sample.get("filtered_resps") or []
         try:
             import numpy as np
 
-            choice_idx = int(np.argmax([n[0] if isinstance(n, (list, tuple)) else n for n in filt]))
+            choice_idx = int(
+                np.argmax([n[0] if isinstance(n, (list, tuple)) else n for n in filt])
+            )
             response = f"selected choice {choice_idx}"
-        except Exception:
+        except Exception:  # noqa: BLE001
             response = str(filt)
     else:
-        first = args.get("arg_0", {}) if isinstance(args, dict) else (args[0] if args else {})
-        prompt = first.get("arg_0", "") if isinstance(first, dict) else (first[0] if first else "")
+        first = (
+            args.get("arg_0", {})
+            if isinstance(args, dict)
+            else (args[0] if args else {})
+        )
+        prompt = (
+            first.get("arg_0", "")
+            if isinstance(first, dict)
+            else (first[0] if first else "")
+        )
         filt = sample.get("filtered_resps") or sample.get("resps") or []
         if filt:
             response = filt[0] if isinstance(filt[0], str) else str(filt[0])
 
-    metadata: Dict[str, Any] = {
+    metadata: dict[str, Any] = {
         "task": task_name,
         "doc_id": sample.get("doc_id"),
         "target": sample.get("target"),
@@ -68,7 +100,7 @@ def _sample_to_trace(trackio_module, sample: Dict[str, Any], task_name: str, out
 
 
 class TrackioLogger:
-    def __init__(self, init_args: Dict[str, Any] = None) -> None:
+    def __init__(self, init_args: dict[str, Any] | None = None) -> None:
         """Logs lm-evaluation-harness results to Trackio.
 
         Trackio (https://github.com/gradio-app/trackio) is a lightweight,
@@ -97,21 +129,21 @@ class TrackioLogger:
             ) from e
 
         self._trackio = trackio
-        self.trackio_args: Dict[str, Any] = dict(init_args or {})
+        self.trackio_args: dict[str, Any] = dict(init_args or {})
         self.step = self.trackio_args.pop("step", None)
         if "project" not in self.trackio_args:
             self.trackio_args["project"] = "lm-eval-harness"
         self.run = trackio.init(**self.trackio_args)
 
-    def post_init(self, results: Dict[str, Any]) -> None:
-        self.results: Dict[str, Any] = copy.deepcopy(results)
-        self.task_names: List[str] = list(results.get("results", {}).keys())
-        self.group_names: List[str] = list(results.get("groups", {}).keys())
-        self.task_configs: Dict[str, Any] = self.results.get("configs", {})
+    def post_init(self, results: dict[str, Any]) -> None:
+        self.results: dict[str, Any] = copy.deepcopy(results)
+        self.task_names: list[str] = list(results.get("results", {}).keys())
+        self.group_names: list[str] = list(results.get("groups", {}).keys())
+        self.task_configs: dict[str, Any] = self.results.get("configs", {})
 
-    def _flatten_results_for_log(self) -> Dict[str, Any]:
+    def _flatten_results_for_log(self) -> dict[str, Any]:
         """Flatten nested {task: {metric: value}} into {task/metric: value} scalars."""
-        flat: Dict[str, Any] = {}
+        flat: dict[str, Any] = {}
         for task_name, metrics in self.results.get("results", {}).items():
             if not isinstance(metrics, dict):
                 continue
@@ -130,14 +162,14 @@ class TrackioLogger:
                     "cli_configs": self.results.get("config", {}),
                 }
             )
-        except Exception as e:
-            logger.warning(f"Failed to update Trackio config: {e}")
+        except Exception:
+            logger.exception("Failed to update Trackio config")
 
         flat = self._flatten_results_for_log()
         if flat:
             self._trackio.log(flat, step=self.step)
 
-    def log_eval_samples(self, samples: Dict[str, List[Dict[str, Any]]]) -> None:
+    def log_eval_samples(self, samples: dict[str, list[dict[str, Any]]]) -> None:
         """Log per-sample eval data as Trackio Traces.
 
         Each sample becomes one ``trackio.Trace`` whose messages capture the
@@ -151,14 +183,18 @@ class TrackioLogger:
             output_type = task_cfg.get("output_type", "generate_until")
             for idx, sample in enumerate(samples[task_name]):
                 try:
-                    trace = _sample_to_trace(self._trackio, sample, task_name, output_type)
-                except Exception as e:
-                    logger.warning(f"Failed to build trace for sample {idx} of {task_name}: {e}")
+                    trace = _sample_to_trace(
+                        self._trackio, sample, task_name, output_type
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to build trace for sample %s of %s", idx, task_name
+                    )
                     continue
                 self._trackio.log({f"{task_name}/sample": trace}, step=self.step)
 
     def finish(self) -> None:
         try:
             self._trackio.finish()
-        except Exception as e:
-            logger.warning(f"Trackio finish raised: {e}")
+        except Exception:
+            logger.exception("Trackio finish raised")
