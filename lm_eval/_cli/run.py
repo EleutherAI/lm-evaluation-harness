@@ -384,8 +384,8 @@ class Run(SubCommand):
 
         # Log task selection (tasks already processed in config)
         if cfg.include_path is not None:
-            eval_logger.info(f"Including path: {cfg.include_path}")
-        eval_logger.info(f"Selected Tasks: {cfg.tasks}")
+            eval_logger.info("Including path: %s", cfg.include_path)
+        eval_logger.info("Selected Tasks: %s", cfg.tasks)
 
         # Run evaluation
         results = simple_evaluate(
@@ -445,8 +445,8 @@ class Run(SubCommand):
                     wandb_logger.log_eval_result()
                     if cfg.log_samples:
                         wandb_logger.log_eval_samples(samples)
-                except Exception as e:
-                    eval_logger.info(f"Logging to W&B failed: {e}")
+                except Exception as e:  # noqa: BLE001
+                    eval_logger.info("Logging to W&B failed: %s", e)
 
             # Trackio logging
             if cfg.trackio_args:
@@ -455,8 +455,8 @@ class Run(SubCommand):
                     trackio_logger.log_eval_result()
                     if cfg.log_samples:
                         trackio_logger.log_eval_samples(samples)
-                except Exception as e:
-                    eval_logger.info(f"Logging to Trackio failed: {e}")
+                except Exception as e:  # noqa: BLE001
+                    eval_logger.info("Logging to Trackio failed: %s", e)
 
             # Save results
             evaluation_tracker.save_results_aggregated(
@@ -464,7 +464,7 @@ class Run(SubCommand):
             )
 
             if cfg.log_samples:
-                for task_name, _ in results["configs"].items():
+                for task_name in results["configs"]:
                     evaluation_tracker.save_results_samples(
                         task_name=task_name, samples=samples[task_name]
                     )
