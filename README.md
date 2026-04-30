@@ -431,6 +431,9 @@ lm_eval --model vllm \
 
 To use vllm, do `pip install "lm_eval[vllm]"`. For a full list of supported vLLM configurations, please reference our [vLLM integration](https://github.com/EleutherAI/lm-evaluation-harness/blob/e74ec966556253fbe3d8ecba9de675c77c075bce/lm_eval/models/vllm_causallms.py) and the vLLM documentation.
 
+> [!Note]
+> `data_parallel_size>1` dispatches each replica as a separate [ray](https://github.com/ray-project/ray) actor and requires `pip install ray`. Each actor reserves `tensor_parallel_size` GPUs (default 1).
+
 vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
 
 > [!Tip]

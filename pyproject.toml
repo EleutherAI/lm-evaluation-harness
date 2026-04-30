@@ -54,7 +54,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 # Model backend dependencies
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 hf = ["transformers>=4.1","torch>=1.8", "accelerate>=0.26.0", "peft>=0.2.0",]
-vllm = ["vllm>=0.4.2"]
+vllm = ["vllm>=0.18"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 ipex = ["optimum-intel"]
@@ -81,6 +81,7 @@ ruler = ["nltk", "wonderwords", "scipy"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 discrim_eval = ["statsmodels==0.14.4"]
 unitxt = ["unitxt==1.22.0"]
+trackio = ["trackio>=0.23.0"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 tasks = [
