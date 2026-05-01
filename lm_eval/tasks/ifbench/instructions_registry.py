@@ -99,7 +99,7 @@ INSTRUCTION_DICT = {
         insts_ifeval.HighlightSectionChecker
     ),
     "detectable_format:multiple_sections": insts_ifeval.SectionChecker,
-    "detectable_format:jsondetectable_format:": insts_ifeval.JsonFormat,
+    "detectable_format:json_format:": insts_ifeval.JsonFormat,
     "detectable_format:title": insts_ifeval.TitleChecker,
     "combination:two_responses": insts_ifeval.TwoResponsesChecker,
     "combination:repeat_prompt": insts_ifeval.RepeatPromptThenAnswer,
