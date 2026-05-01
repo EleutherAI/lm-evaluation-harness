@@ -3,4 +3,5 @@ task: ifbench_ifbench-constraints_multi-turn
 dataset_name: ifbench_constraints
 test_split: test
 dataset_path: allenai/IFBench_multi-turn
-doc_to_text: "{{messages}}"
+doc_to_text: "{{multi_turn}}"
+process_docs: !function utils.process_examples

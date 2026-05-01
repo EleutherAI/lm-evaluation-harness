@@ -1,4 +1,7 @@
 import dataclasses
+import json
+
+from datasets import Dataset
 
 from lm_eval.tasks.ifbench import instructions_registry
 
@@ -18,6 +21,18 @@ class OutputExample:
     response: str
     follow_all_instructions: bool
     follow_instruction_list: list[bool]
+
+
+def process_examples(dataset: Dataset) -> Dataset:
+    return dataset.map(process_example)
+
+
+def process_example(example):
+    # Parse the "messages" field into a valid json string
+    example["multi_turn"] = json.dumps(
+        example["messages"]
+    )  # List of dicts for chat template
+    return example
 
 
 def test_instruction_following_strict(
