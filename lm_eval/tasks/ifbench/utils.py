@@ -115,6 +115,8 @@ def process_results(doc, results):
         kwargs=doc["kwargs"],
     )
     response = results[0]
+    if response is None:
+        response = ""
 
     out_strict = test_instruction_following_strict(inp, response)
     out_loose = test_instruction_following_loose(inp, response)
