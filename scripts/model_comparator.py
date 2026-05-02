@@ -23,13 +23,13 @@ def memory_stats():
 
 
 def calculate_z_value(res1: dict, res2: dict) -> tuple[float, float]:
-    from scipy.stats.norm import sf
+    from scipy.stats import norm
 
     acc1, acc2 = res1["acc,none"], res2["acc,none"]
     st_err1, st_err2 = res1["acc_stderr,none"], res2["acc_stderr,none"]
     Z = (acc1 - acc2) / np.sqrt((st_err1**2) + (st_err2**2))
     # Determining the p-value
-    p_value = 2 * sf(abs(Z))  # two-tailed test
+    p_value = 2 * norm.sf(abs(Z))  # two-tailed test
     return Z, p_value
 
 
