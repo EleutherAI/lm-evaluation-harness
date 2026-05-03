@@ -99,6 +99,7 @@ class HFLM(TemplateLM):
         offload_folder: str | os.PathLike | None = "./offload",
         # PEFT, delta weights and quantization options
         peft: str | None = None,
+        peft_list: str | None = None,
         delta: str | None = None,
         autogptq: bool | str | None = False,
         gptqmodel: bool | None = False,
@@ -181,6 +182,12 @@ class HFLM(TemplateLM):
                 ``parallelize=True``.
             peft: Path or HuggingFace Hub ID of a PEFT (LoRA, etc.) adapter to
                 load on top of the base model.
+            peft_list: Comma-separated list of PEFT adapter paths or Hub IDs to
+                evaluate sequentially against the same base model. Each adapter
+                is loaded, evaluated on all requested tasks, and then unloaded
+                before the next adapter is applied. Results are keyed by adapter
+                name in the output. Mutually exclusive with ``peft``.
+                Example: ``"adapter1,adapter2,adapter3"``
             delta: Path or HuggingFace Hub ID of delta weights to apply to the
                 base model (added to the pretrained weights).
             autogptq: Whether to load the model using AutoGPTQ quantization.
@@ -363,12 +370,24 @@ class HFLM(TemplateLM):
                 f"Got {enable_thinking=}, but {think_end_token=}. think_end_token is required when using `enable_thinking=True`. Please provide it, and refer to https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md."
             )
 
+        if peft and peft_list:
+            raise ValueError(
+                "Cannot use both 'peft' and 'peft_list' at the same time. "
+                "Use 'peft' for a single adapter or 'peft_list' for sequential multi-adapter evaluation."
+            )
+
         self.add_bos_token = add_bos_token
 
         self._max_length = max_length
         self.pretrained = pretrained
         self.delta = delta
         self.peft = peft
+        # peft_list: comma-separated adapter paths for sequential multi-adapter evaluation
+        self.peft_list: list[str] | None = (
+            [p.strip() for p in peft_list.split(",") if p.strip()]
+            if peft_list
+            else None
+        )
         self.revision = revision
         self.batch_schedule = 1
         self.batch_sizes = {}
@@ -1711,6 +1730,53 @@ class HFLM(TemplateLM):
         }
         if self.peft:
             model_info["peft_sha"] = get_model_sha(self.peft, self.revision)
+        if self.peft_list:
+            model_info["peft_list_shas"] = [
+                get_model_sha(p, self.revision) for p in self.peft_list
+            ]
         if self.delta:
             model_info["delta_sha"] = get_model_sha(self.delta, self.revision)
         return model_info
+
+    def load_peft_adapter(self, adapter_path: str) -> None:
+        """Load a PEFT adapter on top of the currently loaded base model.
+
+        If the model already has a PEFT adapter attached, it is first unloaded
+        (merged weights are discarded and the base model weights are restored)
+        before the new adapter is applied.
+
+        This allows ``peft_list`` to swap adapters without reloading the full
+        base model, which is the primary cost in multi-adapter evaluation.
+
+        Args:
+            adapter_path: Local path or HuggingFace Hub ID of the PEFT adapter.
+        """
+        from peft import PeftModel
+
+        # If a previous adapter is attached, unwrap back to the base model.
+        if hasattr(self._model, "base_model"):
+            eval_logger.info(
+                f"Unloading existing PEFT adapter before loading '{adapter_path}'."
+            )
+            self._model = self._model.base_model.model
+            self._model.eval()
+
+        eval_logger.info(f"Loading PEFT adapter: '{adapter_path}'")
+        self._model = PeftModel.from_pretrained(
+            self._model, adapter_path, revision=self.revision
+        )
+        self._model.eval()
+        self.peft = adapter_path
+
+    def unload_peft_adapter(self) -> None:
+        """Remove the current PEFT adapter and restore the bare base model.
+
+        After calling this method the model behaves identically to an
+        unadapted base model, allowing a clean subsequent ``load_peft_adapter``
+        call without GPU memory overhead from keeping the old adapter resident.
+        """
+        if hasattr(self._model, "base_model"):
+            eval_logger.info("Unloading PEFT adapter, restoring base model.")
+            self._model = self._model.base_model.model
+            self._model.eval()
+        self.peft = None
