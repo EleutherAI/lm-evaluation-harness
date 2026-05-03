@@ -10,7 +10,7 @@ doc_to_text: "Question: {{qtext}}\nAnswer:"
 doc_to_target: "{{ra - 1}}"
 doc_to_choice: "{{answers|map(attribute='atext')|list}}" # this will be cast to an int.
 should_decontaminate: true
-doc_to_decontamination_query: query
+doc_to_decontamination_query: qtext
 metric_list:
   - metric: acc
     aggregation: mean

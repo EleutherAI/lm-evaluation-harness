@@ -1,5 +1,5 @@
 tag: noridiom_nob
 task: noridiom_nob_p0
 include: ../_noridiom_yaml
-process_docs: !function ../utils.filter_dataset_nb
+process_docs: !function lm_eval.tasks.noreval.noridiom.utils.filter_dataset_nb
 doc_to_text: "Fullfør dette uttrykket: {{idiom_start}}"

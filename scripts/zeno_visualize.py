@@ -79,7 +79,7 @@ def main():
         old_tasks = tasks.copy()
         task_count = len(tasks)
         model_tasks = set(tasks_for_model(model, args.data_path))
-        tasks.intersection(set(model_tasks))
+        tasks &= set(model_tasks)
 
         if task_count != len(tasks):
             eval_logger.warning(

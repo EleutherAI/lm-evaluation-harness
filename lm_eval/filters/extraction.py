@@ -21,8 +21,7 @@ class RegexFilter(Filter):
         group_select: int = 0,
         fallback: str = "[invalid]",
     ) -> None:
-        """
-        pass a string `regex` to run `re.compile(r"regex")` on.
+        """Pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
         """
         self.regex_pattern = regex_pattern
@@ -69,8 +68,7 @@ class POSFilter(Filter):
         group_select=0,
         fallback=None,
     ) -> None:
-        """
-        pass a string `regex` to run `re.compile(r"regex")` on.
+        """Pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
         """
         if fallback is None:
@@ -91,7 +89,7 @@ class POSFilter(Filter):
             if isinstance(result, str):
                 result = extract_tagged_tokens(result)
             pos_tags.extend(pos for _, pos in result)
-            return pos_tags if pos_tags else self.fallback
+            return pos_tags or self.fallback
 
         def filter_set(inst):
             filtered = []
@@ -124,8 +122,7 @@ class WhitespaceFilter(Filter):
 
 @register_filter("multi_choice_regex")
 class MultiChoiceRegexFilter(RegexFilter):
-    """
-    A filter used to extract a model's answer on multiple choice questions with
+    """A filter used to extract a model's answer on multiple choice questions with
     letter answers. assumes each document has a "choices" field
     containing the list of answer choices and that the answer label symbols
     are of the form (A), (B), (C), ... or A, B, C.
@@ -140,8 +137,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         ignore_punctuation=False,
         regexes_to_ignore=None,
     ) -> None:
-        """
-        regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
+        """Arg regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
                         - step 1 : We parse the choices between ([A-Z])s then try to find these choices in the response.
                         - step 2 : We parse the choice with regex: r's*([A-?])', where ? varies by number of choices.
         group_select: Selects the (group_select)th match from the findall result.
@@ -167,7 +163,10 @@ class MultiChoiceRegexFilter(RegexFilter):
             if match:
                 match = match[self.group_select]
                 if isinstance(match, tuple):
-                    match = [m for m in match if m][0]
+                    non_empty = [m for m in match if m]
+                    if not non_empty:
+                        return ""
+                    match = non_empty[0]
                 match = match.strip()
                 if match and match in convert_dict:
                     match = convert_dict[match]
@@ -194,7 +193,7 @@ class MultiChoiceRegexFilter(RegexFilter):
 
         filtered_resps = []
 
-        for r, doc in zip(resps, docs):
+        for r, doc in zip(resps, docs, strict=True):
             fallback_regexes = []
             choice_to_alpha = {}
             next_alpha = "A"
