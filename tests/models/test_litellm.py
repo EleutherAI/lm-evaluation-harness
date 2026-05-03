@@ -4,6 +4,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+
+pytest.importorskip("litellm")
+
 from lm_eval.models.api_models import JsonChatStr
 from lm_eval.models.litellm_llms import LiteLLMChatCompletion
 
