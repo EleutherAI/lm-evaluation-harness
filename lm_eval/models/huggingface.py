@@ -232,12 +232,11 @@ class HFLM(TemplateLM):
             assert isinstance(pretrained, str)
             assert isinstance(batch_size, (int, str))
 
-            if tp_plan is not None and parallelize:
-                raise ValueError(
-                    "`tp_plan` and `parallelize=True` are mutually exclusive. Choose either one for parallelization."
-                )
-
             if tp_plan is not None:
+                if parallelize:
+                    raise ValueError(
+                        "`tp_plan` and `parallelize=True` are mutually exclusive. Choose either one for parallelization."
+                    )
                 # TP mode: skip Accelerator entirely, let transformers handle
                 # distribution via torchrun + device_mesh.
                 device_type = torch._C._get_accelerator().type
@@ -266,7 +265,11 @@ class HFLM(TemplateLM):
                     gpus = torch.cuda.device_count()
 
             # Determine if we are in single device mode (no model parallelism)
-            single_device = not parallelize and tp_plan is None and not getattr(self, 'accelerator', None)
+            single_device = (
+                not parallelize
+                and tp_plan is None
+                and not getattr(self, "accelerator", None)
+            )
 
             if single_device:
                 # use user-passed device
@@ -319,6 +322,19 @@ class HFLM(TemplateLM):
                 gguf_file=gguf_file,
                 subfolder=subfolder,
             )
+            if tp_plan:
+                world = int(os.environ.get("WORLD_SIZE", "1"))
+                n_kv = getattr(
+                    self._config,
+                    "num_key_value_heads",
+                    getattr(self._config, "num_attention_heads", world),
+                )
+                if n_kv % world != 0:
+                    raise ValueError(
+                        f"tp_plan requires num_key_value_heads ({n_kv}) to be divisible by "
+                        f"WORLD_SIZE ({world}). Re-launch with --nproc-per-node "
+                        f"set to a divisor of {n_kv}."
+                    )
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
         self._get_backend(
@@ -416,7 +432,10 @@ class HFLM(TemplateLM):
 
         if isinstance(pretrained, str):
             if (gpus >= 1 or str(self.device) == "mps") and not (
-                parallelize or tp_plan is not None or autogptq or hasattr(self, "accelerator")
+                parallelize
+                or tp_plan is not None
+                or autogptq
+                or hasattr(self, "accelerator")
             ):
                 # TODO: can remove this whole snippet except in the mps case, perhaps?
                 # place model onto device requested manually,

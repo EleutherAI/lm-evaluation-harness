@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 import json
 import logging
+import os
 import random
 import time
 from collections import defaultdict
@@ -269,15 +270,21 @@ def simple_evaluate(
         eval_logger.info("Using pre-initialized model")
         lm = model
 
+    # Under TP launchers (torchrun) every rank reports lm.rank==0; fall back to
+    # LOCAL_RANK so each process gets its own cache db and only LOCAL_RANK==0
+    # performs final result aggregation / I/O.
+    cache_rank = lm.rank or int(os.environ.get("LOCAL_RANK", "0"))
     if use_cache is not None:
-        eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
+        eval_logger.info(
+            f"Using cache at {use_cache + '_rank' + str(cache_rank) + '.db'}"
+        )
         lm = lm_eval.api.model.CachingLM(
             lm,
             use_cache
             # each rank receives a different cache db.
             # necessary to avoid multiple writes to cache at once
             + "_rank"
-            + str(lm.rank)
+            + str(cache_rank)
             + ".db",
         )
 
@@ -367,7 +374,10 @@ def simple_evaluate(
     if verbosity is not None:
         setup_logging(verbosity=verbosity)
 
-    if lm.rank == 0:
+    # `lm.rank == 0` covers DP / single-process; `LOCAL_RANK == 0` covers TP
+    # (torchrun), where every rank reports rank==0 but only one process should
+    # build/return results so callers don't duplicate file writes.
+    if lm.rank == 0 and int(os.environ.get("LOCAL_RANK", "0")) == 0:
         if isinstance(model, str):
             model_name = model
         elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
