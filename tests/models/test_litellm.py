@@ -25,9 +25,7 @@ OPENAI_CHAT_RESPONSE = {
 def _chat_messages(content="Hi"):
     """Wrap chat messages as JsonChatStr — the format generate_until uses."""
     return (
-        JsonChatStr(
-            json.dumps([{"role": "user", "content": content, "type": "text"}])
-        ),
+        JsonChatStr(json.dumps([{"role": "user", "content": content, "type": "text"}])),
     )
 
 
@@ -118,9 +116,7 @@ def test_model_call_error_propagates(litellm_model):
     litellm_model._litellm.completion.side_effect = RuntimeError("Rate limited")
 
     with pytest.raises(RuntimeError, match="Rate limited"):
-        litellm_model.model_call(
-            _chat_messages(), generate=True, gen_kwargs={}
-        )
+        litellm_model.model_call(_chat_messages(), generate=True, gen_kwargs={})
 
 
 def test_amodel_call():
