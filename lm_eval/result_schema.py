@@ -102,6 +102,10 @@ EvalResults = TypedDict(
         "task_hashes": dict[str, str],
         # Wall-clock evaluation time in seconds (stored as string).
         "total_evaluation_time_seconds": str,
+        # Per-task diagnostic stats and samples for answer-not-found and
+        # invalid-filter cases.
+        "diagnostic_stats": dict[str, Any],
+        "diagnostic_samples": dict[str, Any],
     },
     total=False,
 )
