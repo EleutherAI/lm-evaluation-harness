@@ -13,13 +13,18 @@ Usage::
 See https://docs.litellm.ai/docs/providers for supported providers.
 """
 
-import asyncio
+from __future__ import annotations
+
 import copy
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.openai_completions import LocalChatCompletion
+
+
+if TYPE_CHECKING:
+    import asyncio
 
 
 eval_logger = logging.getLogger(__name__)
@@ -56,7 +61,7 @@ class LiteLLMChatCompletion(LocalChatCompletion):
                 "attempted to use 'litellm' LM type, but package `litellm` "
                 "is not installed. Please install via "
                 "`pip install 'lm-eval[litellm]'` or `pip install litellm`",
-            )
+            ) from None
 
         super().__init__(
             base_url=base_url,
@@ -75,7 +80,7 @@ class LiteLLMChatCompletion(LocalChatCompletion):
         generate=True,
         gen_kwargs=None,
         **kwargs,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         gen_kwargs = copy.deepcopy(gen_kwargs)
         try:
             payload = self._create_payload(
@@ -90,7 +95,7 @@ class LiteLLMChatCompletion(LocalChatCompletion):
             return response.model_dump()
         except Exception as e:
             eval_logger.error(
-                f"LiteLLM completion failed for model {self.model}: {e}"
+                "LiteLLM completion failed for model %s: %s", self.model, e
             )
             raise
 
@@ -102,10 +107,10 @@ class LiteLLMChatCompletion(LocalChatCompletion):
         *,
         generate=True,
         cache_keys=None,
-        ctxlens: Optional[List[int]] = None,
-        gen_kwargs: Optional[Dict] = None,
+        ctxlens: list[int] | None = None,
+        gen_kwargs: dict | None = None,
         **kwargs,
-    ) -> Union[List[str], List[Tuple[float, bool]], None]:
+    ) -> list[str] | list[tuple[float, bool]] | None:
         gen_kwargs = copy.deepcopy(gen_kwargs)
         payload = self._create_payload(
             self.create_message(messages),
@@ -127,15 +132,13 @@ class LiteLLMChatCompletion(LocalChatCompletion):
                 )
             )
             if cache_keys:
-                for res, cache in zip(answers, cache_keys):
+                for res, cache in zip(answers, cache_keys, strict=True):
                     if res is not None:
                         self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         except BaseException as e:
-            eval_logger.error(
-                f"LiteLLM async completion failed: {repr(e)}, retrying."
-            )
-            raise e
+            eval_logger.error("LiteLLM async completion failed: %r, retrying.", e)
+            raise
         finally:
             if acquired:
                 sem.release()
