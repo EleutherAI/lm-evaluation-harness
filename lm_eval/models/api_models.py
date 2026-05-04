@@ -87,8 +87,8 @@ def create_image_prompt(
         }
         images.append(img_dict)
 
-    # chat is in format of list[dict["role": "user"/"system", "content": str, "type": "text"],...]
-    # with images, we need "content" to be a list of dicts with "type" and "text"/"image_url"
+    # With images, we need "content" to be a list of dicts with
+    # "type" and "text"/"image_url".
     # currently we do not support few-shots so only one user message
     # text content also has <image> placeholders, which apparently is not necessary for API class (confirm)
 
@@ -97,7 +97,7 @@ def create_image_prompt(
     else:
         text_content = {"type": "text", "text": chat[-1]["content"]}
         chat[-1]["content"] = images + [text_content]
-    chat[-1].pop("type")
+    chat[-1].pop("type", None)
     return chat
 
 
@@ -342,12 +342,7 @@ class TemplateAPI(TemplateLM):
             return chat_history
         else:
             # bit of a hack. We'll load back before sending to the API
-            return JsonChatStr(
-                json.dumps(
-                    [{**item, "type": "text"} for item in chat_history],
-                    ensure_ascii=False,
-                )
-            )
+            return JsonChatStr(json.dumps(chat_history, ensure_ascii=False))
 
     @cached_property
     def eot_token_id(self) -> Optional[int]:

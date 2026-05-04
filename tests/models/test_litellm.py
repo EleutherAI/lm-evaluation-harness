@@ -28,7 +28,7 @@ OPENAI_CHAT_RESPONSE = {
 def _chat_messages(content="Hi"):
     """Wrap chat messages as JsonChatStr — the format generate_until uses."""
     return (
-        JsonChatStr(json.dumps([{"role": "user", "content": content, "type": "text"}])),
+        JsonChatStr(json.dumps([{"role": "user", "content": content}])),
     )
 
 
@@ -108,9 +108,7 @@ def test_model_call(litellm_model):
     litellm_model._litellm.completion.assert_called_once()
     call_kwargs = litellm_model._litellm.completion.call_args[1]
     assert call_kwargs["model"] == "gpt-4o-mini"
-    assert call_kwargs["messages"] == [
-        {"role": "user", "content": "Hi", "type": "text"}
-    ]
+    assert call_kwargs["messages"] == [{"role": "user", "content": "Hi"}]
     assert result == OPENAI_CHAT_RESPONSE
 
 
