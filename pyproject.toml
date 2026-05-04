@@ -22,17 +22,16 @@ dependencies = [
     "numpy",
     "evaluate>=0.4.0",
     "jinja2",
-    "jsonlines",
     "pytablewriter",
     "rouge-score>=0.0.4",
     "sacrebleu>=1.5.0",
     "scikit-learn>=0.24.1",
     "sqlitedict",
-    "zstandard",
     "dill",
     "word2number",
     "more_itertools",
-    "typing_extensions"
+    "typing_extensions",
+    "tqdm>=4.59.0"
 ]
 
 [tool.setuptools.packages.find]
@@ -53,6 +52,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 [project.optional-dependencies]
 # Model backend dependencies
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
+archiver = ["jsonlines", "zstandard"]
 hf = ["transformers>=4.1","torch>=1.8", "accelerate>=0.26.0", "peft>=0.2.0",]
 vllm = ["vllm>=0.18"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
@@ -71,7 +71,7 @@ sparsify = ["sparsify"]
 # Task specific dependencies
 acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 audiolm_qwen = ["librosa", "soundfile"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece", "ruff"]
+dev = ["pytest>=9.0", "pytest-cov", "pytest-xdist", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
@@ -98,6 +98,9 @@ tasks = [
 
 [dependency-groups]
 dev = [
+  {include-group = "dev1"},
+]
+dev1 = [
     "lm_eval[api]", "lm_eval[dev]", "lm_eval[hf]","sentencepiece"
 ]
 
@@ -148,7 +151,7 @@ ignore = [
     "D10", "D200", "D202", "D205",
     "D212", "D415", "D417",
     "E11", "E402", "E501", "E701",
-    "E731", "E741",
+    "E731", "E741", "SIM108",
     "SIM105", "SIM401", "SIM118", # flake8-simplify
     "S311", "S701",  "S101" # bandits, assert-used
 ]
@@ -170,5 +173,5 @@ lines-after-imports = 2
 convention = "google"
 ignore-var-parameters = true
 
-[tool.pytest]
+[tool.pytest] # syntax supported from pytest>9.0
 testpaths = ["tests"]
