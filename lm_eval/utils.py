@@ -126,7 +126,14 @@ def maybe_warn(msg: str, verbose: bool = True):
         logger.warning(msg)
 
 
-def hash_string(string: str) -> str:
+def hash_string(string) -> str:
+    if not isinstance(string, str):
+        string = json.dumps(
+            string,
+            default=handle_non_serializable,
+            ensure_ascii=False,
+            sort_keys=True,
+        )
     return hashlib.sha256(string.encode("utf-8")).hexdigest()
 
 

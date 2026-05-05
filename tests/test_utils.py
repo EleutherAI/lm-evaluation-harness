@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from lm_eval.utils import handle_arg_string, simple_parse_args_string
+from lm_eval.utils import handle_arg_string, hash_string, simple_parse_args_string
 
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
@@ -627,6 +627,13 @@ class TestMaybeDelimit:
     def test_prefix_ends_with_newline_no_extra_delimiter(self):
         """Prefix ends with newline - no extra delimiter added."""
         assert maybe_delimit("line1\n", "line2", delimiter=" ") == "line1\nline2"
+
+
+class TestHashString:
+    def test_accepts_non_string_values(self):
+        assert hash_string({"b": 1, "a": ["x"]}) == hash_string(
+            {"a": ["x"], "b": 1}
+        )
 
 
 class TestHandleArgString:
