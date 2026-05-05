@@ -5,12 +5,14 @@ import multiprocessing as mp
 import os
 from collections import defaultdict
 from difflib import SequenceMatcher
+from itertools import pairwise
 from typing import Any
 
 import datasets
 from huggingface_hub import hf_hub_download
 from tqdm import tqdm
 from transformers import AutoConfig, AutoTokenizer
+
 
 eval_logger = logging.getLogger(__name__)
 
@@ -60,7 +62,8 @@ def _tokenization_progress(total: int):
 
 def grade_response(response: str, answer: str, random_string_to_prepend: str) -> float:
     """We follow grading logic from https://huggingface.co/datasets/openai/mrcr with
-    filtering out the thinking tags if applicable to the response."""
+    filtering out the thinking tags if applicable to the response.
+    """
 
     if "</think>" in response:
         response = response.split("</think>", 1)[1]
@@ -106,12 +109,12 @@ def _power_of_2_generation_tokens(
     max_model_len: int,
 ) -> int:
     # Round the exact max_gen_tokens budget to a power-of-2 that fits within the
-    # model's context length. Originally, each sample in MRCR has a different 
-    # max_gen_tokens budget which is computed as max_model_len - n_prompt_tokens. 
-    # However, this doesn't allow grouping of requests via num_concurrent arg as each 
-    # sample ends up with different gen_kwargs. To enable grouping of requests, we use 
-    # a discrete max_tokens budget which is computed as the next power-of-2 that fits 
-    # within the model context. If the first larger power-of-2 doesn't fit within the 
+    # model's context length. Originally, each sample in MRCR has a different
+    # max_gen_tokens budget which is computed as max_model_len - n_prompt_tokens.
+    # However, this doesn't allow grouping of requests via num_concurrent arg as each
+    # sample ends up with different gen_kwargs. To enable grouping of requests, we use
+    # a discrete max_tokens budget which is computed as the next power-of-2 that fits
+    # within the model context. If the first larger power-of-2 doesn't fit within the
     # model context, we use the first smaller power-of-2.
     remaining_tokens = max_model_len - n_prompt_tokens
     first_larger_bucket = 1 << (remaining_tokens - 1).bit_length()
@@ -145,7 +148,7 @@ def infer_max_model_len(
         if hasattr(cfg, "text_config") and hasattr(cfg, "vision_config"):
             return int(cfg.get_text_config().max_position_embeddings)
         return int(cfg.max_position_embeddings)
-    except Exception as exc:
+    except (AttributeError, OSError, TypeError, ValueError) as exc:
         eval_logger.warning(
             "Could not infer max_model_len for MRCR from %s: %s",
             model_source,
@@ -288,19 +291,21 @@ def render_prompt_texts_parallel(
     )
     prompt_texts: list[str] = []
     counts: list[tuple[int, int]] = []
-    with mp.Pool(
-        processes=min(num_workers, len(chunks)),
-        initializer=_init_tokenizer_worker,
-        initargs=(tokenizer_source, tokenizer_init_kwargs),
-    ) as pool:
-        with _tokenization_progress(total=len(batched_messages)) as pbar:
-            for chunk_prompt_texts, chunk_counts in pool.imap(
-                _render_prompt_texts_worker,
-                chunks,
-            ):
-                prompt_texts.extend(chunk_prompt_texts)
-                counts.extend(chunk_counts)
-                pbar.update(len(chunk_prompt_texts))
+    with (
+        mp.Pool(
+            processes=min(num_workers, len(chunks)),
+            initializer=_init_tokenizer_worker,
+            initargs=(tokenizer_source, tokenizer_init_kwargs),
+        ) as pool,
+        _tokenization_progress(total=len(batched_messages)) as pbar,
+    ):
+        for chunk_prompt_texts, chunk_counts in pool.imap(
+            _render_prompt_texts_worker,
+            chunks,
+        ):
+            prompt_texts.extend(chunk_prompt_texts)
+            counts.extend(chunk_counts)
+            pbar.update(len(chunk_prompt_texts))
     return prompt_texts, counts
 
 
@@ -315,6 +320,7 @@ def _mean_scores_by_bin(items: list[tuple[float, int]]) -> dict[int, float]:
         if scores
     }
 
+
 def AUC(items: list[tuple[float, int]]) -> float:
     points = sorted(_mean_scores_by_bin(items).items())
     if not points:
@@ -323,7 +329,7 @@ def AUC(items: list[tuple[float, int]]) -> float:
         return points[0][1] * 100.0
 
     area = 0.0
-    for (x0, y0), (x1, y1) in zip(points, points[1:]):
+    for (x0, y0), (x1, y1) in pairwise(points):
         area += (x1 - x0) * (y0 + y1) / 2.0
 
     width = points[-1][0] - points[0][0]
@@ -399,9 +405,13 @@ def prepare_docs(
             continue
         if n_prompt_tokens >= max_model_len:
             continue
-        if bin_l != -1 and bin_h != -1 and bin_h > bin_l:
-            if not (bin_l < est_total_tokens <= bin_h):
-                continue
+        if (
+            bin_l != -1
+            and bin_h != -1
+            and bin_h > bin_l
+            and not (bin_l < est_total_tokens <= bin_h)
+        ):
+            continue
 
         max_generation_tokens = _power_of_2_generation_tokens(
             n_prompt_tokens=n_prompt_tokens,
