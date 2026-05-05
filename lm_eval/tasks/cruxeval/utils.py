@@ -46,17 +46,14 @@ def chdir(root):
     os.chdir(root)
     try:
         yield
-    except BaseException as exc:
-        raise exc
     finally:
         os.chdir(cwd)
 
 
 @contextlib.contextmanager
 def create_tempdir():
-    with tempfile.TemporaryDirectory() as dirname:
-        with chdir(dirname):
-            yield dirname
+    with tempfile.TemporaryDirectory() as dirname, chdir(dirname):
+        yield dirname
 
 
 @contextlib.contextmanager
@@ -75,10 +72,12 @@ def time_limit(seconds):
 @contextlib.contextmanager
 def swallow_io():
     stream = WriteOnlyStringIO()
-    with contextlib.redirect_stdout(stream):
-        with contextlib.redirect_stderr(stream):
-            with redirect_stdin(stream):
-                yield
+    with (
+        contextlib.redirect_stdout(stream),
+        contextlib.redirect_stderr(stream),
+        redirect_stdin(stream),
+    ):
+        yield
 
 
 def reliability_guard(maximum_memory_bytes=None):
@@ -87,7 +86,7 @@ def reliability_guard(maximum_memory_bytes=None):
     from interfering with the test (e.g. fork bomb, killing other processes,
     removing filesystem files, etc.)
 
-    WARNING
+    Warning:
     This function is NOT a security sandbox. Untrusted code, including, model-
     generated code, should not be blindly executed outside of one. See the
     Codex paper for more information about OpenAI's code sandbox, and proceed
@@ -97,10 +96,16 @@ def reliability_guard(maximum_memory_bytes=None):
     if maximum_memory_bytes is not None:
         import resource
 
-        resource.setrlimit(resource.RLIMIT_AS, (maximum_memory_bytes, maximum_memory_bytes))
-        resource.setrlimit(resource.RLIMIT_DATA, (maximum_memory_bytes, maximum_memory_bytes))
-        if not platform.uname().system == "Darwin":
-            resource.setrlimit(resource.RLIMIT_STACK, (maximum_memory_bytes, maximum_memory_bytes))
+        resource.setrlimit(
+            resource.RLIMIT_AS, (maximum_memory_bytes, maximum_memory_bytes)
+        )
+        resource.setrlimit(
+            resource.RLIMIT_DATA, (maximum_memory_bytes, maximum_memory_bytes)
+        )
+        if platform.uname().system != "Darwin":
+            resource.setrlimit(
+                resource.RLIMIT_STACK, (maximum_memory_bytes, maximum_memory_bytes)
+            )
 
     faulthandler.disable()
 
@@ -165,7 +170,6 @@ def reliability_guard(maximum_memory_bytes=None):
 def unsafe_execute(check_program, result, timeout):
 
     with create_tempdir():
-
         # These system calls are needed when cleaning up tempdir.
         import os
         import shutil
@@ -180,13 +184,12 @@ def unsafe_execute(check_program, result, timeout):
         # Run program.
         try:
             exec_globals = {}
-            with swallow_io():
-                with time_limit(timeout):
-                    exec(check_program, exec_globals)
+            with swallow_io(), time_limit(timeout):
+                exec(check_program, exec_globals)  # noqa: S102
             result.append("passed")
         except TimeoutException:
             result.append("timed out")
-        except BaseException as e:
+        except BaseException as e:  # noqa: BLE001
             result.append(f"failed: {e}")
 
         # Needed for cleaning up.
@@ -203,7 +206,9 @@ def check_correctness(check_program, timeout=3):
     manager = multiprocessing.Manager()
     result = manager.list()
 
-    p = multiprocessing.Process(target=unsafe_execute, args=(check_program, result, timeout))
+    p = multiprocessing.Process(
+        target=unsafe_execute, args=(check_program, result, timeout)
+    )
     p.start()
     p.join(timeout=timeout + 1)
     if p.is_alive():
@@ -219,10 +224,11 @@ def check_correctness(check_program, timeout=3):
 # Pass@k Calculation
 # ============================================================================
 
+
 def _pass_at_k(n, c, k):
     """
     Calculate pass@k metric.
-    
+
     :param n: total number of samples
     :param c: number of correct samples
     :param k: k in pass@k
@@ -236,10 +242,13 @@ def _pass_at_k(n, c, k):
 # lm-evaluation-harness Integration Functions
 # ============================================================================
 
-def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] = None) -> dict:
+
+def pass_at_k(
+    references: list[str], predictions: list[list[str]], k: list[int] | None = None
+) -> dict:
     """
     Calculate pass@k for a batch of predictions using direct code execution.
-    
+
     :param references: list of reference strings (not used directly, kept for API compatibility)
     :param predictions: list of lists of code strings to execute
     :param k: list of k values to compute pass@k for
@@ -249,7 +258,7 @@ def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] 
         k = [1]
     if isinstance(k, int):
         k = [k]
-    
+
     # Execute all predictions and collect results
     all_results = []
     for pred_list in predictions:
@@ -258,46 +267,66 @@ def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] 
             try:
                 passed = check_correctness(pred, timeout=3)
                 results.append(passed)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 results.append(False)
         all_results.append(results)
-    
+
     # Calculate pass@k for each k value
     pass_at_k_results = {f"pass@{kv}": [] for kv in k}
-    
+
     for results in all_results:
         n = len(results)
         c = sum(results)
         for kv in k:
             pass_at_k_results[f"pass@{kv}"].append(_pass_at_k(n, c, kv))
-    
+
     # Average across all samples
     final_results = {}
     for kv in k:
         scores = pass_at_k_results[f"pass@{kv}"]
         final_results[f"pass@{kv}"] = np.mean(scores) if scores else 0.0
-    
+
     return final_results
 
 
-def build_predictions_input(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+def build_predictions_input(
+    resps: list[list[str]], docs: list[dict]
+) -> list[list[str]]:
     """Build executable code predictions for input prediction task."""
-    return [[extract_code_input(doc, r, False) for r in resp] for resp, doc in zip(resps, docs)]
+    return [
+        [extract_code_input(doc, r, False) for r in resp]
+        for resp, doc in zip(resps, docs, strict=False)
+    ]
 
 
-def build_predictions_input_cot(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+def build_predictions_input_cot(
+    resps: list[list[str]], docs: list[dict]
+) -> list[list[str]]:
     """Build executable code predictions for input prediction task (CoT variant)."""
-    return [[extract_code_input(doc, r, True) for r in resp] for resp, doc in zip(resps, docs)]
+    return [
+        [extract_code_input(doc, r, True) for r in resp]
+        for resp, doc in zip(resps, docs, strict=False)
+    ]
 
 
-def build_predictions_output(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+def build_predictions_output(
+    resps: list[list[str]], docs: list[dict]
+) -> list[list[str]]:
     """Build executable code predictions for output prediction task."""
-    return [[extract_code_output(doc, r, False) for r in resp] for resp, doc in zip(resps, docs)]
+    return [
+        [extract_code_output(doc, r, False) for r in resp]
+        for resp, doc in zip(resps, docs, strict=False)
+    ]
 
 
-def build_predictions_output_cot(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+def build_predictions_output_cot(
+    resps: list[list[str]], docs: list[dict]
+) -> list[list[str]]:
     """Build executable code predictions for output prediction task (CoT variant)."""
-    return [[extract_code_output(doc, r, True) for r in resp] for resp, doc in zip(resps, docs)]
+    return [
+        [extract_code_output(doc, r, True) for r in resp]
+        for resp, doc in zip(resps, docs, strict=False)
+    ]
 
 
 def extract_code_output(doc: dict, generation: str, cot: bool) -> str:
@@ -307,34 +336,30 @@ def extract_code_output(doc: dict, generation: str, cot: bool) -> str:
     Format the final code as: code + assert f(input)==predicted_output
     """
     # Extract the predicted output from generation
-    if cot:
-        if "[ANSWER]" in generation:
-            generation = generation.split("[ANSWER]")[1].strip()
-            # Remove [/ANSWER] tag if present
-            if "[/ANSWER]" in generation:
-                generation = generation.split("[/ANSWER]")[0].strip()
-    
+    if cot and "[ANSWER]" in generation:
+        generation = generation.split("[ANSWER]")[1].strip()
+        # Remove [/ANSWER] tag if present
+        if "[/ANSWER]" in generation:
+            generation = generation.split("[/ANSWER]")[0].strip()
+
     # Parse assertion format
     if "assert f" in generation and "==" in generation:
         # Extract the part after "=="
         parts = generation.split("==")
-        if len(parts) > 1:
-            gen = parts[1].strip()
-        else:
-            gen = generation.strip()
+        gen = parts[1].strip() if len(parts) > 1 else generation.strip()
     elif "==" in generation:
         gen = generation.split("==")[1].strip()
     else:
         gen = generation.strip()
-    
+
     # Clean up common artifacts
-    gen = gen.strip('"\'')  # Remove quotes if present
-    gen = gen.split('\n')[0]  # Take first line only
-    gen = gen.split('#')[0].strip()  # Remove comments
-    
+    gen = gen.strip("\"'")  # Remove quotes if present
+    gen = gen.split("\n")[0]  # Take first line only
+    gen = gen.split("#")[0].strip()  # Remove comments
+
     # Prepend the function code to create executable test
-    code = doc['code']
-    return f'{code}\nassert f({doc["input"]})=={gen}'
+    code = doc["code"]
+    return f"{code}\nassert f({doc['input']})=={gen}"
 
 
 def extract_code_input(doc: dict, generation: str, cot: bool) -> str:
@@ -344,36 +369,40 @@ def extract_code_input(doc: dict, generation: str, cot: bool) -> str:
     Format the final code as: code + assert f(predicted_input)==expected_output
     """
     # Extract the predicted input from generation
-    if cot:
-        if "[ANSWER]" in generation:
-            generation = generation.split("[ANSWER]")[1].strip()
-            # Remove [/ANSWER] tag if present
-            if "[/ANSWER]" in generation:
-                generation = generation.split("[/ANSWER]")[0].strip()
-    
+    if cot and "[ANSWER]" in generation:
+        generation = generation.split("[ANSWER]")[1].strip()
+        # Remove [/ANSWER] tag if present
+        if "[/ANSWER]" in generation:
+            generation = generation.split("[/ANSWER]")[0].strip()
+
     # Parse assertion format to extract input parameters
     if "assert f" in generation:
-        # Extract everything between f( and ) 
+        # Extract everything between f( and )
         try:
             start = generation.index("assert f(") + len("assert f(")
             # Find matching closing parenthesis
             paren_count = 1
             end = start
             while end < len(generation) and paren_count > 0:
-                if generation[end] == '(':
+                if generation[end] == "(":
                     paren_count += 1
-                elif generation[end] == ')':
+                elif generation[end] == ")":
                     paren_count -= 1
                 end += 1
             if paren_count == 0:
-                gen = generation[start:end-1].strip()
+                gen = generation[start : end - 1].strip()
             else:
                 # Fallback: take everything after f(
-                gen = generation[start:].split(')')[0].strip()
+                gen = generation[start:].split(")")[0].strip()
         except (ValueError, IndexError):
             # Fallback extraction
             if "==" in generation:
-                gen = generation.split("==")[0].replace("assert f", "").strip("()").strip()
+                gen = (
+                    generation.split("==")[0]
+                    .replace("assert f", "")
+                    .strip("()")
+                    .strip()
+                )
             else:
                 gen = generation.replace("assert f", "").strip("()").strip()
     elif "==" in generation:
@@ -384,18 +413,19 @@ def extract_code_input(doc: dict, generation: str, cot: bool) -> str:
         gen = generation.strip()
         if gen.startswith("f(") and gen.endswith(")"):
             gen = gen[2:-1]  # Remove f( and )
-    
-    # Clean up common artifacts
-    gen = gen.split('\n')[0]  # Take first line only
-    gen = gen.split('#')[0].strip()  # Remove comments
 
-    code = doc['code']
-    return f'{code}\nassert f({gen})=={doc["output"]}'
+    # Clean up common artifacts
+    gen = gen.split("\n")[0]  # Take first line only
+    gen = gen.split("#")[0].strip()  # Remove comments
+
+    code = doc["code"]
+    return f"{code}\nassert f({gen})=={doc['output']}"
 
 
 # ============================================================================
 # Few-shot Examples
 # ============================================================================
+
 
 def list_fewshot_samples_output():
     return [
@@ -423,7 +453,7 @@ def list_fewshot_samples_input():
             "is_fewshot": True,
         },
         {
-            "code": 'def f(s1, s2):\n    return s1 + s2',
+            "code": "def f(s1, s2):\n    return s1 + s2",
             "input": '"ba", "nana"',
             "output": "banana",
             "is_fewshot": True,
