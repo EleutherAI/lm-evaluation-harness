@@ -1,4 +1,4 @@
-include: cruxeval.yaml
+include: cruxeval_common_yaml
 task: cruxeval_output_cot
 repeats: 10
 metric_list:
