@@ -22,7 +22,6 @@ def get_new_tasks_else_default():
     Check if any modifications have been made to built-in tasks and return
     the list, otherwise return the default task list
     """
-    global TASKS
     # CI: new_tasks checks if any modifications have been made
     task_list = new_tasks()
     if task_list:
