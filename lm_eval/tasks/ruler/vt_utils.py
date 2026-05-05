@@ -186,6 +186,8 @@ def sys_vartrack_w_noise_random(
             except:  # noqa: E722
                 if used_noises > incremental:
                     used_noises -= incremental
+                else:
+                    break
 
         if add_fewshot and (icl_example is not None):
             # insert icl_example between model template and input
