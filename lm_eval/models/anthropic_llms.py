@@ -1,7 +1,7 @@
 import logging
 import os
 from functools import cached_property
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 from tqdm import tqdm
 
@@ -20,11 +20,10 @@ def anthropic_completion(
     prompt: str,
     max_tokens_to_sample: int,
     temperature: float,
-    stop: List[str],
+    stop: list[str],
     **kwargs: Any,
 ) -> str:
-    """Wrapper function around the Anthropic completion API client with exponential back-off
-    in case of RateLimitError.
+    """Wrapper function around the Anthropic completion API client with exponential back-off in case of RateLimitError.
 
     params:
         client: anthropic.Anthropic
@@ -42,18 +41,19 @@ def anthropic_completion(
         kwargs: Any
             Additional model_args to pass to the API client
     """
-
     try:
         import anthropic
     except ModuleNotFoundError as exception:
         raise type(exception)(
             "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
-        )
+        ) from exception
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
         eval_logger.warning(
-            f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds"
+            "RateLimitError occurred: %s\n Retrying in %s seconds",
+            e.__cause__,
+            sleep_time,
         )
 
     @retry_on_specific_exceptions(
@@ -83,11 +83,10 @@ def anthropic_chat(
     prompt: str,
     max_tokens: int,
     temperature: float,
-    stop: List[str],
+    stop: list[str],
     **kwargs: Any,
 ) -> str:
-    """Wrapper function around the Anthropic completion API client with exponential back-off
-    in case of RateLimitError.
+    """Wrapper function around the Anthropic completion API client with exponential back-off in case of RateLimitError.
 
     params:
         client: anthropic.Anthropic
@@ -105,18 +104,19 @@ def anthropic_chat(
         kwargs: Any
             Additional model_args to pass to the API client
     """
-
     try:
         import anthropic
     except ModuleNotFoundError as exception:
         raise type(exception)(
             "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
-        )
+        ) from exception
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
         eval_logger.warning(
-            f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds"
+            "RateLimitError occurred: %s\n Retrying in %s seconds",
+            e.__cause__,
+            sleep_time,
         )
 
     @retry_on_specific_exceptions(
@@ -172,7 +172,7 @@ class AnthropicLM(LM):
             raise type(exception)(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
-            )
+            ) from exception
 
         self.model = model
         # defaults to os.environ.get("ANTHROPIC_API_KEY")
@@ -205,28 +205,28 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError("No support for logits.")
 
-    def tok_encode(self, string: str) -> List[int]:
+    def tok_encode(self, string: str) -> list[int]:
         return self.tokenizer.encode(string).ids
 
-    def tok_decode(self, tokens: List[int]) -> str:
+    def tok_decode(self, tokens: list[int]) -> str:
         return self.tokenizer.decode(tokens)
 
     def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
         try:
             import anthropic
         except ModuleNotFoundError as exception:
             raise type(exception)(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
-            )
+            ) from exception
 
         if not requests:
             return []
 
-        _requests: List[Tuple[str, dict]] = [req.args for req in requests]
+        _requests: list[tuple[str, dict]] = [req.args for req in requests]
 
         res = []
         for request in tqdm(_requests, disable=disable_tqdm):
@@ -249,11 +249,11 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                 res.append(response)
 
                 self.cache_hook.add_partial("generate_until", request, response)
-            except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
-                eval_logger.critical(f"Server unreachable: {e.__cause__}")
+            except anthropic.APIConnectionError as e:  # type: ignore
+                eval_logger.critical("Server unreachable: %s", e.__cause__)
                 break
-            except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
-                eval_logger.critical(f"API error {e.status_code}: {e.message}")
+            except anthropic.APIStatusError as e:  # type: ignore
+                eval_logger.critical("API error %s: %s", e.status_code, e.message)
                 break
 
         return res
@@ -290,7 +290,8 @@ class AnthropicChat(LocalCompletionsAPI):
         self._batch_size = 1
         self.anthropic_version = "2023-06-01"
         eval_logger.warning(
-            f"Using Anthropic Version: {self.anthropic_version}. Confirm the current version here: https://docs.anthropic.com/en/api/versioning"
+            "Using Anthropic Version: %s. Confirm the current version here: https://docs.anthropic.com/en/api/versioning",
+            self.anthropic_version,
         )
 
     @cached_property
@@ -312,9 +313,9 @@ class AnthropicChat(LocalCompletionsAPI):
 
     def _create_payload(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         generate=True,
-        gen_kwargs: dict = None,
+        gen_kwargs: dict | None = None,
         eos="\n\nHuman:",
         **kwargs,
     ) -> dict:
@@ -357,9 +358,7 @@ class AnthropicChat(LocalCompletionsAPI):
             out["system"] = system
         return out
 
-    def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], **kwargs
-    ) -> List[str]:
+    def parse_generations(self, outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -374,7 +373,7 @@ class AnthropicChat(LocalCompletionsAPI):
         left_truncate_len=None,
         add_special_tokens=None,
         **kwargs,
-    ) -> List[str]:
+    ) -> list[str]:
         return [string]
 
     def loglikelihood(self, requests, **kwargs):
