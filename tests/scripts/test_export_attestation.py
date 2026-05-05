@@ -106,6 +106,7 @@ def _write_fixture(tmp_path, with_samples=True):
 # A reference encoder that does not use json.dumps. Used to verify that the
 # canonical encoding produces the same bytes when implemented from scratch.
 
+
 def _hand_format_float(x):
     if not math.isfinite(x):
         raise ValueError("non-finite")
@@ -114,8 +115,7 @@ def _hand_format_float(x):
     s = repr(float(x))
     if "e" in s:
         mantissa, _, exp = s.partition("e")
-        if exp.startswith("+"):
-            exp = exp[1:]
+        exp = exp.removeprefix("+")
         sign = "-" if exp.startswith("-") else ""
         digits = exp.lstrip("+-").lstrip("0") or "0"
         s = f"{mantissa}e{sign}{digits}"
@@ -188,9 +188,11 @@ def _hand_encode(obj):
         return "[" + ",".join(_hand_encode(x) for x in obj) + "]"
     if isinstance(obj, dict):
         items = sorted(obj.items())
-        return "{" + ",".join(
-            f"{_hand_encode_str(k)}:{_hand_encode(v)}" for k, v in items
-        ) + "}"
+        return (
+            "{"
+            + ",".join(f"{_hand_encode_str(k)}:{_hand_encode(v)}" for k, v in items)
+            + "}"
+        )
     raise TypeError(type(obj).__name__)
 
 
@@ -198,18 +200,21 @@ def hand_canonical_encode(obj):
     return _hand_encode(_hand_canonicalize(obj)).encode("utf-8")
 
 
-@pytest.mark.parametrize("value, expected", [
-    (0.0, "0.0"),
-    (-0.0, "0.0"),
-    (1.0, "1.0"),
-    (0.5, "0.5"),
-    (-3.14, "-3.14"),
-    (1e10, "10000000000.0"),
-    (1e16, "1e16"),
-    (1e-10, "1e-10"),
-    (5e-324, "5e-324"),
-    (-2.5e100, "-2.5e100"),
-])
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (0.0, "0.0"),
+        (-0.0, "0.0"),
+        (1.0, "1.0"),
+        (0.5, "0.5"),
+        (-3.14, "-3.14"),
+        (1e10, "10000000000.0"),
+        (1e16, "1e16"),
+        (1e-10, "1e-10"),
+        (5e-324, "5e-324"),
+        (-2.5e100, "-2.5e100"),
+    ],
+)
 def test_format_float(value, expected):
     assert _format_float(value) == expected
 
@@ -225,7 +230,9 @@ class TestCanonicalEncoding:
         assert canonical_encode({"b": 2, "a": 1}) == b'{"a":1,"b":2}'
 
     def test_nested_sort_keys(self):
-        assert canonical_encode({"outer": {"z": 1, "a": 2}}) == b'{"outer":{"a":2,"z":1}}'
+        assert (
+            canonical_encode({"outer": {"z": 1, "a": 2}}) == b'{"outer":{"a":2,"z":1}}'
+        )
 
     def test_floats_stringified(self):
         assert canonical_encode({"x": 0.5}) == b'{"x":"0.5"}'
@@ -239,18 +246,18 @@ class TestCanonicalEncoding:
             canonical_encode({"x": float("inf")})
 
     def test_unicode_escaped(self):
-        encoded = canonical_encode({"x": "café"})
-        assert encoded == b'{"x":"caf\\u00e9"}'
+        encoded = canonical_encode({"x": "über"})
+        assert encoded == b'{"x":"\\u00fcber"}'
 
     def test_nfc_normalizes_input(self):
-        nfc = "café"
-        nfd = "café"
+        nfc = "über"
+        nfd = "über"
         assert nfc != nfd
         assert canonical_encode({"x": nfc}) == canonical_encode({"x": nfd})
 
     def test_nfc_normalizes_dict_keys(self):
-        nfc = "café"
-        nfd = "café"
+        nfc = "über"
+        nfd = "über"
         assert canonical_encode({nfc: 1}) == canonical_encode({nfd: 1})
 
     def test_compact_no_whitespace(self):
@@ -282,7 +289,9 @@ class TestResultsExtraction:
     def test_handles_na_stderr(self):
         entries = extract_results(_make_results_doc())
         acc_norm = next(
-            e for e in entries if e["task_id"] == "arc_easy" and e["metric"] == "acc_norm"
+            e
+            for e in entries
+            if e["task_id"] == "arc_easy" and e["metric"] == "acc_norm"
         )
         assert acc_norm["stderr"] is None
 
@@ -325,7 +334,9 @@ class TestDeriveModelId:
         assert derive_model_id(doc) == "hf/EleutherAI/pythia-70m"
 
     def test_falls_back_to_config_string(self):
-        doc = {"config": {"model": "vllm", "model_args": "pretrained=foo/bar,dtype=auto"}}
+        doc = {
+            "config": {"model": "vllm", "model_args": "pretrained=foo/bar,dtype=auto"}
+        }
         assert derive_model_id(doc) == "vllm/foo/bar"
 
     def test_falls_back_to_config_dict(self):
@@ -336,15 +347,27 @@ class TestDeriveModelId:
         assert derive_model_id({}) == "unknown"
 
     def test_peft_takes_precedence(self):
-        doc = {"config": {"model": "hf", "model_args": "pretrained=base/model,peft=adapter/lora"}}
+        doc = {
+            "config": {
+                "model": "hf",
+                "model_args": "pretrained=base/model,peft=adapter/lora",
+            }
+        }
         assert derive_model_id(doc) == "hf/adapter/lora"
 
     def test_delta_takes_precedence(self):
-        doc = {"config": {"model": "hf", "model_args": {"pretrained": "base/model", "delta": "tweaked/model"}}}
+        doc = {
+            "config": {
+                "model": "hf",
+                "model_args": {"pretrained": "base/model", "delta": "tweaked/model"},
+            }
+        }
         assert derive_model_id(doc) == "hf/tweaked/model"
 
     def test_strips_whitespace(self):
-        doc = {"config": {"model": "hf", "model_args": "pretrained= foo/bar ,dtype=auto"}}
+        doc = {
+            "config": {"model": "hf", "model_args": "pretrained= foo/bar ,dtype=auto"}
+        }
         assert derive_model_id(doc) == "hf/foo/bar"
 
     def test_empty_value_falls_through(self):
@@ -352,7 +375,12 @@ class TestDeriveModelId:
         assert derive_model_id(doc) == "hf/actual/name"
 
     def test_empty_dict_value_falls_through(self):
-        doc = {"config": {"model": "hf", "model_args": {"pretrained": "", "model": "actual/name"}}}
+        doc = {
+            "config": {
+                "model": "hf",
+                "model_args": {"pretrained": "", "model": "actual/name"},
+            }
+        }
         assert derive_model_id(doc) == "hf/actual/name"
 
 
@@ -368,9 +396,27 @@ def test_derive_meta():
 
 def test_derive_tasks_sorted_unique():
     entries = [
-        {"task_id": "z", "metric": "m", "filter": "none", "value": "0.0", "stderr": None},
-        {"task_id": "a", "metric": "m", "filter": "none", "value": "0.0", "stderr": None},
-        {"task_id": "a", "metric": "n", "filter": "none", "value": "0.0", "stderr": None},
+        {
+            "task_id": "z",
+            "metric": "m",
+            "filter": "none",
+            "value": "0.0",
+            "stderr": None,
+        },
+        {
+            "task_id": "a",
+            "metric": "m",
+            "filter": "none",
+            "value": "0.0",
+            "stderr": None,
+        },
+        {
+            "task_id": "a",
+            "metric": "n",
+            "filter": "none",
+            "value": "0.0",
+            "stderr": None,
+        },
     ]
     assert derive_tasks(entries) == ["a", "z"]
 
@@ -424,7 +470,9 @@ class TestOutputsHash:
         model_dir = _write_fixture(tmp_path)
         target = model_dir / f"samples_arc_easy_{DATE_ID}.jsonl"
         rec = _make_sample(0, ["A"])
-        target.write_text(json.dumps(rec) + "\n" + json.dumps(rec) + "\n", encoding="utf-8")
+        target.write_text(
+            json.dumps(rec) + "\n" + json.dumps(rec) + "\n", encoding="utf-8"
+        )
         with pytest.raises(SamplesError, match="collision"):
             compute_outputs_sha256([target])
 
@@ -582,7 +630,9 @@ class TestCLI:
         assert exc.value.code == 2
 
     def test_samples_without_results(self, tmp_path, capsys):
-        rc = main(["--input_dir", str(tmp_path), "--samples", str(tmp_path / "s.jsonl")])
+        rc = main(
+            ["--input_dir", str(tmp_path), "--samples", str(tmp_path / "s.jsonl")]
+        )
         assert rc == 2
         assert "--samples requires --results" in capsys.readouterr().err
 
@@ -591,9 +641,11 @@ class TestCLI:
         model_dir = _write_fixture(tmp_path)
         repo_root = Path(__file__).resolve().parents[2]
         script = repo_root / "scripts" / "export_attestation.py"
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603
             [sys.executable, str(script), "--input_dir", str(model_dir)],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         assert result.returncode == 0, result.stderr
         bundle = json.loads(result.stdout)
@@ -602,7 +654,9 @@ class TestCLI:
 
 
 def test_schema_file_exists_and_parses():
-    schema_path = Path(__file__).resolve().parents[2] / "scripts" / "attestation.schema.json"
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "scripts" / "attestation.schema.json"
+    )
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     assert schema["type"] == "object"
     assert "harness_attestation_version" in schema["required"]
@@ -623,8 +677,11 @@ class TestCanonicalSpec:
             "results": bundle["results"],
         }
         canonical = json.dumps(
-            claim, sort_keys=True, ensure_ascii=True,
-            allow_nan=False, separators=(",", ":"),
+            claim,
+            sort_keys=True,
+            ensure_ascii=True,
+            allow_nan=False,
+            separators=(",", ":"),
         ).encode("utf-8")
         assert hashlib.sha256(canonical).hexdigest() == bundle["results_sha256"]
 
@@ -643,7 +700,9 @@ class TestCanonicalSpec:
 
         h = hashlib.sha256()
         for task_id in sorted(by_task):
-            for r in sorted(by_task[task_id], key=lambda r: (r["doc_id"], r.get("filter", ""))):
+            for r in sorted(
+                by_task[task_id], key=lambda r: (r["doc_id"], r.get("filter", ""))
+            ):
                 payload = json.dumps(
                     {
                         "task_id": task_id,
@@ -651,8 +710,10 @@ class TestCanonicalSpec:
                         "filter": r.get("filter", ""),
                         "filtered_resps": r["filtered_resps"],
                     },
-                    sort_keys=True, ensure_ascii=True,
-                    allow_nan=False, separators=(",", ":"),
+                    sort_keys=True,
+                    ensure_ascii=True,
+                    allow_nan=False,
+                    separators=(",", ":"),
                 ).encode("utf-8")
                 h.update(payload)
                 h.update(b"\n")
@@ -663,8 +724,13 @@ class TestCanonicalSpec:
             "model_id": "hf/x",
             "tasks": ["t"],
             "results": [
-                {"task_id": "t", "metric": "acc", "filter": "none",
-                 "value": "0.5", "stderr": "0.1"},
+                {
+                    "task_id": "t",
+                    "metric": "acc",
+                    "filter": "none",
+                    "value": "0.5",
+                    "stderr": "0.1",
+                },
             ],
         }
         assert hand_canonical_encode(claim) == canonical_encode(claim)
@@ -684,7 +750,7 @@ class TestCanonicalSpec:
 
     def test_hand_canonical_handles_nfc_and_floats(self):
         obj = {
-            "name": "café",  # NFD; should normalize to NFC
+            "name": "über",  # NFD; should normalize to NFC
             "values": [1.0, 1e16, -0.0, 0.1],
         }
         assert hand_canonical_encode(obj) == canonical_encode(obj)
@@ -694,8 +760,13 @@ class TestCanonicalSpec:
             "model_id": "hf/x",
             "tasks": ["t"],
             "results": [
-                {"task_id": "t", "metric": "acc", "filter": "none",
-                 "value": "0.5", "stderr": "0.1"},
+                {
+                    "task_id": "t",
+                    "metric": "acc",
+                    "filter": "none",
+                    "value": "0.5",
+                    "stderr": "0.1",
+                },
             ],
         }
         assert canonical_encode(claim) == (
@@ -726,7 +797,10 @@ def test_exit_codes():
 
 
 def test_sha256_hex_helper():
-    assert sha256_hex(b"") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    assert (
+        sha256_hex(b"")
+        == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    )
 
 
 if __name__ == "__main__":

@@ -16,9 +16,12 @@ import json
 import math
 import sys
 import unicodedata
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 ATTESTATION_VERSION = 1
@@ -44,8 +47,7 @@ def _format_float(x: float) -> str:
     s = repr(float(x))
     if "e" in s:
         mantissa, _, exp = s.partition("e")
-        if exp.startswith("+"):
-            exp = exp[1:]
+        exp = exp.removeprefix("+")
         sign = "-" if exp.startswith("-") else ""
         digits = exp.lstrip("+-").lstrip("0") or "0"
         s = f"{mantissa}e{sign}{digits}"
@@ -136,13 +138,15 @@ def extract_results(doc: dict) -> list[dict]:
             stderr_str = _format_metric_value(
                 metrics.get(f"{metric}_stderr,{filter_key}")
             )
-            entries.append({
-                "task_id": task_id,
-                "metric": metric,
-                "filter": filter_key,
-                "value": value_str,
-                "stderr": stderr_str,
-            })
+            entries.append(
+                {
+                    "task_id": task_id,
+                    "metric": metric,
+                    "filter": filter_key,
+                    "value": value_str,
+                    "stderr": stderr_str,
+                }
+            )
     entries.sort(key=lambda e: (e["task_id"], e["metric"], e["filter"]))
     return entries
 
@@ -224,12 +228,16 @@ def compute_outputs_sha256(samples_paths: list[Path]) -> str:
                     f"filter={r.get('filter', '')!r}"
                 )
             seen.add(key)
-            h.update(canonical_encode({
-                "task_id": task_id,
-                "doc_id": r["doc_id"],
-                "filter": r.get("filter", ""),
-                "filtered_resps": r["filtered_resps"],
-            }))
+            h.update(
+                canonical_encode(
+                    {
+                        "task_id": task_id,
+                        "doc_id": r["doc_id"],
+                        "filter": r.get("filter", ""),
+                        "filtered_resps": r["filtered_resps"],
+                    }
+                )
+            )
             h.update(b"\n")
     return h.hexdigest()
 
@@ -247,7 +255,8 @@ def discover_pair(input_dir: Path) -> tuple[Path, list[Path]]:
 def pair_samples_for_results(results_path: Path) -> list[Path]:
     date_id = _date_id(results_path.name)
     return sorted(
-        p for p in results_path.parent.glob("samples_*.jsonl")
+        p
+        for p in results_path.parent.glob("samples_*.jsonl")
         if _date_id(p.name) == date_id
     )
 
@@ -295,22 +304,31 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     src = p.add_mutually_exclusive_group(required=True)
     src.add_argument(
-        "--input_dir", type=Path,
+        "--input_dir",
+        type=Path,
         help="Directory containing results_*.json (and samples_*.jsonl).",
     )
     src.add_argument(
-        "--results", type=Path, help="Explicit results_*.json file.",
+        "--results",
+        type=Path,
+        help="Explicit results_*.json file.",
     )
     p.add_argument(
-        "--samples", nargs="+", type=Path, default=None,
+        "--samples",
+        nargs="+",
+        type=Path,
+        default=None,
         help="Explicit sample files; only valid with --results.",
     )
     p.add_argument(
-        "--output", type=Path, default=None,
+        "--output",
+        type=Path,
+        default=None,
         help="Where to write the bundle. Default: stdout.",
     )
     p.add_argument(
-        "--no_samples", action="store_true",
+        "--no_samples",
+        action="store_true",
         help="Skip outputs hashing.",
     )
     return p.parse_args(argv)
@@ -328,7 +346,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             results_path = args.results
             samples_paths = (
-                list(args.samples) if args.samples is not None
+                list(args.samples)
+                if args.samples is not None
                 else pair_samples_for_results(results_path)
             )
         bundle = build_attestation(
