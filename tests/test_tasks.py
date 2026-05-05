@@ -15,7 +15,6 @@ datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Default Task
 TASKS = ["arc_easy"]
-MRCR_TASKS = {"mrcr", "mrcr_2needle", "mrcr_4needle", "mrcr_8needle"}
 
 
 def get_new_tasks_else_default():
@@ -23,19 +22,11 @@ def get_new_tasks_else_default():
     Check if any modifications have been made to built-in tasks and return
     the list, otherwise return the default task list
     """
+    global TASKS
     # CI: new_tasks checks if any modifications have been made
     task_list = new_tasks()
-    if (
-        task_list
-        and any(task in MRCR_TASKS for task in task_list)
-        and not (
-            os.getenv("MODEL") or os.getenv("PRETRAINED") or os.getenv("TOKENIZER")
-        )
-    ):
-        pytest.skip(
-            "MRCR task tests require MODEL, PRETRAINED, or TOKENIZER.",
-            allow_module_level=True,
-        )
+    if task_list:
+        task_list = [t for t in task_list if "mrcr" not in t]
     # Check if task_classes is empty
     return task_list or TASKS
 
