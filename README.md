@@ -230,6 +230,24 @@ To learn more about model parallelism and how to use it with the `accelerate` li
 
 **Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
 
+#### Tensor Parallelism (native PyTorch)
+
+For models that support PyTorch's native Tensor Parallelism (via DTensor), you can shard model weights across GPUs without `accelerate`'s device-map by passing `tp_plan=auto` in `--model_args`. Launch with `torchrun` or `accelerate launch`:
+
+```bash
+torchrun --nproc-per-node=4 -m lm_eval \
+    --model hf \
+    --model_args pretrained=google/gemma-4-31B-it,tp_plan=auto \
+    --tasks lambada_openai,arc_easy \
+    --batch_size 16
+```
+
+**Constraints:**
+
+- `tp_plan` and `parallelize=True` are mutually exclusive — use one or the other.
+- The number of key-value heads in the model must be divisible by `--nproc-per-node` (the TP degree).
+- Requires PyTorch >= 2.4 and a `transformers` version that exposes a TP plan for the model (v4.47+).
+
 ### Steered Hugging Face `transformers` models
 
 To evaluate a Hugging Face `transformers` model with steering vectors applied, specify the model type as `steered` and provide the path to either a PyTorch file containing pre-defined steering vectors, or a CSV file that specifies how to derive steering vectors from pretrained `sparsify` or `sae_lens` models (you will need to install the corresponding optional dependency for this method).
