@@ -579,8 +579,10 @@ class TemplateAPI(TemplateLM):
         *,
         generate: bool = True,
         ctxlens: List[int] = None,
+        gen_kwargs: Optional[list] = None,
         **kwargs,
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
+        gen_kwargs = gen_kwargs if gen_kwargs else [None] * len(requests)
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent, ssl=self.verify_certificate)
         sem = asyncio.Semaphore(self._concurrent)
@@ -605,13 +607,15 @@ class TemplateAPI(TemplateLM):
                         cache_keys=cache_key,
                         generate=generate,
                         ctxlens=ctxlen,
+                        gen_kwargs=these_gen_kwargs[0],
                         **kwargs,
                     )
                 )
-                for message, cache_key, ctxlen in zip(
+                for message, cache_key, ctxlen, these_gen_kwargs in zip(
                     chunks(requests, n=self._batch_size),
                     chunks(cache_keys, n=self._batch_size),
                     chunks(ctxlens, n=self._batch_size),
+                    chunks(gen_kwargs, n=self._batch_size),
                 )
             ]
 
@@ -792,12 +796,15 @@ class TemplateAPI(TemplateLM):
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
                 if self.tokenized_requests:
-                    max_gen_toks = all_gen_kwargs[0].get(
-                        "max_gen_toks", self._max_gen_toks
-                    )
-                    max_context_len = self.max_length - max_gen_toks
-
-                    encodings_list = [x[-max_context_len:] for x in encodings_list]
+                    
+                    _encodings_list = list()
+                    for x, these_gen_kwargs in zip(encodings_list, all_gen_kwargs):
+                        max_gen_toks = these_gen_kwargs.get(
+                            "max_gen_toks", self._max_gen_toks
+                        )
+                        max_context_len = self.max_length - max_gen_toks
+                        _encodings_list.append(x[-max_context_len:])
+                    encodings_list = _encodings_list
 
                     if any(
                         len(x) + max_gen_toks > self.max_length for x in encodings_list
@@ -811,9 +818,9 @@ class TemplateAPI(TemplateLM):
                     asyncio.run(
                         self.get_batched_requests(
                             req,
-                            cache_keys=[(ctx, all_gen_kwargs[0]) for ctx in contexts],
+                            cache_keys=[(ctx, these_gen_kwargs) for ctx, these_gen_kwargs in zip(contexts, all_gen_kwargs)],
                             generate=True,
-                            gen_kwargs=copy.deepcopy(all_gen_kwargs[0]),
+                            gen_kwargs=copy.deepcopy(all_gen_kwargs),
                         )
                     )
                 )
