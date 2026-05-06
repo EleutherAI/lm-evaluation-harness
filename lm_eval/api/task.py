@@ -1428,9 +1428,9 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (
                 ctx,
-                self._apply_gen_kwargs_templates(
-                    deepcopy(self.config.generation_kwargs), doc
-                ),
+                deepcopy(self._apply_gen_kwargs_templates(
+                    self.config.generation_kwargs, doc
+                )),
             )
 
         multimodal_arg = {}
