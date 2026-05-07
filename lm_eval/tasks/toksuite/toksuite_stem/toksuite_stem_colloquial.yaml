@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_colloquial
+include: toksuite_stem_base.yaml
+task: toksuite_stem_colloquial
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: Colloquial
+  num_samples: 15

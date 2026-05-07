@@ -1,0 +1,29 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+group: toksuite_turkish
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+task:
+- toksuite_turkish_derivations
+- toksuite_turkish_typographical_errors
+- toksuite_turkish_date_formats
+- toksuite_turkish_web_search_query
+- toksuite_turkish_english_keyboard
+- toksuite_turkish_equivalent_expressions
+- toksuite_turkish_dialects
+- toksuite_turkish_canonical
+- toksuite_turkish_code_language_script_switching
+- toksuite_turkish_colloquial
+- toksuite_turkish_inflections
+- toksuite_turkish_similar_words
+- toksuite_turkish_keyboard_proximity_errors
+- toksuite_turkish_word_reordering
+- toksuite_turkish_spelled_out
+- toksuite_turkish_grammatical_errors
+- toksuite_turkish_orthographic_errors

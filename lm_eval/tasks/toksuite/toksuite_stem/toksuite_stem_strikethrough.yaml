@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_strikethrough
+include: toksuite_stem_base.yaml
+task: toksuite_stem_strikethrough
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: Strikethrough
+  num_samples: 52
