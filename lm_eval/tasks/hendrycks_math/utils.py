@@ -17,13 +17,23 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    response = results[0]
 
-    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
+    # Try to extract answer from \boxed{} first, then fall back to $...$ extraction
+    boxed = last_boxed_only_string(response)
+    if boxed is not None:
+        try:
+            answer = remove_boxed(boxed)
+        except (AssertionError, IndexError):
+            answer = response
+    else:
+        indices = [pos for pos, char in enumerate(response) if char == "$"]
+        if len(indices) <= 1:
+            answer = response
+        else:
+            answer = response[indices[0] + 1 : indices[-1]]
+
+    if is_equiv(answer, doc["answer"]):
         retval = 1
 
     results = {
