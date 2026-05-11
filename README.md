@@ -18,23 +18,90 @@
 
 ## Announcement
 
-**A new v0.4.0 release of lm-evaluation-harness is available** !
+**v0.5.0 dev preview (`0.5.0.dev1`) is now available** — a large refactor
+focused on reducing the amount of YAML and Jinja you write per task. The
+headline APIs (formats, scorers, hierarchical groups) are landed and
+documented; a few smaller details may still shift before we tag a stable
+release.
 
-New updates and features include:
+**📚 New documentation site (work in progress):**
+[lm-evaluation-harness.readthedocs.io](https://lm-evaluation-harness.readthedocs.io/) ·
+[Migration Guide v0.4 → v0.5](https://lm-evaluation-harness.readthedocs.io/migration_v0_5/)
 
-- **New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.**
-- Internal refactoring
-- Config-based task creation and configuration
-- Easier import and sharing of externally-defined task config YAMLs
-- Support for Jinja2 prompt design, easy modification of prompts + prompt imports from Promptsource
-- More advanced configuration options, including output post-processing, answer extraction, and multiple LM generations per document, configurable fewshot settings, and more
-- Speedups and new modeling libraries supported, including: faster data-parallel HF model usage, vLLM support, MPS support with HuggingFace, and more
-- Logging and usability changes
-- New tasks including CoT BIG-Bench-Hard, Belebele, user-defined task groupings, and more
+### Headline additions
 
-Please see our updated documentation pages in `docs/` for more details.
+#### Prompt Formats (`formats:` / `--tasks task@format`)
 
-Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](https://discord.gg/eleutherai)!
+Composable, named prompt formats replace hand-written Jinja for the common
+multiple-choice / generation patterns:
+
+- Built-in formats: `mcqa`, `cloze`, `generate`, `cot`
+- Set in YAML once: `formats: mcqa`
+- Switch on the CLI: `lm_eval --tasks arc_easy@cloze`
+- Override individual fields (instruction, choice labels, answer prompt) inline
+- Multi-format tasks let one YAML expose several variants
+
+A format consumes your `doc_to_text` / `doc_to_target` / `doc_to_choice` field
+references and produces the full prompt template, output type, delimiters, and
+matching scorer. See the
+[Prompt Formats guide](https://lm-evaluation-harness.readthedocs.io/writing_tasks/prompt_formats/).
+
+#### Scorer abstraction (`scorer:` / `@register_scorer`)
+
+The `filter → score → reduce → aggregate` pipeline is now a single registered
+class instead of ad-hoc `filter_list` + `metric_list` wiring:
+
+- `scorer: first_token` in YAML, or `scorer: {type: ..., kwargs: {...}}`
+- Built-ins: `ChoiceMatchScorer`, `FirstTokenScorer`, `RegexExtractionScorer`
+- Custom scorers: subclass `GenScorer` / `LLScorer` and `@register_scorer`
+
+Formats wire the right scorer in for you, so most tasks won't touch this
+directly — but custom scorers are now first-class for things like LLM-judge
+and complex extraction pipelines. See the
+[Custom Scorers guide](https://lm-evaluation-harness.readthedocs.io/extending/custom_scorers/).
+
+#### Hierarchical groups (`mmlu::humanities`, overlapping memberships)
+
+Groups are now true containers of tasks **and** sub-groups, with two
+previously-blocked patterns now supported:
+
+- The same task can belong to multiple groups, with **per-group config
+  overrides** (e.g. different `test_split` or `num_fewshot` per parent)
+- Address subgroups directly with the `::` path syntax on the CLI or in
+  Python: `--tasks mmlu::humanities`
+
+See [Groups & Benchmarks → The `::` path syntax](https://lm-evaluation-harness.readthedocs.io/writing_tasks/groups_and_benchmarks/).
+
+### Other notable changes
+
+- Typed configs: `MetricConfig`, `FilterStep`, `FilterPipeline`, `ScorerConfig`
+- `lm_eval.api.task` and `lm_eval.api.metrics` split into focused submodules
+- Per-repeat metric scores (`scores_per_repeat`) recorded in sample dumps
+- `TaskManager` accepts task-level overrides
+- New zensical-built [API reference](https://lm-evaluation-harness.readthedocs.io/api/)
+
+### Trying the dev preview
+
+`pip install --pre` does not pick up `.dev` releases — pin the version
+explicitly:
+
+```bash
+pip install lm_eval==0.5.0.dev1
+```
+
+Existing v0.4.x task YAMLs continue to work — formats and scorers are
+additive. The
+[migration guide](https://lm-evaluation-harness.readthedocs.io/migration_v0_5/)
+covers what changes if you've subclassed `Task`, written custom metrics, or
+relied on internal APIs.
+
+The 0.5 line is in active development on the `next0.5` branch — we'd love
+feedback before we tag a stable release. Please open
+[GitHub Issues](https://github.com/EleutherAI/lm-evaluation-harness/issues)
+for regressions or task-correctness bugs, start a
+[Discussion](https://github.com/EleutherAI/lm-evaluation-harness/discussions)
+for design questions or feature ideas, and drop into the
+[EleutherAI Discord](https://discord.gg/eleutherai) to chat with the team.
 
 ---
 
