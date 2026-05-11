@@ -1,0 +1,10 @@
+"include": "_default_gsm8kx_template_yaml"
+"task": "ogx_gsm8kx_fi"
+"dataset_name": "FI"
+"doc_to_text": "Kysymys: {{question}}\nVastaa:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Kysymys:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

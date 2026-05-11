@@ -1,0 +1,8 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "prehistory_DA"
+"task": "ogx_mmlux_da-prehistory"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nSvar:"
+"description": "Det følgende er multiple choice-spørgsmål (med svar) om forhistorie."
