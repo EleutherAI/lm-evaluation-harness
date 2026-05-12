@@ -133,3 +133,4 @@ If other tasks on this dataset are already supported:
 
 * v1.1 (2025-09-22, PR #3168): add `eqbench_es` task
 * v1.2 (2026-01-16, PR #3465): excluded line breaks from stop criteria in `mgsm_direct_es_spanish_bench`
+* v1.3 (2026-05-12, PR #3767): add `almo_mwe` task
