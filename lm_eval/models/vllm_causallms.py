@@ -118,7 +118,8 @@ class VLLM(TemplateLM):
             )
         if self.data_parallel_size > 1 and not find_spec("ray"):
             raise ModuleNotFoundError(
-                "ray is required for data parallelism. Please install ray using `pip install ray`."
+                "ray is required for data parallelism. "
+                "Install it via `pip install 'lm_eval[vllm]'` or `pip install ray>=2.0`."
             )
         self.model_args = {
             "model": pretrained,
