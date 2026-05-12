@@ -23,6 +23,8 @@ class Instance:
     task_name: Optional[str] = None
     doc_id: Optional[int] = None
     repeats: Optional[int] = None
+    repeat_idx: int = 0
+    is_padding: bool = False
 
     def __post_init__(self) -> None:
         # unpack metadata field
