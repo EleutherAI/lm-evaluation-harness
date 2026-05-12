@@ -86,7 +86,11 @@ def _parse_list_like(value):
                 return [str(item).strip() for item in parsed if str(item).strip()]
         except (SyntaxError, ValueError):
             pass
-        return [part.strip().strip("'\"") for part in cleaned.strip("[]").split(",") if part.strip()]
+        return [
+            part.strip().strip("'\"")
+            for part in cleaned.strip("[]").split(",")
+            if part.strip()
+        ]
     return [str(value).strip()]
 
 
@@ -157,7 +161,9 @@ def process_docs(dataset):
         options = _parse_list_like(doc.get("Opciones"))
         answers = _parse_list_like(doc.get("Respuesta"))
 
-        correct_indices = [options.index(answer) for answer in answers if answer in options]
+        correct_indices = [
+            options.index(answer) for answer in answers if answer in options
+        ]
         if not correct_indices:
             correct_indices = [0]
 
@@ -174,7 +180,7 @@ def process_docs(dataset):
             doc["dynamic_fewshot"] = ""
 
         doc["Instrucción"] = instruction
-        doc["parsed_opciones"] = options if options else [""]
+        doc["parsed_opciones"] = options or [""]
         doc["parsed_opciones_text"] = _format_option_lines(doc["parsed_opciones"])
         doc["parsed_respuesta"] = correct_indices
         return doc
@@ -195,7 +201,7 @@ def process_results(doc, results):
     acc_norm = 1.0 if pred_norm in targets else 0.0
 
     difficulty = doc.get("Metadata", {}).get("Dificultad", "Desconocida")
-    subtask = doc['Subtarea']
+    subtask = doc["Subtarea"]
     return {
         "acc": acc,
         "acc_norm": acc_norm,
@@ -212,7 +218,7 @@ def process_gen_docs(dataset):
     def _process_doc(doc):
         instruction = _normalize_instruction(doc.get("Instrucción", ""))
         answers = _parse_list_like(doc.get("Respuesta"))
-        doc["parsed_respuesta"] = answers if answers else [""]
+        doc["parsed_respuesta"] = answers or [""]
 
         fewshot = fewshot_by_instruction.get(instruction)
         if fewshot:
@@ -236,7 +242,9 @@ def process_gen_docs(dataset):
 def clean_text(text, allowed_specials):
     if not text:
         return ""
-    return "".join(c.lower() for c in text if c.isalnum() or c in allowed_specials).strip()
+    return "".join(
+        c.lower() for c in text if c.isalnum() or c in allowed_specials
+    ).strip()
 
 
 def process_results_text_generation(doc, results):
@@ -244,16 +252,19 @@ def process_results_text_generation(doc, results):
     targets = doc["parsed_respuesta"]
 
     allowed_specials = {
-        char for target in targets for char in target if not char.isalnum() and not char.isspace()
+        char
+        for target in targets
+        for char in target
+        if not char.isalnum() and not char.isspace()
     }
     pred_clean = clean_text(pred, allowed_specials)
     targets_clean = [clean_text(target, allowed_specials) for target in targets]
 
     acc = 1.0 if pred_clean in targets_clean else 0.0
     difficulty = doc.get("Metadata", {}).get("Dificultad", "Desconocida")
-    subtask = doc['Subtarea']
+    subtask = doc["Subtarea"]
     return {
         "exact_match": acc,
         f"exact_match_{difficulty}": acc,
-        f"exact_match_{subtask}": acc
+        f"exact_match_{subtask}": acc,
     }
