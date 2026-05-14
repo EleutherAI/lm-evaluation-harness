@@ -6,6 +6,7 @@ import io
 import multiprocessing
 import os
 import platform
+import re
 import signal
 import tempfile
 
@@ -329,36 +330,31 @@ def build_predictions_output_cot(
     ]
 
 
+_ASSERT_LINE_RE = re.compile(r"^\s*assert\s+f\(.*\)\s*==.*$", re.MULTILINE)
+
+
 def extract_code_output(doc: dict, generation: str, cot: bool) -> str:
+    """Build an executable test from the model's predicted output.
+
+    Trusts the model's full ``assert f(...) == <value>`` line verbatim when
+    present (matching the reference CRUXEval scorer). Falls back to value-only
+    extraction otherwise. Quotes are never stripped — doing so converts every
+    string answer like ``'O'`` into the bare identifier ``O`` (NameError).
     """
-    Extract code for output prediction task.
-    The generation should contain the predicted output value.
-    Format the final code as: code + assert f(input)==predicted_output
-    """
-    # Extract the predicted output from generation
-    if cot and "[ANSWER]" in generation:
-        generation = generation.split("[ANSWER]")[1].strip()
-        # Remove [/ANSWER] tag if present
-        if "[/ANSWER]" in generation:
-            generation = generation.split("[/ANSWER]")[0].strip()
+    if "[ANSWER]" in generation:
+        generation = generation.rsplit("[ANSWER]", 1)[1]
+    if "[/ANSWER]" in generation:
+        generation = generation.split("[/ANSWER]", 1)[0]
 
-    # Parse assertion format
-    if "assert f" in generation and "==" in generation:
-        # Extract the part after "=="
-        parts = generation.split("==")
-        gen = parts[1].strip() if len(parts) > 1 else generation.strip()
-    elif "==" in generation:
-        gen = generation.split("==")[1].strip()
-    else:
-        gen = generation.strip()
-
-    # Clean up common artifacts
-    gen = gen.strip("\"'")  # Remove quotes if present
-    gen = gen.split("\n")[0]  # Take first line only
-    gen = gen.split("#")[0].strip()  # Remove comments
-
-    # Prepend the function code to create executable test
     code = doc["code"]
+    asserts = _ASSERT_LINE_RE.findall(generation)
+    if asserts:
+        return f"{code}\n{asserts[-1].strip()}"
+
+    lines = [ln for ln in generation.splitlines() if ln.strip()]
+    last = lines[-1] if lines else generation
+    gen = last.split("==", 1)[1].strip() if "==" in last else last.strip()
+    gen = gen.split("#")[0].strip()
     return f"{code}\nassert f({doc['input']})=={gen}"
 
 
@@ -428,6 +424,8 @@ def extract_code_input(doc: dict, generation: str, cot: bool) -> str:
 
 
 def list_fewshot_samples_output():
+    # String inputs/outputs must carry their Python quotes — they are spliced
+    # directly into the prompt's assert and must be valid literals.
     return [
         {
             "code": "def f(n):\n    return n",
@@ -437,8 +435,8 @@ def list_fewshot_samples_output():
         },
         {
             "code": 'def f(s):\n    return s + "a"',
-            "input": "x9j",
-            "output": "x9ja",
+            "input": "'x9j'",
+            "output": "'x9ja'",
             "is_fewshot": True,
         },
     ]
@@ -455,7 +453,7 @@ def list_fewshot_samples_input():
         {
             "code": "def f(s1, s2):\n    return s1 + s2",
             "input": '"ba", "nana"',
-            "output": "banana",
+            "output": "'banana'",
             "is_fewshot": True,
         },
     ]
