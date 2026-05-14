@@ -6,7 +6,6 @@ import io
 import multiprocessing
 import os
 import platform
-import re
 import signal
 import tempfile
 
@@ -330,32 +329,22 @@ def build_predictions_output_cot(
     ]
 
 
-_ASSERT_LINE_RE = re.compile(r"^\s*assert\s+f\(.*\)\s*==.*$", re.MULTILINE)
-
-
 def extract_code_output(doc: dict, generation: str, cot: bool) -> str:
     """
     Extract code for output prediction task.
     The generation should contain the predicted output value.
     Format the final code as: code + assert f(input)==predicted_output
-    Directly uses the model's assert line if it exists, otherwise falls
-    back to extracting the prediction directly
     """
-    if "[ANSWER]" in generation:
-        generation = generation.rsplit("[ANSWER]", 1)[1]
-    if "[/ANSWER]" in generation:
-        generation = generation.split("[/ANSWER]", 1)[0]
+    if cot and "[ANSWER]" in generation:
+        generation = generation.split("[ANSWER]")[1].strip()
+    if "==" in generation:
+        generation = generation.split("==")[1].strip()
+    value = generation.strip()
 
     code = doc["code"]
-    asserts = _ASSERT_LINE_RE.findall(generation)
-    if asserts:
-        return f"{code}\n{asserts[-1].strip()}"
-
-    lines = [ln for ln in generation.splitlines() if ln.strip()]
-    last = lines[-1] if lines else generation
-    gen = last.split("==", 1)[1].strip() if "==" in last else last.strip()
-    gen = gen.split("#")[0].strip()
-    return f"{code}\nassert f({doc['input']})=={gen}"
+    if f"f({doc['input']})" in value:
+        return f"{code}\nassert False"
+    return f"{code}\nassert {doc['output']} == {value}"
 
 
 def extract_code_input(doc: dict, generation: str, cot: bool) -> str:
