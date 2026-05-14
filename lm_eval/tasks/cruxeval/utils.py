@@ -334,12 +334,12 @@ _ASSERT_LINE_RE = re.compile(r"^\s*assert\s+f\(.*\)\s*==.*$", re.MULTILINE)
 
 
 def extract_code_output(doc: dict, generation: str, cot: bool) -> str:
-    """Build an executable test from the model's predicted output.
-
-    Trusts the model's full ``assert f(...) == <value>`` line verbatim when
-    present (matching the reference CRUXEval scorer). Falls back to value-only
-    extraction otherwise. Quotes are never stripped — doing so converts every
-    string answer like ``'O'`` into the bare identifier ``O`` (NameError).
+    """
+    Extract code for output prediction task.
+    The generation should contain the predicted output value.
+    Format the final code as: code + assert f(input)==predicted_output
+    Directly uses the model's assert line if it exists, otherwise falls
+    back to extracting the prediction directly
     """
     if "[ANSWER]" in generation:
         generation = generation.rsplit("[ANSWER]", 1)[1]
@@ -424,8 +424,6 @@ def extract_code_input(doc: dict, generation: str, cot: bool) -> str:
 
 
 def list_fewshot_samples_output():
-    # String inputs/outputs must carry their Python quotes — they are spliced
-    # directly into the prompt's assert and must be valid literals.
     return [
         {
             "code": "def f(n):\n    return n",
