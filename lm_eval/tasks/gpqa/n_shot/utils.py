@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import random
-import re
 from typing import TYPE_CHECKING
 
 
@@ -14,7 +13,7 @@ def preprocess(text):
         return " "
     text = text.strip()
     text = text.replace(" [title]", ". ")
-    text = re.sub(r"\[\w+\]", "", text)
+
     text = text.replace("  ", " ")
     return text
 

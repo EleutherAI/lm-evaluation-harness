@@ -97,6 +97,8 @@ class HFLM(TemplateLM):
         max_memory_per_gpu: int | str | None = None,
         max_cpu_memory: int | str | None = None,
         offload_folder: str | os.PathLike | None = "./offload",
+        # Tensor Parallelism options
+        tp_plan: str | dict | None = None,
         # PEFT, delta weights and quantization options
         peft: str | None = None,
         delta: str | None = None,
@@ -179,6 +181,12 @@ class HFLM(TemplateLM):
             offload_folder: Directory for disk offloading when the model does
                 not fit in GPU and CPU memory combined. Only used when
                 ``parallelize=True``.
+            tp_plan: Tensor parallelism plan for distributing model weights
+                across multiple GPUs using PyTorch's DTensor. Set to
+                ``"auto"`` to use the model's predefined TP plan. Mutually
+                exclusive with ``parallelize``. Requires launching with
+                ``torchrun`` or ``accelerate launch``. The number of
+                processes (``--nproc-per-node``) determines the TP degree.
             peft: Path or HuggingFace Hub ID of a PEFT (LoRA, etc.) adapter to
                 load on top of the base model.
             delta: Path or HuggingFace Hub ID of delta weights to apply to the
@@ -211,6 +219,9 @@ class HFLM(TemplateLM):
             assert not parallelize, (
                 "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
             )
+            assert tp_plan is None, (
+                "`tp_plan` is not compatible with passing pre-initialized model to `pretrained`"
+            )
             self._model = pretrained
             self._device = self._model.device
             self._config = self._model.config
@@ -221,27 +232,46 @@ class HFLM(TemplateLM):
             assert isinstance(pretrained, str)
             assert isinstance(batch_size, (int, str))
 
-            accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
-            accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
-            if accelerator.num_processes > 1:
-                self.accelerator = accelerator
+            if tp_plan is not None:
+                if parallelize:
+                    raise ValueError(
+                        "`tp_plan` and `parallelize=True` are mutually exclusive. Choose either one for parallelization."
+                    )
+                # TP mode: skip Accelerator entirely, let transformers handle
+                # distribution via torchrun + device_mesh.
+                device_type = torch._C._get_accelerator().type
+                local_rank = int(os.environ.get("LOCAL_RANK", 0))
+                self._device = torch.device(f"{device_type}:{local_rank}")
+                gpus = 0  # prevent later model.to(device) calls
 
-            # Detect device count based on accelerator device type
-            device_type = accelerator.device.type
-            if "cuda" in device_type:
-                gpus = torch.cuda.device_count()
-            elif "npu" in device_type:
-                gpus = torch.npu.device_count()
-            elif "xpu" in device_type:
-                gpus = torch.xpu.device_count()
-            elif "hpu" in device_type:
-                gpus = torch.hpu.device_count()
             else:
-                # Fallback to CUDA count for compatibility
-                gpus = torch.cuda.device_count()
+                accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
+                accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
+                if accelerator.num_processes > 1:
+                    self.accelerator = accelerator
 
-            # using one process with no model parallelism
-            if not (parallelize or accelerator.num_processes > 1):
+                # Detect device count based on accelerator device type
+                device_type = accelerator.device.type
+                if "cuda" in device_type:
+                    gpus = torch.cuda.device_count()
+                elif "npu" in device_type:
+                    gpus = torch.npu.device_count()
+                elif "xpu" in device_type:
+                    gpus = torch.xpu.device_count()
+                elif "hpu" in device_type:
+                    gpus = torch.hpu.device_count()
+                else:
+                    # Fallback to CUDA count for compatibility
+                    gpus = torch.cuda.device_count()
+
+            # Determine if we are in single device mode (no model parallelism)
+            single_device = (
+                not parallelize
+                and tp_plan is None
+                and not getattr(self, "accelerator", None)
+            )
+
+            if single_device:
                 # use user-passed device
                 device_list = set(
                     ["cuda", "cpu"]
@@ -268,6 +298,9 @@ class HFLM(TemplateLM):
                         if torch.cuda.is_available()
                         else torch.device("cpu")
                     )
+            elif tp_plan is not None:
+                # Device already set above during TP init
+                pass
             else:  # Parallelism managed by accelerate
                 if device != "cuda":
                     eval_logger.info(
@@ -289,6 +322,19 @@ class HFLM(TemplateLM):
                 gguf_file=gguf_file,
                 subfolder=subfolder,
             )
+            if tp_plan:
+                world = int(os.environ.get("WORLD_SIZE", "1"))
+                n_kv = getattr(
+                    self._config,
+                    "num_key_value_heads",
+                    getattr(self._config, "num_attention_heads", world),
+                )
+                if n_kv % world != 0:
+                    raise ValueError(
+                        f"tp_plan requires num_key_value_heads ({n_kv}) to be divisible by "
+                        f"WORLD_SIZE ({world}). Re-launch with --nproc-per-node "
+                        f"set to a divisor of {n_kv}."
+                    )
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
         self._get_backend(
@@ -322,6 +368,7 @@ class HFLM(TemplateLM):
                 dtype=dtype,
                 trust_remote_code=trust_remote_code,
                 parallelize=parallelize,
+                tp_plan=tp_plan,
                 gpus=gpus,
                 max_memory_per_gpu=max_memory_per_gpu,
                 max_cpu_memory=max_cpu_memory,
@@ -391,7 +438,10 @@ class HFLM(TemplateLM):
 
         if isinstance(pretrained, str):
             if (gpus >= 1 or str(self.device) == "mps") and not (
-                parallelize or autogptq or hasattr(self, "accelerator")
+                parallelize
+                or tp_plan is not None
+                or autogptq
+                or hasattr(self, "accelerator")
             ):
                 # TODO: can remove this whole snippet except in the mps case, perhaps?
                 # place model onto device requested manually,
@@ -403,8 +453,13 @@ class HFLM(TemplateLM):
                     eval_logger.debug(
                         "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided. If the desired GPU is being used, this message is safe to ignore."
                     )
+            # TP mode: all ranks run the same eval loop, no data splitting.
+            # From lm-eval's perspective, this is a single model.
+            if tp_plan is not None:
+                self._rank = 0
+                self._world_size = 1
             # multigpu data-parallel support when launched with accelerate
-            if gpus > 1:
+            elif gpus > 1:
                 if accelerator.num_processes > 1:
                     if parallelize:
                         eval_logger.warning(
@@ -704,6 +759,8 @@ class HFLM(TemplateLM):
         max_memory_per_gpu: int | str | None = None,
         max_cpu_memory: int | str | None = None,
         offload_folder: str | None = "./offload",
+        # Tensor Parallelism options
+        tp_plan: str | dict | None = None,
         # PEFT, delta weights and quantization options
         peft: str | None = None,
         delta: str | None = None,
@@ -727,16 +784,20 @@ class HFLM(TemplateLM):
 
         model_kwargs = kwargs or {}
 
-        model_kwargs.update(
-            self._get_accelerate_args(
-                parallelize=parallelize,
-                device_map=kwargs.get("device_map"),
-                max_memory_per_gpu=max_memory_per_gpu,
-                max_cpu_memory=max_cpu_memory,
-                offload_folder=offload_folder,
-                gpus=gpus,
+        if tp_plan is not None:
+            # TP mode: tp_plan and device_map are mutually exclusive in transformers
+            model_kwargs["tp_plan"] = tp_plan
+        else:
+            model_kwargs.update(
+                self._get_accelerate_args(
+                    parallelize=parallelize,
+                    device_map=kwargs.get("device_map"),
+                    max_memory_per_gpu=max_memory_per_gpu,
+                    max_cpu_memory=max_cpu_memory,
+                    offload_folder=offload_folder,
+                    gpus=gpus,
+                )
             )
-        )
 
         if not autogptq and not gptqmodel:
             if model_kwargs.get("load_in_4bit"):
@@ -1323,6 +1384,14 @@ class HFLM(TemplateLM):
             and not override_bs
             else None
         )
+
+        if batch_fn is not None:
+            # Reset cached batch sizes so that auto-detection runs against the
+            # current set of requests.  Without this, a batch size detected for
+            # short-sequence requests (e.g. ARC) is silently reused for
+            # long-sequence requests (e.g. MMLU), causing CUDA OOM.
+            # See: https://github.com/EleutherAI/lm-evaluation-harness/issues/1678
+            self.batch_sizes = {}
 
         chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
         pbar = tqdm(

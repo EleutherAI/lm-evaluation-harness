@@ -606,9 +606,21 @@ class VLLM(TemplateLM):
                 )
                 context_encoding_truncated.append(toks)
 
-                sampling_params.append(
-                    SamplingParams(max_tokens=max_gen_toks, stop=until, **kwargs)
-                )
+                # When a reasoning model is active, task-level stop sequences
+                # (e.g. the fewshot delimiter "\n\n") should not go to vLLM —
+                # they often exist inside <think> blocks and cause it to truncate
+                # before any response is produced.  Only EOS should be passed
+                # to vLLM; task stops are applied in postprocess_generated_text
+                # after thinking content is stripped.
+                if self.think_end_token:
+                    eos_only = [s for s in until if s == eos]
+                    sampling_params.append(
+                        SamplingParams(max_tokens=max_gen_toks, stop=eos_only, **kwargs)
+                    )
+                else:
+                    sampling_params.append(
+                        SamplingParams(max_tokens=max_gen_toks, stop=until, **kwargs)
+                    )
                 _cache_gen_kwargs.append(
                     kwargs | {"until": until, "max_gen_toks": max_gen_toks}
                 )
