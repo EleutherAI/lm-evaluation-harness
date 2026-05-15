@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_social_sciences_tasks
+task: greekmmlu_government_and_politics_secondary_school
+task_alias: Government and Politics_Secondary_School
+dataset_name: Government_and_Politics_Secondary_School
