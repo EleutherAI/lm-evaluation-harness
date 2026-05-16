@@ -1,0 +1,3 @@
+dataset_name: Ophthalmology
+include: _default_template_yaml
+task: Ophthalmology
