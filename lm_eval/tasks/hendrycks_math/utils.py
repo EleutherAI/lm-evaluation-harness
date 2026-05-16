@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 import datasets
@@ -15,13 +16,32 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
+def _extract_math_content(text: str) -> str:
+    """Extract mathematical content from LaTeX delimiters.
+
+    Handles $...$, \\[...\\], and \\(...\\) delimiters.
+    """
+    # Try \[...\] display math
+    match = re.search(r"\\\[(.*?)\\\]", text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+
+    # Try \(...\) inline math
+    match = re.search(r"\\\((.*?)\\\)", text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+
+    # Try $...$ (original behavior)
+    indices = [pos for pos, char in enumerate(text) if char == "$"]
+    if len(indices) >= 2:
+        return text[indices[0] + 1 : indices[-1]]
+
+    return text
+
+
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = _extract_math_content(results[0])
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
