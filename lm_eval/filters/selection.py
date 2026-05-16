@@ -23,6 +23,20 @@ class TakeFirstFilter(Filter):
         return map(lambda r: r[0], resps)
 
 
+@register_filter("take_last")
+class TakeLastFilter(Filter):
+    def __init__(self) -> None:
+        """
+        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
+        """
+
+    def apply(self, resps, docs):
+        """
+        Assuming each entry of `resps` is a list of model responses, we discard all but the last response.
+        """
+        return map(lambda r: r[-1], resps)
+
+
 @register_filter("take_first_k")
 class TakeKFilter(Filter):
     def __init__(self, **kwargs) -> None:
