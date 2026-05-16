@@ -1,0 +1,7 @@
+"dataset_name": "azb_Arab-arz_Arab"
+"doc_to_target": "{{sentence_arz_Arab}}"
+"doc_to_text": "{{sentence_azb_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_azb_Arab-arz_Arab"
+"test_split": "dev"

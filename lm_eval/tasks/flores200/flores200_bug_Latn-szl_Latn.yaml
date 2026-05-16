@@ -1,0 +1,7 @@
+"dataset_name": "bug_Latn-szl_Latn"
+"doc_to_target": "{{sentence_szl_Latn}}"
+"doc_to_text": "{{sentence_bug_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_bug_Latn-szl_Latn"
+"test_split": "dev"

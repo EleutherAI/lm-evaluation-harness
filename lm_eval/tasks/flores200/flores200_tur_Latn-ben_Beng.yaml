@@ -1,0 +1,7 @@
+"dataset_name": "tur_Latn-ben_Beng"
+"doc_to_target": "{{sentence_ben_Beng}}"
+"doc_to_text": "{{sentence_tur_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tur_Latn-ben_Beng"
+"test_split": "dev"

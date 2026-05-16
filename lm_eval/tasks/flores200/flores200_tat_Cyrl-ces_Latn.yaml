@@ -1,0 +1,7 @@
+"dataset_name": "tat_Cyrl-ces_Latn"
+"doc_to_target": "{{sentence_ces_Latn}}"
+"doc_to_text": "{{sentence_tat_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tat_Cyrl-ces_Latn"
+"test_split": "dev"
