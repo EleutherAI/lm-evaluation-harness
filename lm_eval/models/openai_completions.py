@@ -230,7 +230,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         self,
         string: Union[str, Any],
         left_truncate_len=None,
-        add_special_tokens=None,
+        add_special_tokens=True,
         **kwargs,
     ) -> Union[List[str], List[int], Any]:
         return string
