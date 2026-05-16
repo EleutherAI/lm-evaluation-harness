@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Callable, Iterable, List, Union
 
 from lm_eval.api.instance import Instance
 
@@ -20,7 +20,7 @@ class Filter(ABC):
         """
 
     @abstractmethod
-    def apply(self, resps: Union[List, Iterable], docs: List[dict]) -> Iterable:
+    def apply(self, resps: list | Iterable, docs: list[dict]) -> Iterable:
         """
         Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
         Should return the list of (filtered) response lists *in the same order as they were input*, e.g.
@@ -40,9 +40,9 @@ class FilterEnsemble:
     """
 
     name: str
-    filters: List[Callable[[], Filter]]
+    filters: list[Callable[[], Filter]]
 
-    def apply(self, instances: List[Instance]) -> None:
+    def apply(self, instances: list[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
         resps, docs = list(resps), list(docs)
 
