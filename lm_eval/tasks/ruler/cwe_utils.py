@@ -140,6 +140,8 @@ def sys_word_pair_random(
             except:  # noqa: E722
                 if used_words > incremental:
                     used_words -= incremental
+                else:
+                    break
 
         if remove_newline_tab:
             input_text = " ".join(
