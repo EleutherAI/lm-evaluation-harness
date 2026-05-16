@@ -355,22 +355,64 @@ def simple_evaluate(
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
-    results = evaluate(
-        lm=lm,
-        task_dict=loaded,
-        limit=limit,
-        samples=samples,
-        cache_requests=cache_requests,
-        rewrite_requests_cache=rewrite_requests_cache,
-        bootstrap_iters=bootstrap_iters,
-        write_out=write_out,
-        log_samples=True if predict_only else log_samples,
-        system_instruction=system_instruction,
-        apply_chat_template=apply_chat_template,
-        fewshot_as_multiturn=fewshot_as_multiturn,
-        verbosity=verbosity,
-        confirm_run_unsafe_code=confirm_run_unsafe_code,
-    )
+    # Multi-adapter evaluation: when peft_list is set, evaluate each adapter
+    # sequentially against the same base model and merge results under an
+    # "adapter_results" key.  The primary "results" dict is populated from
+    # the last adapter so downstream tooling that expects a single result set
+    # still works correctly.
+    peft_list = getattr(lm, "peft_list", None)
+    if peft_list:
+        eval_logger.info(
+            f"peft_list detected — running sequential multi-adapter evaluation "
+            f"over {len(peft_list)} adapter(s): {peft_list}"
+        )
+        adapter_results: dict = {}
+        for adapter_path in peft_list:
+            eval_logger.info(f"[peft_list] Evaluating adapter: {adapter_path}")
+            lm.load_peft_adapter(adapter_path)
+            _res = evaluate(
+                lm=lm,
+                task_dict=loaded,
+                limit=limit,
+                samples=samples,
+                cache_requests=cache_requests,
+                rewrite_requests_cache=rewrite_requests_cache,
+                bootstrap_iters=bootstrap_iters,
+                write_out=write_out,
+                log_samples=True if predict_only else log_samples,
+                system_instruction=system_instruction,
+                apply_chat_template=apply_chat_template,
+                fewshot_as_multiturn=fewshot_as_multiturn,
+                verbosity=verbosity,
+                confirm_run_unsafe_code=confirm_run_unsafe_code,
+            )
+            adapter_results[adapter_path] = _res
+            eval_logger.info(
+                f"[peft_list] Finished adapter '{adapter_path}'. "
+                f"Tasks: {list(_res.get('results', {}).keys())}"
+            )
+        lm.unload_peft_adapter()
+        # Use last adapter's results as the primary result dict; attach all
+        # per-adapter results under a dedicated key for comparison.
+        results = list(adapter_results.values())[-1]
+        results["adapter_results"] = adapter_results
+    else:
+        results = evaluate(
+            lm=lm,
+            task_dict=loaded,
+            limit=limit,
+            samples=samples,
+            cache_requests=cache_requests,
+            rewrite_requests_cache=rewrite_requests_cache,
+            bootstrap_iters=bootstrap_iters,
+            write_out=write_out,
+            log_samples=True if predict_only else log_samples,
+            system_instruction=system_instruction,
+            apply_chat_template=apply_chat_template,
+            fewshot_as_multiturn=fewshot_as_multiturn,
+            verbosity=verbosity,
+            confirm_run_unsafe_code=confirm_run_unsafe_code,
+        )
     if verbosity is not None:
         setup_logging(verbosity=verbosity)
 
