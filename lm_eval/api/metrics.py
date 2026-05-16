@@ -371,7 +371,7 @@ def chrf_fn(items):  # This is a passthrough function
 
 @register_metric(
     metric="ter",
-    higher_is_better=True,
+    higher_is_better=False,
     output_type="generate_until",
     aggregation="ter",
 )
