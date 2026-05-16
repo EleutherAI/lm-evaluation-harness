@@ -181,6 +181,8 @@ def generate_samples(
             except:  # noqa: E722
                 if used_docs > incremental:
                     used_docs -= incremental
+                else:
+                    raise
 
         if remove_newline_tab:
             input_text = " ".join(
