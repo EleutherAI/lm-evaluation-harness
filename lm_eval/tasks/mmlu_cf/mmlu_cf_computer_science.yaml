@@ -1,0 +1,7 @@
+task: mmlu_cf_computer_science
+task_alias: computer_science
+test_split: Computer_Science_val
+fewshot_split: Computer_Science_dev
+description: "There is a single choice question (with answers). Answer the question by replying A, B, C or D.\n\n"
+tag: mmlu_cf_stem_tasks
+include: _default_template_yaml
