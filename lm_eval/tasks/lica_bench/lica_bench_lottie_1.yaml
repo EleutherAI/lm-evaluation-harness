@@ -1,0 +1,4 @@
+task: lica_bench_lottie_1
+include: _template_yaml
+task_alias: lottie-1
+custom_dataset: !function utils.build_lottie_1
