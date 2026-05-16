@@ -1,0 +1,5 @@
+"dataset_name": "fon_Latn"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_fon_Latn"
+"test_split": "test"
