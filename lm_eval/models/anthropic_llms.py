@@ -136,6 +136,8 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
             messages=[{"role": "user", "content": f"{prompt}"}],
             **kwargs,
         )
+        if not response.content:
+            raise ValueError("LLM returned empty or filtered response")
         return response.content[0].text
 
     return messages()
