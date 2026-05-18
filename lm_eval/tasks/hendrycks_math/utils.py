@@ -36,11 +36,21 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
             answer = None
     elif len(unique_boxed) == 1:
         try:
-            answer = remove_boxed(all_boxed[0])
+            answer = remove_boxed(unique_boxed[0])
         except AssertionError:
             answer = None
     else:
         answer = None
+
+    # Fall back to legacy single-boxed extraction (handles \boxed space-form
+    # that find_all_boxed_strings skips, plus \fbox).
+    if answer is None:
+        legacy = last_boxed_only_string(response)
+        if legacy is not None:
+            try:
+                answer = remove_boxed(legacy)
+            except (AssertionError, IndexError):
+                answer = None
 
     # Fall back to $...$ extraction
     if answer is None:
