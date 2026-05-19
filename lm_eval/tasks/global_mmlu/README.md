@@ -8,11 +8,11 @@ Abstract: [https://arxiv.org/abs/2412.03304](https://arxiv.org/abs/2412.03304)
 
 Global-MMLU 🌍 is a multilingual evaluation set spanning 42 languages, including English. This dataset combines machine translations for MMLU questions along with professional translations and crowd-sourced post-edits. It also includes cultural sensitivity annotations for a subset of the questions (2850 questions per language) and classifies them as Culturally Sensitive (CS) 🗽 or Culturally Agnostic (CA) ⚖️. These annotations were collected as part of an open science initiative led by Cohere For AI in collaboration with many external collaborators from both industry and academia.
 
-Global-MMLU-Lite is a balanced collection of culturally sensitive and culturally agnostic MMLU tasks. It is designed for efficient evaluation of multilingual models in 15 languages (including English). Only languages with human translations and post-edits in the original [Global-MMLU](https://huggingface.co/datasets/CohereForAI/Global-MMLU) 🌍 dataset have been included in the lite version.
+Global-MMLU-Lite is a balanced collection of culturally sensitive and culturally agnostic MMLU tasks. It is designed for efficient evaluation of multilingual models in 15 languages (including English). Only languages with human translations and post-edits in the original [Global-MMLU](https://huggingface.co/datasets/CohereLabs/Global-MMLU) 🌍 dataset have been included in the lite version.
 
 Homepage: \
-[https://huggingface.co/datasets/CohereForAI/Global-MMLU](https://huggingface.co/datasets/CohereForAI/Global-MMLU) \
-[https://huggingface.co/datasets/CohereForAI/Global-MMLU-Lite](https://huggingface.co/datasets/CohereForAI/Global-MMLU-Lite)
+[https://huggingface.co/datasets/CohereLabs/Global-MMLU](https://huggingface.co/datasets/CohereLabs/Global-MMLU) \
+[https://huggingface.co/datasets/CohereLabs/Global-MMLU-Lite](https://huggingface.co/datasets/CohereLabs/Global-MMLU-Lite)
 
 
 #### Groups

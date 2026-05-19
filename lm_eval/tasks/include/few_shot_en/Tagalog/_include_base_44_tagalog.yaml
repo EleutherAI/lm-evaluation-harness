@@ -1,4 +1,4 @@
-group: include_base_44_tagalog
+group: include_base_44_tagalog_few_shot_en
 task:
 - include_base_44_tagalog_few_shot_en_arts_humanities
 - include_base_44_tagalog_few_shot_en_driving_license
@@ -6,4 +6,4 @@ aggregate_metric_list:
 - metric: acc
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 0.1

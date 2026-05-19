@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_nutrition
+"tag": "mmmlu_bn_bd_other_tasks"
+"task": "mmmlu_bn_bd_nutrition"
+"task_alias": "nutrition (Bengali)"
+"description": "The following are multiple choice questions (with answers) about nutrition (Bengali).\n\n"

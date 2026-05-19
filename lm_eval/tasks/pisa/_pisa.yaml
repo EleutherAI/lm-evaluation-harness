@@ -1,0 +1,12 @@
+group: pisa
+task:
+  - pisa_de
+  - pisa_fr
+  - pisa_it
+  - pisa_en
+  - pisa_es
+  - pisa_ch
+
+aggregate_metric_list:
+  - metric: acc            # or acc_norm, ppl, etc.
+    weight_by_size: false

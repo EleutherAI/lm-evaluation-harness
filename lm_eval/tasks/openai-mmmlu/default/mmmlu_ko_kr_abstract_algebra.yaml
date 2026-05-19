@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_ko_kr_stem_tasks"
+"task": "mmmlu_ko_kr_abstract_algebra"
+"task_alias": "abstract algebra (Korean)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (Korean).\n\n"

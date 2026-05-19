@@ -1,0 +1,15 @@
+group: mmmlu_ko_kr
+group_alias: "Korean"
+task:
+  - mmmlu_ko_kr_stem
+  - mmmlu_ko_kr_other
+  - mmmlu_ko_kr_social_sciences
+  - mmmlu_ko_kr_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

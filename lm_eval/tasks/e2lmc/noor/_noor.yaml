@@ -1,0 +1,14 @@
+group: noor
+group_alias: noor
+task:
+  - group: stem
+    task:
+      - noor_stem
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2

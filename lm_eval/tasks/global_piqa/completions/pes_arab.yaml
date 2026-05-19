@@ -1,0 +1,3 @@
+dataset_name: pes_arab
+include: _template
+task: global_piqa_completions_pes_arab

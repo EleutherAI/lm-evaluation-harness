@@ -1,0 +1,16 @@
+# Task 3 with tag - simulates mmlu_philosophy pattern
+task: tag_task_3
+tag: test_tag_tasks
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: tests/test_configs/test_data.json
+output_type: multiple_choice
+doc_to_text: "{{question}}"
+doc_to_target: "{{choices[answer]}}"
+test_split: test
+num_fewshot: 0
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

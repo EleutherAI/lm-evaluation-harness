@@ -1,0 +1,15 @@
+group: mmmlu_fr_fr
+group_alias: "French"
+task:
+  - mmmlu_fr_fr_stem
+  - mmmlu_fr_fr_other
+  - mmmlu_fr_fr_social_sciences
+  - mmmlu_fr_fr_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

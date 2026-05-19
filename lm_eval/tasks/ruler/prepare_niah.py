@@ -194,8 +194,6 @@ def generate_input_output(
         else queries[0]
     )
 
-    template = template
-    type_needle_v = type_needle_v
     if num_needle_q * num_needle_v == 1:
         template = template.replace("Some", "A")
         template = template.replace("are all", "is")
@@ -233,7 +231,6 @@ def generate_samples(
     assert TOKENIZER is not None, "TOKENIZER is not defined."
     num_needle_k = max(num_needle_k, num_needle_q)
     write_jsons = []
-    tokens_to_generate = tokens_to_generate
 
     if type_haystack == "essay":
         incremental = 500

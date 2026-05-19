@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_us_foreign_policy
+"tag": "mmmlu_hi_in_social_sciences_tasks"
+"task": "mmmlu_hi_in_us_foreign_policy"
+"task_alias": "us foreign policy (Hindi)"
+"description": "The following are multiple choice questions (with answers) about us foreign policy (Hindi).\n\n"

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_college_physics
+"tag": "mmmlu_it_it_stem_tasks"
+"task": "mmmlu_it_it_college_physics"
+"task_alias": "college physics (Italian)"
+"description": "The following are multiple choice questions (with answers) about college physics (Italian).\n\n"

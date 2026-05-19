@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_business_ethics
+"tag": "mmmlu_ko_kr_other_tasks"
+"task": "mmmlu_ko_kr_business_ethics"
+"task_alias": "business ethics (Korean)"
+"description": "The following are multiple choice questions (with answers) about business ethics (Korean).\n\n"

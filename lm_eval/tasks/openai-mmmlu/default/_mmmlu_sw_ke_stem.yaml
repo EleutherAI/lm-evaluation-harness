@@ -1,0 +1,10 @@
+group: mmmlu_sw_ke_stem
+group_alias: "Swahili stem"
+task:
+  - mmmlu_sw_ke_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

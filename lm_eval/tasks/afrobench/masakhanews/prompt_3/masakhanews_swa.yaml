@@ -3,6 +3,6 @@ dataset_name: swa
 doc_to_text: "You are an assistant able to classify topics in texts. \n\nGiven the\
   \ categories technology, religion, politics, sports, health, entertainment, or business;\
   \ what is the topic of the Swahili statement below? Return only the category. \n\
-  \ntext: {{headline_text}} \\category:\n\n"
+  \ntext: {{headline}} \\category:\n\n"
 include: masakhanews
 task: masakhanews_swa_prompt_3

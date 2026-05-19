@@ -1,0 +1,22 @@
+tag:
+  - uyghur_language
+  - uyghur_llm
+task: uleval
+dataset_path: keramjan/uleval
+dataset_name: main
+output_type: multiple_choice
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text: "سۇئال: {{question}}\nجاۋاپ:"
+doc_to_target: "{{ ['A','B','C','D'].index(answer) }}"
+doc_to_choice: "{{[A, B, C, D]}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true  
+metadata:
+  version: 1.0.0

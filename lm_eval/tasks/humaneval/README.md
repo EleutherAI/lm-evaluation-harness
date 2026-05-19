@@ -33,7 +33,7 @@ Note: For instruct tuned models, we recommend the instruct variant. That uses a 
 - `humaneval` pass@1
 - `humaneval_64` pass@64 variant
 - `humaneval_instruct`: pass@1 with config more appropriate for instruct models. (implementation taken from llama [evals](https://huggingface.co/datasets/meta-llama/Llama-3.1-8B-Instruct-evals/viewer/Llama-3.1-8B-Instruct-evals__human_eval__details?row=0))
-- `humaneval_instruct_64`: pass@64 variant
+- `humaneval_64_instruct`: pass@64 variant
 
 ### Checklist
 

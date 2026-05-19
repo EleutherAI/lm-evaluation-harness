@@ -1,0 +1,10 @@
+group: mmmlu_bn_bd_stem
+group_alias: "Bengali stem"
+task:
+  - mmmlu_bn_bd_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

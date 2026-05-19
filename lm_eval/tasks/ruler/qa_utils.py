@@ -143,7 +143,6 @@ def generate_samples(
     remove_newline_tab=False,
 ) -> list[dict]:
     write_jsons = []
-    tokens_to_generate = tokens_to_generate
 
     # Find the perfect num_docs
     num_docs = incremental

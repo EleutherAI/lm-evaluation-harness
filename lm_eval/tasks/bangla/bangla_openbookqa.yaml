@@ -1,0 +1,28 @@
+task: openbookqa_bn
+dataset_path: hishab/openbookqa-bn
+
+description: "Bangla OpenBookQA multiple-choice questions."
+
+test_split: test
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+
+output_type: multiple_choice
+
+doc_to_text: |-
+  {{question_stem.strip()}}
+  {% for i in range(choices['label'] | length) -%}
+  {{choices['label'][i]}}. {{choices['text'][i]}}
+  {% endfor -%}
+  Answer:
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answerKey
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

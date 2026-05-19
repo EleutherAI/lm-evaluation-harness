@@ -4,6 +4,7 @@ import copy
 import itertools
 import json
 import logging
+import os
 from functools import cached_property
 from typing import (
     TYPE_CHECKING,
@@ -19,7 +20,6 @@ from typing import (
     Tuple,
     Union,
 )
-
 
 try:
     import requests
@@ -44,6 +44,13 @@ from lm_eval.models.utils import Collator, chunks, configure_pad_token
 if TYPE_CHECKING:
     from PIL import Image
 
+# Set a placeholder to use as model output when the returned answer is "None"
+# This commonly occurs when the model runs out of tokens during the thinking
+# process and returns an empty answer but no error.
+# Default value is an empty string, but it can be edited if this is problematic.
+LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = os.environ.get(
+    "LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER", ""
+)
 
 eval_logger = logging.getLogger(__name__)
 
@@ -87,8 +94,8 @@ def create_image_prompt(
         }
         images.append(img_dict)
 
-    # chat is in format of list[dict["role": "user"/"system", "content": str, "type": "text"],...]
-    # with images, we need "content" to be a list of dicts with "type" and "text"/"image_url"
+    # With images, we need "content" to be a list of dicts with
+    # "type" and "text"/"image_url".
     # currently we do not support few-shots so only one user message
     # text content also has <image> placeholders, which apparently is not necessary for API class (confirm)
 
@@ -97,7 +104,7 @@ def create_image_prompt(
     else:
         text_content = {"type": "text", "text": chat[-1]["content"]}
         chat[-1]["content"] = images + [text_content]
-    chat[-1].pop("type")
+    chat[-1].pop("type", None)
     return chat
 
 
@@ -114,7 +121,7 @@ class TemplateAPI(TemplateLM):
         # however the requests can be sent as a string if the API doesn't support token inputs.
         # use tokenized_requests=False
         tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", "None", "none"]
+            Literal["tiktoken", "huggingface", "remote", "None", "none"]
         ] = "huggingface",
         truncate: bool = False,
         # number of concurrent requests. More useful if not batching
@@ -132,6 +139,8 @@ class TemplateAPI(TemplateLM):
         revision: Optional[str] = "main",
         use_fast_tokenizer: bool = True,
         verify_certificate: bool = True,
+        ca_cert_path: Optional[str] = None,
+        auth_token: Optional[str] = None,
         eos_string: str = None,
         # timeout in seconds
         timeout: int = 300,
@@ -182,6 +191,8 @@ class TemplateAPI(TemplateLM):
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
         self.verify_certificate = verify_certificate
+        self.ca_cert_path = ca_cert_path
+        self.auth_token = auth_token
         self._eos_string = eos_string
         self.timeout = int(timeout)
         self.max_images = int(max_images)
@@ -218,6 +229,21 @@ class TemplateAPI(TemplateLM):
                             f"Passed `base_url={self.base_url}` but using (OpenAI) Tiktoken tokenizer backend. "
                             "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken."
                         )
+                elif self.tokenizer_backend == "remote":
+                    from lm_eval.utils import RemoteTokenizer
+
+                    if not self.base_url:
+                        raise ValueError(
+                            "base_url is required for remote tokenizer backend"
+                        )
+                    self.tokenizer = RemoteTokenizer(
+                        self.base_url,
+                        self.timeout,
+                        self.verify_certificate,
+                        self.ca_cert_path,
+                        self.auth_token,
+                    )
+                    eval_logger.info(f"Using remote tokenizer from {self.base_url}")
             else:
                 import transformers
 
@@ -310,7 +336,7 @@ class TemplateAPI(TemplateLM):
 
     def apply_chat_template(
         self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
-    ) -> Union[str, JsonChatStr]:
+    ) -> Union[str, JsonChatStr, List[Dict]]:
         """Applies a chat template to a list of chat history between user and model."""
         if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
             return self.tokenizer.apply_chat_template(
@@ -319,14 +345,11 @@ class TemplateAPI(TemplateLM):
                 add_generation_prompt=add_generation_prompt,
                 continue_final_message=not add_generation_prompt,
             )
+        elif self.tokenizer_backend == "remote" and self.tokenized_requests:
+            return chat_history
         else:
             # bit of a hack. We'll load back before sending to the API
-            return JsonChatStr(
-                json.dumps(
-                    [{**item, "type": "text"} for item in chat_history],
-                    ensure_ascii=False,
-                )
-            )
+            return JsonChatStr(json.dumps(chat_history, ensure_ascii=False))
 
     @cached_property
     def eot_token_id(self) -> Optional[int]:
@@ -337,6 +360,8 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eos_token_id
             elif self.tokenizer_backend == "tiktoken":
                 return self.tokenizer.eot_token
+            elif self.tokenizer_backend == "remote":
+                return self.tokenizer.eos_token_id
 
     @cached_property
     def eos_string(self) -> Optional[str]:
@@ -347,6 +372,8 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eos_token
             elif self.tokenizer_backend == "tiktoken":
                 return self.tokenizer.decode([self.tokenizer.eot_token])
+            elif self.tokenizer_backend == "remote":
+                return self.tokenizer.eos_token
         else:
             eval_logger.warning(
                 "Cannot determine EOS string to pass to stop sequence. Manually set by passing `eos_string` to model_args."
@@ -364,6 +391,8 @@ class TemplateAPI(TemplateLM):
                 if self.tokenizer.bos_token_id is not None:
                     return self.tokenizer.bos_token_id
                 return self.tokenizer.eos_token_id
+            elif self.tokenizer_backend == "remote":
+                return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
             else:
                 return self.tokenizer.eot_token
 
@@ -396,7 +425,19 @@ class TemplateAPI(TemplateLM):
                     encoding = encoding[-left_truncate_len:]
 
             return encoding
+        elif self.tokenizer_backend == "remote":
+            if isinstance(string, str):
+                encoding = self.tokenizer.encode(string)
+            else:
+                encoding = [self.tokenizer.encode(s) for s in string]
 
+            if left_truncate_len:
+                if isinstance(string, str):
+                    encoding = encoding[-left_truncate_len:]
+                else:
+                    encoding = [enc[-left_truncate_len:] for enc in encoding]
+
+            return encoding
         else:
             try:
                 encoding = self.tokenizer.encode(string)
@@ -409,6 +450,8 @@ class TemplateAPI(TemplateLM):
             return self.tokenizer.batch_decode(tokens)
         elif self.tokenizer_backend == "tiktoken":
             return self.tokenizer.decode_batch(tokens)
+        elif self.tokenizer_backend == "remote":
+            return self.tokenizer.batch_decode(tokens)
 
     def model_call(
         self,
@@ -484,7 +527,7 @@ class TemplateAPI(TemplateLM):
                 # raising exception will retry the request
                 response.raise_for_status()
                 outputs = await response.json()
-            answers = (
+            tmp_answers = (
                 self.parse_generations(
                     outputs=outputs,
                 )
@@ -495,13 +538,25 @@ class TemplateAPI(TemplateLM):
                     ctxlens=ctxlens,
                 )
             )
+
+            # Convert `None`` values to `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER` string to maintain consistency
+            answers = []
+            for a in tmp_answers:
+                if a is None:
+                    eval_logger.warning(
+                        f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. Check reasoning_content field or generation limits."
+                    )
+                    answers.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
+                else:
+                    answers.append(a)
+
             if cache_keys:
                 for res, cache in zip(answers, cache_keys):
                     self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         # If the retries also fail
         except BaseException as e:
-            eval_logger.error(f"Exception:{repr(e)}, {outputs}, retrying.")
+            eval_logger.error(f"Exception:{repr(e)}, {locals().get('outputs', '(no outputs)')}, retrying.")
             raise e
         finally:
             if acquired:
@@ -728,17 +783,25 @@ class TemplateAPI(TemplateLM):
                     ),
                     contexts,
                 ):
-                    if generated_text is not None:
+                    # Always append to res to maintain the correct number of items
+                    # even if generation failed (generated_text is None)
+                    if generated_text is None:
+                        eval_logger.warning(
+                            f"API returned null content. Content filled with `LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = {LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER}`. Check reasoning_content field or generation limits."
+                        )
+                        # Patch "None" answer with consistent value (async and sync calls)
+                        res.append(LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER)
+                    else:
                         res.append(generated_text)
 
-                        # partial caching
-                        if context is not None:
-                            self.cache_hook.add_partial(
-                                "generate_until",
-                                (context, all_gen_kwargs[0]),
-                                generated_text,
-                            )
-                            pbar.update(1)
+                    # partial caching only for successful generations
+                    if generated_text is not None and context is not None:
+                        self.cache_hook.add_partial(
+                            "generate_until",
+                            (context, all_gen_kwargs[0]),
+                            generated_text,
+                        )
+                    pbar.update(1)
         else:
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
@@ -768,7 +831,9 @@ class TemplateAPI(TemplateLM):
                         )
                     )
                 )
-                res.extend(results)
+                # Append results to res list
+                for r in results:
+                    res.append(r)
 
         return re_ord.get_original(res)
 

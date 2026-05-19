@@ -1,0 +1,12 @@
+dataset_path: recursal/longbench-v2
+test_split: train
+output_type: multiple_choice
+doc_to_text: "Please read the following text and answer the question below.\n\n<text>\n{{context}}\n</text>\n\nWhat is the correct answer to this question: {{question.strip()}}\nChoices:\n(A) {{choices[0]}}\n(B) {{choices[1]}}\n(C) {{choices[2]}}\n(D) {{choices[3]}}\n\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

@@ -1,21 +1,21 @@
 group: flores_ca
 task:
-  - flores_es-ca
-  - flores_ca-es
-  - flores_en-ca
-  - flores_ca-en
-  - flores_eu-ca
-  - flores_ca-eu
-  - flores_pt-ca
-  - flores_ca-pt
-  - flores_it-ca
-  - flores_ca-it
-  - flores_fr-ca
-  - flores_ca-fr
-  - flores_ca-gl
-  - flores_gl-ca
-  - flores_ca-de
-  - flores_de-ca
+  - catalan_bench_flores_es-ca
+  - catalan_bench_flores_ca-es
+  - catalan_bench_flores_en-ca
+  - catalan_bench_flores_ca-en
+  - catalan_bench_flores_eu-ca
+  - catalan_bench_flores_ca-eu
+  - catalan_bench_flores_pt-ca
+  - catalan_bench_flores_ca-pt
+  - catalan_bench_flores_it-ca
+  - catalan_bench_flores_ca-it
+  - catalan_bench_flores_fr-ca
+  - catalan_bench_flores_ca-fr
+  - catalan_bench_flores_ca-gl
+  - catalan_bench_flores_gl-ca
+  - catalan_bench_flores_ca-de
+  - catalan_bench_flores_de-ca
 aggregate_metric_list:
   - metric: bleu
     aggregation: mean

@@ -1,0 +1,24 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+group: toksuite_farsi
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+task:
+- toksuite_farsi_colloquial
+- toksuite_farsi_optional_diacritics
+- toksuite_farsi_romanization
+- toksuite_farsi_spelled_out
+- toksuite_farsi_code_language_script_switching
+- toksuite_farsi_word_spacing_zero-width_characters_extra_space
+- toksuite_farsi_arabic_keyboard_for_farsi
+- toksuite_farsi_keyboard_proximity_errors
+- toksuite_farsi_canonical
+- toksuite_farsi_dialects
+- toksuite_farsi_number_romanization
+- toksuite_farsi_equivalent_expressions

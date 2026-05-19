@@ -10,6 +10,10 @@ Paper Link: https://aclanthology.org/2023.emnlp-main.862/
 
 HomePage: https://github.com/facebookresearch/belebele
 
+### Changelog
+
+- **v3**: Renamed group from `belebele` to `afrobench_belebele` to resolve duplicate group name conflict with `belebele/_belebele.yaml`.
+
 ### Citation
 
 ```

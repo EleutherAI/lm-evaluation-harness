@@ -1,0 +1,10 @@
+group: mmmlu_bn_bd_other
+group_alias: "Bengali other"
+task:
+  - mmmlu_bn_bd_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

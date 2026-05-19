@@ -1,0 +1,25 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+group: toksuite_chinese
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+task:
+- toksuite_chinese_keyboard_proximity_errors
+- toksuite_chinese_word_spacing_zero-width_characters_extra_space
+- toksuite_chinese_romanization
+- toksuite_chinese_spelled_out
+- toksuite_chinese_partially_romanized
+- toksuite_chinese_colloquial
+- toksuite_chinese_canonical
+- toksuite_chinese_equivalent_expressions
+- toksuite_chinese_code_language_script_switching
+- toksuite_chinese_optional_diacritics
+- toksuite_chinese_ocr_errors
+- toksuite_chinese_space_removal
+- toksuite_chinese_traditional

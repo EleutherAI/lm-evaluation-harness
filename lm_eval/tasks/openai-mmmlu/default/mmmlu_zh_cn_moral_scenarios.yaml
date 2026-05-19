@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_moral_scenarios
+"tag": "mmmlu_zh_cn_humanities_tasks"
+"task": "mmmlu_zh_cn_moral_scenarios"
+"task_alias": "moral scenarios (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about moral scenarios (Simplified Chinese).\n\n"

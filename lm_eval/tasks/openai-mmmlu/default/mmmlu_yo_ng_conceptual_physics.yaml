@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "YO_NG"
+process_docs: !function utils.process_conceptual_physics
+"tag": "mmmlu_yo_ng_stem_tasks"
+"task": "mmmlu_yo_ng_conceptual_physics"
+"task_alias": "conceptual physics (Yoruba)"
+"description": "The following are multiple choice questions (with answers) about conceptual physics (Yoruba).\n\n"

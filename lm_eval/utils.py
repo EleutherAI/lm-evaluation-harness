@@ -8,12 +8,15 @@ import json
 import logging
 import os
 import re
+import threading
+from collections.abc import Callable, Generator
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
+import requests
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
@@ -25,8 +28,27 @@ HIGHER_IS_BETTER_SYMBOLS = {
     False: "↓",
 }
 
+# Track whether logging has been configured to avoid duplicate handlers
+_LOGGING_CONFIGURED = False
 
-def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
+
+class _LMEvalFormatter(logging.Formatter):
+    """Formatter that strips 'lm_eval.' prefix from logger names for cleaner output."""
+
+    def format(self, record):
+        record.short_name = record.name.removeprefix("lm_eval.")
+        return super().format(record)
+
+
+def is_torch_available() -> bool:
+    return importlib.util.find_spec("torch") is not None
+
+
+def is_transformers_available() -> bool:
+    return importlib.util.find_spec("transformers") is not None
+
+
+def wrap_text(string: str, width: int = 140, **kwargs) -> str | None:
     """
     Wraps the given string to the specified width.
     """
@@ -44,44 +66,64 @@ def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
 
 
 def setup_logging(verbosity=logging.INFO):
-    # Configure the root logger
-    class CustomFormatter(logging.Formatter):
-        def format(self, record):
-            if record.name.startswith("lm_eval."):
-                record.name = record.name[len("lm_eval.") :]
-            return super().format(record)
+    """Configure logging for lm_eval.
 
-    formatter = CustomFormatter(
-        "%(asctime)s %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
-        datefmt="%Y-%m-%d:%H:%M:%S",
-    )
+    Args:
+        verbosity: Default log level. Can be overridden by LMEVAL_LOG_LEVEL env var.
+    """
+    global _LOGGING_CONFIGURED
 
-    log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
-
-    level_map = {
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-    }
-
-    log_level = level_map.get(str(log_level).upper(), logging.INFO)
-
-    if not logging.root.handlers:
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-
-        root_logger = logging.getLogger()
-        root_logger.addHandler(handler)
-        root_logger.setLevel(log_level)
-
-        if log_level == logging.DEBUG:
-            third_party_loggers = ["urllib3", "filelock", "fsspec"]
-            for logger_name in third_party_loggers:
-                logging.getLogger(logger_name).setLevel(logging.INFO)
+    # Determine log level from env or argument
+    env_level = os.environ.get("LMEVAL_LOG_LEVEL", "").upper()
+    if env_level:
+        log_level = logging.getLevelName(env_level)
+        # getLevelName returns the string back if invalid
+        if not isinstance(log_level, int):
+            log_level = verbosity
     else:
-        logging.getLogger().setLevel(log_level)
+        log_level = verbosity
+
+    lm_eval_logger = logging.getLogger("lm_eval")
+    lm_eval_logger.setLevel(log_level)
+
+    if not _LOGGING_CONFIGURED:
+        _LOGGING_CONFIGURED = True
+
+        handler = logging.StreamHandler()
+        handler.setFormatter(
+            _LMEvalFormatter(
+                "%(asctime)s %(levelname)-8s [%(short_name)s:%(lineno)d] %(message)s",
+                datefmt="%Y-%m-%d:%H:%M:%S",
+            )
+        )
+        lm_eval_logger.addHandler(handler)
+
+        # Don't propagate to root to avoid duplicate logs if root is also configured
+        lm_eval_logger.propagate = False
+
+        # Quiet noisy third-party loggers in debug mode
+        if log_level == logging.DEBUG:
+            for logger_name in ("urllib3", "filelock", "fsspec"):
+                logging.getLogger(logger_name).setLevel(logging.WARNING)
+
+
+@functools.cache
+def warning_once(logger: logging.Logger, msg: str, *args):
+    """Log a warning message only once per unique message."""
+    logger.warning(msg, *args)
+
+
+@functools.cache
+def info_once(logger: logging.Logger, msg: str, *args):
+    """Log an info message only once per unique message."""
+    logger.info(msg, *args)
+
+
+def maybe_warn(msg: str, verbose: bool = True):
+    """Log a warning message only when verbose is True, otherwise noop."""
+    if verbose:
+        logger = logging.getLogger(__name__)
+        logger.warning(msg)
 
 
 def hash_string(string: str) -> str:
@@ -108,16 +150,46 @@ def escaped_split(text, sep_char, maxsplit=-1):
         return text
     maxsplit = max(0, maxsplit)
 
-    return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
+    return re.split(r"(?<!\\)" + sep_char, text, maxsplit=maxsplit)
 
 
 def handle_arg_string(arg):
-    if arg.lower() == "true":
+    """Attempt to infer and cast the type of a single argument value string.
+
+    Supports:
+    - Booleans: "true"/"false" (case-insensitive)
+    - None: "None" / "none"
+    - Explicit strings: values wrapped in matching quotes are preserved as-is
+      (e.g. ``"123"`` or ``'hello'`` -> str)
+    - Integers: optional sign, digits only (e.g. "42", "-1")
+    - Floats: anything ``float()`` accepts, including scientific notation
+    - Fallback: return as string unchanged
+    """
+    # Strip surrounding whitespace
+    arg = arg.strip()
+
+    # Explicit quoting -> always a string
+    if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in ("'", '"'):
+        return arg[1:-1]
+
+    lower = arg.lower()
+    if lower == "true":
         return True
-    elif arg.lower() == "false":
+    if lower == "false":
         return False
-    elif arg.isnumeric():
-        return int(arg)
+    if lower == "none":
+        return None
+
+    # Try integer first (supports negative numbers unlike str.isnumeric)
+    try:
+        # Guard against strings like "1e3" being parsed as int via float path
+        # Only pure digit strings (with optional leading sign) should become int
+        if arg.lstrip("+-").isdigit() and arg not in ("", "+", "-"):
+            return int(arg)
+    except ValueError:
+        pass
+
+    # Try float (handles decimals, scientific notation, inf, etc.)
     try:
         return float(arg)
     except ValueError:
@@ -125,7 +197,7 @@ def handle_arg_string(arg):
 
 
 def handle_non_serializable(o):
-    if isinstance(o, np.int64) or isinstance(o, np.int32):
+    if isinstance(o, (np.int64, np.int32)):
         return int(o)
     elif isinstance(o, set):
         return list(o)
@@ -145,7 +217,7 @@ def sanitize_list(sub):
         return str(sub)
 
 
-def simple_parse_args_string(args_string: Optional[str]) -> dict:
+def simple_parse_args_string(args_string: str | None) -> dict:
     """
     Parses something like
         args1=val1,arg2=val2
@@ -225,7 +297,7 @@ def sanitize_model_name(model_name: str) -> str:
     """
     Given the model name, returns a sanitized version of it.
     """
-    return re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", model_name)
+    return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
 
 
 def sanitize_task_name(task_name: str) -> str:
@@ -235,21 +307,21 @@ def sanitize_task_name(task_name: str) -> str:
     return re.sub(r"\W", "_", task_name)
 
 
-def get_latest_filename(filenames: List[str]) -> str:
+def get_latest_filename(filenames: list[str]) -> str:
     """
     Given a list of filenames, returns the filename with the latest datetime.
     """
     return max(filenames, key=lambda f: get_file_datetime(f))
 
 
-def get_results_filenames(filenames: List[str]) -> List[str]:
+def get_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to aggregated results.
     """
     return [f for f in filenames if "/results_" in f and ".json" in f]
 
 
-def get_sample_results_filenames(filenames: List[str]) -> List[str]:
+def get_sample_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to sample results.
     """
@@ -257,8 +329,8 @@ def get_sample_results_filenames(filenames: List[str]) -> List[str]:
 
 
 def get_rolling_token_windows(
-    token_list: List[int], prefix_token: int, max_seq_len: int, context_len: int
-) -> Generator[Tuple[List[int], List[int]], None, None]:
+    token_list: list[int], prefix_token: int, max_seq_len: int, context_len: int
+) -> Generator[tuple[list[int], list[int]], None, None]:
     """
     - context_len allows for a rolling window context, allowing each prediction window to potentially
       condition on some context
@@ -300,8 +372,8 @@ def get_rolling_token_windows(
 
 
 def make_disjoint_window(
-    pair: Tuple[List[int], List[int]],
-) -> Tuple[List[int], List[int]]:
+    pair: tuple[list[int], list[int]],
+) -> tuple[list[int], list[int]]:
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
@@ -320,7 +392,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
 
 class Reorderer:
-    def __init__(self, arr: List[Any], fn: Callable) -> None:
+    def __init__(self, arr: list[Any], fn: Callable) -> None:
         """Reorder an array according to some function
 
         Args:
@@ -357,7 +429,7 @@ class Reorderer:
         res = [None] * self.size
         cov = [False] * self.size
 
-        for (inds, _), v in zip(self.arr, newarr):
+        for (inds, _), v in zip(self.arr, newarr, strict=True):
             for ind in inds:
                 res[ind] = v
                 cov[ind] = True
@@ -367,14 +439,44 @@ class Reorderer:
         return res
 
 
+def _build_hierarchy_info(
+    group_subtasks: dict[str, list[str]], available_keys: set[str]
+) -> tuple[dict[str, int], list[str]]:
+    """Build depth map and hierarchical key ordering from group_subtasks.
+
+    Uses a tree-walk approach over group_subtasks for ordering.
+
+    Returns:
+        (depth_map, ordered_keys) — depths for indentation, keys in display order
+    """
+    depth_map: dict[str, int] = {}
+    ordered: list[str] = []
+
+    def visit(name: str, depth: int):
+        depth_map[name] = depth
+        if name in available_keys:
+            ordered.append(name)
+        for child in sorted(group_subtasks.get(name, [])):
+            visit(child, depth + 1)
+
+    all_children = {c for children in group_subtasks.values() for c in children}
+    for name in sorted(group_subtasks):
+        if name not in all_children:
+            visit(name, 0)
+
+    # Add remaining keys not in any hierarchy (sorted for determinism)
+    for key in sorted(available_keys):
+        if key not in depth_map:
+            ordered.append(key)
+
+    return depth_map, ordered
+
+
 def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
-    if column == "results":
-        column_name = "Tasks"
-    elif column == "groups":
-        column_name = "Groups"
+    column_name = "Groups" if column == "groups" else "Tasks"
 
     all_headers = [
         column_name,
@@ -395,20 +497,37 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
     values = []
 
-    keys = result_dict[column].keys()
-    if sort_results:
+    # Build depth map and hierarchical key ordering from group_subtasks
+    group_subtasks = result_dict.get("group_subtasks", {})
+    depth_map, hierarchical_keys = _build_hierarchy_info(
+        group_subtasks, set(result_dict[column].keys())
+    )
+
+    if sort_results:  # noqa: SIM108
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
-        keys = sorted(keys)
+        keys = sorted(result_dict[column].keys())
+    else:
+        keys = hierarchical_keys
     for k in keys:
-        dic = result_dict[column][k]
+        dic = dict(result_dict[column][k])  # copy — don't mutate original
         version = result_dict["versions"].get(k, "    N/A")
         n = str(result_dict.get("n-shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
-        if "alias" in dic:
-            k = dic.pop("alias")
+        display_name = dic.pop("alias", k)
+        ## alias takes care of name, and we don't print sample_len
+        dic.pop("name", None)
+        dic.pop("sample_len", None)
+        dic.pop("sample_count", None)
+
+        # Add indentation based on hierarchy depth
+        depth = depth_map.get(k, 0)
+        if depth > 0:
+            display_name = " " * depth + "- " + display_name
+
+        k = display_name
 
         metric_items = dic.items()
         metric_items = sorted(metric_items)
@@ -420,11 +539,11 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
 
-            v = "%.4f" % v if isinstance(v, float) else v
+            v = f"{v:.4f}" if isinstance(v, float) else v
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                se = "   N/A" if se == "N/A" else "%.4f" % se
+                se = "   N/A" if se == "N/A" else f"{se:.4f}"
                 values.append([k, version, f, n, m, hib, v, "±", se])
             else:
                 values.append([k, version, f, n, m, hib, v, "", ""])
@@ -484,56 +603,6 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
     return function
 
 
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
-    if mode == "simple":
-        constructor_fn = ignore_constructor
-    elif mode == "full":
-        if yaml_path is None:
-            raise ValueError("yaml_path must be provided if mode is 'full'.")
-        # Attach yaml_path to the import function so that it can be used later
-        constructor_fn = functools.partial(import_function, yaml_path=Path(yaml_path))
-
-    loader = yaml.CLoader if yaml.__with_libyaml__ else yaml.FullLoader
-    # Add the import_function constructor to the YAML loader
-    yaml.add_constructor("!function", constructor_fn, Loader=loader)
-    if yaml_config is None:
-        with open(yaml_path, "rb") as file:
-            yaml_config = yaml.load(file, Loader=loader)
-
-    if yaml_dir is None:
-        yaml_dir = os.path.dirname(yaml_path)
-
-    assert yaml_dir is not None
-
-    if "include" in yaml_config:
-        include_path = yaml_config["include"]
-        del yaml_config["include"]
-
-        if isinstance(include_path, str):
-            include_path = [include_path]
-
-        # Load from the last one first
-        include_path.reverse()
-        final_yaml_config = {}
-        for path in include_path:
-            # Assumes that path is a full path.
-            # If not found, assume the included yaml
-            # is in the same dir as the original yaml
-            if not os.path.isfile(path):
-                path = os.path.join(yaml_dir, path)
-
-            try:
-                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
-                final_yaml_config.update(included_yaml_config)
-            except Exception as ex:
-                # If failed to load, ignore
-                raise ex
-
-        final_yaml_config.update(yaml_config)
-        return final_yaml_config
-    return yaml_config
-
-
 def regex_replace(string, pattern, repl, count: int = 0):
     """Implements the `re.sub` function as a custom Jinja filter."""
     return re.sub(pattern, repl, string, count=count)
@@ -562,7 +631,7 @@ def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
 def weighted_f1_score(items):
     from sklearn.metrics import f1_score
 
-    unzipped_list = list(zip(*items))
+    unzipped_list = list(zip(*items, strict=True))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
@@ -574,7 +643,7 @@ def convert_pil_to_hash(value):
 
     img_bytes = BytesIO()
     value.save(img_bytes, format="PNG")
-    return hashlib.sha256(str(img_bytes).encode()).hexdigest()
+    return hashlib.sha256(img_bytes.getvalue()).hexdigest()
 
 
 def convert_bytes_to_hash(value):
@@ -623,3 +692,231 @@ def hash_dict_images(data_dict):
         if importlib.util.find_spec("PIL")
         else data_dict
     )
+
+
+class RemoteTokenizer:
+    """
+    Minimal robust tokenizer that uses vLLM server's tokenizer endpoints.
+    """
+
+    def __init__(
+        self,
+        base_url: str,
+        timeout: int = 30,
+        verify_certificate: bool = True,
+        ca_cert_path: str | None = None,
+        auth_token: str | None = None,
+        max_retries: int = 3,
+    ):
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self._lock = threading.RLock()
+        self._tokenizer_info = None
+        self._chat_template_obj = None
+
+        # Certificate logic
+        self.cert_config = (
+            ca_cert_path if verify_certificate and ca_cert_path else verify_certificate
+        )
+
+        # Auth header logic
+        self.headers = {"Content-Type": "application/json"}
+        if auth_token:
+            self.headers["Authorization"] = f"Bearer {auth_token}"
+
+        # Normalize base URL - remove API endpoints to get server base
+        self.base_url = (
+            base_url.replace("/v1/completions", "")
+            .replace("/v1/chat/completions", "")
+            .rstrip("/")
+        )
+
+        # Use a session for connection pooling
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
+
+        # Validate server supports tokenizer_info endpoint
+        self._validate_server()
+
+    def _request_with_retries(self, method, url, **kwargs):
+        last_exc = None
+        for _ in range(self.max_retries):
+            try:
+                resp = self.session.request(
+                    method,
+                    url,
+                    timeout=kwargs.pop("timeout", self.timeout),
+                    verify=self.cert_config,
+                    **kwargs,
+                )
+                resp.raise_for_status()
+                return resp
+            except requests.RequestException as e:
+                last_exc = e
+        raise RuntimeError(
+            f"RemoteTokenizer: {method} {url} failed after {self.max_retries} attempts: {last_exc}"
+        )
+
+    def _validate_server(self):
+        url = f"{self.base_url}/tokenizer_info"
+        resp = self._request_with_retries("GET", url)
+        if resp.status_code != 200:
+            raise RuntimeError(
+                f"Server does not support tokenizer_info endpoint. Status: {resp.status_code}"
+            )
+
+    @property
+    def tokenizer_info(self) -> dict:
+        with self._lock:
+            if self._tokenizer_info is None:
+                url = f"{self.base_url}/tokenizer_info"
+                resp = self._request_with_retries("GET", url)
+                self._tokenizer_info = resp.json()
+            return self._tokenizer_info
+
+    @property
+    def eos_token(self) -> str | None:
+        return self.tokenizer_info.get("eos_token")
+
+    @property
+    def bos_token(self) -> str | None:
+        return self.tokenizer_info.get("bos_token")
+
+    @property
+    def pad_token(self) -> str | None:
+        return self.tokenizer_info.get("pad_token")
+
+    @property
+    def eos_token_id(self) -> int | None:
+        if (eos := self.eos_token) is None:
+            return None
+        return self.encode(eos)[0]
+
+    @property
+    def bos_token_id(self) -> int | None:
+        if (bos := self.bos_token) is None:
+            return None
+        return self.encode(bos)[0]
+
+    @property
+    def eot_token(self) -> int | None:
+        return self.eos_token_id
+
+    def encode(self, text: str) -> list[int]:
+        url = f"{self.base_url}/tokenize"
+        payload = {"prompt": text, "add_special_tokens": False}
+        resp = self._request_with_retries("POST", url, json=payload)
+        tokens = resp.json().get("tokens")
+        if not isinstance(tokens, list):
+            raise RuntimeError("Malformed response from /tokenize endpoint.")
+        return tokens
+
+    def decode(self, tokens: list[int]) -> str:
+        url = f"{self.base_url}/detokenize"
+        payload = {"tokens": tokens}
+        resp = self._request_with_retries("POST", url, json=payload)
+        prompt = resp.json().get("prompt")
+        if not isinstance(prompt, str):
+            raise RuntimeError("Malformed response from /detokenize endpoint.")
+        return prompt
+
+    def batch_decode(self, tokens_list: list[list[int]]) -> list[str]:
+        return [self.decode(tokens) for tokens in tokens_list]
+
+    def apply_chat_template(
+        self, chat_history: list, add_generation_prompt: bool = True, **kwargs
+    ) -> str:
+        with self._lock:
+            if self._chat_template_obj is None:
+                template_str = self.tokenizer_info.get("chat_template")
+                if not template_str:
+                    raise ValueError("No chat template available from server")
+                self._chat_template_obj = env.from_string(template_str)
+        return self._chat_template_obj.render(
+            messages=chat_history, add_generation_prompt=add_generation_prompt, **kwargs
+        )
+
+    def __call__(self, text: str, add_special_tokens: bool = False, **kwargs) -> dict:
+        tokens = self.encode(text)
+        return {"input_ids": tokens}
+
+
+def check_remote_tokenizer_support(
+    base_url: str,
+    timeout: int = 5,
+    verify_certificate: bool = True,
+    ca_cert_path: str | None = None,
+    auth_token: str | None = None,
+    max_retries: int = 3,
+) -> bool:
+    """
+    Check if server supports remote tokenizer endpoints.
+    Returns True if both /tokenizer_info and /tokenize endpoints are available and functional, False otherwise.
+    """
+    if not base_url:
+        return False
+
+    server_base = (
+        base_url.replace("/v1/completions", "")
+        .replace("/v1/chat/completions", "")
+        .rstrip("/")
+    )
+    cert_config = (
+        ca_cert_path if verify_certificate and ca_cert_path else verify_certificate
+    )
+    headers = {"Content-Type": "application/json"}
+    if auth_token:
+        headers["Authorization"] = f"Bearer {auth_token}"
+
+    session = requests.Session()
+    session.headers.update(headers)
+
+    def _request_with_retries(method, url, **kwargs):
+        for _ in range(max_retries):
+            try:
+                resp = session.request(
+                    method,
+                    url,
+                    timeout=kwargs.pop("timeout", timeout),
+                    verify=cert_config,
+                    **kwargs,
+                )
+                resp.raise_for_status()
+                return resp
+            except requests.RequestException:
+                pass
+        return None
+
+    # Check /tokenizer_info
+    info_url = f"{server_base}/tokenizer_info"
+    resp = _request_with_retries("GET", info_url)
+    if not resp:
+        return False
+    info = resp.json()
+    if not isinstance(info, dict) or "eos_token" not in info:
+        return False
+
+    # Check /tokenize
+    tokenize_url = f"{server_base}/tokenize"
+    test_payload = {"prompt": "test", "add_special_tokens": False}
+    resp = _request_with_retries("POST", tokenize_url, json=test_payload)
+    if not resp:
+        return False
+    tokens = resp.json().get("tokens")
+
+    return isinstance(tokens, list)
+
+
+def set_torch_seed(seed: int):
+    if is_torch_available():
+        import torch
+
+        torch.manual_seed(seed)
+
+
+def random_name_id() -> str:
+    """Generate a random 8-character alphanumeric ID."""
+    import random
+    import string
+
+    return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))

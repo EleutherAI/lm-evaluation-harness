@@ -1,0 +1,19 @@
+include: _babilong_common_yaml
+task: babilong_qa13
+test_split: qa13
+dataset_name: 0k
+description: "I will give you context with the facts about people and their locations hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nIf a person was in different locations, use the latest location the person was in to answer the question.\nYour answer should contain only one word - location. Do not write anything else after that. Do not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Mary and Daniel travelled to the bathroom. Then they journeyed to the hallway."
+      question: "Where is Daniel?"
+      target: "hallway"
+    - input: "Daniel and Sandra travelled to the kitchen. After that they journeyed to the hallway. Mary and Daniel travelled to the bedroom. After that they travelled to the hallway."
+      question: "Where is Sandra?"
+      target: "hallway"
+    - input: "John and Mary moved to the bathroom. Then they travelled to the office. John and Mary went to the kitchen. Afterwards they went to the bedroom. John and Sandra moved to the bathroom. Following that they went back to the kitchen."
+      question: "Where is Mary?"
+      target: "bedroom"

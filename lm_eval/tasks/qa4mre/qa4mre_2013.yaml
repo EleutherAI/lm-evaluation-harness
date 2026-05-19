@@ -1,4 +1,4 @@
 include: qa4mre_2011.yaml
 task: qa4mre_2013
-dataset_path: qa4mre
+dataset_path: community-datasets/qa4mre
 dataset_name: 2013.main.EN

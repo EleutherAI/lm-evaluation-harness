@@ -33,6 +33,10 @@ We use [pytest](https://docs.pytest.org/en/latest/) for running unit tests. All 
 python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_openvino.py
 ```
 
+## Verbose logging
+
+You can enable verbose logging with the environment variable `LMEVAL_LOG_LEVEL="debug"`.
+
 ## Contributor License Agreement
 
 We ask that new contributors agree to a Contributor License Agreement affirming that EleutherAI has the rights to use your contribution to our library.

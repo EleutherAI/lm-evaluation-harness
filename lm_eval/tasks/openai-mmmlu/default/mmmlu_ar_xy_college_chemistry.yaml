@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_college_chemistry
+"tag": "mmmlu_ar_xy_stem_tasks"
+"task": "mmmlu_ar_xy_college_chemistry"
+"task_alias": "college chemistry (Arabic)"
+"description": "The following are multiple choice questions (with answers) about college chemistry (Arabic).\n\n"

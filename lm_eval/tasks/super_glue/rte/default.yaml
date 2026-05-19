@@ -1,7 +1,7 @@
 tag:
   - super-glue-lm-eval-v1
 task: sglue_rte
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: rte
 output_type: multiple_choice
 training_split: train

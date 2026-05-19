@@ -1,0 +1,7 @@
+"dataset_name": "electrical_engineering"
+"description": "The following are multiple choice questions (with answers) about electrical\
+  \ engineering.\n\n"
+"include": "_noor_template"
+"tag": "noor_stem_tasks"
+"task": "noor_electrical_engineering"
+"task_alias": "electrical engineering"

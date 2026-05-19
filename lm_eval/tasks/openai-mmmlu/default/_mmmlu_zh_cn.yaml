@@ -1,0 +1,15 @@
+group: mmmlu_zh_cn
+group_alias: "Simplified Chinese"
+task:
+  - mmmlu_zh_cn_stem
+  - mmmlu_zh_cn_other
+  - mmmlu_zh_cn_social_sciences
+  - mmmlu_zh_cn_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

@@ -1,4 +1,0 @@
-"dataset_name": "chinese_food_culture"
-"description": "以下是关于中国饮食文化的单项选择题，请直接给出正确答案的选项。\n\n"
-"include": "_default_template_yaml"
-"task": "cmmlu_chinese_food_culture"

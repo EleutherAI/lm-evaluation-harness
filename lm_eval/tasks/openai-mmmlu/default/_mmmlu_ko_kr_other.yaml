@@ -1,0 +1,10 @@
+group: mmmlu_ko_kr_other
+group_alias: "Korean other"
+task:
+  - mmmlu_ko_kr_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

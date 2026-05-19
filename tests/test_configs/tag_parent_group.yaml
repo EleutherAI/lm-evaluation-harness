@@ -1,0 +1,5 @@
+# Parent group containing a subgroup - simulates mmlu pattern
+# Structure: tag_parent_group -> tag_subgroup -> test_tag_tasks (TAG) -> tag_task_1, tag_task_2, tag_task_3
+group: tag_parent_group
+task:
+  - tag_subgroup

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_it_it_stem_tasks"
+"task": "mmmlu_it_it_abstract_algebra"
+"task_alias": "abstract algebra (Italian)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (Italian).\n\n"

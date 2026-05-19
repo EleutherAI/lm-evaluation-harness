@@ -1,0 +1,18 @@
+dataset_path: mrlbenchmarks/global-piqa-nonparallel
+output_type: multiple_choice
+test_split: test
+doc_to_text: prompt
+doc_to_target: label
+doc_to_choice: "{{[solution0, solution1]}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_bytes
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

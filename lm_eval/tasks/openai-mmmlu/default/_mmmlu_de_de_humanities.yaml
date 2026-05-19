@@ -1,0 +1,10 @@
+group: mmmlu_de_de_humanities
+group_alias: "German humanities"
+task:
+  - mmmlu_de_de_humanities_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

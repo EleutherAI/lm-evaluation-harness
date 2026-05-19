@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_logical_fallacies
+"tag": "mmmlu_fr_fr_humanities_tasks"
+"task": "mmmlu_fr_fr_logical_fallacies"
+"task_alias": "logical fallacies (French)"
+"description": "The following are multiple choice questions (with answers) about logical fallacies (French).\n\n"

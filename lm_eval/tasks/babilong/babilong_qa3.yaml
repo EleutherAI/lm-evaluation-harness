@@ -1,0 +1,18 @@
+include: _babilong_common_yaml
+task: babilong_qa3
+test_split: qa3
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa3
+description: "I give you context with the facts about locations and actions of different persons hidden in some random text and a question. You need to answer the question based only on the information from the facts. If a person got an item in the first location and travelled to the second location the item is also in the second location. If a person dropped an item in the first location and moved to the second location the item remains in the first location.\nAlways return your answer in the following format:\nBefore the $location_1$ the $item$ was in the $location_2$. Do not write anything else after that.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "John journeyed to the bedroom. Mary grabbed the apple. Mary went back to the bathroom. Daniel journeyed to the bedroom. Daniel moved to the garden. Mary travelled to the kitchen."
+      question: "Where was the apple before the kitchen?"
+      target: "Before the kitchen the apple was in the bathroom."
+    - input: "John went back to the bedroom. John went back to the garden. John went back to the kitchen. Sandra took the football. Sandra travelled to the garden. Sandra journeyed to the bedroom."
+      question: "Where was the football before the bedroom?"
+      target: "Before the bedroom the football was in the garden."

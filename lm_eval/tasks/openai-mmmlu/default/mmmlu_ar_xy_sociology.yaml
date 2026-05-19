@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_sociology
+"tag": "mmmlu_ar_xy_social_sciences_tasks"
+"task": "mmmlu_ar_xy_sociology"
+"task_alias": "sociology (Arabic)"
+"description": "The following are multiple choice questions (with answers) about sociology (Arabic).\n\n"

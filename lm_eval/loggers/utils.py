@@ -4,17 +4,15 @@ import re
 import subprocess
 from importlib.metadata import version
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
-from torch.utils.collect_env import get_pretty_env_info
-from transformers import __version__ as trans_version
 
 
 logger = logging.getLogger(__name__)
 
 
-def remove_none_pattern(input_string: str) -> Tuple[str, bool]:
+def remove_none_pattern(input_string: str) -> tuple[str, bool]:
     """Remove the ',none' substring from the input_string if it exists at the end.
 
     Args:
@@ -36,7 +34,7 @@ def remove_none_pattern(input_string: str) -> Tuple[str, bool]:
     return result, removed
 
 
-def _handle_non_serializable(o: Any) -> Union[int, str, list]:
+def _handle_non_serializable(o: Any) -> int | str | list:
     """Handle non-serializable objects by converting them to serializable types.
 
     Args:
@@ -47,7 +45,7 @@ def _handle_non_serializable(o: Any) -> Union[int, str, list]:
             it will be converted to int. If the object is of type set, it will be converted
             to a list. Otherwise, it will be converted to str.
     """
-    if isinstance(o, np.int64) or isinstance(o, np.int32):
+    if isinstance(o, (np.int64, np.int32)):
         return int(o)
     elif isinstance(o, set):
         return list(o)
@@ -55,7 +53,7 @@ def _handle_non_serializable(o: Any) -> Union[int, str, list]:
         return str(o)
 
 
-def get_commit_from_path(repo_path: Union[Path, str]) -> Optional[str]:
+def get_commit_from_path(repo_path: Path | str) -> str | None:
     try:
         git_folder = Path(repo_path, ".git")
         if git_folder.is_file():
@@ -88,7 +86,7 @@ def get_git_commit_hash():
     Source: https://github.com/EleutherAI/gpt-neox/blob/b608043be541602170bfcfb8ec9bf85e8a0799e0/megatron/neox_arguments/neox_args.py#L42
     """
     try:
-        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
+        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()  # noqa: S607
         git_hash = git_hash.decode()
     except (subprocess.CalledProcessError, FileNotFoundError):
         # FileNotFoundError occurs when git not installed on system
@@ -96,16 +94,28 @@ def get_git_commit_hash():
     return git_hash
 
 
-def add_env_info(storage: Dict[str, Any]):
-    try:
-        pretty_env_info = get_pretty_env_info()
-    except Exception as err:
-        pretty_env_info = str(err)
+def add_env_info(storage: dict[str, Any]):
+    from lm_eval.utils import is_torch_available, is_transformers_available
+
+    if is_torch_available():
+        try:
+            from torch.utils.collect_env import get_pretty_env_info
+
+            pretty_env_info = get_pretty_env_info()
+        except Exception as err:
+            pretty_env_info = str(err)
+    else:
+        pretty_env_info = "N/A (torch not installed)"
+
     try:
         lm_eval_version = version("lm_eval")
     except Exception as err:
         lm_eval_version = str(err)
-    transformers_version = trans_version
+
+    if is_transformers_available():
+        from transformers import __version__ as transformers_version
+    else:
+        transformers_version = "N/A"
     upper_dir_commit = get_commit_from_path(
         Path(os.getcwd(), "..")
     )  # git hash of upper repo if exists
@@ -118,32 +128,35 @@ def add_env_info(storage: Dict[str, Any]):
     storage.update(added_info)
 
 
-def add_tokenizer_info(storage: Dict[str, Any], lm):
-    if getattr(lm, "tokenizer", False):
-        try:
-            tokenizer_info = {
-                "tokenizer_pad_token": [
-                    lm.tokenizer.pad_token,
-                    str(lm.tokenizer.pad_token_id),
-                ],
-                "tokenizer_eos_token": [
-                    lm.tokenizer.eos_token,
-                    str(lm.tokenizer.eos_token_id),
-                ],
-                "tokenizer_bos_token": [
-                    lm.tokenizer.bos_token,
-                    str(lm.tokenizer.bos_token_id),
-                ],
-                "eot_token_id": getattr(lm, "eot_token_id", None),
-                "max_length": getattr(lm, "max_length", None),
-            }
-            storage.update(tokenizer_info)
-        except Exception as err:
+def add_tokenizer_info(storage: dict[str, Any], lm):
+    try:
+        if getattr(lm, "tokenizer", False):
+            try:
+                tokenizer_info = {
+                    "tokenizer_pad_token": [
+                        lm.tokenizer.pad_token,
+                        str(lm.tokenizer.pad_token_id),
+                    ],
+                    "tokenizer_eos_token": [
+                        lm.tokenizer.eos_token,
+                        str(lm.tokenizer.eos_token_id),
+                    ],
+                    "tokenizer_bos_token": [
+                        lm.tokenizer.bos_token,
+                        str(lm.tokenizer.bos_token_id),
+                    ],
+                    "eot_token_id": getattr(lm, "eot_token_id", None),
+                    "max_length": getattr(lm, "max_length", None),
+                }
+                storage.update(tokenizer_info)
+            except Exception as err:
+                logger.debug(
+                    f"Logging detailed tokenizer info failed with {err}, skipping..."
+                )
+            # seems gguf and textsynth do not have a tokenizer
+        else:
             logger.debug(
-                f"Logging detailed tokenizer info failed with {err}, skipping..."
+                "LM does not have a 'tokenizer' attribute, not logging tokenizer metadata to results."
             )
-        # seems gguf and textsynth do not have tokenizer
-    else:
-        logger.debug(
-            "LM does not have a 'tokenizer' attribute, not logging tokenizer metadata to results."
-        )
+    except Exception:
+        logger.debug("Couldn't save tokenizer info.")

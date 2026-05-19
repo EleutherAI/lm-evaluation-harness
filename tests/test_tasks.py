@@ -1,12 +1,12 @@
 import os
 from itertools import islice
+from typing import cast
 
 import datasets
 import pytest
 
-import lm_eval.tasks as tasks
 from lm_eval.api.task import ConfigurableTask
-from lm_eval.evaluator_utils import get_task_list
+from lm_eval.tasks import TaskManager
 
 from .utils import new_tasks
 
@@ -24,21 +24,26 @@ def get_new_tasks_else_default():
     """
     global TASKS
     # CI: new_tasks checks if any modifications have been made
-    task_classes = new_tasks()
+    task_list = new_tasks()
     # Check if task_classes is empty
-    return task_classes if task_classes else TASKS
+    return task_list or TASKS
 
 
-def task_class(task_names=None, task_manager=None) -> ConfigurableTask:
+def task_class(
+    task_names: list[str], task_manager: TaskManager | None = None
+) -> list[ConfigurableTask]:
     """
     Convert a list of task names to a list of ConfigurableTask instances
     """
     if task_manager is None:
-        task_manager = tasks.TaskManager()
-    res = tasks.get_task_dict(task_names, task_manager)
-    res = [x.task for x in get_task_list(res)]
+        from lm_eval.tasks import TaskManager
 
-    return res
+        task_manager = TaskManager()
+
+    res = task_manager.load(task_names)
+    res = res["tasks"]
+
+    return cast("list[ConfigurableTask]", res.values())
 
 
 @pytest.fixture()
@@ -128,10 +133,7 @@ class BaseTasks:
         _array_target = [task.doc_to_target(doc) for doc in arr]
         if task._config.output_type == "multiple_choice":
             # TODO<baber>: label can be string or int; add better test conditions
-            assert all(
-                (isinstance(label, int) or isinstance(label, str))
-                for label in _array_target
-            )
+            assert all(isinstance(label, (int, str)) for label in _array_target)
 
     def test_build_all_requests(self, task_class, limit):
         task_class.build_all_requests(rank=1, limit=limit, world_size=1)
