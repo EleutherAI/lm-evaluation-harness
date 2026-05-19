@@ -279,22 +279,6 @@ class RBLNLM(TemplateLM):
 
         self.batch_schedule = 1
         self.batch_sizes = {}
-        
-        # Accuracy validation settings
-        self._accuracy_validation_enabled = kwargs.get('accuracy_validation', True)
-        self._allow_dummy_fallback = kwargs.get('allow_dummy_fallback', False)
-        self._accuracy_tolerance = kwargs.get('accuracy_tolerance', 0.01)
-        
-        # Log accuracy settings
-        if self._accuracy_validation_enabled:
-            logger.info("Accuracy validation enabled")
-        else:
-            logger.warning("Accuracy validation disabled - results may not be reliable")
-            
-        if self._allow_dummy_fallback:
-            logger.warning("Dummy fallback enabled - accuracy not guaranteed on failures")
-        
-        logger.info(f"Accuracy tolerance set to: {self._accuracy_tolerance}")
 
     def _check_npu_availability(self):
         """Check if NPU devices are available using rbln-stat."""
