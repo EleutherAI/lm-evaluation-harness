@@ -6,6 +6,7 @@ using the RBLN SDK.
 """
 
 import copy
+import json
 import logging
 from typing import List, Optional, Union
 
@@ -15,6 +16,11 @@ import transformers
 from tqdm import tqdm
 from transformers import GenerationConfig
 from transformers.generation import StoppingCriteriaList
+from transformers.models.auto.modeling_auto import (
+    MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
+    MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES,
+    MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
+)
 
 import lm_eval.models.utils
 from lm_eval import utils
@@ -27,32 +33,154 @@ logger = logging.getLogger(__name__)
 
 try:
     RBLN_AVAILABLE = True
-    # Import only the RBLN Auto classes we support
+    # Import the RBLN Auto classes (text-only)
     from optimum.rbln import (
         RBLNAutoConfig,
         RBLNAutoModelForCausalLM,
         RBLNAutoModelForSeq2SeqLM,
     )
-    
+
+    # VLM Auto classes — available in newer optimum-rbln. Import each separately so
+    # users on older SDK versions can still run text-only paths.
+    try:
+        from optimum.rbln import RBLNAutoModelForVision2Seq
+    except ImportError:
+        RBLNAutoModelForVision2Seq = None
+
+    try:
+        from optimum.rbln import RBLNAutoModelForImageTextToText
+    except ImportError:
+        RBLNAutoModelForImageTextToText = None
+
     # Try to import specific model classes (legacy support)
     try:
         from optimum.rbln import RBLNLlamaForCausalLM
     except ImportError:
         RBLNLlamaForCausalLM = None
-    
+
     try:
         from optimum.rbln import RBLNT5ForConditionalGeneration
     except ImportError:
         RBLNT5ForConditionalGeneration = None
-        
+
 except ImportError:
     # Fallback objects if optimum[rbln] is not available
     RBLNAutoConfig = object
     RBLNAutoModelForCausalLM = object
     RBLNAutoModelForSeq2SeqLM = object
+    RBLNAutoModelForVision2Seq = None
+    RBLNAutoModelForImageTextToText = None
     RBLNLlamaForCausalLM = None
     RBLNT5ForConditionalGeneration = None
     RBLN_AVAILABLE = False
+
+
+# Per-model compile-time `rbln_config` profiles, sourced from rbln-model-zoo
+# (https://github.com/RBLN-SW/rbln-model-zoo/tree/main/huggingface/transformers/image-text-to-text).
+# Used when export=True and the user does not pass an explicit rbln_config_json.
+# Users can partially override via --model_args 'rbln_config_json={...}'.
+_VLM_COMPILE_PROFILES = {
+    "llava": {
+        "vision_tower": {"output_hidden_states": True},
+        "language_model": {"tensor_parallel_size": 4, "use_inputs_embeds": True},
+    },
+    "llava_next": {
+        "language_model": {"tensor_parallel_size": 4, "use_inputs_embeds": True},
+    },
+    "qwen2_vl": {
+        "visual": {"max_seq_lens": 6400},
+        "tensor_parallel_size": 8,
+        "max_seq_len": 32768,
+    },
+    "qwen2_5_vl": {
+        "visual": {"max_seq_lens": 6400},
+        "tensor_parallel_size": 8,
+        "kvcache_partition_len": 16384,
+        "max_seq_len": 114688,
+    },
+    "qwen3_vl": {
+        "visual": {
+            "max_seq_lens": 16384,
+            "tensor_parallel_size": 8,
+            "create_runtimes": False,
+        },
+        "tensor_parallel_size": 8,
+        "kvcache_partition_len": 16384,
+        "max_seq_len": 262144,
+    },
+    "gemma3": {
+        "tensor_parallel_size": 8,
+        "kvcache_partition_len": 16384,
+        "use_inputs_embeds": True,
+    },
+    "idefics3": {
+        "batch_size": 1,
+        "max_seq_len": 131072,
+        "tensor_parallel_size": 8,
+        "attn_impl": "flash_attn",
+        "kvcache_partition_len": 16384,
+    },
+    "paligemma": {
+        "language_model": {
+            "batch_size": 1,
+            "max_seq_len": 8192,
+            "tensor_parallel_size": 4,
+            "prefill_chunk_size": 8192,
+        },
+    },
+    "paligemma2": {
+        "batch_size": 1,
+        "max_seq_len": 8192,
+        "tensor_parallel_size": 4,
+        "prefill_chunk_size": 8192,
+    },
+    "pixtral": {
+        "vision_tower": {"batch_size": 1, "output_hidden_states": True},
+        "language_model": {
+            "tensor_parallel_size": 8,
+            "use_inputs_embeds": True,
+            "max_seq_len": 131072,
+            "kvcache_partition_len": 16384,
+        },
+    },
+    "blip-2": {
+        "batch_size": 1,
+        "max_seq_len": 2048,
+        "tensor_parallel_size": 4,
+        "use_inputs_embeds": True,
+    },
+    # blip_2 (underscore form) is the HF config.model_type; alias for safety.
+    "blip_2": {
+        "batch_size": 1,
+        "max_seq_len": 2048,
+        "tensor_parallel_size": 4,
+        "use_inputs_embeds": True,
+    },
+}
+
+
+# VLM model_types that should be dispatched to RBLNAutoModelForImageTextToText
+# rather than RBLNAutoModelForVision2Seq. (Verified against rbln-model-zoo
+# image-text-to-text examples.)
+_VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES = {"gemma3"}
+
+
+def _deep_merge_dict(base: dict, override: dict) -> dict:
+    """Recursively merge `override` into `base`, returning a new dict.
+
+    Nested dicts are merged; scalar/list values in `override` replace those in `base`.
+    """
+    result = dict(base)
+    for key, value in override.items():
+        if (
+            key in result
+            and isinstance(result[key], dict)
+            and isinstance(value, dict)
+        ):
+            result[key] = _deep_merge_dict(result[key], value)
+        else:
+            result[key] = value
+    return result
 
 
 @register_model("rbln")
@@ -238,72 +366,62 @@ class RBLNLM(TemplateLM):
         logger.info("==========================")
 
     def _determine_model_type(self, model_type: Optional[str]) -> str:
-        """Determine the model type based on config or user input."""
+        """Determine the model category.
+
+        Uses transformers' standard AutoModel mapping dicts as the source of truth:
+        ``MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES`` / ``MODEL_FOR_CAUSAL_LM_MAPPING_NAMES``
+        / ``MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES``. Falls back to
+        ``config.is_encoder_decoder`` for remote_code models (e.g. EXAONE)
+        whose model_type is not registered in the mappings.
+
+        VLM is checked first so that model_types appearing in both causal and
+        image-text-to-text mappings (e.g. ``gemma3``) are routed to the VLM path.
+        """
         if model_type is not None:
-            # Only support causal and seq2seq for now
-            supported_types = ["causal", "seq2seq"]
+            supported_types = {"causal", "seq2seq", "vlm"}
             if model_type.lower() in supported_types:
                 return model_type.lower()
-            else:
-                logger.warning(f"Model type '{model_type}' not supported. Only 'causal' and 'seq2seq' are supported. Will attempt auto-detection.")
-        
-        # Auto-detect based on config and RBLN model class
-        config = self._config
-        
-        # Check for common causal LM architectures
-        causal_architectures = [
-            "gpt2", "gpt_neo", "gpt_neox", "gptj", "gpt_codegen", "gpt_bigcode",
-            "llama", "mistral", "falcon", "bloom", "opt", "codegen", "phi",
-            "qwen", "baichuan", "chatglm", "internlm", "yi", "deepseek",
-            "gemma", "qwen2", "qwen2.5", "llama3", "llama3.1", "llama3.2"
-        ]
-        
-        # Check for common seq2seq architectures
-        seq2seq_architectures = [
-            "t5", "bart", "pegasus", "marian", "mbart", "blenderbot",
-            "prophetnet", "xlm_prophetnet", "led", "longformer", "bigbird_pegasus"
-        ]
-        
-        model_arch = getattr(config, "model_type", "").lower()
-        arch_config = getattr(config, "architectures", [])
-        
-        # Check model type by architecture
-        if model_arch in causal_architectures:
-            return "causal"
-        elif model_arch in seq2seq_architectures:
+            logger.warning(
+                f"Model type override '{model_type}' is not one of {sorted(supported_types)}. "
+                "Falling back to auto-detection."
+            )
+
+        mt = getattr(self._config, "model_type", "").lower()
+
+        if mt in MODEL_FOR_IMAGE_TEXT_TO_TEXT_MAPPING_NAMES:
+            return "vlm"
+        if mt in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES:
             return "seq2seq"
-        
-        # Check architectures list
-        for arch in arch_config:
-            arch_lower = arch.lower()
-            if any(causal_arch in arch_lower for causal_arch in causal_architectures):
-                return "causal"
-            elif any(seq2seq_arch in arch_lower for seq2seq_arch in seq2seq_architectures):
-                return "seq2seq"
-        
-        # Check for specific config attributes
-        if hasattr(config, "is_encoder_decoder"):
-            if config.is_encoder_decoder:
-                return "seq2seq"
-            else:
-                return "causal"
-        
-        # Default to causal if we can't determine
-        logger.warning(f"Could not determine model type for {model_arch}, defaulting to 'causal'")
+        if mt in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
+            return "causal"
+
+        # remote_code models (e.g. EXAONE) and architectures not yet in the
+        # transformers Auto mappings: use the standard is_encoder_decoder hint.
+        if getattr(self._config, "is_encoder_decoder", False):
+            return "seq2seq"
+        logger.info(
+            f"model_type '{mt}' not found in transformers AutoModel mappings; "
+            "defaulting to 'causal' via is_encoder_decoder=False."
+        )
         return "causal"
 
-    def _load_model(self, pretrained: str, revision: str, trust_remote_code: bool, 
-                   low_cpu_mem_usage: bool, device_map: Optional[str], 
+    def _load_model(self, pretrained: str, revision: str, trust_remote_code: bool,
+                   low_cpu_mem_usage: bool, device_map: Optional[str],
                    dtype: Union[str, torch.dtype], **kwargs):
         """Load the appropriate model type using optimum.rbln API."""
         torch_dtype = lm_eval.models.utils.get_dtype(dtype)
-        
+
         # Extract RBLN-specific parameters from kwargs
         rbln_batch_size = kwargs.pop('rbln_batch_size', 1)
         rbln_max_seq_len = kwargs.pop('rbln_max_seq_len', 8192)
         rbln_tensor_parallel_size = kwargs.pop('rbln_tensor_parallel_size', 1)
+        # VLM path: nested compile profile (rbln-model-zoo style).
+        # Accept either a dict or a JSON string.
+        rbln_config_json = kwargs.pop('rbln_config_json', None)
+        if isinstance(rbln_config_json, str):
+            rbln_config_json = json.loads(rbln_config_json)
         export = kwargs.pop('export', True)
-        
+
         # Filter out parameters that are not supported by optimum.rbln
         # These are transformers-specific parameters that don't apply to RBLN models
         unsupported_params = [
@@ -311,35 +429,57 @@ class RBLNLM(TemplateLM):
             'load_in_8bit', 'load_in_4bit', 'quantization_config', 'attn_implementation',
             'max_seq_len'  # Add max_seq_len to unsupported params - we use rbln_max_seq_len instead
         ]
-        
+
         # Create clean kwargs for RBLN model loading
         rbln_kwargs = {}
         for key, value in kwargs.items():
             if key not in unsupported_params:
                 rbln_kwargs[key] = value
-        
+
         # Determine the specific RBLN model class based on model architecture
         model_class = self._get_rbln_model_class(pretrained)
-        
+
         logger.info(f"Loading {model_class.__name__} for model: {pretrained}")
-        logger.info(f"RBLN config: batch_size={rbln_batch_size}, max_seq_len={rbln_max_seq_len}, tensor_parallel_size={rbln_tensor_parallel_size}")
-        
-        # Build parameters based on model type - seq2seq models don't accept rbln_max_seq_len
+
         rbln_params = {
             'model_id': pretrained,
             'revision': revision,
             'trust_remote_code': trust_remote_code,
             'export': export,
-            'rbln_batch_size': rbln_batch_size,
-            'rbln_tensor_parallel_size': rbln_tensor_parallel_size,
         }
-        
-        # Only add rbln_max_seq_len for non-seq2seq models
-        if 'Seq2Seq' not in model_class.__name__:
-            rbln_params['rbln_max_seq_len'] = rbln_max_seq_len
+
+        # Compile-time params only apply when actually compiling (export=True).
+        # When loading a pre-compiled artifact, optimum.rbln reads these from
+        # rbln_config.json and rejects any override attempts.
+        if export:
+            if self.model_type == "vlm":
+                mt = getattr(self._config, "model_type", "").lower()
+                profile = _VLM_COMPILE_PROFILES.get(mt, {})
+                merged = _deep_merge_dict(profile, rbln_config_json or {})
+                if not merged:
+                    logger.warning(
+                        f"No VLM compile profile for model_type='{mt}' and no "
+                        "rbln_config_json provided. Compilation may fail; pass "
+                        "--model_args 'rbln_config_json={...}' with the per-model "
+                        "compile parameters from rbln-model-zoo."
+                    )
+                else:
+                    rbln_params['rbln_config'] = merged
+                    logger.info(f"VLM compile config (model_type={mt}): {merged}")
+            else:
+                rbln_params['rbln_batch_size'] = rbln_batch_size
+                rbln_params['rbln_tensor_parallel_size'] = rbln_tensor_parallel_size
+                if 'Seq2Seq' not in model_class.__name__:
+                    rbln_params['rbln_max_seq_len'] = rbln_max_seq_len
+                else:
+                    logger.info("Seq2seq model detected - skipping rbln_max_seq_len parameter")
+                logger.info(
+                    f"RBLN config: batch_size={rbln_batch_size}, "
+                    f"max_seq_len={rbln_max_seq_len}, tensor_parallel_size={rbln_tensor_parallel_size}"
+                )
         else:
-            logger.info(f"Seq2seq model detected - skipping rbln_max_seq_len parameter")
-        
+            logger.info("export=False: loading pre-compiled artifact; compile-time params ignored")
+
         try:
             return model_class.from_pretrained(**rbln_params, **rbln_kwargs)
         except Exception as e:
@@ -347,66 +487,42 @@ class RBLNLM(TemplateLM):
             raise
     
     def _get_rbln_model_class(self, pretrained: str):
+        """Pick the RBLN Auto class for the resolved ``self.model_type``.
+
+        VLM routing splits between two SDK auto classes based on config.model_type
+        (see ``_VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES``). All other VLMs go through
+        ``RBLNAutoModelForVision2Seq``.
         """
-        Determine the appropriate RBLN model class for causal and seq2seq models only.
-        """
-        try:
-            # Get model configuration for detection
-            config = self._config
-            model_type = getattr(config, 'model_type', '').lower()
-            architectures = getattr(config, 'architectures', [])
-            
-            # Check architectures and warn about unsupported models
-            if architectures:
-                arch = architectures[0].lower() if architectures else ""
-                
-                # Warn about unsupported model types
-                unsupported_keywords = [
-                    'classification', 'classifier', 'questionanswering', 'qa', 'maskedlm', 
-                    'bert', 'roberta', 'electra', 'vision', 'speech', 'audio', 'multimodal', 'depth'
-                ]
-                
-                if any(keyword in arch for keyword in unsupported_keywords):
-                    logger.warning(f"Detected specialized model architecture: {arch}")
-                    logger.warning("Only causal and seq2seq models are supported.")
-                    logger.warning("Falling back based on model type detection.")
-            
-            # Model type-based detection
-            if model_type:
-                # Seq2seq models
-                if model_type in ['t5', 'bart', 'pegasus', 'marian', 'mbart', 'blenderbot']:
-                    logger.info(f"Detected {model_type} seq2seq model: {pretrained}")
-                    return RBLNAutoModelForSeq2SeqLM
-                
-                # Causal models
-                elif model_type in ['gpt2', 'gpt', 'llama', 'mistral', 'qwen', 'phi', 'falcon', 'bloom', 'opt']:
-                    logger.info(f"Detected {model_type} causal LM model: {pretrained}")
-                    return RBLNAutoModelForCausalLM
-                
-                # Warn about unsupported model types
-                elif model_type in ['bert', 'roberta', 'electra', 'deberta', 'distilbert', 'albert']:
-                    logger.warning(f"Model type '{model_type}' is not supported.")
-                    logger.warning("Only causal and seq2seq models are supported.")
-                    logger.warning("Falling back to causal model class.")
-                
-                elif model_type in ['vit', 'resnet', 'efficientnet', 'wav2vec2', 'hubert']:
-                    logger.warning(f"Model type '{model_type}' is not supported.")
-                    logger.warning("Only causal and seq2seq models are supported.")
-                    logger.warning("Falling back to causal model class.")
-            
-            # Use the determined model type
-            if self.model_type == "seq2seq":
-                logger.info(f"Using RBLNAutoModelForSeq2SeqLM for seq2seq model: {pretrained}")
-                return RBLNAutoModelForSeq2SeqLM
-            else:  # Default to causal
-                logger.info(f"Using RBLNAutoModelForCausalLM for causal model: {pretrained}")
-                return RBLNAutoModelForCausalLM
-        
-        except Exception as e:
-            logger.warning(f"Error in model class detection: {e}")
-            # Ultimate fallback to causal
-            logger.info(f"Falling back to RBLNAutoModelForCausalLM for model: {pretrained}")
-            return RBLNAutoModelForCausalLM
+        if self.model_type == "vlm":
+            mt = getattr(self._config, "model_type", "").lower()
+            if mt in _VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES:
+                if RBLNAutoModelForImageTextToText is None:
+                    raise ImportError(
+                        "This optimum-rbln build does not expose "
+                        "RBLNAutoModelForImageTextToText. Upgrade optimum-rbln "
+                        f"to evaluate model_type='{mt}'."
+                    )
+                logger.info(
+                    f"Using RBLNAutoModelForImageTextToText for {mt}: {pretrained}"
+                )
+                return RBLNAutoModelForImageTextToText
+            if RBLNAutoModelForVision2Seq is None:
+                raise ImportError(
+                    "This optimum-rbln build does not expose "
+                    "RBLNAutoModelForVision2Seq. Upgrade optimum-rbln to "
+                    f"evaluate model_type='{mt}'."
+                )
+            logger.info(
+                f"Using RBLNAutoModelForVision2Seq for {mt}: {pretrained}"
+            )
+            return RBLNAutoModelForVision2Seq
+
+        if self.model_type == "seq2seq":
+            logger.info(f"Using RBLNAutoModelForSeq2SeqLM for: {pretrained}")
+            return RBLNAutoModelForSeq2SeqLM
+
+        logger.info(f"Using RBLNAutoModelForCausalLM for: {pretrained}")
+        return RBLNAutoModelForCausalLM
 
     @property
     def config(self):

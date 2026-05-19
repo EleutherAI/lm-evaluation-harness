@@ -70,17 +70,50 @@ lm_eval --model rbln --model_args pretrained=google/flan-t5-base --tasks squadv2
 
 ---
 
-### **3. Unsupported Models (Coming Soon)**
+### **3. Vision-Language Models (VLM)**
+**Examples**: LLaVA, LLaVA-NeXT, Qwen2-VL / Qwen2.5-VL / Qwen3-VL, Gemma3, IDEFICS3, PaliGemma / PaliGemma2, Pixtral, BLIP-2
+**Best For**: Image-and-text-to-text generation
+**Evaluation Support**:
+- **Generation tasks** via the new `--model rbln-vlm` runner
+- Supported task templates: `mmmu*`, `chartqa`
+
+**Technical Details**:
+- Registered as `rbln-vlm`. Inherits text-only `RBLNLM` for tokenization/generation infrastructure and adds `AutoProcessor`-based image handling.
+- Dispatches to `RBLNAutoModelForVision2Seq` for most models and to `RBLNAutoModelForImageTextToText` for Gemma3.
+- Each supported `model_type` ships with a built-in compile profile (`_VLM_COMPILE_PROFILES`) mirroring [rbln-model-zoo image-text-to-text examples](https://github.com/RBLN-SW/rbln-model-zoo/tree/main/huggingface/transformers/image-text-to-text).
+- Users can override any compile parameter via `--model_args 'rbln_config_json={...}'` (the JSON is deep-merged into the built-in profile).
+- `loglikelihood`/`loglikelihood_rolling` are not yet implemented for multimodal inputs; use `generate_until`-style tasks.
+
+**Supported VLM model_types** (built-in compile profile):
+`llava`, `llava_next`, `qwen2_vl`, `qwen2_5_vl`, `qwen3_vl`, `gemma3`, `idefics3`, `paligemma`, `paligemma2`, `pixtral`, `blip-2` / `blip_2`.
+
+**Examples**:
+```bash
+# MMMU (visual reasoning) on Qwen2.5-VL
+lm_eval --model rbln-vlm \
+  --model_args 'pretrained=Qwen/Qwen2.5-VL-7B-Instruct' \
+  --tasks mmmu_art --batch_size 1 --limit 5
+
+# ChartQA on LLaVA 1.5
+lm_eval --model rbln-vlm \
+  --model_args 'pretrained=llava-hf/llava-1.5-7b-hf' \
+  --tasks chartqa --batch_size 1 --limit 5
+
+# Override compile profile (e.g. reduce tensor_parallel_size to 4)
+lm_eval --model rbln-vlm \
+  --model_args 'pretrained=Qwen/Qwen2.5-VL-7B-Instruct,rbln_config_json={"tensor_parallel_size":4}' \
+  --tasks mmmu_art --limit 1
+```
+
+---
+
+### **4. Unsupported Models (Coming Soon)**
 
 The following model types will be added in future releases:
 
 **Masked LM Models**: BERT, RoBERTa, DistilBERT
 - **Planned Support**: Classification and span-based tasks
 - **Example**: `bert-base-uncased` for `cola`, `sst2` tasks
-
-**Vision Models**: Vision Transformers, Image Classification models
-- **Planned Support**: Image understanding tasks
-- **Example**: `google/vit-base-patch16-224` for `imagenet` tasks
 
 **Audio Models**: Wav2Vec, Whisper, Audio Classification models
 - **Planned Support**: Audio understanding tasks

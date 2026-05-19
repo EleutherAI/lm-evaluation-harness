@@ -15,12 +15,18 @@ from . import (
     optimum_ipex,
     optimum_lm,
     optimum_rbln,
+    optimum_rbln_vlm,
     sglang_causallms,
     sglang_generate_API,
     textsynth,
-    vllm_causallms,
-    vllm_vlms,
 )
+
+try:
+    from . import vllm_causallms, vllm_vlms  # noqa: F401
+except ImportError as e:
+    import logging
+
+    logging.getLogger(__name__).warning(f"vllm models unavailable: {e}")
 
 
 # TODO: implement __all__
