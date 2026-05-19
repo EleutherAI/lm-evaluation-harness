@@ -817,18 +817,37 @@ class RBLNLM(TemplateLM):
             return -len(toks), tuple(toks)
 
         re_ord = utils.Reorderer(requests, _collate)
+        reordered = re_ord.get_reordered()
 
-        n_reordered_requests = len(re_ord.get_reordered())  # noqa
+        n_reordered_requests = len(reordered)
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
 
-        chunks = lm_eval.models.utils.chunks(
-            re_ord.get_reordered(),
-            n=self.batch_size,
-            fn=None,
-        )
+        # Count unique contexts as a proxy for "docs" — multiple-choice
+        # loglikelihood emits N requests per doc that share the same
+        # context_enc but differ in continuation_enc, so the unique
+        # context count equals the original doc count.
+        total_docs = len({tuple(req[1]) for req in reordered})
+        seen_contexts: set = set()
 
-        for chunk in tqdm(chunks, disable=(disable_tqdm or (self.rank != 0))):
+        chunks = lm_eval.models.utils.chunks(reordered, n=self.batch_size, fn=None)
+
+        bs = max(int(self.batch_size), 1)
+        n_chunks = (n_reordered_requests + bs - 1) // bs
+        pbar = tqdm(
+            chunks,
+            total=n_chunks,
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc=f"Running loglikelihood requests (0/{total_docs})",
+        )
+        for chunk in pbar:
+            for _, ctx_enc, _ in chunk:
+                ctx_key = tuple(ctx_enc)
+                if ctx_key not in seen_contexts:
+                    seen_contexts.add(ctx_key)
+            pbar.set_description(
+                f"Running loglikelihood requests ({len(seen_contexts)}/{total_docs})"
+            )
             inps = []
             cont_toks_list = []
             inplens = []
