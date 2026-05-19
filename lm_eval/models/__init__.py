@@ -62,14 +62,6 @@ MODEL_MAPPING = {
     "winml": "lm_eval.models.winml:WindowsML",
 }
 
-try:
-    from . import vllm_causallms, vllm_vlms  # noqa: F401
-except ImportError as e:
-    import logging
-
-    logging.getLogger(__name__).warning(f"vllm models unavailable: {e}")
-
-
 def _register_all_models():
     """Register all known models lazily in the registry."""
     from lm_eval.api.registry import model_registry
