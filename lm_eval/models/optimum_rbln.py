@@ -943,9 +943,18 @@ class RBLNLM(TemplateLM):
                     expected_shape = (batch_size, actual_seq_len, logits.shape[-1])
                     
                     if logits.shape[:2] != (batch_size, actual_seq_len):
-                        # RBLN model returns only last token logits [batch, 1, vocab] or [batch, vocab]
-                        logger.info(f"RBLN causal model returns last-token logits: {logits.shape}, expected: {expected_shape}")
-                        
+                        # RBLN compiled causal models return only the last-token logits
+                        # ([batch, 1, vocab] or [batch, vocab]). Log this once per
+                        # instance to avoid flooding the console on long benchmarks.
+                        if not getattr(self, "_last_token_logits_logged", False):
+                            logger.info(
+                                f"RBLN causal model returns last-token logits "
+                                f"(shape e.g. {tuple(logits.shape)}, expected full "
+                                f"{expected_shape}). Falling back to per-token forward "
+                                "pass for loglikelihood. This message is logged once."
+                            )
+                            self._last_token_logits_logged = True
+
                         # For loglikelihood, we need logits at continuation positions only
                         # We'll handle this in the per-sample processing below
                         vocab_size = logits.shape[-1]
