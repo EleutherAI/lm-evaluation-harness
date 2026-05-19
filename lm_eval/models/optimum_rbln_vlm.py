@@ -35,8 +35,8 @@ from lm_eval.models.utils import (
     handle_stop_sequences,
     replace_placeholders,
     resize_image,
-    stop_sequences_criteria,
 )
+from lm_eval.models.utils_hf import stop_sequences_criteria
 
 
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"

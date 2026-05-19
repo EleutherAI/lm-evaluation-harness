@@ -23,10 +23,11 @@ from transformers.models.auto.modeling_auto import (
 )
 
 import lm_eval.models.utils
+import lm_eval.models.utils_hf
 from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import stop_sequences_criteria
+from lm_eval.models.utils_hf import stop_sequences_criteria
 # NPU device utilities inlined (removed npu_device_utils.py dependency)
 
 logger = logging.getLogger(__name__)
@@ -409,7 +410,7 @@ class RBLNLM(TemplateLM):
                    low_cpu_mem_usage: bool, device_map: Optional[str],
                    dtype: Union[str, torch.dtype], **kwargs):
         """Load the appropriate model type using optimum.rbln API."""
-        torch_dtype = lm_eval.models.utils.get_dtype(dtype)
+        torch_dtype = lm_eval.models.utils_hf.get_dtype(dtype)
 
         # Extract RBLN-specific parameters from kwargs
         rbln_batch_size = kwargs.pop('rbln_batch_size', 1)
@@ -889,11 +890,11 @@ class RBLNLM(TemplateLM):
                 inplens.append(inplen)
 
             masks = [torch.ones_like(inp) for inp in inps]
-            batched_inps = lm_eval.models.utils.pad_and_concat(
+            batched_inps = lm_eval.models.utils_hf.pad_and_concat(
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
 
-            batched_masks = lm_eval.models.utils.pad_and_concat(
+            batched_masks = lm_eval.models.utils_hf.pad_and_concat(
                 padding_len_inp, masks, padding_side="right"
             )
 

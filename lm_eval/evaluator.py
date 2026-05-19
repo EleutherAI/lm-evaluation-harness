@@ -230,32 +230,26 @@ def simple_evaluate(
         if not gen_kwargs:
             gen_kwargs = None
 
-    # Auto-detect NPU as default device for NPU models
+    # Auto-detect NPU as default device for NPU models. `os` is already
+    # imported at module level — don't re-import here; otherwise Python
+    # would treat it as a function-local, breaking the unrelated
+    # `os.environ.get("LOCAL_RANK", ...)` reference further down.
     if device is None and isinstance(model, str) and "rbln" in model:
         try:
-            # Try to import NPU device utilities
-            import sys
-            import os
-            
-            # Add project root to path
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            project_root = os.path.dirname(current_dir)
-            sys.path.insert(0, project_root)
-            
-            from lm_eval.npu_utils import is_npu_available, get_npu_count
-            
-            # Get default device with NPU priority: NPU > CUDA > CPU
+            from lm_eval.npu_utils import get_npu_count, is_npu_available
+
             if is_npu_available():
                 npu_count = get_npu_count()
                 device = "npu:0"
-                eval_logger.info(f"NPU devices detected: {npu_count}. Using npu:0 as default.")
+                eval_logger.info(
+                    f"NPU devices detected: {npu_count}. Using npu:0 as default."
+                )
             elif torch.cuda.is_available():
                 device = "cuda"
                 eval_logger.info("CUDA available. Using cuda as default.")
             else:
                 device = "cpu"
                 eval_logger.info("No NPU or CUDA available. Using CPU as default.")
-            
             eval_logger.info(f"Auto-detected device for NPU model: {device}")
         except Exception as e:
             eval_logger.debug(f"NPU auto-detection failed: {e}")
