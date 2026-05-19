@@ -15,13 +15,27 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
+def extract_answer(output: str) -> str:
+    import re
+
+    boxed = last_boxed_only_string(output)
+    if boxed is not None:
+        return remove_boxed(boxed)
+
+    m = re.search(r"\\\[(.+?)\\\]", output, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+
+    indices = [i for i, c in enumerate(output) if c == "$"]
+    if len(indices) >= 2:
+        return output[indices[0] + 1 : indices[-1]]
+
+    return output
+
+
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = extract_answer(results[0])
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
