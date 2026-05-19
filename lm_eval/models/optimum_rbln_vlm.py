@@ -317,12 +317,29 @@ class RBLNVLM(RBLNLM):
 
                 try:
                     with torch.inference_mode():
+                        # Explicitly disable any logit-modifying behaviour that
+                        # the model's GenerationConfig might enable, so that
+                        # `out.scores[0]` is the raw next-token logit distribution
+                        # (equivalent to direct forward) and stays comparable to
+                        # GPU HFLM scores. do_sample=False already skips warpers
+                        # (top_k/top_p/temperature); the rest neutralises any
+                        # active LogitsProcessor for cases where the model's
+                        # config has non-default values.
                         out = self.model.generate(
                             input_ids=input_ids,
                             attention_mask=attention_mask,
                             token_type_ids=token_type_ids,
                             max_new_tokens=1,
                             do_sample=False,
+                            repetition_penalty=1.0,
+                            min_length=0,
+                            no_repeat_ngram_size=0,
+                            bad_words_ids=None,
+                            forced_bos_token_id=None,
+                            forced_eos_token_id=None,
+                            suppress_tokens=None,
+                            begin_suppress_tokens=None,
+                            renormalize_logits=False,
                             pad_token_id=self.tokenizer.pad_token_id,
                             output_scores=True,
                             return_dict_in_generate=True,

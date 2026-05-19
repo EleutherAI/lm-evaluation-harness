@@ -27,6 +27,7 @@ import lm_eval.models.utils_hf
 from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
+from lm_eval.models.utils import _add_special_kwargs, has_bos_prefix
 from lm_eval.models.utils_hf import stop_sequences_criteria
 # NPU device utilities inlined (removed npu_device_utils.py dependency)
 
@@ -204,7 +205,7 @@ class RBLNLM(TemplateLM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
-        add_bos_token: Optional[bool] = False,
+        add_bos_token: Optional[bool] = None,
         device_map: Optional[str] = None,
         model_type: Optional[str] = None,  # "causal", "seq2seq", or None for auto-detect
         **kwargs,
@@ -551,11 +552,24 @@ class RBLNLM(TemplateLM):
         return 1
 
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
-        """ """
-        if add_special_tokens is None:
-            add_special_tokens = False or self.add_bos_token
+        """Encode a single string, mirroring HFLM behaviour.
 
-        encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
+        With ``add_bos_token=None`` (default) the tokenizer's own default
+        applies — for most modern LLM tokenizers this means BOS is prepended,
+        which is what HFLM does on GPU. To force off / on, pass
+        ``add_bos_token=False`` / ``True`` to ``--model_args``.
+
+        Also guards against double-BOS when the string already starts with
+        the BOS token.
+        """
+        special_tokens_kwargs = _add_special_kwargs(
+            add_special_tokens, self.add_bos_token
+        )
+        if add_special_tokens is None and has_bos_prefix(
+            string, self.tokenizer.decode(self.prefix_token_id)
+        ):
+            special_tokens_kwargs["add_special_tokens"] = False
+        encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
@@ -574,14 +588,20 @@ class RBLNLM(TemplateLM):
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
-        add_special_tokens = False or self.add_bos_token
+        # Mirror HFLM: respect tokenizer default unless add_bos_token is set;
+        # guard against double-BOS using the first string as the probe.
+        add_special_tokens: dict = {}
+        if has_bos_prefix(strings[0], getattr(self.tokenizer, "bos_token", None)):
+            add_special_tokens = {"add_special_tokens": False}
+        elif self.add_bos_token is not None:
+            add_special_tokens = {"add_special_tokens": self.add_bos_token}
 
         encoding = self.tokenizer(
             strings,
             truncation=truncation,
             padding="longest",
             return_tensors="pt",
-            add_special_tokens=add_special_tokens,
+            **add_special_tokens,
         )
         if left_truncate_len:
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
