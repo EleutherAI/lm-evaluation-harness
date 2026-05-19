@@ -914,7 +914,7 @@ class RBLNLM(TemplateLM):
                         logger.error("   • causal: GPT, LLaMA, Mistral, etc.")
                         logger.error("   • seq2seq: T5, BART, Pegasus, etc.")
                         logger.error(" Other model types will be implemented later")
-                        
+
                         # Raise an informative error
                         raise ValueError(
                             f"Model type '{self.model_type}' is not supported. "

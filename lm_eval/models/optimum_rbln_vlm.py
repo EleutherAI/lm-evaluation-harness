@@ -2,19 +2,22 @@
 RBLN NPU multimodal (Vision-Language) model integration for lm_eval.
 
 This module adds a ``RBLNVLM`` class registered as ``rbln-vlm``. It mirrors the
-generate-only multimodal pattern used by ``HFMultimodalLM`` (see
-``lm_eval/models/hf_vlms.py``) but routes model loading through the existing
-text-only ``RBLNLM`` (``optimum.rbln`` Auto classes) and uses the per-model
-VLM compile profiles defined in ``optimum_rbln._VLM_COMPILE_PROFILES``.
+multimodal pattern used by ``HFMultimodalLM`` (see ``lm_eval/models/hf_vlms.py``)
+but routes model loading through the existing text-only ``RBLNLM``
+(``optimum.rbln`` Auto classes) and uses the per-model VLM compile profiles
+defined in ``optimum_rbln._VLM_COMPILE_PROFILES``.
 
-Currently supports:
-- ``generate_until`` requests (used by MMMU, ChartQA).
-- Falls back to the inherited ``RBLNLM`` text path when a request has no
-  ``aux_arguments["visual"]`` payload.
+Supports:
+- ``generate_until`` requests (used by MMMU, ChartQA) — multimodal path.
+- ``loglikelihood`` for text-only requests (multiple-choice-style tasks like
+  hellaswag / mmlu). The implementation uses ``model.generate(...,
+  max_new_tokens=1, output_scores=True)`` with ``token_type_ids=zeros``
+  per continuation token to extract next-token logits, because direct
+  ``model(input_ids=...)`` is not a stable forward API on RBLN-compiled VLM
+  artifacts (state-init constraints).
 
 Not yet supported:
-- ``loglikelihood`` / ``loglikelihood_rolling`` (raises NotImplementedError,
-  matching ``HFMultimodalLM`` behavior).
+- Multimodal ``loglikelihood`` (when a request carries ``aux_arguments["visual"]``).
 """
 
 import copy
@@ -22,10 +25,12 @@ import logging
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
+import torch.nn.functional as F
 import transformers
 from tqdm import tqdm
 from transformers import BatchEncoding
 
+from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.optimum_rbln import RBLNLM
@@ -255,6 +260,101 @@ class RBLNVLM(RBLNLM):
         raise NotImplementedError(
             "RBLNVLM does not support multimodal loglikelihood_rolling."
         )
+
+    def _loglikelihood_tokens(
+        self, requests, disable_tqdm: bool = False, override_bs=None
+    ):
+        """Per-token loglikelihood for text-only requests on an RBLN VLM.
+
+        Why this override exists: RBLN-compiled VLM artifacts do not support
+        direct ``model(input_ids=...)`` forward — the SDK requires
+        ``generate_idx`` to be initialized through ``.generate()``. We work
+        around that by issuing N single-token ``.generate(max_new_tokens=1,
+        output_scores=True)`` calls (one per continuation token) with
+        ``token_type_ids=zeros`` (= all text, no image). The returned scores
+        give the next-token distribution from which we compute the loglikelihood.
+        """
+        res = []
+
+        def _collate(x):
+            toks = x[1] + x[2]
+            return -len(toks), tuple(toks)
+
+        re_ord = utils.Reorderer(requests, _collate)
+
+        for cache_key, context_enc, continuation_enc in tqdm(
+            re_ord.get_reordered(),
+            disable=(disable_tqdm or self.rank != 0),
+            desc="Running loglikelihood requests (RBLN VLM, generate-based)",
+        ):
+            # Left-truncate to fit in max_length when needed (drops oldest context).
+            full_sequence = list(context_enc) + list(continuation_enc)
+            if len(full_sequence) > self.max_length:
+                full_sequence = full_sequence[-self.max_length :]
+
+            contlen = len(continuation_enc)
+            context_in_full = len(full_sequence) - contlen
+
+            continuation_logits = []
+            scored_indices: List[int] = []
+            for i in range(contlen):
+                target_pos = context_in_full + i
+                if target_pos <= 0:
+                    # No prefix to condition on — skip this token; we'll
+                    # also drop the corresponding cont_tok below.
+                    continue
+
+                prefix = full_sequence[:target_pos]
+                input_ids = torch.tensor([prefix], dtype=torch.long)
+                attention_mask = torch.ones_like(input_ids)
+                token_type_ids = torch.zeros_like(input_ids)
+
+                try:
+                    with torch.inference_mode():
+                        out = self.model.generate(
+                            input_ids=input_ids,
+                            attention_mask=attention_mask,
+                            token_type_ids=token_type_ids,
+                            max_new_tokens=1,
+                            do_sample=False,
+                            pad_token_id=self.tokenizer.pad_token_id,
+                            output_scores=True,
+                            return_dict_in_generate=True,
+                        )
+                except Exception as e:
+                    logger.error(
+                        f"Per-token generate failed at continuation index {i} "
+                        f"(prefix_len={len(prefix)}): {e}"
+                    )
+                    continue
+
+                continuation_logits.append(out.scores[0])  # [1, vocab]
+                scored_indices.append(i)
+
+            if not continuation_logits:
+                res.append((0.0, False))
+                if cache_key is not None:
+                    self.cache_hook.add_partial(
+                        "loglikelihood", cache_key, (0.0, False)
+                    )
+                continue
+
+            logits = torch.stack(continuation_logits, dim=1)  # [1, scored, vocab]
+            logits = F.log_softmax(logits, dim=-1)
+
+            cont_toks = torch.tensor(
+                [[continuation_enc[i] for i in scored_indices]], dtype=torch.long
+            )
+            greedy_tokens = logits.argmax(dim=-1)
+            max_equal = bool((greedy_tokens == cont_toks).all())
+
+            gathered = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)
+            answer = (float(gathered.sum()), max_equal)
+            res.append(answer)
+            if cache_key is not None:
+                self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+
+        return re_ord.get_original(res)
 
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False

@@ -72,17 +72,24 @@ lm_eval --model rbln --model_args pretrained=google/flan-t5-base --tasks squadv2
 
 ### **3. Vision-Language Models (VLM)**
 **Examples**: LLaVA, LLaVA-NeXT, Qwen2-VL / Qwen2.5-VL / Qwen3-VL, Gemma3, IDEFICS3, PaliGemma / PaliGemma2, Pixtral, BLIP-2
-**Best For**: Image-and-text-to-text generation
+**Best For**: Image-and-text-to-text generation, with text-only LM evaluation also supported on the same artifact.
 **Evaluation Support**:
-- **Generation tasks** via the new `--model rbln-vlm` runner
-- Supported task templates: `mmmu*`, `chartqa`
+- **Multimodal generation tasks** (`mmmu*`, `chartqa`) via `--model rbln-vlm`.
+- **Text-only loglikelihood tasks** (`hellaswag`, `mmlu`, `arc_*`, `winogrande`, etc.) on the same VLM artifact — no separate text-only checkpoint needed.
+- **Text-only generation tasks** (`gsm8k`, etc.) also routed through the inherited text path.
+
+> **Which flag to use?** The flag describes the **artifact type**, not the task:
+> - VLM-compiled artifact → **always `--model rbln-vlm`** (including text-only tasks).
+> - Causal/seq2seq LM artifact → `--model rbln`.
 
 **Technical Details**:
 - Registered as `rbln-vlm`. Inherits text-only `RBLNLM` for tokenization/generation infrastructure and adds `AutoProcessor`-based image handling.
 - Dispatches to `RBLNAutoModelForVision2Seq` for most models and to `RBLNAutoModelForImageTextToText` for Gemma3.
 - Each supported `model_type` ships with a built-in compile profile (`_VLM_COMPILE_PROFILES`) mirroring [rbln-model-zoo image-text-to-text examples](https://github.com/RBLN-SW/rbln-model-zoo/tree/main/huggingface/transformers/image-text-to-text).
 - Users can override any compile parameter via `--model_args 'rbln_config_json={...}'` (the JSON is deep-merged into the built-in profile).
-- `loglikelihood`/`loglikelihood_rolling` are not yet implemented for multimodal inputs; use `generate_until`-style tasks.
+- Text-only **loglikelihood** is implemented by `RBLNVLM._loglikelihood_tokens`, which issues one `model.generate(max_new_tokens=1, output_scores=True, return_dict_in_generate=True)` per continuation token with `token_type_ids=zeros`. This avoids the RBLN VLM SDK constraint that direct `model(input_ids=...)` forward requires `generate_idx` state to be set up through `.generate()`.
+- Loglikelihood scoring uses no `<bos>` prepend and no chat template, so scores remain directly comparable to text-only LMs evaluated with `--model rbln`.
+- Multimodal loglikelihood / `loglikelihood_rolling` (requests carrying `aux_arguments["visual"]`) are not yet supported — use generation-style multimodal tasks.
 
 **Supported VLM model_types** (built-in compile profile):
 `llava`, `llava_next`, `qwen2_vl`, `qwen2_5_vl`, `qwen3_vl`, `gemma3`, `idefics3`, `paligemma`, `paligemma2`, `pixtral`, `blip-2` / `blip_2`.
@@ -98,6 +105,11 @@ lm_eval --model rbln-vlm \
 lm_eval --model rbln-vlm \
   --model_args 'pretrained=llava-hf/llava-1.5-7b-hf' \
   --tasks chartqa --batch_size 1 --limit 5
+
+# Text-only loglikelihood (hellaswag) on a VLM artifact (Gemma3-4B-it)
+lm_eval --model rbln-vlm \
+  --model_args 'pretrained=/path/to/gemma-3-4b-it,export=False' \
+  --tasks hellaswag --batch_size 1 --limit 10
 
 # Override compile profile (e.g. reduce tensor_parallel_size to 4)
 lm_eval --model rbln-vlm \
