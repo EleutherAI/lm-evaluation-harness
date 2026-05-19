@@ -89,6 +89,12 @@ class RBLNVLM(RBLNLM):
         self.max_images = max_images
         self.rgb = convert_img_format
 
+        # Resolve where to load AutoProcessor from. Mirror the LLM path's
+        # `tokenizer=` semantics: explicit `processor=` wins, otherwise fall
+        # back to `tokenizer=` (processor and tokenizer typically live together
+        # in HF repos), otherwise the pretrained dir itself.
+        processor_path = kwargs.pop("processor", None) or kwargs.get("tokenizer")
+
         # RBLNLM.__init__ loads AutoConfig, AutoTokenizer, resolves model_type
         # (which will be "vlm" for VLMs via the new mapping-dict logic), and
         # compiles/loads the RBLN model. The tokenizer is replaced with
@@ -104,7 +110,7 @@ class RBLNVLM(RBLNLM):
             )
 
         self._load_processor(
-            pretrained,
+            processor_path or pretrained,
             revision=kwargs.get("revision", "main"),
             trust_remote_code=kwargs.get("trust_remote_code", False),
         )
