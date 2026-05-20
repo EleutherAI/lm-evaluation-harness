@@ -644,6 +644,14 @@ We support wildcards in task names, for example you can run all of the machine-t
 
 To save evaluation results provide an `--output_path`. We also support logging model responses with the `--log_samples` flag for post-hoc analysis.
 
+To export a compact attestation for reproducibility checks, run:
+
+```bash
+python scripts/export_attestation.py results/model-name -o results/model-name/attestation.json
+```
+
+The attestation includes a canonical hash of headline scores and, when `--log_samples` outputs are present, a separate hash of per-sample logs. This lets two runs compare evaluation fingerprints without exchanging large sample files.
+
 > [!TIP]
 > Use `--use_cache <DIR>` to cache evaluation results and skip previously evaluated samples when resuming runs of the same (model, task) pairs. Note that caching is rank-dependent, so restart with the same GPU count if interrupted. You can also use --cache_requests to save dataset preprocessing steps for faster evaluation resumption.
 
