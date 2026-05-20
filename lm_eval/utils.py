@@ -293,11 +293,16 @@ def get_file_datetime(filename: str) -> str:
     return filename[filename.rfind("_") + 1 :].replace(".jsonl", "")
 
 
-def sanitize_model_name(model_name: str) -> str:
+def sanitize_model_name(model_name: str, max_length: int = 200) -> str:
     """
     Given the model name, returns a sanitized version of it.
+
+    Truncates to ``max_length`` characters to avoid ``OSError: [Errno 36]
+    File name too long`` when model_args contains long local paths or many
+    key=value pairs.
     """
-    return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
+    sanitized = re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
+    return sanitized[:max_length]
 
 
 def sanitize_task_name(task_name: str) -> str:
