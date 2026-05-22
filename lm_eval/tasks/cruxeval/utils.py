@@ -1,5 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
+import concurrent.futures
 import contextlib
 import faulthandler
 import io
@@ -167,8 +168,7 @@ def reliability_guard(maximum_memory_bytes=None):
     sys.modules["tkinter"] = None
 
 
-def unsafe_execute(check_program, result, timeout):
-
+def _unsafe_execute_pipe(check_program, conn, timeout):
     with create_tempdir():
         # These system calls are needed when cleaning up tempdir.
         import os
@@ -186,28 +186,95 @@ def unsafe_execute(check_program, result, timeout):
             exec_globals = {}
             with swallow_io(), time_limit(timeout):
                 exec(check_program, exec_globals)  # noqa: S102
-            result.append("passed")
+            result = "passed"
         except TimeoutException:
-            result.append("timed out")
+            result = "timed out"
         except BaseException as e:  # noqa: BLE001
-            result.append(f"failed: {e}")
+            result = f"failed: {e}"
 
         # Needed for cleaning up.
         shutil.rmtree = rmtree
         os.rmdir = rmdir
         os.chdir = chdir_func
 
+    try:
+        conn.send(result)
+    except BaseException:  # noqa: BLE001
+        pass
+    finally:
+        conn.close()
+
 
 def check_correctness(check_program, timeout=3):
     """
     Evaluates the functional correctness of a completion by running the test
     suite provided in the problem.
+
+    Uses a single forked worker process (matching the legacy isolation
+    guarantees against hung C-extension code) but ships the result back over
+    a Pipe instead of a multiprocessing.Manager() — the Manager spawned its
+    own server process per call, which dominated wall time on cruxeval's
+    ~1.6k scoring calls.
     """
+    ctx = multiprocessing.get_context("fork")
+    parent_conn, child_conn = ctx.Pipe(duplex=False)
+    p = ctx.Process(
+        target=_unsafe_execute_pipe, args=(check_program, child_conn, timeout)
+    )
+    p.start()
+    child_conn.close()  # parent must drop its handle for poll() to detect EOF
+
+    result = None
+    try:
+        if parent_conn.poll(timeout=timeout + 1):
+            try:
+                result = parent_conn.recv()
+            except EOFError:
+                result = None
+    finally:
+        parent_conn.close()
+        if p.is_alive():
+            p.kill()
+        p.join()
+
+    if result is None:
+        result = "timed out"
+    return result == "passed"
+
+
+def _unsafe_execute_legacy(check_program, result, timeout):
+    with create_tempdir():
+        import os
+        import shutil
+
+        rmtree = shutil.rmtree
+        rmdir = os.rmdir
+        chdir_func = os.chdir
+
+        reliability_guard()
+
+        try:
+            exec_globals = {}
+            with swallow_io(), time_limit(timeout):
+                exec(check_program, exec_globals)  # noqa: S102
+            result.append("passed")
+        except TimeoutException:
+            result.append("timed out")
+        except BaseException as e:  # noqa: BLE001
+            result.append(f"failed: {e}")
+
+        shutil.rmtree = rmtree
+        os.rmdir = rmdir
+        os.chdir = chdir_func
+
+
+def check_correctness_legacy(check_program, timeout=3):
+    """Original Manager-based scorer. Kept for A/B equivalence tests."""
     manager = multiprocessing.Manager()
     result = manager.list()
 
     p = multiprocessing.Process(
-        target=unsafe_execute, args=(check_program, result, timeout)
+        target=_unsafe_execute_legacy, args=(check_program, result, timeout)
     )
     p.start()
     p.join(timeout=timeout + 1)
@@ -218,6 +285,10 @@ def check_correctness(check_program, timeout=3):
         result.append("timed out")
 
     return result[0] == "passed"
+
+
+# Back-compat alias for any external caller importing the old name.
+unsafe_execute = _unsafe_execute_legacy
 
 
 # ============================================================================
@@ -243,11 +314,30 @@ def _pass_at_k(n, c, k):
 # ============================================================================
 
 
+def _pass_at_k_max_workers() -> int:
+    env = os.environ.get("CRUXEVAL_SCORING_WORKERS")
+    if env:
+        try:
+            n = int(env)
+            if n > 0:
+                return n
+        except ValueError:
+            pass
+    cpu = os.cpu_count() or 8
+    return min(32, max(2, cpu))
+
+
 def pass_at_k(
     references: list[str], predictions: list[list[str]], k: list[int] | None = None
 ) -> dict:
     """
     Calculate pass@k for a batch of predictions using direct code execution.
+
+    Predictions are scored in parallel via a thread pool; each call to
+    check_correctness forks its own worker process for isolation, and the
+    parent threads block on Pipe poll() so the GIL is released. Per-sample
+    pass/fail is identical to the serial implementation — only the wall-clock
+    cost changes.
 
     :param references: list of reference strings (not used directly, kept for API compatibility)
     :param predictions: list of lists of code strings to execute
@@ -259,17 +349,27 @@ def pass_at_k(
     if isinstance(k, int):
         k = [k]
 
-    # Execute all predictions and collect results
-    all_results = []
-    for pred_list in predictions:
-        results = []
-        for pred in pred_list:
-            try:
-                passed = check_correctness(pred, timeout=3)
-                results.append(passed)
-            except Exception:  # noqa: BLE001
-                results.append(False)
-        all_results.append(results)
+    # Flatten work so independent samples run concurrently.
+    all_results: list[list[bool]] = [[False] * len(pl) for pl in predictions]
+    tasks = [
+        (i, j, pred)
+        for i, pred_list in enumerate(predictions)
+        for j, pred in enumerate(pred_list)
+    ]
+
+    if tasks:
+        max_workers = min(_pass_at_k_max_workers(), len(tasks))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futures = {
+                ex.submit(check_correctness, pred, 3): (i, j)
+                for i, j, pred in tasks
+            }
+            for fut in concurrent.futures.as_completed(futures):
+                i, j = futures[fut]
+                try:
+                    all_results[i][j] = fut.result()
+                except Exception:  # noqa: BLE001
+                    all_results[i][j] = False
 
     # Calculate pass@k for each k value
     pass_at_k_results = {f"pass@{kv}": [] for kv in k}
@@ -281,6 +381,45 @@ def pass_at_k(
             pass_at_k_results[f"pass@{kv}"].append(_pass_at_k(n, c, kv))
 
     # Average across all samples
+    final_results = {}
+    for kv in k:
+        scores = pass_at_k_results[f"pass@{kv}"]
+        final_results[f"pass@{kv}"] = np.mean(scores) if scores else 0.0
+
+    return final_results
+
+
+def pass_at_k_legacy(
+    references: list[str], predictions: list[list[str]], k: list[int] | None = None
+) -> dict:
+    """Original serial scorer using the Manager-based check_correctness.
+
+    Kept so we can A/B-test that the parallel version produces identical
+    per-sample pass/fail.
+    """
+    if k is None:
+        k = [1]
+    if isinstance(k, int):
+        k = [k]
+
+    all_results = []
+    for pred_list in predictions:
+        results = []
+        for pred in pred_list:
+            try:
+                passed = check_correctness_legacy(pred, timeout=3)
+                results.append(passed)
+            except Exception:  # noqa: BLE001
+                results.append(False)
+        all_results.append(results)
+
+    pass_at_k_results = {f"pass@{kv}": [] for kv in k}
+    for results in all_results:
+        n = len(results)
+        c = sum(results)
+        for kv in k:
+            pass_at_k_results[f"pass@{kv}"].append(_pass_at_k(n, c, kv))
+
     final_results = {}
     for kv in k:
         scores = pass_at_k_results[f"pass@{kv}"]
