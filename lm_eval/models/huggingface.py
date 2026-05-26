@@ -56,6 +56,124 @@ eval_logger = logging.getLogger(__name__)
 TOKENIZER_INFINITY = 1000000000000000019884624838656
 
 
+class _NonHFTokenizerWrapper:
+    """Minimal HF tokenizer interface for non-HF tokenizers used inside HFLM."""
+
+    bos_token_id: int | None = None
+    eos_token_id: int | None = None
+    pad_token_id: int = 0
+    bos_token: str | None = None
+    eos_token: str | None = None
+    padding_side: str = "left"
+
+    def encode(self, string: str, add_special_tokens: bool = False, **kwargs) -> list[int]:
+        raise NotImplementedError
+
+    def decode(self, tokens, skip_special_tokens: bool = True, **kwargs) -> str:
+        raise NotImplementedError
+
+    def __len__(self) -> int:
+        raise NotImplementedError
+
+    def __call__(
+        self,
+        strings,
+        padding: str | bool = True,
+        truncation: bool = False,
+        return_tensors: str | None = None,
+        max_length: int | None = None,
+        add_special_tokens: bool = False,
+        **kwargs,
+    ) -> dict:
+        if isinstance(strings, str):
+            strings = [strings]
+        encoded = [self.encode(s) for s in strings]
+        if truncation and max_length:
+            encoded = [e[-max_length:] for e in encoded]
+        max_len = max((len(e) for e in encoded), default=0)
+        input_ids, attention_masks = [], []
+        for enc in encoded:
+            pad_len = max_len - len(enc)
+            if self.padding_side == "left":
+                padded = [self.pad_token_id] * pad_len + enc
+                mask = [0] * pad_len + [1] * len(enc)
+            else:
+                padded = enc + [self.pad_token_id] * pad_len
+                mask = [1] * len(enc) + [0] * pad_len
+            input_ids.append(padded)
+            attention_masks.append(mask)
+        if return_tensors == "pt":
+            return {
+                "input_ids": torch.tensor(input_ids, dtype=torch.long),
+                "attention_mask": torch.tensor(attention_masks, dtype=torch.long),
+            }
+        return {"input_ids": input_ids, "attention_mask": attention_masks}
+
+
+class TokenMonsterHFWrapper(_NonHFTokenizerWrapper):
+    """Wraps tokenmonster to match the HuggingFace tokenizer interface for HFLM."""
+
+    def __init__(self, vocab_name: str) -> None:
+        try:
+            import tokenmonster
+
+            self._tok = tokenmonster.load(vocab_name)
+            self.vocab_size = self._tok.vocab_size
+        except ModuleNotFoundError as e:
+            raise ModuleNotFoundError(
+                "tokenizer_backend='tokenmonster' requires the `tokenmonster` package. "
+                "Install it via `pip install tokenmonster`."
+            ) from e
+
+    def __len__(self) -> int:
+        return self._tok.vocab_size
+
+    def encode(self, string: str, add_special_tokens: bool = False, **kwargs) -> list[int]:
+        return [int(t) for t in self._tok.tokenize(string)]
+
+    def decode(self, tokens, skip_special_tokens: bool = True, **kwargs) -> str:
+        if isinstance(tokens, int):
+            tokens = [tokens]
+        return self._tok.decode(list(tokens))
+
+
+class TekkenHFWrapper(_NonHFTokenizerWrapper):
+    """Wraps mistral-common tekken tokenizer to match the HuggingFace tokenizer interface for HFLM."""
+
+    def __init__(self) -> None:
+        try:
+            from mistral_common.tokens.tokenizers.mistral import MistralTokenizer
+            tok = MistralTokenizer.v3(is_tekken=True)
+            self._tok = tok.instruct_tokenizer.tokenizer
+
+            self.vocab_size = self._tok.n_words
+        except ModuleNotFoundError as e:
+            raise ModuleNotFoundError(
+                "tokenizer_backend='tekken' requires the `mistral_common` package. "
+                "Install it via `pip install mistral-common`."
+            ) from e
+        self.bos_token_id = getattr(self._tok, "bos_id", None)
+        self.eos_token_id = getattr(self._tok, "eos_id", None)
+
+    def __len__(self) -> int:
+        return self._tok.n_words
+
+    def encode(self, string: str, add_special_tokens: bool = False, **kwargs) -> list[int]:
+        return self._tok.encode(string, add_special_tokens, add_special_tokens)
+
+    def decode(self, tokens, skip_special_tokens: bool = True, **kwargs) -> str:
+        if isinstance(tokens, int):
+            tokens = [tokens]
+        else:
+            tokens = list(tokens)
+        if skip_special_tokens:
+            if tokens and tokens[0] == self.bos_token_id:
+                tokens = tokens[1:]
+            if tokens and tokens[-1] == self.eos_token_id:
+                tokens = tokens[:-1]
+        return self._tok.decode(tokens)
+
+
 @register_model("hf-auto", "hf", "huggingface")
 class HFLM(TemplateLM):
     """An abstracted Huggingface model class. Enables usage with both models of
@@ -78,6 +196,7 @@ class HFLM(TemplateLM):
         | transformers.PreTrainedTokenizer
         | transformers.PreTrainedTokenizerFast
         | None = None,
+        tokenizer_backend: Literal["huggingface", "tokenmonster", "tekken"] | None = None,
         truncation: bool | None = False,
         logits_cache: bool = True,
         max_length: int | None = None,
@@ -345,6 +464,7 @@ class HFLM(TemplateLM):
         self._create_tokenizer(
             pretrained,
             tokenizer,
+            tokenizer_backend=tokenizer_backend,
             revision=revision,
             subfolder=subfolder,
             trust_remote_code=trust_remote_code,
@@ -927,6 +1047,7 @@ class HFLM(TemplateLM):
         | transformers.PreTrainedTokenizer
         | transformers.PreTrainedTokenizerFast
         | None,
+        tokenizer_backend: Literal["huggingface", "tokenmonster", "tekken"] | None = None,
         revision: str | None = "main",
         trust_remote_code: bool | None = False,
         use_fast_tokenizer: bool | None = True,
@@ -939,6 +1060,17 @@ class HFLM(TemplateLM):
         Create a tokenizer object corresponding to the correct
         tokenizer for value of `pretrained`, or use the pre-initialized tokenizer passed.
         """
+        if tokenizer_backend == "tokenmonster":
+            vocab_name = tokenizer if isinstance(tokenizer, str) else (
+                pretrained if isinstance(pretrained, str) else self.model.name_or_path
+            )
+            vocab_name = vocab_name.split("/")[-1]
+            self.tokenizer = TokenMonsterHFWrapper(vocab_name)
+            return
+        if tokenizer_backend == "tekken":
+            self.tokenizer = TekkenHFWrapper()
+            return
+
         kwargs = {
             "revision": revision,
             "trust_remote_code": trust_remote_code,
@@ -1040,6 +1172,29 @@ class HFLM(TemplateLM):
         clear_torch_cache()
         return batch_size
 
+    def _encode_pair(
+        self, context: str, continuation: str
+    ) -> tuple[list[int], list[int]]:
+        if not isinstance(self.tokenizer, _NonHFTokenizerWrapper):
+            return super()._encode_pair(context, continuation)
+
+        # Non-split-stable tokenizers (tokenmonster, tekken): the standard
+        # whole_enc[len(context_enc):] split can yield an empty continuation when
+        # the continuation merges with the last context token.  Encode the full
+        # sequence jointly to get whole_enc, then fall back to independent
+        # continuation encoding if the split gives nothing.
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+
+        whole_enc = self.tok_encode(context + continuation)
+        context_enc = self.tok_encode(context)
+        continuation_enc = whole_enc[len(context_enc):]
+        if not continuation_enc:
+            continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
+        return context_enc, continuation_enc
+
     def tok_encode(
         self,
         string: str,
@@ -1053,7 +1208,7 @@ class HFLM(TemplateLM):
             add_special_tokens, self.add_bos_token
         )
         # set add_special_tokens=False if the string already starts with BOS token.
-        if add_special_tokens is None and has_bos_prefix(
+        if add_special_tokens is None and self.prefix_token_id is not None and has_bos_prefix(
             string, self.tokenizer.decode(self.prefix_token_id)
         ):
             special_tokens_kwargs["add_special_tokens"] = False
