@@ -113,9 +113,15 @@ class TemplateAPI(TemplateLM):
         # Loglikelihood tasks require a tokenizer to calculate context lengths,
         # however the requests can be sent as a string if the API doesn't support token inputs.
         # use tokenized_requests=False
-        tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", "remote", "None", "none"]
-        ] = "huggingface",
+        tokenizer_backend: Optional[Literal[
+            "tiktoken",
+            "huggingface",
+            "remote",
+            "tokenmonster",
+            "tekken",
+            "None",
+            "none",
+        ]] = "huggingface",
         truncate: bool = False,
         # number of concurrent requests. More useful if not batching
         num_concurrent: int = 1,
@@ -237,6 +243,30 @@ class TemplateAPI(TemplateLM):
                         self.auth_token,
                     )
                     eval_logger.info(f"Using remote tokenizer from {self.base_url}")
+                elif self.tokenizer_backend == "tokenmonster":
+                    try:
+                        import tokenmonster
+
+                        vocab_name = (self.tokenizer or self.model).split("/")[-1]
+                        self.tokenizer = tokenmonster.load(vocab_name)
+                    except ModuleNotFoundError as e:
+                        raise ModuleNotFoundError(
+                            "Attempted to use 'tokenmonster' tokenizer backend, but the package "
+                            "`tokenmonster` is not installed. Please install it via `pip install tokenmonster`."
+                        ) from e
+                elif self.tokenizer_backend == "tekken":
+                    try:
+                        from mistral_common.tokens.tokenizers.mistral import (
+                            MistralTokenizer as MistralTok,
+                        )
+
+                        tok = MistralTok.v3(is_tekken=True)
+                        self.tokenizer = tok.instruct_tokenizer.tokenizer
+                    except ModuleNotFoundError as e:
+                        raise ModuleNotFoundError(
+                            "Attempted to use 'tekken' tokenizer backend, but the package "
+                            "`mistral_common` is not installed. Please install it via `pip install mistral-common`."
+                        ) from e
             else:
                 import transformers
 
@@ -360,6 +390,10 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eot_token
             elif self.tokenizer_backend == "remote":
                 return self.tokenizer.eos_token_id
+            elif self.tokenizer_backend == "tekken":
+                return getattr(self.tokenizer, "eos_id", None)
+            elif self.tokenizer_backend == "tokenmonster":
+                return None
 
     @cached_property
     def eos_string(self) -> Optional[str]:
@@ -372,6 +406,8 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.decode([self.tokenizer.eot_token])
             elif self.tokenizer_backend == "remote":
                 return self.tokenizer.eos_token
+            elif self.tokenizer_backend in ("tekken", "tokenmonster"):
+                return None
         else:
             eval_logger.warning(
                 "Cannot determine EOS string to pass to stop sequence. Manually set by passing `eos_string` to model_args."
@@ -391,6 +427,10 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eos_token_id
             elif self.tokenizer_backend == "remote":
                 return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
+            elif self.tokenizer_backend == "tekken":
+                return getattr(self.tokenizer, "bos_id", None)
+            elif self.tokenizer_backend == "tokenmonster":
+                return None
             else:
                 return self.tokenizer.eot_token
 
@@ -436,6 +476,34 @@ class TemplateAPI(TemplateLM):
                     encoding = [enc[-left_truncate_len:] for enc in encoding]
 
             return encoding
+        elif self.tokenizer_backend == "tokenmonster":
+            if isinstance(string, str):
+                encoding = [int(t) for t in self.tokenizer.tokenize(string)]
+            else:
+                encoding = [
+                    [int(t) for t in self.tokenizer.tokenize(s)] for s in string
+                ]
+
+            if left_truncate_len:
+                if isinstance(string, str):
+                    encoding = encoding[-left_truncate_len:]
+                else:
+                    encoding = [enc[-left_truncate_len:] for enc in encoding]
+
+            return encoding
+        elif self.tokenizer_backend == "tekken":
+            if isinstance(string, str):
+                encoding = self.tokenizer.encode(string, False, False)
+            else:
+                encoding = [self.tokenizer.encode(s, False, False) for s in string]
+
+            if left_truncate_len:
+                if isinstance(string, str):
+                    encoding = encoding[-left_truncate_len:]
+                else:
+                    encoding = [enc[-left_truncate_len:] for enc in encoding]
+
+            return encoding
         else:
             try:
                 encoding = self.tokenizer.encode(string)
@@ -450,6 +518,8 @@ class TemplateAPI(TemplateLM):
             return self.tokenizer.decode_batch(tokens)
         elif self.tokenizer_backend == "remote":
             return self.tokenizer.batch_decode(tokens)
+        elif self.tokenizer_backend in ("tokenmonster", "tekken"):
+            return [self.tokenizer.decode(t) for t in tokens]
 
     def model_call(
         self,
