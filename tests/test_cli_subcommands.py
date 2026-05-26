@@ -258,6 +258,7 @@ class TestRunCommand:
         # Mock configuration
         mock_cfg_instance = MagicMock()
         mock_cfg_instance.wandb_args = None
+        mock_cfg_instance.trackio_args = None
         mock_cfg_instance.output_path = None
         mock_cfg_instance.hf_hub_log_args = {}
         mock_cfg_instance.include_path = None
@@ -374,7 +375,7 @@ class TestValidateCommand:
 
 
 class TestEvaluatorConfigTaskLoading:
-    """Test EvaluatorConfig task loading"""
+    """Test EvaluatorConfig task loading."""
 
     @patch("lm_eval.tasks.TaskManager")
     def test_process_tasks_comma_separated_in_list(self, mock_task_manager):
@@ -808,7 +809,7 @@ class TestMergeDictAction:
         assert args.args == {"outer": {"inner": "value"}}
 
     def test_empty_values(self):
-        """Test that empty values result in None"""
+        """Test that empty values result in None."""
         parser = argparse.ArgumentParser()
         parser.add_argument("--args", nargs="*", action=MergeDictAction)
 

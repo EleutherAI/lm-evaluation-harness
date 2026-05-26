@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import os
 import sys
+from unittest.mock import patch
+
+import pytest
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -154,3 +157,10 @@ class Test_HFLM:
             assert res == "foo bar\n<bazhang> !info bar"
         else:
             assert res == "foo bar\n<bazhang>!info bar"
+
+    def test_loglikelihood_rejects_enable_thinking(self) -> None:
+        with patch.object(self.LM, "enable_thinking", True):
+            with pytest.raises(ValueError) as exc_info:
+                self.LM.loglikelihood(self.MULTIPLE_CH)
+            assert "arc_easy" in str(exc_info.value)
+            assert "enable_thinking=True" in str(exc_info.value)

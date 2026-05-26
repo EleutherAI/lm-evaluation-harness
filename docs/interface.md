@@ -141,6 +141,33 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | `--confirm_run_unsafe_code` | | Confirm understanding of risks for tasks executing arbitrary Python. |
 | `--metadata` | | JSON string passed to TaskConfig. Required for some tasks like RULER. Example: `--metadata '{"max_seq_length": 4096}'`. |
 
+### Evaluating Thinking/Reasoning Models
+
+Models like Qwen3 or DeepSeek-R1 can produce a chain-of-thought reasoning trace before their final answer. To strip this thinking trace before metrics are computed, use the `think_end_token` and `enable_thinking` model arguments (passed via `--model_args`).
+
+- `enable_thinking`: Activates thinking mode in the chat template (passed as a kwarg to `apply_chat_template`).
+- `think_end_token`: The delimiter marking the end of the thinking section. Everything up to and including the last occurrence of this token is discarded from the output. **This option is required when using `enable_thinking=True`.**
+
+With the `vllm` or `sglang` backends, `think_end_token` must be a **string** (e.g. `</think>`):
+
+```bash
+lm-eval run --model vllm \
+  --model_args pretrained=Qwen/Qwen3-32B,enable_thinking=True,think_end_token="</think>" \
+  --tasks gsm8k --apply_chat_template
+```
+
+With the `hf` backend, `think_end_token` can be either a **string** or a **token ID** (integer). Using the token ID avoids edge cases where the token string appears in normal text:
+
+```bash
+lm-eval run --model hf \
+  --model_args pretrained=Qwen/Qwen3-32B,enable_thinking=True,think_end_token=200008 \
+  --tasks gsm8k --apply_chat_template
+```
+
+The correct `think_end_token` for a given model can be found in its `tokenizer_config.json` (look for the token closing the thinking block in the chat template). For example, see [Qwen3-32B's tokenizer_config.json](https://huggingface.co/Qwen/Qwen3-32B/blob/main/tokenizer_config.json#L206).
+
+> **Note:** `enable_thinking=True` is only compatible with generative tasks. It cannot be used with loglikelihood-based tasks.
+
 ### Configuration File
 
 | Argument | Short | Description |
