@@ -1,114 +1,79 @@
-#!/usr/bin/env python3
+"""Pytest suite for the Rebellions NPU integration with lm_eval.
+
+These tests use ``assert`` (not ``return``) so that failures surface correctly
+under pytest. Checks split into two groups:
+
+* Pure-Python contracts (imports, registry wiring, npu_utils return types) run
+  on any host and must genuinely pass/fail.
+* Hardware / SDK dependent checks (the ``optimum-rbln`` SDK, the ``rbln-stat``
+  CLI) are *skipped* when unavailable rather than silently reported as passing.
 """
-Test script for Rebellions NPU integration with lm_eval.
-"""
 
-import sys
-import os
+import shutil
 
-# Add the current directory to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import pytest
 
-def test_npu_model_import():
-    """Test if the NPU model can be imported."""
-    try:
-        from lm_eval.models.rbln import RebellionsNPU
-        print("Successfully imported RebellionsNPU model")
-        return True
-    except ImportError as e:
-        print(f"Failed to import RebellionsNPU model: {e}")
-        return False
 
-def test_rbln_availability():
-    """Test if RBLN SDK is available."""
-    try:
-        import optimum.rbln
-        print("RBLN SDK (optimum[rbln]) is available")
-        return True
-    except ImportError:
-        print("RBLN SDK is not available")
-        print("  Please install with: pip install optimum[rbln]")
-        return False
+def test_rbln_models_importable():
+    """RBLN model classes import and sit in the expected class hierarchy."""
+    from lm_eval.api.model import TemplateLM
+    from lm_eval.models.optimum_rbln import RBLNLM
+    from lm_eval.models.optimum_rbln_vlm import RBLNVLM
 
-def test_npu_detection():
-    """Test NPU detection using rbln-stat."""
-    try:
-        import subprocess
-        
-        print("Testing NPU detection...")
-        result = subprocess.run(['rbln-stat'], capture_output=True, text=True, timeout=10)
-        
-        if result.returncode == 0:
-            print("rbln-stat command works")
-            lines = result.stdout.strip().split('\n')
-            npu_count = len([line for line in lines if 'rbln' in line.lower()])
-            if npu_count > 0:
-                print(f"Detected {npu_count} NPU devices")
-                return True
-            else:
-                print("rbln-stat works but no NPUs detected")
-                return True  # Command works, just no NPUs
-        else:
-            print("rbln-stat command failed")
-            return False
-            
-    except Exception as e:
-        print(f"NPU detection test failed: {e}")
-        return False
+    assert issubclass(RBLNLM, TemplateLM)
+    assert issubclass(RBLNVLM, RBLNLM)
 
-def test_model_registration():
-    """Test if the models are properly registered."""
-    try:
-        import lm_eval.models  # Import models to register them
-        from lm_eval.api.registry import get_model
-        
-        # Test main model
-        model_class = get_model("rbln")
-        print(f"Model 'rbln' is registered: {model_class}")
-        
-        # Only test the universal rbln model (specialized types removed)
-        print("Universal rbln model with intelligent auto-detection is registered")
-        
-        return True
-    except Exception as e:
-        print(f"Model registration failed: {e}")
-        return False
 
-def main():
-    """Run all tests."""
-    print("Testing Rebellions NPU integration with lm_eval...")
-    print("=" * 50)
-    
-    tests = [
-        test_npu_model_import,
-        test_rbln_availability,
-        test_npu_detection,
-        test_model_registration,
-    ]
-    
-    results = []
-    for test in tests:
-        print(f"\nRunning {test.__name__}...")
-        result = test()
-        results.append(result)
-    
-    print("\n" + "=" * 50)
-    print("Test Summary:")
-    passed = sum(results)
-    total = len(results)
-    print(f"Passed: {passed}/{total}")
-    
-    if passed == total:
-        print("All tests passed! NPU integration is ready.")
-        print("\nNext steps:")
-        print("1. Install RBLN SDK if not already installed")
-        print("2. Run a simple benchmark:")
-        print("   lm_eval --model rbln --model_args pretrained=microsoft/DialoGPT-small --tasks hellaswag --batch_size 1")
-    else:
-        print("Some tests failed. Please check the errors above.")
-        return 1
-    
-    return 0
+def test_rbln_models_registered():
+    """``rbln`` and ``rbln-vlm`` resolve to the expected classes in the registry."""
+    from lm_eval.api.registry import get_model
+    from lm_eval.models.optimum_rbln import RBLNLM
+    from lm_eval.models.optimum_rbln_vlm import RBLNVLM
 
-if __name__ == "__main__":
-    sys.exit(main())
+    assert get_model("rbln") is RBLNLM
+    assert get_model("rbln-vlm") is RBLNVLM
+
+
+def test_npu_utils_contract():
+    """Detection helpers honour their return types and stay mutually consistent.
+
+    These must degrade gracefully on a host with no NPU (0 / False / []) instead
+    of raising, so they run everywhere.
+    """
+    from lm_eval.npu_utils import (
+        detect_npu_devices,
+        get_npu_count,
+        is_npu_available,
+    )
+
+    count = get_npu_count()
+    available = is_npu_available()
+    devices = detect_npu_devices()
+
+    assert isinstance(count, int) and count >= 0
+    assert isinstance(available, bool)
+    assert isinstance(devices, list)
+    # The two derived views must agree with the device list.
+    assert available == (count > 0)
+    assert len(devices) == count
+
+
+def test_rbln_sdk_available():
+    """The RBLN SDK (optimum-rbln) is importable; skipped when not installed."""
+    pytest.importorskip(
+        "optimum.rbln",
+        reason="optimum-rbln not installed (no RBLN SDK on this host)",
+    )
+
+
+@pytest.mark.skipif(
+    shutil.which("rbln-stat") is None,
+    reason="rbln-stat not on PATH (not an RBLN NPU host)",
+)
+def test_rbln_stat_runs():
+    """On an NPU host, rbln-stat runs and feeds the detection helpers."""
+    from lm_eval.npu_utils import get_npu_count, is_npu_available, run_rbln_stat
+
+    stat = run_rbln_stat()
+    assert stat is not None, "rbln-stat is on PATH but returned no parsable output"
+    assert is_npu_available() == (get_npu_count() > 0)
