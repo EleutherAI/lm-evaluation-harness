@@ -1,5 +1,5 @@
 task: mc_taco
-dataset_path: mc_taco
+dataset_path: CogComp/mc_taco
 output_type: multiple_choice
 validation_split: validation
 test_split: test

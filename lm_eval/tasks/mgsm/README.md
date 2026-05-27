@@ -96,3 +96,5 @@ If other tasks on this dataset are already supported:
 # changelog
 - (en_cot, direct) ver 3; (native_cot) ver 4: issue #2578; PR #2587
   - fix fewshot format: Changed inconsistent usage of ':' (ASCII) and '：' (Chinese) to use '：' consistently.
+- direct ver 4
+  - Corrected `doc_to_target` field to return the numeric answer (`answer_number`) instead string slicing through `answer` field.

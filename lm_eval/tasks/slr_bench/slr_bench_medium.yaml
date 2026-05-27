@@ -1,0 +1,3 @@
+dataset_name: v1-Medium
+include: slr_bench_common_yaml
+task: slr_bench_medium

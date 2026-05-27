@@ -1,0 +1,12 @@
+group: humaneval_infilling
+task:
+  - humaneval_multi_line_infilling
+  - humaneval_single_line_infilling
+  - humaneval_random_span_infilling
+  - humaneval_random_span_infilling_light
+aggregate_metric_list:
+  - metric: pass@1
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

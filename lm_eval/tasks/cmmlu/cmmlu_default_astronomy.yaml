@@ -1,4 +1,0 @@
-"dataset_name": "astronomy"
-"description": "以下是关于天文学的单项选择题，请直接给出正确答案的选项。\n\n"
-"include": "_default_template_yaml"
-"task": "cmmlu_astronomy"

@@ -3,10 +3,11 @@ import re
 
 import pytest
 
+
+pytest.importorskip("zeno_client")
 from scripts.zeno_visualize import sanitize_string
 
 
-@pytest.skip("requires zeno_client dependency")
 def test_zeno_sanitize_string():
     """
     Test that the model_args handling logic in zeno_visualize.py properly handles

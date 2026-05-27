@@ -1,223 +1,127 @@
-import logging
-import warnings
-from functools import partial
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from __future__ import annotations
 
-import datasets
+import logging
+from random import Random
+from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from random import Random
+    from collections.abc import Iterable, Sequence
+    from typing import Any, TypeVar
 
-    from lm_eval.api.task import ConfigurableTask, Task
+    _T = TypeVar("_T")
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 class ContextSampler:
     def __init__(
         self,
-        docs: list[dict],
-        task: Union["Task", "ConfigurableTask"],
-        fewshot_indices: Optional[Iterable] = None,
-        rnd: Optional["Random"] = None,
+        df: Sequence[dict[str, Any]] | None = None,
+        *,
+        rnd: int | None = None,
+        fewshot_indices: list[int] | None = None,
+        **kwargs,
     ) -> None:
-        self.rnd = rnd
-        if not self.rnd:
-            raise ValueError(
-                "A `random.Random` generator argument must be provided to `rnd` of FewShotSampler!"
-            )
+        self.rnd = Random(rnd)
+        self.df = df or []
+        self.fewshot_indices = fewshot_indices
+        self._loaded = False  # to iterate over fewshot_indices when needed
 
-        self.task = task
-        self.config = task._config
-
-        self.target_delimiter = self.config.target_delimiter
-        self.fewshot_delimiter = self.config.fewshot_delimiter
-
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_text", None) is not None
-        ):
-            self.doc_to_text = partial(
-                self.task.doc_to_text,
-                doc_to_text=self.config.fewshot_config.get("doc_to_text", None),
-            )
-        else:
-            self.doc_to_text = self.task.doc_to_text
-
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_target", None) is not None
-        ):
-            self.doc_to_target = partial(
-                self.task.doc_to_target,
-                doc_to_target=self.config.fewshot_config.get("doc_to_target", None),
-            )
-        else:
-            self.doc_to_target = self.task.doc_to_target
-
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_choice", None) is not None
-        ):
-            self.doc_to_choice = partial(
-                self.task.doc_to_choice,
-                doc_to_choice=self.config.fewshot_config.get("doc_to_choice", None),
-            )
-        else:
-            self.doc_to_choice = self.task.doc_to_choice
-
-        self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
-        if fewshot_indices:  # subset few-shot docs from
-            if not isinstance(self.docs, datasets.Dataset):
-                raise ValueError(
-                    "Got `fewshot_indices` but fewshot_docs are not a HF dataset. Don't use both `fewshot_indices` and a user-defined few-shot sample list simultaneously"
-                )
-            self.docs = self.docs.select(fewshot_indices)
-
-    def get_context(self, doc: dict, num_fewshot: int, gen_prefix: str = None):
-        # draw an extra fewshot sample if using same split as evaluating on
-        prefix = gen_prefix + " " if gen_prefix else ""
-        n_samples = (
-            num_fewshot + 1
-            if self.config.fewshot_split == self.config.test_split
-            else num_fewshot
-        )
-
-        # draw `n_samples` docs from fewshot_docs
-        fewshotex = self.sample(n_samples)
-
-        # get rid of the doc that's the one we're evaluating, if it's in the fewshot
-        # TODO: should we just stop people from using fewshot from same split as evaluating?
-        selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
-
-        labeled_examples = ""
-        for doc in selected_docs:
-            doc_content = self.doc_to_text(doc)
-            doc_target = self.doc_to_target(doc)
-            if self.config.doc_to_choice is None or isinstance(doc_content, str):
-                labeled_examples += doc_content
-            else:
-                labeled_examples += self.doc_to_choice(doc)[doc_content]
-
-            if doc_target != "":
-                if self.target_delimiter.isspace() and str(doc_target)[0].isspace():
-                    # TODO: add logger warn once here.
-                    warnings.warn(
-                        "Both target_delimiter and target start with a space. This may cause issues.",
-                        Warning,
-                        stacklevel=2,
-                    )
-                labeled_examples += self.target_delimiter
-                labeled_examples += prefix
-                labeled_examples += (
-                    str(doc_target[0])
-                    if isinstance(doc_target, list)
-                    else doc_target
-                    if self.config.doc_to_choice is None or isinstance(doc_target, str)
-                    else str(self.doc_to_choice(doc)[doc_target])
-                )
-                labeled_examples += self.fewshot_delimiter
-
-        return labeled_examples
-
-    def get_chat_context(
+    def sample(
         self,
-        doc: dict,
-        num_fewshot: int,
-        fewshot_as_multiturn: bool = False,
-        gen_prefix: Optional[str] = None,
-    ):
-        # TODO: Do we need any other delimiter
-        prefix = gen_prefix + " " if gen_prefix else ""
-        chat_history = []
-        # draw an extra fewshot sample if using same split as evaluating on
-        n_samples = (
-            num_fewshot + 1
-            if self.config.fewshot_split == self.config.test_split
-            else num_fewshot
-        )
-        # draw `n_samples` docs from fewshot_docs
-        fewshotex = self.sample(n_samples)
+        n: int,
+        eval_doc: dict[str, Any] | None = None,
+        df: Sequence[dict[str, Any]] | None = None,
+        **kwargs,
+    ) -> Sequence[dict[str, Any]]:
+        """
+        Sample n documents from the pool.
 
-        # get rid of the doc that's the one we're evaluating, if it's in the fewshot
-        # TODO: should we just stop people from using fewshot from same split as evaluating?
-        selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
+        Args:
+            n: Number of documents to sample
+            eval_doc: Optional document to exclude from sampling
+            df: Optional list of documents to sample from
 
-        if fewshot_as_multiturn:
-            for doc in selected_docs:
-                doc_content = self.doc_to_text(doc)
-                doc_target = self.doc_to_target(doc)
-                chat_history.append(
-                    {
-                        "role": "user",
-                        "content": doc_content
-                        if self.config.doc_to_choice is None
-                        or isinstance(doc_content, str)
-                        else self.doc_to_choice(doc)[doc_content],
-                    }
-                )
-                chat_history.append(
-                    {
-                        "role": "assistant",
-                        "content": prefix + str(doc_target[0])
-                        if isinstance(doc_target, list)
-                        else prefix + doc_target
-                        if self.config.doc_to_choice is None
-                        or isinstance(doc_target, str)
-                        else prefix + str(self.doc_to_choice(doc)[doc_target]),
-                    }
-                )
-        else:
-            # get fewshot context as one user turn
-            chat_history.append(
-                {
-                    "role": "user",
-                    "content": self.get_context(
-                        doc, num_fewshot, gen_prefix=gen_prefix
-                    ),
-                }
+        Returns:
+            List of sampled documents
+        """
+        assert n >= 0, "Error: number of samples requested must be >=0"
+        if n == 0:
+            return []
+
+        if df:
+            self.df = df
+
+        assert self.df, "Error: no documents available for sampling."
+        res = (
+            self.rnd.sample(self.fewshot_docs(), n)
+            if not eval_doc
+            else self.rm_eval_doc(
+                eval_doc, self.rnd.sample(self.fewshot_docs(), n + 1), n
             )
+        )
+        assert len(res) == n, (
+            f"Error: number of fewshot samples returned ({len(res)}) not equal to number requested ({n})."
+        )
+        return res
 
-        return chat_history
+    def set_rnd(self, rnd: int | None):
+        self.rnd = Random(rnd)
+        return self
 
-    def sample(self, n: int):
-        """
-        Draw `n` samples from our fewshot docs. This method should be overridden by subclasses.
-        """
+    def replace_df(self, df: Sequence[dict[str, Any]]):
+        self.df = df
+        self._loaded = False
+        return self
 
-        return self.rnd.sample(self.docs, n)
+    def fewshot_docs(self):
+        """Return cached fewshot docs if available"""
+        if self._loaded:
+            return self.df
+        if self.fewshot_indices and self.df and not self._loaded:
+            self.df = [self.df[i] for i in self.fewshot_indices]
+        self._loaded = True
+        return list(self.df)
+
+    @staticmethod
+    def rm_eval_doc(doc: _T, _iter: Iterable[_T], n=None) -> Sequence[_T]:
+        return (
+            [x for x in _iter if x != doc]
+            if n is None
+            else [x for x in _iter if x != doc][:n]
+        )
 
 
 class FirstNSampler(ContextSampler):
-    def sample(self, n: int) -> None:
+    def sample(self, n: int, eval_doc=None, df=None, **kwargs):
         """
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
-        assert n <= len(self.docs), (
-            f"Error: number of fewshot samples requested exceeds the {len(self.docs)} that are available."
+        assert n <= len(self.df), (
+            f"Error: number of fewshot samples requested exceeds the {len(self.df)} that are available."
         )
-        return self.docs[:n]
+        return self.df[:n]
 
 
 class BalancedSampler(ContextSampler):
-    def sample(self, n: int) -> None:
+    def sample(self, n: int, eval_doc=None, df=None, **kwargs):
         """
         TODO: this should return approximately class-balanced samples from our fewshot examples.
         TODO: what order should they be in? maybe random?
         """
 
-        pass
+        raise NotImplementedError
 
 
 class ManualSampler(ContextSampler):
-    def sample(self, n: int) -> None:
+    def sample(self, n: int, eval_doc=None, df=None, **kwargs):
         """ """
-        pass
+        raise NotImplementedError
 
 
-SAMPLER_REGISTRY = {
+SAMPLER_REGISTRY: dict[str, type[ContextSampler]] = {
     "default": ContextSampler,
     "first_n": FirstNSampler,
 }
@@ -226,7 +130,7 @@ SAMPLER_REGISTRY = {
 def get_sampler(name: str):
     try:
         return SAMPLER_REGISTRY[name]
-    except KeyError:
-        raise ValueError(
+    except KeyError as e:
+        raise KeyError(
             f"Attempted to use contextsampler '{name}', but no sampling strategy for this name found! Supported model names: {', '.join(SAMPLER_REGISTRY.keys())}"
-        )
+        ) from e

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_hi_in_stem_tasks"
+"task": "mmmlu_hi_in_abstract_algebra"
+"task_alias": "abstract algebra (Hindi)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (Hindi).\n\n"

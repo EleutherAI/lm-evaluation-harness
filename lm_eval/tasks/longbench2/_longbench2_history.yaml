@@ -1,0 +1,10 @@
+group: longbench2_history
+group_alias: "Long-dialogue History Understanding"
+task:
+  - longbench2_agent_history
+  - longbench2_dialogue_history
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0.0

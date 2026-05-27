@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_college_physics
+"tag": "mmmlu_pt_br_stem_tasks"
+"task": "mmmlu_pt_br_college_physics"
+"task_alias": "college physics (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about college physics (Brazilian Portuguese).\n\n"

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_machine_learning
+"tag": "mmmlu_hi_in_stem_tasks"
+"task": "mmmlu_hi_in_machine_learning"
+"task_alias": "machine learning (Hindi)"
+"description": "The following are multiple choice questions (with answers) about machine learning (Hindi).\n\n"

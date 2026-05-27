@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2_tasks
+  - longbench2_incontext_tasks
+task: longbench2_user_guide
+dataset_name: user_guide_qa

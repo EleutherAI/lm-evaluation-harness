@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_machine_learning
+"tag": "mmmlu_de_de_stem_tasks"
+"task": "mmmlu_de_de_machine_learning"
+"task_alias": "machine learning (German)"
+"description": "The following are multiple choice questions (with answers) about machine learning (German).\n\n"

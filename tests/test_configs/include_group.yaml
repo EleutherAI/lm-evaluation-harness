@@ -1,0 +1,8 @@
+# Group with multiple tasks using include inheritance
+# Demonstrates tasks sharing the same base config
+
+group: include_group
+task:
+  - include_task_fs0
+  - include_task_fs1
+  - include_task_fs5

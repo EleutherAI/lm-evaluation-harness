@@ -1,0 +1,15 @@
+group: mmmlu_ja_jp
+group_alias: "Japanese"
+task:
+  - mmmlu_ja_jp_stem
+  - mmmlu_ja_jp_other
+  - mmmlu_ja_jp_social_sciences
+  - mmmlu_ja_jp_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_professional_accounting
+"tag": "mmmlu_hi_in_other_tasks"
+"task": "mmmlu_hi_in_professional_accounting"
+"task_alias": "professional accounting (Hindi)"
+"description": "The following are multiple choice questions (with answers) about professional accounting (Hindi).\n\n"

@@ -3,7 +3,7 @@
 models=(
 
   "google/gemma-1.1-7b-it"
-  "CohereForAI/aya-101"
+  "CohereLabs/aya-101"
   "meta-llama/Llama-2-7b-chat-hf"
   "meta-llama/Meta-Llama-3-8B-Instruct"
   "google/gemma-2-9b-it"

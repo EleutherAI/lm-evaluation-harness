@@ -1,5 +1,5 @@
 task: sciq
-dataset_path: sciq
+dataset_path: allenai/sciq
 dataset_name: null
 output_type: multiple_choice
 training_split: train

@@ -1,5 +1,4 @@
 import copy
-from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 import transformers
@@ -12,8 +11,8 @@ from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import (
     Collator,
     replace_placeholders,
-    stop_sequences_criteria,
 )
+from lm_eval.models.utils_hf import stop_sequences_criteria
 
 
 DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>"]
@@ -30,8 +29,8 @@ class HFAUDIOLMQWEN(HFLM):
 
     def __init__(
         self,
-        pretrained: Union[str, transformers.PreTrainedModel],
-        max_audios: Optional[int] = 5,
+        pretrained: str | transformers.PreTrainedModel,
+        max_audios: int | None = 5,
         **kwargs,
     ):
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
@@ -42,15 +41,10 @@ class HFAUDIOLMQWEN(HFLM):
 
     def _create_tokenizer(
         self,
-        pretrained: Union[str, transformers.PreTrainedModel],
-        tokenizer: Optional[
-            Union[
-                str,
-                transformers.ProcessorMixin,
-            ]
-        ],
-        revision: Optional[str] = "main",
-        trust_remote_code: Optional[bool] = False,
+        pretrained: str | transformers.PreTrainedModel,
+        tokenizer: str | transformers.ProcessorMixin | None,
+        revision: str | None = "main",
+        trust_remote_code: bool | None = False,
         **kwargs,
     ) -> None:
         """
@@ -89,7 +83,7 @@ class HFAUDIOLMQWEN(HFLM):
         self.tokenizer = self.processor.tokenizer
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+        self, chat_history: list[dict[str, str]], add_generation_prompt: bool = True
     ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
@@ -103,7 +97,7 @@ class HFAUDIOLMQWEN(HFLM):
 
     def _model_multimodal_generate(self, inputs, max_length, stop, **generation_kwargs):
         generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
-        do_sample = generation_kwargs.get("do_sample", None)
+        do_sample = generation_kwargs.get("do_sample")
 
         # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
         if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
@@ -129,14 +123,14 @@ class HFAUDIOLMQWEN(HFLM):
 
     def tok_batch_multimodal_encode(
         self,
-        strings: List[str],  # note that input signature of this fn is different
-        audios: List[List],
+        strings: list[str],  # note that input signature of this fn is different
+        audios: list[list],
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
-    ) -> Union[
-        BatchEncoding, Dict[str, torch.Tensor]
-    ]:  # note that this return signature differs from HFLM tok_batch_encode.
+    ) -> (
+        BatchEncoding | dict[str, torch.Tensor]
+    ):  # note that this return signature differs from HFLM tok_batch_encode.
         # NOTE: here, we replace <audio> tags with our model's corresponding image_token string value.
         def _replace_placeholder(placeholder, strings):
             return [
@@ -169,8 +163,8 @@ class HFAUDIOLMQWEN(HFLM):
         return encoding
 
     def generate_until(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[str]:
         res = []
 
         def _collate(x):
@@ -204,7 +198,7 @@ class HFAUDIOLMQWEN(HFLM):
         ### Up to here: was identical to non-multimodal HFLM generate_until ###
 
         for chunk in chunks:
-            contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
+            contexts, all_gen_kwargs, aux_arguments = zip(*chunk, strict=False)
 
             audios = []
             for audio_lst_dict in aux_arguments:
@@ -276,7 +270,7 @@ class HFAUDIOLMQWEN(HFLM):
             ### essentially same as HFLM beyond this line!
 
             cont_toks_list = cont.tolist()
-            for cont_toks, context in zip(cont_toks_list, contexts):
+            for cont_toks, context in zip(cont_toks_list, contexts, strict=False):
                 # discard context + left-padding toks if using causal decoder-only VLM
                 cont_toks = cont_toks[context_enc.shape[1] :]
 
@@ -293,15 +287,15 @@ class HFAUDIOLMQWEN(HFLM):
         pbar.close()
         return res
 
-    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+    def loglikelihood_rolling(self, requests: list[Instance]) -> list[float]:
         raise NotImplementedError(
             "model type `hf-audiolm` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks ",
             "this is because we do not support measuring the loglikelihood a model assigns to an image.",
         )
 
     def loglikelihood(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[tuple[float, bool]]:
         raise NotImplementedError(
             "'loglikelihood' requests for model type `hf-audiolm` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
         )

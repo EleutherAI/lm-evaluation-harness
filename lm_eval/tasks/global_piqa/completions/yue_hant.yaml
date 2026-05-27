@@ -1,0 +1,3 @@
+dataset_name: yue_hant
+include: _template
+task: global_piqa_completions_yue_hant

@@ -1,4 +1,5 @@
-group: meddialog
+tag:
+  - meddialog
 task: meddialog_raw_dialogues
 dataset_path: bigbio/meddialog
 description: >

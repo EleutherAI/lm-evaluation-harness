@@ -1,0 +1,10 @@
+group: mmmlu_fr_fr_stem
+group_alias: "French stem"
+task:
+  - mmmlu_fr_fr_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

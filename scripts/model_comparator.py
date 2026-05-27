@@ -1,15 +1,13 @@
 import argparse
 import logging
 import os
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
 import torch
 
 import lm_eval.evaluator
-import lm_eval.models.utils
-from lm_eval import tasks
+import lm_eval.models.utils_hf
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -18,28 +16,32 @@ eval_logger = logging.getLogger(__name__)
 
 def memory_stats():
     eval_logger.info(
-        f"Memory allocated: {torch.cuda.memory_allocated() / 1024**2}, reserved: {torch.cuda.memory_reserved() // 1024**2}"
+        "Memory allocated: %s, reserved: %s",
+        torch.cuda.memory_allocated() / 1024**2,
+        torch.cuda.memory_reserved() // 1024**2,
     )
 
 
-def calculate_z_value(res1: Dict, res2: Dict) -> Tuple[float, float]:
-    from scipy.stats.norm import sf
+def calculate_z_value(res1: dict, res2: dict) -> tuple[float, float]:
+    from scipy.stats import norm
 
     acc1, acc2 = res1["acc,none"], res2["acc,none"]
     st_err1, st_err2 = res1["acc_stderr,none"], res2["acc_stderr,none"]
     Z = (acc1 - acc2) / np.sqrt((st_err1**2) + (st_err2**2))
     # Determining the p-value
-    p_value = 2 * sf(abs(Z))  # two-tailed test
+    p_value = 2 * norm.sf(abs(Z))  # two-tailed test
     return Z, p_value
 
 
 def print_results(
-    data_to_print: List = None, results_dict: Dict = None, alpha: float = None
+    data_to_print: list | None = None,
+    results_dict: dict | None = None,
+    alpha: float | None = None,
 ):
     model1_data = data_to_print[0]
     model2_data = data_to_print[1]
     table_data = []
-    for task in model1_data.keys():
+    for task in model1_data:
         row = {
             "Task": task,
             "HF Accuracy": model1_data[task]["acc,none"],
@@ -102,7 +104,6 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    tasks.initialize_tasks()
     args = parse_args()
     tasks = args.tasks.split(",")
     print(tasks)
@@ -116,7 +117,7 @@ if __name__ == "__main__":
         batch_size=args.batch,
     )
     memory_stats()
-    lm_eval.models.utils.clear_torch_cache()
+    lm_eval.models.utils_hf.clear_torch_cache()
     eval_logger.info("Memory stats cleared")
     memory_stats()
     results_hf = lm_eval.evaluator.simple_evaluate(
@@ -129,7 +130,7 @@ if __name__ == "__main__":
     )
     all_res = {}
     for task1, task2 in zip(
-        results_hf["results"].items(), results_vllm["results"].items()
+        results_hf["results"].items(), results_vllm["results"].items(), strict=True
     ):
         assert task1[0] == task2[0]
         z, p_value = calculate_z_value(task1[1], task2[1])

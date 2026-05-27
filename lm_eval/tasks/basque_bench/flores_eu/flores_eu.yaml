@@ -1,21 +1,21 @@
 group: flores_eu
 task:
-  - flores_es-eu
-  - flores_eu-es
-  - flores_en-eu
-  - flores_eu-en
-  - flores_eu-pt
-  - flores_pt-eu
-  - flores_eu-it
-  - flores_it-eu
-  - flores_eu-fr
-  - flores_fr-eu
-  - flores_eu-ca
-  - flores_ca-eu
-  - flores_eu-gl
-  - flores_gl-eu
-  - flores_eu-de
-  - flores_de-eu
+  - basque_bench_flores_es-eu
+  - basque_bench_flores_eu-es
+  - basque_bench_flores_en-eu
+  - basque_bench_flores_eu-en
+  - basque_bench_flores_eu-pt
+  - basque_bench_flores_pt-eu
+  - basque_bench_flores_eu-it
+  - basque_bench_flores_it-eu
+  - basque_bench_flores_eu-fr
+  - basque_bench_flores_fr-eu
+  - basque_bench_flores_eu-ca
+  - basque_bench_flores_ca-eu
+  - basque_bench_flores_eu-gl
+  - basque_bench_flores_gl-eu
+  - basque_bench_flores_eu-de
+  - basque_bench_flores_de-eu
 aggregate_metric_list:
   - metric: bleu
     aggregation: mean

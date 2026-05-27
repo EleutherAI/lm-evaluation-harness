@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ES_LA"
+process_docs: !function utils.process_high_school_psychology
+"tag": "mmmlu_es_la_social_sciences_tasks"
+"task": "mmmlu_es_la_high_school_psychology"
+"task_alias": "high school psychology (Spanish)"
+"description": "The following are multiple choice questions (with answers) about high school psychology (Spanish).\n\n"

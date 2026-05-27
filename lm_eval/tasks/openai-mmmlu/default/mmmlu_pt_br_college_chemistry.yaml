@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_college_chemistry
+"tag": "mmmlu_pt_br_stem_tasks"
+"task": "mmmlu_pt_br_college_chemistry"
+"task_alias": "college chemistry (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about college chemistry (Brazilian Portuguese).\n\n"

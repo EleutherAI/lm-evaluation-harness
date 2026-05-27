@@ -1,0 +1,15 @@
+group: mmmlu_ar_xy
+group_alias: "Arabic"
+task:
+  - mmmlu_ar_xy_stem
+  - mmmlu_ar_xy_other
+  - mmmlu_ar_xy_social_sciences
+  - mmmlu_ar_xy_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

@@ -41,7 +41,7 @@ Homepage: https://github.com/openai/grade-school-math
 
 #### Tasks
 
-- `gsm8k_yaml`
+- `gsm8k`
 - `gsm8k_cot`: GSM8K with Chain-of-Thought
 - `gsm8k_cot_self_consistency`: GSM8K with Chain-of-Thought and Self-Consistency
 - `gsm8k_cot_llama`: GSM8K with prompt formatting modified to conform to the evaluation settings described by Meta here: https://huggingface.co/datasets/meta-llama/Meta-Llama-3.1-8B-Instruct-evals/viewer/Meta-Llama-3.1-8B-Instruct-evals__gsm8k__details?row=0
@@ -60,3 +60,6 @@ Homepage: https://github.com/openai/grade-school-math
 - [ ] Variant with Calculator (see https://github.com/openai/grade-school-math/blob/master/grade_school_math/calculator.py for example implementation)
 - [ ] Using Verifiers
 - [ ] Majority voting "without CoT"
+
+Change log:
+- [2026-01-27] `gsm8k_cot_llama` (v4.0): set 'target_delimiter' to empty as the prompt ends with newline.

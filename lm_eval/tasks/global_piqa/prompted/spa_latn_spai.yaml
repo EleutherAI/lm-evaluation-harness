@@ -1,0 +1,3 @@
+dataset_name: spa_latn_spai
+include: _template
+task: global_piqa_prompted_spa_latn_spai

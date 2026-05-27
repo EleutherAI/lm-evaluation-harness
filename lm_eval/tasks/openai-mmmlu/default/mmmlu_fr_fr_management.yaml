@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_management
+"tag": "mmmlu_fr_fr_other_tasks"
+"task": "mmmlu_fr_fr_management"
+"task_alias": "management (French)"
+"description": "The following are multiple choice questions (with answers) about management (French).\n\n"

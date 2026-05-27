@@ -1,0 +1,3 @@
+dataset_name: fra_latn_cana
+include: _template
+task: global_piqa_completions_fra_latn_cana

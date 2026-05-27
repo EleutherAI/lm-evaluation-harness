@@ -1,0 +1,15 @@
+group: mmmlu_pt_br
+group_alias: "Brazilian Portuguese"
+task:
+  - mmmlu_pt_br_stem
+  - mmmlu_pt_br_other
+  - mmmlu_pt_br_social_sciences
+  - mmmlu_pt_br_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

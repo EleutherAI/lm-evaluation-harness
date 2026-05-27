@@ -293,7 +293,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                         {
                             #                            "group": "flores_pt",
                             "include": "_flores_common_yaml",
-                            "task": f"flores_{lang_pair_name}",
+                            "task": f"portuguese_bench_flores_{lang_pair_name}",
                             "doc_to_text": doc_to_text(src, tgt),
                             "doc_to_target": doc_to_target(tgt),
                         },

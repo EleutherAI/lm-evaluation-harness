@@ -6,7 +6,6 @@ Usage:
 import argparse
 import logging
 import os
-from typing import List
 
 import torch
 from transformers import (
@@ -14,7 +13,6 @@ from transformers import (
 )
 
 from lm_eval import simple_evaluate
-from lm_eval.evaluator import request_caching_arg_to_dict
 
 
 eval_logger = logging.getLogger(__name__)
@@ -34,7 +32,7 @@ MODEL = "EleutherAI/pythia-70m"
 TASK = "text-generation"
 
 
-def run_model_for_task_caching(tasks: List[str], cache_requests: str):
+def run_model_for_task_caching(tasks: list[str], cache_requests: str):
     eval_logger.info(f"Loading HF model: {MODEL}")
 
     trans_pipe = trans_pipeline(
@@ -93,3 +91,13 @@ if __name__ == "__main__":
     eval_data = run_model_for_task_caching(
         tasks=tasks, model=MODEL, device=DEVICE, cache_requests=args.cache_requests
     )
+
+
+def request_caching_arg_to_dict(cache_requests: str) -> dict:
+    request_caching_args = {
+        "cache_requests": cache_requests in {"true", "refresh"},
+        "rewrite_requests_cache": cache_requests == "refresh",
+        "delete_requests_cache": cache_requests == "delete",
+    }
+
+    return request_caching_args

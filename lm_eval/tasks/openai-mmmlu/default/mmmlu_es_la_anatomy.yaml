@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ES_LA"
+process_docs: !function utils.process_anatomy
+"tag": "mmmlu_es_la_stem_tasks"
+"task": "mmmlu_es_la_anatomy"
+"task_alias": "anatomy (Spanish)"
+"description": "The following are multiple choice questions (with answers) about anatomy (Spanish).\n\n"

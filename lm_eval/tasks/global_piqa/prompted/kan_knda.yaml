@@ -1,0 +1,3 @@
+dataset_name: kan_knda
+include: _template
+task: global_piqa_prompted_kan_knda

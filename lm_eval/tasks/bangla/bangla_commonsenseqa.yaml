@@ -1,0 +1,24 @@
+task: bangla_commonsenseqa
+dataset_path: hishab/commonsenseqa-bn
+description: "The following are Bangla multiple-choice CommonsenseQA-style questions."
+test_split: validation
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_text: |-
+  {{question_stem.strip()}}
+  {% for i in range(choices['label'] | length) -%}
+  {{choices['label'][i]}}. {{choices['text'][i]}}
+  {% endfor -%}
+  Answer:
+doc_to_choice: ["A", "B", "C", "D", "E"]
+doc_to_target: answerKey
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

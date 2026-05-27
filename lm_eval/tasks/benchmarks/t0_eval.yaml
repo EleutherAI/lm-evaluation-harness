@@ -1,7 +1,7 @@
 group: t0_eval
 task:
   # Coreference Resolution
-  - dataset_path: super_glue
+  - dataset_path: aps/super_glue
     dataset_name: wsc.fixed
     use_prompt: promptsource:*
     training_split: train
@@ -27,7 +27,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   # Natural Language Inference
-  - dataset_path: super_glue
+  - dataset_path: aps/super_glue
     dataset_name: cb
     use_prompt: promptsource:*
     training_split: train
@@ -39,7 +39,7 @@ task:
         higher_is_better: true
         ignore_case: true
         ignore_punctuation: true
-  - dataset_path: super_glue
+  - dataset_path: aps/super_glue
     dataset_name: rte
     use_prompt: promptsource:*
     training_split: train
@@ -88,7 +88,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   # Sentence Completion
-  - dataset_path: super_glue
+  - dataset_path: aps/super_glue
     dataset_name: copa
     use_prompt: promptsource:*
     training_split: train
@@ -113,7 +113,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   # Word Sense Disambiguation
-  - dataset_path: super_glue
+  - dataset_path: aps/super_glue
     dataset_name: wic
     use_prompt: promptsource:*
     training_split: train

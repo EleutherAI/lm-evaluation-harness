@@ -1,0 +1,10 @@
+include: _infinitebench_common_yaml
+task: infinitebench_code_debug
+test_split: code_debug
+process_results: !function utils.process_results_code_debug
+doc_to_text: !function utils.doc_to_text_code_debug
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 5
+  until: ["\n"]

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_high_school_us_history
+"tag": "mmmlu_bn_bd_humanities_tasks"
+"task": "mmmlu_bn_bd_high_school_us_history"
+"task_alias": "high school us history (Bengali)"
+"description": "The following are multiple choice questions (with answers) about high school us history (Bengali).\n\n"

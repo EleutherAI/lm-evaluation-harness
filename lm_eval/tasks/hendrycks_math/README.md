@@ -36,6 +36,7 @@ Homepage: https://github.com/hendrycks/math
 - `hendrycks_math_num_theory`
 - `hendrycks_math_prealgebra`
 - `hendrycks_math_precalc`
+- `hendrycks_math500`
 
 ### Checklist
 
