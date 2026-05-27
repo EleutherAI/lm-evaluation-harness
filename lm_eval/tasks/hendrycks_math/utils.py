@@ -45,7 +45,9 @@ def is_equiv(str1, str2, verbose=False):
         ss2 = strip_string(str2)
         if verbose:
             print(ss1, ss2)
-        return ss1 == ss2
+        import re
+        clean = lambda s: sorted(re.sub(r'_(?:[0-9]+|\{[0-9]+\})$', '', x) for x in s.split(","))
+        return clean(ss1) == clean(ss2)
     except Exception:
         return str1 == str2
 
