@@ -166,11 +166,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
             auth_token=auth_token,
             **kwargs,
         )
-        if self._batch_size > 1:
-            eval_logger.warning(
-                "Chat completions does not support batching. Defaulting to batch size 1."
-            )
-            self._batch_size = 1
+
 
     def _create_payload(
         self,
