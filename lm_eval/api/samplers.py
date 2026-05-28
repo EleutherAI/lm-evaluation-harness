@@ -61,6 +61,14 @@ class ContextSampler:
                 eval_doc, self.rnd.sample(self.fewshot_docs(), n + 1), n
             )
         )
+        if len(res) < n:
+            # The eval_doc path samples n + 1 docs to leave headroom for removing
+            # a single eval_doc occurrence. If the pool holds duplicate rows equal
+            # to eval_doc, more than one copy can be drawn and removed, leaving
+            # fewer than n. Resample from the pool with every eval_doc copy
+            # removed so we still return n examples.
+            pool = [x for x in self.fewshot_docs() if x != eval_doc]
+            res = self.rnd.sample(pool, n)
         assert len(res) == n, (
             f"Error: number of fewshot samples returned ({len(res)}) not equal to number requested ({n})."
         )
