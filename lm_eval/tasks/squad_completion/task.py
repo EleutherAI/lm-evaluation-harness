@@ -1,6 +1,5 @@
 import re
 from copy import deepcopy
-from typing import List
 
 import numpy as np
 
@@ -29,10 +28,10 @@ class SQUADCompletion(ConfigurableTask):
         return self.dataset["validation"]
 
     def doc_to_text(self, doc):
-        return doc["text"]
+        return doc["text"].strip()
 
     def doc_to_target(self, doc):
-        return doc["value"]
+        return doc["value"].strip()
 
     def construct_requests(
         self, doc, ctx, chat_template=None, apply_chat_template=False, **kwargs
@@ -96,7 +95,7 @@ class SQUADCompletion(ConfigurableTask):
         }
 
 
-def contains_score(prediction: str, labels: List[str]):
+def contains_score(prediction: str, labels: list[str]):
     return max(
         int(bool(re.search(re.compile(re.escape(label), re.IGNORECASE), prediction)))
         for label in labels
