@@ -1,0 +1,20 @@
+group: zero_scrolls
+task: zero_scrolls_book_sum_sort
+dataset_path: tau/zero_scrolls
+dataset_name: book_sum_sort
+validation_split: validation
+process_docs: !function utils.process_docs
+output_type: generate_until
+# Input contains shuffled chapter summaries; model must output their correct order.
+doc_to_text: "{{context}}\n\nQuestion: Sort the above chapter summaries in the order they appear in the book by listing their numbers separated by commas.\nAnswer:"
+doc_to_target: "{{output}}"
+process_results: !function utils.process_book_sum_sort
+generation_kwargs:
+  max_gen_toks: 512
+  until: []
+metric_list:
+  - metric: concordance
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
