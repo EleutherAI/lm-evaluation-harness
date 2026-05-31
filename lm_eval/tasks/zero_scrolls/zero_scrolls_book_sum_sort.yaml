@@ -1,7 +1,9 @@
-group: zero_scrolls
+tag: zero_scrolls
 task: zero_scrolls_book_sum_sort
 dataset_path: tau/zero_scrolls
 dataset_name: book_sum_sort
+dataset_kwargs:
+  trust_remote_code: true
 validation_split: validation
 process_docs: !function utils.process_docs
 output_type: generate_until
