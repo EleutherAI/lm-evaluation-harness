@@ -27,10 +27,16 @@ def process_docs(docs):
         text = doc["input"]
         n = len(text)
 
-        qs = doc.get("query_start_index") or -1
-        qe = doc.get("query_end_index") or -1
-        ds = doc.get("document_start_index") or 0
-        de = doc.get("document_end_index") or n
+        # Use explicit None checks: 0 is a valid start index but is falsy.
+        raw_qs = doc.get("query_start_index")
+        raw_qe = doc.get("query_end_index")
+        raw_ds = doc.get("document_start_index")
+        raw_de = doc.get("document_end_index")
+
+        qs = -1 if raw_qs is None else int(raw_qs)
+        qe = -1 if raw_qe is None else int(raw_qe)
+        ds = 0 if raw_ds is None else int(raw_ds)
+        de = n if raw_de is None else int(raw_de)
 
         question = text[qs:qe] if 0 <= qs < qe <= n else ""
         context = text[ds : min(de, n)]
