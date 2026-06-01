@@ -6,13 +6,9 @@ import textwrap
 from functools import partial
 
 from lm_eval._cli.subcommand import SubCommand
-from lm_eval._cli.utils import (
-    MergeDictAction,
-    SplitArgs,
-    _int_or_none_list_arg_type,
-    request_caching_arg_to_dict,
-    try_parse_json,
-)
+from lm_eval._cli.utils import (MergeDictAction, SplitArgs,
+                                _int_or_none_list_arg_type,
+                                request_caching_arg_to_dict, try_parse_json)
 
 
 class Run(SubCommand):
@@ -71,7 +67,7 @@ class Run(SubCommand):
             action=SplitArgs,
             help=textwrap.dedent("""
                 Space (or comma-separated) list of task names or groupings.
-                Use 'lm-eval list tasks' to see all available tasks.
+                Use 'lm-eval ls tasks' to see all available tasks.
             """).strip(),
         )
         model_group.add_argument(
@@ -355,7 +351,8 @@ class Run(SubCommand):
         cfg = EvaluatorConfig.from_cli(args)
 
         from lm_eval import simple_evaluate
-        from lm_eval.loggers import EvaluationTracker, TrackioLogger, WandbLogger
+        from lm_eval.loggers import (EvaluationTracker, TrackioLogger,
+                                     WandbLogger)
         from lm_eval.utils import handle_non_serializable, make_table
 
         # Set up logging
