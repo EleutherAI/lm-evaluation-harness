@@ -11,15 +11,15 @@ Tokenizers provide the fundamental basis through which text is represented and p
 Homepage: [https://huggingface.co/toksuite](https://huggingface.co/toksuite)
 
 ### Citation
-```
-@misc{toksuite2025,
-      title={TokSuite: Measuring the Impact of Tokenizer Choice on Language Model Behavior},
-      author={Gül Sena Altıntaş and Malikeh Ehghaghi and Brian Lester and Fengyuan Liu and Wanru Zhao and Marco Ciccone and Colin Raffel},
-      year={2025},
-      eprint={2512.20757},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2512.20757},
+```bibtex
+@inproceedings{altintas2026toksuite,
+  author       = {G{"u}l Sena Altınta\c{s} and Malikeh Ehghaghi and Brian Lester and Fengyuan Liu and Wanru Zhao and Marco Ciccone and Colin Raffel},
+  title        = {{TokSuite}: Measuring the Impact of Tokenizer Choice on Language Model Behavior},
+  booktitle    = {Proceedings of the 43rd International Conference on Machine Learning (ICML)},
+  year         = {2026},
+  eprint       = {2512.20757},
+  archivePrefix= {arXiv},
+  url          = {https://arxiv.org/abs/2512.20757}
 }
 ```
 
