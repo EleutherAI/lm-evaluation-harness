@@ -35,7 +35,7 @@ DOCUMENT_PROMPT = "Document {i}:\n{document}"
 
 @cache
 def download_json(url) -> dict:
-    response = requests.get(url)
+    response = requests.get(url, timeout=60)
     response.raise_for_status()
     data = response.json()
     return data
@@ -47,7 +47,7 @@ def read_squad(
 ) -> tuple[list[dict], list[str]]:
     data = download_json(url)
     total_docs = [p["context"] for d in data["data"] for p in d["paragraphs"]]
-    total_docs = sorted(list(set(total_docs)))
+    total_docs = sorted(set(total_docs))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
 
     total_qas = []
@@ -80,7 +80,7 @@ def read_hotpotqa(
 ) -> tuple[list[dict], list[str]]:
     data = download_json(url)
     total_docs = [f"{t}\n{''.join(p)}" for d in data for t, p in d["context"]]
-    total_docs = sorted(list(set(total_docs)))
+    total_docs = sorted(set(total_docs))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
 
     total_qas = []
