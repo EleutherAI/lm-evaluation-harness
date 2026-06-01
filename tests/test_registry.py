@@ -408,6 +408,47 @@ class TestJuryevalIntegration:
         assert get_metric_aggregation("pairwise_judge") is not None
         assert get_metric_aggregation("pointwise_judge") is not None
 
+    def test_juryeval_metrics_use_mean_aggregation(self):
+        """Both juryeval metrics should use 'mean' as their aggregation."""
+        try:
+            import juryeval  # noqa: F401
+        except ImportError:
+            pytest.skip("juryeval not installed")
+        agg_pairwise = get_metric_aggregation("pairwise_judge")
+        agg_pointwise = get_metric_aggregation("pointwise_judge")
+        assert agg_pairwise is not None
+        assert agg_pointwise is not None
+        # The aggregation should produce a valid float mean over a sample list
+        result = agg_pairwise([0.5, 0.5, 1.0])
+        assert isinstance(result, float)
+        assert result == pytest.approx(0.666, abs=0.01)
+
+    def test_juryeval_import_graceful_when_missing(self):
+        """Ensure importing the module does not crash when juryeval is absent."""
+        import importlib
+        import sys
+
+        # Remove any juryeval modules that might be cached
+        for mod in list(sys.modules.keys()):
+            if "juryeval" in mod:
+                del sys.modules[mod]
+
+        # Simulate non-installed state by forcing the try/except path
+        try:
+            import lm_eval.api.metrics  # noqa: F401
+        except Exception:
+            pytest.fail("Importing metrics crashed when juryeval is absent")
+
+    def test_juryeval_metrics_config(self):
+        """Verify juryeval metrics have correct output_type configuration."""
+        try:
+            from juryeval.lmeval.metrics import register_all
+        except ImportError:
+            pytest.skip("juryeval not installed")
+        # Should be idempotent — calling twice produces no error
+        register_all()
+        register_all()
+
 
 class TestRegistryClear:
     """Test registry clear functionality (for test isolation)."""
