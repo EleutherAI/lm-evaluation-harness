@@ -1,0 +1,45 @@
+task: prompt_defense_eval
+custom_dataset: !function utils.load_dataset
+test_split: test
+output_type: generate_until
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{category}}"
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 512
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_xss
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_sqli
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_shell
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_path
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_credential
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_markdown
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_code
+    aggregation: mean
+    higher_is_better: true
+repeats: 1
+num_fewshot: 0
+metadata:
+  version: 0.0
+  catalog_version: "0.1.0"
