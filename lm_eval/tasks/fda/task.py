@@ -69,7 +69,7 @@ class FDA(ConfigurableTask):
         # continuation, (logprob_unanswerable, _) = results
         continuation = results
 
-        return {"contains": contains_score(continuation[0], [doc["value"]])}
+        return {"contains": contains_score(continuation[0], [self.doc_to_target(doc)])}
 
     def aggregation(self):
         """
