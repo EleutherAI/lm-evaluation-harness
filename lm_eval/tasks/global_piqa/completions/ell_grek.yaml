@@ -1,3 +1,0 @@
-dataset_name: ell_grek
-include: _template
-task: global_piqa_completions_ell_grek
