@@ -54,7 +54,7 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
 
 - `timeout` (int, optional):
   - Timeout for API requests in seconds.
-  - Default is 30.
+  - Default is 300.
 
 - `tokenized_requests` (bool):
   - Determines whether the input is pre-tokenized. Defaults to `True`.
