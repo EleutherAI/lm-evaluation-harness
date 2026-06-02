@@ -49,6 +49,8 @@ MODEL_MAPPING = {
     "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
     "habana": "lm_eval.models.optimum_habana:HabanaLM",
+    "rbln": "lm_eval.models.optimum_rbln:RBLNLM",
+    "rbln-vlm": "lm_eval.models.optimum_rbln_vlm:RBLNVLM",
     "sglang": "lm_eval.models.sglang_causallms:SGLangLM",
     "sglang-generate": "lm_eval.models.sglang_generate_API:SGLANGGENERATEAPI",
     "steered": "lm_eval.models.hf_steered:SteeredModel",
@@ -59,7 +61,6 @@ MODEL_MAPPING = {
     "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:WatsonxLLM",
     "winml": "lm_eval.models.winml:WindowsML",
 }
-
 
 def _register_all_models():
     """Register all known models lazily in the registry."""
