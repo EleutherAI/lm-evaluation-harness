@@ -6,7 +6,7 @@ import yaml
 
 class IndentedDumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):
-        return super(IndentedDumper, self).increase_indent(flow, False)
+        return super().increase_indent(flow, False)
 
 
 PREFACE = "global_piqa_parallel_cloze"
@@ -19,9 +19,7 @@ def format_subset(subset: str, preface: str = PREFACE) -> str:
 if __name__ == "__main__":
     subsets = [
         x
-        for x in datasets.get_dataset_config_names(
-            "mrlbenchmarks/global-piqa-parallel"
-        )
+        for x in datasets.get_dataset_config_names("mrlbenchmarks/global-piqa-parallel")
         if not x.startswith("dev")
     ]
     PARENT = Path(__file__).parent

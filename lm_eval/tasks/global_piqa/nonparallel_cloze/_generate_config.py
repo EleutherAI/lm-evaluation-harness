@@ -6,7 +6,7 @@ import yaml
 
 class IndentedDumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):
-        return super(IndentedDumper, self).increase_indent(flow, False)
+        return super().increase_indent(flow, False)
 
 
 PREFACE = "global_piqa_nonparallel_cloze"
