@@ -1,6 +1,6 @@
 task: ja_leaderboard_mgsm
 
-dataset_path: juletxara/mgsm
+dataset_path: jbross-ibm-research/mgsm
 dataset_name: ja
 
 training_split: train
