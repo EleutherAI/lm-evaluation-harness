@@ -1,0 +1,15 @@
+group: zero_scrolls
+group_alias: ZeroSCROLLS
+task:
+  - zero_scrolls_govreport
+  - zero_scrolls_summ_screen_fd
+  - zero_scrolls_qmsum
+  - zero_scrolls_squality
+  - zero_scrolls_qasper
+  - zero_scrolls_narrative_qa
+  - zero_scrolls_quality
+  - zero_scrolls_musique
+  - zero_scrolls_space_digest
+  - zero_scrolls_book_sum_sort
+metadata:
+  version: 1.0
