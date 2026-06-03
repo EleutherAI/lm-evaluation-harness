@@ -1,3 +1,0 @@
-dataset_name: aeb_arab
-include: _template
-task: global_piqa_prompted_aeb_arab
