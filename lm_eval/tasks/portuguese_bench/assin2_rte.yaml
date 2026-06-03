@@ -1,0 +1,18 @@
+task: assin2_rte
+dataset_path: nilc-nlp/assin2
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: ""
+doc_to_target: "{{entailment_judgment}}"
+target_delimiter: ""
+doc_to_choice: '{{[premise + ", certo? Não, " + hypothesis, premise + ", certo? Sim, " + hypothesis]}}'
+metric_list:
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+    hf_evaluate: true
+    average: macro
+metadata:
+  version: 1.0
