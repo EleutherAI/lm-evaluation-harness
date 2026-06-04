@@ -1,0 +1,6 @@
+include: _ifbench.yml
+task: ifbench_ifeval-constraints_single-turn
+dataset_name: ifeval_constraints
+test_split: test
+dataset_path: allenai/IFBench_multi-turn
+doc_to_text: "{{prompt}}"
