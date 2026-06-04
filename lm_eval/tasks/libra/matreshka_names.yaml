@@ -6,24 +6,23 @@ dataset_name: matreshka_names
 dataset_kwargs:
   dataset_name: matreshka_names
 include: _template_yaml
-doc_to_text: 'Тебе предоставляются несколько диалогов. Запомни имена людей и темы,
-  на которые они говорили.
+doc_to_text: 'Тебе предоставляются несколько диалогов. Запомни имена людей и темы, на которые они говорили и выведи имя собеседника.
 
   {{context}}
 
-  В ответе укажи только имя собеседника, который говорил на тему из следующего вопроса.
+  В качестве ответа необходимо вывести ТОЛЬКО имя собеседника без дополнительных слов, объяснений или знаков препинания. Ответ пиши после слова "Ответ:" через пробел ("Ответ: <имя>").
 
-  Вопрос:{{input}}
+  Вопрос: {{input}}
 
   Ответ:'
 generation_kwargs:
   do_sample: false
   temperature: 0.0
-  max_gen_toks: 16
+  max_gen_toks: 32
 metric_list:
 - metric: libra_score
   aggregation: !function utils.aggregate_results_em
   higher_is_better: true
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 2.0
