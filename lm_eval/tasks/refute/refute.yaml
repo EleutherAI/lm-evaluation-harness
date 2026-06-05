@@ -1,0 +1,6 @@
+group: refute
+task:
+  - refute_soundness
+metadata:
+  version: 1.0
+  description: REFUTE judge-free scientific critique benchmark (BGPT-OFFICIAL/refute).
