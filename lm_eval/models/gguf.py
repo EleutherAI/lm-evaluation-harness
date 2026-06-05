@@ -21,10 +21,16 @@ def get_result(logprobs, context_length):
     idx = 0
     while offsets[idx] < context_length:
         idx += 1
-    continuation_logprobs = sum(tokens_logprobs[idx:-1])
+    # llama.cpp returns None for the leading token's logprob and top_logprobs
+    # when it has no context (empty prompts, e.g. xnli); skip those. See #3385.
+    continuation_logprobs = sum(
+        lp for lp in tokens_logprobs[idx:-1] if lp is not None
+    )
     for i in range(idx, len(tokens)):
         token = tokens[i]
         top_tokens = logprobs["top_logprobs"][i]
+        if not top_tokens:
+            continue
         top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
         if top_token != token:
             is_greedy = False

@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from lm_eval.api.instance import Instance
-from lm_eval.models.gguf import GGUFLM
+from lm_eval.models.gguf import GGUFLM, get_result
 
 
 base_url = "https://matthoffner-ggml-llm-api.hf.space"
@@ -134,6 +134,28 @@ class GGUFLMTest(unittest.TestCase):
         # Assert the generate_until response is correct
         expected_res = ["generated text until stop1", "generated text until stop2"]
         self.assertEqual(res, expected_res)
+
+    def test_get_result_empty_prompt(self):
+        # Empty-prompt tasks (e.g. xnli) give context_length 0, so the
+        # continuation starts at index 0, where llama.cpp returns None for the
+        # logprob and top_logprobs. Regression test for #3385.
+        def make_logprobs(second_token_top):
+            return {
+                "text_offset": [0, 5, 11],
+                "token_logprobs": [None, -2.0, -1.0],
+                "tokens": ["Hello", " world", "!"],
+                "top_logprobs": [None, second_token_top, {"!": -1.0}],
+            }
+
+        # None is skipped and the trailing echoed token dropped, leaving -2.0;
+        # " world" is the argmax, so the run is greedy.
+        logprob, is_greedy = get_result(make_logprobs({" world": -2.0}), 0)
+        self.assertEqual(logprob, -2.0)
+        self.assertTrue(is_greedy)
+
+        # " there" outranks " world", so greedy detection still fires.
+        _, is_greedy = get_result(make_logprobs({" there": -0.1, " world": -2.0}), 0)
+        self.assertFalse(is_greedy)
 
     # @patch('lm_eval.models.gguf.GGUFLM.gguf_completion', side_effect=gguf_completion_mock)
     # def test_loglikelihood_rolling(self, gguf_completion_mock):
