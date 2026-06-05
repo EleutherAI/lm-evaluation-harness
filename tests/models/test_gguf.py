@@ -23,7 +23,7 @@ def gguf_completion_mock(base_url=None, **kwargs):
 
     if os.path.exists(fname):
         with open(fname, "rb") as fh:
-            return pickle.load(fh)
+            return pickle.load(fh)  # noqa: S301 - trusted local test fixture
     else:
         print("The file does not exist, attempting to write...")
         if "stop" in kwargs:
@@ -83,7 +83,7 @@ def gguf_completion_mock(base_url=None, **kwargs):
             with open(fname, "wb") as fh:
                 pickle.dump(result, fh)
             print("File written successfully")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - best-effort fixture write
             print("File writing failed:", e)
 
         return result
