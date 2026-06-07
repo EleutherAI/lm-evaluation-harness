@@ -399,3 +399,28 @@ class TestRegistryClear:
 
         assert len(reg) == 0
         assert "a" not in reg
+
+
+class TestJuryevalIntegration:
+    """Test juryeval metrics registration (optional dependency)."""
+
+    @pytest.fixture(autouse=True)
+    def ensure_metrics_loaded(self):
+        import lm_eval.api.metrics  # noqa: F401
+
+    def test_juryeval_metrics_registered_when_installed(self):
+        """Verify juryeval metrics are in the registry when juryeval is installed."""
+        try:
+            import juryeval  # noqa: F401
+        except ImportError:
+            pytest.skip("juryeval not installed")
+        assert "pairwise_judge" in metric_registry, (
+            "pairwise_judge should be registered when juryeval is installed"
+        )
+        assert "pointwise_judge" in metric_registry, (
+            "pointwise_judge should be registered when juryeval is installed"
+        )
+        assert is_higher_better("pairwise_judge") is True
+        assert is_higher_better("pointwise_judge") is True
+        assert get_metric_aggregation("pairwise_judge") is not None
+        assert get_metric_aggregation("pointwise_judge") is not None
