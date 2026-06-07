@@ -196,12 +196,13 @@ class SGLangLM(TemplateLM):
         res = []
 
         # batch tokenize contexts
-        context, all_gen_kwargs = zip(*(req.args for req in requests))
+        context, all_gen_kwargs = zip(*(req.args for req in requests), strict=True)
         context_encoding: List[List[int]] = self.tok_encode(
             context, add_special_tokens=self.add_bos_token
         )
         requests = [
-            ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
+            ((a, b), c)
+            for a, b, c in zip(context, context_encoding, all_gen_kwargs, strict=True)
         ]
 
         def _collate_gen(_requests):
@@ -229,12 +230,13 @@ class SGLangLM(TemplateLM):
         # for each different set of kwargs, we execute all requests, by batch.
         eos = self.tokenizer.decode(self.eot_token_id)
         for chunk in chunks:
-            context_and_encoding, all_gen_kwargs = zip(*chunk)
-            context, context_encoding = zip(*context_and_encoding)
+            context_and_encoding, all_gen_kwargs = zip(*chunk, strict=True)
+            context, context_encoding = zip(*context_and_encoding, strict=True)
 
             context_encoding_truncated = []
             sampling_params = []
-            for x, gen_kwargs in zip(context_encoding, all_gen_kwargs):
+            cache_gen_kwargs = []
+            for x, gen_kwargs in zip(context_encoding, all_gen_kwargs, strict=True):
                 # unpack our keyword arguments.
                 if isinstance(gen_kwargs, dict):
                     kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
@@ -261,6 +263,9 @@ class SGLangLM(TemplateLM):
                 sampling_params.append(
                     kwargs | {"max_tokens": max_gen_toks, "stop": until}
                 )
+                cache_gen_kwargs.append(
+                    kwargs | {"until": until, "max_gen_toks": max_gen_toks}
+                )
             # perform batched generation
             # cont is a list of dic. See here https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 .
             cont = self._model_generate(
@@ -270,14 +275,16 @@ class SGLangLM(TemplateLM):
             )
 
             # cache generations
-            for output, context in zip(cont, context):
+            for output, _context, gen_kwargs in zip(
+                cont, context, cache_gen_kwargs, strict=True
+            ):
                 generated_text = output.get("text", "")
                 generated_text = postprocess_generated_text(
-                    generated_text, until, self.think_end_token
+                    generated_text, gen_kwargs.get("until"), self.think_end_token
                 )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
+                    "generate_until", (_context, gen_kwargs), generated_text
                 )
                 pbar.update(1)
 
