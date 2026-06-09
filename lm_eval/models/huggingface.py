@@ -1762,7 +1762,14 @@ class HFLM(TemplateLM):
             else:
                 return ""
 
-        def get_model_sha(pretrained: str, revision: str) -> str:
+        def get_model_sha(pretrained, revision: str) -> str:
+            # HFLM.pretrained can be a HF Hub id / local path (str) OR a
+            # pre-initialized transformers.PreTrainedModel (see __init__ docstring).
+            # HfApi().model_info only accepts a repo_id string; passing a model
+            # object raises and triggers a spurious "Failed to get model SHA"
+            # warning for every pre-initialized-model run (see #3431).
+            if not isinstance(pretrained, str):
+                return ""
             try:
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha

@@ -164,3 +164,18 @@ class Test_HFLM:
                 self.LM.loglikelihood(self.MULTIPLE_CH)
             assert "arc_easy" in str(exc_info.value)
             assert "enable_thinking=True" in str(exc_info.value)
+
+    def test_get_model_info_skips_hub_call_for_pretrained_model(self) -> None:
+        # Regression for #3431: when a user passes a pre-initialized
+        # transformers.PreTrainedModel as `pretrained`, HFLM previously called
+        # HfApi().model_info(repo_id=<model_object>), which raises and emits a
+        # spurious "Failed to get model SHA" warning on every run.
+        # The fix short-circuits when `self.pretrained` is not a str, so the
+        # Hub call must not happen and `model_sha` must be the empty string.
+        with (
+            patch.object(self.LM, "pretrained", self.LM._model),
+            patch("lm_eval.models.huggingface.HfApi") as mock_hf_api,
+        ):
+            info = self.LM.get_model_info()
+            mock_hf_api.assert_not_called()
+        assert info["model_sha"] == ""
