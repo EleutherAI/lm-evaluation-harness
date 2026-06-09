@@ -17,11 +17,20 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
+    
+    # Try to extract \boxed{} from the model output first
+    boxed_match = last_boxed_only_string(results[0])
+    if boxed_match is not None:
+        try:
+            answer = remove_boxed(boxed_match)
+        except AssertionError:
+            answer = results[0]
     else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+        indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
+        if len(indices) <= 1:
+            answer = results[0]
+        else:
+            answer = results[0][indices[0] + 1 : indices[-1]]
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
