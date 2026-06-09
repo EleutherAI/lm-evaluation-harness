@@ -1,6 +1,7 @@
 CHOICES = ["A", "B", "C", "D"]
+OPTS = ["option_a", "option_b", "option_c", "option_d"]
 
-# Maps task name suffix → dataset subject value
+# Single source of truth: task suffix → dataset subject value
 SUBJECT_MAP = {
     "bodo": "Bodo",
     "dogri": "Dogri",
@@ -18,20 +19,15 @@ SUBJECT_MAP = {
 
 
 def doc_to_text(doc):
-    options = "\n".join(
-        f"{CHOICES[i]}. {doc[opt]}"
-        for i, opt in enumerate(["option_a", "option_b", "option_c", "option_d"])
-        if doc.get(opt)
-    )
+    # All four options always present in this dataset; no filtering to keep
+    # alignment with doc_to_choice and doc_to_target.
+    options = "\n".join(f"{CHOICES[i]}. {doc[opt]}" for i, opt in enumerate(OPTS))
     return f"Question: {doc['question_text']}\n{options}\nAnswer:"
 
 
 def doc_to_choice(doc):
-    return [
-        CHOICES[i]
-        for i, opt in enumerate(["option_a", "option_b", "option_c", "option_d"])
-        if doc.get(opt)
-    ]
+    # Returns all four labels — consistent with doc_to_text and doc_to_target.
+    return list(CHOICES)
 
 
 def doc_to_target(doc):
@@ -40,44 +36,24 @@ def doc_to_target(doc):
 
 
 def _make_filter(subject_value):
+    """Factory: returns a process_docs fn that filters by subject."""
     def process_docs(dataset):
         return dataset.filter(lambda x: x["subject"] == subject_value)
     return process_docs
 
 
-# One process_docs function per language — referenced from per-lang YAMLs
-def process_docs_bodo(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Bodo")
-
-def process_docs_dogri(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Dogri")
-
-def process_docs_gujarati(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Gujarati_surya")
-
-def process_docs_konkani(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Konkani")
-
-def process_docs_maithili(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Maithili")
-
-def process_docs_marathi(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Marathi")
-
-def process_docs_nepali(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Nepali")
-
-def process_docs_oriya(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Oriya")
-
-def process_docs_rajasthani(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Rajasthani")
-
-def process_docs_sanskrit(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Sanskrit")
-
-def process_docs_sanskrit_mix(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Sanskrit Mix")
-
-def process_docs_santali(dataset):
-    return dataset.filter(lambda x: x["subject"] == "Santali")
+# YAML-compatible named functions — generated from SUBJECT_MAP via factory.
+# Adding a new language: add entry to SUBJECT_MAP and create a yaml that
+# references the corresponding process_docs_<key> function below.
+process_docs_bodo         = _make_filter(SUBJECT_MAP["bodo"])
+process_docs_dogri        = _make_filter(SUBJECT_MAP["dogri"])
+process_docs_gujarati     = _make_filter(SUBJECT_MAP["gujarati"])
+process_docs_konkani      = _make_filter(SUBJECT_MAP["konkani"])
+process_docs_maithili     = _make_filter(SUBJECT_MAP["maithili"])
+process_docs_marathi      = _make_filter(SUBJECT_MAP["marathi"])
+process_docs_nepali       = _make_filter(SUBJECT_MAP["nepali"])
+process_docs_oriya        = _make_filter(SUBJECT_MAP["oriya"])
+process_docs_rajasthani   = _make_filter(SUBJECT_MAP["rajasthani"])
+process_docs_sanskrit     = _make_filter(SUBJECT_MAP["sanskrit"])
+process_docs_sanskrit_mix = _make_filter(SUBJECT_MAP["sanskrit_mix"])
+process_docs_santali      = _make_filter(SUBJECT_MAP["santali"])
