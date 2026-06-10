@@ -1,3 +1,0 @@
-dataset_name: npi_deva
-include: _template
-task: global_piqa_completions_npi_deva

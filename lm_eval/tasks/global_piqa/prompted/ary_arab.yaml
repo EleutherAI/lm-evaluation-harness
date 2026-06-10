@@ -1,3 +1,0 @@
-dataset_name: ary_arab
-include: _template
-task: global_piqa_prompted_ary_arab
