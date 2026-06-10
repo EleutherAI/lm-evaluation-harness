@@ -1,0 +1,13 @@
+include: ../wmt_generalmt_doc_common.yaml
+
+task: wmt-generalmt-doc-newstest2020-fr-de
+
+tag:
+  - translation
+  - wmt_generalmt_doc
+
+metadata:
+  version: 1.0
+  testset: "newstest2020"
+  src_lang: "fr"
+  tgt_lang: "de"

@@ -1,0 +1,12 @@
+include: ../ntrex_doc_common.yaml
+
+task: ntrex-doc-eng-arb
+
+tag:
+  - translation
+  - ntrex_doc
+
+metadata:
+  version: 1.0
+  src_lang: "eng"
+  tgt_lang: "arb"

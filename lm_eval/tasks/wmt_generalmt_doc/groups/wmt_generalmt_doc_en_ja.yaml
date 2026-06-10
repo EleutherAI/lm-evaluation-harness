@@ -1,0 +1,6 @@
+group: wmt-generalmt-doc-en-ja
+task:
+  - wmt-generalmt-doc-newstest2020-en-ja
+  - wmt-generalmt-doc-newstest2021-en-ja
+  - wmt-generalmt-doc-wmttest2022-en-ja
+  - wmt-generalmt-doc-wmttest2023-en-ja
