@@ -352,7 +352,7 @@ class SGLangLM(TemplateLM):
         truncation: bool = False,
     ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
-            add_special_tokens = False or self.add_bos_token
+            add_special_tokens = self.add_bos_token if self.add_bos_token is not None else False
         encoding: Union[List[List[int]], List[int]] = self.tokenizer(
             string,
             add_special_tokens=add_special_tokens,
