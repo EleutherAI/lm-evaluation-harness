@@ -15,17 +15,24 @@ These tests verify:
   4. The 'not_attempted' flag doesn't misfire on real answers
 """
 
-import sys
 import os
+import sys
+
 
 # Allow importing simpleqa utils from the task directory
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "lm_eval", "tasks", "simpleqa"))
-from utils import normalize_answer, token_f1, is_not_attempted, process_results
+sys.path.insert(
+    0,
+    os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "lm_eval", "tasks", "simpleqa"
+    ),
+)
+from utils import is_not_attempted, normalize_answer, process_results, token_f1
 
 
 # ─────────────────────────────────────────────────────────────
 # normalize_answer
 # ─────────────────────────────────────────────────────────────
+
 
 class TestNormalizeAnswer:
     def test_lowercases(self):
@@ -54,6 +61,7 @@ class TestNormalizeAnswer:
 # token_f1
 # Concept: F1 = harmonic mean of precision and recall on tokens
 # ─────────────────────────────────────────────────────────────
+
 
 class TestTokenF1:
     def test_perfect_match(self):
@@ -87,6 +95,7 @@ class TestTokenF1:
 # over-trigger the not_attempted detector.
 # ─────────────────────────────────────────────────────────────
 
+
 class TestIsNotAttempted:
     def test_explicit_refusals(self):
         assert is_not_attempted("I don't know") is True
@@ -110,6 +119,7 @@ class TestIsNotAttempted:
 # ─────────────────────────────────────────────────────────────
 # process_results — the full pipeline
 # ─────────────────────────────────────────────────────────────
+
 
 class TestProcessResults:
     def _make_doc(self, problem: str, answer: str) -> dict:
@@ -139,7 +149,9 @@ class TestProcessResults:
         assert result["not_attempted"] == 0.0
 
     def test_not_attempted_detected(self):
-        doc = self._make_doc("What is the boiling point of helium?", "-269 degrees Celsius")
+        doc = self._make_doc(
+            "What is the boiling point of helium?", "-269 degrees Celsius"
+        )
         result = process_results(doc, ["I don't know the answer to this question."])
         assert result["exact_match"] == 0.0
         assert result["f1"] == 0.0
@@ -149,8 +161,8 @@ class TestProcessResults:
         # Model says "Graham Bell" instead of "Alexander Graham Bell"
         doc = self._make_doc("Who invented the telephone?", "Alexander Graham Bell")
         result = process_results(doc, ["Graham Bell"])
-        assert result["exact_match"] == 0.0   # not a full match
-        assert result["f1"] > 0.0             # but some token overlap
+        assert result["exact_match"] == 0.0  # not a full match
+        assert result["f1"] > 0.0  # but some token overlap
 
     def test_article_stripped_match(self):
         # Reference has "the" — normalizer should strip it
@@ -165,6 +177,7 @@ class TestProcessResults:
 
     def test_results_must_have_one_item(self):
         import pytest
+
         doc = self._make_doc("Q", "A")
         with pytest.raises(AssertionError):
             process_results(doc, ["answer1", "answer2"])

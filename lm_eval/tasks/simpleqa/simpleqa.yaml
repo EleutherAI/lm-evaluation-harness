@@ -20,9 +20,8 @@ dataset_path: basicv8vc/SimpleQA
 # This is used for open-ended QA — not multiple choice.
 output_type: generate_until
 
-# The test set on HuggingFace is labeled 'train' (common for
-# benchmarks that only ship one split).
-test_split: train
+# basicv8vc/SimpleQA ships a single 'test' split (4,326 rows).
+test_split: test
 
 # ── Concept: doc_to_text ──────────────────────────────────────
 # A Jinja2 template: {{ problem }} is replaced with the actual
