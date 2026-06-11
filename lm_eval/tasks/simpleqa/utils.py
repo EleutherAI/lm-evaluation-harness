@@ -33,6 +33,7 @@ from typing import Any
 
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.IGNORECASE)
 
+
 def normalize_answer(s: str) -> str:
     """
     Lower-case, remove punctuation, strip leading articles, collapse whitespace.
@@ -72,6 +73,7 @@ _NOT_ATTEMPTED_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+
 def is_not_attempted(model_output: str) -> bool:
     """Returns True if the model explicitly declined to answer."""
     return bool(_NOT_ATTEMPTED_PATTERNS.search(model_output))
@@ -84,6 +86,7 @@ def is_not_attempted(model_output: str) -> bool:
 # F1 gives partial credit by counting token overlap (like SQuAD evaluation).
 # Both F1 = 0.0 and exact_match = 0.0 means total failure.
 # F1 > 0 but exact_match = 0 means the model got part of it right.
+
 
 def token_f1(prediction: str, reference: str) -> float:
     """
@@ -114,6 +117,7 @@ def token_f1(prediction: str, reference: str) -> float:
 # The harness calls this once per example after the model generates an answer.
 # Return value: dict[metric_name → float]
 # The harness then averages each metric across all examples.
+
 
 def process_results(doc: dict[str, Any], results: list[str]) -> dict[str, float]:
     """
