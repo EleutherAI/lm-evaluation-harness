@@ -1,12 +1,34 @@
 dataset_path: recursal/longbench-v2
 test_split: train
-output_type: multiple_choice
-doc_to_text: "Please read the following text and answer the question below.\n\n<text>\n{{context}}\n</text>\n\nWhat is the correct answer to this question: {{question.strip()}}\nChoices:\n(A) {{choices[0]}}\n(B) {{choices[1]}}\n(C) {{choices[2]}}\n(D) {{choices[3]}}\n\nAnswer:"
-doc_to_choice: ["A", "B", "C", "D"]
-doc_to_target: answer
+output_type: generate_until
+process_docs: !function utils.process_docs
+doc_to_text: "Please read the following text and answer the question below.\n\n<text>\n{{context}}\n</text>\n\nWhat is the correct answer to this question: {{question.strip()}}\nChoices:\n(A) {{choices[0]}}\n(B) {{choices[1]}}\n(C) {{choices[2]}}\n(D) {{choices[3]}}\n\nLet's think step by step, then end your response with: \"The correct answer is (X)\" where X is one of A, B, C, or D."
+doc_to_target: "{{ ['A','B','C','D'][answer] if answer is number else answer }}"
+generation_kwargs:
+  max_gen_toks: 32768
+  do_sample: false
+  temperature: 0.0
+  until: []
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "(?i)(?:correct\\s+answer\\s+is\\s*[\\*:\\(\\s]*|\\\\boxed\\{)([A-D])"
+        group_select: -1
+        fallback: "[invalid]"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "\\b([A-D])\\b"
+        group_select: -1
+        fallback: "[invalid]"
+      - function: "take_first"
 metric_list:
-  - metric: acc
+  - metric: exact_match
     aggregation: mean
     higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
 metadata:
-  version: 0.0
+  version: 1.0
