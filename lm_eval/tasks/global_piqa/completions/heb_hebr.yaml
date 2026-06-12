@@ -1,3 +1,0 @@
-dataset_name: heb_hebr
-include: _template
-task: global_piqa_completions_heb_hebr

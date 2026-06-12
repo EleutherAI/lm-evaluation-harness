@@ -1,3 +1,0 @@
-dataset_name: luo_latn
-include: _template
-task: global_piqa_completions_luo_latn

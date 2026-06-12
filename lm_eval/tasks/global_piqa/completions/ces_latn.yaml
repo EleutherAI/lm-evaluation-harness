@@ -1,3 +1,0 @@
-dataset_name: ces_latn
-include: _template
-task: global_piqa_completions_ces_latn
