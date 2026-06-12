@@ -195,6 +195,15 @@ lm-eval --model hf --model_args pretrained="toksuite/gpt2,tokenizer=openai-commu
     --output_path=$OUTPUT_PATH
 ```
 
+Example usage to evaluate the models with non-huggingface tokenizer backends:
+```bash
+lm-eval --model=hf --model_args pretrained=toksuite/tiktoken-gpt-4o,tokenizer_backend=tiktoken,tokenizer=gpt-4o --tasks toksuite_english_canonical
+
+lm-eval --model=hf --model_args pretrained=toksuite/tokenmonster-englishcode-32000-consistent-v1,tokenizer_backend=tokenmonster,tokenizer=englishcode-32000-consistent-v1 --tasks toksuite_english_canonical
+
+lm-eval --model=hf --model_args pretrained=toksuite/mistralai-tekken,tokenizer_backend=tekken --tasks toksuite_english_canonical
+```
+
 2. Process results, pass either "latex", "markdown", or "dataframe" to get the formatted table
 
 ```python
