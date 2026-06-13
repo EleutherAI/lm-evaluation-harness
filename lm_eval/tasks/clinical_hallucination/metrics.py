@@ -34,7 +34,8 @@ _MEDICAL_PATTERNS = [
     ),
     # Drug name patterns – common pharmacological suffixes
     re.compile(
-        r"\b[A-Z][a-z]+(?:ine|ol|an|ide|ate|ase|ium|ine|epam|statin|cillin|mycin|cycline|nib|mab)\b"
+        r"\b[A-Za-z]+(?:ine|ol|an|ide|ate|ase|ium|epam|statin|cillin|mycin|cycline|nib|mab)\b",
+        re.IGNORECASE,
     ),
     # Disease staging / classification
     re.compile(
@@ -76,6 +77,10 @@ MEDICAL_KEYWORDS: Set[str] = {
 }
 
 
+# Pre-compiled regex for stripping trailing punctuation
+_PUNCT_RE = re.compile(r"[^\w\s]")
+
+
 def _extract_medical_terms(text: str) -> Set[str]:
     """Extract a set of medical terms from *text*.
 
@@ -93,7 +98,7 @@ def _extract_medical_terms(text: str) -> Set[str]:
     # Keyword extraction – check every whitespace-delimited token
     for token in text.lower().split():
         # Strip trailing punctuation for matching
-        cleaned = re.sub(r"[^\w\s]", "", token)
+        cleaned = _PUNCT_RE.sub("", token)
         if cleaned in MEDICAL_KEYWORDS:
             terms.add(cleaned)
 
@@ -111,25 +116,7 @@ def _is_hallucinated(reference: str, prediction: str) -> float:
     A prediction is considered hallucinated when >60 % of its extracted
     medical terms do not appear in the reference text.
     """
-    pred_terms = _extract_medical_terms(prediction)
-    if not pred_terms:
-        # No medical terms extracted – cannot assess hallucination
-        return 0.0
-
-    ref_terms = _extract_medical_terms(reference)
-    # Also do a simple substring check against the lower-cased reference
-    # to catch terms that were split or embedded differently.
-    ref_lower = reference.lower()
-
-    unsupported = 0
-    for term in pred_terms:
-        # A term is "supported" if it appears either in the ref term set
-        # OR as a substring of the reference text.
-        if term not in ref_terms and term not in ref_lower:
-            unsupported += 1
-
-    unsupported_ratio = unsupported / len(pred_terms)
-    return 1.0 if unsupported_ratio > HALLUCINATION_THRESHOLD else 0.0
+    return 1.0 if _unsupported_term_ratio(reference, prediction) > HALLUCINATION_THRESHOLD else 0.0
 
 
 def _unsupported_term_ratio(reference: str, prediction: str) -> float:
@@ -171,7 +158,10 @@ def hallucination_rate(predictions: List[str], references: List[str]) -> float:
     float
         1.0 if the prediction is hallucinated, 0.0 otherwise.
     """
-    return _is_hallucinated(references[0], predictions[0])
+    # Guard against None output (e.g. API timeout, model failure)
+    pred = predictions[0] or ""
+    ref = references[0] or ""
+    return _is_hallucinated(ref, pred)
 
 
 def hallucination_rate_per_sample(
@@ -196,4 +186,6 @@ def hallucination_rate_per_sample(
         Ratio of unsupported medical terms (0.0 = fully grounded,
         1.0 = all terms unsupported).
     """
-    return _unsupported_term_ratio(references[0], predictions[0])
+    pred = predictions[0] or ""
+    ref = references[0] or ""
+    return _unsupported_term_ratio(ref, pred)
