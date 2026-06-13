@@ -227,8 +227,8 @@ class LM(abc.ABC):
 
 
 ### SQLite-based caching of LM responses
-def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args))
+def hash_args(attr: str, args: Iterable[Any], repeat_idx: int = 0) -> str:
+    dat = json.dumps([attr] + list(args) + [repeat_idx])
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
@@ -275,13 +275,23 @@ class CachingLM:
         def _fn(requests: list["Instance"]) -> list["Instance"]:
             res = []
             remaining_reqs = []
+            remaining_hashes = []
             warned = False
             # figure out which ones are cached and which ones are new
             eval_logger.info(
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
+            # Track repeat indices: when the same request appears K times
+            # (due to req.repeats > 1), each copy gets a unique repeat_idx
+            # so they produce distinct cache keys.
+            _base_key_counts: dict[str, int] = {}
             for req in tqdm(requests, desc="Checking cached requests"):
-                hsh = hash_args(attr, req.args)
+                # Compute a base key (without repeat index) to count occurrences
+                base_key = json.dumps([attr] + list(req.args))
+                repeat_idx = _base_key_counts.get(base_key, 0)
+                _base_key_counts[base_key] = repeat_idx + 1
+
+                hsh = hash_args(attr, req.args, repeat_idx)
                 if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
@@ -292,6 +302,7 @@ class CachingLM:
                         warned = True
                     res.append(None)
                     remaining_reqs.append(req)
+                    remaining_hashes.append(hsh)
                 elif hsh in self.dbdict:
                     ob = self.dbdict[hsh]
 
@@ -301,6 +312,7 @@ class CachingLM:
                 else:
                     res.append(None)
                     remaining_reqs.append(req)
+                    remaining_hashes.append(hsh)
             eval_logger.info(
                 f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
             )
@@ -309,14 +321,13 @@ class CachingLM:
 
             # stick the new ones back into the list and also cache any of the new ones
             resptr = 0
-            for req, r in zip(remaining_reqs, rem_res, strict=True):
+            for req, r, hsh in zip(remaining_reqs, rem_res, remaining_hashes, strict=True):
                 while res[resptr] is not None:
                     resptr += 1
 
                 res[resptr] = r
 
                 # caching
-                hsh = hash_args(attr, req.args)
                 self.dbdict[hsh] = r
             self.dbdict.commit()
 
