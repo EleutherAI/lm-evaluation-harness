@@ -1,0 +1,9 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_bbc_news
+task_alias: UE_bbc_news
+description: >-
+  Rolling perplexity on Uncheatable Eval BBC News articles harvested after
+  mid-2024.
+custom_dataset: !function uncheatable_eval_utils.load_uncheatable_eval
+dataset_kwargs:
+  dataset: bbc_news

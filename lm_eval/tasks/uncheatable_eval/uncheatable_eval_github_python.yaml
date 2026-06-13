@@ -1,0 +1,9 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_github_python
+task_alias: UE_github_py
+description: >-
+  Rolling perplexity on Uncheatable Eval GitHub snapshots of high-activity
+  Python repositories scraped after mid-2024.
+custom_dataset: !function uncheatable_eval_utils.load_uncheatable_eval
+dataset_kwargs:
+  dataset: github_python
