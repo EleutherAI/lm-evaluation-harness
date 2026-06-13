@@ -1,4 +1,4 @@
-# IrokoBench
+# AfriXNLI
 
 ### Paper
 
@@ -26,22 +26,45 @@ mathematical reasoning (AfriMGSM), and multi-choice knowledge-based QA (AfriMMLU
 
 ### Groups and Tasks
 
+AfriXNLI ships two generations of prompts. The newer per-prompt variants (the
+updated IrokoBench/AfroBench prompts) evaluate every language with five
+different prompt templates, so their task names carry a `_prompt_{i}` suffix
+where `i` is the prompt id (1-5). The original anli- and Lai-prompt tasks are
+still registered under their per-language names without the suffix.
+
 #### Groups
 
-* `afrixnli`: All afrixnli tasks
-* `afrixnli_en_direct`: afrixnli_en_direct evaluates models performance using the anli prompt on the curated dataset
-* `afrixnli_native_direct`: afrixnli_native_direct evaluates models performance using the anli prompt translated to the
-respective languages on the curated dataset
-* `afrixnli_translate`: afrixnli_translate evaluates models using the anli prompt in translate-test setting
-* `afrixnli_manual_direct`: afrixnli_manual_direct evaluates models performance using Lai's prompt on the curated dataset
-* `afrixnli_manual_translate`: afrixnli_manual_translate evaluates models using Lai's prompt in translate-test setting
+* `afrixnli-irokobench`: evaluates all direct tasks over all five prompts and reports a size-weighted mean accuracy
+* `afrixnli_tt-irokobench`: same as above in the translate-test setting
+
+#### Tags
+
+* `afrixnli_tasks`: runs all direct per-prompt tasks (all five prompts)
+* `afrixnli_tasks_prompt_{i}`: runs all direct per-prompt tasks for prompt `i` (1-5)
+* `afrixnli_tt_tasks`: runs all per-prompt translate-test tasks
+* `afrixnli`: runs all anli- and Lai-prompt tasks
+* `afrixnli_en_direct`: anli prompt on the curated dataset
+* `afrixnli_native_direct`: anli prompt translated to the respective languages on the curated dataset
+* `afrixnli_translate`: anli prompt in the translate-test setting
+* `afrixnli_manual_direct`: Lai's prompt on the curated dataset
+* `afrixnli_manual_translate`: Lai's prompt in the translate-test setting
 
 #### Tasks
+
+Per-prompt variants:
+* `afrixnli_{language_code}_prompt_{i}`: evaluates one language with prompt `i` (1-5) on the curated dataset, e.g. `afrixnli_amh_prompt_1`
+* `afrixnli_translate_{language_code}_prompt_{i}`: same as above in the translate-test setting
+
+Original anli- and Lai-prompt variants:
 * `afrixnli_en_direct_{language_code}`: each task evaluates for one language
 * `afrixnli_native_direct_{language_code}`: each task evaluates for one language
 * `afrixnli_translate_{language_code}`: each task evaluates for one language
 * `afrixnli_manual_direct_{language_code}`: each task evaluates for one language
 * `afrixnli_manual_translate_{language_code}`: each task evaluates for one language
+
+with `language_code` one of `amh`, `eng`, `ewe`, `fra`, `hau`, `ibo`, `kin`,
+`lin`, `lug`, `orm`, `sna`, `sot`, `swa`, `twi`, `wol`, `xho`, `yor`, `zul`
+(`eng` has no translate-test variant).
 
 ### Checklist
 
