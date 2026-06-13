@@ -668,6 +668,30 @@ load_dataset("EleutherAI/lm-eval-results-private", "hellaswag", "latest")
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
+## Comparing Two Runs
+
+The per-task standard error reported for a single run tells you how precise that run's score is, but it does not tell you whether the *gap* between two runs (two models, or two configurations of the same model) is statistically meaningful. To answer that, use [`scripts/compare_samples.py`](./scripts/compare_samples.py), which runs a **paired** significance test directly on the `samples_*.jsonl` files written with `--log_samples` — no model is reloaded, so it runs on CPU in well under a second.
+
+First produce per-sample logs for both runs:
+
+```bash
+lm_eval --model hf --model_args pretrained=modelA --tasks arc_easy \
+    --log_samples --output_path runs/A
+lm_eval --model hf --model_args pretrained=modelB --tasks arc_easy \
+    --log_samples --output_path runs/B
+```
+
+Then compare them on a shared metric:
+
+```bash
+python scripts/compare_samples.py runs/A runs/B --metric acc
+```
+
+This prints each run's mean, their difference (`A - B`) with a bootstrap confidence interval, the test used, a p-value, and a significance verdict.
+
+> [!Note]
+> Because both runs are scored on the *same* documents, their per-document outcomes are **paired** and usually positively correlated (hard items are hard for both models). The existing [`scripts/model_comparator.py`](./scripts/model_comparator.py) applies an *unpaired* two-sample z-test, which drops the covariance term and is therefore conservative / underpowered for this setting. `compare_samples.py` instead uses [McNemar's test](https://en.wikipedia.org/wiki/McNemar%27s_test) for binary metrics (e.g. `acc`) and a paired bootstrap for arbitrary metrics, following Dietterich (1998), ["Approximate Statistical Tests for Comparing Supervised Classification Learning Algorithms"](https://doi.org/10.1162/089976698300017197). The test selection (`--method auto`), bootstrap iterations (`--iters`), confidence level (`--confidence`), metric, and filter are all configurable; run `python scripts/compare_samples.py --help` for the full list. The underlying functions live in [`lm_eval/api/significance.py`](./lm_eval/api/significance.py) and can be called directly on aligned score vectors via `compare_paired(scores_a, scores_b)`.
+
 ## Visualizing Results
 
 You can seamlessly visualize and analyze the results of your evaluation harness runs using both Weights & Biases (W&B) and Zeno.
