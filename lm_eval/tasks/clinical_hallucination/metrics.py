@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Clinical hallucination detection metrics for lm-evaluation-harness.
 
 Measures the hallucination rate in LLM responses to clinical QA questions by
@@ -12,7 +11,6 @@ Based on methodology from clinical-llm-eval hallucination detection.
 """
 
 import re
-from typing import List, Set
 
 
 # ---------------------------------------------------------------------------
@@ -57,23 +55,80 @@ _MEDICAL_PATTERNS = [
 ]
 
 # Static set of medical keywords that are always considered "medical terms"
-MEDICAL_KEYWORDS: Set[str] = {
-    "diagnosis", "treatment", "prognosis", "medication", "surgery",
-    "therapy", "infection", "inflammation", "chronic", "acute",
-    "benign", "malignant", "biopsy", "metastasis", "carcinoma",
-    "sarcoma", "lymphoma", "leukemia", "pathogen", "antibody",
-    "antigen", "cytokine", "receptor", "enzyme", "inhibitor",
-    "agonist", "antagonist", "contraindication", "indication",
-    "adverse", "efficacy", "potency", "bioavailability",
-    "pharmacokinetics", "pharmacodynamics", "dosage", "regimen",
-    "prophylaxis", "comorbidity", "etiology", "pathogenesis",
-    "histology", "cytology", "necrosis", "apoptosis", "thrombosis",
-    "embolism", "ischemia", "infarction", "stenosis", "aneurysm",
-    "hypertension", "hypotension", "tachycardia", "bradycardia",
-    "arrhythmia", "edema", "fibrosis", "cirrhosis", "hepatitis",
-    "nephritis", "pancreatitis", "meningitis", "encephalitis",
-    "pneumonia", "bronchitis", "sepsis", "abscess", "ulcer",
-    "hemorrhage", "anemia", "thrombocytopenia", "neutropenia",
+MEDICAL_KEYWORDS: set[str] = {
+    "diagnosis",
+    "treatment",
+    "prognosis",
+    "medication",
+    "surgery",
+    "therapy",
+    "infection",
+    "inflammation",
+    "chronic",
+    "acute",
+    "benign",
+    "malignant",
+    "biopsy",
+    "metastasis",
+    "carcinoma",
+    "sarcoma",
+    "lymphoma",
+    "leukemia",
+    "pathogen",
+    "antibody",
+    "antigen",
+    "cytokine",
+    "receptor",
+    "enzyme",
+    "inhibitor",
+    "agonist",
+    "antagonist",
+    "contraindication",
+    "indication",
+    "adverse",
+    "efficacy",
+    "potency",
+    "bioavailability",
+    "pharmacokinetics",
+    "pharmacodynamics",
+    "dosage",
+    "regimen",
+    "prophylaxis",
+    "comorbidity",
+    "etiology",
+    "pathogenesis",
+    "histology",
+    "cytology",
+    "necrosis",
+    "apoptosis",
+    "thrombosis",
+    "embolism",
+    "ischemia",
+    "infarction",
+    "stenosis",
+    "aneurysm",
+    "hypertension",
+    "hypotension",
+    "tachycardia",
+    "bradycardia",
+    "arrhythmia",
+    "edema",
+    "fibrosis",
+    "cirrhosis",
+    "hepatitis",
+    "nephritis",
+    "pancreatitis",
+    "meningitis",
+    "encephalitis",
+    "pneumonia",
+    "bronchitis",
+    "sepsis",
+    "abscess",
+    "ulcer",
+    "hemorrhage",
+    "anemia",
+    "thrombocytopenia",
+    "neutropenia",
 }
 
 
@@ -81,14 +136,14 @@ MEDICAL_KEYWORDS: Set[str] = {
 _PUNCT_RE = re.compile(r"[^\w\s]")
 
 
-def _extract_medical_terms(text: str) -> Set[str]:
+def _extract_medical_terms(text: str) -> set[str]:
     """Extract a set of medical terms from *text*.
 
     Combines regex-pattern matches with keyword detection to build
     a comprehensive term set.  All tokens are lower-cased for
     case-insensitive comparison.
     """
-    terms: Set[str] = set()
+    terms: set[str] = set()
 
     # Regex-based extraction
     for pattern in _MEDICAL_PATTERNS:
@@ -116,7 +171,11 @@ def _is_hallucinated(reference: str, prediction: str) -> float:
     A prediction is considered hallucinated when >60 % of its extracted
     medical terms do not appear in the reference text.
     """
-    return 1.0 if _unsupported_term_ratio(reference, prediction) > HALLUCINATION_THRESHOLD else 0.0
+    return (
+        1.0
+        if _unsupported_term_ratio(reference, prediction) > HALLUCINATION_THRESHOLD
+        else 0.0
+    )
 
 
 def _unsupported_term_ratio(reference: str, prediction: str) -> float:
@@ -129,8 +188,7 @@ def _unsupported_term_ratio(reference: str, prediction: str) -> float:
     ref_lower = reference.lower()
 
     unsupported = sum(
-        1 for term in pred_terms
-        if term not in ref_terms and term not in ref_lower
+        1 for term in pred_terms if term not in ref_terms and term not in ref_lower
     )
     return unsupported / len(pred_terms)
 
@@ -139,7 +197,8 @@ def _unsupported_term_ratio(reference: str, prediction: str) -> float:
 # Metric functions (called by lm-evaluation-harness via !function in YAML)
 # ---------------------------------------------------------------------------
 
-def hallucination_rate(predictions: List[str], references: List[str]) -> float:
+
+def hallucination_rate(predictions: list[str], references: list[str]) -> float:
     """Compute per-sample hallucination flag (0.0 or 1.0).
 
     Called once per (prediction, reference) pair by the harness.
@@ -153,7 +212,7 @@ def hallucination_rate(predictions: List[str], references: List[str]) -> float:
     references : list[str]
         Reference / ground-truth text (first element used).
 
-    Returns
+    Returns:
     -------
     float
         1.0 if the prediction is hallucinated, 0.0 otherwise.
@@ -165,7 +224,7 @@ def hallucination_rate(predictions: List[str], references: List[str]) -> float:
 
 
 def hallucination_rate_per_sample(
-    predictions: List[str], references: List[str]
+    predictions: list[str], references: list[str]
 ) -> float:
     """Return the raw unsupported-term ratio for a single sample.
 
@@ -180,7 +239,7 @@ def hallucination_rate_per_sample(
     references : list[str]
         Reference / ground-truth text (first element used).
 
-    Returns
+    Returns:
     -------
     float
         Ratio of unsupported medical terms (0.0 = fully grounded,

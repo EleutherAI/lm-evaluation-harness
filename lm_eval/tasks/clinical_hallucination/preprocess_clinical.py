@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Preprocessing functions for the clinical hallucination detection task.
 
 Transforms MedQA-USMLE questions into a generative prompt format suitable
@@ -6,7 +5,6 @@ for hallucination analysis.  The model is asked to provide both an answer
 and a clinical explanation so that the generated text contains enough
 medical terminology for the hallucination detector to evaluate.
 """
-
 
 
 def doc_to_text(doc) -> str:
