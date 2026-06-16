@@ -53,14 +53,15 @@ def _resolve_tokenizer_name(metadata: dict[str, Any]) -> str | None:
 
 def process_docs(dataset):
     metadata, generation_kwargs, doc_to_text = _extract_task_runtime_config()
-
     max_model_len = _resolve_max_model_len(metadata)
     tokenizer_name = _resolve_tokenizer_name(metadata)
+
     if max_model_len is None:
         eval_logger.warning(
             "longbench2: unable to resolve model max length from metadata; skipping filter."
         )
         return dataset
+
     if not tokenizer_name:
         eval_logger.warning(
             "longbench2: unable to resolve tokenizer/pretrained name; skipping filter."
@@ -70,8 +71,10 @@ def process_docs(dataset):
     try:
         from transformers import AutoTokenizer
 
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, trust_remote_code=True)
-    except Exception as exc:
+        tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer_name, trust_remote_code=True
+        )
+    except Exception as exc:  # noqa: BLE001 - degrade gracefully, never break eval
         eval_logger.warning(
             "longbench2: failed to load tokenizer '%s' (%s); skipping filter.",
             tokenizer_name,
@@ -100,6 +103,7 @@ def process_docs(dataset):
         return True
 
     filtered_dataset = dataset.filter(_keep_doc)
+
     if skip_count:
         eval_logger.info(
             "longbench2: skipped %d prompts that exceed model context constraints.",
