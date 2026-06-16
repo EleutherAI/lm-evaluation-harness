@@ -1,6 +1,44 @@
 from itertools import zip_longest
 
-import transformers.data.metrics.squad_metrics as squad_metrics
+from datasets import Dataset
+from transformers.data.metrics import squad_metrics
+
+
+def _slice_mapping_values(mapping, stop):
+    return {
+        key: value[:stop] if isinstance(value, list) else value
+        for key, value in mapping.items()
+    }
+
+
+def _doc_for_turn(doc, turn_idx):
+    stop = turn_idx + 1
+    turn_doc = {
+        "story": doc["story"],
+        "questions": _slice_mapping_values(doc["questions"], stop),
+        "answers": _slice_mapping_values(doc["answers"], stop),
+    }
+
+    for key in ("id", "source", "filename", "name"):
+        if key in doc:
+            turn_doc[key] = doc[key]
+
+    additional_answers = doc.get("additional_answers")
+    if additional_answers:
+        turn_doc["additional_answers"] = {
+            key: _slice_mapping_values(answers, stop)
+            for key, answers in additional_answers.items()
+        }
+
+    return turn_doc
+
+
+def process_docs(dataset):
+    turn_docs = []
+    for doc in dataset:
+        num_turns = len(doc["questions"]["input_text"])
+        turn_docs.extend(_doc_for_turn(doc, turn_idx) for turn_idx in range(num_turns))
+    return Dataset.from_list(turn_docs)
 
 
 def doc_to_text(doc):
