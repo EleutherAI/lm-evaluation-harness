@@ -33,7 +33,12 @@ Answers are normalized before comparison:
 - Leading articles (a, an, the) dropped
 - Whitespace collapsed
 
-The original paper uses GPT-4o as a judge to grade answers as **correct / incorrect / not attempted**. This implementation uses deterministic string matching for offline evaluation — no API calls required. Users who want model-graded evaluation can follow the judge pattern used in the `gpqa` task.
+The original paper uses GPT-4o as a judge to grade answers as **correct / incorrect / not attempted**. This implementation uses deterministic string matching for offline evaluation — no API calls required. Two differences from the reference grader are worth noting:
+
+- `exact_match` can under-credit verbose answers (e.g. "The answer is 1867" normalizes to `answer is 1867`, not `1867`). `f1` captures the partial overlap in those cases.
+- `not_attempted` detection is English-only and pattern-based, so it may miss refusals phrased differently or in other languages.
+
+Users who want the original model-graded setup can follow the judge pattern used in the `gpqa` task.
 
 ### Note on `not_attempted`
 
@@ -60,7 +65,7 @@ lm_eval --model hf \
 ### Dataset
 
 - **HuggingFace path**: `basicv8vc/SimpleQA`
-- **Split used**: `train` (this is the full test set — 4,326 examples)
+- **Split used**: `test` (the full benchmark — 4,326 examples)
 - **Fields**: `problem` (question), `answer` (ground truth), `metadata` (topic info)
 
 ### Citation
