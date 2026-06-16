@@ -28,6 +28,12 @@ def _sample_doc():
     }
 
 
+def _sample_doc_without_additional_answers():
+    doc = _sample_doc()
+    doc.pop("additional_answers")
+    return doc
+
+
 def test_process_docs_expands_each_coqa_turn():
     processed = utils.process_docs(Dataset.from_list([_sample_doc()]))
 
@@ -61,3 +67,14 @@ def test_all_turn_docs_use_current_turn_as_target():
 
 def test_unsplit_docs_keep_last_turn_behaviour():
     assert utils.doc_to_target(_sample_doc()) == ["to buy milk", "for milk"]
+
+
+def test_process_docs_handles_missing_additional_answers():
+    processed = utils.process_docs(
+        Dataset.from_list([_sample_doc_without_additional_answers()])
+    )
+
+    assert len(processed) == 2
+    assert "additional_answers" not in processed[0]
+    assert utils.doc_to_target(processed[0]) == ["the shop"]
+    assert utils.doc_to_target(processed[1]) == ["to buy milk"]
