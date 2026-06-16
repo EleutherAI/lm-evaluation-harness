@@ -1,7 +1,6 @@
 from itertools import zip_longest
 
-from datasets import Dataset
-from transformers.data.metrics import squad_metrics
+import transformers.data.metrics.squad_metrics as squad_metrics  # noqa: PLR0402
 
 
 def _slice_mapping_values(mapping, stop):
@@ -13,15 +12,14 @@ def _slice_mapping_values(mapping, stop):
 
 def _doc_for_turn(doc, turn_idx):
     stop = turn_idx + 1
-    turn_doc = {
-        "story": doc["story"],
-        "questions": _slice_mapping_values(doc["questions"], stop),
-        "answers": _slice_mapping_values(doc["answers"], stop),
-    }
-
-    for key in ("id", "source", "filename", "name"):
-        if key in doc:
-            turn_doc[key] = doc[key]
+    turn_doc = {}
+    for key, value in doc.items():
+        if key in ("questions", "answers"):
+            turn_doc[key] = _slice_mapping_values(value, stop)
+        elif key == "additional_answers":
+            continue
+        else:
+            turn_doc[key] = value
 
     additional_answers = doc.get("additional_answers")
     if additional_answers:
@@ -34,11 +32,17 @@ def _doc_for_turn(doc, turn_idx):
 
 
 def process_docs(dataset):
-    turn_docs = []
-    for doc in dataset:
-        num_turns = len(doc["questions"]["input_text"])
-        turn_docs.extend(_doc_for_turn(doc, turn_idx) for turn_idx in range(num_turns))
-    return Dataset.from_list(turn_docs)
+    def _expand_batch(batch):
+        turn_batch = {}
+        for row_idx, questions in enumerate(batch["questions"]):
+            doc = {key: value[row_idx] for key, value in batch.items()}
+            num_turns = len(questions["input_text"])
+            for turn_idx in range(num_turns):
+                for key, value in _doc_for_turn(doc, turn_idx).items():
+                    turn_batch.setdefault(key, []).append(value)
+        return turn_batch
+
+    return dataset.map(_expand_batch, batched=True, remove_columns=dataset.column_names)
 
 
 def doc_to_text(doc):
