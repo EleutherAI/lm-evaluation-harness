@@ -1,22 +1,23 @@
 task: sas_bench
 dataset_path: aleversn/SAS-Bench
-dataset_name: null
 test_split: test
 output_type: generate_until
-
-doc_to_text: "You are an expert grader. Read the question, the reference answer, and the student's response below. Output a single integer score between 0 and {{total}}.\n\nQuestion:\n{{question}}\n\nReference Answer:\n{{reference}}\n\nStudent Response:\n{{steps | map(attribute='response') | join(' | ')}}\n\nMax Score: {{total}}\nScore (integer only):"
-
+doc_to_text: !function utils.doc_to_text
 doc_to_target: "{{manual_label}}"
-
+process_results: !function utils.process_results
 generation_kwargs:
   max_gen_toks: 16
+  do_sample: false
+  temperature: 0.0
   until:
     - "\n"
-    - " "
-
 metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
-
+  - metric: qwk
+    aggregation: !function utils.qwk_agg
+    higher_is_better: true
 num_fewshot: 0
+metadata:
+  version: 1.0
