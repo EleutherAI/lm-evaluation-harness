@@ -1,0 +1,16 @@
+task: collie
+dataset_path: bdytx5/collie
+dataset_name: null
+output_type: generate_until
+test_split: train
+num_fewshot: 0
+doc_to_text: prompt
+doc_to_target: 0
+generation_kwargs:
+  until: []
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 1280
+process_results: !function utils.process_results
+metadata:
+  version: 1.0
