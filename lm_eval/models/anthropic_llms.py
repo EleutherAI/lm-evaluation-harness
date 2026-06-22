@@ -344,6 +344,8 @@ class AnthropicChat(LocalCompletionsAPI):
 
         # Filter out empty or whitespace-only stop sequences for Anthropic API
         stop = [s for s in stop if s and s.strip()]
+        if not stop:
+            stop = [eos]
 
         out = {
             "messages": cleaned_messages,
