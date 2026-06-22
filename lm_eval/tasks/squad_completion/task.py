@@ -8,7 +8,7 @@ from lm_eval.api.task import ConfigurableTask
 
 
 class SQUADCompletion(ConfigurableTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "hazyresearch/based-squad"
     DATASET_NAME = "default"
 

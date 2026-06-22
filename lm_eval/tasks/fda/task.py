@@ -7,7 +7,7 @@ from lm_eval.api.task import ConfigurableTask
 
 
 class FDA(ConfigurableTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "hazyresearch/based-fda"
     DATASET_NAME = "default"
 
@@ -45,7 +45,6 @@ class FDA(ConfigurableTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-
         return [
             Instance(
                 request_type="generate_until",
