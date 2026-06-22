@@ -73,6 +73,7 @@ acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planne
 audiolm_qwen = ["librosa", "soundfile"]
 dev = ["pytest>=9.0", "pytest-cov", "pytest-xdist", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
+collie = ["nltk>=3.9.1"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
