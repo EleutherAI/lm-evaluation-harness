@@ -1,0 +1,32 @@
+task: perspective_gap_prompt_writing
+task_alias: PerspectiveGap (Prompt Writing)
+tag:
+  - perspective_gap
+dataset_path: sun1245/PerspectiveGap
+test_split: test
+output_type: generate_until
+doc_to_text: "{{prompt_writing_prompt}}"
+doc_to_target: ""
+process_results: !function utils.process_results_prompt_writing
+generation_kwargs:
+  max_gen_toks: 16384
+  until:
+    - "<|endoftext|>"
+metric_list:
+  - metric: strict_pass
+    aggregation: mean
+    higher_is_better: true
+  - metric: net_match_score
+    aggregation: mean
+    higher_is_better: true
+  - metric: required_coverage
+    aggregation: mean
+    higher_is_better: true
+  - metric: boundary_precision
+    aggregation: mean
+    higher_is_better: true
+  - metric: distractor_leakage
+    aggregation: mean
+    higher_is_better: false
+metadata:
+  version: 1.0
