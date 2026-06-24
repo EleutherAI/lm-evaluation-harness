@@ -17,11 +17,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = _extract_model_answer(results[0])
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
@@ -30,6 +26,19 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         "exact_match": retval,
     }
     return results
+
+
+def _extract_model_answer(prediction: str) -> str:
+    """Extract the model's final answer from free-form output."""
+    indices = [pos for pos, char in enumerate(prediction) if char == "$"]
+    if len(indices) > 1:
+        return prediction[indices[0] + 1 : indices[-1]]
+
+    boxed = last_boxed_only_string(prediction)
+    if boxed is not None:
+        return remove_boxed(boxed)
+
+    return prediction
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
