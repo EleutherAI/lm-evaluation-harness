@@ -15,13 +15,38 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
+def _extract_answer(prediction: str) -> str:
+    """Extract the mathematical answer from a model prediction string.
+
+    Handles three common answer-delimiting conventions:
+    1. Inline math: ``$...$``  (original behaviour)
+    2. Display math: ``\\[...\\]``  (fixes #2552 — was silently ignored)
+    3. No delimiter: the full prediction string is used as-is
+
+    The outermost delimiters are stripped so that the inner expression is
+    passed directly to ``is_equiv`` / ``remove_boxed``.
+    """
+    text = prediction
+
+    # 1. Display math \[...\] — must be checked before inline $ so that a
+    #    response like "... Thus \[ \boxed{42} \]" is handled correctly.
+    start = text.find("\\[")
+    end = text.rfind("\\]")
+    if start != -1 and end != -1 and end > start:
+        return text[start + 2 : end].strip()
+
+    # 2. Inline math $...$
+    indices = [pos for pos, char in enumerate(text) if char == "$"]
+    if len(indices) >= 2:
+        return text[indices[0] + 1 : indices[-1]]
+
+    # 3. No delimiter — return the full string
+    return text
+
+
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = _extract_answer(results[0])
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
