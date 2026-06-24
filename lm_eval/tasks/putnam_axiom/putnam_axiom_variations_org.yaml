@@ -1,0 +1,4 @@
+include: putnam_axiom_original.yaml
+test_split: originals_for_generating_vars
+task: putnam_axiom_variations_org
+process_docs: !function utils.process_docs
