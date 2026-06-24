@@ -1,0 +1,7 @@
+"dataset_name": "fur_Latn-tir_Ethi"
+"doc_to_target": "{{sentence_tir_Ethi}}"
+"doc_to_text": "{{sentence_fur_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_fur_Latn-tir_Ethi"
+"test_split": "dev"

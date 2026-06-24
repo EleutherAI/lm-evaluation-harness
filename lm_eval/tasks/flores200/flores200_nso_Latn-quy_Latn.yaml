@@ -1,0 +1,7 @@
+"dataset_name": "nso_Latn-quy_Latn"
+"doc_to_target": "{{sentence_quy_Latn}}"
+"doc_to_text": "{{sentence_nso_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_nso_Latn-quy_Latn"
+"test_split": "dev"

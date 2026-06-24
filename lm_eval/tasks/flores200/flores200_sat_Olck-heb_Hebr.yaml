@@ -1,0 +1,7 @@
+"dataset_name": "sat_Olck-heb_Hebr"
+"doc_to_target": "{{sentence_heb_Hebr}}"
+"doc_to_text": "{{sentence_sat_Olck}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_sat_Olck-heb_Hebr"
+"test_split": "dev"

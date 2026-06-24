@@ -1,0 +1,7 @@
+"dataset_name": "ell_Grek-lao_Laoo"
+"doc_to_target": "{{sentence_lao_Laoo}}"
+"doc_to_text": "{{sentence_ell_Grek}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ell_Grek-lao_Laoo"
+"test_split": "dev"

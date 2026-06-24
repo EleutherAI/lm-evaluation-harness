@@ -1,0 +1,7 @@
+"dataset_name": "pes_Arab-rus_Cyrl"
+"doc_to_target": "{{sentence_rus_Cyrl}}"
+"doc_to_text": "{{sentence_pes_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_pes_Arab-rus_Cyrl"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "kat_Geor-tzm_Tfng"
+"doc_to_target": "{{sentence_tzm_Tfng}}"
+"doc_to_text": "{{sentence_kat_Geor}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kat_Geor-tzm_Tfng"
+"test_split": "dev"

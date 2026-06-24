@@ -1,0 +1,7 @@
+"dataset_name": "yor_Latn-lus_Latn"
+"doc_to_target": "{{sentence_lus_Latn}}"
+"doc_to_text": "{{sentence_yor_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_yor_Latn-lus_Latn"
+"test_split": "dev"

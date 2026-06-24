@@ -1,0 +1,7 @@
+"dataset_name": "szl_Latn-mri_Latn"
+"doc_to_target": "{{sentence_mri_Latn}}"
+"doc_to_text": "{{sentence_szl_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_szl_Latn-mri_Latn"
+"test_split": "dev"
