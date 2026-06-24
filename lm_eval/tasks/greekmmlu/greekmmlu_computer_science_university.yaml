@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_stem_tasks
+task: greekmmlu_computer_science_university
+task_alias: Computer Science_University
+dataset_name: Computer_Science_University
