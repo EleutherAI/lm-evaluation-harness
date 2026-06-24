@@ -1,0 +1,4 @@
+task: slide_p3
+include: _slide_yaml
+doc_to_text: "Setning å vurdere: {{text}}\nEr denne setningen skrevet på bokmål, nynorsk, dansk, svensk eller et annet språk? Hvis jeg må velge, vil jeg si at den er skrevet på"
+doc_to_choice: ["bokmål", "nynorsk", "dansk", "svensk", "et annet språk"]

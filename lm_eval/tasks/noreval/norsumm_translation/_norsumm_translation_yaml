@@ -1,5 +1,5 @@
-dataset_path: Helsinki-NLP/tatoeba_mt
-training_split: validation
+dataset_path: ltg/norsumm-nob-nno-translation
+training_split: test
 test_split: test
 output_type: generate_until
 metric_list:
