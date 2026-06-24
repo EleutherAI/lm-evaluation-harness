@@ -4,8 +4,6 @@ import numpy as np
 import pytest
 import torch
 
-from lm_eval.utils import handle_arg_string, simple_parse_args_string
-
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
     mean,
@@ -17,8 +15,15 @@ from lm_eval.utils import (
     RemoteTokenizer,
     check_remote_tokenizer_support,
     get_rolling_token_windows,
+    handle_arg_string,
+    hash_string,
     make_disjoint_window,
+    simple_parse_args_string,
 )
+
+
+def _dummy_auth_token() -> str:
+    return "dummy-token"
 
 
 # noinspection DuplicatedCode
@@ -267,13 +272,13 @@ class TestCollator:
         a = [(("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x]) for x in range(9)]
         b = [
             (("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x, y, z])
-            for x, y, z in zip(range(9), range(9, 18), range(18, 27))
+            for x, y, z in zip(range(9), range(9, 18), range(18, 27), strict=True)
         ]
         return a + b
 
     @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 9)])
     def test_generations(self, batch_size, end):
-        _collate_gen = lambda x: (-len(x[0]), x[0])  # noqa: E731
+        _collate_gen = lambda x: (-len(x[0]), x[0])
 
         generation_samples = self.make_generate_sample(int(end))
         gens = Collator(generation_samples, _collate_gen, group_by="gen_kwargs")
@@ -303,7 +308,7 @@ class TestCollator:
 
     @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 3)])
     def test_loglikelihood(self, batch_size, end):
-        _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
+        _collate_log = lambda x: (-len(x[1]), tuple(x[1]))
         loglikelihood_samples = self.make_loglikelihood_sample(int(end))
         loglikelihoods = Collator(
             loglikelihood_samples,
@@ -330,7 +335,7 @@ class TestCollator:
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        _collate_log = _collate  # noqa: E731
+        _collate_log = _collate
         loglikelihood_samples = self.make_loglikelihood_sample_group()
         loglikelihoods = Collator(
             loglikelihood_samples,
@@ -350,7 +355,7 @@ class TestCollator:
             chunk_lengths = [len(chunk[1]) for chunk in chunks]
             assert chunk_lengths == sorted(chunk_lengths, reverse=True)
             for x in chunks:
-                for request_str, cont_toks, logits in loglikelihoods.get_cache(
+                for _request_str, cont_toks, _logits in loglikelihoods.get_cache(
                     req_str="".join(x[0]),
                     cxt_toks=x[1],
                     cont_toks=x[2],
@@ -423,7 +428,7 @@ def test_remote_tokenizer_custom_cert_and_token(monkeypatch):
         base_url="https://mock-server",
         verify_certificate=True,
         ca_cert_path="dummy.crt",
-        auth_token="dummy-token",
+        auth_token=_dummy_auth_token(),
     )
     assert tokenizer.cert_config == "dummy.crt"
     assert tokenizer.headers["Authorization"] == "Bearer dummy-token"
@@ -448,7 +453,7 @@ def test_remote_tokenizer_no_cert(monkeypatch):
         base_url="https://mock-server",
         verify_certificate=True,
         ca_cert_path=None,
-        auth_token="dummy-token",
+        auth_token=_dummy_auth_token(),
     )
     assert tokenizer.cert_config is True
     assert tokenizer.headers["Authorization"] == "Bearer dummy-token"
@@ -473,7 +478,7 @@ def test_remote_tokenizer_http_url(monkeypatch):
         base_url="http://mock-server",
         verify_certificate=True,
         ca_cert_path="dummy.crt",
-        auth_token="dummy-token",
+        auth_token=_dummy_auth_token(),
     )
     assert tokenizer.base_url.startswith("http://")
     assert tokenizer.tokenizer_info["name_or_path"] == "mock"
@@ -513,7 +518,7 @@ def test_check_remote_tokenizer_support(monkeypatch):
         base_url="https://mock-server",
         verify_certificate=True,
         ca_cert_path="dummy.crt",
-        auth_token="dummy-token",
+        auth_token=_dummy_auth_token(),
     )
 
 
@@ -538,7 +543,7 @@ def test_apply_chat_template(monkeypatch):
         base_url="https://mock-server",
         verify_certificate=True,
         ca_cert_path="dummy.crt",
-        auth_token="dummy-token",
+        auth_token=_dummy_auth_token(),
     )
     chat_history = [{"role": "user", "content": "Hello"}]
     rendered = tokenizer.apply_chat_template(chat_history)
@@ -627,6 +632,11 @@ class TestMaybeDelimit:
     def test_prefix_ends_with_newline_no_extra_delimiter(self):
         """Prefix ends with newline - no extra delimiter added."""
         assert maybe_delimit("line1\n", "line2", delimiter=" ") == "line1\nline2"
+
+
+class TestHashString:
+    def test_accepts_non_string_values(self):
+        assert hash_string({"b": 1, "a": ["x"]}) == hash_string({"a": ["x"], "b": 1})
 
 
 class TestHandleArgString:
