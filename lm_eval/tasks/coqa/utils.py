@@ -1,6 +1,48 @@
 from itertools import zip_longest
 
-import transformers.data.metrics.squad_metrics as squad_metrics
+import transformers.data.metrics.squad_metrics as squad_metrics  # noqa: PLR0402
+
+
+def _slice_mapping_values(mapping, stop):
+    return {
+        key: value[:stop] if isinstance(value, list) else value
+        for key, value in mapping.items()
+    }
+
+
+def _doc_for_turn(doc, turn_idx):
+    stop = turn_idx + 1
+    turn_doc = {}
+    for key, value in doc.items():
+        if key in ("questions", "answers"):
+            turn_doc[key] = _slice_mapping_values(value, stop)
+        elif key == "additional_answers":
+            continue
+        else:
+            turn_doc[key] = value
+
+    additional_answers = doc.get("additional_answers")
+    if additional_answers:
+        turn_doc["additional_answers"] = {
+            key: _slice_mapping_values(answers, stop)
+            for key, answers in additional_answers.items()
+        }
+
+    return turn_doc
+
+
+def process_docs(dataset):
+    def _expand_batch(batch):
+        turn_batch = {}
+        for row_idx, questions in enumerate(batch["questions"]):
+            doc = {key: value[row_idx] for key, value in batch.items()}
+            num_turns = len(questions["input_text"])
+            for turn_idx in range(num_turns):
+                for key, value in _doc_for_turn(doc, turn_idx).items():
+                    turn_batch.setdefault(key, []).append(value)
+        return turn_batch
+
+    return dataset.map(_expand_batch, batched=True, remove_columns=dataset.column_names)
 
 
 def doc_to_text(doc):
