@@ -677,6 +677,11 @@ class ConfigurableTask(Task):
         self._aggregation_list = {}
         self._higher_is_better = {}
 
+        # Cache rendered prompt outputs (doc_to_text / doc_to_target / doc_to_choice)
+        # so that few-shot rendering doesn't redo Jinja template work for the same
+        # (doc, template) pair across repeated samplings. See issue #1286.
+        self._render_cache: dict = {}
+
         if self.config.metric_list is None:
             # TODO: handle this in TaskConfig.__post_init__ ?
             _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
@@ -1205,6 +1210,16 @@ class ConfigurableTask(Task):
         else:
             doc_to_text = self.config.doc_to_text
 
+        cache = getattr(self, "_render_cache", None)
+        cache_key = ("text", id(doc), id(doc_to_text)) if cache is not None else None
+        if cache_key is not None and cache_key in cache:
+            return cache[cache_key]
+        result = self._doc_to_text_render(doc, doc_to_text)
+        if cache_key is not None:
+            cache[cache_key] = result
+        return result
+
+    def _doc_to_text_render(self, doc, doc_to_text):
         if isinstance(doc_to_text, int):
             return doc_to_text
         elif isinstance(doc_to_text, str):
@@ -1241,6 +1256,16 @@ class ConfigurableTask(Task):
         else:
             doc_to_target = self.config.doc_to_target
 
+        cache = getattr(self, "_render_cache", None)
+        cache_key = ("target", id(doc), id(doc_to_target)) if cache is not None else None
+        if cache_key is not None and cache_key in cache:
+            return cache[cache_key]
+        result = self._doc_to_target_render(doc, doc_to_target)
+        if cache_key is not None:
+            cache[cache_key] = result
+        return result
+
+    def _doc_to_target_render(self, doc: Mapping, doc_to_target) -> int | str | list:
         if isinstance(doc_to_target, int):
             return doc_to_target
         elif isinstance(doc_to_target, str):
@@ -1289,6 +1314,16 @@ class ConfigurableTask(Task):
         else:
             doc_to_choice = self.config.doc_to_choice
 
+        cache = getattr(self, "_render_cache", None)
+        cache_key = ("choice", id(doc), id(doc_to_choice)) if cache is not None else None
+        if cache_key is not None and cache_key in cache:
+            return cache[cache_key]
+        result = self._doc_to_choice_render(doc, doc_to_choice)
+        if cache_key is not None:
+            cache[cache_key] = result
+        return result
+
+    def _doc_to_choice_render(self, doc: Any, doc_to_choice) -> list[str]:
         if isinstance(doc_to_choice, str):
             if doc_to_choice in self.features:
                 return doc[doc_to_choice]
