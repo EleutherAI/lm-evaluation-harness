@@ -1,0 +1,5 @@
+group: wmt-generalmt-doc-de-fr
+task:
+  - wmt-generalmt-doc-newstest2020-de-fr
+  - wmt-generalmt-doc-newstest2021-de-fr
+  - wmt-generalmt-doc-wmttest2022-de-fr

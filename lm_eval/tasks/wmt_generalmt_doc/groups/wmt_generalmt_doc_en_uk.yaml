@@ -1,0 +1,4 @@
+group: wmt-generalmt-doc-en-uk
+task:
+  - wmt-generalmt-doc-wmttest2022-en-uk
+  - wmt-generalmt-doc-wmttest2023-en-uk
