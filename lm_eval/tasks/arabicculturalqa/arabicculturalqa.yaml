@@ -1,0 +1,6 @@
+group: arabicculturalqa
+task:
+  - arabicculturalqa_mcq
+  - arabicculturalqa_oeq
+metadata:
+  version: 1.0
