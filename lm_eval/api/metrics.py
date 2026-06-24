@@ -244,12 +244,8 @@ def exact_match_hf_evaluate(
     # Opt-in to preserve existing behavior: collapse runs of whitespace to a
     # single space and trim both ends before comparison.
     if ignore_whitespace:
-        predictions = np.array(
-            [" ".join(str(x).split()) for x in predictions]
-        )
-        references = np.array(
-            [" ".join(str(x).split()) for x in references]
-        )
+        predictions = np.array([" ".join(str(x).split()) for x in predictions])
+        references = np.array([" ".join(str(x).split()) for x in references])
 
     score_list = predictions == references
 
