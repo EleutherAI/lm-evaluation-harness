@@ -133,7 +133,7 @@ class Level:
         elif isinstance(text, list):
             return [self(unit) for unit in text]
         else:
-            raise ValueError(
+            raise TypeError(
                 f"Input text must be a string or a list of strings, not {type(text)}."
             )
 
@@ -158,8 +158,6 @@ class TargetLevel(Level):
 
 class Transformation:
     """Base class for transformations"""
-
-    pass
 
 
 class Count(Transformation):
@@ -202,7 +200,7 @@ class Position(Transformation):
         elif isinstance(self.position, list):
             return [self.get(units, i) for i in self.position]
         else:
-            raise ValueError(
+            raise TypeError(
                 f"Position must be an integer or a list of integers, not {type(self.position)}."
             )
 
