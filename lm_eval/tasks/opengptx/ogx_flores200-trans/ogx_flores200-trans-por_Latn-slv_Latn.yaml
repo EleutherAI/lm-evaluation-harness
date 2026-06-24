@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-por_Latn-slv_Latn"
+"dataset_name": "por_Latn-slv_Latn"
+"doc_to_text": "Portuguese phrase: {{sentence_por_Latn}}\nSlovenian phrase:"
+"doc_to_decontamination_query": "{{sentence_por_Latn}}"
+"doc_to_target": "{{sentence_slv_Latn}}"

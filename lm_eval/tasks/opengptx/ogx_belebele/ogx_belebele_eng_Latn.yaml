@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_eng_Latn"
+"test_split": "eng_Latn"
+"fewshot_split": "eng_Latn"
+"doc_to_text": "Passage: {{flores_passage}}\nQuestion: {{question}}\nAnswer:"

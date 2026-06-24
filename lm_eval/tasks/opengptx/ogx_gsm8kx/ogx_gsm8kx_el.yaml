@@ -1,0 +1,10 @@
+"include": "_default_gsm8kx_template_yaml"
+"task": "ogx_gsm8kx_el"
+"dataset_name": "EL"
+"doc_to_text": "Ερώτηση: {{question}}\nΑπάντηση:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Ερώτηση:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"
