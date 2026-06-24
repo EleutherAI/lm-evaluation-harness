@@ -214,6 +214,7 @@ def exact_match_hf_evaluate(
     ignore_case=False,
     ignore_punctuation=False,
     ignore_numbers=False,
+    ignore_whitespace=False,
 ):
     if regexes_to_ignore is not None:
         for s in regexes_to_ignore:
@@ -236,6 +237,19 @@ def exact_match_hf_evaluate(
         repl_table = string.digits.maketrans("", "", string.digits)
         predictions = np.char.translate(predictions, table=repl_table)
         references = np.char.translate(references, table=repl_table)
+
+    # Whitespace normalization. Stripping punctuation/digits via the flags
+    # above can leave internal/edge whitespace behind (e.g. "( B )" -> " B "),
+    # causing semantically identical answers to be scored as mismatches.
+    # Opt-in to preserve existing behavior: collapse runs of whitespace to a
+    # single space and trim both ends before comparison.
+    if ignore_whitespace:
+        predictions = np.array(
+            [" ".join(str(x).split()) for x in predictions]
+        )
+        references = np.array(
+            [" ".join(str(x).split()) for x in references]
+        )
 
     score_list = predictions == references
 
