@@ -1,0 +1,4 @@
+# Default alias for prompt_1; matches names used in fewshot.sh and AfroBench docs.
+dataset_name: sot
+include: direct/prompt_1/afrimmlu_direct
+task: afrimmlu_direct_sot
