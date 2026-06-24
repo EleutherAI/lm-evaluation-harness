@@ -1,6 +1,30 @@
+import logging
+import signal
+import warnings
 from typing import Dict, List
 
 import datasets
+
+
+eval_logger = logging.getLogger(__name__)
+
+
+try:
+    import sympy
+    from sympy.parsing.latex import parse_latex
+
+    HAS_SYMPY = True
+except ImportError:
+    HAS_SYMPY = False
+
+try:
+    from math_verify import parse, verify
+
+    HAS_MATH_VERIFY = True
+except ImportError:
+    HAS_MATH_VERIFY = False
+
+_SYMPY_WARNING_ISSUED = False
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
@@ -17,37 +41,142 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
+    response = results[0]
+
+    # Try to extract \boxed{} from the response (matches aime task behavior)
+    # First check for multiple \boxed{} (e.g. \boxed{3}, \boxed{5}, \boxed{7})
+    all_boxed = find_all_boxed_strings(response)
+    # Deduplicate while preserving order (models often repeat the final answer)
+    seen = set()
+    unique_boxed = []
+    for b in all_boxed:
+        if b not in seen:
+            seen.add(b)
+            unique_boxed.append(b)
+    if len(unique_boxed) > 1:
+        try:
+            answer = ", ".join(remove_boxed(b) for b in unique_boxed)
+        except AssertionError:
+            answer = None
+    elif len(unique_boxed) == 1:
+        try:
+            answer = remove_boxed(all_boxed[0])
+        except AssertionError:
+            answer = None
     else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+        answer = None
+
+    # Fall back to $...$ extraction
+    if answer is None:
+        indices = [pos for pos, char in enumerate(response) if char == "$"]
+        if len(indices) <= 1:
+            answer = response
+        else:
+            answer = response[indices[0] + 1 : indices[-1]]
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
 
-    results = {
+    out = {
         "exact_match": retval,
     }
-    return results
+
+    # math_verify provides robust LaTeX-aware answer verification
+    if HAS_MATH_VERIFY:
+        mv_result = verify(
+            gold=parse(doc["solution"]),
+            target=parse(response),
+        )
+        out["math_verify"] = 1 if mv_result else 0
+
+    return out
+
+
+class _timeout:
+    """Timeout context manager using SIGALRM (Unix only)."""
+
+    def __init__(self, seconds=1, error_message="Timeout"):
+        self.seconds = seconds
+        self.error_message = error_message
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
+
+def _sympy_equiv(ss1: str, ss2: str) -> bool:
+    """Check symbolic equivalence using SymPy. Returns True/False."""
+    try:
+        with _timeout(seconds=5):
+            try:
+                parsed_1 = parse_latex(ss1)
+                parsed_2 = parse_latex(ss2)
+            except (
+                sympy.parsing.latex.errors.LaTeXParsingError,
+                sympy.SympifyError,
+                TypeError,
+            ):
+                return False
+
+            try:
+                diff = parsed_1 - parsed_2
+            except TypeError:
+                return False
+
+            try:
+                return sympy.simplify(diff) == 0
+            except ValueError:
+                return False
+    except TimeoutError:
+        eval_logger.debug(f"Timed out comparing {ss1} and {ss2}")
+        return False
+    except Exception as e:
+        eval_logger.debug(f"Failed comparing {ss1} and {ss2} with {e}")
+        return False
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
 def is_equiv(str1, str2, verbose=False):
+    global _SYMPY_WARNING_ISSUED
+
     if str1 is None and str2 is None:
         print("WARNING: Both None")
         return True
     if str1 is None or str2 is None:
         return False
 
+    # Normalize strings; fall back to raw strings if strip_string fails
+    ss1 = str1
+    ss2 = str2
     try:
         ss1 = strip_string(str1)
         ss2 = strip_string(str2)
-        if verbose:
-            print(ss1, ss2)
-        return ss1 == ss2
     except Exception:
-        return str1 == str2
+        pass
+    if verbose:
+        print(ss1, ss2)
+    if ss1 == ss2:
+        return True
+
+    # Fall back to SymPy symbolic equivalence if available
+    if HAS_SYMPY:
+        if _sympy_equiv(ss1, ss2):
+            return True
+    elif not _SYMPY_WARNING_ISSUED:
+        warnings.warn(
+            "sympy not installed — string-only equivalence used for hendrycks_math. "
+            "Install via `pip install lm-eval[math]` for improved symbolic matching.",
+            stacklevel=2,
+        )
+        _SYMPY_WARNING_ISSUED = True
+
+    return False
 
 
 def remove_boxed(s):
@@ -92,6 +221,40 @@ def last_boxed_only_string(string):
         retval = string[idx : right_brace_idx + 1]
 
     return retval
+
+
+def find_all_boxed_strings(string):
+    """Find all \\boxed{} occurrences in a string, handling nested braces."""
+    results = []
+    search_start = 0
+    while True:
+        idx = string.find("\\boxed", search_start)
+        if idx < 0:
+            break
+        # Skip if this is \boxed (space-separated, not brace)
+        after = idx + len("\\boxed")
+        if after >= len(string) or string[after] != "{":
+            search_start = after
+            continue
+        # Find matching closing brace
+        i = after
+        num_left_braces_open = 0
+        right_brace_idx = None
+        while i < len(string):
+            if string[i] == "{":
+                num_left_braces_open += 1
+            if string[i] == "}":
+                num_left_braces_open -= 1
+                if num_left_braces_open == 0:
+                    right_brace_idx = i
+                    break
+            i += 1
+        if right_brace_idx is not None:
+            results.append(string[idx : right_brace_idx + 1])
+            search_start = right_brace_idx + 1
+        else:
+            search_start = after
+    return results
 
 
 def fix_fracs(string):
