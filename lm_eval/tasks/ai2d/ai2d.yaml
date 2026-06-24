@@ -1,0 +1,33 @@
+dataset_path: lmms-lab/ai2d
+task: ai2d
+test_split: test
+output_type: generate_until
+doc_to_image:
+  - image
+doc_to_text: "<image>Look at the scientific diagram carefully and answer the following question: {{question | capitalize}}\n{% for option in options -%}{{['A', 'B', 'C', 'D', 'E', 'F'][loop.index0]}}. {{option | capitalize}}\n{% endfor -%}
+
+Think step by step and finally respond to the question with only the correct option number as \"FINAL ANSWER\"."
+gen_prefix: "Let's think step by step."
+doc_to_target: "{{ ['A', 'B', 'C', 'D', 'E', 'F'][answer|int] }}"
+generation_kwargs:
+  until: []
+  temperature: 0.0
+  do_sample: false
+  max_gen_toks: 512
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "(?:[`\\*_]*(?i:FINAL ANSWER|Final Answer|Answer|answer is)[`\\*_]*)[:\\s]*[`\\*_]*([A-D])[`\\*_]*"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.flexible_extract
+      - function: "take_first"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
