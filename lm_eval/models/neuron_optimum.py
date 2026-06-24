@@ -287,7 +287,7 @@ class NEURON_HF(TemplateLM):
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """Encode strings to tokens"""
         if add_special_tokens is None:
-            add_special_tokens = False or self.add_bos_token
+            add_special_tokens = self.add_bos_token if self.add_bos_token is not None else False
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
 
@@ -308,7 +308,7 @@ class NEURON_HF(TemplateLM):
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
-        add_special_tokens = False or self.add_bos_token
+        add_special_tokens = self.add_bos_token if self.add_bos_token is not None else False
 
         encoding = self.tokenizer(
             strings,
