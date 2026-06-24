@@ -214,6 +214,45 @@ def test_dict_metric_uses_custom_aggregation():
     assert agg_metrics["pass@3,none"] == 1.5
 
 
+def test_chrf_uses_zero_word_order():
+    """chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
+    import sacrebleu as sb
+
+    from lm_eval.api.metrics import chrf
+
+    items = [("the cat sat on the mat", "the dog ran across the floor")]
+    result = chrf(items)
+    refs, preds = [["the cat sat on the mat"]], ["the dog ran across the floor"]
+    expected = sb.corpus_chrf(preds, refs, word_order=0).score
+    assert abs(result - expected) < 1e-6
+
+
+def test_chrfpp_uses_word_order_two():
+    """chrf++ aggregation should use word_order=2, producing a different score than chrf."""
+    import sacrebleu as sb
+
+    from lm_eval.api.metrics import chrf, chrfpp
+
+    items = [("the cat sat on the mat", "the dog ran across the floor")]
+    chrf_score = chrf(items)
+    chrfpp_score = chrfpp(items)
+
+    refs, preds = [["the cat sat on the mat"]], ["the dog ran across the floor"]
+    expected_chrfpp = sb.corpus_chrf(preds, refs, word_order=2).score
+    assert abs(chrfpp_score - expected_chrfpp) < 1e-6
+    assert chrf_score != chrfpp_score, (
+        "chrf and chrf++ should differ when word n-grams affect the score"
+    )
+
+
+def test_chrfpp_perfect_match():
+    """chrf++ should return 100.0 for identical hypothesis and reference."""
+    from lm_eval.api.metrics import chrfpp
+
+    items = [("the cat sat on the mat", "the cat sat on the mat")]
+    assert chrfpp(items) == 100.0
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()

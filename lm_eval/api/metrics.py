@@ -100,17 +100,34 @@ def bleu(items):
 
 @register_aggregation("chrf")
 def chrf(items):
-    """chrF++ is a tool for automatic evaluation of machine translation output
-    based on character n-gram precision and recall enhanced with word n-grams.
+    """ChrF (character n-gram F-score) for machine translation evaluation.
+    Computes character n-gram precision and recall (char_order=6, word_order=0).
+    Use the ``chrf++`` aggregation for word-enhanced scoring (word_order=2).
     Source: https://github.com/m-popovic/chrF
     Paper: https://www.aclweb.org/anthology/W15-3049.pdf
 
-    Higher is better  # TODO I think
+    Higher is better
     """
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_chrf(preds, refs).score
+
+
+@register_aggregation("chrf++")
+def chrfpp(items):
+    """ChrF++ metric for machine translation evaluation.
+    Extends ChrF with word n-grams (word_order=2) for improved correlation
+    with human judgements on higher-resource language pairs.
+    Source: https://github.com/m-popovic/chrF
+    Paper: https://aclanthology.org/W17-4770.pdf
+
+    Higher is better
+    """
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = _sacreformat(refs, preds)
+    return sacrebleu.corpus_chrf(preds, refs, word_order=2).score
 
 
 @register_aggregation("ter")
@@ -370,6 +387,16 @@ def chrf_fn(items):  # This is a passthrough function
 
 
 @register_metric(
+    metric="chrf++",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="chrf++",
+)
+def chrfpp_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
     metric="ter",
     higher_is_better=True,
     output_type="generate_until",
@@ -575,6 +602,7 @@ def stderr_for_metric(
         perplexity,
         bleu,
         chrf,
+        chrfpp,
         ter,
         nanmean,
     ]
