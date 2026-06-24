@@ -77,7 +77,7 @@ class SQuAD2(ConfigurableTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc, doc_to_text=None):
         return (
             "Title: "
             + doc["title"]
@@ -97,7 +97,7 @@ class SQuAD2(ConfigurableTask):
     def doc_to_decontamination_query(self, doc):
         return doc["context"]
 
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc, doc_to_target=None):
         answer_list = doc["answers"]["text"]
         if len(answer_list) > 0:
             answer = answer_list[0]
