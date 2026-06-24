@@ -1,0 +1,17 @@
+task: refute_soundness
+dataset_path: BGPT-OFFICIAL/refute
+dataset_name: refute_soundness
+output_type: multiple_choice
+test_split: train
+doc_to_text: "You are a rigorous methodological reviewer.\n\nSTUDY SUMMARY:\n{{summary}}\n\nIs this study's central conclusion methodologically sound or flawed given what is described?\nAnswer:"
+doc_to_choice: ["sound", "flawed"]
+doc_to_target: !function utils.doc_to_target
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  description: >
+    REFUTE judge-free soundness task. Binary sound/flawed classification of single
+    study summaries via loglikelihood comparison. Source dataset BGPT-OFFICIAL/refute.
