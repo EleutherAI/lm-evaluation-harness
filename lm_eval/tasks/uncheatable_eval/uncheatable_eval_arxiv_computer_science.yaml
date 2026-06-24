@@ -1,0 +1,9 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_arxiv_computer_science
+task_alias: UE_arxiv_cs
+description: >-
+  Rolling perplexity on Uncheatable Eval arXiv computer science papers and
+  abstracts downloaded after mid-2024.
+custom_dataset: !function uncheatable_eval_utils.load_uncheatable_eval
+dataset_kwargs:
+  dataset: arxiv_computer_science
