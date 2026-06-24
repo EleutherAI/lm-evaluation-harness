@@ -299,6 +299,8 @@ def generate_samples(
             except:
                 if used_haystack > incremental:
                     used_haystack -= incremental
+                else:
+                    raise
 
         if remove_newline_tab:
             input_text = " ".join(
