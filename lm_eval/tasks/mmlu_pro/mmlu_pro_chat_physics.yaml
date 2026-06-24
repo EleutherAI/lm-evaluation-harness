@@ -1,0 +1,5 @@
+description: "The following are multiple choice questions (with answers) about physics.\n"
+include: "_mmlu_pro_chat_yaml"
+task: "mmlu_pro_chat_physics"
+task_alias: "physics"
+process_docs: !function utils.process_physics
