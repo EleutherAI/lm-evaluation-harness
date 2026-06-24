@@ -13,6 +13,7 @@
 # limitations under the License
 
 
+import logging
 import os
 import random
 import re
@@ -36,6 +37,7 @@ except ImportError:
         'Please install the `wonderwords` and `nltk` packages to run this script. You can install them with `pip install lm_eval["ruler"]` or`pip install wonderwords nltk`.'
     )
 
+eval_logger = logging.getLogger(__name__)
 
 NUM_SAMPLES = 500
 REMOVE_NEWLINE_TAB = ""
@@ -278,6 +280,12 @@ def generate_samples(
         desc=f"Generating synthetic samples: {type_haystack} | {max_seq_length}",
     ):
         used_haystack = num_haystack
+        used_haystack = max(1, used_haystack)
+        too_long = False
+        input_text = ""
+        answer = ""
+        query = ""
+        length = 0
         while True:
             try:
                 input_text, answer, query = generate_input_output(
@@ -297,8 +305,19 @@ def generate_samples(
                 break
                 # ruff: noqa
             except:
-                if used_haystack > incremental:
-                    used_haystack -= incremental
+                if used_haystack > 1:
+                    used_haystack = max(1, used_haystack - incremental)
+                else:
+                    eval_logger.warning(
+                        f"Skipping NIAH sample {index}: "
+                        f"exceeds max_seq_length {max_seq_length} "
+                        f"even with minimum haystack."
+                    )
+                    too_long = True
+                    break
+
+        if too_long:
+            continue
 
         if remove_newline_tab:
             input_text = " ".join(

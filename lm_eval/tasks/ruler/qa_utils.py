@@ -14,6 +14,7 @@
 
 
 import itertools  # noqa: I001
+import logging
 import random
 from functools import cache
 
@@ -22,6 +23,8 @@ import requests
 from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+
+eval_logger = logging.getLogger(__name__)
 
 CONFIG = {
     "tokens_to_generate": 32,
@@ -172,6 +175,12 @@ def generate_samples(
         range(num_samples), desc=f"Generating QA Samples | {max_seq_length}"
     ):
         used_docs = num_docs
+        # Ensure used_docs is at least 1 to avoid errors in generate_input_output
+        used_docs = max(1, used_docs)
+        too_long = False
+        input_text = ""
+        answer = []
+        length = 0
         while True:
             try:
                 input_text, answer = generate_input_output(
@@ -181,8 +190,19 @@ def generate_samples(
                 assert length <= max_seq_length, f"{length} exceeds max_seq_length."
                 break
             except:  # noqa: E722
-                if used_docs > incremental:
-                    used_docs -= incremental
+                if used_docs > 1:
+                    used_docs = max(1, used_docs - incremental)
+                else:
+                    eval_logger.warning(
+                        f"Skipping sample {index + pre_samples}: "
+                        f"exceeds max_seq_length {max_seq_length} "
+                        f"even with minimum documents."
+                    )
+                    too_long = True
+                    break
+
+        if too_long:
+            continue
 
         if remove_newline_tab:
             input_text = " ".join(
