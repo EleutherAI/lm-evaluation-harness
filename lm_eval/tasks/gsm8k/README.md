@@ -46,6 +46,8 @@ Homepage: https://github.com/openai/grade-school-math
 - `gsm8k_cot_self_consistency`: GSM8K with Chain-of-Thought and Self-Consistency
 - `gsm8k_cot_llama`: GSM8K with prompt formatting modified to conform to the evaluation settings described by Meta here: https://huggingface.co/datasets/meta-llama/Meta-Llama-3.1-8B-Instruct-evals/viewer/Meta-Llama-3.1-8B-Instruct-evals__gsm8k__details?row=0
     - Use this task with --fewshot_as_multiturn and --apply_chat_template to replicate Meta's reported performance.
+- `gsm8k_fr`: GSM8K dataset translated to French using quickmt/quickmt-en-fr (dataset source: https://huggingface.co/datasets/cmh/gsm8k_fr)
+- `gsm8k_ko`: GSM8K dataset translated to Korean using kuotient/Seagull-13B-translate (dataset source: https://huggingface.co/datasets/kuotient/gsm8k-ko)
 
 
 ### Checklist
@@ -63,3 +65,4 @@ Homepage: https://github.com/openai/grade-school-math
 
 Change log:
 - [2026-01-27] `gsm8k_cot_llama` (v4.0): set 'target_delimiter' to empty as the prompt ends with newline.
+- [2026-01-30] added `gsm8k_fr` and `gsm8k_ko` for multilingual math evaluation
