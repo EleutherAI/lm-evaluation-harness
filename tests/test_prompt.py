@@ -4,8 +4,22 @@ import numpy as np
 import pytest
 
 from lm_eval.api.instance import Instance
+from lm_eval.prompts import get_prompt
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import join_iters
+
+
+@pytest.mark.parametrize(
+    "pattern",
+    ["promptsource:*", "promptsource:GPT-3?", "promptsource:[abc]"],
+)
+def test_get_prompt_rejects_wildcards(pattern):
+    # Wildcard prompt selection (e.g. the `promptsource:*` catch-all once shown in
+    # the docs) is not supported; get_prompt should fail fast with an actionable
+    # message *before* importing promptsource, so the guard holds even when the
+    # optional promptsource dependency is not installed.
+    with pytest.raises(ValueError, match="not supported"):
+        get_prompt(pattern, dataset_name="super_glue", subset_name="wsc.fixed")
 
 
 MMLU_ANATOMY_ZERO_SHOT = """The following are multiple choice questions (with answers) about anatomy.
