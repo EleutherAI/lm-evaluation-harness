@@ -1,0 +1,38 @@
+tag:
+  - math_word_problems
+task: math_500
+dataset_path: HuggingFaceH4/MATH-500
+test_split: test
+training_split: null
+validation_split: null
+test_split: test
+fewshot_split: null
+description: Answer the following math question, given in LaTeX format, clearly and concisely, and present the final answer as \(\boxed{x}\), where X is the fully simplified solution.
+doc_to_text: >
+  Example:
+  **Question:** \(\int_0^1 (3x^2 + 2x) \,dx\)
+  **Solution:** \(\int (3x^2 + 2x) \,dx = x^3 + x^2 + C\) Evaluating from 0 to 1: \((1^3 + 1^2) - (0^3 + 0^2) = 1 + 1 - 0 = 2 \boxed{2}\)
+  The final answer is \(\boxed{2}\)
+
+  Now, solve the following question:
+  **Question:** {{problem}}
+  **Solution:**
+doc_to_target: answer
+output_type: generate_until
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+    - "<|repo_name|>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 1024
+metric_list:
+  - metric: math_500
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0
