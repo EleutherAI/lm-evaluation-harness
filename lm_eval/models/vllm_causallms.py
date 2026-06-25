@@ -102,7 +102,13 @@ class VLLM(TemplateLM):
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
-        kwargs.pop("device", None)
+        if "device" in kwargs:
+            eval_logger.warning(
+                "The `device` argument is ignored by the vLLM backend. To select "
+                "which GPU(s) vLLM can use, set the `CUDA_VISIBLE_DEVICES` "
+                "environment variable before running lm-eval."
+            )
+            kwargs.pop("device")
         self.think_end_token = think_end_token
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)

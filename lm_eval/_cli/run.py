@@ -71,7 +71,7 @@ class Run(SubCommand):
             action=SplitArgs,
             help=textwrap.dedent("""
                 Space (or comma-separated) list of task names or groupings.
-                Use 'lm-eval list tasks' to see all available tasks.
+                Use 'lm-eval ls tasks' to see all available tasks.
             """).strip(),
         )
         model_group.add_argument(
