@@ -39,8 +39,8 @@ def load_dill(path: str) -> dict[str, list[dict[str, Any]]]:
 
     Note:
     Constraint classes are pickled under the path ``src.constraints``;
-    defined in the upstream repo ``github.com/stanford-nlp/collie``.
-    We redirect to the our version of `constraints.py` by subclassing
+    defined in the upstream repo ``github.com/princeton-nlp/collie``.
+    We redirect to our version of ``constraints.py`` by subclassing
     ``dill.Unpickler``.
     """
     import importlib
