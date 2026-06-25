@@ -1,15 +1,24 @@
 """Helpers for the `collie` task."""
 
+from __future__ import annotations
+
 import base64
 import json
 import os
 import urllib.request
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    import datasets
 
 
 _COLLIE_URL = "https://collie-benchmark.github.io/data/all_data.dill"
 
 
-def _download_dill():
+def _download_dill() -> str:
     """Return a local path to the official COLLIE dill, downloading if absent."""
     cache = os.path.join(
         os.environ.get("HF_DATASETS_CACHE", os.path.expanduser("~/.cache/lm_eval")),
@@ -22,16 +31,17 @@ def _download_dill():
     return cache
 
 
-def load_dill(path):
+def load_dill(path: str) -> dict[str, list[dict[str, Any]]]:
     """Deserialize the COLLIE dill, returning ``dict[str, list[record]]``.
 
     Each record is a dict with keys: ``example``, ``metadata``, ``targets``,
     ``constraint`` (a live constraint object), and ``prompt``.
 
-    The file pickles constraint classes under the upstream module path
-    ``src.constraints``; we redirect those to the vendored, importable
-    ``lm_eval.tasks.collie.constraints`` so resolution is by reference (no
-    global ``sys.modules`` mutation).
+    Note:
+    Constraint classes are pickled under the path ``src.constraints``;
+    defined in the upstream repo ``github.com/stanford-nlp/collie``.
+    We redirect to the our version of `constraints.py` by subclassing
+    ``dill.Unpickler``.
     """
     import importlib
 
@@ -39,18 +49,18 @@ def load_dill(path):
 
     vendored = importlib.import_module("lm_eval.tasks.collie.constraints")
 
+    # Subclassing dill.Unpickler to redirect constraint class lookups to the vendored module.
     class _Unpickler(dill.Unpickler):  # noqa: S301
-        def find_class(self, module, name):
+        def find_class(self, module: str, name: str) -> Any:
             if module == "src.constraints":
                 return getattr(vendored, name)
             return super().find_class(module, name)
 
     with open(path, "rb") as f:
-        # Trusted official COLLIE data file (not user-supplied input).
         return _Unpickler(f).load()
 
 
-def load_dataset(**kwargs):
+def load_dataset(**kwargs: Any) -> dict[str, datasets.Dataset]:
     """Build the COLLIE table for use as an lm-eval ``custom_dataset`` loader.
 
     Downloads the official benchmark dill, flattens its ``dict[str, list]`` of
@@ -81,7 +91,7 @@ def load_dataset(**kwargs):
     return {"test": datasets.Dataset.from_list(rows)}
 
 
-def process_results(doc, results):
+def process_results(doc: dict[str, Any], results: list[str]) -> dict[str, bool]:
     """Score a generation against its COLLIE constraint (pass-rate accuracy)."""
     import dill
 

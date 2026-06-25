@@ -1,6 +1,3 @@
-# From https://github.com/princeton-nlp/collie
-#
-# Upstream License:
 #   MIT License
 #   Copyright (c) 2023 Howard Chen
 #
@@ -21,7 +18,20 @@
 #   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
-#
+
+"""COLLIE constraint DSL.
+
+A constraint is composed from:
+
+  - ``Level``:  tokenize text into units
+  - ``Transformation``:  reduce or reshape those units.
+  - ``Relation``: the comparison operator.
+  - ``Reduction``: quantify over results (``all``, ``any``, ``at least N``, …).
+  - ``Logic``: (``And`` / ``Or`` / ``All``) combine whole constraints.
+
+This copy is lightly adapted from upstream:
+(https://github.com/princeton-nlp/Collie/blob/master/collie/constraints.py)
+"""
 
 from __future__ import annotations
 
@@ -41,25 +51,6 @@ from packaging.version import parse as parse_version
 # for more information.
 NLTK_MIN_VERSION = "3.9.1"
 RANK = os.environ.get("LOCAL_RANK", "0")
-
-
-def download_nltk_resources():
-    """Download 'punkt' if not already installed"""
-    assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
-        NLTK_MIN_VERSION
-    ), (
-        f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
-    )
-
-    try:
-        nltk.data.find("tokenizers/punkt_tab")
-    except LookupError:
-        if RANK == "0":
-            nltk.download("punkt_tab")
-            print("Downloaded punkt_tab on rank 0")
-
-
-download_nltk_resources()
 
 
 if TYPE_CHECKING:
@@ -86,6 +77,25 @@ if TYPE_CHECKING:
         def extract(self, x: Any) -> Any: ...
 
 
+def download_nltk_resources():
+    """Download 'punkt' if not already installed"""
+    assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
+        NLTK_MIN_VERSION
+    ), (
+        f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
+    )
+
+    try:
+        nltk.data.find("tokenizers/punkt_tab")
+    except LookupError:
+        if RANK == "0":
+            nltk.download("punkt_tab")
+            print("Downloaded punkt_tab on rank 0")
+
+
+download_nltk_resources()
+
+
 def sus_target(t: str) -> bool:
     """Returns True if the target t is suspicious."""
     if not isinstance(t, str):
@@ -104,23 +114,24 @@ class Level:
     def __init__(self, level: LevelStr | None = None) -> None:
         self.level = level
 
-    def __call__(self, text: Any) -> Any:
+    def __call__(self, value: Any) -> Any:
+        # `value` is a raw string, or a (possibly nested) list of already-tokenized
         if self.level is None:
-            return text
-        if isinstance(text, str):
+            return value
+        if isinstance(value, str):
             tokenized = None
             if self.level == "character":
-                tokenized = list(text)
+                tokenized = list(value)
             elif self.level == "word":
                 tokenized = [
-                    x for x in word_tokenize(text) if x not in string.punctuation
+                    x for x in word_tokenize(value) if x not in string.punctuation
                 ]
             elif self.level == "phrase":
                 raise NotImplementedError
             elif self.level == "sentence":
-                tokenized = sent_tokenize(text)
+                tokenized = sent_tokenize(value)
             elif self.level == "paragraph":
-                tokenized = self.split_paragraphs(text)
+                tokenized = self.split_paragraphs(value)
             elif self.level == "passage":
                 raise NotImplementedError
             # TODO: make this more general
@@ -130,11 +141,11 @@ class Level:
                 else None
             )
             return tokenized
-        elif isinstance(text, list):
-            return [self(unit) for unit in text]
+        elif isinstance(value, list):
+            return [self(unit) for unit in value]
         else:
             raise TypeError(
-                f"Input text must be a string or a list of strings, not {type(text)}."
+                f"Input must be a string or a list of strings, not {type(value)}."
             )
 
     @staticmethod
@@ -146,6 +157,7 @@ class Level:
         return text.split(Level._para_delim)
 
 
+# NOTE: renaming/merging subclasses or moving `level` into the type breaks deserialization.
 class InputLevel(Level):
     def __str__(self) -> str:
         return f"InputLevel({self.level})"
@@ -158,6 +170,12 @@ class TargetLevel(Level):
 
 class Transformation:
     """Base class for transformations"""
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        raise NotImplementedError("Transformations are implemented by subclasses")
+
+    def __str__(self) -> str:
+        raise NotImplementedError("String representation are implemented by subclasses")
 
 
 class Count(Transformation):
@@ -218,7 +236,7 @@ class PositionOf(Transformation):
         return [i for i, u in enumerate(units)]
 
     def __str__(self) -> str:
-        return f"PositionsOf({self.func})"
+        return f"PositionOf({self.func})"
 
 
 class MapPosition(Transformation):
@@ -264,6 +282,7 @@ class Max(Transformation):
 
 class ForEach(Transformation):
     def __init__(self, func: Any) -> None:
+        super().__init__()
         self.func = func
 
     def __call__(self, units: list) -> list:
