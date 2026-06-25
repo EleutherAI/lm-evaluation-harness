@@ -1,0 +1,3 @@
+include: _hitom_cotp_template_yaml
+task: hitom_cotp_order_0
+process_docs: !function utils.process_docs_cotp_order_0
