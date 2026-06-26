@@ -1,0 +1,21 @@
+task: afrimedqa_mcq
+dataset_path: intronhealth/afrimedqa_v2
+test_split: train
+output_type: generate_until
+process_docs: !function utils_afrimedqa.process_docs
+doc_to_text: !function utils_afrimedqa.doc_to_text
+doc_to_target: !function utils_afrimedqa.doc_to_target
+process_results: !function utils_afrimedqa.process_results_gen
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+generation_kwargs:
+  max_gen_toks: 8
+  temperature: 0.0
+  do_sample: false
+  until:
+    - "\n"
+metadata:
+  version: 0.1
+  description: "AfriMed-QA MCQ generative task with clean any-correct scoring."
