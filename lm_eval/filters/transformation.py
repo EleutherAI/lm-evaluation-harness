@@ -84,7 +84,8 @@ class SPANFilter(Filter):
             }
             text = text.lower()
             for key, value in label_dict.items():
-                text = text.replace(key, value)
+                # Only rewrite the label (the token before a ":"), never entity text.
+                text = re.sub(rf"\b{re.escape(key)}\s*:", f"{value}:", text)
 
             text = "$".join(i for i in text.split("$$"))
             return text.rstrip("$$")
