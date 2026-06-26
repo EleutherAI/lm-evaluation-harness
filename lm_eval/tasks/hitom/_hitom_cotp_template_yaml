@@ -1,8 +1,4 @@
-dataset_path: json
-dataset_name: null
-dataset_kwargs:
-  data_files: C:/Users/hmark/WPI/ToM-and-Jerry/benchmarks/Hi-ToM_dataset/Hi-ToM_data/Hi-ToM_data.json
-  field: data
+custom_dataset: !function utils.load
 test_split: train
 output_type: generate_until
 # The `prompt` field is the authentic Hi-ToM prompt (paper Table 8); feed it verbatim.

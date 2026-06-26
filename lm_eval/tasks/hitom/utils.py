@@ -1,31 +1,41 @@
 import re
+from pathlib import Path
+
+import datasets
+
+
+def _data_file():
+    # Resolve THIS repo's own Hi-ToM submodule copy, relative to this file, so the
+    # task is portable across clones/machines (no hardcoded absolute path).
+    for parent in Path(__file__).resolve().parents:
+        cand = parent / "benchmarks/Hi-ToM_dataset/Hi-ToM_data/Hi-ToM_data.json"
+        if cand.exists():
+            return str(cand)
+    raise FileNotFoundError(
+        "Hi-ToM_data.json not found under any parent's benchmarks/ directory"
+    )
 
 
 def _parse_doc(doc):
-    # choices arrives as "A. foo, B. bar, ..."; answer is the text value, not the letter
+    # choices arrives as "A. foo, B. bar, ..."; answer is the text value, not the letter.
+    # Contract: answer appears verbatim among the choice values, else .index raises (fail loud).
     choices = [c.split(". ", 1)[1].strip() for c in doc["choices"].split(", ")]
     return {**doc, "choices_list": choices, "gold": choices.index(doc["answer"])}
 
 
-def process_docs(dataset):
-    return dataset.map(_parse_doc)
-
-
-def _make_filter(style, order):
-    def _process(dataset):
-        return dataset.filter(
-            lambda d: d["prompting_type"] == style and d["question_order"] == order
-        ).map(_parse_doc)
-
-    return _process
-
-
-# Per (prompting_type x question_order) doc processors, e.g. process_docs_cotp_order_0
-for _style in ("CoTP", "VP"):
-    for _order in range(5):
-        globals()["process_docs_%s_order_%d" % (_style.lower(), _order)] = _make_filter(
-            _style, _order
-        )
+def load(prompting_type=None, question_order=None, **kwargs):
+    """LOADER: read the verbatim Hi-ToM JSON, parse choices/gold, and optionally
+    filter to one (prompting_type, question_order) partition. The partition
+    selectors arrive from each leaf task's `dataset_kwargs`; with neither set this
+    returns the whole corpus."""
+    ds = datasets.load_dataset(
+        "json", data_files=_data_file(), field="data", split="train"
+    ).map(_parse_doc)
+    if prompting_type is not None:
+        ds = ds.filter(lambda d: d["prompting_type"] == prompting_type)
+    if question_order is not None:
+        ds = ds.filter(lambda d: d["question_order"] == question_order)
+    return {"train": ds}
 
 
 def _extract_index(gen, choices):
