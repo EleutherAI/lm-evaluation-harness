@@ -26,3 +26,11 @@ def pearson_corr(items):
     if len(set(preds)) < 2:
         return 0.0
     return float(pearsonr(preds, golds)[0])
+
+
+def macro_f1(items):
+    # the f1 metric hands the aggregator a list of (gold, pred) tuples (one per input)
+    from sklearn.metrics import f1_score
+
+    golds, preds = zip(*items, strict=True)
+    return float(f1_score(golds, preds, average="macro"))

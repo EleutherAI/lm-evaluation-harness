@@ -10,9 +10,7 @@ target_delimiter: ""
 doc_to_choice: '{{[premise + ", certo? Não, " + hypothesis, premise + ", certo? Sim, " + hypothesis]}}'
 metric_list:
   - metric: f1
-    aggregation: mean
+    aggregation: !function assin2_utils.macro_f1
     higher_is_better: true
-    hf_evaluate: true
-    average: macro
 metadata:
   version: 1.0
