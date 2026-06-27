@@ -39,7 +39,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
                 remove_boxed(last_boxed_only_string(doc["solution"]))
             ),
         }
-        if getattr(doc, "few_shot", None) is not None:
+        if doc.get("few_shot") is not None:
             out_doc["few_shot"] = True
         return out_doc
 
