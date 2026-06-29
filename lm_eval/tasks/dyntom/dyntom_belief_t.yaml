@@ -1,0 +1,7 @@
+include: _dyntom_partition_template_yaml
+task: dyntom_belief_t
+tag: [theory_of_mind]
+process_docs: !function utils.process_docs_belief_t
+process_results: !function utils.process_results_belief_t
+metric_list:
+  - {metric: acc_belief_t, aggregation: mean, higher_is_better: true}

@@ -1,0 +1,7 @@
+include: _dyntom_partition_template_yaml
+task: dyntom_emotion_u
+tag: [theory_of_mind]
+process_docs: !function utils.process_docs_emotion_u
+process_results: !function utils.process_results_emotion_u
+metric_list:
+  - {metric: acc_emotion_u, aggregation: mean, higher_is_better: true}

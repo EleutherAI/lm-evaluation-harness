@@ -1,0 +1,7 @@
+include: _dyntom_partition_template_yaml
+task: dyntom_influence
+tag: [theory_of_mind]
+process_docs: !function utils.process_docs_influence
+process_results: !function utils.process_results_influence
+metric_list:
+  - {metric: acc_influence, aggregation: mean, higher_is_better: true}

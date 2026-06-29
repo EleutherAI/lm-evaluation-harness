@@ -1,0 +1,15 @@
+custom_dataset: !function utils.load
+test_split: train
+output_type: generate_until
+doc_to_target: "{{target}}"
+doc_to_text: !function utils.doc_to_text
+generation_kwargs:
+  do_sample: true
+  temperature: 0.7
+  top_p: 0.9
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  max_gen_toks: 512
+metadata:
+  version: 0

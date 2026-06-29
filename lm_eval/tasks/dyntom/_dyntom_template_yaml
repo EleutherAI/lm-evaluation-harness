@@ -1,0 +1,19 @@
+custom_dataset: !function utils.load
+test_split: train
+output_type: generate_until
+doc_to_target: "{{target}}"
+process_results: !function utils.process_results
+metric_list:
+  - {metric: acc,            aggregation: mean, higher_is_better: true}
+  - {metric: acc_core,       aggregation: mean, higher_is_better: true}
+  - {metric: acc_influence,  aggregation: mean, higher_is_better: true}
+  - {metric: acc_belief_u,   aggregation: mean, higher_is_better: true}
+  - {metric: acc_belief_t,   aggregation: mean, higher_is_better: true}
+  - {metric: acc_emotion_u,  aggregation: mean, higher_is_better: true}
+  - {metric: acc_emotion_t,  aggregation: mean, higher_is_better: true}
+  - {metric: acc_intention_u, aggregation: mean, higher_is_better: true}
+  - {metric: acc_intention_t, aggregation: mean, higher_is_better: true}
+  - {metric: acc_action_u,   aggregation: mean, higher_is_better: true}
+  - {metric: acc_action_t,   aggregation: mean, higher_is_better: true}
+metadata:
+  version: 0

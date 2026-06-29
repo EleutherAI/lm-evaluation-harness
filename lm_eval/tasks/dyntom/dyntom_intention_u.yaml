@@ -1,0 +1,7 @@
+include: _dyntom_partition_template_yaml
+task: dyntom_intention_u
+tag: [theory_of_mind]
+process_docs: !function utils.process_docs_intention_u
+process_results: !function utils.process_results_intention_u
+metric_list:
+  - {metric: acc_intention_u, aggregation: mean, higher_is_better: true}
