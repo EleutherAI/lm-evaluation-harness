@@ -30,4 +30,4 @@ AfriMed-QA is a Pan-African English medical question-answering benchmark with mu
 
 #### Tasks
 
-* `afrimedqa_mcq`: Expert multiple-choice questions evaluated with generative letter extraction and accuracy.
+* `afrimedqa_mcq`: Expert multiple-choice questions evaluated with generative letter extraction and accuracy; this task should not be interpreted as evidence of clinical deployment readiness or patient-care safety. The Hugging Face dataset is exposed as a single `train` split; this task filters the dataset's internal `split` column to `test` for expert MCQ evaluation.
