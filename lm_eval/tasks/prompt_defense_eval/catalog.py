@@ -31,6 +31,11 @@ from typing import Literal
 # Version of the embedded rule catalog (tracks prompt-defense-audit-py).
 CATALOG_VERSION = "0.1.0"
 
+# Pinned upstream release the embedded rules mirror. Travels with the result as
+# ``catalog_uri`` so a reported score is traceable to an exact rule set; widening
+# the catalog bumps CATALOG_VERSION and this URI together.
+CATALOG_URI = "https://github.com/ppcvote/prompt-defense-audit-py/releases/tag/v0.1.0"
+
 Severity = Literal["critical", "high", "medium", "low"]
 RiskLevel = Literal["safe", "low", "medium", "high", "critical"]
 

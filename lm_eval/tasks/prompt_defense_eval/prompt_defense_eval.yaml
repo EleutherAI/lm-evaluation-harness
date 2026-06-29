@@ -38,8 +38,21 @@ metric_list:
   - metric: acc_code
     aggregation: mean
     higher_is_better: true
+  # Result envelope (frozen on #3771, 2026-06-24). surface_pass_rate is the live
+  # floor (= acc); obfuscated_pass_rate and detector_gap stay None until the
+  # controls/ follow-up. See THREAT_MODEL.md.
+  - metric: surface_pass_rate
+    aggregation: mean
+    higher_is_better: true
+  - metric: obfuscated_pass_rate
+    aggregation: !function utils.aggregate_obfuscated_pass_rate
+    higher_is_better: true
+  - metric: detector_gap
+    aggregation: !function utils.aggregate_detector_gap
+    higher_is_better: false
 repeats: 1
 num_fewshot: 0
 metadata:
   version: 0.0
   catalog_version: "0.1.0"
+  catalog_uri: "https://github.com/ppcvote/prompt-defense-audit-py/releases/tag/v0.1.0"
