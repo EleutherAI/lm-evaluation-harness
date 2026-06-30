@@ -857,6 +857,24 @@ class ConfigurableTask(Task):
 
         if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
             dataset_kwargs.pop("trust_remote_code", None)
+        if dataset_kwargs and "features" in dataset_kwargs and isinstance(dataset_kwargs["features"], dict):
+            def _parse_features(feat_dict: dict):
+                from datasets import Features, Value, Sequence
+                def parse(d):
+                    if isinstance(d, dict):
+                        if "dtype" in d and "sequence" not in d:
+                            return Value(dtype=d["dtype"])
+                        elif "dtype" in d and d.get("sequence"):
+                            return Sequence(Value(dtype=d["dtype"]))
+                        else:
+                            return {k: parse(v) for k, v in d.items()}
+                    return d
+                return Features(parse(feat_dict))
+            try:
+                dataset_kwargs["features"] = _parse_features(dataset_kwargs["features"])
+            except Exception as e:
+                eval_logger.warning(f"Failed to parse features dict to datasets.Features: {e}")
+
         if isinstance(self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
