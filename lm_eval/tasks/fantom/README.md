@@ -6,13 +6,13 @@ per-QA scorers / `score_and_analyze` logic from the read-only submodule
 (`benchmarks/fantom/`), invoked through lm-eval's `process_results` + custom
 `aggregation` hooks so the headline numbers are reported live, in-harness.
 
-## Task
+## Tasks
 
 | Task | Context | Prompting | Aggregation target |
 |------|---------|-----------|--------------------|
-| `fantom` | `short` | direct (non-CoT) | `set` |
-
-`full`-context and CoT are deferred (see Deviations).
+| `fantom` | `short` | direct | `set` |
+| `fantom_full` | `full` | direct | `set` |
+| `fantom_cot` | `short` | zero-shot CoT (single-pass) | `set` |
 
 ## Architecture
 
@@ -85,9 +85,18 @@ apply the chat template; base models do not).
    ships a non-1.0 default this is a (small) deviation. The paper's headline numbers were
    produced with API models under different decoding; run-to-run variance is expected on HF
    models.
-3. **v1 scope = `short` + direct, `aggregation_target=set`.** `full`-context (which
-   relabels some `missed_info_accessibility` values in `setup_fantom`) and the two-pass
-   CoT protocol (lm-eval cannot do single-shot two-pass) are deferred.
+3. **`fantom_full` uses `full_context`.** The stored `missed_info_accessibility` labels
+   on answerability/info-access QAs are re-derived at flatten time (the raw labels were
+   computed for the short excerpt): a list QA is forced `inaccessible` if `wrong_answer`
+   is non-empty; binary QAs for a set are all stamped `inaccessible` if any character
+   answers "no". Belief and fact QAs are not touched. Scores are expected to be lower
+   than `fantom` (harder: more context, more noise).
+4. **`fantom_cot` is a single-pass CoT approximation.** FANToM's original protocol is
+   two model calls: (1) "Let's think step by step." → reasoning; (2) reasoning +
+   "Therefore, the answer is:" → answer. lm-eval has no two-pass mechanism. Instead,
+   both cues are baked into the prompt in one shot and the answer is parsed from after
+   "Therefore, the answer is:" in the response (falling back to the full response if the
+   string is absent). This is the same pattern as `gpqa_cot_zeroshot` in the harness.
 4. **Headline scalars only.** The error-analysis diagnostics (`wrong_reasons` frequency
    dicts) and the character-tracking analyses (`set:ALL_character`,
    `character_answer_consistency`) from `score_and_analyze` are not exposed as lm-eval

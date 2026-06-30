@@ -1,0 +1,5 @@
+include: _fantom_template_yaml
+task: fantom_cot
+tag: [theory_of_mind]
+doc_to_text: !function utils.doc_to_text_cot
+process_results: !function utils.process_results_cot

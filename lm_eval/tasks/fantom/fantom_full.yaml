@@ -1,0 +1,4 @@
+include: _fantom_template_yaml
+task: fantom_full
+tag: [theory_of_mind]
+custom_dataset: !function utils.load_full

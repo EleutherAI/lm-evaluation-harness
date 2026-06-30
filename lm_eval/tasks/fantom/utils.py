@@ -212,6 +212,134 @@ def load(**kwargs):
     return {"train": datasets.Dataset.from_list(_build_docs())}
 
 
+# ---------------------------------------------------------------------------
+# FULL-CONTEXT LOADER — same flatten but uses full_context and re-derives
+# missed_info_accessibility for the 4 answerability/info-access QA types.
+# ---------------------------------------------------------------------------
+
+def _flatten_full(df):
+    """Vendored from eval_fantom.setup_fantom (conversation_input_type='full').
+    Identical to _flatten except: uses full_context, and overwrites the stored
+    missed_info_accessibility on answerability/info-access QAs with values
+    re-derived from the answer data (the stored labels were computed for short)."""
+    random.seed(RANDOM_SEED)
+    qas = []
+    for _, _set in df.iterrows():
+        context = _set["full_context"].strip()   # ← the only prompt change
+        set_id = _set["set_id"]
+        fact_q = _set["factQA"]["question"]
+        fact_a = _set["factQA"]["correct_answer"]
+
+        # Fact Question — unchanged
+        fact = dict(_set["factQA"])
+        fact["context"] = context
+        fact["input_text"] = "{}\n\nQuestion: {}\nAnswer:".format(context, fact_q)
+        fact["set_id"] = set_id
+        qas.append(fact)
+
+        # Belief Questions — unchanged (missed_info_accessibility not touched)
+        for _belief_qa in _set["beliefQAs"]:
+            belief = dict(_belief_qa)
+            belief["context"] = context
+            belief["input_text"] = "{}\n\nQuestion: {}\nAnswer:".format(context, belief["question"])
+            belief["set_id"] = set_id
+            qas.append(belief)
+
+            mc = dict(_belief_qa)
+            choices_text, answer = _set_beliefQA_multiple_choices(mc)
+            mc_question = "{}\n{}\n\nChoose an answer from above:".format(
+                _belief_qa["question"], choices_text.strip()
+            )
+            mc["question"] = mc_question
+            mc["question_type"] = mc["question_type"] + ":multiple-choice"
+            mc["choices_text"] = choices_text
+            mc["correct_answer"] = answer
+            mc["context"] = context
+            mc["input_text"] = "{}\n\nQuestion: {}".format(context, mc_question)
+            mc["set_id"] = set_id
+            qas.append(mc)
+
+        # Answerability List — overwrite missed_info_accessibility if wrong_answer non-empty
+        alist = dict(_set["answerabilityQA_list"])
+        alist["fact_question"] = fact_q
+        alist["context"] = context
+        alist["input_text"] = "{}\n\nTarget: {}\nQuestion: {}\nAnswer:".format(
+            context, fact_q, alist["question"]
+        )
+        alist["set_id"] = set_id
+        if len(alist.get("wrong_answer") or []) > 0:
+            alist["missed_info_accessibility"] = "inaccessible"
+        qas.append(alist)
+
+        # Answerability Binary — pre-scan to derive label, then stamp each copy
+        full_mia = _set["answerabilityQAs_binary"][0]["missed_info_accessibility"]
+        for _ab in _set["answerabilityQAs_binary"]:
+            if _ab["correct_answer"] != "yes":
+                full_mia = "inaccessible"
+        for _ab in _set["answerabilityQAs_binary"]:
+            ab = dict(_ab)
+            ab["fact_question"] = fact_q
+            ab["context"] = context
+            ab["input_text"] = "{}\n\nTarget: {}\nQuestion: {} Answer yes or no.\nAnswer:".format(
+                context, fact_q, ab["question"]
+            )
+            ab["set_id"] = set_id
+            ab["missed_info_accessibility"] = full_mia
+            qas.append(ab)
+
+        # Info-Accessibility List — same rule as answerability list
+        ilist = dict(_set["infoAccessibilityQA_list"])
+        ilist["fact_question"] = fact_q
+        ilist["fact_answer"] = fact_a
+        ilist["context"] = context
+        ilist["input_text"] = "{}\n\nInformation: {} {}\nQuestion: {}\nAnswer:".format(
+            context, fact_q, fact_a, ilist["question"]
+        )
+        ilist["set_id"] = set_id
+        if len(ilist.get("wrong_answer") or []) > 0:
+            ilist["missed_info_accessibility"] = "inaccessible"
+        qas.append(ilist)
+
+        # Info-Accessibility Binary — same pattern as answerability binary
+        full_mia = _set["infoAccessibilityQAs_binary"][0]["missed_info_accessibility"]
+        for _ib in _set["infoAccessibilityQAs_binary"]:
+            if _ib["correct_answer"] != "yes":
+                full_mia = "inaccessible"
+        for _ib in _set["infoAccessibilityQAs_binary"]:
+            ib = dict(_ib)
+            ib["fact_question"] = fact_q
+            ib["fact_answer"] = fact_a
+            ib["context"] = context
+            ib["input_text"] = "{}\n\nInformation: {} {}\nQuestion: {} Answer yes or no.\nAnswer:".format(
+                context, fact_q, fact_a, ib["question"]
+            )
+            ib["set_id"] = set_id
+            ib["missed_info_accessibility"] = full_mia
+            qas.append(ib)
+
+    return qas
+
+
+@functools.lru_cache(maxsize=1)
+def _build_docs_full():
+    json_path = _download_and_unzip()
+    df = pd.read_json(json_path)
+    docs = []
+    for qa in _flatten_full(df):
+        docs.append({
+            "input_text": qa["input_text"],
+            "set_id": qa["set_id"],
+            "question_type": qa["question_type"],
+            "target": str(qa.get("correct_answer")),
+            "qa": json.dumps(qa, ensure_ascii=False),
+        })
+    return docs
+
+
+def load_full(**kwargs):
+    return {"train": datasets.Dataset.from_list(_build_docs_full())}
+
+
 def doc_to_text(doc):
     return doc["input_text"]
 
@@ -324,6 +452,69 @@ def parse_response(response):
 def process_results(doc, results):
     qa = json.loads(doc["qa"])
     pred = parse_response(results[0])
+    qt = qa["question_type"]
+
+    payload = {
+        "set_id": qa["set_id"],
+        "question_type": qt,
+        "correct_answer": qa.get("correct_answer"),
+        "missed_info_accessibility": qa.get("missed_info_accessibility"),
+        "tom_type": qa.get("tom_type"),
+        "question": qa.get("question"),
+        "prediction": pred,
+        "word_overlap": None,
+        "binarized_model_answer": None,
+        "excluded_aware_character": None,
+        "included_unaware_character": None,
+    }
+
+    if qt.startswith("tom:belief:"):
+        if qt.endswith(":multiple-choice"):
+            result = bool(evaluate_mc_belief_q(qa, pred))
+        else:
+            result, word_overlap = evaluate_belief_q(qa, pred)
+            result = bool(result)
+            payload["word_overlap"] = word_overlap
+    elif qt.endswith(":list"):
+        result, excl, incl = evaluate_list_q(qa, pred)
+        result = bool(result)
+        payload["excluded_aware_character"] = excl
+        payload["included_unaware_character"] = incl
+    elif qt.endswith(":binary"):
+        _bin = map_binary_answer_to_int(pred)
+        result = bool(yesno_to_int(qa["correct_answer"]) == _bin)
+        payload["binarized_model_answer"] = _bin
+    elif qt.startswith("fact"):
+        result = float(evaluate_fact_q(qa, pred))
+    else:
+        raise NotImplementedError(qt)
+
+    payload["result"] = result
+    return {name: payload for name, _ in METRICS}
+
+
+# ---------------------------------------------------------------------------
+# CoT variants — zero-shot single-pass approximation of FANToM's two-pass CoT.
+# The prompt is extended with the CoT cue; the answer is parsed from after
+# "Therefore, the answer is:" in the model's output.
+# ---------------------------------------------------------------------------
+
+def doc_to_text_cot(doc):
+    text = doc["input_text"]
+    if text.endswith("Answer:"):
+        text = text[: -len("Answer:")]
+    return text + "Let's think step by step.\n\nTherefore, the answer is:"
+
+
+def parse_response_cot(response):
+    if "Therefore, the answer is:" in response:
+        return response.split("Therefore, the answer is:")[-1].strip()
+    return response.strip()
+
+
+def process_results_cot(doc, results):
+    qa = json.loads(doc["qa"])
+    pred = parse_response_cot(results[0])
     qt = qa["question_type"]
 
     payload = {
