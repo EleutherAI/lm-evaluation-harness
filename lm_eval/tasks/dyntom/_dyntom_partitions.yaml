@@ -1,0 +1,14 @@
+group: dyntom_partitions
+tag: [theory_of_mind]
+task:
+  - dyntom_belief_u
+  - dyntom_belief_t
+  - dyntom_emotion_u
+  - dyntom_emotion_t
+  - dyntom_intention_u
+  - dyntom_intention_t
+  - dyntom_action_u
+  - dyntom_action_t
+  - dyntom_influence
+metadata:
+  version: 0

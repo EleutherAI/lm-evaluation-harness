@@ -1,0 +1,47 @@
+custom_dataset: !function utils.load
+test_split: train
+output_type: generate_until
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{target}}"        # logging only; scoring lives in process_results
+process_results: !function utils.process_results
+generation_kwargs:
+  # Mirror FANToM's HuggingFace agent (agents/huggingface.py): max_new_tokens=365,
+  # do_sample=True, no stop sequence (response parsed afterwards). Sampled => results
+  # are run-to-run non-deterministic (documented in README). No "\n"/"\n\n" stop so a
+  # multi-line free-text / list answer is not truncated mid-answer.
+  do_sample: true
+  temperature: 1.0   # the transformers/agent default under do_sample=True (agent sets no temp)
+  max_gen_toks: 365
+  until:
+    - "</s>"
+    - "<|im_end|>"
+# Each metric is a faithful FANToM headline number; the value comes from a custom
+# !function aggregation that rebuilds the corpus DataFrame from the emitted per-QA
+# payloads and runs vendored score_and_analyze. Reported as percentages (x100).
+# `inaccessible:*` = the FANToM task; `control_*` = the mandated `accessible` control.
+metric_list:
+  - {metric: all_star,                 aggregation: !function utils.agg_all_star,                 higher_is_better: true}
+  - {metric: all,                      aggregation: !function utils.agg_all,                      higher_is_better: true}
+  - {metric: belief_choice,            aggregation: !function utils.agg_belief_choice,            higher_is_better: true}
+  - {metric: belief_dist,              aggregation: !function utils.agg_belief_dist,              higher_is_better: true}
+  - {metric: belief_tokenf1,           aggregation: !function utils.agg_belief_tokenf1,           higher_is_better: true}
+  - {metric: answerability_all,        aggregation: !function utils.agg_answerability_all,        higher_is_better: true}
+  - {metric: answerability_list,       aggregation: !function utils.agg_answerability_list,       higher_is_better: true}
+  - {metric: answerability_binary_f1,  aggregation: !function utils.agg_answerability_binary_f1,  higher_is_better: true}
+  - {metric: infoaccess_all,           aggregation: !function utils.agg_infoaccess_all,           higher_is_better: true}
+  - {metric: infoaccess_list,          aggregation: !function utils.agg_infoaccess_list,          higher_is_better: true}
+  - {metric: infoaccess_binary_f1,     aggregation: !function utils.agg_infoaccess_binary_f1,     higher_is_better: true}
+  - {metric: fact_tokenf1,             aggregation: !function utils.agg_fact_tokenf1,             higher_is_better: true}
+  - {metric: control_all_star,                aggregation: !function utils.agg_control_all_star,                higher_is_better: true}
+  - {metric: control_all,                     aggregation: !function utils.agg_control_all,                     higher_is_better: true}
+  - {metric: control_belief_choice,           aggregation: !function utils.agg_control_belief_choice,           higher_is_better: true}
+  - {metric: control_belief_dist,             aggregation: !function utils.agg_control_belief_dist,             higher_is_better: true}
+  - {metric: control_belief_tokenf1,          aggregation: !function utils.agg_control_belief_tokenf1,          higher_is_better: true}
+  - {metric: control_answerability_all,       aggregation: !function utils.agg_control_answerability_all,       higher_is_better: true}
+  - {metric: control_answerability_list,      aggregation: !function utils.agg_control_answerability_list,      higher_is_better: true}
+  - {metric: control_answerability_binary_f1, aggregation: !function utils.agg_control_answerability_binary_f1, higher_is_better: true}
+  - {metric: control_infoaccess_all,          aggregation: !function utils.agg_control_infoaccess_all,          higher_is_better: true}
+  - {metric: control_infoaccess_list,         aggregation: !function utils.agg_control_infoaccess_list,         higher_is_better: true}
+  - {metric: control_infoaccess_binary_f1,    aggregation: !function utils.agg_control_infoaccess_binary_f1,    higher_is_better: true}
+metadata:
+  version: 0
