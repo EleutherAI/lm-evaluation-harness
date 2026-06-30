@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import json
 import logging
 import random
 import re
@@ -294,6 +295,10 @@ class Task(abc.ABC):
             else ""
         )
         cache_key += f"-tokenizer{tokenizer_name}"
+
+        if getattr(self.config, "generation_kwargs", None):
+            gen_repr = json.dumps(self.config.generation_kwargs, sort_keys=True)
+            cache_key += f"-gen_kwargs{utils.hash_string(gen_repr)}"
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
