@@ -1,0 +1,3 @@
+include: _fantom_template_yaml
+task: fantom
+tag: [theory_of_mind]
