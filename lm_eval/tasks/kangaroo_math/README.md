@@ -12,7 +12,13 @@ Details of the dataset can be found here: https://huggingface.co/datasets/DFKI-S
 ### Citation
 
 ```text
-BibTeX-formatted citation goes here
+@inproceedings{hug2026kangaroobench,
+  author    = {Hug, Dennis and Wolf, Ren\'e and Thomas, Philippe},
+  title     = {KangarooBench: A Native German Benchmark for Evaluating the Modality Gap in Visual Mathematics},
+  booktitle = {Conference and Labs of the Evaluation Forum (CLEF 2026)},
+  year      = {2026},
+  note      = {To appear}
+}
 ```
 
 ### Groups, Tags, and Tasks
