@@ -1,0 +1,4 @@
+include: _persuasivetom_template_yaml
+task: persuasivetom_desire_ee
+dataset_kwargs:
+  data_file: desire_ee.json

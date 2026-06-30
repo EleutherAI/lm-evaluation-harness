@@ -1,0 +1,2 @@
+[submodule "lm-evaluation-harness"]
+	url = https://github.com/hnmarkin/lm-evaluation-harness.git

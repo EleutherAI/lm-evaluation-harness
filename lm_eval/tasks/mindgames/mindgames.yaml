@@ -1,0 +1,17 @@
+task: mindgames
+dataset_path: sileod/mindgames
+dataset_name: null
+test_split: test
+output_type: multiple_choice
+doc_to_text: |
+  {{premise}}
+  Hypothesis: {{hypothesis}}
+  Question: Does the premise entail the hypothesis? Answer True or False.
+  Answer:
+doc_to_choice: ["False", "True"]
+doc_to_target: label
+process_docs: !function utils.process_label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

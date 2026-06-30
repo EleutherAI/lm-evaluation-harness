@@ -1,0 +1,12 @@
+custom_dataset: !function utils.load
+test_split: test
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: choice_letters
+doc_to_target: gold
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0

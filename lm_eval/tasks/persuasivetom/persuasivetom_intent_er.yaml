@@ -1,0 +1,4 @@
+include: _persuasivetom_template_yaml
+task: persuasivetom_intent_er
+dataset_kwargs:
+  data_file: intent_er.json
