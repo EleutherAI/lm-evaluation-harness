@@ -23,3 +23,12 @@ Details of the dataset can be found here: https://huggingface.co/datasets/DFKI-S
 
 ### Usage
 
+```bash
+lm_eval \
+    --model hf-multimodal \
+    --model_args pretrained=Qwen/Qwen3-VL-32B-Instruct,dtype=bfloat16,convert_img_format=True \
+    --apply_chat_template \
+    --tasks kangaroo_math \
+    --device cuda:0 \
+    --batch_size 2
+```
