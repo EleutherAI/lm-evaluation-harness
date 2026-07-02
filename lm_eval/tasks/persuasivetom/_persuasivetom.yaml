@@ -1,0 +1,16 @@
+group: persuasivetom
+task:
+  - persuasivetom_belief_er
+  - persuasivetom_belief_ee
+  - persuasivetom_desire_er
+  - persuasivetom_desire_ee
+  - persuasivetom_intent_er
+  - persuasivetom_intent_ee
+  - persuasivetom_behavior_qa
+  - persuasivetom_judge_qa
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0

@@ -1,0 +1,4 @@
+include: _persuasivetom_template_yaml
+task: persuasivetom_belief_ee
+dataset_kwargs:
+  data_file: belief_ee.json

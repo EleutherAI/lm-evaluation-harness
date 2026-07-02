@@ -1,0 +1,4 @@
+include: _persuasivetom_template_yaml
+task: persuasivetom_behavior_qa
+dataset_kwargs:
+  data_file: behavior_qa.json
