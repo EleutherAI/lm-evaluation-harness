@@ -1,0 +1,41 @@
+group: "livecodebench"
+task: "livecodebench_codegeneration"
+dataset_path: "livecodebench/code_generation_lite"
+dataset_name: "python"
+output_type: "generate_until"
+
+doc_to_text: |
+  You are an expert programmer. Your task is to write Python code that solves the following problem.
+
+  Problem:
+  {{ question }}
+
+  Write the complete function or script that solves this problem. Return ONLY the code, no explanations.
+
+doc_to_target: "code"
+
+generation_kwargs:
+  until:
+    - "\nif __name__"
+    - "\n# Test"
+    - "\nclass"
+    - "\ndef "
+  temperature: 0.0
+  top_p: 1.0
+  max_tokens: 2048
+
+metric_list:
+  - "pass@1"
+  - "pass@5"
+
+process_results: !function
+  module_path: livecodebench.utils
+  function_name: process_results
+
+metadata:
+  dataset: "LiveCodeBench: Holistic and Contamination Free Evaluation of LLMs for Code"
+  paper: "https://arxiv.org/abs/2403.07974"
+  description: "LiveCodeBench measures code generation on monthly-updated problems from LeetCode, AtCoder, and CodeForces to ensure contamination-free evaluation."
+  leaderboard: "https://livecodebench.github.io/leaderboard.html"
+  release_date: "2024-03"
+  num_problems: 1055
