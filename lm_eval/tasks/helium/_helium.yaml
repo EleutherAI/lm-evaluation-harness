@@ -1,0 +1,7 @@
+group: helium
+task:
+  - helium_market_resolution
+  - helium_market_resolution_mini
+  - helium_model_worldview
+  - helium_model_worldview_behavioral
+  - helium_model_worldview_mini
