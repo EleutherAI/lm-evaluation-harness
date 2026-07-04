@@ -34,8 +34,9 @@ generation_kwargs:
 filter_list:
   - name: all
     filter:
-      - function: find_similar_label
-        labels: ['Sim', 'Não']
+      - function: find_yes_no_with_think_filter
+        labels: [ 'Sim', 'Não' ]
+        fallback: "[invalid]"
       - function: take_first
 
 metric_list:

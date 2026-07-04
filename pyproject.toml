@@ -32,7 +32,9 @@ dependencies = [
     "dill",
     "word2number",
     "more_itertools",
-    "typing_extensions"
+    "typing_extensions",
+    "textdistance>=4.6.3",
+    "unidecode>=1.4.0",
 ]
 
 [tool.setuptools.packages.find]
