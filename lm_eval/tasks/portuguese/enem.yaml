@@ -38,6 +38,8 @@ generation_kwargs:
 filter_list:
   - name: all
     filter:
+      - function: normalize_spaces
+      - function: remove_accents
       - function: find_choices_thinking_case
         choices: ["A", "B", "C", "D", "E"]
         fallback: "[invalid]"
