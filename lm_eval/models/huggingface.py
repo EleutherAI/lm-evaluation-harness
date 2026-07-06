@@ -140,8 +140,9 @@ class HFLM(TemplateLM):
                 which speeds up single-token loglikelihood tasks.
             max_length: Maximum input sequence length in tokens. If ``None``,
                 auto-detected from the model config (``n_positions``,
-                ``max_position_embeddings``, or ``n_ctx``). Falls back to 2048
-                if the config does not specify a value.
+                ``max_position_embeddings``, or ``n_ctx``), including a nested
+                ``text_config`` for multimodal models (e.g. Gemma3). Falls back
+                to 2048 if the config does not specify a value.
             device: Device to place the model on (e.g. ``"cuda"``, ``"cpu"``,
                 ``"cuda:0"``, ``"mps"``). Ignored when using ``parallelize=True``
                 or multi-process ``accelerate launch``.
@@ -621,6 +622,13 @@ class HFLM(TemplateLM):
         for attr in seqlen_config_attrs:
             if hasattr(self.model.config, attr):
                 return getattr(self.model.config, attr)
+        # Multimodal configs (e.g. Gemma3) nest the text model's context length
+        # under ``text_config``; fall back to it before the tokenizer default.
+        text_config = getattr(self.model.config, "text_config", None)
+        if text_config is not None:
+            for attr in seqlen_config_attrs:
+                if hasattr(text_config, attr):
+                    return getattr(text_config, attr)
         if hasattr(self.tokenizer, "model_max_length"):
             if self.tokenizer.model_max_length == TOKENIZER_INFINITY:
                 return self._DEFAULT_MAX_LENGTH
