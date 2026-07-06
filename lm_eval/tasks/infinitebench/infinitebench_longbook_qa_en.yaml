@@ -1,6 +1,6 @@
 include: _infinitebench_common_yaml
 task: infinitebench_longbook_qa_en
-test_split: longbook_qa_en
+test_split: longbook_qa_eng
 process_results: !function utils.process_results_qa_en
 description: "Read the book below and answer a question.\n\n"
 doc_to_text: "{{context}}\n\nQuestion: {{input}}\n\nBe very concise."
