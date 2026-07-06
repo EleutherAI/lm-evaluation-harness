@@ -1,3 +1,0 @@
-dataset_name: lit_latn
-include: _template
-task: global_piqa_prompted_lit_latn

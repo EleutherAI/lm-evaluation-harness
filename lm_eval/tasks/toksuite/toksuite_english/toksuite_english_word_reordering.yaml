@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_word_reordering
+include: toksuite_english_base.yaml
+task: toksuite_english_word_reordering
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Word reordering
+  num_samples: 40

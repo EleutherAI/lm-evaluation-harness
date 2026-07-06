@@ -3,7 +3,7 @@ include:
   - seed_common_yaml
 "tag":
 - "darija_translation_tasks_seed"
-"task": "trasnlation_all_seed"
+"task": "translation_all_seed"
 "task_alias": "all_seed"
 metric_list:
   - metric: !function utils.bert

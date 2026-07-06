@@ -1,3 +1,0 @@
-dataset_name: fao_latn
-include: _template
-task: global_piqa_prompted_fao_latn

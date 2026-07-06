@@ -1,0 +1,3 @@
+dataset_name: mag_deva
+include: _template
+task: global_piqa_parallel_generation_mag_deva
