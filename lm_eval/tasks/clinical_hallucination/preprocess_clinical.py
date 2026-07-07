@@ -30,14 +30,26 @@ def doc_to_text(doc) -> str:
 
 
 def doc_to_target(doc) -> str:
-    """Return the correct answer choice text as the reference.
+    """Return the correct answer choice text, question text, and all option texts as reference.
 
-    This serves as the ground-truth against which the model's generated
-    explanation is compared for hallucination detection.
+    This provides a broader context against which the model's generated
+    explanation is compared, ensuring that terms mentioned in the prompt
+    or any options are not incorrectly flagged as hallucinations.
     """
     label = doc["label"]
     choices = ["ending0", "ending1", "ending2", "ending3"]
     answer_text = doc[choices[label]]
-    # Include the answer letter and text as reference
     letter = chr(ord("A") + label)
-    return f"{letter}. {answer_text}"
+
+    # Extract the question (sent1) and optional sent2
+    question = doc.get("sent1", "")
+    if doc.get("sent2"):
+        question += " " + doc["sent2"]
+
+    options = " ".join(doc[c] for c in choices)
+
+    return (
+        f"Correct Answer: {letter}. {answer_text}\n"
+        f"Question: {question}\n"
+        f"Options: {options}"
+    )
