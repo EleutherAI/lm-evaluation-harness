@@ -1,4 +1,3 @@
-# ruff: noqa: E731, E741
 """
 Generate FLORES+ translation task YAMLs.
 
@@ -27,6 +26,7 @@ import sys
 from pathlib import Path
 
 import yaml
+
 
 _TASK_DIR = Path(__file__).resolve().parent
 if str(_TASK_DIR) not in sys.path:
@@ -91,20 +91,14 @@ def language_pairs(
         ordered = explicit_pairs[:]
         if bidirectional_pairs:
             ordered = ordered + [(b, a) for (a, b) in explicit_pairs]
-        return _dedupe_pairs(
-            [(src, tgt) for src, tgt in ordered if src != tgt]
-        )
+        return _dedupe_pairs([(src, tgt) for src, tgt in ordered if src != tgt])
 
     if all_pairs:
         return [(src, tgt) for src, tgt in itertools.permutations(languages, 2)]
 
     non_english = [lang for lang in languages if lang != ENG_LANG]
     return _dedupe_pairs(
-        [
-            pair
-            for lang in non_english
-            for pair in ((lang, ENG_LANG), (ENG_LANG, lang))
-        ]
+        [pair for lang in non_english for pair in ((lang, ENG_LANG), (ENG_LANG, lang))]
     )
 
 

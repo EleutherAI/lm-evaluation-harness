@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -66,7 +66,11 @@ def _language_names() -> dict[str, str]:
                     break
             continue
 
-        matches = [name for iso_row, script_row, _, name in rows if iso_row == iso and script_row == script]
+        matches = [
+            name
+            for iso_row, script_row, _, name in rows
+            if iso_row == iso and script_row == script
+        ]
         if matches:
             names[config] = matches[0]
 
@@ -91,7 +95,7 @@ def language_display_name(code: str) -> str:
     return code
 
 
-@lru_cache(maxsize=None)
+@cache
 def _load_lang_texts(lang: str, split: str) -> dict[int, str]:
     path = hf_hub_download(
         DATASET_REPO,
