@@ -44,6 +44,10 @@ single prompt template (“You are a translation expert…”) and the public
 Other language pairs can be generated locally with `generate_tasks.py` but are
 gitignored.
 
+Task configs are generated only for language varieties that have both `dev` and
+`devtest` splits on Hugging Face (218 languages as of the initial release).
+Some varieties exist in only one split and are excluded automatically.
+
 Task naming: `floresp_{src}-{tgt}` (alias: `{src-short}->{tgt-short}`)
 
 Examples:
@@ -104,8 +108,10 @@ python -m scripts.write_out \
 
 ### Changelog
 
-- Initial release (v1.0): English-centric FLORES+ translation tasks for 226
-  language varieties; BLEU/chrF/TER; configs generated via `generate_tasks.py`.
+- Initial release (v1.0): English-centric FLORES+ translation tasks for 217
+  non-English language varieties (218 including English), limited to configs with
+  both `dev` and `devtest` on Hugging Face; BLEU/chrF/TER; configs generated
+  via `generate_tasks.py`.
 
 ### Checklist
 

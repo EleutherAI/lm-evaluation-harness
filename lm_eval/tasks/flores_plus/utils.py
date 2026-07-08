@@ -21,6 +21,37 @@ eval_logger = logging.getLogger(__name__)
 
 DATASET_REPO = "openlanguagedata/flores_plus"
 ENG_LANG = "eng_Latn"
+EVAL_SPLITS = ("dev", "devtest")
+
+
+@lru_cache(maxsize=1)
+def _split_languages() -> dict[str, frozenset[str]]:
+    """Map each FLORES+ split to the language configs available on Hugging Face."""
+    from huggingface_hub import list_repo_files
+
+    langs: dict[str, set[str]] = {split: set() for split in EVAL_SPLITS}
+    for path in list_repo_files(DATASET_REPO, repo_type="dataset"):
+        for split in EVAL_SPLITS:
+            prefix = f"{split}/"
+            if path.startswith(prefix) and path.endswith(".jsonl"):
+                langs[split].add(path.split("/", 1)[1].removesuffix(".jsonl"))
+    return {split: frozenset(values) for split, values in langs.items()}
+
+
+def _languages_for_split(split: str) -> frozenset[str]:
+    try:
+        return _split_languages()[split]
+    except KeyError as exc:
+        raise ValueError(f"Unknown FLORES+ split '{split}'.") from exc
+
+
+def _languages_for_pair(src_lang: str, tgt_lang: str) -> list[str]:
+    return [
+        split
+        for split in EVAL_SPLITS
+        if src_lang in _languages_for_split(split)
+        and tgt_lang in _languages_for_split(split)
+    ]
 
 
 @lru_cache(maxsize=1)
@@ -28,7 +59,7 @@ def _language_names() -> dict[str, str]:
     """Build config code -> display name mapping from the dataset README."""
     import re
 
-    from huggingface_hub import hf_hub_download, list_repo_files
+    from huggingface_hub import hf_hub_download
 
     path = hf_hub_download(DATASET_REPO, "README.md", repo_type="dataset")
     text = Path(path).read_text(encoding="utf-8")
@@ -48,11 +79,7 @@ def _language_names() -> dict[str, str]:
             continue
         rows.append((iso, script, glotto, name))
 
-    configs = {
-        repo_path.split("/", 1)[1].removesuffix(".jsonl")
-        for repo_path in list_repo_files(DATASET_REPO, repo_type="dataset")
-        if repo_path.startswith("dev/") and repo_path.endswith(".jsonl")
-    }
+    configs = set(list_language_configs())
 
     names: dict[str, str] = {}
     for config in configs:
@@ -144,20 +171,20 @@ def load_dataset(**kwargs):
         )
 
     eval_logger.info("Loading FLORES+ pair %s -> %s", src_lang, tgt_lang)
+    splits = _languages_for_pair(src_lang, tgt_lang)
+    if "devtest" not in splits:
+        raise ValueError(
+            f"FLORES+ pair {src_lang}->{tgt_lang} is missing devtest data for one "
+            "or both languages. Regenerate tasks with generate_tasks.py to exclude "
+            "languages that are not present in both dev and devtest."
+        )
     return {
         split: datasets.Dataset.from_list(_join_languages(src_lang, tgt_lang, split))
-        for split in ("dev", "devtest")
+        for split in splits
     }
 
 
 def list_language_configs() -> list[str]:
-    """List all FLORES+ language config names from the dataset repository."""
-    from huggingface_hub import list_repo_files
-
-    return sorted(
-        {
-            path.split("/", 1)[1].removesuffix(".jsonl")
-            for path in list_repo_files(DATASET_REPO, repo_type="dataset")
-            if path.startswith("dev/") and path.endswith(".jsonl")
-        }
-    )
+    """List FLORES+ language configs present in both dev and devtest."""
+    splits = _split_languages()
+    return sorted(splits["dev"] & splits["devtest"])
