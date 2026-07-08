@@ -1,0 +1,15 @@
+task: dialtom_prospective
+custom_dataset: !function utils.load_dataset
+dataset_kwargs:
+  mode: prospective
+  exp: normal
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: choices
+doc_to_target: gold
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0

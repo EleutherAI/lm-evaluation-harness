@@ -1,0 +1,338 @@
+{
+  "results": {
+    "negotiationtom_belief": {
+      "name": "negotiationtom_belief",
+      "alias": "negotiationtom_belief",
+      "sample_len": 20,
+      "acc,none": 0.45,
+      "acc_stderr,none": 0.11413288653790232
+    },
+    "negotiationtom_desire": {
+      "name": "negotiationtom_desire",
+      "alias": "negotiationtom_desire",
+      "sample_len": 20,
+      "acc,none": 0.6,
+      "acc_stderr,none": 0.11239029738980327
+    },
+    "negotiationtom_intention": {
+      "name": "negotiationtom_intention",
+      "alias": "negotiationtom_intention",
+      "sample_len": 20,
+      "micro_f1,none": 0.30188679245283023,
+      "micro_f1_stderr,none": "N/A",
+      "macro_f1,none": 0.2523809523809524,
+      "macro_f1_stderr,none": "N/A",
+      "exact_match,none": 0.2,
+      "exact_match_stderr,none": 0.0917662935482247
+    },
+    "negotiationtom": {
+      "alias": "negotiationtom",
+      "name": "negotiationtom",
+      "sample_len": 60,
+      "acc,none": 0.525,
+      "acc_stderr,none": 0.08009040943964843,
+      "micro_f1,none": 0.30188679245283023,
+      "micro_f1_stderr,none": "N/A",
+      "macro_f1,none": 0.2523809523809524,
+      "macro_f1_stderr,none": "N/A",
+      "exact_match,none": 0.2,
+      "exact_match_stderr,none": 0.0917662935482247,
+      "sample_count": {
+        "acc,none": 40,
+        "micro_f1,none": 20,
+        "macro_f1,none": 20,
+        "exact_match,none": 20
+      }
+    }
+  },
+  "groups": {
+    "negotiationtom": {
+      "alias": "negotiationtom",
+      "name": "negotiationtom",
+      "sample_len": 60,
+      "acc,none": 0.525,
+      "acc_stderr,none": 0.08009040943964843,
+      "micro_f1,none": 0.30188679245283023,
+      "micro_f1_stderr,none": "N/A",
+      "macro_f1,none": 0.2523809523809524,
+      "macro_f1_stderr,none": "N/A",
+      "exact_match,none": 0.2,
+      "exact_match_stderr,none": 0.0917662935482247,
+      "sample_count": {
+        "acc,none": 40,
+        "micro_f1,none": 20,
+        "macro_f1,none": 20,
+        "exact_match,none": 20
+      }
+    }
+  },
+  "group_subtasks": {
+    "negotiationtom": [
+      "negotiationtom_belief",
+      "negotiationtom_desire",
+      "negotiationtom_intention"
+    ]
+  },
+  "configs": {
+    "negotiationtom_belief": {
+      "task": "negotiationtom_belief",
+      "custom_dataset": "def load_dataset(mode: str = \"desire\", **_: Any) -> dict[str, datasets.Dataset]:\n    if mode == \"intention\":\n        return {\"test\": datasets.Dataset.from_list(_build_intent_docs())}\n    if mode not in {\"desire\", \"belief\"}:\n        raise ValueError(f\"Unsupported mode: {mode}\")\n    return {\"test\": datasets.Dataset.from_list(_build_desire_or_belief_docs(mode))}\n",
+      "dataset_kwargs": {
+        "mode": "belief"
+      },
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: dict[str, Any]) -> str:\n    return doc[\"prompt\"]\n",
+      "doc_to_target": "gold",
+      "unsafe_code": false,
+      "doc_to_choice": "choices",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text at 0x7d5febf3e8e0>",
+        "doc_to_choice": "choices",
+        "doc_to_target": "gold",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 0,
+        "pretrained": "Qwen/Qwen3-8B",
+        "dtype": "bfloat16",
+        "enable_thinking": false,
+        "config_source": "/home/umandapati/tomverse-of-madness/lm-evaluation-harness/lm_eval/tasks/negotiationtom/negotiationtom_belief.yaml"
+      }
+    },
+    "negotiationtom_desire": {
+      "task": "negotiationtom_desire",
+      "custom_dataset": "def load_dataset(mode: str = \"desire\", **_: Any) -> dict[str, datasets.Dataset]:\n    if mode == \"intention\":\n        return {\"test\": datasets.Dataset.from_list(_build_intent_docs())}\n    if mode not in {\"desire\", \"belief\"}:\n        raise ValueError(f\"Unsupported mode: {mode}\")\n    return {\"test\": datasets.Dataset.from_list(_build_desire_or_belief_docs(mode))}\n",
+      "dataset_kwargs": {
+        "mode": "desire"
+      },
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: dict[str, Any]) -> str:\n    return doc[\"prompt\"]\n",
+      "doc_to_target": "gold",
+      "unsafe_code": false,
+      "doc_to_choice": "choices",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text at 0x7d5febf3e8e0>",
+        "doc_to_choice": "choices",
+        "doc_to_target": "gold",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 0,
+        "pretrained": "Qwen/Qwen3-8B",
+        "dtype": "bfloat16",
+        "enable_thinking": false,
+        "config_source": "/home/umandapati/tomverse-of-madness/lm-evaluation-harness/lm_eval/tasks/negotiationtom/negotiationtom_desire.yaml"
+      }
+    },
+    "negotiationtom_intention": {
+      "task": "negotiationtom_intention",
+      "custom_dataset": "def load_dataset(mode: str = \"desire\", **_: Any) -> dict[str, datasets.Dataset]:\n    if mode == \"intention\":\n        return {\"test\": datasets.Dataset.from_list(_build_intent_docs())}\n    if mode not in {\"desire\", \"belief\"}:\n        raise ValueError(f\"Unsupported mode: {mode}\")\n    return {\"test\": datasets.Dataset.from_list(_build_desire_or_belief_docs(mode))}\n",
+      "dataset_kwargs": {
+        "mode": "intention"
+      },
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: dict[str, Any]) -> str:\n    return doc[\"prompt\"]\n",
+      "doc_to_target": "gold_labels",
+      "unsafe_code": false,
+      "process_results": "def process_intent_results(doc: dict[str, Any], results: list[str]) -> dict[str, Any]:\n    pred = set(_tokenize_labels(results[0] if results else \"\"))\n    gold = _parse_labels(doc[\"gold_labels\"])\n    return {\n        \"micro_f1\": (gold, pred),\n        \"macro_f1\": (gold, pred),\n        \"exact_match\": 1.0 if pred == gold else 0.0,\n    }\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text at 0x7d5febf3e8e0>",
+        "doc_to_choice": null,
+        "doc_to_target": "gold_labels",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "micro_f1",
+          "aggregation": "def micro_f1_agg(items: list[tuple[set[str], set[str]]]) -> float:\n    tp = fp = fn = 0\n    for gold, pred in items:\n        tp += len(gold & pred)\n        fp += len(pred - gold)\n        fn += len(gold - pred)\n    if tp == fp == fn == 0:\n        return 0.0\n    precision = tp / (tp + fp) if tp + fp else 0.0\n    recall = tp / (tp + fn) if tp + fn else 0.0\n    if precision + recall == 0:\n        return 0.0\n    return 2.0 * precision * recall / (precision + recall)\n",
+          "higher_is_better": true
+        },
+        {
+          "metric": "macro_f1",
+          "aggregation": "def macro_f1_agg(items: list[tuple[set[str], set[str]]]) -> float:\n    if not items:\n        return 0.0\n    labels = sorted({label for gold, pred in items for label in gold | pred})\n    if not labels:\n        return 0.0\n\n    def _label_f1(label: str) -> float:\n        tp = fp = fn = 0\n        for gold, pred in items:\n            if label in gold and label in pred:\n                tp += 1\n            elif label not in gold and label in pred:\n                fp += 1\n            elif label in gold and label not in pred:\n                fn += 1\n        if tp == fp == fn == 0:\n            return 0.0\n        precision = tp / (tp + fp) if tp + fp else 0.0\n        recall = tp / (tp + fn) if tp + fn else 0.0\n        if precision + recall == 0:\n            return 0.0\n        return 2.0 * precision * recall / (precision + recall)\n\n    return sum(_label_f1(label) for label in labels) / len(labels)\n",
+          "higher_is_better": true
+        },
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "\n"
+        ],
+        "max_gen_toks": 48,
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 0,
+        "pretrained": "Qwen/Qwen3-8B",
+        "dtype": "bfloat16",
+        "enable_thinking": false,
+        "config_source": "/home/umandapati/tomverse-of-madness/lm-evaluation-harness/lm_eval/tasks/negotiationtom/negotiationtom_intention.yaml"
+      }
+    }
+  },
+  "versions": {
+    "negotiationtom": "0",
+    "negotiationtom_belief": 0,
+    "negotiationtom_desire": 0,
+    "negotiationtom_intention": 0
+  },
+  "n-shot": {
+    "negotiationtom": 0,
+    "negotiationtom_belief": 0,
+    "negotiationtom_desire": 0,
+    "negotiationtom_intention": 0
+  },
+  "higher_is_better": {
+    "negotiationtom": {
+      "acc": true,
+      "micro_f1": true,
+      "macro_f1": true,
+      "exact_match": true
+    },
+    "negotiationtom_belief": {
+      "acc": true
+    },
+    "negotiationtom_desire": {
+      "acc": true
+    },
+    "negotiationtom_intention": {
+      "micro_f1": true,
+      "macro_f1": true,
+      "exact_match": true
+    }
+  },
+  "n-samples": {
+    "negotiationtom_belief": {
+      "original": 13812,
+      "effective": 20
+    },
+    "negotiationtom_desire": {
+      "original": 13812,
+      "effective": 20
+    },
+    "negotiationtom_intention": {
+      "original": 4618,
+      "effective": 20
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": {
+      "pretrained": "Qwen/Qwen3-8B",
+      "dtype": "bfloat16",
+      "enable_thinking": false
+    },
+    "model_num_parameters": 8190735360,
+    "model_dtype": "torch.bfloat16",
+    "model_revision": "main",
+    "model_sha": "b968826d9c46dd6066d109eabc6255188de91218",
+    "batch_size": "auto",
+    "batch_sizes": [
+      64
+    ],
+    "device": "cuda:0",
+    "use_cache": null,
+    "limit": 20.0,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": {},
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "eb02ba327fb7c76475b12c8cdcf88623ec013a24",
+  "date": 1783526520.5433393,
+  "pretty_env_info": "PyTorch version: 2.11.0+cu130\nIs debug build: False\nCUDA used to build PyTorch: 13.0\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 24.04.4 LTS (x86_64)\nGCC version: (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.39\n\nPython version: 3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:19:41) [GCC 14.3.0] (64-bit runtime)\nPython platform: Linux-6.8.0-124-generic-x86_64-with-glibc2.39\nIs CUDA available: True\nCUDA runtime version: 12.2.140\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: GPU 0: NVIDIA H100 80GB HBM3\nNvidia driver version: 595.71.05\ncuDNN version: Could not collect\nIs XPU available: False\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\nCaching allocator config: N/A\n\nCPU:\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  128\nOn-line CPU(s) list:                     0-127\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Xeon(R) Platinum 8462Y+\nCPU family:                              6\nModel:                                   143\nThread(s) per core:                      2\nCore(s) per socket:                      32\nSocket(s):                               2\nStepping:                                8\nCPU(s) scaling MHz:                      24%\nCPU max MHz:                             4100.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                5600.00\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cat_l2 cdp_l3 cdp_l2 ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect user_shstk avx_vnni avx512_bf16 wbnoinvd dtherm ida arat pln pts hfi vnmi avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b enqcmd fsrm md_clear serialize tsxldtrk pconfig arch_lbr ibt amx_bf16 avx512_fp16 amx_tile amx_int8 flush_l1d arch_capabilities ibpb_exit_to_user\nVirtualization:                          VT-x\nL1d cache:                               3 MiB (64 instances)\nL1i cache:                               2 MiB (64 instances)\nL2 cache:                                128 MiB (64 instances)\nL3 cache:                                120 MiB (2 instances)\nNUMA node(s):                            2\nNUMA node0 CPU(s):                       0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108,110,112,114,116,118,120,122,124,126\nNUMA node1 CPU(s):                       1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57,59,61,63,65,67,69,71,73,75,77,79,81,83,85,87,89,91,93,95,97,99,101,103,105,107,109,111,113,115,117,119,121,123,125,127\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace\n\nVersions of relevant libraries:\n[pip3] numpy==2.4.6\n[pip3] nvidia-cublas==13.1.0.3\n[pip3] nvidia-cuda-cupti==13.0.85\n[pip3] nvidia-cuda-nvrtc==13.0.88\n[pip3] nvidia-cuda-runtime==13.0.96\n[pip3] nvidia-cudnn-cu13==9.19.0.56\n[pip3] nvidia-cudnn-frontend==1.25.0\n[pip3] nvidia-cufft==12.0.0.61\n[pip3] nvidia-curand==10.4.0.35\n[pip3] nvidia-cusolver==12.0.4.66\n[pip3] nvidia-cusparse==12.6.3.3\n[pip3] nvidia-cusparselt-cu13==0.8.0\n[pip3] nvidia-nccl-cu13==2.28.9\n[pip3] nvidia-nvjitlink==13.0.88\n[pip3] nvidia-nvtx==13.0.85\n[pip3] tokenspeed-triton==3.7.10.post20260531\n[pip3] torch==2.11.0\n[pip3] torch_c_dlpack_ext==0.1.5\n[pip3] torchaudio==2.11.0\n[pip3] torchvision==0.26.0\n[pip3] triton==3.6.0\n[conda] numpy                                       2.4.6                pypi_0              pypi\n[conda] nvidia-cublas                               13.1.0.3             pypi_0              pypi\n[conda] nvidia-cuda-cupti                           13.0.85              pypi_0              pypi\n[conda] nvidia-cuda-nvrtc                           13.0.88              pypi_0              pypi\n[conda] nvidia-cuda-runtime                         13.0.96              pypi_0              pypi\n[conda] nvidia-cudnn-cu13                           9.19.0.56            pypi_0              pypi\n[conda] nvidia-cudnn-frontend                       1.25.0               pypi_0              pypi\n[conda] nvidia-cufft                                12.0.0.61            pypi_0              pypi\n[conda] nvidia-curand                               10.4.0.35            pypi_0              pypi\n[conda] nvidia-cusolver                             12.0.4.66            pypi_0              pypi\n[conda] nvidia-cusparse                             12.6.3.3             pypi_0              pypi\n[conda] nvidia-cusparselt-cu13                      0.8.0                pypi_0              pypi\n[conda] nvidia-nccl-cu13                            2.28.9               pypi_0              pypi\n[conda] nvidia-nvjitlink                            13.0.88              pypi_0              pypi\n[conda] nvidia-nvtx                                 13.0.85              pypi_0              pypi\n[conda] tokenspeed-triton                           3.7.10.post20260531  pypi_0              pypi\n[conda] torch                                       2.11.0               pypi_0              pypi\n[conda] torch-c-dlpack-ext                          0.1.5                pypi_0              pypi\n[conda] torchaudio                                  2.11.0               pypi_0              pypi\n[conda] torchvision                                 0.26.0               pypi_0              pypi\n[conda] triton                                      3.6.0                pypi_0              pypi",
+  "transformers_version": "5.12.1",
+  "lm_eval_version": "0.4.13.dev0",
+  "upper_git_hash": "54076daf618e42354c143511296b23d0e6ec3ccc",
+  "tokenizer_pad_token": [
+    "<|endoftext|>",
+    "151643"
+  ],
+  "tokenizer_eos_token": [
+    "<|im_end|>",
+    "151645"
+  ],
+  "tokenizer_bos_token": [
+    null,
+    "None"
+  ],
+  "eot_token_id": 151645,
+  "max_length": 40960,
+  "task_hashes": {
+    "negotiationtom_belief": "c39025f3a090ab57d9914278941c54ab264f588f4047b4dbdf089b26f2b6dbd5",
+    "negotiationtom_desire": "d10d4cc9b27d488d9041b11ed230c2164e719daa783acc1a2a6a3501a1f82e72",
+    "negotiationtom_intention": "52cfbd295b9d569ee4e910967cff043a7bd4e7c7d81dd507408996aeabfce0c9"
+  },
+  "model_source": "hf",
+  "model_name": "Qwen/Qwen3-8B",
+  "model_name_sanitized": "Qwen__Qwen3-8B",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": true,
+  "chat_template": "{%- if tools %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if messages[0].role == 'system' %}\n        {{- messages[0].content + '\\n\\n' }}\n    {%- endif %}\n    {{- \"# Tools\\n\\nYou may call one or more functions to assist with the user query.\\n\\nYou are provided with function signatures within <tools></tools> XML tags:\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\\n\\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\\n<tool_call>\\n{\\\"name\\\": <function-name>, \\\"arguments\\\": <args-json-object>}\\n</tool_call><|im_end|>\\n\" }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {{- '<|im_start|>system\\n' + messages[0].content + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- if ns.multi_step_tool and message.role == \"user\" and message.content is string and not(message.content.startswith('<tool_response>') and message.content.endswith('</tool_response>')) %}\n        {%- set ns.multi_step_tool = false %}\n        {%- set ns.last_query_index = index %}\n    {%- endif %}\n{%- endfor %}\n{%- for message in messages %}\n    {%- if message.content is string %}\n        {%- set content = message.content %}\n    {%- else %}\n        {%- set content = '' %}\n    {%- endif %}\n    {%- if (message.role == \"user\") or (message.role == \"system\" and not loop.first) %}\n        {{- '<|im_start|>' + message.role + '\\n' + content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is string %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- else %}\n            {%- if '</think>' in content %}\n                {%- set reasoning_content = content.split('</think>')[0].rstrip('\\n').split('<think>')[-1].lstrip('\\n') %}\n                {%- set content = content.split('</think>')[-1].lstrip('\\n') %}\n            {%- endif %}\n        {%- endif %}\n        {%- if loop.index0 > ns.last_query_index %}\n            {%- if loop.last or (not loop.last and reasoning_content) %}\n                {{- '<|im_start|>' + message.role + '\\n<think>\\n' + reasoning_content.strip('\\n') + '\\n</think>\\n\\n' + content.lstrip('\\n') }}\n            {%- else %}\n                {{- '<|im_start|>' + message.role + '\\n' + content }}\n            {%- endif %}\n        {%- else %}\n            {{- '<|im_start|>' + message.role + '\\n' + content }}\n        {%- endif %}\n        {%- if message.tool_calls %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if (loop.first and content) or (not loop.first) %}\n                    {{- '\\n' }}\n                {%- endif %}\n                {%- if tool_call.function %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {{- '<tool_call>\\n{\"name\": \"' }}\n                {{- tool_call.name }}\n                {{- '\", \"arguments\": ' }}\n                {%- if tool_call.arguments is string %}\n                    {{- tool_call.arguments }}\n                {%- else %}\n                    {{- tool_call.arguments | tojson }}\n                {%- endif %}\n                {{- '}\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.first or (messages[loop.index0 - 1].role != \"tool\") %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- content }}\n        {{- '\\n</tool_response>' }}\n        {%- if loop.last or (messages[loop.index0 + 1].role != \"tool\") %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- endif %}\n{%- endif %}",
+  "chat_template_sha": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "total_evaluation_time_seconds": "184.64356022595894"
+}

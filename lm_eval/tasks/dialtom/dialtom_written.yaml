@@ -1,0 +1,25 @@
+task: dialtom_written
+custom_dataset: !function utils.load_dataset
+dataset_kwargs:
+  mode: written
+output_type: generate_until
+doc_to_text: !function utils.doc_to_text
+process_results: !function utils.process_written_results
+generation_kwargs:
+  until:
+    - "\n"
+  max_gen_toks: 64
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: bleu
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge_l
+    aggregation: mean
+    higher_is_better: true
+  - metric: bertscore
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0
