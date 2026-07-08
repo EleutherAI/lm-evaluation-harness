@@ -44,12 +44,15 @@ single prompt template (“You are a translation expert…”) and the public
 Other language pairs can be generated locally with `generate_tasks.py` but are
 gitignored.
 
-Task naming: `flores_{src}-{tgt}` (alias: `{src-short}->{tgt-short}`)
+Task naming: `floresp_{src}-{tgt}` (alias: `{src-short}->{tgt-short}`)
 
 Examples:
 
-* `flores_fra_Latn-eng_Latn` (alias: `fra_Latn->eng_Latn`)
-* `flores_eng_Latn-fra_Latn` (alias: `eng_Latn->fra_Latn`)
+* `floresp_fra_Latn-eng_Latn` (alias: `fra_Latn->eng_Latn`)
+* `floresp_eng_Latn-fra_Latn` (alias: `eng_Latn->fra_Latn`)
+
+The `floresp_` prefix avoids collisions with other harness FLORES tasks
+(e.g. AfroBench `flores_*_prompt_N`).
 
 ### Evaluation setup
 
@@ -92,7 +95,7 @@ Inspect rendered prompts before running a full eval:
 
 ```bash
 python -m scripts.write_out \
-  --tasks flores_fra_Latn-eng_Latn \
+  --tasks floresp_fra_Latn-eng_Latn \
   --sets test \
   --num_fewshot 0 \
   --num_examples 5 \
