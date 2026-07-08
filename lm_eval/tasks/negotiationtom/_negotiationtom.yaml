@@ -1,0 +1,20 @@
+group: negotiationtom
+task:
+  - negotiationtom_belief
+  - negotiationtom_desire
+  - negotiationtom_intention
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: micro_f1
+    aggregation: mean
+    weight_by_size: true
+  - metric: macro_f1
+    aggregation: mean
+    weight_by_size: true
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0

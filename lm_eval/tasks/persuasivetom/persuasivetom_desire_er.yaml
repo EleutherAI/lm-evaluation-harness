@@ -1,4 +1,4 @@
-include: _persuasivetom_template_yaml
+include: persuasivetom_template_yaml
 task: persuasivetom_desire_er
 dataset_kwargs:
   data_file: desire_er.json
