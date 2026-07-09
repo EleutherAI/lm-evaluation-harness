@@ -51,8 +51,10 @@ def doc_to_text(doc):
         for letter, choice in zip(doc["choice_letters"], doc["choices"])
     )
     return (
-        "Here is a persuasive dialogue. Read the dialogue history and answer the "
-        "multiple-choice question.\n"
+        "Here is a persuasive dialogue. There are two agents, the persuader and the "
+        "persuadee. The persuader is trying to persuade the persuadee to do something. "
+        "Please answer the following questions using \"A\", \"B\", \"C\", \"D\", \"E\", "
+        "\"F\" without any explanation.\n"
         f"Dialogue History:\n{doc['dialogue']}\n"
         f"Question:\n{doc['question']}\n"
         f"Choices:\n{options}\n"
