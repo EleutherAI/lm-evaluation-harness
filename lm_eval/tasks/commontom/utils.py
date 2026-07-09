@@ -29,7 +29,7 @@ def _repo_root() -> Path:
     )
 
 
-def load_dataset() -> dict[str, datasets.Dataset]:
+def load_dataset(**_: Any) -> dict[str, datasets.Dataset]:
     rows: list[dict[str, Any]] = []
     for path in sorted((_repo_root() / "data" / "questions").glob("*.csv.gz")):
         with gzip.open(path, "rt", encoding="utf-8", newline="") as handle:
