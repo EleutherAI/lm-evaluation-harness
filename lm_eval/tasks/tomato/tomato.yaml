@@ -1,14 +1,14 @@
-task: tomato
-dataset_path: json
-dataset_kwargs:
-  data_files:
-    test: /home/umandapati/tomverse-of-madness/benchmarks/ToMATO/dataset/tomato.json
-test_split: test
-output_type: multiple_choice
-doc_to_text: "Conversation:\n{{conversation}}\n\nQuestion: {{q}}\n\nChoices:\n0: {{a0}}\n1: {{a1}}\n2: {{a2}}\n3: {{a3}}\n\nAnswer:"
-doc_to_target: a_idx
-doc_to_choice: ["0", "1", "2", "3"]
-metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
+group: tomato
+task:
+  - tomato_all
+  - tomato_order_1
+  - tomato_order_2
+  - tomato_mental_state_belief
+  - tomato_mental_state_desire
+  - tomato_mental_state_emotion
+  - tomato_mental_state_intention
+  - tomato_mental_state_knowledge
+  - tomato_false_belief_false
+  - tomato_false_belief_true
+metadata:
+  version: 0

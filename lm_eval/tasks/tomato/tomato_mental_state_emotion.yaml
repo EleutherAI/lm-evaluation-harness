@@ -1,0 +1,3 @@
+include: _tomato_template_yaml
+task: tomato_mental_state_emotion
+process_docs: !function utils.process_docs_mental_state_emotion

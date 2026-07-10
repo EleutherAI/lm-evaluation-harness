@@ -1,0 +1,3 @@
+include: _tomato_template_yaml
+task: tomato_order_2
+process_docs: !function utils.process_docs_order_2

@@ -1,0 +1,17 @@
+custom_dataset: !function utils.load
+test_split: test
+description: >-
+  You are an expert at understanding human communication. Please leverage the
+  information provided and choose the most probable answer to the question from
+  the options. Output your final answer by strictly following this format: [A],
+  [B], [C], or [D]
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: choice_labels
+doc_to_target: gold_label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0
