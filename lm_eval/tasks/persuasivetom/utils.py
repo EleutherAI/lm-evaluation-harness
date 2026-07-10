@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import datasets
@@ -21,15 +22,11 @@ def _data_dir():
 
 def _parse_doc(doc):
     choices = list(doc["choices"])
-    answer = str(doc.get("answerKey", "")).strip().upper()
-    valid_letters = LETTERS[: len(choices)]
-    if answer not in valid_letters:
-        return None
     return {
         **doc,
         "choices": choices,
-        "choice_letters": list(valid_letters),
-        "gold": valid_letters.index(answer),
+        "choice_letters": list(LETTERS[: len(choices)]),
+        "answerKey": str(doc.get("answerKey", "")),
     }
 
 
@@ -41,7 +38,6 @@ def load(data_file=None, **kwargs):
         raise FileNotFoundError(f"PersuasiveToM data file not found: {path}")
     rows = json.loads(path.read_text(encoding="utf-8"))
     parsed = [_parse_doc(row) for row in rows]
-    parsed = [row for row in parsed if row is not None]
     return {"test": datasets.Dataset.from_list(parsed)}
 
 
@@ -51,12 +47,43 @@ def doc_to_text(doc):
         for letter, choice in zip(doc["choice_letters"], doc["choices"])
     )
     return (
-        "Here is a persuasive dialogue. There are two agents, the persuader and the "
-        "persuadee. The persuader is trying to persuade the persuadee to do something. "
-        "Please answer the following questions using \"A\", \"B\", \"C\", \"D\", \"E\", "
-        "\"F\" without any explanation.\n"
-        f"Dialogue History:\n{doc['dialogue']}\n"
-        f"Question:\n{doc['question']}\n"
-        f"Choices:\n{options}\n"
+        f"\nDialogue History:
+{doc['dialogue']}
+"
+        f"Question:
+{doc['question']}
+"
+        f"Choices:
+{options}
+"
         "Answer:"
     )
+
+
+def _parse_prediction(text, valid_letters):
+    candidate = text.strip()
+    for prefix in ("Answer:", "answer:", "The answer is", "the answer is"):
+        if candidate.startswith(prefix):
+            candidate = candidate[len(prefix) :].strip()
+            break
+    candidate = (
+        candidate.replace('"', "")
+        .replace("*", "")
+        .replace(":", "")
+        .replace(".", "")
+        .replace("-", "")
+        .replace(",", "")
+        .split("\n")[0]
+        .strip()
+    )
+    if candidate[:1] in valid_letters:
+        return candidate[:1]
+    match = re.search(r"\b([A-F])\b", candidate)
+    if match and match.group(1) in valid_letters:
+        return match.group(1)
+    return candidate.split()[0] if candidate.split() else "Z"
+
+
+def process_results(doc, results):
+    pred = _parse_prediction(results[0], set(doc["choice_letters"]))
+    return {"acc": 1.0 if pred == doc["answerKey"] else 0.0}

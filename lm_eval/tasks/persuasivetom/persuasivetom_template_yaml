@@ -1,12 +1,24 @@
 custom_dataset: !function utils.load
 test_split: test
-output_type: multiple_choice
+description: >-
+  Here is a persuasive dialogue. There are two agents, the persuader and the
+  persuadee. The persuader is trying to persuade the persuadee to do something.
+  Please answer the following questions using "A", "B", "C", "D", "E", "F"
+  without any explanation.
+output_type: generate_until
 doc_to_text: !function utils.doc_to_text
-doc_to_choice: choice_letters
-doc_to_target: gold
+doc_to_target: answerKey
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "<|im_end|>"
+    - "</s>"
+  do_sample: true
+  temperature: 0.7
+  max_gen_toks: 500
 metric_list:
   - metric: acc
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 0
+  version: 1
