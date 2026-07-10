@@ -1,0 +1,4 @@
+include: _tomchallenges_comp_template_yaml
+task: tomchallenges_comp_second_order_a
+task_alias: tomchallenges_comp_second_order_a
+process_docs: !function utils.process_docs_second_order_a

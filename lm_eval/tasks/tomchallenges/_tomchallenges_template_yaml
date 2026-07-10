@@ -1,0 +1,10 @@
+custom_dataset: !function utils.load
+test_split: test
+output_type: generate_until
+doc_to_target: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0

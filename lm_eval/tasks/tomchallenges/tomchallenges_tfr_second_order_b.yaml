@@ -1,0 +1,4 @@
+include: _tomchallenges_tfr_template_yaml
+task: tomchallenges_tfr_second_order_b
+task_alias: tomchallenges_tfr_second_order_b
+process_docs: !function utils.process_docs_second_order_b

@@ -1,0 +1,4 @@
+include: _tomchallenges_fb_template_yaml
+task: tomchallenges_fb_reality
+task_alias: tomchallenges_fb_reality
+process_docs: !function utils.process_docs_reality

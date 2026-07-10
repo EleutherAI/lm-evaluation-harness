@@ -1,0 +1,4 @@
+include: _tomchallenges_fb_template_yaml
+task: tomchallenges_fb_second_order_b
+task_alias: tomchallenges_fb_second_order_b
+process_docs: !function utils.process_docs_second_order_b

@@ -1,0 +1,14 @@
+group: tomchallenges_tfr_belief
+task:
+  - tomchallenges_tfr_reality
+  - tomchallenges_tfr_anti_reality
+  - tomchallenges_tfr_first_order_a
+  - tomchallenges_tfr_first_order_b
+  - tomchallenges_tfr_second_order_a
+  - tomchallenges_tfr_second_order_b
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0

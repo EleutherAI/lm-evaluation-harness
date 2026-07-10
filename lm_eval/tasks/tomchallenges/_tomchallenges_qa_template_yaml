@@ -1,0 +1,10 @@
+include: _tomchallenges_template_yaml
+doc_to_text: !function utils.doc_to_text_qa
+process_results: !function utils.process_results_open
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50

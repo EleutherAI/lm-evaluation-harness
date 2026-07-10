@@ -1,0 +1,3 @@
+include: _tomchallenges_tf_template_yaml
+task: tomchallenges_tf
+task_alias: tomchallenges_tf

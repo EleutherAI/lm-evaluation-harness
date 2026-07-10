@@ -1,0 +1,4 @@
+include: _tomchallenges_qa_template_yaml
+task: tomchallenges_qa_first_order_b
+task_alias: tomchallenges_qa_first_order_b
+process_docs: !function utils.process_docs_first_order_b

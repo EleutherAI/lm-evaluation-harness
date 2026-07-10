@@ -1,0 +1,3 @@
+include: _tomchallenges_tfr_template_yaml
+task: tomchallenges_tfr
+task_alias: tomchallenges_tfr

@@ -1,0 +1,3 @@
+include: _tomchallenges_mc_template_yaml
+task: tomchallenges_mc
+task_alias: tomchallenges_mc

@@ -1,0 +1,3 @@
+include: _tomchallenges_fb_template_yaml
+task: tomchallenges_fb
+task_alias: tomchallenges_fb

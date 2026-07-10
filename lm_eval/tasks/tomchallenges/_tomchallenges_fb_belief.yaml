@@ -1,0 +1,14 @@
+group: tomchallenges_fb_belief
+task:
+  - tomchallenges_fb_reality
+  - tomchallenges_fb_anti_reality
+  - tomchallenges_fb_first_order_a
+  - tomchallenges_fb_first_order_b
+  - tomchallenges_fb_second_order_a
+  - tomchallenges_fb_second_order_b
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0

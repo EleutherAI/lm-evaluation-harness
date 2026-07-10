@@ -1,0 +1,4 @@
+include: _tomchallenges_mc_template_yaml
+task: tomchallenges_mc_reality
+task_alias: tomchallenges_mc_reality
+process_docs: !function utils.process_docs_reality

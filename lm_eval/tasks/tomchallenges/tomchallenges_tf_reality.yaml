@@ -1,0 +1,4 @@
+include: _tomchallenges_tf_template_yaml
+task: tomchallenges_tf_reality
+task_alias: tomchallenges_tf_reality
+process_docs: !function utils.process_docs_reality

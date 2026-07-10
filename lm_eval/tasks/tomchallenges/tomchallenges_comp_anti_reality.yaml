@@ -1,0 +1,4 @@
+include: _tomchallenges_comp_template_yaml
+task: tomchallenges_comp_anti_reality
+task_alias: tomchallenges_comp_anti_reality
+process_docs: !function utils.process_docs_anti_reality
