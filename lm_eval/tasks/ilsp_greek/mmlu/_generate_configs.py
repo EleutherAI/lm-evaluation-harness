@@ -1,4 +1,3 @@
-# noqa
 """
 Generate the per-subject, per-category, and top-level group YAMLs for the Greek
 MMLU (ilsp/mmlu_greek), mirroring lm_eval/tasks/mmlu/default.
@@ -15,7 +14,6 @@ Run from this directory:
 """
 
 import logging
-import os
 
 import yaml
 from tqdm import tqdm
