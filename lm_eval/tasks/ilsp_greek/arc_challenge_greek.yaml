@@ -1,0 +1,4 @@
+include: ../arc/arc_easy.yaml
+task: arc_challenge_greek
+dataset_path: ilsp/arc_greek
+dataset_name: ARC-Challenge

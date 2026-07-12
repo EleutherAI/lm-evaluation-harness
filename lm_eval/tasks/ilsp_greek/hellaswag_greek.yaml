@@ -1,0 +1,3 @@
+include: ../hellaswag/hellaswag.yaml
+task: hellaswag_greek
+dataset_path: ilsp/hellaswag_greek

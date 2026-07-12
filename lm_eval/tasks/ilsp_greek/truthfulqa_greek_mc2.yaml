@@ -1,0 +1,6 @@
+include: ../truthfulqa/truthfulqa_mc2.yaml
+task: truthfulqa_greek_mc2
+dataset_path: ilsp/truthful_qa_greek
+# ILSP ships only a `train` split for the multiple_choice config (no validation/test).
+validation_split: train
+fewshot_split: train
