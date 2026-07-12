@@ -1,5 +1,6 @@
 include: ../mgsm/direct/direct_yaml
 task: mgsm_direct_greek
+tag: []  # detach inherited mgsm_direct tag so this Greek task doesn't join the English tag-group
 dataset_path: ilsp/mgsm_greek
 dataset_name: null
 # ilsp/mgsm_greek has empty `answer`/`equation_solution` fields; the numeric gold is in

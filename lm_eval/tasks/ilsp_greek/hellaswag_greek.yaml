@@ -1,3 +1,4 @@
 include: ../hellaswag/hellaswag.yaml
 task: hellaswag_greek
+tag: []  # detach inherited multiple_choice tag so this Greek task doesn't join the English tag-group
 dataset_path: ilsp/hellaswag_greek
