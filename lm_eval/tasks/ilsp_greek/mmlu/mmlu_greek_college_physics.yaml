@@ -1,0 +1,7 @@
+"dataset_name": "college_physics"
+"description": "The following are multiple choice questions (with answers) about college\
+  \ physics.\n\n"
+"include": "_default_template_yaml"
+"tag": "mmlu_greek_stem_tasks"
+"task": "mmlu_greek_college_physics"
+"task_alias": "college physics"

@@ -6,5 +6,6 @@ task:
   - truthfulqa_greek_mc2
   - mgsm_direct_greek
   - winogrande_greek
+  - mmlu_greek
 metadata:
   version: 1.0
