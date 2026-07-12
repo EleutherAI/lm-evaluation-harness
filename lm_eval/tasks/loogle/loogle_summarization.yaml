@@ -1,0 +1,27 @@
+tag:
+  - loogle
+task: loogle_summarization
+dataset_path: bigai-nlco/LooGLE
+dataset_name: summarization
+test_split: test
+output_type: generate_until
+doc_to_text: "Please generate a summary of the below paper. \n{{context}}\n Summarization:"
+doc_to_target: "{{answer}}"
+process_results: !function utils.process_results
+generation_kwargs:
+  max_gen_toks: 500
+  do_sample: false
+  temperature: 0.0
+  until: []
+metric_list:
+  - metric: rouge_l
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge_1
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge_2
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
