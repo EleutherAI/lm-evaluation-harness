@@ -1,0 +1,23 @@
+task: mcqa_greek_asep
+dataset_path: ilsp/mcqa_greek_asep
+dataset_name: default
+output_type: multiple_choice
+test_split: default
+fewshot_split: default
+# ILSP ASEP civil-service exam MCQA: `question` + `choices` (Greek, each α./β./… prefixed); the gold
+# is the integer index in `answer` (same idiom as HellaSwag's `{{label}}`). The dataset ships a single
+# `default` split (0-shot by default; if num_fewshot > 0 the harness samples few-shot from the same
+# split, excluding the current doc).
+doc_to_text: "{{question}}\n"
+doc_to_choice: "{{choices}}"
+doc_to_target: answer
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
