@@ -5,9 +5,9 @@ doc_to_text: 'Please identify whether the premise entails or contradicts the hyp
   contradiction, or neutral.
 
 
-  Premise: {premise}
+  Premise: {{premise}}
 
-  Hypothesis: {hypothesis}
+  Hypothesis: {{hypothesis}}
 
 
   Is it entailment, contradiction, or neutral?'
