@@ -1,0 +1,24 @@
+dataset_path: QCRI/ArabicCulturalQA
+dataset_name: oeq
+output_type: generate_until
+training_split: null
+validation_split: validation
+test_split: test
+doc_to_target: "{{open_answer}}"
+generation_kwargs:
+  until: ["\n\n", "\n"]
+  max_gen_toks: 256
+  do_sample: false
+  temperature: 0.0
+process_results: !function utils.process_results_oeq
+metric_list:
+  - metric: bertscore_f1
+    aggregation: !function metrics.bertscore_f1
+    higher_is_better: true
+  - metric: rougeL_f1
+    aggregation: !function metrics.rougeL_f1
+    higher_is_better: true
+should_decontaminate: true
+doc_to_decontamination_query: open_question
+metadata:
+  version: 1.0
