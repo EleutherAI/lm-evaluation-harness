@@ -137,9 +137,11 @@ def get_retrieval_zh_score(doc: dict, results: list[str], **kwargs):
 
 
 def code_sim_score(prediction: str, ground_truth: str, **kwargs):
-    all_lines = prediction.lstrip("\n").split("\n")
+    all_lines = prediction.split("\n")
     prediction = ""
     for line in all_lines:
+        if line.strip() == "":
+            continue
         if ("`" not in line) and ("#" not in line) and ("//" not in line):
             prediction = line
             break
