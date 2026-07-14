@@ -1,6 +1,6 @@
 tag:
     - afrixnli
-    - afrixnli_manual_direct
+    - afrixnli_manual_translate
 dataset_path: masakhane/afrixnli-translate-test
 dataset_name: null
 output_type: multiple_choice

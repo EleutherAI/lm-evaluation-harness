@@ -1,4 +1,4 @@
-# MathQA
+# AfriMMLU
 
 ### Paper
 
@@ -26,15 +26,32 @@ mathematical reasoning (AfriMGSM), and multi-choice knowledge-based QA (AfriMMLU
 
 ### Groups and Tasks
 
+Every AfriMMLU task is evaluated with five different prompt templates (the
+updated IrokoBench/AfroBench prompts), so each per-language task name carries a
+`_prompt_{i}` suffix where `i` is the prompt id (1-5). The original
+`afrimmlu_direct_{language_code}` and `afrimmlu_translate_{language_code}`
+names without the suffix are no longer registered.
+
 #### Groups
 
-* `afrimmlu`: All afrimmlu tasks
-* `afrimmlu_direct`: afrimmlu_direct evaluates models performance on the curated dataset
-* `afrimmlu_translate`: afrimmlu_translate evaluates models in translate-test setting
+* `afrimmlu-irokobench`: evaluates all direct tasks over all five prompts and reports a size-weighted mean accuracy
+* `afrimmlu_tt-irokobench`: same as above in the translate-test setting
+
+#### Tags
+
+* `afrimmlu_tasks`: runs all direct tasks (all five prompts)
+* `afrimmlu_tasks_prompt_{i}`: runs all direct tasks for prompt `i` (1-5)
+* `afrimmlu_tt_tasks`: runs all translate-test tasks
+* `afrobench_mmlu_tasks`: the AfriMMLU subset of the AfroBench benchmark (all direct tasks)
 
 #### Tasks
-* `afrimmlu_direct_{language_code}`: each task evaluates for one language
-* `afrimmlu_translate_{language_code}`: each task evaluates for one language
+
+* `afrimmlu_direct_{language_code}_prompt_{i}`: evaluates one language with prompt `i` (1-5) on the curated dataset, e.g. `afrimmlu_direct_amh_prompt_1`
+* `afrimmlu_translate_{language_code}_prompt_{i}`: same as above in the translate-test setting
+
+with `language_code` one of `amh`, `eng`, `ewe`, `fra`, `hau`, `ibo`, `kin`,
+`lin`, `lug`, `orm`, `sna`, `sot`, `swa`, `twi`, `wol`, `xho`, `yor`, `zul`
+(`eng` has no translate-test variant).
 
 ### Checklist
 

@@ -423,7 +423,7 @@ class TestTaskManagerIntegration:
         result = test_configs_task_manager.load_task_or_group(["test_group"])
         # Result is {ConfigurableGroup: {task_name: task_obj}}
         # Get the children dict from the group
-        children = list(result.values())[0]
+        children = next(iter(result.values()))
         # test_group contains inline tasks, namespaced as group_name::task_name
         assert "test_group::group_task_fs0" in children
         assert "test_group::group_task_fs2" in children
@@ -699,7 +699,7 @@ metadata:
         result = test_configs_task_manager.load_task_or_group(["tag_subgroup"])
 
         # Get the children dict from the group
-        group_key = list(result.keys())[0]
+        group_key = next(iter(result.keys()))
         children = result[group_key]
 
         # All 3 tasks from the tag should be expanded
@@ -724,14 +724,14 @@ metadata:
         result = test_configs_task_manager.load_task_or_group(["tag_parent_group"])
 
         # Navigate the nested structure
-        parent_key = list(result.keys())[0]
+        parent_key = next(iter(result.keys()))
         parent_children = result[parent_key]
 
         # Should contain the subgroup
         assert len(parent_children) == 1, "Parent should have 1 child (the subgroup)"
 
         # Get the subgroup
-        subgroup_key = list(parent_children.keys())[0]
+        subgroup_key = next(iter(parent_children.keys()))
         subgroup_children = parent_children[subgroup_key]
 
         # The subgroup should have all 3 tasks expanded from the TAG
@@ -1148,3 +1148,99 @@ class TestGroupBuilding:
 
         direct_tasks = parent.get_all_tasks(recursive=False)
         assert len(direct_tasks) == 0  # parent only has a subgroup, no direct tasks
+
+
+# =============================================================================
+# IrokoBench (AfriMMLU/AfriMGSM/AfriXNLI) registration tests
+# =============================================================================
+
+
+class TestIrokobenchRegistration:
+    """Regression tests for the IrokoBench task registry.
+
+    https://github.com/EleutherAI/lm-evaluation-harness/issues/3360
+    """
+
+    IROKOBENCH_GROUPS = (
+        "afrimgsm-irokobench",
+        "afrimgsm_cot-irokobench",
+        "afrimgsm_tt-irokobench",
+        "afrimgsm_tt_cot-irokobench",
+        "afrimmlu-irokobench",
+        "afrimmlu_tt-irokobench",
+        "afrixnli-irokobench",
+        "afrixnli_tt-irokobench",
+    )
+
+    # Spot-check of the names documented in the AfriMMLU/AfriMGSM/AfriXNLI
+    # READMEs (one language per task pattern).
+    DOCUMENTED_NAMES = (
+        # tags
+        "afrimmlu_tasks",
+        "afrimmlu_tasks_prompt_2",
+        "afrimmlu_tt_tasks",
+        "afrobench_mmlu_tasks",
+        "afrimgsm_tasks",
+        "afrimgsm_tasks_prompt_2",
+        "afrimgsm_cot_tasks",
+        "afrimgsm_cot_tasks_prompt_2",
+        "afrimgsm_tt_tasks",
+        "afrimgsm_tt_cot_tasks",
+        "afrixnli_tasks",
+        "afrixnli_tasks_prompt_2",
+        "afrixnli_tt_tasks",
+        "afrixnli",
+        "afrixnli_en_direct",
+        "afrixnli_native_direct",
+        "afrixnli_translate",
+        "afrixnli_manual_direct",
+        "afrixnli_manual_translate",
+        # per-language tasks
+        "afrimmlu_direct_amh_prompt_1",
+        "afrimmlu_translate_amh_prompt_5",
+        "afrimgsm_amh_prompt_1",
+        "afrimgsm_cot_amh_prompt_1",
+        "afrimgsm_translate_amh_prompt_1",
+        "afrimgsm_cot_translate_amh_prompt_1",
+        "afrixnli_amh_prompt_1",
+        "afrixnli_translate_amh_prompt_1",
+        "afrixnli_en_direct_amh",
+        "afrixnli_manual_translate_amh",
+    )
+
+    def test_group_members_are_registered(self, shared_task_manager):
+        """Every name referenced by an irokobench group must resolve.
+
+        afrimgsm direct prompt_2 used to carry the prompt_1 tag, so the
+        'afrimgsm_tasks_prompt_2' tag referenced by 'afrimgsm-irokobench'
+        was never registered and loading the group raised a KeyError.
+        """
+        for group in self.IROKOBENCH_GROUPS:
+            entry = shared_task_manager.task_index[group]
+            assert entry.kind == Kind.GROUP
+            assert entry.cfg is not None
+            for member in entry.cfg["task"]:
+                assert member in shared_task_manager.task_index, (
+                    f"group '{group}' references unregistered '{member}'"
+                )
+
+    def test_documented_names_are_registered(self, shared_task_manager):
+        """Names documented in the READMEs must be registered."""
+        for name in self.DOCUMENTED_NAMES:
+            assert name in shared_task_manager.task_index, name
+
+    def test_afrimmlu_yaml_functions_resolve(self, shared_task_manager):
+        """The afrimmlu per-prompt utils.py must re-export weighted_f1_score.
+
+        The import was dropped as unused by a lint cleanup, after which every
+        afrimmlu task failed to load with an AttributeError on the
+        '!function utils.weighted_f1_score' reference in the config.
+        """
+        for variant in ("direct", "translate"):
+            for i in range(1, 6):
+                entry = shared_task_manager.task_index[
+                    f"afrimmlu_{variant}_amh_prompt_{i}"
+                ]
+                cfg = load_yaml(entry.yaml_path, resolve_func=True)
+                aggregations = [m.get("aggregation") for m in cfg["metric_list"]]
+                assert any(callable(agg) for agg in aggregations), entry.yaml_path
