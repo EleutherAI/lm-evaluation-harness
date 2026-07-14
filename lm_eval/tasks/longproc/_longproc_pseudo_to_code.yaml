@@ -1,0 +1,10 @@
+group: longproc_pseudo_to_code
+task:
+  - longproc_pseudo_to_code_0.5k
+  - longproc_pseudo_to_code_2k
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
