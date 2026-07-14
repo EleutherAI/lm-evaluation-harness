@@ -1,0 +1,5 @@
+"dataset_name": "Math Literacy (High School in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_stem"
+"task": "kazmmlu_math_literacy_(high_school_in_rus)"
+"task_alias": "Math Literacy (High School in rus)"
