@@ -1,0 +1,15 @@
+group: lica_bench
+task:
+  - lica_bench_category
+  - lica_bench_layout
+  - lica_bench_svg
+  - lica_bench_template
+  - lica_bench_temporal
+  - lica_bench_typography
+  - lica_bench_lottie
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.1
