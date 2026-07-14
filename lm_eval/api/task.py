@@ -1098,8 +1098,20 @@ class ConfigurableTask(Task):
                 else a
             )
             assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
-            # Currently, we always delimit gen_prefex and answer with space if deliimter required.
-            answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
+            # Delimit gen_prefix and answer with a single space, avoiding
+            # double whitespace when both sides already have boundary space.
+            # maybe_delimit correctly handles 0 or 1 whitespace-bearing side,
+            # but when both sides have whitespace the bare concatenation
+            # produces a double space.  (#3231)
+            if (
+                gen_prefix
+                and answer_text
+                and ends_with_whitespace(gen_prefix)
+                and answer_text[0].isspace()
+            ):
+                answer_text = gen_prefix + answer_text.lstrip()
+            else:
+                answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
             msgs.append(Message("assistant", answer_text, few_delim))
         elif gen_prefix:
             # For gen-prefix, the delimiter is added in construct_requests
