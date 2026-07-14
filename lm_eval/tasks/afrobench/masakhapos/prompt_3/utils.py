@@ -30,6 +30,8 @@ def doc_to_target(doc):
 
 
 def acc_score(items):
+    if isinstance(items, (float, int)): return items
+    if isinstance(items, (float, int)): return items
     unzipped_list = list(zip(*items))
 
     golds, preds = unzipped_list[0], unzipped_list[1]
