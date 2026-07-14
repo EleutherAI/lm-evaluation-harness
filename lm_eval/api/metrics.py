@@ -149,6 +149,103 @@ def brier_score_fn(items):  # This is a passthrough function
     return items
 
 
+@register_aggregation("ece")
+def ece(items, n_bins: int = 10) -> float:
+    """Expected Calibration Error (ECE) with equal-width binning.
+
+    Measures the average gap between predicted confidence and observed accuracy.
+    A perfectly calibrated model returns ECE = 0. Lower is better.
+
+    Args:
+        items: List of (gold_label, predicted_probability) pairs where
+               gold_label is in {0, 1} and predicted_probability is in [0, 1].
+        n_bins: Number of equal-width bins to partition [0, 1]. Default: 10.
+
+    Returns:
+        ECE in [0, 1]. Weighted average of |accuracy - confidence| per bin,
+        weighted by fraction of samples in each bin.
+
+    References:
+        Guo et al., "On Calibration of Modern Neural Networks", ICML 2017.
+        https://arxiv.org/abs/1706.04599
+    """
+    gold_labels, probs = zip(*items)
+    gold = np.array(gold_labels, dtype=int)
+    p = np.clip(np.array(probs, dtype=float), 0.0, 1.0)
+    n = len(p)
+
+    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
+    ece_val = 0.0
+    for lo, hi in zip(bin_edges[:-1], bin_edges[1:]):
+        # include right edge in the last bin to capture p == 1.0
+        mask = (p >= lo) & (p <= hi if hi == 1.0 else p < hi)
+        if mask.sum() == 0:
+            continue
+        bin_acc = gold[mask].mean()
+        bin_conf = p[mask].mean()
+        ece_val += mask.sum() / n * abs(bin_acc - bin_conf)
+
+    return float(ece_val)
+
+
+@register_aggregation("rms_ce")
+def rms_calibration_error(items, n_bins: int = 10) -> float:
+    """Root-Mean-Square Calibration Error (RMS-CE) with equal-width binning.
+
+    Like ECE but uses an L2 norm rather than L1, giving more weight to
+    large calibration gaps. Lower is better.
+
+    Args:
+        items: List of (gold_label, predicted_probability) pairs.
+        n_bins: Number of equal-width bins. Default: 10.
+
+    Returns:
+        RMS-CE in [0, 1].
+
+    References:
+        Hendrycks et al., "A Baseline for Detecting Misclassified and
+        Out-of-Distribution Examples in Neural Networks", ICLR 2017.
+    """
+    gold_labels, probs = zip(*items)
+    gold = np.array(gold_labels, dtype=int)
+    p = np.clip(np.array(probs, dtype=float), 0.0, 1.0)
+    n = len(p)
+
+    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
+    rms_val = 0.0
+    for lo, hi in zip(bin_edges[:-1], bin_edges[1:]):
+        mask = (p >= lo) & (p <= hi if hi == 1.0 else p < hi)
+        if mask.sum() == 0:
+            continue
+        bin_acc = gold[mask].mean()
+        bin_conf = p[mask].mean()
+        rms_val += mask.sum() / n * (bin_acc - bin_conf) ** 2
+
+    return float(np.sqrt(rms_val))
+
+
+@register_metric(
+    metric="ece",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="ece",
+)
+def ece_fn(items):
+    """Expected Calibration Error — pass (gold, prob) pairs to the ece aggregator."""
+    return items
+
+
+@register_metric(
+    metric="rms_ce",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="rms_ce",
+)
+def rms_ce_fn(items):
+    """Root-Mean-Square Calibration Error — pass (gold, prob) pairs to the rms_ce aggregator."""
+    return items
+
+
 @register_metric(
     metric="acc",
     higher_is_better=True,
