@@ -214,6 +214,148 @@ def test_create_image_prompt_uses_content_parts_without_top_level_type(
     }
 
 
+def test_parse_logplikelihood_greedy_and_non_greedy():
+    outputs = {
+        "choices": [
+            {
+                "index": 0,
+                "logprobs": {
+                    "token_logprobs": [None, -0.1, -0.2, -0.3],
+                    "top_logprobs": [
+                        {},
+                        {"a": -0.1, "b": -5.0},
+                        {"c": -0.2, "d": -5.0},
+                        {"e": -1.0, "f": -0.5},
+                    ],
+                },
+            }
+        ]
+    }
+    # ctxlen=1 means the first token is context, slice is [1:-1] -> indices 1 and 2
+    result = LocalCompletionsAPI.parse_logprobs(outputs, ctxlens=[1])
+
+    assert len(result) == 1
+    logprob, is_greedy = result[0]
+    assert logprob == pytest.approx(-0.1 + -0.2)
+    # both sampled tokens match the max of their top_logprobs, so greedy
+    assert is_greedy is True
+
+
+def test_parse_logplikelihood_detects_non_greedy():
+    outputs = {
+        "choices": [
+            {
+                "index": 0,
+                "logprobs": {
+                    "token_logprobs": [None, -2.0, -0.5],
+                    "top_logprobs": [
+                        {},
+                        {"a": -0.1, "b": -2.0},
+                        {"c": -0.5, "d": -5.0},
+                    ],
+                },
+            }
+        ]
+    }
+    result = LocalCompletionsAPI.parse_logprobs(outputs, ctxlens=[1])
+
+    _, is_greedy = result[0]
+    # first sampled token (-2.0) is not the max (-0.1), so not greedy
+    assert is_greedy is False
+
+
+def test_parse_logplikelihood_orders_choices_by_index():
+    outputs = {
+        "choices": [
+            {
+                "index": 1,
+                "logprobs": {
+                    "token_logprobs": [None, -0.5, -0.1],
+                    "top_logprobs": [{}, {"a": -0.5}, {"b": -0.1}],
+                },
+            },
+            {
+                "index": 0,
+                "logprobs": {
+                    "token_logprobs": [None, -0.2, -0.3],
+                    "top_logprobs": [{}, {"a": -0.2}, {"b": -0.3}],
+                },
+            },
+        ]
+    }
+    result = LocalCompletionsAPI.parse_logprobs(outputs, ctxlens=[1, 1])
+
+    # choices are sorted by index before being zipped with ctxlens
+    assert result[0][0] == pytest.approx(-0.2)
+    assert result[1][0] == pytest.approx(-0.5)
+
+
+def test_parse_generations_orders_by_index():
+    outputs = {
+        "choices": [
+            {"index": 1, "text": "world"},
+            {"index": 0, "text": "hello"},
+        ]
+    }
+    result = LocalCompletionsAPI.parse_generations(outputs)
+
+    assert result == ["hello", "world"]
+
+
+def test_chat_parse_generations_reads_message_content():
+    from lm_eval.models.openai_completions import LocalChatCompletion
+
+    outputs = {
+        "choices": [
+            {"index": 0, "message": {"content": "hello"}},
+            {"index": 1, "message": {"content": "world"}},
+        ]
+    }
+    result = LocalChatCompletion.parse_generations(outputs)
+
+    assert result == ["hello", "world"]
+
+
+def test_chat_parse_generations_handles_content_filter():
+    from lm_eval.models.openai_completions import LocalChatCompletion
+
+    # missing "content" simulates a response blocked by a content filter
+    outputs = {"choices": [{"index": 0, "message": {}}]}
+    result = LocalChatCompletion.parse_generations(outputs)
+
+    assert result == [""]
+
+
+@pytest.mark.parametrize(
+    "model_name",
+    ["o1-mini", "o3-mini", "o4-mini", "gpt-5"],
+)
+def test_openai_chat_payload_drops_stop_for_reasoning_models(model_name):
+    from lm_eval.models.openai_completions import OpenAIChatCompletion
+
+    model = OpenAIChatCompletion(base_url="http://test-url.com", model=model_name)
+    messages = [{"role": "user", "content": "hi"}]
+    payload = model._create_payload(messages, generate=True, gen_kwargs={})
+
+    assert "stop" not in payload
+    assert payload["temperature"] == 1
+    assert payload["model"] == model_name
+
+
+def test_openai_chat_payload_keeps_stop_for_standard_models():
+    from lm_eval.models.openai_completions import OpenAIChatCompletion
+
+    model = OpenAIChatCompletion(base_url="http://test-url.com", model="gpt-4")
+    messages = [{"role": "user", "content": "hi"}]
+    payload = model._create_payload(
+        messages, generate=True, gen_kwargs={"until": ["END"], "temperature": 0.5}
+    )
+
+    assert payload["stop"] == ["END", "<|endoftext|>"]
+    assert payload["temperature"] == 0.5
+    assert payload["max_completion_tokens"] == model._max_gen_toks
+
+
 class DummyAsyncContextManager:
     def __init__(self, result):
         self.result = result
