@@ -4,7 +4,7 @@ include:
   - flores_common_yaml
 "tag":
 - "darija_translation_tasks_flores"
-"task": "trasnlation_dr_msa_flores"
+"task": "translation_dr_msa_flores"
 "task_alias": "dr_msa_flores"
 metric_list:
   - metric: !function utils.bert

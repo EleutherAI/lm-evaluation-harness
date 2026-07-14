@@ -1,3 +1,0 @@
-dataset_name: tam_taml
-include: _template
-task: global_piqa_prompted_tam_taml

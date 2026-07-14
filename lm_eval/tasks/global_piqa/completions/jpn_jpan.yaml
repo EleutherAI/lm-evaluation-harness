@@ -1,3 +1,0 @@
-dataset_name: jpn_jpan
-include: _template
-task: global_piqa_completions_jpn_jpan
