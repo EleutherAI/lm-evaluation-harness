@@ -15,5 +15,6 @@ task:
   - flores_es
   - phrases_es
   - cocoteros_es
+  - almo_mwe
 metadata:
   version: 1.2
