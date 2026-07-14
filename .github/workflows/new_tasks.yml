@@ -59,7 +59,7 @@ jobs:
       - name: Install dependencies
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
         run: |
-          uv pip install -e '.[dev,ifeval,unitxt,math,longbench,hf]' --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install -e '.[dev,ifbench,unitxt,math,longbench,hf]' --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Test with pytest
         # if new tasks are added, run tests on them
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
