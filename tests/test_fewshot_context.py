@@ -249,6 +249,27 @@ class TestBuildQaTurn:
 
         assert msgs[1].content == "first"
 
+    def test_choice_with_list_int_answer(self, task):
+        """Answer as a list of choice indices renders the choice text.
+
+        AGIEval-style MCQA tasks set ``doc_to_target: "{{gold}}"`` where ``gold``
+        is a list of indices (e.g. ``[2]``). With ``doc_to_choice`` set, this is
+        rendered to a Python list, so ``a`` reaches build_qa_turn as ``[2]``. It
+        should index into ``c`` and produce the choice text, not the bare index.
+        """
+        msgs = ConfigurableTask.build_qa_turn(
+            task,
+            q="Pick one:",
+            c=["Apple", "Banana", "Cherry"],
+            a=[2],
+            tgt_delim=" ",
+            few_delim="\n\n",
+        )
+
+        assert len(msgs) == 2
+        assert msgs[1].content == "Cherry"
+        assert messages_to_text(msgs) == "Pick one: Cherry\n\n"
+
     def test_gen_prefix_without_answer(self, task):
         """gen_prefix adds assistant message when no answer."""
         msgs = ConfigurableTask.build_qa_turn(
@@ -577,6 +598,38 @@ class TestFewshotContext:
 
         # Fewshot uses choices[0]="A", target question only (no answer)
         assert "A\n\n" in result
+        assert result.endswith("Pick a fruit:")
+
+    def test_fewshot_with_list_gold_renders_choice_text(self, mock_configurable_task):
+        """Fewshot MCQA with list-valued gold renders the choice text, not the index.
+
+        Regression test for AGIEval few-shot (issue #2323): ``doc_to_target``
+        returns a list of indices such as ``[1]``. The few-shot assistant turn
+        should contain the choice text (e.g. "B"), not the bare index "1".
+        """
+        mock_configurable_task.config.doc_to_choice = "choices"
+        mock_configurable_task.fewshot_cfg.doc_to_choice = "choices"
+
+        fs_doc = {"q": "Pick:", "a": [1]}
+        target_doc = {"q": "Pick a fruit:", "a": [0]}
+
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
+        mock_configurable_task.doc_to_choice = Mock(
+            side_effect=lambda d, *args: (
+                ["A", "B"] if d == fs_doc else ["Apple", "Banana"]
+            )
+        )
+
+        result = ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc=target_doc, num_fewshot=1
+        )
+
+        # Fewshot assistant turn contains the choice text choices[1]="B",
+        # not the bare index "1", and the eval doc has no answer.
+        assert "Pick: B\n\n" in result
+        assert "1" not in result
         assert result.endswith("Pick a fruit:")
 
     def test_custom_delimiters(self, mock_configurable_task):

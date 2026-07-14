@@ -1046,7 +1046,7 @@ class ConfigurableTask(Task):
         *,
         q: str | None = None,
         c: list[str] | None = None,
-        a: str | int | list[str] | None = None,
+        a: str | int | list[str] | list[int] | None = None,
         gen_prefix: str | None = None,
         tgt_delim=" ",
         few_delim="\n\n",
@@ -1063,8 +1063,10 @@ class ConfigurableTask(Task):
             q (str): The question or context text (required).
             c (list[str] | None): List of answer choices for multiple-choice tasks.
                 When provided with an integer `a`, indexes into this list to get the answer.
-            a (str | int | list[str] | None): The answer - can be a string, an index
-                into `c`, or a list of strings (for multiple targets).
+            a (str | int | list[str] | list[int] | None): The answer - can be a
+                string, an index into `c`, a list of choice indices (e.g. `[3]`,
+                as produced by AGIEval-style `gold` targets, indexes into `c`), or
+                a list of strings (for multiple targets).
             gen_prefix (str | None): A prefix to prepend to generated text (e.g., "Answer:").
             tgt_delim (str): Delimiter between question and answer (default: " ").
             few_delim (str): Delimiter after assistant response for few-shot separation
@@ -1092,6 +1094,10 @@ class ConfigurableTask(Task):
             answer_text = (
                 c[a]
                 if (c and isinstance(a, int))
+                # gold given as a list of choice indices (e.g. AGIEval's [3]):
+                # index into the choices so we render the choice text, not the index.
+                else c[a[0]]
+                if (c and isinstance(a, list) and a and isinstance(a[0], int))
                 # TODO: for multiple targets a is a list[str]. Fix this hack
                 else a[0]
                 if isinstance(a, list)
