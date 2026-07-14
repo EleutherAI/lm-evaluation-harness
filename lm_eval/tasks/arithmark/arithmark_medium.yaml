@@ -1,0 +1,20 @@
+tag:
+  - arithmark_tasks
+task: arithmark_medium
+dataset_path: AxiomicLabs/ArithMark-2.0
+output_type: multiple_choice
+test_split: train
+process_docs: !function utils.process_docs_medium
+doc_to_text: "{{ctx}}"
+doc_to_target: "{{gold}}"
+doc_to_choice: "{{endings}}"
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
