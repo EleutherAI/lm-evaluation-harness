@@ -1,0 +1,24 @@
+task: winogrande_greek
+dataset_path: ilsp/winogrande_greek
+dataset_name: default
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+# NOTE: ILSP's winogrande_greek keeps `sentence`/`option1`/`option2` in ENGLISH; the Greek text
+# lives only in `multiple_choice_targets` (the two full candidate sentences) with the correct one
+# flagged by `multiple_choice_scores`/`answer`. We therefore score the two Greek sentences directly
+# rather than reusing the English fill-the-blank template. This is a full-sentence plausibility
+# formulation of WinoGrande (see README). Gold: answer "1"/"2" -> index 0/1.
+doc_to_text: ""
+doc_to_choice: "{{multiple_choice_targets}}"
+doc_to_target: "{{ answer|int - 1 }}"
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

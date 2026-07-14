@@ -1,0 +1,7 @@
+"dataset_name": "abstract_algebra"
+"description": "The following are multiple choice questions (with answers) about abstract\
+  \ algebra.\n\n"
+"include": "_default_template_yaml"
+"tag": "mmlu_greek_stem_tasks"
+"task": "mmlu_greek_abstract_algebra"
+"task_alias": "abstract algebra"
