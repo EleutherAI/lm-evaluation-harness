@@ -1,0 +1,21 @@
+task: healthcare_scm
+dataset_path: karthikchundi/healthcare-supply-chain-eval
+dataset_name: null
+test_split: train
+output_type: generate_until
+doc_to_text: "You are an expert in healthcare supply chain management. Answer the following question accurately and concisely.\n\n{{question}}\nAnswer:"
+doc_to_target: "{{answer}}"
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\n"
+  max_gen_toks: 64
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0
+  description: "Tests LLM knowledge of hospital supply chain and materials management across GPO contracting, inventory management, medical device tracking, vendor credentialing, FDA recall procedures, and supply disruption management."
