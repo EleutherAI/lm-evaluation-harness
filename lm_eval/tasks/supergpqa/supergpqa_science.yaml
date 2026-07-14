@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "supergpqa_science"
+task_alias: "science"
+process_docs: !function utils.process_science

@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "supergpqa_sociology"
+task_alias: "sociology"
+process_docs: !function utils.process_sociology

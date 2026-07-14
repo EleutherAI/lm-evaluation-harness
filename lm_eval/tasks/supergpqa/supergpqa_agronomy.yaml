@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "supergpqa_agronomy"
+task_alias: "agronomy"
+process_docs: !function utils.process_agronomy

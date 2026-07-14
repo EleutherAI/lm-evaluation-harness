@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "supergpqa_military_science"
+task_alias: "military science"
+process_docs: !function utils.process_military_science

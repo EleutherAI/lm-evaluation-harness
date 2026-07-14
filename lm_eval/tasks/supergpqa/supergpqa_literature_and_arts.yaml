@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "supergpqa_literature_and_arts"
+task_alias: "literature and arts"
+process_docs: !function utils.process_literature_and_arts

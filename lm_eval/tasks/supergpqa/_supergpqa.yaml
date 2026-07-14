@@ -1,0 +1,22 @@
+group: supergpqa
+task:
+  - supergpqa_agronomy
+  - supergpqa_economics
+  - supergpqa_education
+  - supergpqa_engineering
+  - supergpqa_history
+  - supergpqa_law
+  - supergpqa_literature_and_arts
+  - supergpqa_management
+  - supergpqa_medicine
+  - supergpqa_military_science
+  - supergpqa_philosophy
+  - supergpqa_science
+  - supergpqa_sociology
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: true
+    filter_list: custom-extract
+metadata:
+  version: 1.0

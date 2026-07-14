@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "supergpqa_management"
+task_alias: "management"
+process_docs: !function utils.process_management
