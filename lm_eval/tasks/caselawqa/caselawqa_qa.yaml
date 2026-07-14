@@ -1,0 +1,11 @@
+group: caselawqa_qa
+
+task:
+  - caselawqa_sc_qa
+  - caselawqa_songer_qa
+
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+    filter_list: "default"
