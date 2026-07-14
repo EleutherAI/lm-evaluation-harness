@@ -21,7 +21,7 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=the answer is )(.*)(?=.)"
+        regex_pattern: "(?<=the answer is )(.*?)(?=\\s*$|\\s*\\.)"
       - function: "take_first"
 num_fewshot: 3
 metadata:
