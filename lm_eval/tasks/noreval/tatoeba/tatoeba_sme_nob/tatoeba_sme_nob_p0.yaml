@@ -1,0 +1,7 @@
+dataset_path: ltg/saami-tatoeba
+tag: tatoeba_sme_nob
+doc_to_target: text_nob
+task: tatoeba_sme_nob_p0
+include: ../_tatoeba_yaml
+training_split: test
+doc_to_text: "Samisk: {{text_sme}}\nBokmål:"

@@ -1,0 +1,4 @@
+task: slide_p4
+include: _slide_yaml
+doc_to_text: "Folk skriver på mange språk, som bokmål, nynorsk, dansk, svensk eller på mange andre språk. «{{text}}» er et eksempel på en setning skrevet på"
+doc_to_choice: ["bokmål", "nynorsk", "dansk", "svensk", "et annet språk"]

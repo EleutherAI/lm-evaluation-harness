@@ -1,0 +1,7 @@
+dataset_path: ltg/saami-tatoeba
+tag: tatoeba_nob_sme
+doc_to_target: text_sme
+task: tatoeba_nob_sme_p1
+include: ../_tatoeba_yaml
+training_split: test
+doc_to_text: "Oversett følgende setning til samisk: {{text_nob}}\nSamisk:"
