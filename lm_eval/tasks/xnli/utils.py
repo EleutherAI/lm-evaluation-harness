@@ -44,6 +44,12 @@ LANGUAGES = {
         "NEUTRAL_LABEL": "Asi que",
         "CONTRADICTION_LABEL": "No",
     },
+    "fa": {  # Persian
+        "QUESTION_WORD": "درست",
+        "ENTAILMENT_LABEL": "بله",
+        "NEUTRAL_LABEL": "پس",
+        "CONTRADICTION_LABEL": "نه",
+    },
     "fr": {  # French
         "QUESTION_WORD": "correct",
         "ENTAILMENT_LABEL": "Oui",
