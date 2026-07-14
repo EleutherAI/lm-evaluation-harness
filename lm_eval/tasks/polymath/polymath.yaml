@@ -1,0 +1,22 @@
+group: polymath
+task:
+- polymath_ar
+- polymath_bn
+- polymath_de
+- polymath_en
+- polymath_es
+- polymath_fr
+- polymath_id
+- polymath_it
+- polymath_ja
+- polymath_ko
+- polymath_ms
+- polymath_pt
+- polymath_ru
+- polymath_sw
+- polymath_te
+- polymath_th
+- polymath_vi
+- polymath_zh
+metadata:
+  version: 1
