@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_bul_Cyrl"
+"test_split": "bul_Cyrl"
+"fewshot_split": "bul_Cyrl"
+"doc_to_text": "Пасаж: {{flores_passage}}\nВъпрос: {{question}}\nОтговор:"

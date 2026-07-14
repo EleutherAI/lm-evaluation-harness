@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-ces_Latn-spa_Latn"
+"dataset_name": "ces_Latn-spa_Latn"
+"doc_to_text": "Czech phrase: {{sentence_ces_Latn}}\nSpanish phrase:"
+"doc_to_decontamination_query": "{{sentence_ces_Latn}}"
+"doc_to_target": "{{sentence_spa_Latn}}"

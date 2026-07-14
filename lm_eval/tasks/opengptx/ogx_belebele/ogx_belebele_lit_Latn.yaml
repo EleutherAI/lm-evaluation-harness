@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_lit_Latn"
+"test_split": "lit_Latn"
+"fewshot_split": "lit_Latn"
+"doc_to_text": "Ištrauka: {{flores_passage}}\nKlausimas: {{question}}\nAtsakymas:"

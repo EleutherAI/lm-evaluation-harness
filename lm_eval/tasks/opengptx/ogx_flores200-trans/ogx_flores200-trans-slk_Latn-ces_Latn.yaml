@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-slk_Latn-ces_Latn"
+"dataset_name": "slk_Latn-ces_Latn"
+"doc_to_text": "Slovak phrase: {{sentence_slk_Latn}}\nCzech phrase:"
+"doc_to_decontamination_query": "{{sentence_slk_Latn}}"
+"doc_to_target": "{{sentence_ces_Latn}}"

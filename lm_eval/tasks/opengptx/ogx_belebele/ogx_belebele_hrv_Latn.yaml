@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_hrv_Latn"
+"test_split": "hrv_Latn"
+"fewshot_split": "hrv_Latn"
+"doc_to_text": "Odlomak: {{flores_passage}}\nPitanje: {{question}}\nOdgovor:"
