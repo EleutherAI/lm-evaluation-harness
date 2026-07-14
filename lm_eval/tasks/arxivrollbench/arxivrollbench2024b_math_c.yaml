@@ -1,0 +1,4 @@
+include: _arxivrollbench_c_template_yaml
+task: arxivrollbench2024b_math_c
+dataset_path: liangzid/robench2024b_all_setmathSCP-c-50
+dataset_name: null
