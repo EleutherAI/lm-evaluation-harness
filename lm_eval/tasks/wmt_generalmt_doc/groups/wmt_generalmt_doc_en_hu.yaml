@@ -1,0 +1,4 @@
+group: wmt-generalmt-doc-en-hu
+task:
+  - wmt-generalmt-doc-newstest2008-en-hu
+  - wmt-generalmt-doc-newstest2009-en-hu

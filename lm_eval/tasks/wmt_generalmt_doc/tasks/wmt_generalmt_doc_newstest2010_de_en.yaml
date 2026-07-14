@@ -1,0 +1,13 @@
+include: ../wmt_generalmt_doc_common.yaml
+
+task: wmt-generalmt-doc-newstest2010-de-en
+
+tag:
+  - translation
+  - wmt_generalmt_doc
+
+metadata:
+  version: 1.0
+  testset: "newstest2010"
+  src_lang: "de"
+  tgt_lang: "en"

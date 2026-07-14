@@ -1,0 +1,6 @@
+group: doc-mt-en-all
+task:
+  - wmt24pp_doc_en-all
+  - bouquet-doc-en-all
+  - ntrex-doc-en-all
+  - wmt-generalmt-doc-en-all

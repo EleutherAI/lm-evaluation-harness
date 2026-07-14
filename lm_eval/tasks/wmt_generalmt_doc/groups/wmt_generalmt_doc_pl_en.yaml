@@ -1,0 +1,3 @@
+group: wmt-generalmt-doc-pl-en
+task:
+  - wmt-generalmt-doc-newstest2020-pl-en

@@ -1,0 +1,13 @@
+include: ../wmt24pp_doc_common.yaml
+
+task: wmt24pp_doc_id_ID-en
+
+tag:
+  - translation
+  - wmt24pp_doc
+  - reverse_derived
+
+metadata:
+  version: 1.0
+  src_lang: "id_ID"
+  tgt_lang: "en"

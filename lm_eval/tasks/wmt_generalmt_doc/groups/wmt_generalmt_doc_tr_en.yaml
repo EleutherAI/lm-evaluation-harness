@@ -1,0 +1,5 @@
+group: wmt-generalmt-doc-tr-en
+task:
+  - wmt-generalmt-doc-newstest2016-tr-en
+  - wmt-generalmt-doc-newstest2017-tr-en
+  - wmt-generalmt-doc-newstest2018-tr-en

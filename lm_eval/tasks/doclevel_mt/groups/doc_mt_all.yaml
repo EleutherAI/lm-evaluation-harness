@@ -1,0 +1,6 @@
+group: doc-mt-all
+task:
+  - wmt24pp_doc_all
+  - bouquet-doc-bidirectional-all
+  - ntrex-doc-bidirectional-all
+  - wmt-generalmt-doc-all
