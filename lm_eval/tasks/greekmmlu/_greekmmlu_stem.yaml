@@ -1,0 +1,7 @@
+aggregate_metric_list:
+-   metric: acc
+    weight_by_size: true
+group: greekmmlu_stem
+group_alias: stem
+task:
+- greekmmlu_stem_tasks
