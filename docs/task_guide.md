@@ -224,7 +224,8 @@ Here we list all metrics currently supported natively in `lm-eval`:
 Metrics:
 
 - `acc` (accuracy)
-- `acc_norm` (length-normalized accuracy)
+- `acc_norm` (accuracy normalized by the character length of each choice)
+- `acc_bytes` (accuracy normalized by the UTF-8 byte length of each choice)
 - `acc_mutual_info` (baseline loglikelihood - normalized accuracy)
 - `perplexity`
 - `word_perplexity` (perplexity per word)
@@ -286,6 +287,7 @@ result_dict = {
     **({"f1": (gold, pred)} if "f1" in use_metric else {}),
     **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
     **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+    **({"acc_bytes": acc_bytes} if "acc_bytes" in use_metric else {}),
     **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
 }
 ```
