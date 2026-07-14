@@ -1,0 +1,93 @@
+# Example task configuration demonstrating LLM-as-a-Judge metric
+#
+# This example shows how to configure the llm_judge metric for evaluating
+# model responses using a remote LLM as a judge.
+
+task: llm_judge_example
+dataset_path: your/dataset/path
+dataset_name: null
+output_type: generate_until
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_new_tokens: 512
+
+# Example 1: Reference-based evaluation with question context
+# This configuration evaluates predictions against reference answers
+metric_list:
+  - metric: llm_judge
+    aggregation: llm_judge
+    higher_is_better: true
+    # Custom prompt template with all available placeholders
+    prompt_template: |
+      You are an expert evaluator. Rate the quality of the generated response.
+
+      Question: {question}
+      Reference Answer: {reference}
+      Generated Response: {prediction}
+
+      Provide a score from 0.0 to 1.0 where:
+      - 1.0 = Perfect match or better than reference
+      - 0.7-0.9 = Good quality with minor issues
+      - 0.4-0.6 = Acceptable but with notable issues
+      - 0.0-0.3 = Poor quality or incorrect
+
+      Your response must start with "Score: X.XX" on the first line.
+    # OpenAI-compatible API configuration
+    api_base: https://api.openai.com/v1  # or your custom endpoint
+    model: gpt-4  # or gpt-4-turbo, gpt-3.5-turbo, etc.
+    temperature: 0.0
+    max_tokens: 1024
+    # api_key can be set here or via OPENAI_API_KEY environment variable
+
+# Example 2: Reference-free evaluation (only question and prediction)
+# Uncomment this example to use reference-free evaluation instead
+#metric_list:
+#  - metric: llm_judge
+#    aggregation: llm_judge
+#    higher_is_better: true
+#    prompt_template: |
+#      Evaluate the quality and correctness of this response.
+#
+#      Question: {question}
+#      Response: {prediction}
+#
+#      Rate from 0.0 (completely wrong) to 1.0 (perfect).
+#      Start your response with "Score: X.XX"
+#    model: gpt-4
+#    temperature: 0.0
+
+# Example 3: Prediction-only evaluation (no question or reference)
+# Useful for tasks like style evaluation, toxicity detection, etc.
+#metric_list:
+#  - metric: llm_judge
+#    aggregation: llm_judge
+#    higher_is_better: true
+#    prompt_template: |
+#      Evaluate the quality of this text.
+#
+#      Text: {prediction}
+#
+#      Score from 0.0 to 1.0. Start with "Score: X.XX"
+#    model: gpt-4
+
+# Example 4: Using a local/custom OpenAI-compatible endpoint
+#metric_list:
+#  - metric: llm_judge
+#    aggregation: llm_judge
+#    higher_is_better: true
+#    prompt_template: |
+#      Rate this response from 0-1:
+#      Q: {question}
+#      A: {prediction}
+#      Ref: {reference}
+#      Score:
+#    api_base: http://localhost:8000/v1  # Local vLLM, Ollama, etc.
+#    model: llama-3-70b-instruct
+#    api_key: dummy_key  # Some local servers still require this
+#    temperature: 0.0
+#    max_tokens: 512
+
+metadata:
+  version: 1.0
+  description: "Example task configuration for LLM-as-a-Judge metric"
