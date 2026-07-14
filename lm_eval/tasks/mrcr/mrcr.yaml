@@ -1,0 +1,7 @@
+group: mrcr
+task:
+  - mrcr_2needle
+  - mrcr_4needle
+  - mrcr_8needle
+metadata:
+  version: 0.0
