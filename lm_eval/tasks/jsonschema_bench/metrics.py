@@ -1,6 +1,8 @@
 import ipaddress
 import json
 import logging
+import os
+import signal
 import uuid
 from typing import Any, Dict
 
@@ -15,6 +17,44 @@ except ImportError as e:
     ) from e
 
 eval_logger = logging.getLogger(__name__)
+
+
+class ValidationTimeout(Exception):
+    """Raised when schema validation exceeds the per-sample time budget."""
+
+
+# Per-sample validation time budget (seconds). The original JSONSchemaBench
+# treats a schema that cannot be processed within a fixed budget as a
+# processing failure; without such a cap a single pathological schema/instance
+# (e.g. deeply-recursive ``$ref`` or a format regex with catastrophic
+# backtracking) can spin the CPU indefinitely and hang the whole evaluation.
+# Override with the ``JSONSCHEMA_BENCH_TIMEOUT_S`` environment variable.
+VALIDATION_TIMEOUT_S = int(os.environ.get("JSONSCHEMA_BENCH_TIMEOUT_S", "40"))
+
+
+def _run_with_timeout(fn, seconds: int = VALIDATION_TIMEOUT_S):
+    """Run ``fn()`` under a wall-clock ``SIGALRM`` timeout.
+
+    Raises :class:`ValidationTimeout` if ``fn`` runs longer than ``seconds``.
+    If ``SIGALRM`` is unavailable (non-main thread, or a platform without it),
+    ``fn`` is run without a timeout so behavior never regresses to a crash.
+    """
+
+    def _handler(signum, frame):
+        raise ValidationTimeout(f"validation exceeded {seconds}s")
+
+    try:
+        old_handler = signal.signal(signal.SIGALRM, _handler)
+    except (ValueError, AttributeError):
+        # Not in the main thread, or SIGALRM not supported: run unguarded.
+        return fn()
+
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        return fn()
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, old_handler)
 
 
 def is_json_schema_valid(schema: dict):
@@ -90,7 +130,14 @@ def schema_compliance(references: list[str], predictions: list[str]) -> bool:
         return False
 
     try:
-        schema_conform = schema_conform_with_format_checker(json_obj, json_schema)
+        schema_conform = _run_with_timeout(
+            lambda: schema_conform_with_format_checker(json_obj, json_schema)
+        )
+    except ValidationTimeout as e:
+        # Treat an un-processable schema/instance as non-compliant instead of
+        # hanging the evaluation forever.
+        eval_logger.error(f"Error: {e}; treating as non-compliant")
+        return False
     except Exception as e:
         eval_logger.error(f"Error: {e}")
         return False
