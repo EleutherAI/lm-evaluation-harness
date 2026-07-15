@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_movie_recommendation"
+"process_docs": !function utils.process_movie_recommendation
