@@ -26,7 +26,7 @@ from transformers.models.auto.modeling_auto import (
 )
 
 from lm_eval import utils
-from lm_eval.api.model import TemplateLM
+from lm_eval.api.model import GenerationResult, TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
@@ -1683,6 +1683,8 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
+                raw_s = self.tok_decode(cont_toks)
+
                 # Handle integer think_end_token: find last occurrence and strip tokens after it
                 if isinstance(self.think_end_token, int):
                     think_token_indices = [
@@ -1693,11 +1695,11 @@ class HFLM(TemplateLM):
                     if think_token_indices:
                         cont_toks = cont_toks[think_token_indices[-1] + 1 :]
 
-                s = self.tok_decode(cont_toks)
-
                 # Strip leading whitespace if we removed thinking tokens
                 if isinstance(self.think_end_token, int):
-                    s = s.lstrip()
+                    s = self.tok_decode(cont_toks).lstrip()
+                else:
+                    s = raw_s
 
                 # Apply post-processing: remove stop sequences and string-based thinking tokens
                 s = postprocess_generated_text(
@@ -1707,9 +1709,12 @@ class HFLM(TemplateLM):
                     if isinstance(self.think_end_token, str)
                     else None,
                 )
-                res.append(s)
+                result = GenerationResult(s, raw_s)
+                res.append(result)
 
-                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), result
+                )
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)

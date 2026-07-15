@@ -596,8 +596,14 @@ def evaluate(
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
-        for x, req in zip(resps, cloned_reqs, strict=True):
-            req.resps.append(x)
+        for response, req in zip(resps, cloned_reqs, strict=True):
+            raw_response = None
+            if reqtype == "generate_until" and isinstance(
+                response, lm_eval.api.model.GenerationResult
+            ):
+                raw_response = response.raw
+                response = response.processed
+            req.append_response(response, raw_response=raw_response)
 
         if lm.world_size > 1:
             lm.barrier()
@@ -642,7 +648,7 @@ def evaluate(
                         "doc": doc,
                         "target": target,
                         "arguments": [req.args for req in requests],
-                        "resps": [req.resps for req in requests],
+                        "resps": [req.resps_for_logging for req in requests],
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
