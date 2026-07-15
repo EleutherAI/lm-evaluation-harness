@@ -1,0 +1,4 @@
+dataset_name: conversa_c_clitics_answering_with_acc_cl
+dataset_path: NeTSlab/BLiMP-IT
+include: _template_yaml
+task: conversa_c_clitics_answering_with_acc_cl

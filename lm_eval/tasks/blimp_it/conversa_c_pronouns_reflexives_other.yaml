@@ -1,0 +1,4 @@
+dataset_name: conversa_c_pronouns_reflexives_other
+dataset_path: NeTSlab/BLiMP-IT
+include: _template_yaml
+task: conversa_c_pronouns_reflexives_other

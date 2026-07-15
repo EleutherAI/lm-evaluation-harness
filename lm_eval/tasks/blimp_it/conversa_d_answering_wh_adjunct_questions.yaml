@@ -1,0 +1,4 @@
+dataset_name: conversa_d_answering_wh_adjunct_questions
+dataset_path: NeTSlab/BLiMP-IT
+include: _template_yaml
+task: conversa_d_answering_wh_adjunct_questions
