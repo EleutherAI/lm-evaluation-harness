@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 from tqdm import tqdm
+from typing_extensions import Self
 
 from lm_eval import utils
 
@@ -20,6 +21,29 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="LM")
+
+
+class GenerationResult(str):
+    """Processed generation text paired with its pre-processing form.
+
+    The string value is the processed response, preserving the public
+    ``generate_until`` contract. ``raw`` carries the text captured before stop
+    sequence and thinking-trace post-processing.
+    """
+
+    raw: str
+
+    def __new__(cls, processed: str, raw: str) -> Self:
+        result = super().__new__(cls, processed)
+        result.raw = raw
+        return result
+
+    @property
+    def processed(self) -> str:
+        return str(self)
+
+    def __reduce__(self):
+        return type(self), (self.processed, self.raw)
 
 
 class LM(abc.ABC):

@@ -13,7 +13,7 @@ from tqdm import tqdm
 from vllm import LLM, SamplingParams, TokensPrompt
 from vllm.lora.request import LoRARequest
 
-from lm_eval.api.model import TemplateLM
+from lm_eval.api.model import GenerationResult, TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
@@ -642,14 +642,17 @@ class VLLM(TemplateLM):
             for output, _context, _gen_kwargs in zip(
                 cont, context, _cache_gen_kwargs, strict=True
             ):
-                generated_text: str = output.outputs[0].text
+                raw_generated_text: str = output.outputs[0].text
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
-                    generated_text, _gen_kwargs.get("until"), self.think_end_token
+                    raw_generated_text,
+                    _gen_kwargs.get("until"),
+                    self.think_end_token,
                 )
-                res.append(generated_text)
+                result = GenerationResult(generated_text, raw_generated_text)
+                res.append(result)
                 self.cache_hook.add_partial(
-                    "generate_until", (_context, _gen_kwargs), generated_text
+                    "generate_until", (_context, _gen_kwargs), result
                 )
                 pbar.update(1)
 
