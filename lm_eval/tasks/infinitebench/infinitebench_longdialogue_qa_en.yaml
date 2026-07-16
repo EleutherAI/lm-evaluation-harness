@@ -1,6 +1,6 @@
 include: _infinitebench_common_yaml
 task: infinitebench_longdialogue_qa_en
-test_split: longdialogue_qa_en
+test_split: longdialogue_qa_eng
 doc_to_text: !function utils.doc_to_text_longdialogue
 generation_kwargs:
   do_sample: false
