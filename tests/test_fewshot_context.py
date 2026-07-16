@@ -773,3 +773,32 @@ def test_mmlu_pro_fewshot_chat_template_split():
     assert user_text.endswith("Answer: Let's think step by step.")
     assert "Basic arithmetic" not in user_text
     assert assistant_text == "Basic arithmetic gives 4."
+
+
+def test_fewshot_config_split_precedence():
+    """Nested ``fewshot_config.split`` must override the inherited top-level ``fewshot_split``.
+
+    ``FewshotConfig``'s fields are documented to override the parent ``TaskConfig``
+    fields. Regression guard for ``__post_init__`` passing ``split=`` (an unknown
+    kwarg captured by ``**overloads`` at highest precedence), which inverted the
+    precedence so the top-level value clobbered the nested one.
+    """
+    from lm_eval.config.task import TaskConfig
+
+    # Nested value wins over the (None) inherited top-level split.
+    cfg = TaskConfig(
+        task="demo",
+        output_type="multiple_choice",
+        fewshot_split=None,
+        fewshot_config={"split": "train"},
+    )
+    assert cfg.fewshot_config.split == "train"
+
+    # Top-level split is still inherited when the nested value is absent.
+    cfg_inherit = TaskConfig(
+        task="demo",
+        output_type="multiple_choice",
+        fewshot_split="validation",
+        fewshot_config={"process_docs": None},
+    )
+    assert cfg_inherit.fewshot_config.split == "validation"
