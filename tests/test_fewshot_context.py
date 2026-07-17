@@ -270,6 +270,23 @@ class TestBuildQaTurn:
         assert msgs[1].content == "Cherry"
         assert messages_to_text(msgs) == "Pick one: Cherry\n\n"
 
+        # Multi-element gold (several acceptable choices, e.g. AGIEval jec_qa):
+        # render the first (lowest) acceptable choice, matching the ``argmax in gold``
+        # metric that scores any one acceptable answer as correct. Pinned here so the
+        # branch is not later "fixed" into joining all golds, which would diverge from
+        # how the task is actually scored.
+        multi = ConfigurableTask.build_qa_turn(
+            task,
+            q="Pick one:",
+            c=["Apple", "Banana", "Cherry"],
+            a=[0, 2],
+            tgt_delim=" ",
+            few_delim="\n\n",
+        )
+
+        assert multi[1].content == "Apple"
+        assert messages_to_text(multi) == "Pick one: Apple\n\n"
+
     def test_gen_prefix_without_answer(self, task):
         """gen_prefix adds assistant message when no answer."""
         msgs = ConfigurableTask.build_qa_turn(

@@ -1094,8 +1094,12 @@ class ConfigurableTask(Task):
             answer_text = (
                 c[a]
                 if (c and isinstance(a, int))
-                # gold given as a list of choice indices (e.g. AGIEval's [3]):
-                # index into the choices so we render the choice text, not the index.
+                # gold given as a list of choice indices (e.g. AGIEval's [3], or
+                # [0, 2] when several choices are acceptable): index into the choices
+                # so we render the choice text, not the index. For multi-element gold
+                # we deliberately take the first (lowest) acceptable index, matching the
+                # task metric (``argmax in gold`` scores any one acceptable choice as
+                # correct) -- do not "fix" this into joining all golds.
                 else c[a[0]]
                 if (c and isinstance(a, list) and a and isinstance(a[0], int))
                 # TODO: for multiple targets a is a list[str]. Fix this hack
