@@ -1,0 +1,31 @@
+tag: nsina
+task: nsina_media
+dataset_path: sinhala-nlp/NSINA-Media
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+test_split: test
+fewshot_split: train
+process_docs: !function utils.process_docs_media
+doc_to_text: "පුවත: {{text}}\nප්‍රශ්නය: ඉහත පුවත පළ කළ මාධ්‍ය ආයතනය කුමක්ද?\nපිළිතුර:"
+doc_to_target: label
+doc_to_choice:
+  - "අද දෙරණ"
+  - "අයිටීඑන් නිවුස්"
+  - "ලංකාටෲත්"
+  - "සියත නිවුස්"
+  - "දිනමිණ"
+  - "දිවයින"
+  - "හිරු නිවුස්"
+  - "නිවුස්.එල්කේ"
+  - "ලංකාදීප"
+  - "විකල්ප"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: !function utils.macro_f1_score
+    higher_is_better: true
+metadata:
+  version: 1.0
