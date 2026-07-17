@@ -1,0 +1,21 @@
+tag: nsina
+task: nsina_categories
+dataset_path: sinhala-nlp/NSINA-Categories
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+test_split: test
+fewshot_split: train
+process_docs: !function utils.process_docs_categories
+doc_to_text: "පුවත: {{text}}\nප්‍රශ්නය: ඉහත පුවත අයත් වන්නේ කුමන ප්‍රවර්ගයටද?\nපිළිතුර:"
+doc_to_target: label
+doc_to_choice: ["ව්‍යාපාරික පුවත්", "ජාත්‍යන්තර පුවත්", "දේශීය පුවත්", "ක්‍රීඩා පුවත්"]
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: !function utils.macro_f1_score
+    higher_is_better: true
+metadata:
+  version: 1.0
