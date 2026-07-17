@@ -1,0 +1,37 @@
+task: vera
+dataset_path: DFKI-SLT/vera
+dataset_name: null
+dataset_kwargs: null
+
+training_split: null
+validation_split: null
+test_split: train
+
+doc_to_image:
+  - image
+doc_to_text: |
+  Ich zeige dir gleich eine Aufgabe, welche aus allgemeiner Beschreibung, Frage und einem Bild besteht. Antworte auf die Frage NUR mit dem korrekten Buchstaben (A, B, C, D, ...). Gib nur den Buchstaben aus, nichts anderes.
+  <image>
+  Beschreibung: {{ description }}
+  Frage: {{ text }}
+  Antwortmöglichkeiten: {{ answers }}
+  Antwort:
+
+
+doc_to_target: gold_answer
+
+output_type: generate_until
+generation_kwargs:
+  max_gen_toks: 5
+  temperature: 0.0
+  do_sample: false
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+
+metadata:
+  version: 0.1
