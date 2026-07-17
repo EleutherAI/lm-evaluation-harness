@@ -172,6 +172,136 @@ class TestHasBosPrefix:
         assert has_bos_prefix("Hello", bos_variants) is False
 
 
+class TestVllmVlmApplyChatTemplateIssue3637:
+    """Regression tests for #3637: VLM ``apply_chat_template`` must return str.
+
+    When ``self.processor`` is a tokenizer (not a ``ProcessorMixin``) — which
+    happens for models like InternVL3-2B whose
+    ``AutoProcessor.from_pretrained`` returns a ``Qwen2Tokenizer`` — the
+    processor's ``apply_chat_template`` defaults ``tokenize=True`` and returns
+    ``BatchEncoding`` with ``input_ids`` (list of ints) instead of a string.
+
+    This breaks the downstream ``generate_until`` pipeline:
+    ``_collate`` -> ``tok_encode`` -> ``has_bos_prefix`` raises
+    ``AttributeError: 'int' object has no attribute 'startswith'``.
+
+    Root cause: ``VLLM_VLM.apply_chat_template`` did not pass ``tokenize=False``
+    to ``self.processor.apply_chat_template``. All other model classes
+    (``VLLM``, ``HFLM``) already pass this kwarg.
+
+    Fix: add ``tokenize=False`` to the ``self.processor.apply_chat_template`` call.
+    """
+
+    @staticmethod
+    def _make_tokenizer_like_processor():
+        """Build a processor mock that mimics a tokenizer's default behavior.
+
+        ``PreTrainedTokenizerBase.apply_chat_template`` defaults ``tokenize=True``,
+        returning ``BatchEncoding(input_ids=[...])``. ``ProcessorMixin`` defaults
+        ``tokenize=False``, returning a string. This mock mimics the tokenizer
+        behavior so we can verify the fix overrides the default correctly.
+        """
+        from transformers import BatchEncoding
+
+        def apply_chat_template(
+            messages, *, add_generation_prompt, continue_final_message, **kwargs
+        ):
+            tokenize = kwargs.get("tokenize", True)
+            if tokenize:
+                # Mimics the bug: tokenizer returns token IDs, not a string
+                return BatchEncoding({"input_ids": [1, 2, 3]})
+            # Fix: tokenize=False returns the rendered template as a string
+            return "<|im_start|>user\nHello<|im_end|>\n<|im_start|>assistant\n"
+
+        processor = Mock()
+        processor.apply_chat_template = apply_chat_template
+        return processor
+
+    @staticmethod
+    def _bind_apply_chat_template(processor, interleave=True):
+        """Bind the real ``VLLM_VLM.apply_chat_template`` to a minimal mock."""
+        from lm_eval.models.vllm_vlms import VLLM_VLM
+
+        mock = Mock()
+        mock.processor = processor
+        mock.interleave = interleave
+        mock.max_images = 999
+        mock.chat_applied = False
+        return VLLM_VLM.apply_chat_template.__get__(mock, VLLM_VLM)
+
+    def test_returns_str_when_processor_defaults_tokenize_true(self):
+        """Result must be str when processor is a tokenizer (tokenize=True default).
+
+        Before the fix: returns ``BatchEncoding(input_ids=[1, 2, 3])`` causing
+        downstream ``AttributeError: 'int' object has no attribute 'startswith'``.
+
+        After the fix: ``tokenize=False`` overrides the default, returning a str.
+        """
+        processor = self._make_tokenizer_like_processor()
+        bound = self._bind_apply_chat_template(processor)
+
+        chat = [{"role": "user", "content": "Hello"}]
+        result = bound(chat, add_generation_prompt=True)
+
+        assert isinstance(result, str), (
+            f"Expected str, got {type(result).__name__}: {result!r}"
+        )
+
+    def test_passes_tokenize_false_to_processor(self):
+        """``tokenize=False`` must be forwarded to ``processor.apply_chat_template``."""
+        recorded: dict = {}
+
+        def spy(messages, *, add_generation_prompt, continue_final_message, **kwargs):
+            recorded.update(kwargs)
+            return "rendered"
+
+        processor = Mock()
+        processor.apply_chat_template = spy
+        bound = self._bind_apply_chat_template(processor)
+
+        bound([{"role": "user", "content": "Hello"}], add_generation_prompt=True)
+
+        assert recorded.get("tokenize") is False, (
+            f"Expected tokenize=False in kwargs, got: {recorded}"
+        )
+
+    def test_returns_str_when_add_generation_prompt_false(self):
+        """``add_generation_prompt=False`` should also return a str."""
+        processor = self._make_tokenizer_like_processor()
+        bound = self._bind_apply_chat_template(processor)
+
+        chat = [{"role": "assistant", "content": "Hi there"}]
+        result = bound(chat, add_generation_prompt=False)
+
+        assert isinstance(result, str), (
+            f"Expected str, got {type(result).__name__}: {result!r}"
+        )
+
+    def test_returns_str_with_image_placeholders_interleave(self):
+        """Image placeholders + interleave=True should still produce a str."""
+        processor = self._make_tokenizer_like_processor()
+        bound = self._bind_apply_chat_template(processor, interleave=True)
+
+        chat = [{"role": "user", "content": "Look at <image> this image"}]
+        result = bound(chat, add_generation_prompt=True)
+
+        assert isinstance(result, str), (
+            f"Expected str with image placeholders, got {type(result).__name__}"
+        )
+
+    def test_returns_str_with_image_placeholders_non_interleave(self):
+        """Image placeholders + interleave=False should also produce a str."""
+        processor = self._make_tokenizer_like_processor()
+        bound = self._bind_apply_chat_template(processor, interleave=False)
+
+        chat = [{"role": "user", "content": "Look at <image> this image"}]
+        result = bound(chat, add_generation_prompt=True)
+
+        assert isinstance(result, str), (
+            f"Expected str (non-interleave), got {type(result).__name__}"
+        )
+
+
 class TestAddSpecialKwargs:
     """Test add_special_tokens kwarg construction."""
 

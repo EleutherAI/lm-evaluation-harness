@@ -209,6 +209,7 @@ class VLLM_VLM(VLLM):
             chat_history,
             add_generation_prompt=add_generation_prompt,
             continue_final_message=not add_generation_prompt,
+            tokenize=False,
         )
 
     def generate_until(
