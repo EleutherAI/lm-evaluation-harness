@@ -22,7 +22,6 @@ def get_new_tasks_else_default():
     Check if any modifications have been made to built-in tasks and return
     the list, otherwise return the default task list
     """
-    global TASKS
     # CI: new_tasks checks if any modifications have been made
     task_list = new_tasks()
     # Check if task_classes is empty
@@ -133,7 +132,12 @@ class BaseTasks:
         _array_target = [task.doc_to_target(doc) for doc in arr]
         if task._config.output_type == "multiple_choice":
             # TODO<baber>: label can be string or int; add better test conditions
-            assert all(isinstance(label, (int, str)) for label in _array_target)
+            for label in _array_target:
+                if isinstance(label, list):
+                    # tasks with multiple gold answers (e.g. webqs) return a list of indices
+                    assert all(isinstance(x, int) for x in label)
+                else:
+                    assert isinstance(label, (int, str))
 
     def test_build_all_requests(self, task_class, limit):
         task_class.build_all_requests(rank=1, limit=limit, world_size=1)
