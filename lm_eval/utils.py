@@ -197,8 +197,12 @@ def handle_arg_string(arg):
 
 
 def handle_non_serializable(o):
-    if isinstance(o, (np.int64, np.int32)):
+    if isinstance(o, np.bool_):
+        return bool(o)
+    elif isinstance(o, np.integer):
         return int(o)
+    elif isinstance(o, np.floating):
+        return float(o)
     elif isinstance(o, set):
         return list(o)
     else:
