@@ -1,0 +1,5 @@
+"dataset_name": "tum_Latn"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_tum_Latn"
+"test_split": "test"
