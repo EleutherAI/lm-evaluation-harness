@@ -1,0 +1,32 @@
+tag:
+  - helium
+  - bias
+  - safety
+task: helium_model_worldview
+dataset_path: HeliumTrades/helium-model-worldview-benchmark
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: test
+num_fewshot: 0
+doc_to_text: "{{prompt}}"
+doc_to_target: ""
+process_results: !function utils_model_worldview.process_results
+generation_kwargs:
+  until:
+    - "\n\n\n"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: true
+  - metric: parsed
+    aggregation: mean
+    higher_is_better: true
+  - metric: refused
+    aggregation: mean
+    higher_is_better: false
+metadata:
+  version: 1.0
+  description: "Helium Model Worldview — 304 cue-swap prompts. Pair-level flip metrics require post-hoc pairing by pair_id."

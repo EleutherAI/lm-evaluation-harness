@@ -1,0 +1,6 @@
+include: helium_model_worldview.yaml
+task: helium_model_worldview_mini
+process_docs: !function utils_model_worldview.process_docs_mini
+metadata:
+  version: 1.0
+  description: "First 20 items for quick smoke tests."

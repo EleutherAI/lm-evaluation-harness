@@ -1,0 +1,6 @@
+include: helium_market_resolution.yaml
+task: helium_market_resolution_mini
+process_docs: !function utils_market_resolution.process_docs_mini
+metadata:
+  version: 1.0
+  description: "First 20 items for quick smoke tests."

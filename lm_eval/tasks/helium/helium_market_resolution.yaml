@@ -1,0 +1,32 @@
+tag:
+  - helium
+  - finance
+  - options
+task: helium_market_resolution
+dataset_path: HeliumTrades/helium-market-resolution-benchmark
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: test
+num_fewshot: 0
+doc_to_text: "{{prompt}}"
+doc_to_target: ""
+process_results: !function utils_market_resolution.process_results
+generation_kwargs:
+  until:
+    - "\n\n\n"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: true
+  - metric: core_score
+    aggregation: mean
+    higher_is_better: true
+  - metric: mcq_acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  description: "Helium Market Resolution — 300 frozen option-chain prompts with partial-credit IV scoring."
