@@ -1,0 +1,40 @@
+group:
+  - pt_benchmark
+task: hatebr_offensive
+task_alias: hatebr_offensive_binary
+dataset_path: eduagarcia/portuguese_benchmark
+dataset_name: HateBR_offensive_binary
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: id_sampler
+  sampler_config:
+    # 50 Balanced few-shot selected from the training set with random order
+    id_list: [48, 44, 36, 20, 3511, 88, 3555, 16, 56, 3535, 60, 40, 3527, 4, 76, 3579, 3523, 3551, 68, 3503, 84, 3539, 64, 3599, 80, 3563, 3559, 3543, 3547, 3587, 3595, 3575, 3567, 3591, 24, 96, 92, 3507, 52, 72, 8, 3571, 3515, 3519, 3531, 28, 32, 0, 12, 3583]
+    id_column: idx
+test_split: test
+num_fewshot: 25
+description: "Abaixo contém o texto de comentários de usuários do Instagram em português, sua tarefa é classificar se o\
+  \ texto é ofensivo ou não. Responda apenas com \"Sim\" ou \"Não\".\n\n"
+doc_to_text: "Texto: {{sentence}}\nPergunta: O texto é ofensivo?\nResposta:"
+doc_to_target: "{{'Sim' if label == 1 else 'Não'}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: all
+    filter:
+      - function: find_similar_label
+        labels: ['Sim', 'Não']
+      - function: take_first
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.0

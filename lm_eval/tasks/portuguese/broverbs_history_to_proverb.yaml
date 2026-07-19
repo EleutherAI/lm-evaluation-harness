@@ -1,0 +1,54 @@
+tag:
+  - pt_benchmark
+  - cultural_reasoning
+
+task: broverbs_history_to_proverb
+task_alias: broverbs_h2p
+
+dataset_path: Tropic-AI/BRoverbs
+custom_dataset: !function util.broverbs_history_to_proverb_custom_dataset
+
+test_split: test
+
+fewshot_config:
+  sampler: first_n
+  samples: !function util.broverbs_history_to_proverb_fewshot_samples
+
+num_fewshot: 5
+
+description: "A seguir há uma história. Escolha o provérbio brasileiro que melhor corresponde ao seu significado. Responda apenas com as letras \"A\", \"B\", \"C\", \"D\" ou \"E\".\n\n"
+
+output_type: generate_until
+
+doc_to_text: !function util.broverbs_history_to_proverb_doc_to_text
+doc_to_target: !function util.broverbs_correct_index_target
+
+generation_kwargs:
+  until:
+    - "\n"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  top_k: null
+  top_p: null
+
+filter_list:
+  - name: all
+    filter:
+      - function: normalize_spaces
+      - function: remove_accents
+      - function: find_choices_thinking_case
+        choices: ["A", "B", "C", "D", "E"]
+        fallback: "[invalid]"
+      - function: take_first
+
+metric_list:
+  - metric: f1_macro_score
+    aggregation: f1_macro_score
+    higher_is_better: true
+  - metric: acc
+    aggregation: pt_acc
+    higher_is_better: true
+
+metadata:
+  version: 1.0

@@ -1,0 +1,36 @@
+group:
+  - sparrow
+task: sparrow_hate-2019-fortuna-por
+task_alias: hate-2019-fortuna-por
+dataset_path: UBC-NLP/sparrow
+dataset_name: hate-2019-fortuna-por
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+test_split: validation
+num_fewshot: 15
+description: "Abaixo contém o texto de tweets de usuários do Twitter em português, sua tarefa é classificar se o\
+  \ texto contem discurso de ódio ou não. Responda apenas com \"Sim\" ou \"Não\".\n\n"
+doc_to_text: "Texto: {{content}}\nPergunta: O texto contém discurso de ódio?\nResposta:"
+doc_to_target: "{{'Sim' if label == 'Hate' else 'Não'}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: all
+    filter:
+      - function: find_similar_label
+        labels: ['Sim', 'Não']
+      - function: take_first
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,0 +1,34 @@
+group:
+  - pt_benchmark
+task: tweetsentbr
+dataset_path: eduagarcia/tweetsentbr_fewshot
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+test_split: test
+num_fewshot: 25
+description: "Abaixo contém o texto de tweets de usuários do Twitter em português, sua tarefa é classificar se o\
+  \ sentimento do texto é Positivo, Neutro ou Negativo. Responda apenas com uma das opções.\n\n"
+doc_to_text: "Texto: {{sentence}}\nPergunta: O sentimento do texto é Positivo, Neutro ou Negativo?\nResposta:"
+doc_to_target: "{{'Positivo' if label == 'Positive' else ('Negativo' if label == 'Negative' else 'Neutro')}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: all
+    filter:
+      - function: find_similar_label
+        labels: ['Positivo', 'Neutro', 'Negativo']
+      - function: take_first
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.0

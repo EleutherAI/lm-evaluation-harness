@@ -1,6 +1,7 @@
+import re
+
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
-
 
 @register_filter("decontaminate")
 class DecontaminationFilter(Filter):
@@ -23,3 +24,21 @@ class DecontaminationFilter(Filter):
         Return {"no_contamination", "only_contamination"} keys for the 2 different subsets
         """
         pass
+
+"""From https://github.com/eduagarcia/lm-evaluation-harness-pt"""
+
+@register_filter("normalize_spaces")
+class NormalizeSpacesFilter(Filter):
+    def __init__(self) -> None:
+        pass
+
+    def remove_extra_spaces(self, text: str) -> str:
+        text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+        text = re.sub(r" +", " ", text)
+        return text.strip()
+
+    def apply(self, resps, docs):
+        def filter_set(inst):
+            return [self.remove_extra_spaces(resp) for resp in inst]
+
+        return [filter_set(resp) for resp in resps]

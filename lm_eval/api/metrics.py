@@ -4,6 +4,8 @@ import os
 import random
 import re
 import string
+import sklearn.metrics
+import scipy.stats
 from collections.abc import Iterable
 from typing import Callable, List, Optional, Sequence, TypeVar
 
@@ -148,6 +150,23 @@ def brier_score(items):  # This is a passthrough function
 def brier_score_fn(items):  # This is a passthrough function
     return items
 
+@register_aggregation("f1_macro_score")
+def f1_macro_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = sklearn.metrics.f1_score(golds, preds, labels=list(set(golds)), average='macro')
+
+    return fscore
+
+@register_aggregation("pt_acc")
+def pt_acc_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    acc_score = sklearn.metrics.accuracy_score(golds, preds)
+
+    return acc_score
 
 @register_metric(
     metric="acc",
@@ -338,6 +357,43 @@ def bypass(items):
 def mcc_fn(items):  # This is a passthrough function
     return items
 
+@register_aggregation("pearsonr")
+def pearsonr(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+
+    res = scipy.stats.pearsonr(golds, preds)[0]
+    if np.isnan(res):
+        return 0
+
+    return abs(res)
+
+@register_aggregation("mean_squared_error")
+def mean_squared_error(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    # print(preds)
+    return sklearn.metrics.mean_squared_error(golds, preds)
+
+@register_metric(
+    metric="pearson",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="pearsonr",
+)
+def pearson_fn(items):  # This is a passthrough function
+    return items
+
+@register_metric(
+    metric="mse",
+    higher_is_better=False,
+    output_type="multiple_choice",
+    aggregation="mean_squared_error",
+)
+def mse_fn(items):  # This is a passthrough function
+    return items
 
 @register_metric(
     metric="f1",
@@ -348,6 +404,14 @@ def mcc_fn(items):  # This is a passthrough function
 def f1_fn(items):  # This is a passthrough function
     return items
 
+@register_metric(
+    metric="f1_macro_score",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="f1_macro_score",
+)
+def f1_macro_fn(items):  # This is a passthrough function
+    return items
 
 @register_metric(
     metric="bleu",
@@ -571,7 +635,11 @@ def stderr_for_metric(
     bootstrappable = [
         median,
         matthews_corrcoef,
+        pearsonr,
+        mse_fn,
         f1_score,
+        f1_macro_score,
+        pt_acc_score,
         perplexity,
         bleu,
         chrf,
