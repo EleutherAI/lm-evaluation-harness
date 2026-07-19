@@ -1,0 +1,7 @@
+"dataset_name": "knc_Arab-mal_Mlym"
+"doc_to_target": "{{sentence_mal_Mlym}}"
+"doc_to_text": "{{sentence_knc_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_knc_Arab-mal_Mlym"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "mar_Deva-vie_Latn"
+"doc_to_target": "{{sentence_vie_Latn}}"
+"doc_to_text": "{{sentence_mar_Deva}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mar_Deva-vie_Latn"
+"test_split": "dev"

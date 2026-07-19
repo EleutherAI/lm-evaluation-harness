@@ -1,0 +1,7 @@
+"dataset_name": "min_Arab-srp_Cyrl"
+"doc_to_target": "{{sentence_srp_Cyrl}}"
+"doc_to_text": "{{sentence_min_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_min_Arab-srp_Cyrl"
+"test_split": "dev"

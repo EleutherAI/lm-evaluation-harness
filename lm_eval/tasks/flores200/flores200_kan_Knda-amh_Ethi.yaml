@@ -1,0 +1,7 @@
+"dataset_name": "kan_Knda-amh_Ethi"
+"doc_to_target": "{{sentence_amh_Ethi}}"
+"doc_to_text": "{{sentence_kan_Knda}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kan_Knda-amh_Ethi"
+"test_split": "dev"
