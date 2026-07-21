@@ -1,6 +1,7 @@
 dataset_path: CohereForAI/include-base-44
 dataset_name: Russian
 test_split: test
+fewshot_split: validation
 output_type: multiple_choice
 doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\n
   D. {{option_d}}\nAnswer:"
