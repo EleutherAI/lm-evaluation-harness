@@ -80,6 +80,8 @@ math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 ruler = ["nltk", "wonderwords", "scipy"]
 sentencepiece = ["sentencepiece>=0.1.98"]
+# torchtitan requires separate installation of TorchTitan
+# torchtitan = ["torchtitan"]
 discrim_eval = ["statsmodels==0.14.4"]
 unitxt = ["unitxt==1.22.0"]
 trackio = ["trackio>=0.23.0"]

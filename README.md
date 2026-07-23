@@ -160,7 +160,7 @@ lm_eval --model hf \
 
 To evaluate a GGUF model, pass the path to the directory containing the model weights, the `gguf_file`, and optionally a separate `tokenizer` path using the `--model_args` flag.
 
-**🚨 Important Note:**  
+**🚨 Important Note:**
 If no separate tokenizer is provided, Hugging Face will attempt to reconstruct the tokenizer from the GGUF file — this can take **hours** or even hang indefinitely. Passing a separate tokenizer avoids this issue and can reduce tokenizer loading time from hours to seconds.
 
 **✅ Recommended usage:**
@@ -423,6 +423,81 @@ lm_eval --model megatron_lm \
 > [!Note]
 > The `--use-checkpoint-args` flag is enabled by default, which loads model architecture parameters from the checkpoint. For checkpoints converted via Megatron-Bridge, this typically includes all necessary model configuration.
 
+### TorchTitan models
+
+[TorchTitan](https://github.com/pytorch/torchtitan) is a PyTorch-native large-scale LLM training platform. This backend evaluates TorchTitan models saved as PyTorch DCP checkpoints.
+
+**Requirements:**
+- TorchTitan must be installed or accessible via the `TORCHTITAN_PATH` environment variable
+- PyTorch with distributed checkpoint support
+- A PyTorch DCP checkpoint directory containing `.metadata`
+- Hugging Face tokenizer assets for the model
+
+**Setup:**
+
+```bash
+# Set this only when TorchTitan is not installed in the active Python environment.
+export TORCHTITAN_PATH=/path/to/torchtitan
+```
+
+**Basic usage (single GPU):**
+
+```bash
+lm_eval --model pytorch_dcp \
+    --model_args checkpoint_dir=/path/to/dcp_checkpoint,hf_assets_path=/path/to/hf_assets,model_name=llama3,model_flavor=8B \
+    --tasks hellaswag \
+    --batch_size 1
+```
+
+**Supported checkpoint format:**
+- PyTorch DCP checkpoints for TorchTitan models, loaded with `torch.distributed.checkpoint`
+
+
+#### Parallelism Modes
+
+The TorchTitan backend for PyTorch DCP checkpoints builds the model through TorchTitan's native model registry and applies TorchTitan's parallelization before loading the DCP state dict. It supports the parallel dimensions exposed by TorchTitan's `ParallelismConfig`:
+
+| Mode | Configuration | Description |
+|------|---------------|-------------|
+| Single GPU | `devices=1` or unset | Standard single GPU evaluation |
+| Replicated Data Parallelism | `data_parallel_replicate_degree>1` | Each rank has a full model replica and lm-eval distributes requests across ranks |
+| Sharded Data Parallelism | `data_parallel_shard_degree>1` | Model parameters are sharded by TorchTitan; all ranks act as one logical lm-eval worker |
+| Tensor Parallelism | `tensor_parallel_degree>1` | Model layers are split across ranks by TorchTitan |
+| Context Parallelism | `context_parallel_degree>1` | Sequence/context dimension is parallelized by TorchTitan |
+| Expert Parallelism | `expert_parallel_degree>1` | Experts are distributed for supported MoE models |
+
+> [!Note]
+> - Pipeline parallelism is not currently supported; the backend always configures `pipeline_parallel_degree=1`.
+
+**Data parallel evaluation (4 GPUs):**
+
+Replace `data_parallel_replicate_degree=4` with `data_parallel_shard_degree=4` if you want to use FSDP sharding.
+
+```bash
+torchrun --nproc-per-node=4 -m lm_eval --model pytorch_dcp \
+    --model_args checkpoint_dir=/path/to/dcp_checkpoint,hf_assets_path=/path/to/hf_assets,devices=4,data_parallel_replicate_degree=4 \
+    --tasks hellaswag \
+    --batch_size 1
+```
+
+**Tensor parallel evaluation (TP=2):**
+
+```bash
+torchrun --nproc-per-node=2 -m lm_eval --model pytorch_dcp \
+    --model_args checkpoint_dir=/path/to/dcp_checkpoint,hf_assets_path=/path/to/hf_assets,devices=2,tensor_parallel_degree=2 \
+    --tasks hellaswag \
+    --batch_size 1
+```
+
+**Qwen MoE expert parallel evaluation (EP=4):**
+
+```bash
+torchrun --nproc-per-node=4 -m lm_eval --model pytorch_dcp \
+    --model_args checkpoint_dir=/path/to/qwen_dcp_checkpoint,hf_assets_path=/path/to/qwen_hf_assets,devices=4,model_name=qwen3,model_flavor=qwen3_1_7b,expert_parallel_degree=4 \
+    --tasks hellaswag \
+    --batch_size 1
+```
+
 #### Multi-GPU evaluation with OpenVINO models
 
 Pipeline parallelism during evaluation is supported with OpenVINO models
@@ -555,6 +630,7 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | Neuron via AWS Inf2 (Causal LMs)                                                                                          | :heavy_check_mark:                                                                                      | `neuronx`                                             | Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | NVIDIA NeMo                                                                                                               | :heavy_check_mark:                                                                                      | `nemo_lm`                                             | [All supported models](https://docs.nvidia.com/nemo-framework/user-guide/24.09/nemotoolkit/core/core.html#nemo-models)                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | NVIDIA Megatron-LM                                                                                                        | :heavy_check_mark:                                                                                      | `megatron_lm`                                         | [Megatron-LM GPT models](https://github.com/NVIDIA/Megatron-LM) (standard and distributed checkpoints)                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
+| TorchTitan models with PyTorch DCP                                                                                       | :heavy_check_mark:                                                                                      | `pytorch_dcp`                                         | [TorchTitan](https://github.com/pytorch/torchtitan) models saved as PyTorch DCP checkpoints                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Watsonx.ai                                                                                                                | :heavy_check_mark:                                                                                      | `watsonx_llm`                                         | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                      | `generate_until` `loglikelihood`                                               |
 | Windows ML                                                                                                                | :heavy_check_mark:                                                                                      | `winml`                                               | [ONNX models in GenAI format](https://code.visualstudio.com/docs/intelligentapps/modelconversion)                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | [Your local inference server!](docs/API_guide.md)                                                                         | :heavy_check_mark:                                                                                      | `local-completions` or `local-chat-completions`       | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                              | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
