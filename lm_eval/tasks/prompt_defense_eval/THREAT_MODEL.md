@@ -46,3 +46,12 @@ obfuscated equivalents of the same hazard (regex misses), scored as a
 measured blind spot. It uses the obfuscation transforms from @shipbehaves'
 red-team work (`self-evolving-adversarial-safety`). Until it lands, `detector_gap`
 is unmeasured, and the floor framing above is the only honest reading of the score.
+
+The control set is adversarially constructed: each obfuscated row is written to
+slip past a rule the catalog does implement. A measured `detector_gap` is
+therefore an existence proof, not an unbiased estimate of the miss rate on
+natural output. It licenses "surface_pass_rate overstates safety and must not be
+read as coverage"; it does not license "the catalog catches nothing", since the
+canonical positives check that the plain forms still fire. Measuring the true
+width of the gap needs a set that is not written to defeat the detector. This
+caveat travels with `detector_gap` wherever the number is reported.
