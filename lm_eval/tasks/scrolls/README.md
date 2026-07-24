@@ -8,6 +8,9 @@ including summarization, question answering, and natural language inference.
 
 Homepage: https://www.scrolls-benchmark.com/
 
+Data loading does not use the `tau/scrolls` dataset script (removed in `datasets` 4+).
+Each subset is loaded from the published zip/jsonl files via an in-repo loader in `task.py`.
+
 Since SCROLLS tasks are generally longer than the maximum sequence length of many models,
 it is possible to create "subset" tasks that contain only those samples whose tokenized length
 is less than some pre-defined limit. For example, to create a subset of "Qasper" that would

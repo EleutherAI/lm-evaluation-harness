@@ -1,10 +1,12 @@
+import json
 import re
+import zipfile
 from abc import abstractmethod
 from functools import reduce
 
 import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
-from datasets import Dataset
+from datasets import Dataset, DatasetDict
 from evaluate import load
 from transformers import AutoTokenizer
 
@@ -41,6 +43,9 @@ _CITATION = """
 # To allow for evaluation of causal models, we'll
 # reformualte these with appropriate prompts
 
+_SCROLLS_FEATURES = ("id", "pid", "input", "output")
+_SCROLLS_SPLITS = ("train", "validation", "test")
+
 
 def _download_metric():
     import os
@@ -62,6 +67,39 @@ def _download_metric():
     shutil.copy(scrolls_metric_path, updated_scrolls_metric_path)
     return updated_scrolls_metric_path
 
+
+def _load_scrolls_dataset_from_zip(zip_path: str, dataset_name: str) -> DatasetDict:
+    """Load a SCROLLS subset from its Hub zip without running the dataset script.
+
+    ``tau/scrolls`` still ships only zip + ``scrolls.py``. datasets>=4 no longer
+    executes dataset scripts, so we mirror the script's jsonl parsing here.
+    """
+    splits = {}
+    with zipfile.ZipFile(zip_path) as zf:
+        for split in _SCROLLS_SPLITS:
+            member = f"{dataset_name}/{split}.jsonl"
+            with zf.open(member) as f:
+                rows = []
+                for line in f:
+                    if not line.strip():
+                        continue
+                    row = json.loads(line)
+                    # QuALITY rows may include is_hard; drop it to keep schema fixed.
+                    row.pop("is_hard", None)
+                    rows.append({key: row[key] for key in _SCROLLS_FEATURES})
+                splits[split] = Dataset.from_list(rows)
+    return DatasetDict(splits)
+
+
+def _load_scrolls_dataset(dataset_name: str) -> DatasetDict:
+    from huggingface_hub import hf_hub_download
+
+    zip_path = hf_hub_download(
+        repo_id="tau/scrolls",
+        repo_type="dataset",
+        filename=f"{dataset_name}.zip",
+    )
+    return _load_scrolls_dataset_from_zip(zip_path, dataset_name)
 
 def _process_doc_prepended_question(doc):
     # "When a query is given in addition to the raw text (as
@@ -162,8 +200,10 @@ class _SCROLLSTask(ConfigurableTask):
     def doc_to_decontamination_query(self, doc):
         return doc["input"]
 
-    def download(self, *args, **kwargs):
-        super().download(*args, **kwargs)
+    def download(self, dataset_kwargs=None, **kwargs):
+        # Bypass datasets.load_dataset("tau/scrolls"): the Hub repo is script-based
+        # and datasets>=4 refuses to run dataset scripts.
+        self.dataset = _load_scrolls_dataset(self.DATASET_NAME)
         del self.dataset["test"]
         for split in self.dataset:
             self.dataset[split] = _drop_duplicates_in_input(self.dataset[split])
