@@ -917,6 +917,22 @@ metadata:
 
         assert set(new["tasks"].keys()) == _leaf_names(old)
 
+    def test_legacy_load_rejects_duplicate_top_level_tasks(
+        self, test_configs_task_manager
+    ):
+        """Deprecated load_task_or_group should not silently drop duplicate tasks.
+
+        This preserves the duplicate-task validation used by load() for callers
+        that still use the legacy nested-dict API.
+        """
+        with (
+            pytest.warns(DeprecationWarning),
+            pytest.raises(ValueError, match="include_task_fs0"),
+        ):
+            test_configs_task_manager.load_task_or_group(
+                ["include_group", "include_task_fs0"]
+            )
+
 
 # =============================================================================
 # Group Building & Factory Tests
