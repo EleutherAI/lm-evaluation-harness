@@ -1,0 +1,4 @@
+include: _gpqa_clean_zeroshot_yaml
+task: gpqa_extended_clean_zeroshot
+dataset_name: gpqa_extended
+process_docs: !function utils.process_extended_clean
