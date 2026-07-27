@@ -44,6 +44,22 @@ evaluation scripts.
 - `dev` (`validation` split): 1,034 examples, used for scoring.
 - `train`: 7,000 examples (available for few-shot use; not used by default).
 
+### Baseline results
+
+Sanity-check runs on a 50-example subset of `dev` (`--limit 50 --apply_chat_template`,
+0-shot, greedy decoding), to confirm the task produces a sensible, model-discriminating
+signal rather than a fixed 0/1:
+
+| Model                              | Execution accuracy (n=50) |
+|-------------------------------------|---------------------------|
+| `hf-internal-testing/tiny-random-gpt2` (sanity check, no chat template) | 0.0 |
+| `Qwen/Qwen2.5-0.5B-Instruct`         | 30% |
+| `Qwen/Qwen2.5-Coder-1.5B-Instruct`   | 60% |
+
+These are not intended as leaderboard numbers (small `n`, single seed) -- they're here
+to show the task discriminates between a general-purpose and a code-specialized model of
+similar size, as expected.
+
 ### Task validity checklist
 
 For adding novel benchmarks/datasets to the library:
