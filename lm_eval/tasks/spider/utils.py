@@ -53,26 +53,32 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 def doc_to_text(doc) -> str:
     return (
         f"{doc['schema']}\n"
-        f"-- Using valid SQLite, answer the following question for the tables "
-        f"provided above.\n"
+        f"-- Using valid SQLite, write a single query that answers the "
+        f"following question for the tables provided above. Respond with "
+        f"ONLY the SQL query, no explanation.\n"
         f"-- {doc['question']}\n"
         f"SELECT"
     )
 
 
 _SQL_TAG_RE = re.compile(r"```sql\s*(.*?)```", re.DOTALL | re.IGNORECASE)
+_SELECT_RE = re.compile(r"\bSELECT\b.*", re.DOTALL | re.IGNORECASE)
 
 
 def _extract_sql(generated: str) -> str:
-    """Model output is appended after our `SELECT` prefix; also handle the
-    case where a chat model re-emits a full fenced query instead.
+    """Model output is appended after our `SELECT` prefix for base-model
+    continuation; chat/instruct models instead restart their own turn, so
+    also handle a fenced ```sql block or prose containing a SELECT anywhere.
     """
-    match = _SQL_TAG_RE.search(generated)
-    if match:
-        return match.group(1).strip()
+    fenced = _SQL_TAG_RE.search(generated)
+    if fenced:
+        return fenced.group(1).strip()
     generated = generated.strip()
     if generated.lower().startswith("select"):
         return generated
+    inline = _SELECT_RE.search(generated)
+    if inline:
+        return inline.group(0).strip()
     return "SELECT " + generated
 
 

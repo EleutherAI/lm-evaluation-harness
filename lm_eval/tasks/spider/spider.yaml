@@ -13,10 +13,10 @@ doc_to_text: !function utils.doc_to_text
 doc_to_target: gold_sql
 generation_kwargs:
   until:
-    - "\n\n"
     - ";"
+    - "```\n"
   do_sample: false
-  max_gen_toks: 256
+  max_gen_toks: 512
 process_results: !function utils.process_results
 metric_list:
   - metric: execution_accuracy
