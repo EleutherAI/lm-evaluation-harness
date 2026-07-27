@@ -44,21 +44,24 @@ evaluation scripts.
 - `dev` (`validation` split): 1,034 examples, used for scoring.
 - `train`: 7,000 examples (available for few-shot use; not used by default).
 
-### Baseline results
+### Baseline results: does this task actually discriminate between models?
 
-Sanity-check runs on a 50-example subset of `dev` (`--limit 50 --apply_chat_template`,
-0-shot, greedy decoding), to confirm the task produces a sensible, model-discriminating
-signal rather than a fixed 0/1:
+A task that returns the same score regardless of model quality isn't a useful
+evaluation signal. As a sanity check (50-example subset of `dev`,
+`--limit 50 --apply_chat_template`, 0-shot, greedy decoding), execution accuracy
+scales cleanly with both model size and code-specialization within the Qwen2.5 family:
 
-| Model                              | Execution accuracy (n=50) |
-|-------------------------------------|---------------------------|
-| `hf-internal-testing/tiny-random-gpt2` (sanity check, no chat template) | 0.0 |
-| `Qwen/Qwen2.5-0.5B-Instruct`         | 30% |
-| `Qwen/Qwen2.5-Coder-1.5B-Instruct`   | 60% |
+| Model                                                                   | Params | Execution accuracy (n=50) |
+|--------------------------------------------------------------------------|--------|----------------------------|
+| `hf-internal-testing/tiny-random-gpt2` (sanity check, no chat template)  | n/a    | 0%                         |
+| `Qwen/Qwen2.5-0.5B-Instruct` (general-purpose)                           | 0.5B   | 30%                        |
+| `Qwen/Qwen2.5-Coder-1.5B-Instruct` (code-specialized)                    | 1.5B   | 60%                        |
+| `Qwen/Qwen2.5-Coder-3B-Instruct` (code-specialized)                      | 3B     | 80%                        |
 
-These are not intended as leaderboard numbers (small `n`, single seed) -- they're here
-to show the task discriminates between a general-purpose and a code-specialized model of
-similar size, as expected.
+These are not leaderboard numbers (small `n`, single seed, single model family) --
+they're here to show the task produces a meaningful, monotonic signal across both
+model scale and code-specialization, rather than being saturated or noise at every
+tier.
 
 ### Task validity checklist
 
