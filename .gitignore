@@ -8,6 +8,9 @@ ENV/
 env/
 *.env
 
+# Local scratch/download cache
+.cache/
+
 # Python bytecode and build artifacts
 __pycache__/
 *.py[cod]
