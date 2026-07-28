@@ -167,3 +167,35 @@ class TestNewTasksElseDefault(BaseTasks):
     Test class parameterized with a list of new/modified tasks
     (or a set of default tasks if none have been modified)
     """
+
+
+@pytest.mark.parametrize(
+    "task_cls_path",
+    [
+        "lm_eval.tasks.fda.task:FDA",
+        "lm_eval.tasks.swde.task:SWDE",
+        "lm_eval.tasks.squad_completion.task:SQUADCompletion",
+    ],
+    ids=["fda", "swde", "squad_completion"],
+)
+def test_strip_whitespace_in_target_and_metric(task_cls_path):
+    """Regression test for the FDA/SWDE/SQuAD_completion whitespace strip.
+
+    doc_to_text and doc_to_target strip surrounding whitespace, and
+    process_results must route the gold answer through doc_to_target so the
+    `contains` metric compares against the stripped target. Otherwise an
+    otherwise-correct prediction misses on the surrounding whitespace.
+    """
+    import importlib
+
+    module_path, cls_name = task_cls_path.split(":")
+    cls = getattr(importlib.import_module(module_path), cls_name)
+    task = cls()
+
+    doc = {"text": "  prompt  ", "value": "  answer  "}
+
+    assert task.doc_to_text(doc) == "prompt"
+    assert task.doc_to_target(doc) == "answer"
+    # The prediction has no surrounding whitespace; with the unstripped target
+    # this would be {"contains": 0}.
+    assert task.process_results(doc, ["answer"]) == {"contains": 1}

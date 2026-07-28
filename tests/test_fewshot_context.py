@@ -566,9 +566,9 @@ class TestFewshotContext:
         mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
         mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
         mock_configurable_task.doc_to_choice = Mock(
-            side_effect=lambda d, *args: ["A", "B"]
-            if d == fs_doc
-            else ["Apple", "Banana"]
+            side_effect=lambda d, *args: (
+                ["A", "B"] if d == fs_doc else ["Apple", "Banana"]
+            )
         )
 
         result = ConfigurableTask.fewshot_context(
@@ -755,3 +755,21 @@ class TestChatTemplateFormat:
         assert "Q1" in result[1]["content"]
         assert "A1" in result[1]["content"]
         assert "Q2" in result[1]["content"]
+
+
+def test_mmlu_pro_fewshot_chat_template_split():
+    """Fewshot user turn must not contain the answer."""
+    from lm_eval.tasks.mmlu_pro.utils import fewshot_to_target, fewshot_to_text
+
+    fake_doc = {
+        "question": "What is 2+2?",
+        "options": ["3", "4", "5", "6"],
+        "cot_content": "A: Let's think step by step. Basic arithmetic gives 4.",
+        "answer": "B",
+    }
+    user_text = fewshot_to_text(fake_doc)
+    assistant_text = fewshot_to_target(fake_doc)
+
+    assert user_text.endswith("Answer: Let's think step by step.")
+    assert "Basic arithmetic" not in user_text
+    assert assistant_text == "Basic arithmetic gives 4."

@@ -1644,6 +1644,15 @@ class ConfigurableTask(Task):
                     # This allows for multiple metrics to be returned from the same function
                     for k, v in result_score.items():
                         result_dict[k] = v
+                        # Propagate a custom aggregation registered under the source metric
+                        # name (e.g. "pass_at_k") to each expanded key (e.g. "pass@1").
+                        # Without this, _compute_task_aggregations falls back to mean()
+                        # because it looks up the aggregation by the result-dict key, not
+                        # by the originating callable's __name__.
+                        if metric in self._aggregation_list and k not in self._aggregation_list:
+                            self._aggregation_list[k] = self._aggregation_list[metric]
+                        if metric in self._higher_is_better and k not in self._higher_is_better:
+                            self._higher_is_better[k] = self._higher_is_better[metric]
                 else:
                     result_dict[metric] = result_score
         else:

@@ -1,3 +1,0 @@
-dataset_name: kor_hang
-include: _template
-task: global_piqa_prompted_kor_hang

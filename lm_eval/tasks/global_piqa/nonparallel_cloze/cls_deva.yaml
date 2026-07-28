@@ -1,0 +1,3 @@
+dataset_name: cls_deva
+include: _template
+task: global_piqa_nonparallel_cloze_cls_deva

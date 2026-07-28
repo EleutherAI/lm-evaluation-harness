@@ -1,3 +1,0 @@
-dataset_name: guj_gujr
-include: _template
-task: global_piqa_completions_guj_gujr

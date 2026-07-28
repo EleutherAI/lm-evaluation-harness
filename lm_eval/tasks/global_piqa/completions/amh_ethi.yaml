@@ -1,3 +1,0 @@
-dataset_name: amh_ethi
-include: _template
-task: global_piqa_completions_amh_ethi

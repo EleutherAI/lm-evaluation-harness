@@ -83,7 +83,7 @@ jobs:
       # Save test artifacts
       - name: Archive test artifacts
         if: always()  # Upload artifacts even if tests fail
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: output_testcpu${{ matrix.python-version }}
           path: |
