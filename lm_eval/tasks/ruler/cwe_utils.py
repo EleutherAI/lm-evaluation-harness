@@ -33,9 +33,7 @@ TEMPLATE = CONFIG["template"] + CONFIG["answer_prefix"]
 
 r = wonderwords.RandomWord()
 WORDS = sorted(
-    list(
-        set([item for x in ["noun", "adjective", "verb"] for item in r._categories[x]])
-    )
+    {item for x in ["noun", "adjective", "verb"] for item in r._categories[x]}
 )
 RNG.shuffle(WORDS)
 
@@ -140,6 +138,8 @@ def sys_word_pair_random(
             except:  # noqa: E722
                 if used_words > incremental:
                     used_words -= incremental
+                else:
+                    raise
 
         if remove_newline_tab:
             input_text = " ".join(
