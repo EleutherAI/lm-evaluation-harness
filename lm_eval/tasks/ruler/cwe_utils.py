@@ -33,9 +33,7 @@ TEMPLATE = CONFIG["template"] + CONFIG["answer_prefix"]
 
 r = wonderwords.RandomWord()
 WORDS = sorted(
-    list(
-        set([item for x in ["noun", "adjective", "verb"] for item in r._categories[x]])
-    )
+    {item for x in ["noun", "adjective", "verb"] for item in r._categories[x]}
 )
 RNG.shuffle(WORDS)
 

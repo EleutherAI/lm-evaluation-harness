@@ -89,8 +89,8 @@ def generate_input_output(num_noises, num_chains, num_hops, is_icl=False):
     # sample random positions to insert variable assignment
     for chain_i in chains:
         # sample random positions (sorted) to insert variable assignment
-        positions = list(sorted(random.sample(range(len(sentences)), len(chain_i))))
-        for insert_pi, j in zip(positions, range(len(chain_i))):
+        positions = sorted(random.sample(range(len(sentences)), len(chain_i)))
+        for insert_pi, j in zip(positions, range(len(chain_i)), strict=True):
             sentences.insert(insert_pi + j, chain_i[j])
 
     # Insert the passkey sentence at the random position
@@ -135,7 +135,7 @@ def sys_vartrack_w_noise_random(
     num_hops: int = 4,
     add_fewshot: bool = True,
     tokens_to_generate=30,
-    icl_example: dict = None,
+    icl_example: dict | None = None,
     remove_newline_tab=False,
 ):
     write_jsons = []
