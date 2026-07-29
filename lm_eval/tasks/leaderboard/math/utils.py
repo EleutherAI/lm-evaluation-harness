@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, List
 
 import datasets
 
@@ -11,11 +10,11 @@ try:
     import sympy
     from math_verify import LatexExtractionConfig, parse, verify
     from sympy.parsing.latex import parse_latex
-except ModuleNotFoundError:
+except ModuleNotFoundError as e:
     raise ModuleNotFoundError(
         "`math-verify`, `sympy>=1.12`, and antlr4-python3-runtime==4.11 is required for generating translation task prompt templates. \
 please install via pip install lm-eval[math] or pip install -e .[math]",
-    )
+    ) from e
 
 
 INVALID_ANSWER = "[invalidanswer]"
@@ -34,7 +33,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             "solution": doc["solution"],
             "answer": remove_boxed(last_boxed_only_string(doc["solution"])),
         }
-        if getattr(doc, "few_shot", None) is not None:
+        if doc.get("few_shot") is not None:
             out_doc["few_shot"] = True
         return out_doc
 
@@ -70,7 +69,7 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidates = results[0]
     parsed_candidate = parse(candidates)
     parsed_answer = parse(doc["solution"], extraction_config=[LatexExtractionConfig()])
@@ -192,10 +191,7 @@ def is_equiv(x1: str, x2: str) -> bool:
                 return False
 
             try:
-                if sympy.simplify(diff) == 0:
-                    return True
-                else:
-                    return False
+                return sympy.simplify(diff) == 0
             except ValueError:
                 eval_logger.debug(
                     f"Had some trouble simplifying when comparing {x1} and {x2}"
@@ -206,7 +202,7 @@ def is_equiv(x1: str, x2: str) -> bool:
     except ImportError as e:
         eval_logger.error(e)
         raise
-    except Exception as e:
+    except (AttributeError, TypeError, ValueError, ArithmeticError) as e:
         eval_logger.debug(f"Failed comparing {x1} and {x2} with {e}")
         return False
 
