@@ -1,5 +1,4 @@
-"""Tests for the cross-platform onnxruntime-genai backend (and, by inheritance,
-the winml backend).
+"""Tests for the cross-platform onnxruntime-genai backend.
 
 The heavy smoke tests require ``onnxruntime-genai`` plus its Model Builder and
 build a tiny random Llama model on the fly (CPU execution provider), mirroring
@@ -10,7 +9,6 @@ because the ONNX runtimes are not installed there; run them locally with:
     python -m pytest tests/models/test_onnxruntime_genai.py -vv
 """
 
-import sys
 import tempfile
 
 import numpy as np
@@ -20,7 +18,48 @@ from lm_eval.api.model import CacheHook
 from lm_eval.models.onnxruntime_genai import ONNXRuntimeGenAILM, _log_softmax
 
 
-og = pytest.importorskip("onnxruntime_genai")
+pytest.importorskip("onnxruntime_genai")
+
+
+def _build_tiny_model_dir():
+    """Build a tiny random Llama Model Builder export (fp32, CPU).
+
+    head_size must be a multiple of 16 for the genai CPU GroupQueryAttention
+    kernel, so hidden_size=128 / num_heads=8 -> head_size=16.
+    """
+    builder = pytest.importorskip("onnxruntime_genai.models.builder")
+    from transformers import AutoTokenizer, LlamaConfig, LlamaForCausalLM
+
+    src = tempfile.mkdtemp(prefix="ort_genai_src_")
+    out = tempfile.mkdtemp(prefix="ort_genai_out_")
+    cache = tempfile.mkdtemp(prefix="ort_genai_cache_")
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "hf-internal-testing/tiny-random-LlamaForCausalLM"
+    )
+    config = LlamaConfig(
+        vocab_size=tokenizer.vocab_size,
+        hidden_size=128,
+        intermediate_size=256,
+        num_hidden_layers=2,
+        num_attention_heads=8,
+        num_key_value_heads=8,
+        max_position_embeddings=512,
+        tie_word_embeddings=True,
+    )
+    LlamaForCausalLM(config).save_pretrained(src)
+    tokenizer.save_pretrained(src)
+
+    try:
+        builder.create_model(None, src, out, "fp32", "cpu", cache)
+    except Exception as e:  # pragma: no cover - environment dependent
+        pytest.skip(f"Model Builder could not create a CPU fixture: {e}")
+    return out
+
+
+@pytest.fixture(scope="session")
+def tiny_model_dir():
+    return _build_tiny_model_dir()
 
 
 # --------------------------------------------------------------------------- #
@@ -98,67 +137,16 @@ def test_loglikelihood_tokens_empty_continuation():
 # --------------------------------------------------------------------------- #
 # Smoke tests: build a tiny model and run real tasks end-to-end on CPU.
 # --------------------------------------------------------------------------- #
-@pytest.fixture(scope="session")
-def tiny_model_dir():
-    """Build a tiny random Llama Model Builder export (fp32, CPU).
-
-    head_size must be a multiple of 16 for the genai CPU GroupQueryAttention
-    kernel, so hidden_size=128 / num_heads=8 -> head_size=16.
-    """
-    builder = pytest.importorskip("onnxruntime_genai.models.builder")
-    from transformers import AutoTokenizer, LlamaConfig, LlamaForCausalLM
-
-    src = tempfile.mkdtemp(prefix="ort_genai_src_")
-    out = tempfile.mkdtemp(prefix="ort_genai_out_")
-    cache = tempfile.mkdtemp(prefix="ort_genai_cache_")
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        "hf-internal-testing/tiny-random-LlamaForCausalLM"
-    )
-    config = LlamaConfig(
-        vocab_size=tokenizer.vocab_size,
-        hidden_size=128,
-        intermediate_size=256,
-        num_hidden_layers=2,
-        num_attention_heads=8,
-        num_key_value_heads=8,
-        max_position_embeddings=512,
-        tie_word_embeddings=True,
-    )
-    LlamaForCausalLM(config).save_pretrained(src)
-    tokenizer.save_pretrained(src)
-
-    try:
-        builder.create_model(None, src, out, "fp32", "cpu", cache)
-    except Exception as e:  # pragma: no cover - environment dependent
-        pytest.skip(f"Model Builder could not create a CPU fixture: {e}")
-    return out
-
-
-BACKENDS = [
-    "onnxruntime-genai",
-    pytest.param(
-        "winml",
-        marks=pytest.mark.skipif(
-            sys.platform != "win32",
-            reason="winml provider selection requires Windows; base logic is "
-            "already covered via onnxruntime-genai",
-        ),
-    ),
-]
-
-
 @pytest.fixture
-def lm(request, tiny_model_dir):
+def lm(tiny_model_dir):
     from lm_eval.api.registry import get_model
 
-    return get_model(request.param).create_from_arg_string(
+    return get_model("onnxruntime-genai").create_from_arg_string(
         f"pretrained={tiny_model_dir},execution_provider=cpu",
         {"batch_size": 1},
     )
 
 
-@pytest.mark.parametrize("lm", BACKENDS, indirect=True)
 def test_backend_loads(lm):
     assert lm.eot_token_id is not None
     assert lm.max_length > 0
@@ -168,7 +156,6 @@ def test_backend_loads(lm):
     assert "hello" in lm.tok_decode(ids)
 
 
-@pytest.mark.parametrize("lm", BACKENDS, indirect=True)
 @pytest.mark.parametrize("task", ["hellaswag", "wikitext", "gsm8k"])
 def test_simple_evaluate(lm, task):
     from lm_eval import evaluator
@@ -188,7 +175,6 @@ def test_simple_evaluate(lm, task):
     assert all(np.isfinite(v) for v in numeric)
 
 
-@pytest.mark.parametrize("lm", BACKENDS, indirect=True)
 def test_loglikelihood_deterministic(lm):
     """The same request scored twice yields identical log-probs (greedy path)."""
     from lm_eval.api.instance import Instance
