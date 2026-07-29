@@ -1,5 +1,7 @@
 import ast
 
+from sklearn.metrics import f1_score
+
 
 def doc_to_choice(doc):
     choices = ast.literal_eval(doc["choices"])
@@ -30,3 +32,10 @@ def doc_to_text(doc):
         choice4=choices[3],
     )
     return text
+
+
+def weighted_f1_score(items):
+    unzipped_list = list(zip(*items, strict=False))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    return f1_score(golds, preds, average="weighted")
