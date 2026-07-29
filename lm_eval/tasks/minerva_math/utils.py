@@ -10,7 +10,6 @@ eval_logger = logging.getLogger(__name__)
 
 
 try:
-    import antlr4
     import sympy
     from math_verify import parse, verify
     from sympy.parsing.latex import parse_latex
@@ -179,10 +178,7 @@ def is_equiv(x1: str, x2: str) -> bool:
                 return False
 
             try:
-                if sympy.simplify(diff) == 0:
-                    return True
-                else:
-                    return False
+                return sympy.simplify(diff) == 0
             except ValueError:
                 eval_logger.debug(
                     f"Had some trouble simplifying when comparing {x1} and {x2}"
@@ -193,7 +189,7 @@ def is_equiv(x1: str, x2: str) -> bool:
     except ImportError as e:
         eval_logger.error(e)
         raise
-    except Exception as e:
+    except (AttributeError, TypeError, ValueError, ArithmeticError) as e:
         eval_logger.debug(f"Failed comparing {x1} and {x2} with {e}")
         return False
 
