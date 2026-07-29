@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import datasets
 
 
@@ -15,13 +13,9 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = _extract_model_answer(results[0])
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
@@ -30,6 +24,19 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         "exact_match": retval,
     }
     return results
+
+
+def _extract_model_answer(prediction: str) -> str:
+    """Extract the model's final answer from free-form output."""
+    indices = [pos for pos, char in enumerate(prediction) if char == "$"]
+    if len(indices) > 1:
+        return prediction[indices[0] + 1 : indices[-1]]
+
+    boxed = last_boxed_only_string(prediction)
+    if boxed is not None:
+        return remove_boxed(boxed)
+
+    return prediction
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
@@ -46,7 +53,7 @@ def is_equiv(str1, str2, verbose=False):
         if verbose:
             print(ss1, ss2)
         return ss1 == ss2
-    except Exception:
+    except (AssertionError, IndexError, TypeError, ValueError):
         return str1 == str2
 
 
@@ -134,7 +141,7 @@ def fix_a_slash_b(string):
     try:
         a = int(a)
         b = int(b)
-        assert string == "{}/{}".format(a, b)
+        assert string == f"{a}/{b}"
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
     except AssertionError:
@@ -208,9 +215,8 @@ def strip_string(string):
         string = "0" + string
 
     # to consider: get rid of e.g. "k = " or "q = " at beginning
-    if len(string.split("=")) == 2:
-        if len(string.split("=")[0]) <= 2:
-            string = string.split("=")[1]
+    if len(string.split("=")) == 2 and len(string.split("=")[0]) <= 2:
+        string = string.split("=")[1]
 
     # fix sqrt3 --> sqrt{3}
     string = fix_sqrt(string)
