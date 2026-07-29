@@ -1,12 +1,14 @@
+import json
 import re
+import zipfile
 from abc import abstractmethod
 from functools import reduce
 
 import numpy as np
-import transformers.data.metrics.squad_metrics as squad_metrics
-from datasets import Dataset
+from datasets import Dataset, DatasetDict
 from evaluate import load
 from transformers import AutoTokenizer
+from transformers.data.metrics import squad_metrics
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
@@ -41,6 +43,9 @@ _CITATION = """
 # To allow for evaluation of causal models, we'll
 # reformualte these with appropriate prompts
 
+_SCROLLS_FEATURES = ("id", "pid", "input", "output")
+_SCROLLS_SPLITS = ("train", "validation", "test")
+
 
 def _download_metric():
     import os
@@ -61,6 +66,40 @@ def _download_metric():
     )
     shutil.copy(scrolls_metric_path, updated_scrolls_metric_path)
     return updated_scrolls_metric_path
+
+
+def _load_scrolls_dataset_from_zip(zip_path: str, dataset_name: str) -> DatasetDict:
+    """Load a SCROLLS subset from its Hub zip without running the dataset script.
+
+    ``tau/scrolls`` still ships only zip + ``scrolls.py``. datasets>=4 no longer
+    executes dataset scripts, so we mirror the script's jsonl parsing here.
+    """
+    splits = {}
+    with zipfile.ZipFile(zip_path) as zf:
+        for split in _SCROLLS_SPLITS:
+            member = f"{dataset_name}/{split}.jsonl"
+            with zf.open(member) as f:
+                rows = []
+                for line in f:
+                    if not line.strip():
+                        continue
+                    row = json.loads(line)
+                    # QuALITY rows may include is_hard; drop it to keep schema fixed.
+                    row.pop("is_hard", None)
+                    rows.append({key: row[key] for key in _SCROLLS_FEATURES})
+                splits[split] = Dataset.from_list(rows)
+    return DatasetDict(splits)
+
+
+def _load_scrolls_dataset(dataset_name: str) -> DatasetDict:
+    from huggingface_hub import hf_hub_download
+
+    zip_path = hf_hub_download(
+        repo_id="tau/scrolls",
+        repo_type="dataset",
+        filename=f"{dataset_name}.zip",
+    )
+    return _load_scrolls_dataset_from_zip(zip_path, dataset_name)
 
 
 def _process_doc_prepended_question(doc):
@@ -86,7 +125,7 @@ def _drop_duplicates_in_input(untokenized_dataset):
     id_to_idx = {}
     outputs = []
     for i, (id_, output) in enumerate(
-        zip(untokenized_dataset["id"], untokenized_dataset["output"])
+        zip(untokenized_dataset["id"], untokenized_dataset["output"], strict=True)
     ):
         if id_ in id_to_idx:
             outputs[id_to_idx[id_]].append(output)
@@ -162,8 +201,10 @@ class _SCROLLSTask(ConfigurableTask):
     def doc_to_decontamination_query(self, doc):
         return doc["input"]
 
-    def download(self, *args, **kwargs):
-        super().download(*args, **kwargs)
+    def download(self, dataset_kwargs=None, **kwargs):
+        # Bypass datasets.load_dataset("tau/scrolls"): the Hub repo is script-based
+        # and datasets>=4 refuses to run dataset scripts.
+        self.dataset = _load_scrolls_dataset(self.DATASET_NAME)
         del self.dataset["test"]
         for split in self.dataset:
             self.dataset[split] = _drop_duplicates_in_input(self.dataset[split])
@@ -186,7 +227,7 @@ class _SCROLLSTask(ConfigurableTask):
 
         def _filter(sample):
             text = self._get_prune_text(sample)
-            cached = cache.get(text, None)
+            cached = cache.get(text)
             if cached is None:
                 for tokenizer in tokenizers:
                     if len(tokenizer(text).input_ids) > self.PRUNE_MAX_TOKENS:
@@ -214,7 +255,7 @@ class _SCROLLSTask(ConfigurableTask):
 
     def _make_compute_metrics(self, value):
         def compute_metrics(samples):
-            predictions, references = zip(*samples)  # unzip, if you will
+            predictions, references = zip(*samples, strict=True)  # unzip, if you will
             computed = self.metric.compute(
                 predictions=predictions, references=references
             )
@@ -245,7 +286,7 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
     def process_results(self, doc, results):
         gold = doc["gold"]
 
-        lls, _ = zip(*results)
+        lls, _ = zip(*results, strict=True)
         acc = 1.0 if np.argmax(lls) == gold else 0.0
         completion_len = np.array([float(len(i)) for i in doc["choices"]])
         acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
@@ -263,9 +304,9 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice))
+                arguments=(ctx, f" {choice}")
                 if not apply_chat_template
-                else (ctx, "{}".format(choice)),
+                else (ctx, f"{choice}"),
                 idx=i,
                 **kwargs,
             )
@@ -317,8 +358,9 @@ class Qasper(_SCROLLSTask):
     def _process_doc(self, doc):
         doc = _process_doc_prepended_question(doc)
         doc["is_yes_no"] = reduce(
-            lambda prev, cur: prev
-            and squad_metrics.normalize_answer(cur) in ["yes", "no"],
+            lambda prev, cur: (
+                prev and squad_metrics.normalize_answer(cur) in ["yes", "no"]
+            ),
             doc["outputs"],
             True,
         )
@@ -437,7 +479,7 @@ class ContractNLI(_SCROLLSMultipleChoiceTask):
     """
 
     DATASET_NAME = "contract_nli"
-    CHOICES = ["Not mentioned", "Entailment", "Contradiction"]
+    CHOICES = ("Not mentioned", "Entailment", "Contradiction")
 
     def _process_doc(self, doc):
         doc = _process_doc_prepended_question(doc)
