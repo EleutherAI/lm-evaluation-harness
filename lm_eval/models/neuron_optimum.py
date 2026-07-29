@@ -287,7 +287,9 @@ class NEURON_HF(TemplateLM):
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """Encode strings to tokens"""
         if add_special_tokens is None:
-            add_special_tokens = self.add_bos_token if self.add_bos_token is not None else False
+            add_special_tokens = (
+                self.add_bos_token if self.add_bos_token is not None else False
+            )
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
 
@@ -301,14 +303,16 @@ class NEURON_HF(TemplateLM):
         self,
         strings: list[str],
         padding_side: str = "left",
-        left_truncate_len: int = None,
+        left_truncate_len: int | None = None,
         truncation: bool = False,
     ):
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
-        add_special_tokens = self.add_bos_token if self.add_bos_token is not None else False
+        add_special_tokens = (
+            self.add_bos_token if self.add_bos_token is not None else False
+        )
 
         encoding = self.tokenizer(
             strings,
@@ -612,7 +616,7 @@ class NEURON_HF(TemplateLM):
                                 f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
                             )
                 else:
-                    raise ValueError(
+                    raise TypeError(
                         f"Expected `kwargs` to be of type `dict` but got {kwargs}"
                     )
                 # add EOS token to stop sequences
