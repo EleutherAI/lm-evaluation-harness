@@ -187,7 +187,7 @@ If not implemented for a given model type, the flags `--apply_chat_template` , `
 
 **Pro tip**: In order to make the Evaluation Harness overestimate total runtimes rather than underestimate it, HuggingFace models come in-built with the ability to provide responses on data points in *descending order by total input length* via `lm_eval.utils.Reorderer`. Take a look at `lm_eval.models.hf_causal.HFLM` to see how this is done, and see if you can implement it in your own model!
 
-**Subclassing an existing backend**: If your backend shares most of its logic with an existing one and differs only in a narrow concern (e.g. how a device or execution provider is selected), prefer subclassing over duplication. `lm_eval.models.optimum_lm.OptimumLM` subclasses `HFLM` and overrides only `_create_model`; `lm_eval.models.winml.WindowsML` subclasses `lm_eval.models.onnxruntime_genai.ONNXRuntimeGenAILM` and overrides only `_select_ep`, inheriting all scoring and generation logic. `ONNXRuntimeGenAILM` itself is a `TemplateLM` reference implementation for ONNX models exported by the ONNX Runtime GenAI Model Builder: it implements `_loglikelihood_tokens` on a single-pass `_forward_logits`, reuses `utils.get_rolling_token_windows` / `utils.make_disjoint_window` for `loglikelihood_rolling`, and drives generation through `_generate`.
+**Subclassing an existing backend**: If your backend shares most of its logic with an existing one and differs only in a narrow concern (e.g. how the underlying model is created or which device it targets), prefer subclassing over duplication. For example, `lm_eval.models.optimum_lm.OptimumLM` subclasses `HFLM` and overrides only `_create_model`.
 
 ## Conclusion
 
