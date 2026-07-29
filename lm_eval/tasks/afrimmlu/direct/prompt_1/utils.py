@@ -20,7 +20,7 @@ def doc_to_text(doc):
                         C: {choice3}
                         D: {choice4}
 
-                Answer:  """
+                Answer:"""
 
     choices = ast.literal_eval(doc["choices"])
     text = output.format(
