@@ -485,6 +485,34 @@ lm_eval --model sglang \
 > 2. Lower KV cache pool memory usage by adjusting `mem_fraction_static` - Add to your model arguments for example `--model_args pretrained=...,mem_fraction_static=0.7`.
 > 3. Increase tensor parallel size `tp_size` (if using multiple GPUs).
 
+### ONNX Runtime GenAI
+
+We support **ONNX Runtime GenAI** for cross-platform evaluation of ONNX LLMs produced by the [ONNX Runtime GenAI *Model Builder*](https://onnxruntime.ai/docs/genai/howto/build-model.html). Unlike the [Windows ML](#windows-ml) backend, this backend runs on Linux, macOS, and Windows and selects execution providers with the cross-platform `og.Config` API (CPU, CUDA, DirectML, WebGPU, and AMD NPU via VitisAI/RyzenAI).
+
+Install the backend along with the execution-provider wheel that matches your hardware:
+
+```bash
+# CPU
+pip install "lm_eval[onnxruntime-genai]"
+# CUDA / DirectML instead of the CPU wheel (mutually exclusive):
+#   pip install onnxruntime-genai-cuda
+#   pip install onnxruntime-genai-directml
+```
+
+Evaluate a Model Builder ONNX model on a chosen execution provider:
+
+```bash
+lm_eval --model onnxruntime-genai \
+    --model_args pretrained=/path/to/model_builder_output,execution_provider=cuda \
+    --tasks hellaswag \
+    --batch_size 1
+```
+
+The `pretrained` path is a Model Builder output directory (containing `genai_config.json`, the ONNX graph(s), and an HF tokenizer) or a `.onnx` file inside one. `execution_provider` defaults to `cpu` (which runs with no provider appended); pass `cuda`, `dml`, `VitisAI`, etc. for accelerators. Extra provider settings can be passed via `provider_options`.
+
+> [!Note]
+> Supported architectures are whatever the Model Builder supports (Llama, Phi, Qwen, Gemma, Mistral, Granite, ChatGLM, …). Inference is batch-size 1 and runs one execution provider per run.
+
 ### Windows ML
 
 We support **Windows ML** for hardware-accelerated inference on Windows platforms. This enables evaluation on CPU, GPU, and **NPU (Neural Processing Unit)** devices.
@@ -556,6 +584,7 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | NVIDIA NeMo                                                                                                               | :heavy_check_mark:                                                                                      | `nemo_lm`                                             | [All supported models](https://docs.nvidia.com/nemo-framework/user-guide/24.09/nemotoolkit/core/core.html#nemo-models)                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | NVIDIA Megatron-LM                                                                                                        | :heavy_check_mark:                                                                                      | `megatron_lm`                                         | [Megatron-LM GPT models](https://github.com/NVIDIA/Megatron-LM) (standard and distributed checkpoints)                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Watsonx.ai                                                                                                                | :heavy_check_mark:                                                                                      | `watsonx_llm`                                         | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                      | `generate_until` `loglikelihood`                                               |
+| ONNX Runtime GenAI                                                                                                        | :heavy_check_mark:                                                                                      | `onnxruntime-genai`                                   | [ONNX models in GenAI format](https://onnxruntime.ai/docs/genai/howto/build-model.html) (cross-platform: CPU/CUDA/DirectML/NPU)                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Windows ML                                                                                                                | :heavy_check_mark:                                                                                      | `winml`                                               | [ONNX models in GenAI format](https://code.visualstudio.com/docs/intelligentapps/modelconversion)                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | [Your local inference server!](docs/API_guide.md)                                                                         | :heavy_check_mark:                                                                                      | `local-completions` or `local-chat-completions`       | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                              | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 
@@ -801,6 +830,7 @@ These extras install dependencies required to run specific model backends:
 | habana         | Intel Gaudi backend                              |
 | optimum        | Intel OpenVINO models                            |
 | neuronx        | AWS Inferentia2 instances                        |
+| onnxruntime-genai | ONNX Runtime GenAI (cross-platform) - CPU/CUDA/DirectML/NPU |
 | winml          | Windows ML (ONNX Runtime GenAI) - CPU/GPU/NPU    |
 | sparsify       | Sparsify model steering                          |
 | sae_lens       | SAELens model steering                           |

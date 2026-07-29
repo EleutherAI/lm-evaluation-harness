@@ -59,6 +59,10 @@ gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 ipex = ["optimum-intel"]
 ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
+# ONNX Runtime GenAI backend. For non-CPU execution providers install the
+# matching wheel instead of `onnxruntime-genai`, e.g. `onnxruntime-genai-cuda`
+# or `onnxruntime-genai-directml` (these are mutually exclusive).
+onnxruntime-genai = ["onnxruntime-genai", "transformers", "numpy"]
 litellm = ["litellm>=1.60,<1.85", "aiohttp", "requests", "tenacity", "tqdm"]
 # mamba requires CUDA (nvcc) - cannot build on macOS/CPU-only systems
 # mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
