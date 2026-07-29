@@ -26,5 +26,5 @@ PerspectiveGap ([arXiv:2606.08878](https://arxiv.org/abs/2606.08878)) evaluates 
 Requires the `perspective-gap` package for scoring:
 
 ```bash
-pip install git+https://github.com/WhymustIhaveaname/PerspectiveGap.git
+pip install "perspective-gap @ git+https://github.com/WhymustIhaveaname/PerspectiveGap.git@9c6921b3337ff3e6a6a453f68d117a8c1663135e"
 ```

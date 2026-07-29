@@ -1,9 +1,10 @@
-import re
 import warnings
+
 
 _SCORER_INSTALL_CMD = (
     'pip install "perspective-gap @ '
-    'git+https://github.com/WhymustIhaveaname/PerspectiveGap.git"'
+    "git+https://github.com/WhymustIhaveaname/PerspectiveGap.git@"
+    '9c6921b3337ff3e6a6a453f68d117a8c1663135e"'
 )
 
 
