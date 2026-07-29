@@ -203,6 +203,8 @@ def generate_samples(
 
 
 def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs) -> list[dict]:
+    if isinstance(pretrained, dict):
+        pretrained = pretrained.get("pretrained", pretrained.get("model", ""))
     tokenizer = get_tokenizer(pretrained)
     write_jsons = generate_samples(
         tokenizer=tokenizer,
