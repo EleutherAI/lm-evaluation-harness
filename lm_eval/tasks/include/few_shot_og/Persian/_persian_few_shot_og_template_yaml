@@ -2,6 +2,8 @@ dataset_path: CohereForAI/include-base-44
 dataset_name: Persian
 test_split: test
 fewshot_split: validation
+fewshot_config:
+  process_docs: null
 output_type: multiple_choice
 doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\n
   D. {{option_d}}\nAnswer:"
