@@ -4,8 +4,9 @@ import os
 import random
 import re
 import string
-from collections.abc import Iterable
-from typing import Callable, List, Optional, Sequence, TypeVar
+from collections import Counter
+from collections.abc import Callable, Iterable, Sequence
+from typing import TypeVar
 
 import numpy as np
 import sacrebleu
@@ -379,6 +380,107 @@ def ter_fn(items):  # This is a passthrough function
     return items
 
 
+# behavioral_drift: ported from huggingface/evaluate PR #778
+# (https://github.com/huggingface/evaluate/pull/778), which introduced the metric
+# to catch fine-tuning output collapse (e.g. degeneration into repeated or numeric
+# garbage) that perplexity does not detect. Three deterministic signals are
+# combined multiplicatively into a single drift_score in [0, 1]: any one signal
+# failing its threshold drives the whole score toward 0, unlike an additive
+# combination which can mask a severe failure in one dimension with healthy
+# scores in the others.
+#
+# self-BLEU is computed with a dependency-free unigram-precision BLEU-1 (as in
+# the original PR) rather than sacrebleu: sacrebleu's brevity penalty inverts
+# the mode-collapse signal here, since the "concatenated-reference" trick below
+# deliberately makes the reference N-1 times longer than the hypothesis — with
+# identical, fully-collapsed outputs, sacrebleu's BP drives self-BLEU toward 0
+# instead of 1.
+_BEHAVIORAL_DRIFT_SB_THRESHOLD = 0.8  # self-BLEU threshold (mode collapse)
+_BEHAVIORAL_DRIFT_DD_DELTA_THRESHOLD = 0.2  # digit_density increase vs. baseline
+_BEHAVIORAL_DRIFT_RR_THRESHOLD = 0.4  # repetition_ratio threshold (degenerate loops)
+
+
+def _behavioral_drift_bleu1(candidate: str, reference: str) -> float:
+    """Unigram-precision BLEU-1; each reference token matched at most once."""
+    cand = candidate.split()
+    ref_counts = Counter(reference.split())
+    if not cand:
+        return 0.0
+    hits = 0
+    for tok in cand:
+        if ref_counts.get(tok, 0) > 0:
+            hits += 1
+            ref_counts[tok] -= 1
+    return hits / len(cand)
+
+
+def _behavioral_drift_self_bleu(outputs: list[str]) -> float:
+    """Concatenated-reference self-BLEU-1: each output is scored against the
+    remaining N-1 outputs joined into a single reference.
+    """
+    if len(outputs) < 2:
+        return 0.0
+    scores = [
+        _behavioral_drift_bleu1(outputs[i], " ".join(outputs[:i] + outputs[i + 1 :]))
+        for i in range(len(outputs))
+    ]
+    return sum(scores) / len(scores)
+
+
+def _behavioral_drift_digit_density(text: str) -> float:
+    if not text:
+        return 0.0
+    return sum(1 for c in text if c.isnumeric()) / len(text)
+
+
+def _behavioral_drift_repetition_ratio(text: str) -> float:
+    tokens = text.split()
+    if len(tokens) < 5:
+        return 1.0
+    return len(set(tokens)) / len(tokens)
+
+
+@register_aggregation("behavioral_drift")
+def behavioral_drift_agg(items):
+    """Corpus-level behavioral drift score.
+
+    items: list of (reference, prediction) tuples collected across docs, where
+    reference is the doc's target/baseline text (doc_to_target) and prediction
+    is the model's generated output.
+    """
+    references, predictions = (list(x) for x in zip(*items, strict=True))
+
+    if not predictions:
+        return 0.0
+
+    dd_pred = [_behavioral_drift_digit_density(p) for p in predictions]
+    rr_pred = [_behavioral_drift_repetition_ratio(p) for p in predictions]
+    avg_dd = sum(dd_pred) / len(dd_pred)
+    avg_rr = sum(rr_pred) / len(rr_pred)
+    sb = _behavioral_drift_self_bleu(predictions)
+
+    dd_base = sum(_behavioral_drift_digit_density(r) for r in references) / len(
+        references
+    )
+
+    sb_score = max(0.0, 1.0 - sb / _BEHAVIORAL_DRIFT_SB_THRESHOLD)
+    dd_delta = max(0.0, avg_dd - dd_base)
+    dd_score = max(0.0, 1.0 - dd_delta / _BEHAVIORAL_DRIFT_DD_DELTA_THRESHOLD)
+    rr_score = min(1.0, avg_rr / _BEHAVIORAL_DRIFT_RR_THRESHOLD)
+
+    return round(sb_score * dd_score * rr_score, 4)
+
+
+@register_metric(
+    metric="behavioral_drift",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="behavioral_drift",
+)
+def behavioral_drift_fn(items):  # This is a passthrough function
+    return items
+
+
 @register_metric(
     metric="acc_all",
     higher_is_better=True,
@@ -554,7 +656,7 @@ def bootstrap_stderr(
 
 def stderr_for_metric(
     metric: Callable[[Sequence[T]], float], bootstrap_iters: int
-) -> Optional[Callable[[Sequence[T]], float]]:
+) -> Callable[[Sequence[T]], float] | None:
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
@@ -584,10 +686,10 @@ def stderr_for_metric(
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
-    return stderr.get(metric, None)
+    return stderr.get(metric)
 
 
-def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
     #
@@ -605,7 +707,7 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
-def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None):
     assert metrics is not None, (
         "Need to pass a list of each subtask's metric for this stderr aggregation"
     )

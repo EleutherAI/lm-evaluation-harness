@@ -1,6 +1,6 @@
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
+from lm_eval.api.metrics import _bootstrap_internal_no_mp, behavioral_drift_agg, mean
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
@@ -180,7 +180,8 @@ def test_bootstrap_internal_no_mp():
 
 def test_dict_metric_uses_custom_aggregation():
     """Regression test for #3314: dict-valued metrics must use the custom
-    aggregation function, not silently fall back to mean()."""
+    aggregation function, not silently fall back to mean().
+    """
     from collections import defaultdict
 
     from lm_eval.evaluator_utils import _compute_task_aggregations
@@ -214,10 +215,52 @@ def test_dict_metric_uses_custom_aggregation():
     assert agg_metrics["pass@3,none"] == 1.5
 
 
+def test_behavioral_drift_healthy_outputs_score_high():
+    """Diverse, non-degenerate outputs should score well above 0."""
+    references = ["base output A", "base output B", "base output C"]
+    predictions = [
+        "The cat sat on the mat.",
+        "Paris is the capital of France.",
+        "Water boils at 100 degrees Celsius.",
+    ]
+    score = behavioral_drift_agg(list(zip(references, predictions, strict=True)))
+    assert score > 0.5, f"Expected healthy outputs to score > 0.5, got {score}"
+
+
+def test_behavioral_drift_digit_collapse_scores_zero():
+    """Regression test for the issue's real-world case: a fine-tuned model whose
+    outputs collapse into numeric sequences should score 0.0, even though the
+    outputs are mutually dissimilar (so self-BLEU alone would miss this).
+    """
+    references = ["base output A", "base output B", "base output C"]
+    predictions = ["1999999999999", "1999999999998", "1999999999997"]
+    score = behavioral_drift_agg(list(zip(references, predictions, strict=True)))
+    assert score == 0.0, f"Expected digit-collapsed outputs to score 0.0, got {score}"
+
+
+def test_behavioral_drift_multiplicative_not_additive():
+    """A single severely failing signal must zero the whole score, not just
+    lower it — this is the core design constraint from the issue: additive
+    combination can give a misleadingly high score when one dimension has
+    collapsed but the others look fine.
+    """
+    references = ["reference text one", "reference text two", "reference text three"]
+    # Mode-collapse only: identical outputs (self-BLEU fails), but digit
+    # density and repetition ratio both look healthy.
+    predictions = ["a healthy sentence here"] * 3
+    score = behavioral_drift_agg(list(zip(references, predictions, strict=True)))
+    assert score == 0.0, (
+        f"Expected a single failing signal (mode collapse) to zero the score, got {score}"
+    )
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()
     test_acc_mutual_info_without_metric()
     test_bootstrap_internal_no_mp()
     test_dict_metric_uses_custom_aggregation()
+    test_behavioral_drift_healthy_outputs_score_high()
+    test_behavioral_drift_digit_collapse_scores_zero()
+    test_behavioral_drift_multiplicative_not_additive()
     print("All tests passed!")
