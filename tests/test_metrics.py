@@ -1,6 +1,12 @@
+import json
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, behavioral_drift_agg, mean
+from lm_eval.api.metrics import (
+    _bootstrap_internal_no_mp,
+    behavioral_drift_agg,
+    behavioral_drift_fn,
+    mean,
+)
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
@@ -254,6 +260,70 @@ def test_behavioral_drift_multiplicative_not_additive():
     )
 
 
+def test_behavioral_drift_fn_defaults_to_doc_reference():
+    """Without baseline_path, behavioral_drift_fn should pass the doc's own
+    reference straight through, unchanged.
+    """
+    result = behavioral_drift_fn(references=["gold answer"], predictions=["output"])
+    assert result == ("gold answer", "output")
+
+
+def test_behavioral_drift_fn_uses_baseline_path(tmp_path):
+    """With baseline_path set, each call should pull the next base-model output
+    from the file instead of the doc's gold reference, advancing positionally.
+    """
+    baseline_file = tmp_path / "baseline.json"
+    baseline_file.write_text(json.dumps(["base output 1", "base output 2"]))
+
+    result1 = behavioral_drift_fn(
+        references=["gold answer 1"],
+        predictions=["ft output 1"],
+        baseline_path=str(baseline_file),
+    )
+    result2 = behavioral_drift_fn(
+        references=["gold answer 2"],
+        predictions=["ft output 2"],
+        baseline_path=str(baseline_file),
+    )
+    assert result1 == ("base output 1", "ft output 1")
+    assert result2 == ("base output 2", "ft output 2")
+
+
+def test_behavioral_drift_fn_baseline_path_plain_text(tmp_path):
+    """baseline_path also accepts a plain-text file, one output per line."""
+    baseline_file = tmp_path / "baseline.txt"
+    baseline_file.write_text("base output 1\nbase output 2\n")
+
+    result = behavioral_drift_fn(
+        references=["gold answer"],
+        predictions=["ft output"],
+        baseline_path=str(baseline_file),
+    )
+    assert result == ("base output 1", "ft output")
+
+
+def test_behavioral_drift_fn_baseline_path_exhausted_raises(tmp_path):
+    """Calling behavioral_drift_fn more times than the baseline file has
+    entries means the baseline was generated on a different eval set — this
+    should fail loudly rather than silently reusing or skipping entries.
+    """
+    baseline_file = tmp_path / "baseline.json"
+    baseline_file.write_text(json.dumps(["only base output"]))
+
+    behavioral_drift_fn(
+        references=["gold 1"], predictions=["pred 1"], baseline_path=str(baseline_file)
+    )
+    try:
+        behavioral_drift_fn(
+            references=["gold 2"],
+            predictions=["pred 2"],
+            baseline_path=str(baseline_file),
+        )
+        raise AssertionError("Expected ValueError for exhausted baseline_path")
+    except ValueError:
+        pass
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()
@@ -263,4 +333,6 @@ if __name__ == "__main__":
     test_behavioral_drift_healthy_outputs_score_high()
     test_behavioral_drift_digit_collapse_scores_zero()
     test_behavioral_drift_multiplicative_not_additive()
+    test_behavioral_drift_fn_defaults_to_doc_reference()
+    # baseline_path tests use the pytest tmp_path fixture; run via pytest.
     print("All tests passed!")

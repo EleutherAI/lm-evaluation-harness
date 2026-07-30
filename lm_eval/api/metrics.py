@@ -1,3 +1,4 @@
+import json
 import logging
 import math
 import os
@@ -399,6 +400,36 @@ _BEHAVIORAL_DRIFT_SB_THRESHOLD = 0.8  # self-BLEU threshold (mode collapse)
 _BEHAVIORAL_DRIFT_DD_DELTA_THRESHOLD = 0.2  # digit_density increase vs. baseline
 _BEHAVIORAL_DRIFT_RR_THRESHOLD = 0.4  # repetition_ratio threshold (degenerate loops)
 
+# Optional `baseline_path` (set via metric_list, e.g. `baseline_path: base.json`):
+# a pre-generated set of base-model (pre-fine-tuning) outputs on the same prompts,
+# used in place of doc_to_target as the digit_density_delta baseline. Without it,
+# the doc's target/gold text is used instead — always available, but a proxy for
+# "what a correct answer looks like" rather than "what this model produced before
+# fine-tuning", which is what the original PR's digit_density_delta measures.
+#
+# The file must be a JSON list of strings, or a plain-text file with one output
+# per line, both in the same doc order the baseline run and this run share (same
+# split, same --limit, same fewshot seed). Matched positionally per doc, since
+# process_results has no stable per-doc id to key on.
+_BEHAVIORAL_DRIFT_BASELINE_CACHE: dict[str, list[str]] = {}
+_BEHAVIORAL_DRIFT_BASELINE_CURSOR: dict[str, int] = {}
+
+
+def _behavioral_drift_load_baseline(path: str) -> list[str]:
+    if path not in _BEHAVIORAL_DRIFT_BASELINE_CACHE:
+        with open(path, encoding="utf-8") as f:
+            outputs = json.load(f) if path.endswith(".json") else f.read().splitlines()
+        if not isinstance(outputs, list) or not all(
+            isinstance(o, str) for o in outputs
+        ):
+            raise ValueError(
+                f"behavioral_drift baseline_path '{path}' must be a JSON list of "
+                "strings, or a plain-text file with one base-model output per line."
+            )
+        _BEHAVIORAL_DRIFT_BASELINE_CACHE[path] = outputs
+        _BEHAVIORAL_DRIFT_BASELINE_CURSOR[path] = 0
+    return _BEHAVIORAL_DRIFT_BASELINE_CACHE[path]
+
 
 def _behavioral_drift_bleu1(candidate: str, reference: str) -> float:
     """Unigram-precision BLEU-1; each reference token matched at most once."""
@@ -445,8 +476,10 @@ def behavioral_drift_agg(items):
     """Corpus-level behavioral drift score.
 
     items: list of (reference, prediction) tuples collected across docs, where
-    reference is the doc's target/baseline text (doc_to_target) and prediction
-    is the model's generated output.
+    prediction is the model's generated output and reference is the baseline
+    text used for digit_density_delta — doc_to_target by default, or the
+    matching line from `baseline_path` if that metric_list option is set (see
+    behavioral_drift_fn).
     """
     references, predictions = (list(x) for x in zip(*items, strict=True))
 
@@ -477,8 +510,20 @@ def behavioral_drift_agg(items):
     output_type=["generate_until"],
     aggregation="behavioral_drift",
 )
-def behavioral_drift_fn(items):  # This is a passthrough function
-    return items
+def behavioral_drift_fn(references, predictions, baseline_path=None, **kwargs):
+    reference = references[0]
+    if baseline_path is not None:
+        baseline_outputs = _behavioral_drift_load_baseline(baseline_path)
+        cursor = _BEHAVIORAL_DRIFT_BASELINE_CURSOR[baseline_path]
+        if cursor >= len(baseline_outputs):
+            raise ValueError(
+                f"behavioral_drift baseline_path '{baseline_path}' has fewer "
+                "entries than docs evaluated so far; it must be generated on "
+                "the same eval set (same split, --limit, and fewshot seed)."
+            )
+        reference = baseline_outputs[cursor]
+        _BEHAVIORAL_DRIFT_BASELINE_CURSOR[baseline_path] = cursor + 1
+    return (reference, predictions[0])
 
 
 @register_metric(
