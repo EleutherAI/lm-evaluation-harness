@@ -1,4 +1,5 @@
 import logging
+import re
 import signal
 import warnings
 
@@ -119,8 +120,30 @@ class _timeout:
         signal.alarm(0)
 
 
+# A comma that groups digits ("58,500") is safe for parse_latex; a comma that
+# separates list items is not -- see _has_list_comma below.
+_THOUSANDS_SEPARATED_RE = re.compile(r"^-?\d{1,3}(,\d{3})+$")
+
+
+def _has_list_comma(s: str) -> bool:
+    r"""True if `s` uses a comma to separate list items rather than digit groups.
+
+    ``parse_latex`` silently truncates at the first comma -- ``"3, 5, 7"``
+    parses to ``3`` -- so any two comma-separated answers sharing a first
+    element would compare equal. MATH asks for comma-separated answers often
+    enough ("Enter all such integers, separated by commas") that this has to be
+    excluded from symbolic comparison rather than left to chance.
+    """
+    if "," not in s:
+        return False
+    return _THOUSANDS_SEPARATED_RE.match(s.strip()) is None
+
+
 def _sympy_equiv(ss1: str, ss2: str) -> bool:
     """Check symbolic equivalence using SymPy. Returns True/False."""
+    if _has_list_comma(ss1) or _has_list_comma(ss2):
+        # Not representable as a single expression; defer to string comparison.
+        return False
     try:
         with _timeout(seconds=5):
             try:

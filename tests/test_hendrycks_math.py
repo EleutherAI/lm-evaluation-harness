@@ -87,6 +87,24 @@ def test_is_equiv_sympy_symbolic_fallback():
     assert is_equiv("9a + 11", "11 + 9a") is True
 
 
+@pytest.mark.skipif(not HAS_SYMPY, reason="requires sympy (pip install lm-eval[math])")
+def test_comma_separated_answers_are_not_symbolically_equated():
+    # parse_latex truncates at the first comma ("3, 5, 7" -> 3), so without a
+    # guard any two lists sharing a first element compare equal. MATH uses this
+    # answer format ("separated by commas") a lot, and process_results joins
+    # multiple \boxed{} values with ", ", so this must not over-match.
+    assert is_equiv("1,-2", "1,-3") is False
+    assert is_equiv("1,2", "1,3") is False
+    assert is_equiv("3, 5, 7", "3, 5, 9") is False
+
+
+@pytest.mark.skipif(not HAS_SYMPY, reason="requires sympy (pip install lm-eval[math])")
+def test_thousands_separator_still_compares_numerically():
+    # The comma guard must not disable digit-grouping commas, which parse_latex
+    # handles correctly.
+    assert is_equiv("58,500", "58500") is True
+
+
 @pytest.mark.skipif(
     not HAS_MATH_VERIFY, reason="requires math_verify (pip install lm-eval[math])"
 )
