@@ -132,7 +132,7 @@ def last_boxed_only_string(string):
 
 
 def find_all_boxed_strings(string):
-    """Find all \\boxed{} occurrences in a string, handling nested braces."""
+    r"""Find all \boxed{} occurrences in a string, handling nested braces."""
     results = []
     search_start = 0
     while True:

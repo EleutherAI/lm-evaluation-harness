@@ -15,17 +15,15 @@ def test_boxed_response_matches():
 
 
 def test_dollar_fallback_still_works():
-    assert process_results(
-        _doc("\\frac{1}{2}"), ["The answer is $\\frac{1}{2}$"]
-    ) == {"exact_match": 1}
+    assert process_results(_doc("\\frac{1}{2}"), ["The answer is $\\frac{1}{2}$"]) == {
+        "exact_match": 1
+    }
 
 
 def test_space_form_boxed_falls_back_to_last_boxed_only_string():
     # \boxed 4 (space-form) is intentionally skipped by find_all_boxed_strings;
     # last_boxed_only_string handles it, terminating on $ or end-of-string.
-    assert process_results(_doc("4"), ["The answer is \\boxed 4"]) == {
-        "exact_match": 1
-    }
+    assert process_results(_doc("4"), ["The answer is \\boxed 4"]) == {"exact_match": 1}
 
 
 def test_space_form_boxed_terminated_by_dollar():
