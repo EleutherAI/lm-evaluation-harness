@@ -1188,9 +1188,7 @@ class MegatronLMEval(LM):
             # configured microbatch size (often 8) is not sufficient.
             target_batch_size = max(actual_batch_size, self.batch_size)
             if getattr(self._args, "fp4_format", None) is not None:
-                target_batch_size = (
-                    (target_batch_size + 15) // 16
-                ) * 16
+                target_batch_size = ((target_batch_size + 15) // 16) * 16
 
             # Duplicate one real row as padding. Only the first
             # actual_batch_size rows are decoded and returned below.
