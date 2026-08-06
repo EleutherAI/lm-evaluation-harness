@@ -1182,6 +1182,27 @@ class MegatronLMEval(LM):
                 mask = [0] * pad_len + [1] * len(tokens)
                 attention_mask_list.append(mask)
 
+            # Keep generation batches aligned for low-precision Transformer
+            # Engine kernels. NVFP4 needs the flattened token dimension to be
+            # divisible by 16 on every decode step, so padding only to the
+            # configured microbatch size (often 8) is not sufficient.
+            target_batch_size = max(actual_batch_size, self.batch_size)
+            if getattr(self._args, "fp4_format", None) is not None:
+                target_batch_size = (
+                    (target_batch_size + 15) // 16
+                ) * 16
+
+            # Duplicate one real row as padding. Only the first
+            # actual_batch_size rows are decoded and returned below.
+            missing_rows = target_batch_size - actual_batch_size
+            if missing_rows > 0:
+                padded_input_ids.extend(
+                    [padded_input_ids[0].copy() for _ in range(missing_rows)]
+                )
+                attention_mask_list.extend(
+                    [attention_mask_list[0].copy() for _ in range(missing_rows)]
+                )
+
             input_ids = torch.tensor(
                 padded_input_ids, dtype=torch.long, device=self.device
             )
@@ -1312,7 +1333,7 @@ class MegatronLMEval(LM):
                         [
                             attention_mask,
                             torch.ones(
-                                (actual_batch_size, 1),
+                                (input_ids.shape[0], 1),
                                 dtype=torch.long,
                                 device=self.device,
                             ),
