@@ -54,6 +54,7 @@ Usage Examples:
 """
 
 import logging
+import math
 import os
 import sys
 from copy import deepcopy
@@ -944,8 +945,19 @@ class MegatronLMEval(LM):
                 contlens.append(len(continuation_enc))
                 inps.append(inp)
 
-            # Pad sequences
+            # Pad sequences. NVFP4 flattens [batch, sequence] before
+            # quantization and requires that dimension to be divisible by 16.
+            # Aligning the sequence length here also covers odd lengths for a
+            # full microbatch.
             max_len = max(len(inp) for inp in inps)
+            fp4_enabled = getattr(self._args, "fp4_format", None) is not None
+            target_batch_size = max(len(inps), self.batch_size)
+            if fp4_enabled:
+                sequence_alignment = 16 // math.gcd(target_batch_size, 16)
+                max_len = (
+                    (max_len + sequence_alignment - 1) // sequence_alignment
+                ) * sequence_alignment
+
             padded_inps = []
             attention_mask_list = []
             for inp in inps:
@@ -954,6 +966,17 @@ class MegatronLMEval(LM):
                 padded_inps.append(padded)
                 # Attention mask: 0 for padding, 1 for real tokens
                 attention_mask_list.append([0] * pad_len + [1] * len(inp))
+
+            # Collator leaves the final chunk smaller than the configured
+            # microbatch. Duplicate a real row to keep the model input shape
+            # full-sized; result processing below still only visits the
+            # original rows, so these dummy rows do not affect metrics.
+            missing_rows = target_batch_size - len(padded_inps)
+            if missing_rows > 0:
+                padded_inps.extend([padded_inps[0].copy() for _ in range(missing_rows)])
+                attention_mask_list.extend(
+                    [attention_mask_list[0].copy() for _ in range(missing_rows)]
+                )
 
             input_ids = torch.tensor(padded_inps, dtype=torch.long, device=self.device)
             attention_mask = torch.tensor(
