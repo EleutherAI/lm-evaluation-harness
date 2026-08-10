@@ -413,6 +413,15 @@ class TestTaskManagerIntegration:
                 and shared_task_manager._entry(t).kind == Kind.TAG
             )
 
+    def test_afrobench_prompt_2_tags_registered(self, shared_task_manager):
+        """Regression: afrobench afrisenti/mafand groups list ``*_prompt_2`` tags
+        that must be registered. Previously the prompt_2 templates declared the
+        wrong tag (``afrisent_prompt_2`` typo; ``mafand_afr-eng_prompt_3``
+        duplicating prompt_3), so loading those groups raised a not-found error."""
+        tags = set(shared_task_manager.all_tags)
+        assert "afrisenti_prompt_2" in tags
+        assert "mafand_afr-eng_prompt_2" in tags
+
     def test_load_task_by_name(self, test_configs_task_manager):
         """Load a single task by name"""
         result = test_configs_task_manager.load_task_or_group(["simple_task"])
