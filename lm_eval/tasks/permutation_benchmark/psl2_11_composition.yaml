@@ -1,7 +1,7 @@
 tag:
   - group_theory
-  - permutation_composition
-  - nc1
+  - permutation_groups
+  - nc1_groups
 task: psl2_11_composition
 dataset_path: ""
 dataset_name: ""

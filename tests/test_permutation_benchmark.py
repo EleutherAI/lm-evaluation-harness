@@ -1,10 +1,10 @@
 """Comprehensive unit tests for permutation benchmark tasks."""
 
 import os
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-import yaml
 
 from lm_eval import tasks
 from lm_eval.tasks._yaml_loader import load_yaml
@@ -332,34 +332,43 @@ class TestTaskConfiguration:
         expected_metrics = [str(i) for i in range(5, 505, 5)]
         assert metric_names == expected_metrics
 
-    def test_group_aggregation_tasks(self):
-        """Test that group aggregation tasks work correctly."""
-        # Instead of loading all tasks, just verify the YAML structure
+    @pytest.mark.parametrize(
+        ("selector", "expected_count"),
+        [
+            ("permutation_groups", 94),
+            ("tc0_groups", 72),
+            ("nc1_groups", 22),
+        ],
+    )
+    def test_tag_selectors(self, selector, expected_count):
+        """The three documented selectors are tags carried by the task files.
+
+        They are tags rather than group configs on purpose: `TaskManager.load`
+        rejects a request that names both a group and a task that group
+        contains, which is exactly what `tests/test_tasks.py` does when a
+        change touches a group file and its members together.
+        """
         yaml_dir = "lm_eval/tasks/permutation_benchmark"
+        tagged = [
+            group
+            for group in ALL_TC0_GROUPS + ALL_NC1_GROUPS
+            if selector
+            in load_yaml(
+                os.path.join(yaml_dir, f"{group}_composition.yaml"),
+                resolve_func=False,
+            )["tag"]
+        ]
+        assert len(tagged) == expected_count
 
-        # Test TC0 groups file
-        with open(os.path.join(yaml_dir, "tc0_groups.yaml")) as f:
-            tc0_config = yaml.safe_load(f)
-            assert tc0_config["group"] == "tc0_groups"
-            assert "task" in tc0_config
-            assert isinstance(tc0_config["task"], list)
-            assert len(tc0_config["task"]) > 0
-
-        # Test NC1 groups file
-        with open(os.path.join(yaml_dir, "nc1_groups.yaml")) as f:
-            nc1_config = yaml.safe_load(f)
-            assert nc1_config["group"] == "nc1_groups"
-            assert "task" in nc1_config
-            assert isinstance(nc1_config["task"], list)
-            assert len(nc1_config["task"]) > 0
-
-        # Test permutation groups file
-        with open(os.path.join(yaml_dir, "permutation_groups.yaml")) as f:
-            perm_config = yaml.safe_load(f)
-            assert perm_config["group"] == "permutation_groups"
-            assert "task" in perm_config
-            assert "tc0_groups" in perm_config["task"]
-            assert "nc1_groups" in perm_config["task"]
+    def test_no_group_config_files(self):
+        """No group config lives in this directory; see `test_tag_selectors`."""
+        yaml_dir = Path("lm_eval/tasks/permutation_benchmark")
+        group_configs = [
+            path.name
+            for path in sorted(yaml_dir.glob("*.yaml"))
+            if "group" in load_yaml(str(path), resolve_func=False)
+        ]
+        assert group_configs == []
 
     @patch("lm_eval.tasks.permutation_benchmark.group_composition_utils.load_dataset")
     def test_task_doc_processing(self, mock_load_dataset):
@@ -473,11 +482,11 @@ class TestIntegration:
             assert config["task"] == f"{group}_composition"
             assert "tag" in config
             assert "group_theory" in config["tag"]
-            assert "permutation_composition" in config["tag"]
+            assert "permutation_groups" in config["tag"]
 
             # Check complexity tag
             expected_complexity = "tc0" if group in ALL_TC0_GROUPS else "nc1"
-            assert expected_complexity in config["tag"]
+            assert f"{expected_complexity}_groups" in config["tag"]
 
             # Check output type
             assert config["output_type"] == "loglikelihood"
@@ -485,37 +494,6 @@ class TestIntegration:
             # Check metrics
             assert "metric_list" in config
             assert len(config["metric_list"]) == 100
-
-    def test_group_yaml_files(self):
-        """Test group aggregation YAML files."""
-        yaml_dir = "lm_eval/tasks/permutation_benchmark"
-
-        # Test TC0 groups file
-        with open(os.path.join(yaml_dir, "tc0_groups.yaml")) as f:
-            tc0_config = yaml.safe_load(f)
-            assert tc0_config["group"] == "tc0_groups"
-            assert len(tc0_config["task"]) == 72
-
-            # Check all TC0 tasks are included
-            for group in ALL_TC0_GROUPS:
-                assert f"{group}_composition" in tc0_config["task"]
-
-        # Test NC1 groups file
-        with open(os.path.join(yaml_dir, "nc1_groups.yaml")) as f:
-            nc1_config = yaml.safe_load(f)
-            assert nc1_config["group"] == "nc1_groups"
-            assert len(nc1_config["task"]) == 22
-
-            # Check all NC1 tasks are included
-            for group in ALL_NC1_GROUPS:
-                assert f"{group}_composition" in nc1_config["task"]
-
-        # Test main permutation groups file
-        with open(os.path.join(yaml_dir, "permutation_groups.yaml")) as f:
-            perm_config = yaml.safe_load(f)
-            assert perm_config["group"] == "permutation_groups"
-            assert "tc0_groups" in perm_config["task"]
-            assert "nc1_groups" in perm_config["task"]
 
 
 class TestErrorHandling:
@@ -576,26 +554,6 @@ class TestGeneratedFilesInSync:
         assert path.read_text(encoding="utf-8") == expected, (
             f"{path.name} is out of sync; re-run generate_tasks.py"
         )
-
-    def test_group_yaml_matches_generator(self):
-        """The three group YAML files are byte-identical to the generator output."""
-        generate_tasks = self._generator()
-        tc0 = sorted(
-            g for g, info in generate_tasks.GROUP_INFO.items() if info[2] == "tc0"
-        )
-        nc1 = sorted(
-            g for g, info in generate_tasks.GROUP_INFO.items() if info[2] == "nc1"
-        )
-        expected = {
-            "tc0_groups.yaml": generate_tasks.generate_group_yaml("tc0", tc0),
-            "nc1_groups.yaml": generate_tasks.generate_group_yaml("nc1", nc1),
-            "permutation_groups.yaml": generate_tasks.generate_benchmark_yaml(),
-        }
-        for filename, content in expected.items():
-            path = generate_tasks.HERE / filename
-            assert path.read_text(encoding="utf-8") == content, (
-                f"{filename} is out of sync; re-run generate_tasks.py"
-            )
 
     @pytest.mark.parametrize("group_name", ALL_TC0_GROUPS + ALL_NC1_GROUPS)
     def test_prompt_does_not_end_in_whitespace(self, group_name):

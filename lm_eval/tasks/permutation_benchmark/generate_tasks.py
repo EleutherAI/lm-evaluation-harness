@@ -128,26 +128,26 @@ def generate_metric_list() -> str:
     )
 
 
-def generate_aggregate_metric_list() -> str:
-    """Generate the per-sequence-length aggregate metric list for a group config."""
-    return "\n".join(
-        f'''  - metric: "{length}"
-    weight_by_size: false'''
-        for length in SEQ_LENGTHS
-    )
-
-
 def generate_task_yaml(
     group_id: str, group_name: str, group_desc: str, complexity: str
 ) -> str:
     """Generate YAML content for a single task."""
+    # Selection is by tag rather than by group config. `tests/test_tasks.py`
+    # loads every task config a change touches, and `TaskManager.load` rejects
+    # a request that names both a group and a task the group contains, which is
+    # what happens when a change touches a group file and its members at once.
+    # Tags give the same `--tasks permutation_groups|tc0_groups|nc1_groups`
+    # selection without that conflict; the trade-off is no aggregate row, which
+    # would be misleading here anyway because chance level is 1/|G| and group
+    # order ranges from 2 to 95040.
+    #
     # `doc_to_text` uses a `|-` block scalar so the rendered context does not end
     # in whitespace: for `loglikelihood` tasks the leading space of
     # `doc_to_target` is what separates the context from the continuation.
     return f"""tag:
   - group_theory
-  - permutation_composition
-  - {complexity}
+  - permutation_groups
+  - {complexity}_groups
 task: {group_id}_composition
 dataset_path: ""
 dataset_name: ""
@@ -173,34 +173,6 @@ metadata:
 """
 
 
-def generate_group_yaml(name: str, group_ids: list[str]) -> str:
-    """Generate YAML content for a complexity-class group file (TC0 or NC1)."""
-    tasks = "\n".join(f"  - {group_id}_composition" for group_id in group_ids)
-    return f"""group: {name}_groups
-task:
-{tasks}
-aggregate_metric_list:
-{generate_aggregate_metric_list()}
-metadata:
-  version: 1.0
-  description: Permutation composition tasks for {name.upper()} complexity class
-"""
-
-
-def generate_benchmark_yaml() -> str:
-    """Generate YAML content for the top-level `permutation_groups` file."""
-    return f"""group: permutation_groups
-task:
-  - tc0_groups
-  - nc1_groups
-aggregate_metric_list:
-{generate_aggregate_metric_list()}
-metadata:
-  version: 1.0
-  description: Permutation composition benchmark for evaluating state-tracking capabilities
-"""
-
-
 def write(filename: str, content: str) -> None:
     """Write `content` to `filename` inside the benchmark directory."""
     (HERE / filename).write_text(content, encoding="utf-8")
@@ -221,10 +193,6 @@ def main() -> None:
             tc0_groups.append(group_id)
         else:
             nc1_groups.append(group_id)
-
-    write("tc0_groups.yaml", generate_group_yaml("tc0", sorted(tc0_groups)))
-    write("nc1_groups.yaml", generate_group_yaml("nc1", sorted(nc1_groups)))
-    write("permutation_groups.yaml", generate_benchmark_yaml())
 
     print(f"\nTotal tasks generated: {len(GROUP_INFO)}")
     print(f"TC0 tasks: {len(tc0_groups)}")

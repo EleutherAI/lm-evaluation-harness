@@ -194,13 +194,23 @@ The Permutation Composition Benchmark evaluates a model's ability to perform per
 
 Each task evaluates models on composing sequences of permutations of varying lengths (5 to 500 elements in increments of 5), providing 100 different performance metrics per group. The composition follows the standard mathematical convention (right-to-left): p_n ∘ ... ∘ p_2 ∘ p_1.
 
-### Groups and Tasks
+### Selectors and Tasks
 
-#### Groups
+#### Selectors
+
+Each task carries the tags below, so any of them can be passed to `--tasks`:
 
 * `permutation_groups`: All 94 permutation groups (includes both TC⁰ and NC¹)
 * `tc0_groups`: All 72 TC⁰ (solvable) groups
 * `nc1_groups`: All 22 NC¹ (non-solvable) groups
+* `group_theory`: the same 94 tasks, under a broader category name
+
+These are tags rather than group configs, so the results table lists the
+selected tasks without an aggregate row. That is deliberate: chance level is
+1/|G| and group order here ranges from 2 (`c2`) to 95040 (`m12`), so a mean
+accuracy over a mixed set of groups would not be a meaningful number. It also
+keeps `tests/test_tasks.py` loadable, since `TaskManager.load` rejects a
+request that names both a group and a task that group contains.
 
 #### Individual Tasks
 
@@ -327,7 +337,8 @@ For adding novel benchmarks/datasets to the library:
 2. **Data Loading**: Each group has its own dataset loading function in `group_composition_utils.py`
 3. **Metric Processing**: Custom metric processing handles sequence length bucketing and aggregation
 4. **Memory Efficiency**: Tasks load data on-demand, and only the `test` split of the requested group is downloaded
-5. **Generated Configs**: the 94 `*_composition.yaml` files and the three group files are generated, not hand-edited. Edit `generate_tasks.py` and re-run it:
+5. **Selection**: `permutation_groups`, `tc0_groups` and `nc1_groups` are tags on the task configs, not group configs
+6. **Generated Configs**: the 94 `*_composition.yaml` files are generated, not hand-edited. Edit `generate_tasks.py` and re-run it:
 
    ```bash
    python lm_eval/tasks/permutation_benchmark/generate_tasks.py

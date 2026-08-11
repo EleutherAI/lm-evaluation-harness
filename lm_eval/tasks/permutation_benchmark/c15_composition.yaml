@@ -1,7 +1,7 @@
 tag:
   - group_theory
-  - permutation_composition
-  - tc0
+  - permutation_groups
+  - tc0_groups
 task: c15_composition
 dataset_path: ""
 dataset_name: ""
