@@ -1,9 +1,11 @@
 import logging
 
-from datasets import load_dataset
+from datasets import DatasetDict, load_dataset
 
 
 eval_logger = logging.getLogger(__name__)
+
+DATASET_PATH = "BeeGass/Group-Theory-Collection"
 
 # Define sequence lengths from 5 to 500 in increments of 5
 DEFAULT_SEQ_LENGTHS = list(range(5, 505, 5))
@@ -142,10 +144,7 @@ def create_length_specific_dataset(
     group_name: str, target_length: int, split: str = "test"
 ):
     """Create a dataset filtered to a specific sequence length range."""
-    # Load the dataset using name
-    dataset = load_dataset(
-        "BeeGass/Group-Theory-Collection", name=group_name, split=split
-    )
+    dataset = load_group_dataset(group_name, split=split)[split]
 
     # Filter to target length with some tolerance
     # We use a window of ±2 to ensure we have enough samples
@@ -170,14 +169,14 @@ def process_results(doc: dict, results) -> dict[str, float]:
     # For loglikelihood tasks, results is a tuple (log_likelihood, is_greedy)
     # where is_greedy indicates if the target was the greedy choice
     if results and len(results) == 2:
-        log_likelihood, is_greedy = results
+        _log_likelihood, is_greedy = results
         # Use accuracy (whether the greedy choice matches the target) as the metric
         score = float(is_greedy)
         metrics[str(closest_length)] = score
     elif results and len(results) == 1:
         # Sometimes results is wrapped in a list
         if isinstance(results[0], tuple) and len(results[0]) == 2:
-            log_likelihood, is_greedy = results[0]
+            _log_likelihood, is_greedy = results[0]
             score = float(is_greedy)
             metrics[str(closest_length)] = score
 
@@ -201,9 +200,38 @@ def aggregate_metrics(metrics: list[float]) -> float:
 
 
 # Generic dataset loader function
-def load_group_dataset(group_name: str, **kwargs):
-    """Load dataset for a specific group."""
-    return load_dataset("BeeGass/Group-Theory-Collection", name=group_name)
+def load_group_dataset(group_name: str, split: str = "test", **kwargs):
+    """Load the evaluation split of the collection for a specific group.
+
+    Only one split is fetched. Every task in this benchmark evaluates on
+    `test`, and the collection stores roughly 180MB per group per split, so
+    materialising `train` as well would download ~17GB for the full 94-group
+    benchmark and make the task-config CI job run out of disk.
+
+    The group is addressed by its data files rather than by config name. The
+    collection's card declares a per-config `features:` block, which
+    `datasets` releases older than 2.20 cannot parse; reading the Arrow files
+    directly takes the schema from the files themselves and works across the
+    whole range of `datasets` versions the harness resolves to.
+
+    Args:
+        group_name: Group whose subdirectory of the collection to read.
+        split: Split to fetch; defaults to the split the tasks evaluate on.
+        **kwargs: Ignored. `ConfigurableTask.download` splats the task's
+            `metadata` block into this callable, which carries harness-owned
+            keys such as `version` and `config_source`; they are not
+            `load_dataset` arguments.
+
+    Returns:
+        A `DatasetDict` holding the requested split, so that the task config's
+        `test_split: test` keeps resolving.
+    """
+    dataset = load_dataset(
+        DATASET_PATH,
+        data_files={split: f"data/{group_name}/{split}/*.arrow"},
+        split=split,
+    )
+    return DatasetDict({split: dataset})
 
 
 # Custom dataset loader functions for each group
