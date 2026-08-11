@@ -8,7 +8,7 @@ dataset_name: ""
 output_type: loglikelihood
 test_split: test
 custom_dataset: !function group_composition_utils.s3_dataset
-doc_to_text: |
+doc_to_text: |-
   You are given a sequence of permutations from the group S3 (symmetric group on 3 elements), identified by their integer IDs. Your task is to compute their composed product.
 
   The composition must be performed sequentially from right to left, following the standard mathematical convention (p_n ∘ ... ∘ p_2 ∘ p_1).

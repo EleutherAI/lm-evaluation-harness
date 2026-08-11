@@ -1,8 +1,21 @@
 #!/usr/bin/env python3
-"""Generate all task YAML files for the permutation benchmark."""
+"""Generate all task YAML files for the permutation benchmark.
 
-from typing import List
+Run from anywhere; the files are written next to this script::
 
+    python lm_eval/tasks/permutation_benchmark/generate_tasks.py
+
+The output of this script is committed to the repository, so it must already
+satisfy the repo pre-commit hooks (trailing newline, no trailing whitespace).
+"""
+
+from pathlib import Path
+
+
+HERE = Path(__file__).resolve().parent
+
+# Sequence lengths that each task reports a metric for.
+SEQ_LENGTHS = range(5, 505, 5)
 
 # Group information with descriptions
 GROUP_INFO = {
@@ -64,21 +77,21 @@ GROUP_INFO = {
     "f20": ("F20", "Frobenius group of order 20", "tc0"),
     "f21": ("F21", "Frobenius group of order 21", "tc0"),
     "v4": ("V4", "Klein four-group", "tc0"),
-    "z2_1": ("Z2¹", "elementary abelian group Z2", "tc0"),
-    "z2_2": ("Z2²", "elementary abelian group Z2²", "tc0"),
-    "z2_3": ("Z2³", "elementary abelian group Z2³", "tc0"),
-    "z2_4": ("Z2⁴", "elementary abelian group Z2⁴", "tc0"),
-    "z2_5": ("Z2⁵", "elementary abelian group Z2⁵", "tc0"),
-    "z3_1": ("Z3¹", "elementary abelian group Z3", "tc0"),
-    "z3_2": ("Z3²", "elementary abelian group Z3²", "tc0"),
-    "z3_3": ("Z3³", "elementary abelian group Z3³", "tc0"),
-    "z3_4": ("Z3⁴", "elementary abelian group Z3⁴", "tc0"),
-    "z5_1": ("Z5¹", "elementary abelian group Z5", "tc0"),
-    "z5_2": ("Z5²", "elementary abelian group Z5²", "tc0"),
-    "z5_3": ("Z5³", "elementary abelian group Z5³", "tc0"),
-    "z5_4": ("Z5⁴", "elementary abelian group Z5⁴", "tc0"),
-    "psl2_2": ("PSL(2,2)", "projective special linear group PSL(2,2)", "tc0"),
-    "psl2_3": ("PSL(2,3)", "projective special linear group PSL(2,3)", "tc0"),
+    "z2_1": ("Z_2^1", "elementary abelian group", "tc0"),
+    "z2_2": ("Z_2^2", "elementary abelian group", "tc0"),
+    "z2_3": ("Z_2^3", "elementary abelian group", "tc0"),
+    "z2_4": ("Z_2^4", "elementary abelian group", "tc0"),
+    "z2_5": ("Z_2^5", "elementary abelian group", "tc0"),
+    "z3_1": ("Z_3^1", "elementary abelian group", "tc0"),
+    "z3_2": ("Z_3^2", "elementary abelian group", "tc0"),
+    "z3_3": ("Z_3^3", "elementary abelian group", "tc0"),
+    "z3_4": ("Z_3^4", "elementary abelian group", "tc0"),
+    "z5_1": ("Z_5^1", "elementary abelian group", "tc0"),
+    "z5_2": ("Z_5^2", "elementary abelian group", "tc0"),
+    "z5_3": ("Z_5^3", "elementary abelian group", "tc0"),
+    "z5_4": ("Z_5^4", "elementary abelian group", "tc0"),
+    "psl2_2": ("PSL(2,2)", "projective special linear group", "tc0"),
+    "psl2_3": ("PSL(2,3)", "projective special linear group", "tc0"),
     # NC1 Groups (Non-Solvable)
     "s5": ("S5", "symmetric group on 5 elements", "nc1"),
     "s6": ("S6", "symmetric group on 6 elements", "nc1"),
@@ -90,36 +103,47 @@ GROUP_INFO = {
     "a7": ("A7", "alternating group on 7 elements", "nc1"),
     "a8": ("A8", "alternating group on 8 elements", "nc1"),
     "a9": ("A9", "alternating group on 9 elements", "nc1"),
-    "psl2_4": ("PSL(2,4)", "projective special linear group PSL(2,4)", "nc1"),
-    "psl2_5": ("PSL(2,5)", "projective special linear group PSL(2,5)", "nc1"),
-    "psl2_7": ("PSL(2,7)", "projective special linear group PSL(2,7)", "nc1"),
-    "psl2_8": ("PSL(2,8)", "projective special linear group PSL(2,8)", "nc1"),
-    "psl2_9": ("PSL(2,9)", "projective special linear group PSL(2,9)", "nc1"),
-    "psl2_11": ("PSL(2,11)", "projective special linear group PSL(2,11)", "nc1"),
-    "psl3_2": ("PSL(3,2)", "projective special linear group PSL(3,2)", "nc1"),
-    "psl3_3": ("PSL(3,3)", "projective special linear group PSL(3,3)", "nc1"),
-    "psl3_4": ("PSL(3,4)", "projective special linear group PSL(3,4)", "nc1"),
-    "psl3_5": ("PSL(3,5)", "projective special linear group PSL(3,5)", "nc1"),
-    "m11": ("M11", "Mathieu group M11", "nc1"),
-    "m12": ("M12", "Mathieu group M12", "nc1"),
+    "psl2_4": ("PSL(2,4)", "projective special linear group", "nc1"),
+    "psl2_5": ("PSL(2,5)", "projective special linear group", "nc1"),
+    "psl2_7": ("PSL(2,7)", "projective special linear group", "nc1"),
+    "psl2_8": ("PSL(2,8)", "projective special linear group", "nc1"),
+    "psl2_9": ("PSL(2,9)", "projective special linear group", "nc1"),
+    "psl2_11": ("PSL(2,11)", "projective special linear group", "nc1"),
+    "psl3_2": ("PSL(3,2)", "projective special linear group", "nc1"),
+    "psl3_3": ("PSL(3,3)", "projective special linear group", "nc1"),
+    "psl3_4": ("PSL(3,4)", "projective special linear group", "nc1"),
+    "psl3_5": ("PSL(3,5)", "projective special linear group", "nc1"),
+    "m11": ("M11", "Mathieu group", "nc1"),
+    "m12": ("M12", "Mathieu group", "nc1"),
 }
 
 
 def generate_metric_list() -> str:
-    """Generate the metric list for all sequence lengths."""
-    metrics = []
-    # Generate all 100 metrics from 5 to 500 in increments of 5
-    for length in range(5, 505, 5):
-        metrics.append(f"""  - metric: "{length}"
+    """Generate the per-sequence-length metric list for a task config."""
+    return "\n".join(
+        f'''  - metric: "{length}"
     aggregation: !function group_composition_utils.aggregate_metrics
-    higher_is_better: true""")
-    return "\n".join(metrics)
+    higher_is_better: true'''
+        for length in SEQ_LENGTHS
+    )
+
+
+def generate_aggregate_metric_list() -> str:
+    """Generate the per-sequence-length aggregate metric list for a group config."""
+    return "\n".join(
+        f'''  - metric: "{length}"
+    weight_by_size: false'''
+        for length in SEQ_LENGTHS
+    )
 
 
 def generate_task_yaml(
     group_id: str, group_name: str, group_desc: str, complexity: str
 ) -> str:
     """Generate YAML content for a single task."""
+    # `doc_to_text` uses a `|-` block scalar so the rendered context does not end
+    # in whitespace: for `loglikelihood` tasks the leading space of
+    # `doc_to_target` is what separates the context from the continuation.
     return f"""tag:
   - group_theory
   - permutation_composition
@@ -130,99 +154,77 @@ dataset_name: ""
 output_type: loglikelihood
 test_split: test
 custom_dataset: !function group_composition_utils.{group_id}_dataset
-doc_to_text: |
+doc_to_text: |-
   You are given a sequence of permutations from the group {group_name} ({group_desc}), identified by their integer IDs. Your task is to compute their composed product.
 
   The composition must be performed sequentially from right to left, following the standard mathematical convention (p_n ∘ ... ∘ p_2 ∘ p_1).
 
   Sequence: {{{{input_sequence}}}}
 
-  Question: What is the integer ID of the final composed permutation?
+  Question: What is the single integer ID of the final composed permutation? Your response must be only the integer.
 
   Answer:
-doc_to_target: "{{{{target}}}}"
+doc_to_target: " {{{{target}}}}"
 process_results: !function group_composition_utils.process_results
 metric_list:
 {generate_metric_list()}
 metadata:
-  version: 1.0"""
+  version: 1.0
+"""
 
 
-def generate_group_yaml(name: str, groups: List[str]) -> str:
-    """Generate YAML content for a group file (TC0 or NC1)."""
-    tasks = [f"  - {group}_composition" for group in groups]
-
-    # Generate all 100 aggregate metrics
-    aggregate_metrics = []
-    for length in range(5, 505, 5):
-        aggregate_metrics.append(f"""  - metric: "{length}"
-    weight_by_size: false""")
-
+def generate_group_yaml(name: str, group_ids: list[str]) -> str:
+    """Generate YAML content for a complexity-class group file (TC0 or NC1)."""
+    tasks = "\n".join(f"  - {group_id}_composition" for group_id in group_ids)
     return f"""group: {name}_groups
 task:
-{chr(10).join(tasks)}
+{tasks}
 aggregate_metric_list:
-{chr(10).join(aggregate_metrics)}
+{generate_aggregate_metric_list()}
 metadata:
   version: 1.0
-  description: Permutation composition tasks for {name.upper()} complexity class"""
+  description: Permutation composition tasks for {name.upper()} complexity class
+"""
 
 
-def main():
+def generate_benchmark_yaml() -> str:
+    """Generate YAML content for the top-level `permutation_groups` file."""
+    return f"""group: permutation_groups
+task:
+  - tc0_groups
+  - nc1_groups
+aggregate_metric_list:
+{generate_aggregate_metric_list()}
+metadata:
+  version: 1.0
+  description: Permutation composition benchmark for evaluating state-tracking capabilities
+"""
+
+
+def write(filename: str, content: str) -> None:
+    """Write `content` to `filename` inside the benchmark directory."""
+    (HERE / filename).write_text(content, encoding="utf-8")
+    print(f"Generated {filename}")
+
+
+def main() -> None:
     """Generate all task files."""
-    # Create lists for TC0 and NC1 groups
-    tc0_groups = []
-    nc1_groups = []
+    tc0_groups: list[str] = []
+    nc1_groups: list[str] = []
 
-    # Generate individual task files
     for group_id, (group_name, group_desc, complexity) in GROUP_INFO.items():
-        filename = f"{group_id}_composition.yaml"
-        content = generate_task_yaml(group_id, group_name, group_desc, complexity)
-
-        print(f"Generated {filename}")
-
-        # Write the file
-        with open(filename, "w") as f:
-            f.write(content)
-
-        # Add to appropriate list
+        write(
+            f"{group_id}_composition.yaml",
+            generate_task_yaml(group_id, group_name, group_desc, complexity),
+        )
         if complexity == "tc0":
             tc0_groups.append(group_id)
         else:
             nc1_groups.append(group_id)
 
-    # Generate group files
-    tc0_content = generate_group_yaml("tc0", sorted(tc0_groups))
-    nc1_content = generate_group_yaml("nc1", sorted(nc1_groups))
-
-    print("\nGenerated tc0_groups.yaml")
-    print("Generated nc1_groups.yaml")
-
-    # Generate main group file with all 100 aggregate metrics
-    aggregate_metrics = []
-    for length in range(5, 505, 5):
-        aggregate_metrics.append(f"""  - metric: "{length}"
-    weight_by_size: false""")
-
-    main_content = f"""group: permutation_groups
-task:
-  - tc0_groups
-  - nc1_groups
-aggregate_metric_list:
-{chr(10).join(aggregate_metrics)}
-metadata:
-  version: 1.0
-  description: Permutation composition benchmark for evaluating state-tracking capabilities"""
-
-    print("Generated permutation_groups.yaml")
-
-    # Write files
-    with open("tc0_groups.yaml", "w") as f:
-        f.write(tc0_content)
-    with open("nc1_groups.yaml", "w") as f:
-        f.write(nc1_content)
-    with open("permutation_groups.yaml", "w") as f:
-        f.write(main_content)
+    write("tc0_groups.yaml", generate_group_yaml("tc0", sorted(tc0_groups)))
+    write("nc1_groups.yaml", generate_group_yaml("nc1", sorted(nc1_groups)))
+    write("permutation_groups.yaml", generate_benchmark_yaml())
 
     print(f"\nTotal tasks generated: {len(GROUP_INFO)}")
     print(f"TC0 tasks: {len(tc0_groups)}")
