@@ -47,6 +47,8 @@ MODEL_MAPPING = {
     "neuronx": "lm_eval.models.neuron_optimum:NeuronModelForCausalLM",
     "openai-chat-completions": "lm_eval.models.openai_completions:OpenAIChatCompletion",
     "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
+    "orcarouter": "lm_eval.models.orcarouter_llms:OrcaRouterChatCompletion",
+    "orcarouter-chat-completions": "lm_eval.models.orcarouter_llms:OrcaRouterChatCompletion",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
     "habana": "lm_eval.models.optimum_habana:HabanaLM",
     "sglang": "lm_eval.models.sglang_causallms:SGLangLM",
