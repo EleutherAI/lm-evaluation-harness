@@ -8,6 +8,9 @@ from lm_eval.models.api_models import create_image_prompt
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 
 
+TEST_AUTH_TOKEN = "secure-token"  # noqa: S105 - fixed test sentinel
+
+
 @pytest.fixture
 def api():
     return LocalCompletionsAPI(
@@ -314,12 +317,12 @@ def test_local_completionsapi_remote_tokenizer_authenticated(monkeypatch):
         tokenizer_backend="remote",
         verify_certificate=True,
         ca_cert_path="secure.crt",
-        auth_token="secure-token",
+        auth_token=TEST_AUTH_TOKEN,
     )
     assert captured["base_url"] == "https://secure-server"
     assert captured["verify_certificate"] is True
     assert captured["ca_cert_path"] == "secure.crt"
-    assert captured["auth_token"] == "secure-token"
+    assert captured["auth_token"] == TEST_AUTH_TOKEN
 
 
 def test_local_completionsapi_remote_tokenizer_unauthenticated(monkeypatch):
@@ -362,12 +365,12 @@ def test_localchatcompletion_remote_tokenizer_authenticated(monkeypatch):
         tokenizer_backend="remote",
         verify_certificate=True,
         ca_cert_path="secure.crt",
-        auth_token="secure-token",
+        auth_token=TEST_AUTH_TOKEN,
     )
     assert captured["base_url"] == "https://secure-server"
     assert captured["verify_certificate"] is True
     assert captured["ca_cert_path"] == "secure.crt"
-    assert captured["auth_token"] == "secure-token"
+    assert captured["auth_token"] == TEST_AUTH_TOKEN
 
 
 def test_localchatcompletion_remote_tokenizer_unauthenticated(monkeypatch):
