@@ -123,6 +123,24 @@ def test_model_generate_call_usage(
         assert result == {"result": "success"}
 
 
+def test_model_call_passes_configured_timeout():
+    api = LocalCompletionsAPI(
+        base_url="http://test-url.com",
+        tokenizer_backend=None,
+        model="gpt-3.5-turbo",
+        timeout=17,
+    )
+
+    with patch("requests.post") as mock_post:
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"result": "success"}
+        mock_post.return_value = mock_response
+
+        api.model_call(["Hello"], generate=True, gen_kwargs={})
+
+        assert mock_post.call_args.kwargs["timeout"] == 17
+
+
 @pytest.mark.parametrize(
     "input_messages, generate, gen_kwargs, expected_payload",
     [

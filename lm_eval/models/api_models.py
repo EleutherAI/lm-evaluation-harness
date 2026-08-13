@@ -479,6 +479,7 @@ class TemplateAPI(TemplateLM):
                 ),
                 headers=self.header,
                 verify=self.verify_certificate,
+                timeout=self.timeout,
             )
             if not response.ok:
                 eval_logger.warning(
