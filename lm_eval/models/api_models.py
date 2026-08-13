@@ -167,11 +167,14 @@ class TemplateAPI(TemplateLM):
             eval_logger.warning(
                 "Automatic batch size is not supported for API models. Defaulting to batch size 1."
             )
+            self._batch_size = 1
         elif int(batch_size) > 1:
             eval_logger.warning(
                 "Batch size > 1 detected. Ensure your API supports batched requests with varying total sequence lengths."
             )
-        self._batch_size = int(batch_size) if batch_size != "auto" else 1
+            self._batch_size = int(batch_size)
+        else:
+            self._batch_size = int(batch_size)
         self._truncate = truncate
         self._max_gen_toks = int(max_gen_toks)
         self._seed = int(seed)
