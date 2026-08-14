@@ -148,6 +148,12 @@ low-rank submodels at multiple parameter budgets. Install the FlexRank runtime,
 then use the `flexrank` backend and select a submodel with either `size_ratio`
 or `compression_rate`:
 
+Until FlexRank is available on PyPI, install it from its source repository:
+
+```bash
+pip install "git+https://github.com/RickZack/FlexRank.git#subdirectory=flexrank"
+```
+
 ```bash
 lm_eval --model flexrank \
     --model_args pretrained=/path/to/flexrank-checkpoint,size_ratio=0.5,trust_remote_code=True \
