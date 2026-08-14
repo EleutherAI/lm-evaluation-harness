@@ -1,10 +1,5 @@
 task: vera
-dataset_path: DFKI-SLT/vera
-dataset_name: null
-dataset_kwargs: null
-
-training_split: null
-validation_split: null
+dataset_path: DFKI-SLT/SEGData
 test_split: train
 
 doc_to_image:
@@ -14,17 +9,27 @@ doc_to_text: |
   <image>
   Beschreibung: {{ description }}
   Frage: {{ text }}
-  Antwortmöglichkeiten: {{ answers }}
+  Antwortmöglichkeiten:
+  {{ answers | join("\n") }}
   Antwort:
-
-
 doc_to_target: gold_answer
 
 output_type: generate_until
 generation_kwargs:
-  max_gen_toks: 5
+  until:
+    - "\n\n"
+  max_gen_toks: 16
   temperature: 0.0
   do_sample: false
+
+filter_list:
+  - name: strict-match
+    filter:
+      # `gold_answer` is always a single letter, so take the first standalone
+      # letter in the response. Case is normalized by the metric below.
+      - function: regex
+        regex_pattern: "\\b([A-Za-z])\\b"
+      - function: take_first
 
 metric_list:
   - metric: exact_match
