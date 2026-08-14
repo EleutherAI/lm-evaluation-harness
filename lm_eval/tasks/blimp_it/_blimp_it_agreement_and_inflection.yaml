@@ -1,0 +1,24 @@
+group: blimp_it_agreement_and_inflection
+task:
+  - "blimp_it_agreement_and_inflection_dp"
+  - "conversa_a_agreement_dp"
+  - "conversa_a_agreement_past_participle_pre_v_cl"
+  - "conversa_a_agreement_past_participle_unacc"
+  - "conversa_a_agreement_psych_verbs_piacere"
+  - "conversa_a_agreement_psych_verbs_preoccupare"
+  - "conversa_a_agreement_subject_nominal_predicate"
+  - "conversa_a_agreement_subject_nominal_predicate_attraction"
+  - "conversa_a_agreement_subject_verb_attraction"
+  - "conversa_a_agreement_subject_verb_cumulative"
+  - "conversa_a_agreement_subject_verb_trans"
+  - "conversa_a_agreement_subject_verb_unacc"
+  - "conversa_a_agreement_subject_verb_unerg"
+  - "conversa_a_agreement_subject_verb_unerg_trans"
+  - "conversa_a_agreement_verb_subject_unacc"
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
+  description: "BLiMP-IT — Agreement & Inflection"

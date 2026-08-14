@@ -1,7 +1,8 @@
 dataset_path: NeTSlab/BLiMP-IT
 output_type: multiple_choice
-validation_split: train
+test_split: test
 doc_to_text: ""
+target_delimiter: ""
 doc_to_target: 0
 doc_to_choice: "{{[sentence_good, sentence_bad]}}"
 num_fewshot: 0

@@ -117,10 +117,10 @@ Some phenomena originate from the original BLiMP benchmark, while others are ada
   - `conversa_a_agreement_subject_nominal_predicate_attraction`
 
 - Past participle agreement
-  - `conversa_a_agreement_past_particple_pre_v_cl`
-  - `conversa_a_agreement_past_particple_unacc`
-  - `conversa_a_past_particple_pre_v_cl`
-  - `conversa_a_past_particple_unacc`
+  - `conversa_a_agreement_past_participle_pre_v_cl`
+  - `conversa_a_agreement_past_participle_unacc`
+  - `conversa_a_past_participle_pre_v_cl`
+  - `conversa_a_past_participle_unacc`
 
 - Psych verbs
   - `conversa_a_agreement_psych_verbs_piacere`
@@ -141,14 +141,14 @@ Some phenomena originate from the original BLiMP benchmark, while others are ada
   - `conversa_b_auxiliary_selection_transitives`
   - `conversa_b_auxiliary_selection_unaccusatives`
   - `conversa_b_auxiliary_selection_unergatives`
-  - `conversa_b_auxiliary_selection_ditranstitives`
+  - `conversa_b_auxiliary_selection_ditransitives`
   - `conversa_b_auxiliary_selection_passive_active_diathesis`
 
 - Argument structure variants
   - `conversa_b_argument_structure_b_auxiliary_selection_transitives`
   - `conversa_b_argument_structure_b_auxiliary_selection_unaccusatives`
   - `conversa_b_argument_structure_b_auxiliary_selection_unergatives`
-  - `conversa_b_argument_structure_b_auxiliary_selection_ditranstitives`
+  - `conversa_b_argument_structure_b_auxiliary_selection_ditransitives`
   - `conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis`
 
 ---
@@ -194,16 +194,16 @@ Some phenomena originate from the original BLiMP benchmark, while others are ada
 
 Configurations include
 
-- `conversa_d_answering_yes_no_questions`
-- `conversa_d_answering_why_questions`
-- `conversa_d_answering_wh_adjunct_questions`
-- `conversa_d_answering_wh_argument_questions`
-- `conversa_d_answering_wh_argument_questions_number_disambiguation`
-- `conversa_d_answering_questions_with_rc_subj`
-- `conversa_d_answering_questions_with_rc_obj`
-- `conversa_d_question_formation_subject_position`
+- `conversa_d_questions_answering_yes_no_questions`
+- `conversa_d_questions_answering_why_questions`
+- `conversa_d_questions_answering_wh_adjunct_questions`
+- `conversa_d_questions_answering_wh_argument_questions`
+- `conversa_d_questions_answering_wh_argument_questions_number_disambiguation`
+- `conversa_d_questions_answering_questions_with_rc_subj`
+- `conversa_d_questions_answering_questions_with_rc_obj`
+- `conversa_d_questions_question_formation_subject_position`
 
-and their corresponding `conversa_d_questions_*` variants.
+all exposed under the `conversa_d_questions_*` naming scheme.
 
 ---
 
@@ -246,7 +246,7 @@ The benchmark contains extensive coverage of filler–gap dependencies and synta
 
 - adjunct island variants
 
-Both the original BLiMP-derived (`blimp_it_original_non_local_dependencies_*`) and the manually refined (`non_local_dependencies_*`) versions are included.
+These are exposed as `blimp_it_non_local_dependencies_*` tasks (the underlying data files on the Hub are stored under `blimp_it_original_non_local_dependencies_*`).
 
 ---
 
@@ -319,6 +319,25 @@ BLiMP-IT is intended for
 # License
 
 CC BY-SA 4.0
+
+---
+
+# Groups and Tasks
+
+#### Groups
+
+* `blimp_it`: the full benchmark; unweighted mean accuracy over the four macro-phenomena below.
+* `blimp_it_agreement_and_inflection`: determiner-noun, subject-verb, predicate and past-participle agreement, plus psych verbs (15 paradigms).
+* `blimp_it_argument_structure`: theta-role assignment and auxiliary selection (6 paradigms).
+* `blimp_it_pronouns`: personal pronouns, clitics and reflexives (8 paradigms).
+* `blimp_it_non_local_dependencies`: filler-gap dependencies, islands, across-the-board movement, parasitic gaps and question formation/comprehension (40 paradigms).
+
+Aggregation is an unweighted mean at both levels, following the convention of the original `blimp` task. Paradigm sizes range from 4 to 344 pairs, so size-weighted aggregation would be dominated by a handful of the larger non-local-dependency conditions.
+
+#### Tasks
+
+69 paradigms in total, one per Hugging Face configuration of `NeTSlab/BLiMP-IT`. Task names match their `dataset_name` exactly. Individual paradigms can be run directly, e.g. `--tasks blimp_it_non_local_dependencies_wh_island_embedd`.
+
 
 ### Checklist
 

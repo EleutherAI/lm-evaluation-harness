@@ -1,4 +1,0 @@
-dataset_name: conversa_d_answering_wh_argument_questions_number_disambiguation
-dataset_path: NeTSlab/BLiMP-IT
-include: _template_yaml
-task: conversa_d_answering_wh_argument_questions_number_disambiguation

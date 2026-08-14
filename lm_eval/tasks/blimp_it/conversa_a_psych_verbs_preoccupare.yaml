@@ -1,4 +1,0 @@
-dataset_name: conversa_a_psych_verbs_preoccupare
-dataset_path: NeTSlab/BLiMP-IT
-include: _template_yaml
-task: conversa_a_psych_verbs_preoccupare

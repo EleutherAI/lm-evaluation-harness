@@ -1,4 +1,0 @@
-dataset_name: conversa_b_auxiliary_selection_transtitives
-dataset_path: NeTSlab/BLiMP-IT
-include: _template_yaml
-task: conversa_b_auxiliary_selection_transtitives
