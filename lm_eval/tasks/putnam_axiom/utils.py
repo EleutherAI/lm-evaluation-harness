@@ -1,21 +1,30 @@
+from __future__ import annotations
+
 import logging
 import re
 import signal
-from typing import Dict, List, Optional
+from importlib.metadata import version
+from typing import TYPE_CHECKING
 
-import datasets
+
+if TYPE_CHECKING:
+    import datasets
 
 
 eval_logger = logging.getLogger(__name__)
 
+
 try:
     import sympy
     from sympy.parsing.latex import parse_latex
-except ModuleNotFoundError:
+
+    # `parse_latex` needs the antlr4 runtime at call time, but importing sympy does not.
+    assert version("antlr4-python3-runtime").startswith("4.11")
+except (ModuleNotFoundError, AssertionError) as e:
     raise ModuleNotFoundError(
-        "`sympy` is required for generating translation task prompt templates. \
-please install sympy via pip install lm-eval[math] or pip install -e .[math]",
-    )
+        "`sympy` and `antlr4-python3-runtime==4.11` are required for this task. "
+        "Please install the required packages via pip install lm-eval[math] or pip install -e .[math]"
+    ) from e
 
 
 # taken from
@@ -26,16 +35,13 @@ def doc_to_text(doc: dict) -> str:
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc: dict) -> dict:
-        out_doc = {
+        return {
             "problem": doc["problem"],
             "solution": doc["solution"],
             "answer": normalize_final_answer(
                 remove_boxed(last_boxed_only_string(doc["solution"]))
             ),
         }
-        if getattr(doc, "few_shot", None) is not None:
-            out_doc["few_shot"] = True
-        return out_doc
 
     return dataset.map(_process_doc)
 
@@ -43,30 +49,13 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 def process_variations(
     dataset: datasets.Dataset,
 ) -> datasets.Dataset:
-    # Always filter for variation=1, as that's all that exists in the variations split
+    # Every row in the variations split currently has variation==1, so this filter is
+    # a no-op today; it is kept so the task stays correct if further variation indices
+    # are added upstream.
     def filter_doc(doc: dict) -> bool:
-        return int(doc.get("variation")) == 1
+        return int(doc["variation"]) == 1
 
-    filtered_dataset = dataset.filter(filter_doc)
-
-    # Further processing if needed
-    def _process_doc(doc: dict) -> dict:
-        try:
-            out_doc = {
-                "problem": doc["problem"],
-                "solution": doc["solution"],
-                "answer": normalize_final_answer(
-                    remove_boxed(last_boxed_only_string(doc["solution"]))
-                ),
-            }
-        except Exception:
-            print(doc["problem"])
-        if getattr(doc, "few_shot", None) is not None:
-            out_doc["few_shot"] = True
-        return out_doc
-
-    processed_dataset = filtered_dataset.map(_process_doc, batched=False)
-    return processed_dataset
+    return process_docs(dataset.filter(filter_doc))
 
 
 def list_fewshot_samples() -> list[dict]:
@@ -94,12 +83,12 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidates = results[0]
 
     try:
         answer = ground_truth_boxed_answer(candidates)
-    except Exception:
+    except Exception:  # noqa: BLE001
         answer = get_generated_answer(candidates)
 
     if is_equiv(answer, doc["answer"]):
@@ -125,7 +114,7 @@ def get_generated_answer(result: str) -> str:
     return answer
 
 
-def last_boxed_only_string(string: str) -> Optional[str]:
+def last_boxed_only_string(string: str) -> str | None:
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
         return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
@@ -186,9 +175,7 @@ class timeout:
 
 
 def is_equiv(x1: str, x2: str) -> bool:
-    """
-    x1 and x2 are normalized latex string
-    """
+    """x1 and x2 are normalized latex string."""
     try:
         with timeout(seconds=5):
             try:
@@ -199,32 +186,29 @@ def is_equiv(x1: str, x2: str) -> bool:
                 sympy.SympifyError,
                 TypeError,
             ):
-                eval_logger.debug(f"couldn't parse one of {x1} or {x2}")
+                eval_logger.debug("couldn't parse one of %s or %s", x1, x2)
                 return False
 
             try:
                 diff = parsed_x1 - parsed_x2
             except TypeError:
-                eval_logger.debug(f"couldn't subtract {x1} and {x2}")
+                eval_logger.debug("couldn't subtract %s and %s", x1, x2)
                 return False
 
             try:
-                if sympy.simplify(diff) == 0:
-                    return True
-                else:
-                    return False
+                return sympy.simplify(diff) == 0
             except ValueError:
                 eval_logger.debug(
-                    f"Had some trouble simplifying when comparing {x1} and {x2}"
+                    "Had some trouble simplifying when comparing %s and %s", x1, x2
                 )
     except TimeoutError:
-        eval_logger.debug(f"Timed out comparing {x1} and {x2}")
+        eval_logger.debug("Timed out comparing %s and %s", x1, x2)
         return False
     except ImportError as e:
         eval_logger.error(e)
         raise
-    except Exception as e:
-        eval_logger.debug(f"Failed comparing {x1} and {x2} with {e}")
+    except Exception as e:  # noqa: BLE001
+        eval_logger.debug("Failed comparing %s and %s with %s", x1, x2, e)
         return False
 
 
@@ -305,8 +289,7 @@ REMOVED_EXPRESSIONS = [
 
 
 def normalize_final_answer(final_answer: str) -> str:
-    """
-    Normalize a final answer to a quantitative reasoning question.
+    """Normalize a final answer to a quantitative reasoning question.
 
     Copied character for character from appendix D of Lewkowycz et al. (2022)
     """
