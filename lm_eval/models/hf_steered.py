@@ -1,23 +1,29 @@
+from __future__ import annotations
+
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import torch
-from peft.peft_model import PeftModel
-from torch import Tensor, nn
-from transformers import PreTrainedModel
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+
+    from peft.peft_model import PeftModel
+    from torch import Tensor, nn
+    from transformers import PreTrainedModel
+
+
 @contextmanager
 def steer(
-    model: Union[PreTrainedModel, PeftModel], hook_to_steer: dict[str, Callable]
+    model: PreTrainedModel | PeftModel, hook_to_steer: dict[str, Callable]
 ) -> Generator[None, Any, None]:
-    """
-    Context manager that temporarily hooks models and steers them.
+    """Context manager that temporarily hooks models and steers them.
 
     Args:
         model: The transformer model to hook
@@ -28,7 +34,7 @@ def steer(
     """
 
     def create_hook(hookpoint: str):
-        def hook_fn(module: nn.Module, input: Any, output: Tensor):
+        def hook_fn(module: nn.Module, input: Any, output: Tensor):  # noqa: A002
             # If output is a tuple (like in some transformer layers), take first element
             if isinstance(output, tuple):
                 output = (hook_to_steer[hookpoint](output[0]), *output[1:])  # type: ignore
@@ -65,11 +71,10 @@ class SteeredModel(HFLM):
         self,
         pretrained: str,
         steer_path: str,
-        device: Optional[str] = None,
+        device: str | None = None,
         **kwargs,
     ):
-        """
-        HFLM with a steered forward pass.
+        """HFLM with a steered forward pass.
 
         To load steering vectors directly, provide the path to a pytorch (.pt) file with content in the following format:
 
@@ -95,9 +100,10 @@ class SteeredModel(HFLM):
 
         if steer_path.endswith(".pt") or steer_path.endswith(".pth"):
             with open(steer_path, "rb") as f:
-                steer_config: dict[str, dict[str, Any]] = torch.load(
-                    f, weights_only=True
-                )
+                # steer_config: dict[str, dict[str, Any]] = torch.load(
+                #     f, weights_only=True
+                # )
+                steer_config = torch.load(f, weights_only=False)
         elif steer_path.endswith(".csv"):
             steer_config = self.derive_steer_config(steer_path)
         else:
@@ -205,7 +211,7 @@ class SteeredModel(HFLM):
         cls,
         acts: Tensor,
         vector: Tensor,
-        head_index: Optional[int],
+        head_index: int | None,
     ):
         """Adds the given vector to the activations.
 
@@ -227,11 +233,10 @@ class SteeredModel(HFLM):
         acts: Tensor,
         direction: Tensor,
         value: float,
-        head_index: Optional[int],
-        bias: Optional[Tensor] = None,
+        head_index: int | None,
+        bias: Tensor | None = None,
     ):
-        """Clamps the activations to a given value in a specified direction. The direction
-        must be a unit vector.
+        """Clamps the activations to a given value in a specified direction. The direction must be a unit vector.
 
         Args:
             acts (Tensor): The activations tensor to edit of shape [batch, pos, ..., features]
@@ -263,9 +268,8 @@ class SteeredModel(HFLM):
         return clamped
 
     def forward(self, *args, **kwargs):
-        with torch.no_grad():
-            with steer(self.model, self.hook_to_steer):
-                return self.model.forward(*args, **kwargs)
+        with torch.no_grad(), steer(self.model, self.hook_to_steer):
+            return self.model.forward(*args, **kwargs)
 
     def _model_call(self, *args, **kwargs):
         with steer(self.model, self.hook_to_steer):

@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import re
 import sys
-import unicodedata
+from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 @register_filter("regex")
@@ -21,8 +27,8 @@ class RegexFilter(Filter):
         group_select: int = 0,
         fallback: str = "[invalid]",
     ) -> None:
-        """
-        pass a string `regex` to run `re.compile(r"regex")` on.
+        """Compile `regex_pattern` and set the fallback for non-matches.
+
         `fallback` defines the output returned if no matches for the regex are located.
         """
         self.regex_pattern = regex_pattern
@@ -30,12 +36,10 @@ class RegexFilter(Filter):
         self.group_select = group_select
         self.fallback = fallback
 
-    def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-        # here, we assume we have a list, in which each element is
-        # a list of model responses for some particular input/target pair.
-        # so we process each of these (same input/target response sets)
-        # independently (and keep them a list.)
-        def filter_set(inst):
+    def apply(
+        self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
+    ) -> Iterable[list[str]]:
+        def filter_set(inst: Sequence[str]) -> list[str]:
             filtered = []
             for resp in inst:
                 if not isinstance(resp, str):
@@ -55,13 +59,12 @@ class RegexFilter(Filter):
                 filtered.append(match)
             return filtered
 
-        filtered_resps = list(map(lambda x: filter_set(x), resps))
-        return filtered_resps
+        return [filter_set(x) for x in resps]
 
 
 @register_filter("regex_pos")
 class POSFilter(Filter):
-    """ """
+    """Extract part-of-speech tags from model responses."""
 
     def __init__(
         self,
@@ -69,8 +72,8 @@ class POSFilter(Filter):
         group_select=0,
         fallback=None,
     ) -> None:
-        """
-        pass a string `regex` to run `re.compile(r"regex")` on.
+        """Compile `regex_pattern` and set the fallback for non-matches.
+
         `fallback` defines the output returned if no matches for the regex are located.
         """
         if fallback is None:
@@ -80,7 +83,7 @@ class POSFilter(Filter):
         self.group_select = group_select
         self.fallback = fallback
 
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         def extract_tagged_tokens(text):
             # Extract tagged tokens list from text input using regex
             tokens = re.findall(r"\('([^']*)', '([^']*)'\)", text)
@@ -91,7 +94,7 @@ class POSFilter(Filter):
             if isinstance(result, str):
                 result = extract_tagged_tokens(result)
             pos_tags.extend(pos for _, pos in result)
-            return pos_tags if pos_tags else self.fallback
+            return pos_tags or self.fallback
 
         def filter_set(inst):
             filtered = []
@@ -100,74 +103,75 @@ class POSFilter(Filter):
                 filtered.append(match)
             return filtered
 
-        filtered_resps = map(lambda x: filter_set(x), resps)
-
-        return filtered_resps
+        return (filter_set(x) for x in resps)
 
 
 @register_filter("remove_whitespace")
 class WhitespaceFilter(Filter):
     """Filters out leading and trailing whitespace from responses."""
 
-    def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-        def filter_set(inst):
-            filtered_resp = []
-            for resp in inst:
-                resp = resp.strip()
-                filtered_resp.append(resp)
-            return filtered_resp
+    def apply(
+        self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
+    ) -> list[list[str]]:
+        def filter_set(inst: Sequence[str]) -> list[str]:
+            return [resp.strip() for resp in inst]
 
-        filtered_resps = [filter_set(resp) for resp in resps]
-
-        return filtered_resps
+        return [filter_set(resp) for resp in resps]
 
 
 @register_filter("multi_choice_regex")
 class MultiChoiceRegexFilter(RegexFilter):
-    """
-    A filter used to extract a model's answer on multiple choice questions with
-    letter answers. assumes each document has a "choices" field
-    containing the list of answer choices and that the answer label symbols
-    are of the form (A), (B), (C), ... or A, B, C.
+    """Extract a model's answer on multiple choice questions with letter answers.
+
+    Assumes each document has a "choices" field containing the list of answer choices
+    and that the answer label symbols are of the form (A), (B), (C), ... or A, B, C.
     """
 
     def __init__(
         self,
         regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
-        group_select=0,
+        group_select: int = 0,
         fallback: str = "[invalid]",
-        ignore_case=False,
-        ignore_punctuation=False,
-        regexes_to_ignore=None,
+        ignore_case: bool = False,
+        ignore_punctuation: bool = False,
+        regexes_to_ignore: list[str] | None = None,
     ) -> None:
-        """
-        regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
-                        - step 1 : We parse the choices between ([A-Z])s then try to find these choices in the response.
-                        - step 2 : We parse the choice with regex: r's*([A-?])', where ? varies by number of choices.
-        group_select: Selects the (group_select)th match from the findall result.
-        ignore_case: Ignores the case during step 1 matching
-        ignore_punctuation: Remove the punctuation during step 1 matching
-        regexes_to_ignore: Remove these regexes during step 1 matching
+        r"""Configure the multi-choice regex filter.
+
+        Args:
+            regex_pattern: The basic regex pattern to use. If it fails to match,
+                a customized procedure is used:
+                step 1 — parse choices between ([A-Z])s and search in the response.
+                step 2 — parse with regex ``r'\s*([A-?])'``, where ``?`` varies by
+                number of choices.
+            group_select: Selects the (group_select)th match from the findall result.
+            ignore_case: Ignore case during step 1 matching.
+            ignore_punctuation: Remove punctuation during step 1 matching.
+            regexes_to_ignore: Remove these regexes during step 1 matching.
         """
         super().__init__(regex_pattern, group_select, fallback)
         self.ignore_case = ignore_case
         self.ignore_punctuation = ignore_punctuation
         self.regexes_to_ignore = regexes_to_ignore
 
-    def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-        # here, we assume we have a list, in which each element is
-        # a list of model responses for some particular input/target pair.
-        # so we process each of these (same input/target response sets)
-        # independently (and keep them a list.)
+    def apply(
+        self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
+    ) -> list[list[str]]:
+        import unicodedata
 
-        def find_match(regex, resp, convert_dict={}):
+        def find_match(regex, resp, convert_dict: dict[str, str] | None = None):
+            if convert_dict is None:
+                convert_dict = {}
             if not isinstance(resp, str):
                 resp = ""
             match = regex.findall(resp)
             if match:
                 match = match[self.group_select]
                 if isinstance(match, tuple):
-                    match = [m for m in match if m][0]
+                    non_empty = [m for m in match if m]
+                    if not non_empty:
+                        return ""
+                    match = non_empty[0]
                 match = match.strip()
                 if match and match in convert_dict:
                     match = convert_dict[match]
@@ -194,7 +198,7 @@ class MultiChoiceRegexFilter(RegexFilter):
 
         filtered_resps = []
 
-        for r, doc in zip(resps, docs):
+        for r, doc in zip(resps, docs, strict=True):
             fallback_regexes = []
             choice_to_alpha = {}
             next_alpha = "A"

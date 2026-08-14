@@ -24,15 +24,23 @@ Homepage: https://github.com/hendrycks/math
 @article{hendrycksmath2021,
   title={Measuring Mathematical Problem Solving With the MATH Dataset},
   author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
-  journal={NeurIPS},
+  journal={Advances in neural information processing systems},
   year={2021}
 }
 
-@misc{2206.14858,
-Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
-Title = {Solving Quantitative Reasoning Problems with Language Models},
-Year = {2022},
-Eprint = {arXiv:2206.14858},
+@article{lewkowycz2022solving,
+  title={Solving quantitative reasoning problems with language models},
+  author={Lewkowycz, Aitor and Andreassen, Anders and Dohan, David and Dyer, Ethan and Michalewski, Henryk and Ramasesh, Vinay and Slone, Ambrose and Anil, Cem and Schlag, Imanol and Gutman-Solo, Theo and others},
+  journal={Advances in neural information processing systems},
+  volume={35},
+  pages={3843--3857},
+  year={2022}
+}
+
+@misc{kydlicek2025fixing,
+  title={Fixing open llm leaderboard with math-verify},
+  author={Kydlicek, Hynek and Lozovskaya, Alina and Habib, Nathan and Fourrier, Cl{\'e}mentine},
+  year={2025}
 }
 ```
 

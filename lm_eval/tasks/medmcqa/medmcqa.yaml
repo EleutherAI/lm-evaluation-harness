@@ -1,5 +1,5 @@
 task: medmcqa
-dataset_path: medmcqa
+dataset_path: openlifescienceai/medmcqa
 output_type: multiple_choice
 training_split: train
 validation_split: validation

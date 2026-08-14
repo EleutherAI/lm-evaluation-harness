@@ -1,4 +1,5 @@
-group: med_prescriptions
+tag:
+  - med_prescriptions
 task: med_prescriptions_easy
 dataset_path: devlocalhost/prescription-full
 output_type: multiple_choice

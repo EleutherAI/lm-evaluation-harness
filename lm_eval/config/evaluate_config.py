@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import logging
 import textwrap
-from argparse import Namespace
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -12,6 +13,8 @@ from lm_eval.utils import simple_parse_args_string
 
 
 if TYPE_CHECKING:
+    from argparse import Namespace
+
     from lm_eval.tasks import TaskManager
 
 eval_logger = logging.getLogger(__name__)
@@ -168,6 +171,9 @@ class EvaluatorConfig:
     hf_hub_log_args: dict = field(
         default_factory=dict, metadata={"help": "Arguments for HF Hub logging"}
     )
+    trackio_args: dict = field(
+        default_factory=dict, metadata={"help": "Arguments for trackio logging"}
+    )
 
     # Reproducibility
     seed: list = field(
@@ -193,10 +199,10 @@ class EvaluatorConfig:
     )
 
     @classmethod
-    def from_cli(cls, namespace: Namespace) -> "EvaluatorConfig":
-        """
-        Build an EvaluationConfig by merging with simple precedence:
-        CLI args > YAML config > built-in defaults
+    def from_cli(cls, namespace: Namespace) -> EvaluatorConfig:
+        """Build an EvaluationConfig by merging with a simple precedence.
+
+        CLI args > YAML config > built-in defaults.
         """
         # Start with built-in defaults
         config = asdict(cls())
@@ -221,16 +227,16 @@ class EvaluatorConfig:
         if used_config:
             cli_args.pop("config", None)
             eval_logger.info(
-                f"CLI args {cli_args} will override yaml"
+                "CLI args %s will override yaml", cli_args
             ) if cli_args else None
             print(textwrap.dedent(f"""{instance}"""))
 
         return instance
 
     @classmethod
-    def from_config(cls, config_path: str | Path) -> "EvaluatorConfig":
-        """
-        Build an EvaluationConfig from a YAML config file.
+    def from_config(cls, config_path: str | Path) -> EvaluatorConfig:
+        """Build an EvaluationConfig from a YAML config file.
+
         Merges with built-in defaults and validates.
         """
         # Load YAML config
@@ -252,7 +258,7 @@ class EvaluatorConfig:
             raise ValueError(f"Could not read config file {_config_path}: {e}") from e
 
         if not isinstance(yaml_data, dict):
-            raise ValueError(
+            raise TypeError(
                 f"YAML root must be a mapping in {_config_path.resolve()}, got {type(yaml_data).__name__}"
             )
 
@@ -333,7 +339,7 @@ class EvaluatorConfig:
 
         return self
 
-    def process_tasks(self, metadata: dict | None = None) -> "TaskManager":
+    def process_tasks(self, metadata: dict | None = None) -> TaskManager:
         """Process and validate tasks, return resolved task names.
 
         Handles:
@@ -345,16 +351,16 @@ class EvaluatorConfig:
         import glob
         import itertools
 
-        from lm_eval import utils
         from lm_eval.tasks import TaskManager
+        from lm_eval.tasks._yaml_loader import load_yaml
 
         # if metadata manually passed use that:
-        self.metadata = metadata if metadata else self.metadata
+        self.metadata = metadata or self.metadata
 
         # Create task manager with metadata
         task_manager = TaskManager(
             include_path=self.include_path,
-            metadata=self.metadata if self.metadata else {},
+            metadata=self.metadata or {},
         )
 
         # Normalize tasks to a list
@@ -370,7 +376,7 @@ class EvaluatorConfig:
             task_names = []
             yaml_path = Path(task_list[0]) / "*.yaml"
             for yaml_file in glob.glob(str(yaml_path)):
-                config = utils.load_yaml_config(yaml_file)
+                config = load_yaml(yaml_file, resolve_func=False)
                 task_names.append(config)
             self.tasks = task_names
             return task_manager
@@ -383,15 +389,15 @@ class EvaluatorConfig:
         match_dict = dict.fromkeys(task_list)  # deduplicate file paths
 
         # Match each task
-        for task in match_dict.keys():
+        for task in match_dict:
             if not task.endswith(".yaml"):
                 # Standard task name - match via task manager
-                matches = task_manager.match_tasks(task)
+                matches = task_manager.match_tasks([task])
             else:
                 # Custom config file(s) - support glob patterns
                 matches = []
                 for yaml_file in glob.glob(task):
-                    config = utils.load_yaml_config(yaml_file)
+                    config = load_yaml(yaml_file, resolve_func=False)
                     matches.append(config)
             match_dict[task] = matches
 

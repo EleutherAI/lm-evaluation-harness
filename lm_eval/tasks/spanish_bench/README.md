@@ -126,3 +126,8 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+* v1.1 (2025-09-22, PR #3168): add `eqbench_es` task
+* v1.2 (2026-01-16, PR #3465): excluded line breaks from stop criteria in `mgsm_direct_es_spanish_bench`

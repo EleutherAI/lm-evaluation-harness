@@ -68,3 +68,5 @@ If other tasks on this dataset are already supported:
   * changed stop sequence from "Q:" to "Question:" PR #2945
 * (tasks, group) 2026-01-16 -- (version 2.1 --> version 3)
   * trimmed whitespace from options: [see](https://x.com/fujikanaeda/status/2011565035408277996)
+* (tasks, group) 2026-05-04 -- (version 3 --> version 3.1)
+  * fix fewshot answers being rendered in user turns instead of assistant turns under `--apply_chat_template`. PR #3693.

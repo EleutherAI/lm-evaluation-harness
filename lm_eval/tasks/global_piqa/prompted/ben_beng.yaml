@@ -1,3 +1,0 @@
-dataset_name: ben_beng
-include: _template
-task: global_piqa_prompted_ben_beng

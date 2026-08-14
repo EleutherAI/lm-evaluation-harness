@@ -15,7 +15,7 @@ model_names=(
   "meta-llama/Llama-3.1-8B-Instruct",
   "meta-llama/Llama-3.1-70B-Instruct",
   "meta-llama/Meta-Llama-3-8B-Instruct",
-  "CohereForAI/aya-101"
+  "CohereLabs/aya-101"
 )
 
 for model_name in "${model_names[@]}"

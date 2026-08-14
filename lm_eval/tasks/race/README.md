@@ -48,6 +48,11 @@ Homepage: https://www.cs.cmu.edu/~glai1/data/race/
 
 * `race`
 
+### Changelog
+
+- `race` v3.0; 2026-05-04:
+  - PR #3716. Fixed how fill-in-the-blank ("cloze") sub-questions are rendered in the few-shot context. For a question like `"I have  _  ."` with answer `"dog"`, the prompt previously contained ` _  .dog` (the question stem was dropped and the blank marker leaked through); it now contains the intended completed sentence `I have dog`.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
