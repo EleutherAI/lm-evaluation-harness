@@ -448,6 +448,39 @@ class TemplateAPI(TemplateLM):
                 encoding = self.tokenizer.encode_batch(string)
             return encoding
 
+    def _left_truncate_contexts(
+        self, encodings_list: list[list[int]], max_gen_toks: int
+    ) -> list[list[int]]:
+        """Left-truncate encoded contexts so they fit alongside `max_gen_toks`.
+
+        Raises:
+            ValueError: if no room is left for the context at all. Slicing with a
+                negative bound would otherwise flip the slice and drop every
+                prompt token, sending an empty prompt to the server.
+        """
+        max_context_len = self.max_length - max_gen_toks
+        if max_context_len <= 0:
+            raise ValueError(
+                f"No context budget remains: max_length ({self.max_length}) - "
+                f"max_gen_toks ({max_gen_toks}) = {max_context_len}. Raise the "
+                f"model's max_length (e.g. `--model_args max_length=...`) above "
+                f"max_gen_toks, or lower `max_gen_toks` in the task's "
+                f"`generation_kwargs`."
+            )
+
+        truncated = [x[-max_context_len:] for x in encodings_list]
+        num_truncated = sum(
+            len(after) < len(before)
+            for before, after in zip(encodings_list, truncated, strict=True)
+        )
+        if num_truncated:
+            eval_logger.warning(
+                f"{num_truncated} context(s) longer than max_length "
+                f"({self.max_length}) - max_gen_toks ({max_gen_toks}) = "
+                f"{max_context_len} tokens. They were left truncated."
+            )
+        return truncated
+
     def decode_batch(self, tokens: List[List[int]]) -> List[str]:
         if self.tokenizer_backend == "huggingface":
             return self.tokenizer.batch_decode(tokens)
@@ -758,16 +791,9 @@ class TemplateAPI(TemplateLM):
                     max_gen_toks = all_gen_kwargs[0].get(
                         "max_gen_toks", self._max_gen_toks
                     )
-                    max_context_len = self.max_length - max_gen_toks
-
-                    encodings_list = [x[-max_context_len:] for x in encodings_list]
-
-                    if any(
-                        len(x) + max_gen_toks > self.max_length for x in encodings_list
-                    ):
-                        eval_logger.warning(
-                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks: ({max_gen_toks}). They were left truncated."
-                        )
+                    encodings_list = self._left_truncate_contexts(
+                        encodings_list, max_gen_toks
+                    )
 
                 req = encodings_list if self.tokenized_requests else contexts
                 outputs = retry(
@@ -812,16 +838,9 @@ class TemplateAPI(TemplateLM):
                     max_gen_toks = all_gen_kwargs[0].get(
                         "max_gen_toks", self._max_gen_toks
                     )
-                    max_context_len = self.max_length - max_gen_toks
-
-                    encodings_list = [x[-max_context_len:] for x in encodings_list]
-
-                    if any(
-                        len(x) + max_gen_toks > self.max_length for x in encodings_list
-                    ):
-                        eval_logger.warning(
-                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks ({max_gen_toks}). They were left truncated."
-                        )
+                    encodings_list = self._left_truncate_contexts(
+                        encodings_list, max_gen_toks
+                    )
 
                 req = encodings_list if self.tokenized_requests else contexts
                 results = itertools.chain.from_iterable(
