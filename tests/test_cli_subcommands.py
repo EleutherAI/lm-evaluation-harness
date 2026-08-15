@@ -952,3 +952,117 @@ log_samples: true
         # 0 is a valid explicit value and should override YAML
         assert cfg.num_fewshot == 0, "CLI 0 should override YAML's 5"
         assert cfg.batch_size == 1, "Truthy CLI value overrides YAML"
+
+
+def _run_seed_accessors(cfg):
+    """Read cfg.seed the way lm_eval/_cli/run.py hands seeds to simple_evaluate()."""
+    return (
+        cfg.seed[0] if cfg.seed else None,
+        cfg.seed[1] if cfg.seed else None,
+        cfg.seed[2] if cfg.seed else None,
+        cfg.seed[3] if cfg.seed else None,
+    )
+
+
+class TestEvaluatorConfigSeedNormalization:
+    """Test that a `seed` coming from a config file is normalized like --seed is."""
+
+    def test_scalar_seed_from_yaml_config(self, tmp_path):
+        """A scalar `seed: 42` in YAML should behave like `--seed 42`."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text("""
+model: hf
+tasks:
+  - arc_easy
+seed: 42
+""")
+
+        cfg = EvaluatorConfig.from_cli(Namespace(config=str(yaml_config)))
+
+        assert cfg.seed == [42, 42, 42, 42]
+        assert _run_seed_accessors(cfg) == (42, 42, 42, 42)
+
+    def test_zero_seed_from_yaml_config_still_seeds(self, tmp_path):
+        """`seed: 0` must actually seed with 0, not silently disable seeding."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text("""
+model: hf
+tasks:
+  - arc_easy
+seed: 0
+""")
+
+        cfg = EvaluatorConfig.from_cli(Namespace(config=str(yaml_config)))
+
+        assert cfg.seed == [0, 0, 0, 0]
+        assert _run_seed_accessors(cfg) == (0, 0, 0, 0)
+
+    def test_single_element_list_is_expanded(self):
+        """`seed: [42]` should expand to all four seeds, as the CLI does."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed=[42])._configure()
+
+        assert cfg.seed == [42, 42, 42, 42]
+        assert _run_seed_accessors(cfg) == (42, 42, 42, 42)
+
+    def test_string_scalar_seed_is_parsed(self):
+        """A quoted `seed: "42"` should not be indexed character by character."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed="42")._configure()
+
+        assert cfg.seed == [42, 42, 42, 42]
+
+    def test_four_element_list_is_unchanged(self):
+        """A fully specified seed list should pass through untouched."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(
+            tasks=["arc_easy"], seed=[0, 1234, 1234, 1234]
+        )._configure()
+
+        assert cfg.seed == [0, 1234, 1234, 1234]
+        assert _run_seed_accessors(cfg) == (0, 1234, 1234, 1234)
+
+    def test_none_seed_disables_seeding(self):
+        """`seed: null` keeps its meaning of not seeding anything."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed=None)._configure()
+
+        assert cfg.seed is None
+        assert _run_seed_accessors(cfg) == (None, None, None, None)
+
+    def test_partial_list_raises_clear_error(self):
+        """A wrong-length list should be rejected up front, not IndexError later."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        with pytest.raises(ValueError, match="seed"):
+            EvaluatorConfig(tasks=["arc_easy"], seed=[1, 2])._configure()
+
+    def test_three_seeds_are_filled_from_defaults_like_the_cli(self):
+        """`--seed 1,2,3` fills the last seed from the defaults; config matches."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed=[1, 2, 3])._configure()
+
+        assert cfg.seed == [1, 2, 3, 1234]
+        assert _run_seed_accessors(cfg) == (1, 2, 3, 1234)
+
+    def test_non_integer_seed_raises_clear_error(self):
+        """Seed entries that are not integers or None should be rejected."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        with pytest.raises(ValueError, match="seed"):
+            EvaluatorConfig(
+                tasks=["arc_easy"], seed=[0, "abc", 1234, 1234]
+            )._configure()

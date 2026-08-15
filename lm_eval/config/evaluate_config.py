@@ -26,6 +26,8 @@ DICT_KEYS = [
     "model_args",
     "gen_kwargs",
 ]
+# Seeds for random, numpy, torch and fewshot sampling, in that order.
+DEFAULT_SEED = [0, 1234, 1234, 1234]
 
 
 @dataclass(slots=True)
@@ -176,8 +178,8 @@ class EvaluatorConfig:
     )
 
     # Reproducibility
-    seed: list = field(
-        default_factory=lambda: [0, 1234, 1234, 1234],
+    seed: list | int | None = field(
+        default_factory=lambda: list(DEFAULT_SEED),
         metadata={"help": "Seeds for random, numpy, torch, fewshot (random)"},
     )
 
@@ -273,7 +275,55 @@ class EvaluatorConfig:
 
     def _configure(self):
         """Validate configuration and preprocess fields after creation."""
-        self._validate_arguments()._process_arguments()._set_trust_remote_code()
+        self._validate_arguments()._process_arguments()._normalize_seed()._set_trust_remote_code()
+
+        return self
+
+    def _normalize_seed(self):
+        """Expand `seed` into one seed per generator.
+
+        `--seed` is converted by argparse before it reaches us, but a seed read
+        from a YAML config is used as-is, so a documented scalar like `seed: 42`
+        would end up being indexed as a list further down. Normalize both entry
+        points to the same shape here. `None` keeps meaning "do not seed".
+        """
+        if self.seed is None:
+            return self
+
+        values = (
+            list(self.seed) if isinstance(self.seed, (list, tuple)) else [self.seed]
+        )
+        if len(values) == 1:
+            values = values * len(DEFAULT_SEED)
+        elif len(values) == len(DEFAULT_SEED) - 1:
+            # `--seed 1,2,3` is accepted and the last seed is taken from the
+            # defaults, so accept the same shape here rather than making the
+            # config stricter than the flag it mirrors.
+            eval_logger.warning(
+                f"seed expects {len(DEFAULT_SEED)} values "
+                "(random, numpy, torch, fewshot). Missing values will be "
+                "filled with defaults."
+            )
+            values = values + DEFAULT_SEED[len(values) :]
+        if len(values) != len(DEFAULT_SEED):
+            raise ValueError(
+                f"seed expects a single value or {len(DEFAULT_SEED)} values "
+                f"(random, numpy, torch, fewshot), got {len(values)}: {self.seed!r}"
+            )
+
+        parsed = []
+        for value in values:
+            if value is None:
+                parsed.append(None)
+                continue
+            try:
+                parsed.append(int(value))
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"seed values must be integers or None, got {value!r}"
+                ) from None
+
+        self.seed = parsed
 
         return self
 
