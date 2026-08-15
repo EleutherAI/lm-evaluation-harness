@@ -375,3 +375,45 @@ def test_localchatcompletion_remote_tokenizer_unauthenticated(monkeypatch):
     assert captured["verify_certificate"] is False
     assert captured["ca_cert_path"] is None
     assert captured["auth_token"] is None
+
+
+def test_left_truncate_contexts_truncates_long_context(api):
+    # max_length is 2047 (2048 - 1); leaves a 1791-token budget.
+    encodings_list = [list(range(2000))]
+
+    truncated = api._left_truncate_contexts(encodings_list, max_gen_toks=256)
+
+    assert len(truncated[0]) == api.max_length - 256
+    # left truncation keeps the *end* of the context
+    assert truncated[0][-1] == 1999
+
+
+def test_left_truncate_contexts_leaves_short_context_untouched(api):
+    encodings_list = [list(range(100))]
+
+    truncated = api._left_truncate_contexts(encodings_list, max_gen_toks=256)
+
+    assert truncated == encodings_list
+
+
+def test_left_truncate_contexts_raises_when_budget_exhausted(api):
+    """Regression test for #3497.
+
+    aime25 sets `max_gen_toks: 32768`, which exceeds the default max_length. The
+    resulting negative bound used to flip the slice (`x[-(-30721):]` -> `x[30721:]`),
+    silently dropping every prompt token and sending an empty prompt to the server.
+    """
+    encodings_list = [list(range(120))]
+
+    with pytest.raises(ValueError, match="No context budget remains"):
+        api._left_truncate_contexts(encodings_list, max_gen_toks=32768)
+
+
+def test_negative_budget_would_flip_the_slice(api):
+    """Documents the exact mechanism behind #3497 so it cannot creep back in."""
+    encodings_list = [list(range(120))]
+    max_context_len = api.max_length - 32768
+
+    assert max_context_len < 0
+    # the unguarded slice silently discards the whole prompt
+    assert [x[-max_context_len:] for x in encodings_list] == [[]]
