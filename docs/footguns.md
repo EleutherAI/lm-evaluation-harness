@@ -9,13 +9,13 @@ This document highlights common pitfalls and troubleshooting tips when using thi
 **Problem:** When specifying newline characters in YAML, they may be interpreted incorrectly depending on how you format them.
 
 ```yaml
-# ❌ WRONG: Single quotes don't process escape sequences
+#  WRONG: Single quotes don't process escape sequences
 generation_kwargs:
   until: ['\n']  # Gets parsed as the literal characters '\' and 'n' i.e "\\n"
 
 ```
 ```yaml
-# ✅ RIGHT: Use double quotes for escape sequences
+#  RIGHT: Use double quotes for escape sequences
 generation_kwargs:
   until: ["\n"]  # Gets parsed as an actual newline character
 

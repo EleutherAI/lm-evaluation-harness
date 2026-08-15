@@ -485,6 +485,31 @@ lm_eval --model sglang \
 > 2. Lower KV cache pool memory usage by adjusting `mem_fraction_static` - Add to your model arguments for example `--model_args pretrained=...,mem_fraction_static=0.7`.
 > 3. Increase tensor parallel size `tp_size` (if using multiple GPUs).
 
+### Rebellions NPU inference with `rbln` / `rbln-vlm`
+
+We support inference on [Rebellions](https://rebellions.ai) ATOM and REBEL NPUs via [`optimum-rbln`](https://github.com/rebellions-sw/optimum-rbln). The `rbln` backend covers causal and seq2seq language models, and `rbln-vlm` extends the same compiled artifact to vision-language models (LLaVA, Qwen2-VL / 2.5-VL / 3-VL, Gemma3, IDEFICS3, PaliGemma, Pixtral, BLIP-2).
+
+To use the RBLN backend, do `pip install "lm_eval[hf]" optimum[rbln]`. `optimum-rbln` is an optional dependency — the harness imports cleanly on machines without the SDK installed.
+
+```bash
+# Causal LM
+lm_eval --model rbln \
+    --model_args pretrained=meta-llama/Meta-Llama-3-8B-Instruct,rbln_tensor_parallel_size=4 \
+    --tasks hellaswag
+
+# Seq2Seq LM
+lm_eval --model rbln \
+    --model_args pretrained=google/flan-t5-base \
+    --tasks squadv2
+
+# VLM — multimodal generation and text-only loglikelihood on the same artifact
+lm_eval --model rbln-vlm \
+    --model_args pretrained=Qwen/Qwen2.5-VL-7B-Instruct \
+    --tasks mmmu_art --batch_size 1
+```
+
+For the model-type → recommended-task matrix, the list of supported VLM `model_type` values, compile-profile overrides, and current limitations, see [`docs/rbln_guide.md`](docs/rbln_guide.md).
+
 ### Windows ML
 
 We support **Windows ML** for hardware-accelerated inference on Windows platforms. This enables evaluation on CPU, GPU, and **NPU (Neural Processing Unit)** devices.
@@ -553,6 +578,8 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | Huggingface Optimum-intel IPEX (Causal LMs)                                                                               | :heavy_check_mark:                                                                                      | `ipex`                                                | Any decoder-only AutoModelForCausalLM                                                                                                                           | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Huggingface Optimum-habana (Causal LMs)                                                                                   | :heavy_check_mark:                                                                                      | `habana`                                              | Any decoder-only AutoModelForCausalLM                                                                                                                           | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Neuron via AWS Inf2 (Causal LMs)                                                                                          | :heavy_check_mark:                                                                                      | `neuronx`                                             | Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
+| Rebellions NPU (Causal / Seq2Seq LMs) via [`optimum-rbln`](https://github.com/rebellions-sw/optimum-rbln)                 | :heavy_check_mark:                                                                                      | `rbln`                                                | Causal / seq2seq models on Rebellions ATOM / REBEL NPUs — see [`docs/rbln_guide.md`](docs/rbln_guide.md)                                                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
+| Rebellions NPU (Vision-Language Models) via [`optimum-rbln`](https://github.com/rebellions-sw/optimum-rbln)               | :heavy_check_mark:                                                                                      | `rbln-vlm`                                            | LLaVA, Qwen2-VL / 2.5-VL / 3-VL, Gemma3, IDEFICS3, PaliGemma, Pixtral, BLIP-2 on Rebellions NPUs                                                                | `generate_until`, `loglikelihood` (text-only)                                  |
 | NVIDIA NeMo                                                                                                               | :heavy_check_mark:                                                                                      | `nemo_lm`                                             | [All supported models](https://docs.nvidia.com/nemo-framework/user-guide/24.09/nemotoolkit/core/core.html#nemo-models)                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | NVIDIA Megatron-LM                                                                                                        | :heavy_check_mark:                                                                                      | `megatron_lm`                                         | [Megatron-LM GPT models](https://github.com/NVIDIA/Megatron-LM) (standard and distributed checkpoints)                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Watsonx.ai                                                                                                                | :heavy_check_mark:                                                                                      | `watsonx_llm`                                         | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                      | `generate_until` `loglikelihood`                                               |
