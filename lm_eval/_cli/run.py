@@ -239,7 +239,18 @@ class Run(SubCommand):
             type=str,
             default=None,
             metavar="<path>",
-            help="Additional directory for external tasks",
+            help=(
+                "Directory of external task YAML files, or a single .py file "
+                "to import (for custom @register_model/@register_metric)."
+            ),
+        )
+        task_group.add_argument(
+            "--include_module",
+            type=str,
+            nargs="+",
+            default=None,
+            metavar="<dotted.path>",
+            help="Dotted module path(s) to import before evaluation.",
         )
 
         # Logging and Tracking

@@ -89,14 +89,28 @@ class Validate(SubCommand):
             type=str,
             default=None,
             metavar="DIR",
-            help="Additional path to include if there are external tasks.",
+            help="Directory of external tasks, or a single .py file to import.",
+        )
+        self._parser.add_argument(
+            "--include_module",
+            type=str,
+            nargs="+",
+            default=None,
+            metavar="DOTTED",
+            help="Dotted module path(s) to import before validation.",
         )
 
     def _execute(self, args: argparse.Namespace) -> None:
         """Execute the validate command."""
+        from lm_eval._include import import_user_modules, task_discovery_path
         from lm_eval.tasks import TaskManager
 
-        task_manager = TaskManager(include_path=args.include_path)
+        import_user_modules(
+            include_path=args.include_path,
+            include_module=getattr(args, "include_module", None),
+        )
+
+        task_manager = TaskManager(include_path=task_discovery_path(args.include_path))
         task_list = args.tasks.split(",")
 
         print(f"Validating tasks: {task_list}")

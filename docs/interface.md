@@ -118,7 +118,12 @@ lm-eval run --config my_config.yaml --tasks mmlu
 
 | Argument | Description |
 |----------|-------------|
-| `--include_path` | Additional directory containing external task YAML files. |
+| `--include_path` | Directory of external task YAML files, or a single `.py` file to import (for custom `@register_model` / `@register_metric` classes). Pointing at a `.py` file also runs YAML discovery in its parent directory. |
+| `--include_module` | Dotted module path(s) to import before evaluation, e.g. `--include_module my_pkg.my_lms`. Use this when the custom model lives inside an installed package. |
+
+To use an externally-defined model, decorate an `LM` subclass with `@register_model("my-alias")` and point `--include_path` at the `.py` file (or `--include_module` at its dotted path), then pass `--model my-alias`.
+
+Single-file `--include_path` does not modify `sys.path`. The file can import installed packages normally but cannot import sibling `.py` files; `from helpers import X` will fail with an `ImportError` pointing at `--include_module`. Ship multi-file code as a package and use `--include_module` instead.
 
 ### Logging and Tracking
 

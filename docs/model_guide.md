@@ -102,6 +102,24 @@ Using this decorator results in the class being added to an accounting of the us
 
 **Tip: be sure to import your model in `lm_eval/models/__init__.py!`**
 
+### Using an externally-defined model without editing `lm-eval`
+
+To register a custom model from outside the repo, pass its location on the CLI:
+
+```bash
+# Single .py file with @register_model classes
+lm_eval run --model my-alias --include_path ./my_lms/fake_lm.py --tasks hellaswag
+
+# Installed Python package
+lm_eval run --model my-alias --include_module my_pkg.my_lms --tasks hellaswag
+```
+
+Both flags run before model lookup. `@register_metric` and `@register_filter` decorators in the same file also register.
+
+When `--include_path` is a directory, only YAML task discovery runs. When it is a `.py` file, that file is imported and YAML discovery runs on its parent directory.
+
+`sys.path` is not modified for single-file imports, so sibling imports (`from helpers import X`) will fail. Use `--include_module` for multi-file code.
+
 ## Testing
 
 We also recommend that new model contributions be accompanied by short tests of their 3 core functionalities, at minimum. To see an example of such tests, look at https://github.com/EleutherAI/lm-evaluation-harness/blob/35bdecd379c0cefad6897e67db892f4a6026a128/tests/test_ggml.py .
