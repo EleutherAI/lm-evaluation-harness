@@ -363,6 +363,29 @@ task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
 Passing `--tasks /path/to/yaml/file` is also accepted.
 
+#### Shipping tasks in an installable package (plugins)
+
+If your tasks live in your **own** package, you can have `lm-eval` discover them
+automatically after `pip install`, without `--include_path` on every run. Declare an
+`lm_eval.tasks` entry point in your package's `pyproject.toml` pointing at the package
+that contains your task YAMLs:
+
+```toml
+[project.entry-points."lm_eval.tasks"]
+my_tasks = "my_pkg.tasks"
+
+[tool.setuptools.package-data]
+"my_pkg.tasks" = ["**/*.yaml"]
+```
+
+`lm-eval` resolves each entry point to the package directory and scans it recursively
+for `*.yaml` task configs, exactly like the built-in task tree. Once installed,
+`lm-eval --tasks my_task ...` and `lm-eval ls tasks` see your tasks with no extra flags.
+
+Precedence: built-in tasks load first, then plugin tasks, then `--include_path`. A
+task name provided via `--include_path` therefore overrides a plugin task of the same
+name (with the usual override warning), and a plugin task overrides a built-in.
+
 ### Advanced Group Configs
 
 While `tag` values are helpful when you want to be able to quickly and conveniently run a set of related tasks via `--tasks my_tag_name`, often, we wish to implement more complex logic. For example, the MMLU benchmark contains 57 *subtasks* that must all be *averaged* together in order to report a final 'MMLU score'.
