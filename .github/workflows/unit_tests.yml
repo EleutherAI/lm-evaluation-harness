@@ -26,11 +26,11 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
           python-version: "3.10"
@@ -40,7 +40,7 @@ jobs:
       - name: Pre-Commit
         env:
           SKIP: "no-commit-to-branch,mypy"
-        uses: pre-commit/action@v3.0.1
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         with:
           extra_args: --from-ref ${{ github.event.pull_request.base.sha || 'HEAD~1' }} --to-ref HEAD
   # Job 2
@@ -54,9 +54,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
@@ -64,7 +64,7 @@ jobs:
 
       # Cache HuggingFace cache directory for CPU tests
       - name: Cache HuggingFace cache (CPU tests)
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         id: cache-hf-cpu
         with:
           path: ~/.cache/huggingface
@@ -83,7 +83,7 @@ jobs:
       # Save test artifacts
       - name: Archive test artifacts
         if: always()  # Upload artifacts even if tests fail
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: output_testcpu${{ matrix.python-version }}
           path: |
