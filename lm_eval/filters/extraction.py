@@ -125,6 +125,19 @@ class MultiChoiceRegexFilter(RegexFilter):
 
     Assumes each document has a "choices" field containing the list of answer choices
     and that the answer label symbols are of the form (A), (B), (C), ... or A, B, C.
+
+    .. security-note::
+
+        Positional extraction (``group_select`` picks the Nth parenthesized letter
+        in the full response) is **position-based, not commitment-based**: a
+        response that states ``(A)`` and later writes "Eliminated: (A), (C), (D)"
+        will have its extracted letter determined by where letters appear, not by
+        which letter the model committed to. This lets a subject model
+        adversarially structure its output so the extracted answer differs from
+        its intended one, inflating or deflating accuracy without changing
+        correctness. For tasks where the model is instructed to emit an explicit
+        final-answer marker, prefer :class:`AnchoredMultiChoiceRegexFilter`,
+        which extracts the *committed* answer rather than the Nth match.
     """
 
     def __init__(
@@ -239,3 +252,137 @@ class MultiChoiceRegexFilter(RegexFilter):
             filtered_resps.append(filtered)
 
         return filtered_resps
+
+
+@register_filter("anchored_multi_choice_regex")
+class AnchoredMultiChoiceRegexFilter(MultiChoiceRegexFilter):
+    """Commitment-based multiple-choice extraction.
+
+    Hardens :class:`MultiChoiceRegexFilter` against position-based answer
+    gaming. Instead of trusting the Nth parenthesized letter in the whole
+    response (which a subject model can manipulate by where it places letters),
+    this filter first looks for an explicit *final-answer sentinel* and extracts
+    the letter that immediately follows it. Only if no sentinel is present does
+    it fall back to the parent's positional behavior.
+
+    This makes the model's *committed* answer authoritative: a response like
+
+        "Reasoning leads to (B). Eliminated: (A), (C), (D)."
+
+    extracts ``(B)`` (the committed answer) rather than ``(D)`` (the last
+    positional match), which is what the parent filter would return.
+
+    Args:
+        answer_sentinels: Ordered list of regex patterns that introduce the
+            committed answer. The first sentinel that matches is used; the
+            captured/matched answer is extracted from the text following it.
+            Defaults to common "final answer" phrasings. Set to an empty list
+            to disable anchoring and get identical behavior to the parent.
+        fallback_to_positional: If ``True`` (default), fall back to the parent
+            positional extraction when no sentinel matches. If ``False``,
+            responses without a sentinel are scored as ``[invalid]`` — useful
+            for tasks that *require* an explicit final answer.
+    """
+
+    DEFAULT_SENTINELS: tuple[str, ...] = (
+        # "the/final/correct answer is (X)" / "answer: (X)"
+        r"(?:the\s+)?(?:final|correct)?\s*answer\s*(?:is|:)\s*",
+        # "therefore, ... (X)" as a common CoT conclusion
+        r"therefore[,\s]+(?:the\s+answer\s+is\s*)?",
+    )
+
+    def __init__(
+        self,
+        regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
+        group_select: int = 0,
+        fallback: str = "[invalid]",
+        ignore_case: bool = False,
+        ignore_punctuation: bool = False,
+        regexes_to_ignore: list[str] | None = None,
+        answer_sentinels: list[str] | None = None,
+        fallback_to_positional: bool = True,
+    ) -> None:
+        super().__init__(
+            regex_pattern=regex_pattern,
+            group_select=group_select,
+            fallback=fallback,
+            ignore_case=ignore_case,
+            ignore_punctuation=ignore_punctuation,
+            regexes_to_ignore=regexes_to_ignore,
+        )
+        flags = re.IGNORECASE if ignore_case else 0
+        sentinels = (
+            self.DEFAULT_SENTINELS if answer_sentinels is None else answer_sentinels
+        )
+        self.answer_sentinels = [re.compile(s, flags) for s in sentinels]
+        self.fallback_to_positional = fallback_to_positional
+
+    def _extract_after_sentinel(
+        self, resp: str, letter_regex: re.Pattern
+    ) -> str | None:
+        """Return the parenthesized letter following the first matching sentinel.
+
+        Returns ``None`` if no sentinel is present or no letter follows it.
+        """
+        for sentinel in self.answer_sentinels:
+            for m in sentinel.finditer(resp):
+                tail = resp[m.end() :]
+                letter_match = letter_regex.search(tail)
+                if letter_match:
+                    # Two capture groups: group(1) = "(A)" form, group(2) = bare "A".
+                    val = letter_match.group(1) or letter_match.group(2)
+                    # Normalize to the "(X)" form the scorer expects.
+                    return val if val.startswith("(") else f"({val})"
+        return None
+
+    def apply(
+        self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
+    ) -> list[list[str]]:
+        # Letter regex tolerant of both "(A)" and bare "A" forms. Crucially,
+        # the bare-letter form must be a *standalone token* (not the first
+        # letter of a longer word like "by"/"after"/"clearly"), otherwise the
+        # sentinel would be defeated by any prose word beginning with a letter.
+        # Two alternatives: a parenthesized letter, or an isolated single letter.
+        letter_flags = re.IGNORECASE if self.ignore_case else 0
+        letter_regex = re.compile(
+            r"\(([A-Za-z])\)|(?<![A-Za-z])([A-Za-z])(?![A-Za-z])",
+            letter_flags,
+        )
+
+        # Delegate fallback / non-sentinel responses to the parent's full logic.
+        # We only override the response when a sentinel commits to a letter.
+        parent_filtered = super().apply(resps, docs)
+
+        hardened = []
+        for resp_list, doc, parent_list in zip(
+            resps, docs, parent_filtered, strict=True
+        ):
+            choices = doc["choices"]
+            valid_letters = {
+                chr(ord("A") + i): f"({chr(ord('A') + i)})" for i in range(len(choices))
+            }
+            row = []
+            for resp, parent_val in zip(resp_list, parent_list, strict=True):
+                if not isinstance(resp, str):
+                    row.append(parent_val)
+                    continue
+                anchored = self._extract_after_sentinel(resp, letter_regex)
+                if anchored is not None:
+                    # Honor ignore_case / canonicalize to the "(X)" form within range.
+                    canon = anchored.upper() if self.ignore_case else anchored
+                    if (
+                        canon in valid_letters.values()
+                        or canon.strip("()") in valid_letters
+                    ):
+                        letter = canon.strip("()")
+                        row.append(valid_letters.get(letter, parent_val))
+                    else:
+                        # Sentinel present but letter out of range -> trust sentinel signal,
+                        # fall to parent (positional) rather than silently inventing an answer.
+                        row.append(parent_val)
+                elif self.fallback_to_positional:
+                    row.append(parent_val)
+                else:
+                    row.append(self.fallback)
+            hardened.append(row)
+        return hardened
