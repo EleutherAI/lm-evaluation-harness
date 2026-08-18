@@ -163,6 +163,107 @@ def test_entrypoint_upgrades_to_decorated_class(monkeypatch):
     assert reg.get("dual") is Plugin
 
 
+def test_get_filter_discovers_entry_point(monkeypatch):
+    """get_filter resolves a filter contributed via the lm_eval.filters group."""
+    from lm_eval.api.filter import Filter
+    from lm_eval.api.registry import filter_registry, get_filter
+
+    class PluginFilter(Filter):
+        def apply(self, resps, docs):
+            return resps
+
+    mod = sys.modules.setdefault(_FAKE_MODULE, types.ModuleType(_FAKE_MODULE))
+    mod.PluginFilter = PluginFilter
+    PluginFilter.__module__ = _FAKE_MODULE
+    ep = registry_mod.md.EntryPoint(
+        name="plugin-filter",
+        value=f"{_FAKE_MODULE}:PluginFilter",
+        group="lm_eval.filters",
+    )
+    _patch_entry_points(monkeypatch, "lm_eval.filters", [ep])
+
+    try:
+        assert get_filter("plugin-filter") is PluginFilter
+    finally:
+        filter_registry._objs.pop("plugin-filter", None)
+
+
+def test_get_aggregation_discovers_entry_point(monkeypatch):
+    """get_aggregation resolves a function from the lm_eval.aggregations group."""
+    from lm_eval.api.registry import aggregation_registry, get_aggregation
+
+    def plugin_agg(items):
+        return sum(items)
+
+    mod = sys.modules.setdefault(_FAKE_MODULE, types.ModuleType(_FAKE_MODULE))
+    mod.plugin_agg = plugin_agg
+    plugin_agg.__module__ = _FAKE_MODULE
+    ep = registry_mod.md.EntryPoint(
+        name="plugin-agg",
+        value=f"{_FAKE_MODULE}:plugin_agg",
+        group="lm_eval.aggregations",
+    )
+    _patch_entry_points(monkeypatch, "lm_eval.aggregations", [ep])
+
+    try:
+        # Metrics module must be importable for the len()==0 guard; it is.
+        assert get_aggregation("plugin-agg") is plugin_agg
+    finally:
+        aggregation_registry._objs.pop("plugin-agg", None)
+
+
+def test_metric_plugin_populates_side_effect_registries(monkeypatch):
+    """A metric plugin declared as an entry point, whose module uses
+    @register_metric, must populate higher_is_better and aggregation registries
+    once materialized via is_higher_better / get_metric_aggregation.
+    """
+    from lm_eval.api.registry import (
+        get_metric,
+        get_metric_aggregation,
+        is_higher_better,
+        metric_agg_registry,
+        metric_registry,
+    )
+
+    # Build a module whose import registers a metric with side-effect metadata.
+    mod = types.ModuleType(_FAKE_MODULE + "_metric")
+
+    def _register():
+        from lm_eval.api.registry import register_aggregation, register_metric
+
+        @register_aggregation("plugin-metric-agg")
+        def _agg(items):
+            return sum(items) / len(items)
+
+        @register_metric(
+            metric="plugin-metric",
+            higher_is_better=True,
+            aggregation="plugin-metric-agg",
+        )
+        def _metric(items):
+            return sum(items)
+
+        mod.plugin_metric = _metric
+
+    _register()  # run the decorators now; entry point just points at the function
+    ep = registry_mod.md.EntryPoint(
+        name="plugin-metric",
+        value=f"{mod.__name__}:plugin_metric",
+        group="lm_eval.metrics",
+    )
+    monkeypatch.setitem(sys.modules, mod.__name__, mod)
+    _patch_entry_points(monkeypatch, "lm_eval.metrics", [ep])
+
+    try:
+        assert callable(get_metric("plugin-metric"))
+        # These read the side-effect registries populated by @register_metric.
+        assert is_higher_better("plugin-metric") is True
+        assert get_metric_aggregation("plugin-metric") is not None
+    finally:
+        metric_registry._objs.pop("plugin-metric", None)
+        metric_agg_registry._objs.pop("plugin-metric", None)
+
+
 def test_import_plugins_tolerates_bad_module():
     # Should log and continue, not raise.
     import_plugins(["definitely_not_a_real_module_xyz"])

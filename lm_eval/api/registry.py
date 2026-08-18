@@ -135,6 +135,21 @@ def _safe_eq(a: Any, b: Any) -> bool:
         return a is b
 
 
+def _placeholder_path(obj: Any) -> str | None:
+    """Return the "module:qualname" path of a class or function, else None.
+
+    Used to match a materialized component back to the lazy placeholder string
+    it was registered under, so that a plugin declaring both an entry point and
+    an @register_* decorator upgrades cleanly instead of colliding. Applies to
+    both model classes and metric/aggregation functions.
+    """
+    module = getattr(obj, "__module__", None)
+    name = getattr(obj, "__name__", None)
+    if module and name:
+        return f"{module}:{name}"
+    return None
+
+
 def _suggest_similar(
     query: str, options: Iterable[str], max_suggestions: int = 3
 ) -> list[str]:
@@ -319,15 +334,16 @@ class Registry(Generic[T]):
             if current is not None and not _safe_eq(current, target):
                 # allow placeholder → real object upgrade. This is the common
                 # path when a plugin advertises an EntryPoint *and* decorates its
-                # class with @register_model: materializing the EntryPoint imports
+                # component with @register_* (model class, metric/aggregation
+                # function, filter class): materializing the EntryPoint imports
                 # the module, whose decorator then upgrades the placeholder here.
-                if isinstance(current, (str, md.EntryPoint)) and isinstance(
-                    target, type
+                if isinstance(current, (str, md.EntryPoint)) and _placeholder_path(
+                    target
                 ):
                     placeholder_path = (
                         current if isinstance(current, str) else current.value
                     )
-                    if placeholder_path == f"{target.__module__}:{target.__name__}":
+                    if placeholder_path == _placeholder_path(target):
                         self._objs[alias] = target
                         return
                 raise ValueError(
@@ -666,6 +682,8 @@ def get_filter(filter_name: str | Callable) -> Callable:
     """
     if callable(filter_name):
         return filter_name
+    # Discover external filters advertised via entry points (once).
+    load_plugins("lm_eval.filters", filter_registry)
     try:
         return filter_registry.get(cast("str", filter_name))
     except KeyError as e:
@@ -730,6 +748,9 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
     if len(metric_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    # Discover external metrics advertised via entry points (once).
+    load_plugins("lm_eval.metrics", metric_registry)
+
     if not hf_evaluate_metric:
         if name in metric_registry:
             return metric_registry.get(name)
@@ -780,11 +801,29 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
     if len(aggregation_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    # Discover external aggregations advertised via entry points (once).
+    load_plugins("lm_eval.aggregations", aggregation_registry)
+
     try:
         return aggregation_registry.get(name)
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
         return None
+
+
+def _materialise_metric_side_effects(name: str) -> None:
+    """Ensure a plugin metric's ``@register_metric`` side effects have run.
+
+    ``register_metric`` populates the ``higher_is_better`` and metric-aggregation
+    registries as a side effect of the decorator. When a metric is contributed as
+    a lazy entry-point placeholder, those side effects only fire once the metric
+    function is materialized. ``is_higher_better`` / ``get_metric_aggregation``
+    may be called for such a metric, so trigger discovery + materialization here.
+    """
+    load_plugins("lm_eval.metrics", metric_registry)
+    if name in metric_registry:
+        # Force materialization of the placeholder so its decorator runs.
+        metric_registry.get(name)
 
 
 def get_metric_aggregation(name: str) -> Callable[..., float] | None:
@@ -799,6 +838,8 @@ def get_metric_aggregation(name: str) -> Callable[..., float] | None:
     # Auto-import metrics module if registry is empty (lazy initialization)
     if len(metric_agg_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
+
+    _materialise_metric_side_effects(name)
 
     try:
         return metric_agg_registry.get(name)
@@ -819,6 +860,8 @@ def is_higher_better(metric_name: str) -> bool | None:
     # Auto-import metrics module if registry is empty (lazy initialization)
     if len(higher_is_better_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
+
+    _materialise_metric_side_effects(metric_name)
 
     try:
         return higher_is_better_registry.get(metric_name)

@@ -135,6 +135,20 @@ LM_EVAL_PLUGINS=my_pkg.models lm-eval run --model my-backend --tasks hellaswag
 The same `plugins=[...]` argument is available on `lm_eval.simple_evaluate(...)` for
 programmatic use.
 
+The same two mechanisms work for other extensible components — declare the matching
+entry-point group (or point `--plugins` at a module that uses the decorator):
+
+| Component   | Entry-point group      | Decorator             |
+|-------------|------------------------|-----------------------|
+| Model       | `lm_eval.models`       | `@register_model`     |
+| Filter      | `lm_eval.filters`      | `@register_filter`    |
+| Metric      | `lm_eval.metrics`      | `@register_metric`    |
+| Aggregation | `lm_eval.aggregations` | `@register_aggregation` |
+
+For metrics, `higher_is_better` and the default aggregation are set through
+`@register_metric(...)`, so a metric plugin's module must run that decorator (the
+entry point should point at the decorated function, whose module import triggers it).
+
 ## Testing
 
 We also recommend that new model contributions be accompanied by short tests of their 3 core functionalities, at minimum. To see an example of such tests, look at https://github.com/EleutherAI/lm-evaluation-harness/blob/35bdecd379c0cefad6897e67db892f4a6026a128/tests/test_ggml.py .
