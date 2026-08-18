@@ -151,6 +151,13 @@ class EvaluatorConfig:
     include_path: str | None = field(
         default=None, metadata={"help": "Additional dir path for external tasks"}
     )
+    plugins: list[str] | None = field(
+        default=None,
+        metadata={
+            "help": "Plugin modules to import before evaluation so their "
+            "@register_* decorators run (for local/unpublished components)"
+        },
+    )
     gen_kwargs: dict = field(
         default_factory=dict,
         metadata={"help": "Arguments for model generation. Will update Task defaults"},

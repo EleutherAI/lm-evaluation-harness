@@ -102,6 +102,39 @@ Using this decorator results in the class being added to an accounting of the us
 
 **Tip: be sure to import your model in `lm_eval/models/__init__.py!`**
 
+### Registering a backend from an external package (plugins)
+
+If your backend lives in your **own** package rather than in the `lm-eval` source
+tree, you do not need to fork or edit `lm-eval`. There are two ways to make
+`lm-eval --model <name>` resolve it at runtime.
+
+**1. Entry points (zero-config, recommended for published packages).** Declare an
+`lm_eval.models` entry point in your package's `pyproject.toml`, mapping the model
+name to `module:Class`:
+
+```toml
+[project.entry-points."lm_eval.models"]
+my-backend = "my_pkg.models:MyBackendLM"
+```
+
+Once your package is `pip install`ed, `lm-eval --model my-backend ...` works with no
+extra flags — `lm-eval` discovers installed entry points automatically. The plugin
+module is imported lazily, only when the model is actually requested. (Your class can
+still also carry a `@register_model("my-backend")` decorator; the two are reconciled
+automatically.)
+
+**2. Explicit import (for local or unpublished modules).** Point `lm-eval` at one or
+more modules to import before evaluation, so their `@register_model` decorators run:
+
+```bash
+lm-eval run --model my-backend --plugins my_pkg.models --tasks hellaswag
+# or, equivalently, via environment variable (comma/colon separated):
+LM_EVAL_PLUGINS=my_pkg.models lm-eval run --model my-backend --tasks hellaswag
+```
+
+The same `plugins=[...]` argument is available on `lm_eval.simple_evaluate(...)` for
+programmatic use.
+
 ## Testing
 
 We also recommend that new model contributions be accompanied by short tests of their 3 core functionalities, at minimum. To see an example of such tests, look at https://github.com/EleutherAI/lm-evaluation-harness/blob/35bdecd379c0cefad6897e67db892f4a6026a128/tests/test_ggml.py .
