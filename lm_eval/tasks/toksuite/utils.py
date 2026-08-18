@@ -18,6 +18,7 @@ import pandas as pd
 logging.basicConfig(
     level=logging.INFO, format="toksuite-%(asctime)s - %(levelname)s - %(message)s"
 )
+logger = logging.getLogger(__name__)
 
 LATEX_TABLE_CATEGORIES = {
     "Input (Non-EN)": [
@@ -191,7 +192,7 @@ def get_grouped_results(
         lambda x: x.get("num_samples", np.nan)
     )
     if configs["num_samples"].isnull().any():
-        logging.info(
+        logger.info(
             "Warning: Some tasks are missing num_samples in metadata, which may lead to incorrect robustness calculations."
         )
     configs["canonical_task"] = configs["metadata"].apply(
@@ -227,7 +228,7 @@ def get_grouped_results_df(
         if isinstance(model_args, str):
             # e.g. "pretrained=toksuite/facebook-xglm-564M,tokenizer=facebook/xglm-564M",
             model_args = dict(item.split("=", 1) for item in model_args.split(","))
-        model_name = model_args.get("pretrained")
+        model_name = model_args.get("pretrained", "")
         tokenizer_name = model_args.get("tokenizer", model_name)
         dct = get_grouped_results(results_dct, latex_table_categories)
         robustness_data.append(
@@ -264,7 +265,7 @@ def get_robustness_dict_from_results(
         lambda x: x.get("num_samples", np.nan)
     )
     if configs["num_samples"].isnull().any():
-        logging.info(
+        logger.info(
             "Warning: Some tasks are missing num_samples in metadata, which may lead to incorrect robustness calculations."
         )
     configs["canonical_task"] = configs["metadata"].apply(
@@ -277,19 +278,19 @@ def get_robustness_dict_from_results(
     configs = configs.drop(columns=["metadata"])
     results = results.merge(configs, how="left", on="task")
     results["canonical_task_acc_norm"] = results.apply(
-        lambda row: results[results["task"] == row["canonical_task"]][
-            "acc_norm,none"
-        ].values[0]
-        if row["canonical_task"] not in [None, np.nan]
-        and not pd.isna(row["canonical_task"])
-        else np.nan,
+        lambda row: (
+            results[results["task"] == row["canonical_task"]]["acc_norm,none"].values[0]
+            if row["canonical_task"] not in [None, np.nan]
+            and not pd.isna(row["canonical_task"])
+            else np.nan
+        ),
         axis=1,
     )
 
     ## extract and compute robustness data
     latex_table_data = {}
     for category, tasks in latex_table_categories.items():
-        logging.debug(f"Processing category: {category} with tasks: {tasks}")
+        logger.debug(f"Processing category: {category} with tasks: {tasks}")
         category_results = results[results["task"].isin(tasks)]
 
         # get perturbed accuracy for each canonical_task
@@ -300,8 +301,10 @@ def get_robustness_dict_from_results(
 
         avg_perturbed_acc = pd.DataFrame(
             category_results.groupby("canonical_task").apply(
-                lambda x: (x["acc_norm,none"] * x["num_samples"]).sum()
-                / x["num_samples"].sum(),
+                lambda x: (
+                    (x["acc_norm,none"] * x["num_samples"]).sum()
+                    / x["num_samples"].sum()
+                ),
                 include_groups=False,
             ),
             columns=["perturbed_acc_norm"],
@@ -332,7 +335,7 @@ def get_robustness_df(
     """Compute the robustness values for model tokenizer pairs given a list of lm-eval results files to process."""
     robustness_data = []
     for file in results_files_to_process:
-        logging.info(f"Processing results file: {file}")
+        logger.info(f"Processing results file: {file}")
         with open(file) as f:
             results_dct = json.load(f)
         ## add model information
@@ -396,7 +399,7 @@ def _get_canonical_performance_df(
 ) -> pd.DataFrame:
     rows = []
     for file in results_files_to_process:
-        logging.info(f"Processing results file: {file}")
+        logger.info(f"Processing results file: {file}")
         with open(file) as f:
             results_dct = json.load(f)
         model_args = results_dct["config"]["model_args"]
@@ -471,7 +474,7 @@ def _build_latex_table_str(
                 worst_values[col] = (
                     valid_vals.min() if higher_is_better else valid_vals.max()
                 )
-            except Exception:
+            except TypeError:
                 pass
 
     # construct the body of the table
@@ -491,7 +494,7 @@ def _build_latex_table_str(
                             col in worst_values and abs(val - worst_values[col]) < 1e-4
                         ):
                             val_str = f"\\textcolor{{red}}{{{val_str}}}"
-                except Exception:
+                except TypeError:
                     val_str = str(val)
                 latex_str += f" & {val_str}"
         latex_str = latex_str.rstrip("&")
@@ -515,11 +518,11 @@ def _build_latex_table_str(
                             val_str = f"\\textbf{{\\textcolor{{green!70!black}}{{{val_str}}}}}"
                         elif abs(avg_val - worst_col_avg) < 1e-6:
                             val_str = f"\\textcolor{{red}}{{{val_str}}}"
-                except Exception:
+                except TypeError:
                     val_str = str(avg_val)
                 latex_str += f" & {val_str}"
         latex_str += " \\\\\n"
-    except Exception:
+    except (TypeError, ValueError):
         pass
 
     latex_str += "\\bottomrule\n\\end{tabularx}\n\\end{table}"
@@ -552,7 +555,7 @@ def _build_markdown_table_str(
                     worst_values[col] = (
                         valid_vals.min() if higher_is_better else valid_vals.max()
                     )
-                except Exception:
+                except TypeError:
                     pass
 
     header = "| Model | " + " | ".join(cols) + " |"
@@ -575,7 +578,7 @@ def _build_markdown_table_str(
                             col in worst_values and abs(val - worst_values[col]) < 1e-4
                         ):
                             val_str = f"*{val_str}*"
-                except Exception:
+                except TypeError:
                     val_str = str(val)
                 row += f" {val_str} |"
         lines.append(row)
@@ -598,11 +601,11 @@ def _build_markdown_table_str(
                             val_str = f"**{val_str}**"
                         elif abs(avg_val - worst_col_avg) < 1e-6:
                             val_str = f"*{val_str}*"
-                except Exception:
+                except TypeError:
                     val_str = str(avg_val)
                 avg_row += f" {val_str} |"
         lines.append(avg_row)
-    except Exception:
+    except (TypeError, ValueError):
         pass
 
     return "\n".join(lines)
@@ -623,7 +626,7 @@ def get_table_str(
 
     column_data could be used for n-level headers e.g. [["Input", "<same>"], ["Non-EN", "EN"]] -> this will produce (Input combining two columns) // Non-EN & EN
     """
-    logging.info(
+    logger.info(
         f"Processing {len(results_files_to_process)} results files to compute robustness dataframe..."
     )
 
@@ -702,7 +705,7 @@ def get_canonical_performance_table_str(
 
     column_data could be used for n-level headers e.g. [["Input", "<same>"], ["Non-EN", "EN"]] -> this will produce (Input combining two columns) // Non-EN & EN
     """
-    logging.info(
+    logger.info(
         f"Processing {len(results_files_to_process)} results files "
         "to compute robustness dataframe..."
     )

@@ -11,15 +11,15 @@ Tokenizers provide the fundamental basis through which text is represented and p
 Homepage: [https://huggingface.co/toksuite](https://huggingface.co/toksuite)
 
 ### Citation
-```
-@misc{toksuite2025,
-      title={TokSuite: Measuring the Impact of Tokenizer Choice on Language Model Behavior},
-      author={Gül Sena Altıntaş and Malikeh Ehghaghi and Brian Lester and Fengyuan Liu and Wanru Zhao and Marco Ciccone and Colin Raffel},
-      year={2025},
-      eprint={2512.20757},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2512.20757},
+```bibtex
+@inproceedings{altintas2026toksuite,
+  author       = {G{"u}l Sena Altınta\c{s} and Malikeh Ehghaghi and Brian Lester and Fengyuan Liu and Wanru Zhao and Marco Ciccone and Colin Raffel},
+  title        = {{TokSuite}: Measuring the Impact of Tokenizer Choice on Language Model Behavior},
+  booktitle    = {Proceedings of the 43rd International Conference on Machine Learning (ICML)},
+  year         = {2026},
+  eprint       = {2512.20757},
+  archivePrefix= {arXiv},
+  url          = {https://arxiv.org/abs/2512.20757}
 }
 ```
 
@@ -193,6 +193,15 @@ mkdir -p $OUTPUT_PATH
 lm-eval --model hf --model_args pretrained="toksuite/gpt2,tokenizer=openai-community/gpt2" \
     --tasks toksuite --log_samples \
     --output_path=$OUTPUT_PATH
+```
+
+Example usage to evaluate the models with non-huggingface tokenizer backends:
+```bash
+lm-eval --model=hf --model_args pretrained=toksuite/tiktoken-gpt-4o,tokenizer_backend=tiktoken,tokenizer=gpt-4o --tasks toksuite_english_canonical
+
+lm-eval --model=hf --model_args pretrained=toksuite/tokenmonster-englishcode-32000-consistent-v1,tokenizer_backend=tokenmonster,tokenizer=englishcode-32000-consistent-v1 --tasks toksuite_english_canonical
+
+lm-eval --model=hf --model_args pretrained=toksuite/mistralai-tekken,tokenizer_backend=tekken --tasks toksuite_english_canonical
 ```
 
 2. Process results, pass either "latex", "markdown", or "dataframe" to get the formatted table
