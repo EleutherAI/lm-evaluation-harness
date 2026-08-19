@@ -53,6 +53,8 @@ def simple_evaluate(
     model: str | LM,
     model_args: str | dict[str, str | int | float] | None = None,
     tasks: list[str | dict | Task] | None = None,
+    sample_sid: int | None = None,
+    sample_eid: int | None = None,
     num_fewshot: int | None = None,
     batch_size: int | str | None = None,
     max_batch_size: int | None = None,
@@ -365,6 +367,8 @@ def simple_evaluate(
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
+        sample_sid=sample_sid,
+        sample_eid=sample_eid,
         limit=limit,
         samples=samples,
         cache_requests=cache_requests,
@@ -429,6 +433,8 @@ def evaluate(
     lm: LM,
     task_dict,
     limit: int | None = None,
+    sample_sid: int | None = None,
+    sample_eid: int | None = None,
     samples: dict | None = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
@@ -590,6 +596,10 @@ def evaluate(
             for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
+        if sample_sid is not None and sample_eid is not None:
+            assert sample_eid <= len(cloned_reqs)
+            cloned_reqs = [cloned_reqs[i] for i in range(sample_sid, sample_eid)]
+
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
@@ -606,6 +616,9 @@ def evaluate(
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output, limit in zip(eval_tasks, limits, strict=True):
         task = task_output.task
+        if sample_sid is not None and sample_eid is not None:
+            task.dataset["test"] = task.eval_docs.select(range(sample_sid, sample_eid))
+            task._instances = task._instances[sample_sid:sample_eid]
         task.apply_filters()
 
         ### Collect values of metrics on all datapoints ###
@@ -633,7 +646,10 @@ def evaluate(
             )
             for doc_id, doc in doc_iterator:
                 doc_id_true = indices[doc_id] if indices else doc_id
-                requests = instances_by_doc_id[doc_id]
+                if sample_sid is not None and sample_eid is not None:
+                    requests = instances_by_doc_id[doc_id + sample_sid]
+                else:
+                    requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
