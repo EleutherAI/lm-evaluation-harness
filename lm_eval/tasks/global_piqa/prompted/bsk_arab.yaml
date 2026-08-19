@@ -1,3 +1,0 @@
-dataset_name: bsk_arab
-include: _template
-task: global_piqa_prompted_bsk_arab

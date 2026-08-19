@@ -13,7 +13,7 @@ doc_to_text: "\nAvis Client: {{text}}\n\nA propos du thème \"{{topic}}\", l'avi
 doc_to_choice: ['positif', 'négatif', 'neutre']
 doc_to_target: "{{['positif', 'negatif', 'neutre'].index(polarity)}}"
 should_decontaminate: true
-doc_to_decontamination_query: texte
+doc_to_decontamination_query: text
 metric_list:
   - metric: acc
     aggregation: mean

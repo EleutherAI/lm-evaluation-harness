@@ -49,6 +49,10 @@ The following Evalita-LLM tasks can also be evaluated in isolation:
 lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks evalita-mp --device cuda:0 --batch_size auto
 ```
 
+### Changelog
+
+- **v0.1**: Renamed `evalita-mp_sum_fp` small variant group to `evalita-mp_sum_fp_small` to resolve duplicate group name conflict with the full variant.
+
 ### Checklist
 
 * [x] Is the task an existing benchmark in the literature?

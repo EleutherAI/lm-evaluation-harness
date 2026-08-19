@@ -1,0 +1,41 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+group: toksuite_english
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+task:
+- toksuite_english_word_reordering
+- toksuite_english_lowercase
+- toksuite_english_canonical
+- toksuite_english_space_removal
+- toksuite_english_keyboard_proximity_errors
+- toksuite_english_macron_diacritic
+- toksuite_english_character_substitution
+- toksuite_english_scripted_text
+- toksuite_english_grammatical_errors
+- toksuite_english_homoglyphs
+- toksuite_english_letter_repetition_for_emphasis
+- toksuite_english_spaced_styling
+- toksuite_english_compounds
+- toksuite_english_colloquial
+- toksuite_english_historical_spelling
+- toksuite_english_similar_words
+- toksuite_english_abbreviations
+- toksuite_english_hyphenated_spelling
+- toksuite_english_web_search_query
+- toksuite_english_spelled_out
+- toksuite_english_date_formats
+- toksuite_english_orthographic_errors
+- toksuite_english_capitalization
+- toksuite_english_emoji_substitution
+- toksuite_english_contractions
+- toksuite_english_superscript_subscript_styling
+- toksuite_english_character_deletion
+- toksuite_english_inflections
+- toksuite_english_ocr_errors

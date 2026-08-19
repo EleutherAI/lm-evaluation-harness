@@ -25,7 +25,7 @@ def doc_to_text(doc):
     text = "Article: " + doc["article"] + "\n\n"
     for problem in process_ast(doc["problems"])[:-1]:
         if problem["question"][-6:] == "  _  .":
-            text += problem["question"][-5:] + get_answer_option(problem) + "\n"
+            text += problem["question"][:-5] + get_answer_option(problem) + "\n"
         else:
             question = "Question: " + problem["question"] + "\n"
             answer = "Answer: " + get_answer_option(problem) + "\n"

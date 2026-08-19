@@ -326,10 +326,11 @@ class AnthropicChat(LocalCompletionsAPI):
 
         cleaned_messages = []
         for msg in messages:
+            msg_type = msg.get("type", "text")
             cleaned_msg = {
                 "role": msg["role"],
                 "content": [
-                    {"type": msg["type"], msg["type"]: msg["content"]},
+                    {"type": msg_type, msg_type: msg["content"]},
                 ],
             }
             cleaned_messages.append(cleaned_msg)
@@ -343,6 +344,8 @@ class AnthropicChat(LocalCompletionsAPI):
 
         # Filter out empty or whitespace-only stop sequences for Anthropic API
         stop = [s for s in stop if s and s.strip()]
+        if not stop:
+            stop = [eos]
 
         out = {
             "messages": cleaned_messages,

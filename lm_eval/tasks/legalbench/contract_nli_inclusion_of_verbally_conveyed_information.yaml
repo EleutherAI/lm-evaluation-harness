@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_contract_nli_inclusion_of_verbally_conveyed_information
+dataset_name: contract_nli_inclusion_of_verbally_conveyed_information
+num_fewshot: 8
+description: "Identify if the clause provides that Confidential Information may include verbally conveyed information.\n\n"
+doc_to_text: "Clause: {{text}}\nLabel:"

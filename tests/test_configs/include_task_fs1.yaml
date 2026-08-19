@@ -1,0 +1,6 @@
+# Task demonstrating include inheritance
+
+task: include_task_fs1
+include: include_base.yaml
+num_fewshot: 1
+description: "One-shot with inheritance"

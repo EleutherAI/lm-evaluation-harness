@@ -1,0 +1,11 @@
+include: _infinitebench_common_yaml
+task: infinitebench_longbook_qa_chn
+test_split: longbook_qa_chn
+process_results: !function utils.process_results_qa_chn
+description: "请根据以下书籍回答我的问题。\n\n"
+doc_to_text: "{{context}}\n\n问题：{{input}}\n请尽量简短地回答。"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 40
+  until: ["\n"]

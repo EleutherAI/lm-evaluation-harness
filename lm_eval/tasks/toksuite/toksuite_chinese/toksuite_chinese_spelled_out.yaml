@@ -1,0 +1,7 @@
+dataset_name: toksuite_chinese_spelled_out
+include: toksuite_chinese_base.yaml
+task: toksuite_chinese_spelled_out
+metadata:
+  canonical_task: toksuite_chinese_canonical
+  task_pretty_name: Spelled out
+  num_samples: 14

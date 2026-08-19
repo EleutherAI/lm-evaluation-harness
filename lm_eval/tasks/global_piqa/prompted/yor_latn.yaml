@@ -1,3 +1,0 @@
-dataset_name: yor_latn
-include: _template
-task: global_piqa_prompted_yor_latn

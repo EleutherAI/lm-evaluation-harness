@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_letter_repetition_for_emphasis
+include: toksuite_english_base.yaml
+task: toksuite_english_letter_repetition_for_emphasis
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Letter repetition for emphasis
+  num_samples: 41

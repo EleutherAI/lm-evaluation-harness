@@ -2144,7 +2144,6 @@ def doc_to_text_hard(doc) -> str:
         )
     )
 
-    print(prompt)
     return prompt
 
 

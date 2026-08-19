@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_proa
+dataset_name: proa
+num_fewshot: 5
+description: "A private right of action is when a regular person, a private citizen, is legally entitled to enforce their rights under a given statute. Does the clause specify a private right of action? Answer Yes or No.\n\n"
+doc_to_text: "Statute: {{text}}\nAnswer:"

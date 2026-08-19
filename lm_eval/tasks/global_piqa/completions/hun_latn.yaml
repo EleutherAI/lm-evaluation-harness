@@ -1,3 +1,0 @@
-dataset_name: hun_latn
-include: _template
-task: global_piqa_completions_hun_latn

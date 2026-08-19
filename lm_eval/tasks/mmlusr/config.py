@@ -73,7 +73,7 @@ SUBJECTS = {
     "world_religions": "humanities",
 }
 
-GROUPS = ["question_and_answer"]
+GROUPS = ["answer_only", "question_only", "question_and_answer"]
 
 
 def parse_args():
@@ -101,6 +101,10 @@ def parse_args():
     # Optional prefix to add to group names in the YAML files
     parser.add_argument("--group_prefix", default="")
 
+    # Which MMLU-SR variant to generate. Each one lives in its own directory
+    # and reads its own base YAML.
+    parser.add_argument("--group", choices=GROUPS, default=None)
+
     return parser.parse_args()
 
 
@@ -108,9 +112,9 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load base YAML configuration
+    # Only the file name is needed, for the "include" key. Parsing the base
+    # YAML here used to fail anyway, since it carries a !function tag.
     base_yaml_name = os.path.basename(args.base_yaml_path)
-    with open(args.base_yaml_path, "r", encoding="utf-8") as f:
-        base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:
         import json
@@ -118,7 +122,7 @@ if __name__ == "__main__":
         with open(args.cot_prompt_path, encoding="utf-8") as f:
             cot_file = json.load(f)
 
-    for group in GROUPS:
+    for group in [args.group] if args.group else GROUPS:
         for subject, category in tqdm(SUBJECTS.items()):
             if args.cot_prompt_path is not None:
                 description = cot_file[subject]
@@ -135,7 +139,24 @@ if __name__ == "__main__":
                 else f"mmlusr_{group}_{subject}",
                 "task_alias": subject.replace("_", " "),
                 "description": description,
-                "dataset_name": f"{group}_{subject}",
+                # The Hub repo no longer exposes a config per subject, so each
+                # task reads that subject's CSVs directly. They have no header
+                # row, hence the explicit column names.
+                "dataset_kwargs": {
+                    "data_files": {
+                        "train": f"{group}_dev/{group}_{subject}_dev.csv",
+                        "test": f"{group}_test/{group}_{subject}_test.csv",
+                    },
+                    "column_names": [
+                        "question",
+                        "choice1",
+                        "choice2",
+                        "choice3",
+                        "choice4",
+                        "answer",
+                    ],
+                    "header": None,
+                },
             }
 
             # File path for saving the generated YAML file

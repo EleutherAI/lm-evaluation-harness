@@ -3,7 +3,7 @@ include:
   - flores_common_yaml
 "tag":
 - "darija_translation_tasks_flores"
-"task": "trasnlation_all_flores"
+"task": "translation_all_flores"
 "task_alias": "all_flores"
 metric_list:
   - metric: !function utils.bert

@@ -1,7 +1,7 @@
 tag:
   - super-glue-t5-prompt
 task: super_glue-cb-t5-prompt
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: cb
 training_split: train
 validation_split: validation

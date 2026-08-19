@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_contract_nli_no_licensing
+dataset_name: contract_nli_no_licensing
+num_fewshot: 8
+description: "Identify if the clause provides that the Agreement shall not grant Receiving Party any right to Confidential Information.\n\n"
+doc_to_text: "Clause: {{text}}\nLabel:"

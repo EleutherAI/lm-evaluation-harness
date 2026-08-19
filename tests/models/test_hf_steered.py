@@ -24,7 +24,7 @@ class Test_SteeredModel:
     from lm_eval.models.hf_steered import SteeredModel
 
     torch.use_deterministic_algorithms(True)
-    task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
+    task_list = task_manager.load(["arc_easy", "gsm8k", "wikitext"])["tasks"]
     version_minor = sys.version_info.minor
     multiple_choice_task = task_list["arc_easy"]  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)

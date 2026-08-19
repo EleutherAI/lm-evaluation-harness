@@ -1,0 +1,3 @@
+dataset_name: nno_latn
+include: _template
+task: global_piqa_nonparallel_cloze_nno_latn

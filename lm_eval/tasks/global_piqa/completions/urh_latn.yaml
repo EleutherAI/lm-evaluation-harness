@@ -1,3 +1,0 @@
-dataset_name: urh_latn
-include: _template
-task: global_piqa_completions_urh_latn

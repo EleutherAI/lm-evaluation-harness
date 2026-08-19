@@ -1,0 +1,7 @@
+dataset_name: toksuite_chinese_code_language_script_switching
+include: toksuite_chinese_base.yaml
+task: toksuite_chinese_code_language_script_switching
+metadata:
+  canonical_task: toksuite_chinese_canonical
+  task_pretty_name: Code/language/script switching
+  num_samples: 40

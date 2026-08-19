@@ -17,4 +17,4 @@ generation_kwargs:
     - "\n"
   do_sample: false
 metadata:
-  version: 0.0
+  version: 0.1

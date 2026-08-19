@@ -1,0 +1,5 @@
+# Subgroup that references a TAG - simulates mmlu_humanities pattern
+# This group contains a tag reference (test_tag_tasks) which expands to multiple tasks
+group: tag_subgroup
+task:
+  - test_tag_tasks

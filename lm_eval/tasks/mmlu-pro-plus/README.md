@@ -68,3 +68,7 @@ If other tasks on this dataset are already supported:
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
+
+* (tasks, group) 2026-05-04 -- (version 1.0 --> version 1.1)
+  * fix fewshot answers being rendered in user turns instead of assistant turns under `--apply_chat_template` (mirrors mmlu_pro #3693).
+  * trimmed whitespace from options (mirrors mmlu_pro #3500).

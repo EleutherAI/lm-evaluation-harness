@@ -3,7 +3,7 @@ include:
   - madar_common_yaml
 "tag":
 - "darija_translation_tasks_madar"
-"task": "trasnlation_all_madar"
+"task": "translation_all_madar"
 "task_alias": "all_madar"
 metric_list:
   - metric: !function utils.bert

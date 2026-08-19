@@ -254,15 +254,16 @@ class TestFirstNSampler:
         with pytest.raises(AssertionError, match="exceeds"):
             sampler.sample(n=10)
 
-    def test_ignores_eval_doc(self, sample_docs):
-        """FirstNSampler ignores eval_doc parameter (returns first n regardless)."""
+    def test_excludes_eval_doc_preserving_order(self, sample_docs):
+        """Excludes eval_doc while preserving the order of remaining documents."""
         sampler = FirstNSampler(sample_docs)
         eval_doc = sample_docs[0]
 
         result = sampler.sample(n=3, eval_doc=eval_doc)
 
-        # FirstNSampler doesn't exclude eval_doc - it just returns first n
-        assert result == sample_docs[:3]
+        assert result == sample_docs[1:4]
+        assert len(result) == 3
+        assert eval_doc not in result
 
 
 # =============================================================================

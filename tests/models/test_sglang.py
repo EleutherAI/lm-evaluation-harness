@@ -1,5 +1,3 @@
-from typing import List
-
 import pytest
 import torch
 
@@ -17,17 +15,17 @@ task_manager = tasks.TaskManager()
 class Test_SGlang:
     sglang = pytest.importorskip("sglang")
 
-    task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
+    task_list = task_manager.load(["arc_easy", "gsm8k", "wikitext"])["tasks"]
     multiple_choice_task = task_list["arc_easy"]  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
-    MULTIPLE_CH: List[Instance] = multiple_choice_task.instances
+    MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
     generate_until_task = task_list["gsm8k"]  # type: ignore
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
     generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
-    generate_until: List[Instance] = generate_until_task.instances
+    generate_until: list[Instance] = generate_until_task.instances
     rolling_task = task_list["wikitext"]  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
-    ROLLING: List[Instance] = rolling_task.instances
+    ROLLING: list[Instance] = rolling_task.instances
 
     @classmethod
     def setup_class(cls):

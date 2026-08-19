@@ -1,0 +1,3 @@
+dataset_name: bxr_cyrl
+include: _template
+task: global_piqa_parallel_cloze_bxr_cyrl

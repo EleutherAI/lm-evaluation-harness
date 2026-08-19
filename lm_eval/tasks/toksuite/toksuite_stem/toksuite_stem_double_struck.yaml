@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_double_struck
+include: toksuite_stem_base.yaml
+task: toksuite_stem_double_struck
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: "Double struck"
+  num_samples: 18

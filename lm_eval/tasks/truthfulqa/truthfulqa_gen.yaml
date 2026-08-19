@@ -1,7 +1,7 @@
 tag:
   - truthfulqa
 task: truthfulqa_gen
-dataset_path: truthful_qa
+dataset_path: truthfulqa/truthful_qa
 dataset_name: generation
 output_type: generate_until
 training_split: null

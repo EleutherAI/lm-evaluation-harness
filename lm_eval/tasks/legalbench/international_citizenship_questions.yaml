@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_international_citizenship_questions
+dataset_name: international_citizenship_questions
+num_fewshot: 4
+description: "Answer the following questions considering the state of international law on January 1st, 2020. Answer Yes or No.\n\n"
+doc_to_text: "Question: {{question}}\nAnswer:"

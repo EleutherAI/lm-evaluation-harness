@@ -1,0 +1,3 @@
+dataset_name: guj_gujr
+include: _template
+task: global_piqa_parallel_cloze_guj_gujr

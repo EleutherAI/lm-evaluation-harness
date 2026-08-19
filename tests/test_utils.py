@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 import torch
 
+from lm_eval.utils import handle_arg_string, simple_parse_args_string
+
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
     mean,
@@ -625,3 +627,87 @@ class TestMaybeDelimit:
     def test_prefix_ends_with_newline_no_extra_delimiter(self):
         """Prefix ends with newline - no extra delimiter added."""
         assert maybe_delimit("line1\n", "line2", delimiter=" ") == "line1\nline2"
+
+
+class TestHandleArgString:
+    """Tests for handle_arg_string type coercion."""
+
+    def test_bool_true(self):
+        assert handle_arg_string("true") is True
+        assert handle_arg_string("True") is True
+        assert handle_arg_string("TRUE") is True
+
+    def test_bool_false(self):
+        assert handle_arg_string("false") is False
+        assert handle_arg_string("False") is False
+
+    def test_none(self):
+        assert handle_arg_string("None") is None
+        assert handle_arg_string("none") is None
+
+    def test_positive_int(self):
+        assert handle_arg_string("42") == 42
+        assert isinstance(handle_arg_string("42"), int)
+
+    def test_negative_int(self):
+        assert handle_arg_string("-1") == -1
+        assert isinstance(handle_arg_string("-1"), int)
+
+    def test_float(self):
+        assert handle_arg_string("3.14") == 3.14
+        assert isinstance(handle_arg_string("3.14"), float)
+
+    def test_negative_float(self):
+        assert handle_arg_string("-0.5") == -0.5
+
+    def test_scientific_notation(self):
+        assert handle_arg_string("1e-5") == 1e-5
+        assert isinstance(handle_arg_string("1e-5"), float)
+
+    def test_plain_string(self):
+        assert handle_arg_string("hello") == "hello"
+
+    def test_explicit_quoted_string_preserves_numeric(self):
+        """Quoting a numeric value should keep it as a string (e.g. revision)."""
+        assert handle_arg_string('"123123"') == "123123"
+        assert isinstance(handle_arg_string('"123123"'), str)
+
+    def test_explicit_single_quoted_string(self):
+        assert handle_arg_string("'true'") == "true"
+        assert isinstance(handle_arg_string("'true'"), str)
+
+    def test_empty_string(self):
+        assert handle_arg_string("") == ""
+
+    def test_whitespace_stripped(self):
+        assert handle_arg_string("  42  ") == 42
+
+
+class TestSimpleParseArgsString:
+    """Tests for simple_parse_args_string."""
+
+    def test_basic_parsing(self):
+        result = simple_parse_args_string("pretrained=gpt2,revision=main")
+        assert result == {"pretrained": "gpt2", "revision": "main"}
+
+    def test_numeric_revision_stays_int_by_default(self):
+        """Without quoting, numeric revision becomes int (existing behavior)."""
+        result = simple_parse_args_string("pretrained=gpt2,revision=123123")
+        assert result["revision"] == 123123
+
+    def test_quoted_revision_stays_string(self):
+        """Users can quote numeric values to force string type."""
+        result = simple_parse_args_string('pretrained=gpt2,revision="123123"')
+        assert result["revision"] == "123123"
+        assert isinstance(result["revision"], str)
+
+    def test_none_input(self):
+        assert simple_parse_args_string(None) == {}
+
+    def test_empty_input(self):
+        assert simple_parse_args_string("") == {}
+
+    def test_bool_and_float_coercion(self):
+        result = simple_parse_args_string("trust_remote_code=true,temperature=0.7")
+        assert result["trust_remote_code"] is True
+        assert result["temperature"] == 0.7

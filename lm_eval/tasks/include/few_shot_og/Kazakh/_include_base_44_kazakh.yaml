@@ -1,8 +1,8 @@
-group: include_base_44_kazakh
+group: include_base_44_kazakh_few_shot_og
 task:
 - include_base_44_kazakh_few_shot_og_arts_humanities
 aggregate_metric_list:
 - metric: acc
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 0.1

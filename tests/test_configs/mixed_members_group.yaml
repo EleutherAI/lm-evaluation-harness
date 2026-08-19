@@ -1,0 +1,15 @@
+# Group with mixed member types in its task list:
+#   - string reference
+#   - dict with task key + overrides
+#   - inline subgroup (not in registry)
+group: mixed_members_group
+task:
+  - simple_task
+  - task: simple_task_b
+    num_fewshot: 7
+  - group: mixed_inline_sub
+    task:
+      - simple_task
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: true

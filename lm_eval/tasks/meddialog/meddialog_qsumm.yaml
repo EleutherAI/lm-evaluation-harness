@@ -1,4 +1,5 @@
-group: meddialog
+tag:
+  - meddialog
 include: meddialog_raw_dialogues.yaml
 task: meddialog_qsumm
 dataset_path: lighteval/med_dialog

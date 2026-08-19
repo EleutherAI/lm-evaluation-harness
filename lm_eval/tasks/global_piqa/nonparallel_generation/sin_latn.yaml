@@ -1,0 +1,3 @@
+dataset_name: sin_latn
+include: _template
+task: global_piqa_nonparallel_generation_sin_latn

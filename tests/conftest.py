@@ -1,13 +1,18 @@
 """Shared pytest fixtures for lm-eval tests."""
 
-from __future__ import annotations
-
+import os
 from unittest.mock import Mock
 
 import pytest
 
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import FewshotConfig, TaskConfig
+
+
+@pytest.fixture
+def on_ci():
+    """True when running in GitHub Actions CI."""
+    return os.environ.get("GITHUB_ACTIONS") == "true"
 
 
 @pytest.fixture

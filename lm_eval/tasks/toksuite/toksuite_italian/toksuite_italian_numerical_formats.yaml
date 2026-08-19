@@ -1,0 +1,7 @@
+dataset_name: toksuite_italian_numerical_formats
+include: toksuite_italian_base.yaml
+task: toksuite_italian_numerical_formats
+metadata:
+  canonical_task: toksuite_italian_canonical
+  task_pretty_name: Numerical formats
+  num_samples: 8

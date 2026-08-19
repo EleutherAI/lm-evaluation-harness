@@ -27,8 +27,14 @@ def format_cot_example(example, including_answer=True):
     return prompt
 
 
+def format_cot_target(example, including_answer=True):
+    cot_content = example["cot_content"].replace("A: Let's think step by step. ", "")
+    return cot_content
+
+
 doc_to_text = partial(format_cot_example, including_answer=False)
-fewshot_to_text = partial(format_cot_example, including_answer=True)
+fewshot_to_text = partial(format_cot_example, including_answer=False)
+fewshot_to_target = partial(format_cot_target, including_answer=True)
 
 
 def process_docs(dataset, subject):

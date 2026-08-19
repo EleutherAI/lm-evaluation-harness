@@ -1,0 +1,17 @@
+tag:
+- nerel-bench
+task: ru_entity_definition
+task_alias: RuEntityDefinition
+dataset_name: entity_definition
+include: _template_yaml
+metric_list:
+- metric: !function utils.chrf
+  aggregation: mean
+  ignore_case: true
+  ignore_punctuation: true
+  higher_is_better: true
+metadata:
+  version: 1.0
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.fewshot_samples_for_ned

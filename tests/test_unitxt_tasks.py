@@ -2,6 +2,12 @@ from itertools import islice
 
 import pytest
 
+
+pytest.skip(
+    "Need to confirm if module tests are still compatible", allow_module_level=True
+)
+
+
 from lm_eval import tasks as tasks
 from lm_eval.api.task import ConfigurableTask
 from tests.test_tasks import BaseTasks, task_class

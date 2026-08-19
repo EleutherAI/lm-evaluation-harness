@@ -2,11 +2,10 @@ import argparse
 import logging
 import os
 import random
+from typing import cast
 
 import numpy as np
 
-from lm_eval import tasks
-from lm_eval.evaluator_utils import get_task_list
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import join_iters
 
@@ -47,16 +46,17 @@ def main():
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
 
-    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(include_path=args.include_path)
 
     if args.tasks == "all_tasks":
-        task_names = task_manager.all_tasks
+        _task_names = task_manager.all_tasks
     else:
-        task_names = args.tasks.split(",")
-    task_dict = tasks.get_task_dict(task_names, task_manager)
+        _task_names = cast("list[str]", args.tasks.split(","))
+    _res = task_manager.load(_task_names)
+    task_dicts = _res["tasks"].values()
 
     os.makedirs(args.output_base_path, exist_ok=True)
-    for task in [x.task for x in get_task_list(task_dict)]:
+    for task in task_dicts:
         task_name = task.config.task
         rnd = random.Random()
         rnd.seed(args.seed)
@@ -82,10 +82,12 @@ def main():
         docs = join_iters(iters)
 
         with open(
-            os.path.join(args.output_base_path, task_name), "w", encoding="utf8"
+            os.path.join(args.output_base_path, task_name),  # type: ignore
+            "w",
+            encoding="utf8",
         ) as f:
             for i, doc in (
-                zip(range(args.num_examples), docs)
+                zip(range(args.num_examples), docs, strict=False)
                 if args.num_examples > 0
                 else enumerate(docs)
             ):

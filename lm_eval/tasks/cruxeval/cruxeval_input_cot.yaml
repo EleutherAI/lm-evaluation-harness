@@ -1,0 +1,26 @@
+include: cruxeval_common_yaml
+task: cruxeval_input_cot
+repeats: 10
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [1,5]
+description: "You will be given a function f and an output in the form f(??) == output. Your task is to find any input such that executing f on the input leads to the given output. There may be multiple answers, but only output one. First, think step by step. You MUST surround the answer with [ANSWER] and [/ANSWER] tags. Express your answer as a passing assertion containing the input and the given output.\n\n[PYTHON]\ndef f(x):\n    return x + 1\nassert f(??) == 17\n[/PYTHON]\n[THOUGHT]\nTo find an input such that executing f on the input leads to the given output, we can work backwards from the given assertion. We know that f(??) == 17. \n\nSince the function f(x) returns x + 1, for f(??) to be equal to 17, the value of ?? should be 16. \n[/THOUGHT]\n[ANSWER]\nassert f(16) == 17\n[/ANSWER]\n\n"
+doc_to_text: "[PYTHON]\n{{code}}\nassert f(??) == {{output}}\n[/PYTHON]\n[THOUGHT]\n"
+doc_to_target: "assert f({{input}})=={{output}}"
+generation_kwargs:
+  until:
+    - "[/ANSWER]"
+    - "</seed:think>[ANSWER]"
+  max_gen_toks: 512
+  do_sample: True
+  temperature: 0.2
+  top_p: 0.95
+filter_list:
+  - name: "create_test"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions_input_cot
+metadata:
+  version: 1.0

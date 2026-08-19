@@ -1,3 +1,0 @@
-dataset_name: por_latn_port
-include: _template
-task: global_piqa_completions_por_latn_port

@@ -1,4 +1,4 @@
-group: include_base_44_polish
+group: include_base_44_polish_few_shot_en
 task:
 - include_base_44_polish_few_shot_en_professional_certification
 - include_base_44_polish_few_shot_en_social_science
@@ -7,4 +7,4 @@ aggregate_metric_list:
 - metric: acc
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 0.1

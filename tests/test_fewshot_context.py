@@ -566,9 +566,9 @@ class TestFewshotContext:
         mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
         mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
         mock_configurable_task.doc_to_choice = Mock(
-            side_effect=lambda d, *args: ["A", "B"]
-            if d == fs_doc
-            else ["Apple", "Banana"]
+            side_effect=lambda d, *args: (
+                ["A", "B"] if d == fs_doc else ["Apple", "Banana"]
+            )
         )
 
         result = ConfigurableTask.fewshot_context(
@@ -618,6 +618,58 @@ class TestFewshotContext:
         assert "Answer: A1" in result
         # Target should end with gen_prefix
         assert result.endswith("Answer:")
+
+    def test_fewshot_gen_prefix_resolved_against_fewshot_doc(
+        self, mock_configurable_task
+    ):
+        """A per-doc gen_prefix column resolves against the fewshot doc, not the eval doc.
+
+        Tasks such as RULER's `niah_single_1` set `gen_prefix: "{{gen_prefix}}"`, so the
+        prefix is document-specific. Resolving it against the eval doc would splice the
+        eval question into every fewshot example.
+        """
+        fs_doc = {"q": "Q1", "a": "A1", "gen_prefix": "Shot prefix:"}
+        target_doc = {"q": "Q2", "a": "A2", "gen_prefix": "Eval prefix:"}
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
+        mock_configurable_task.fewshot_cfg.gen_prefix = "gen_prefix"
+        # real resolve_field: looks the field up on the doc it is handed
+        mock_configurable_task.resolve_field = ConfigurableTask.resolve_field
+
+        result = ConfigurableTask.fewshot_context(
+            mock_configurable_task,
+            doc=target_doc,
+            num_fewshot=1,
+            gen_prefix=target_doc["gen_prefix"],
+        )
+
+        assert "Shot prefix: A1" in result
+        assert "Eval prefix: A1" not in result
+        assert result.endswith("Eval prefix:")
+
+    def test_fewshot_gen_prefix_template_resolved_against_fewshot_doc(
+        self, mock_configurable_task
+    ):
+        """A Jinja gen_prefix template renders with the fewshot doc's own fields.
+
+        `humaneval_instruct` embeds `{{ prompt }}` in its gen_prefix, so rendering
+        against the eval doc would leak the evaluated problem into the shots.
+        """
+        fs_doc = {"q": "Q1", "a": "A1", "prompt": "def shot():"}
+        target_doc = {"q": "Q2", "a": "A2", "prompt": "def evaluated():"}
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
+        mock_configurable_task.fewshot_cfg.gen_prefix = "Code:\n{{ prompt }}\n"
+        mock_configurable_task.resolve_field = ConfigurableTask.resolve_field
+
+        result = ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc=target_doc, num_fewshot=1
+        )
+
+        assert "Code:\ndef shot():\n" in result
+        assert "def evaluated():" not in result
 
     def test_sampler_excludes_eval_doc_when_same_split(self, mock_configurable_task):
         """When fewshot_split == test_split, eval_doc is passed to sampler."""
@@ -755,3 +807,50 @@ class TestChatTemplateFormat:
         assert "Q1" in result[1]["content"]
         assert "A1" in result[1]["content"]
         assert "Q2" in result[1]["content"]
+
+
+def test_mmlu_pro_fewshot_chat_template_split():
+    """Fewshot user turn must not contain the answer."""
+    from lm_eval.tasks.mmlu_pro.utils import fewshot_to_target, fewshot_to_text
+
+    fake_doc = {
+        "question": "What is 2+2?",
+        "options": ["3", "4", "5", "6"],
+        "cot_content": "A: Let's think step by step. Basic arithmetic gives 4.",
+        "answer": "B",
+    }
+    user_text = fewshot_to_text(fake_doc)
+    assistant_text = fewshot_to_target(fake_doc)
+
+    assert user_text.endswith("Answer: Let's think step by step.")
+    assert "Basic arithmetic" not in user_text
+    assert assistant_text == "Basic arithmetic gives 4."
+
+
+def test_fewshot_config_split_precedence():
+    """Nested ``fewshot_config.split`` must override the inherited top-level ``fewshot_split``.
+
+    ``FewshotConfig``'s fields are documented to override the parent ``TaskConfig``
+    fields. Regression guard for ``__post_init__`` passing ``split=`` (an unknown
+    kwarg captured by ``**overloads`` at highest precedence), which inverted the
+    precedence so the top-level value clobbered the nested one.
+    """
+    from lm_eval.config.task import TaskConfig
+
+    # Nested value wins over the (None) inherited top-level split.
+    cfg = TaskConfig(
+        task="demo",
+        output_type="multiple_choice",
+        fewshot_split=None,
+        fewshot_config={"split": "train"},
+    )
+    assert cfg.fewshot_config.split == "train"
+
+    # Top-level split is still inherited when the nested value is absent.
+    cfg_inherit = TaskConfig(
+        task="demo",
+        output_type="multiple_choice",
+        fewshot_split="validation",
+        fewshot_config={"process_docs": None},
+    )
+    assert cfg_inherit.fewshot_config.split == "validation"
