@@ -565,6 +565,42 @@ class TestEvaluatorConfigFromCLI:
         assert cfg.gen_kwargs["temperature"] == 0.7
         assert cfg.gen_kwargs["max_tokens"] == 100
 
+    def test_string_dict_args_from_cli_config(self, tmp_path):
+        """Test that CLI-style dict strings from a config file are parsed."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        config_path = tmp_path / "eval.yaml"
+        config_path.write_text(
+            "tasks: [hellaswag]\n"
+            'model_args: "pretrained=gpt2,dtype=float16"\n'
+            'gen_kwargs: "temperature=0.7,max_tokens=100"\n'
+            'trackio_args: "project=lm-eval,name=test-run"\n'
+        )
+
+        cfg = EvaluatorConfig.from_cli(Namespace(config=str(config_path)))
+
+        assert cfg.model_args == {"pretrained": "gpt2", "dtype": "float16"}
+        assert cfg.gen_kwargs == {"temperature": 0.7, "max_tokens": 100}
+        assert cfg.trackio_args == {"project": "lm-eval", "name": "test-run"}
+
+    def test_string_dict_args_from_config(self, tmp_path):
+        """Test that from_config parses CLI-style dict strings."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        config_path = tmp_path / "eval.yaml"
+        config_path.write_text(
+            "tasks: [hellaswag]\n"
+            'model_args: "pretrained=gpt2,dtype=float16"\n'
+            'wandb_args: "project=lm-eval,name=test-run"\n'
+        )
+
+        cfg = EvaluatorConfig.from_config(config_path)
+
+        assert cfg.model_args == {"pretrained": "gpt2", "dtype": "float16"}
+        assert cfg.wandb_args == {"project": "lm-eval", "name": "test-run"}
+
     def test_none_args_use_defaults(self, tmp_path):
         """Test that None values fall back to defaults."""
         from argparse import Namespace
