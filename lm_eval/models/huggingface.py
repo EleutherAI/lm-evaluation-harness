@@ -538,7 +538,6 @@ class HFLM(TemplateLM):
 
         args = {}
         if parallelize:  # Model parallelism will be used
-            max_memory = {}
             if max_memory_per_gpu is not None:  # Using the provided memory requirements
                 max_memory_per_gpu_map = {
                     device_idx: max_memory_per_gpu for device_idx in range(gpus)
@@ -557,14 +556,15 @@ class HFLM(TemplateLM):
                 else:
                     max_memory_per_gpu_map = max_memory_all_gpus
 
-            args["max_memory"] = max_memory_per_gpu_map
+            max_memory = dict(max_memory_per_gpu_map)
+            if max_cpu_memory is not None:
+                max_memory["cpu"] = max_cpu_memory
+
+            args["max_memory"] = max_memory
             args["device_map"] = "auto" if device_map is None else device_map
             eval_logger.info(
                 f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to {args.get('device_map')}"
             )
-
-            if max_cpu_memory is not None:
-                max_memory["cpu"] = max_cpu_memory
 
             args["offload_folder"] = offload_folder
         elif (
