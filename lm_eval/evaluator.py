@@ -364,7 +364,9 @@ def simple_evaluate(
 
     results = evaluate(
         lm=lm,
-        task_dict=task_dict,
+        # post-merge fix: upstream renamed the loaded-task dict to `loaded` (task_manager.load above);
+        # the merge kept the old fork call-site name. evaluate() accepts the {"tasks","groups"} shape.
+        task_dict=loaded,
         sample_sid=sample_sid,
         sample_eid=sample_eid,
         limit=limit,
@@ -620,8 +622,11 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output, limit in zip(eval_tasks, limits, strict=True):
-        task = task_output.task
+    # post-merge fix: upstream's evaluate() carries tasks as the dict eval_tasks[name]->Task and
+    # accumulates into eval_results_acc[name]; the fork's old loop iterated TaskOutput objects. The
+    # old head left `task` a string, `task_name` stale, and `acc` unbound (used below at ~:685).
+    for (task_name, task), limit in zip(eval_tasks.items(), limits, strict=True):
+        acc = eval_results_acc[task_name]
         if sample_sid is not None and sample_eid is not None:
             task.dataset["test"] = task.eval_docs.select(range(sample_sid, sample_eid))
             task._instances = task._instances[sample_sid:sample_eid]
