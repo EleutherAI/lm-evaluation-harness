@@ -120,9 +120,14 @@ def test_task_configs_are_pinned_and_report_olmes_metric(domain, prompt_form):
     config = load_yaml(task_dir / f"{domain}_{prompt_form}.yaml")
 
     assert config["task"] == f"basic_skills_{domain}_{prompt_form}"
+    assert config["dataset_path"] == "json"
     assert config["dataset_name"] == domain
-    assert config["dataset_kwargs"]["revision"] == (
-        "faf63e9719e124d7741519a024719c8992622630"
+    revision = "faf63e9719e124d7741519a024719c8992622630"
+    assert config["metadata"]["dataset_repository"] == "allenai/basic-skills"
+    assert config["metadata"]["dataset_revision"] == revision
+    assert config["dataset_kwargs"]["data_files"]["validation"] == (
+        "https://huggingface.co/datasets/allenai/basic-skills/resolve/"
+        f"{revision}/{domain}/validation.json"
     )
     assert config["num_fewshot"] == 5
     assert config["test_split"] == config["fewshot_split"] == "validation"

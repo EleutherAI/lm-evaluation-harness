@@ -1,9 +1,7 @@
 tag:
   - multiple_choice
   - olmes_basic_skills
-dataset_path: allenai/basic-skills
-dataset_kwargs:
-  revision: faf63e9719e124d7741519a024719c8992622630
+dataset_path: json
 output_type: multiple_choice
 test_split: validation
 fewshot_split: validation
@@ -29,4 +27,5 @@ metric_list:
 metadata:
   version: 0
   source_commit: 5a51f502d463b8cdc4a2dcad7d7096c41ff1197e
+  dataset_repository: allenai/basic-skills
   dataset_revision: faf63e9719e124d7741519a024719c8992622630

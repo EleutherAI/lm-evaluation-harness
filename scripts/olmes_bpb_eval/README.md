@@ -36,6 +36,10 @@ MultiPL-E is the principled exception. Its official release has prompts and
 tests but no canonical translated reference completions, so BPB is undefined
 and reported as N/A. Its tests are never substituted as a fake BPB target.
 
+For both Basic Skills prompt forms (RC and MC), the pinned OLMES task
+registration uses `acc_per_token` as the original headline metric. Raw `acc`
+remains available as a diagnostic metric.
+
 ## Ray launch
 
 The launch is non-interactive and uses one GPU per shard. A smoke run should be

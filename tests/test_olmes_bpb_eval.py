@@ -20,9 +20,7 @@ def load_suite():
 def test_campaign_pins_and_preflights_minerva_math_dependencies():
     constraints = (CAMPAIGN_PATH / "constraints.txt").read_text(encoding="utf-8")
     runner = (CAMPAIGN_PATH / "run_ray.sh").read_text(encoding="utf-8")
-    bootstrap = (CAMPAIGN_PATH / "bootstrap_worker_venv.py").read_text(
-        encoding="utf-8"
-    )
+    bootstrap = (CAMPAIGN_PATH / "bootstrap_worker_venv.py").read_text(encoding="utf-8")
 
     assert "antlr4-python3-runtime==4.11.0" in constraints
     assert "math-verify==0.9.0" in constraints
@@ -97,8 +95,8 @@ def test_basic_skills_summary_uses_rc_and_mc_source_headlines():
 
     summary = build_summary(rows, suite)[0]
 
-    assert summary["Original Metric"] == "acc_per_token (_rc); acc (_mc)"
-    assert summary["Original Value"] == pytest.approx(0.375)
+    assert summary["Original Metric"] == ("acc_per_token (_rc); acc_per_token (_mc)")
+    assert summary["Original Value"] == pytest.approx(0.525)
 
 
 def test_summary_uses_exact_bpb_totals_and_bbeh_adjusted_harmonic():

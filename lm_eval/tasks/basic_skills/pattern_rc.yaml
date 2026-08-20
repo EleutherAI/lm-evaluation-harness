@@ -1,3 +1,6 @@
 include: _rc_template.yaml
 task: basic_skills_pattern_rc
 dataset_name: pattern
+dataset_kwargs:
+  data_files:
+    validation: https://huggingface.co/datasets/allenai/basic-skills/resolve/faf63e9719e124d7741519a024719c8992622630/pattern/validation.json

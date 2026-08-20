@@ -6,8 +6,13 @@ import lm_eval.api.task as task_module
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import bpb_corpus, bpb_macro
 from lm_eval.api.model import TemplateLM
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import ConfigurableTask, MultipleChoiceTask
 from lm_eval.config.task import TaskConfig
+from lm_eval.evaluator import (
+    _request_type_padding,
+    _request_types_to_execute,
+    _synthetic_padding_request,
+)
 from lm_eval.tasks.bbh.cot_fewshot import utils as bbh_utils
 from lm_eval.tasks.gsm8k import utils as gsm8k_utils
 
@@ -31,6 +36,28 @@ class CharacterTemplateLM(TemplateLM):
 
     def generate_until(self, requests, disable_tqdm=False):
         raise NotImplementedError
+
+
+class EmptyLegacyTask(MultipleChoiceTask):
+    DATASET_PATH = None
+
+    def download(self, *args, **kwargs):
+        self.dataset = {}
+
+    def has_training_docs(self):
+        return False
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
+
+    def validation_docs(self):
+        return []
+
+    def doc_to_text(self, doc):
+        return doc["question"]
 
 
 def make_task(**config_overrides):
@@ -190,6 +217,69 @@ def test_request_cache_key_isolated_by_bpb_schema(monkeypatch):
     task.build_all_requests(cache_requests=True, tokenizer_name="tokenizer")
 
     assert "request_schema2-bpb1" in captured[0]
+
+
+def test_direct_task_subclasses_default_to_bpb_disabled(monkeypatch):
+    task = EmptyLegacyTask(config={"task": "empty_legacy", "num_fewshot": 0})
+    cached = Instance("loglikelihood", {}, ("prompt", " answer"), 0)
+    monkeypatch.setattr(task_module, "load_from_cache", lambda **kwargs: [[cached]])
+
+    task.build_all_requests(cache_requests=True)
+
+    assert task._compute_bpb is False
+    assert task.instances == [cached]
+
+
+def test_distributed_padding_is_computed_per_request_type_after_repeats():
+    import torch
+
+    instances = [
+        Instance("generate_until", {}, ("prompt", {}), 0, metadata=("task", 0, 2)),
+        Instance(
+            "loglikelihood",
+            {},
+            ("prompt", " answer"),
+            0,
+            metadata=("task", 0, 1),
+        ),
+    ]
+
+    class FakeDistributedLM:
+        world_size = 2
+        rank = 0
+        device = "cpu"
+
+        def all_gather(self, counts):
+            # Both ranks have three total requests, but with opposing method
+            # counts. Aggregate-only padding would incorrectly return zero.
+            assert counts.tolist() == [1, 0, 2]
+            return torch.tensor([[1, 0, 2], [2, 0, 1]])
+
+    padding = _request_type_padding(instances, FakeDistributedLM())
+
+    assert padding == {
+        "loglikelihood": 1,
+        "loglikelihood_rolling": 0,
+        "generate_until": 0,
+    }
+
+
+def test_distributed_rank_executes_and_can_pad_a_request_type_absent_locally():
+    requests = {"generate_until": [object()]}
+    padding = {
+        "loglikelihood": 2,
+        "loglikelihood_rolling": 0,
+        "generate_until": 0,
+    }
+
+    assert _request_types_to_execute(requests, padding) == (
+        "loglikelihood",
+        "generate_until",
+    )
+    dummy = _synthetic_padding_request("loglikelihood")
+    assert dummy.request_type == "loglikelihood"
+    assert dummy.repeats == 1
+    assert dummy.args == (" ", " x")
 
 
 def test_generate_until_can_override_the_bpb_context():

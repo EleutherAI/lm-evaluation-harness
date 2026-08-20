@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import itertools
 import json
 import logging
@@ -13,6 +14,7 @@ import numpy as np
 
 import lm_eval.api.model
 import lm_eval.api.registry
+from lm_eval.api.instance import Instance
 from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
@@ -49,6 +51,59 @@ if TYPE_CHECKING:
     _NestedDict = dict[Group, dict[str, Task] | Group] | dict[str, Task]
 
 eval_logger = logging.getLogger(__name__)
+
+_MODEL_REQUEST_TYPES = (
+    "loglikelihood",
+    "loglikelihood_rolling",
+    "generate_until",
+)
+
+
+def _request_type_padding(instances, lm) -> dict[str, int]:
+    """Return exact cloned-request padding required for each model method."""
+    import torch
+
+    local_counts = {request_type: 0 for request_type in _MODEL_REQUEST_TYPES}
+    for instance in instances or []:
+        repeats = instance.repeats if instance.repeats is not None else 1
+        local_counts[instance.request_type] += repeats
+
+    counts = torch.tensor(
+        [local_counts[request_type] for request_type in _MODEL_REQUEST_TYPES],
+        dtype=torch.long,
+        device=lm.device,
+    )
+    gathered = lm.all_gather(counts).cpu().detach().numpy()
+    gathered = gathered.reshape(lm.world_size, len(_MODEL_REQUEST_TYPES))
+    return {
+        request_type: int(gathered[:, index].max() - gathered[lm.rank, index])
+        for index, request_type in enumerate(_MODEL_REQUEST_TYPES)
+    }
+
+
+def _request_types_to_execute(requests, padding_requests) -> tuple[str, ...]:
+    """Return model methods needed locally or for cross-rank padding."""
+    return tuple(
+        request_type
+        for request_type in _MODEL_REQUEST_TYPES
+        if requests.get(request_type) or padding_requests.get(request_type, 0)
+    )
+
+
+def _synthetic_padding_request(request_type: str) -> Instance:
+    """Construct a harmless request when this rank has no local template."""
+    arguments = {
+        "loglikelihood": (" ", " x"),
+        "loglikelihood_rolling": (" x",),
+        "generate_until": (" ", {"until": ["\n"], "max_gen_toks": 1}),
+    }[request_type]
+    return Instance(
+        request_type=request_type,
+        doc={},
+        arguments=arguments,
+        idx=0,
+        metadata=("__distributed_padding__", -1, 1),
+    )
 
 
 @positional_deprecated
@@ -577,26 +632,17 @@ def evaluate(
             requests[reqtype].append(instance)
 
         if lm.world_size > 1:
-            import torch
-
-            instances_rnk = torch.tensor(
-                len(task._instances) if task._instances else 0, device=lm.device
-            )
-            gathered_item = lm.all_gather(instances_rnk).cpu().detach().numpy().tolist()
-            # "multiple_choice" task types dispatch (several) "loglikelihood" request types
-            reqtype = (
-                "loglikelihood"
-                if task.OUTPUT_TYPE == "multiple_choice"
-                else task.OUTPUT_TYPE
-            )
-            # compute number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
-            numpad = max(gathered_item) - gathered_item[lm.rank]
-            # todo: may not account for padding in cases like SquadV2 which has multiple req types
-            padding_requests[reqtype] += numpad
+            # A task can dispatch more than one model method. In particular,
+            # generative BPB adds a teacher-forced loglikelihood request beside
+            # generate_until. DDP/FSDP therefore needs independent padding for
+            # every actual request type, counted after repeat expansion.
+            for reqtype, numpad in _request_type_padding(task.instances, lm).items():
+                padding_requests[reqtype] += numpad
 
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
-    for reqtype, reqs in requests.items():
+    for reqtype in _request_types_to_execute(requests, padding_requests):
+        reqs = requests.get(reqtype, [])
         eval_logger.info("Running %s requests", reqtype)
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
@@ -605,7 +651,14 @@ def evaluate(
 
         if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
             for _ in range(padding_requests[reqtype]):
-                cloned_reqs.extend([req] * req.repeats)
+                padding_request = (
+                    copy.copy(cloned_reqs[-1])
+                    if cloned_reqs
+                    else _synthetic_padding_request(reqtype)
+                )
+                padding_request.resps = []
+                padding_request.filtered_resps = {}
+                cloned_reqs.append(padding_request)
 
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)

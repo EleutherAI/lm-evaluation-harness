@@ -110,6 +110,10 @@ class Task(abc.ABC):
             - `datasets.DownloadMode.FORCE_REDOWNLOAD`
                 Fresh download and fresh dataset.
         """
+        # BPB is an evaluator opt-in. Define the default at the base Task layer
+        # so legacy/direct Task subclasses remain backward compatible when the
+        # evaluator has not enabled BPB for them.
+        self._compute_bpb = False
         self.download(data_dir, cache_dir, download_mode)
         self._training_docs: list | None = None
         self._fewshot_docs: list | None = None

@@ -32,6 +32,7 @@ PINNED_PACKAGES = (
     "vllm",
     "ray",
     "numpy",
+    "setuptools",
 )
 GIT = shutil.which("git")
 

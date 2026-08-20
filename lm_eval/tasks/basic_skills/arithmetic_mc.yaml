@@ -1,3 +1,6 @@
 include: _mc_template.yaml
 task: basic_skills_arithmetic_mc
 dataset_name: arithmetic
+dataset_kwargs:
+  data_files:
+    validation: https://huggingface.co/datasets/allenai/basic-skills/resolve/faf63e9719e124d7741519a024719c8992622630/arithmetic/validation.json

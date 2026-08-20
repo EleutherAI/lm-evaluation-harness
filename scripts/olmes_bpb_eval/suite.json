@@ -17,8 +17,8 @@
       "name": "basic_skills",
       "selector": "basic_skills",
       "phase": "non_code",
-      "primary_metrics": ["acc_per_token", "acc"],
-      "primary_metric_by_task_suffix": {"_rc": "acc_per_token", "_mc": "acc"},
+      "primary_metrics": ["acc_per_token"],
+      "primary_metric_by_task_suffix": {"_rc": "acc_per_token", "_mc": "acc_per_token"},
       "aggregation": "macro_task",
       "weight": 12
     },
