@@ -269,7 +269,7 @@ class SGLangLM(TemplateLM):
                 stop = [s for s in until if s == eos] if self.think_end_token else until
                 # create sampling params
                 sampling_params.append(
-                    kwargs | {"max_tokens": max_gen_toks, "stop": stop}
+                    kwargs | {"max_new_tokens": max_gen_toks, "stop": stop}
                 )
                 cache_gen_kwargs.append(
                     kwargs | {"until": until, "max_gen_toks": max_gen_toks}

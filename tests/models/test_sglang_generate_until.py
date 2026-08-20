@@ -89,8 +89,8 @@ def test_sglang_generate_until_uses_per_request_stop_sequences():
         "second. keep this sentence ",
     ]
     assert lm.seen_sampling_params == [
-        _BASE_KWARGS | {"max_tokens": 8, "stop": [".", "<eos>"]},
-        _BASE_KWARGS | {"max_tokens": 8, "stop": ["Question:", "<eos>"]},
+        _BASE_KWARGS | {"max_new_tokens": 8, "stop": [".", "<eos>"]},
+        _BASE_KWARGS | {"max_new_tokens": 8, "stop": ["Question:", "<eos>"]},
     ]
     assert lm.cache_hook.calls == [
         (
@@ -126,7 +126,7 @@ def test_sglang_generate_until_withholds_task_stops_for_reasoning_models():
     ) == ["Answer: 4"]
     # engine sees EOS only ...
     assert lm.seen_sampling_params == [
-        _BASE_KWARGS | {"max_tokens": 8, "stop": ["<eos>"]}
+        _BASE_KWARGS | {"max_new_tokens": 8, "stop": ["<eos>"]}
     ]
     # ... but the full stop list is still recorded for the cache key
     assert lm.cache_hook.calls[0][1][1]["until"] == ["\n\n", "<eos>"]
@@ -153,5 +153,5 @@ def test_sglang_generate_until_normalizes_gen_kwargs_aliases():
         disable_tqdm=True,
     )
     assert lm.seen_sampling_params == [
-        _BASE_KWARGS | {"max_tokens": 5, "stop": ["Question:", "<eos>"]}
+        _BASE_KWARGS | {"max_new_tokens": 5, "stop": ["Question:", "<eos>"]}
     ]
