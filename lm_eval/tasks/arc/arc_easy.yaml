@@ -2,6 +2,8 @@ tag:
   - ai2_arc
 task: arc_easy
 dataset_path: allenai/ai2_arc
+dataset_kwargs:
+  revision: 210d026faf9955653af8916fad021475a3f00453
 dataset_name: ARC-Easy
 output_type: multiple_choice
 training_split: train

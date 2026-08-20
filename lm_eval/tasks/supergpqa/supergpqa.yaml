@@ -1,0 +1,3 @@
+include: _default_template_yaml
+task: supergpqa
+task_alias: SuperGPQA zero-shot

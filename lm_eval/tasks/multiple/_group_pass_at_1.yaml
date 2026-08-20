@@ -1,0 +1,20 @@
+group: multiple_pass_at_1
+task:
+  - multiple_humaneval_cpp
+  - multiple_humaneval_java
+  - multiple_humaneval_js
+  - multiple_humaneval_php
+  - multiple_humaneval_rs
+  - multiple_humaneval_sh
+  - multiple_mbpp_cpp
+  - multiple_mbpp_java
+  - multiple_mbpp_js
+  - multiple_mbpp_php
+  - multiple_mbpp_rs
+  - multiple_mbpp_sh
+aggregate_metric_list:
+  - metric: pass@1
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

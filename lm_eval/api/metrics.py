@@ -36,6 +36,23 @@ def mean(arr):
     return sum(arr) / len(arr)
 
 
+@register_aggregation("sum")
+def sum_agg(items):
+    return sum(items)
+
+
+@register_aggregation("bpb_macro")
+def bpb_macro(items):
+    """Unweighted mean of per-example bits per UTF-8 byte (OLMES style)."""
+    return mean(items)
+
+
+@register_aggregation("bpb_corpus")
+def bpb_corpus(items):
+    """Corpus BPB from ``(loglikelihood, byte_count)`` sample pairs."""
+    return -weighted_mean(items) / math.log(2)
+
+
 @register_aggregation("median")
 def median(arr):
     return sorted(arr)[len(arr) // 2]
@@ -166,6 +183,16 @@ def acc_fn(items):  # This is a passthrough function
     aggregation="mean",
 )
 def acc_norm_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="acc_per_token",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="mean",
+)
+def acc_per_token_fn(items):  # This is a passthrough function
     return items
 
 
@@ -302,6 +329,56 @@ def byte_perplexity_fn(items):  # This is a passthrough function
     aggregation="bits_per_byte",
 )
 def bits_per_byte_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="bpb_macro",
+    higher_is_better=False,
+    output_type=["loglikelihood", "multiple_choice", "generate_until"],
+    aggregation="bpb_macro",
+)
+def bpb_macro_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="bits_per_byte_corr",
+    higher_is_better=False,
+    output_type=["loglikelihood", "multiple_choice", "generate_until"],
+    aggregation="bpb_macro",
+)
+def bits_per_byte_corr_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="bpb_corpus",
+    higher_is_better=False,
+    output_type=["loglikelihood", "multiple_choice", "generate_until"],
+    aggregation="bpb_corpus",
+)
+def bpb_corpus_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="bpb_total_loglikelihood",
+    higher_is_better=False,
+    output_type=["loglikelihood", "multiple_choice", "generate_until"],
+    aggregation="sum",
+)
+def bpb_total_loglikelihood_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="bpb_total_bytes",
+    higher_is_better=False,
+    output_type=["loglikelihood", "multiple_choice", "generate_until"],
+    aggregation="sum",
+)
+def bpb_total_bytes_fn(items):  # This is a passthrough function
     return items
 
 

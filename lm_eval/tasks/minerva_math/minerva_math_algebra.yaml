@@ -2,6 +2,8 @@ tag:
   - math_word_problems
 task: minerva_math_algebra
 dataset_path: EleutherAI/hendrycks_math
+dataset_kwargs:
+  revision: 21a5633873b6a120296cce3e2df9d5550074f4a3
 process_docs: !function utils.process_docs
 dataset_name: algebra
 output_type: generate_until
@@ -10,6 +12,7 @@ test_split: test
 doc_to_text: !function utils.doc_to_text
 process_results: !function utils.process_results
 doc_to_target: "{{answer if few_shot is undefined else solution}}"
+doc_to_bpb_target: solution
 generation_kwargs:
   until:
     - "Problem:"

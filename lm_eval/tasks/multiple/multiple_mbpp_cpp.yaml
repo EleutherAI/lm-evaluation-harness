@@ -1,0 +1,9 @@
+include: _pass_at_1.yaml
+task: multiple_mbpp_cpp
+dataset_name: mbpp-cpp
+generation_kwargs:
+  until: ["\n}"]
+  max_gen_toks: 1024
+  do_sample: true
+  temperature: 0.2
+  top_p: 0.95

@@ -1,0 +1,29 @@
+dataset_path: nuprl/MultiPL-E
+dataset_kwargs:
+  revision: 28441b6024e71d4a1c1c0f6bf171c935cd5a43f2
+unsafe_code: true
+output_type: generate_until
+test_split: test
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{tests}}"
+bpb_unsupported_reason: >-
+  The pinned MultiPL-E dataset provides translated prompts and tests but no
+  canonical translated completion; tests are grading artifacts, not BPB targets.
+target_delimiter: ""
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [1]
+repeats: 20
+num_fewshot: 0
+filter_list:
+  - name: create_test
+    filter:
+      - function: custom
+        filter_fn: !function utils.build_predictions
+metadata:
+  version: 1.0
+  source_commit: 3025a531af7450e7df8b96fe0440e9804480bbad
+  dataset_revision: 28441b6024e71d4a1c1c0f6bf171c935cd5a43f2
+  evaluation_profile: pass@1, temperature 0.2, 20 samples

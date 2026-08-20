@@ -1,0 +1,9 @@
+include: _pass_at_10_100.yaml
+task: multiple_mbpp_js_pass_at_10_100
+dataset_name: mbpp-js
+generation_kwargs:
+  until: ["\nfunction ", "\n/*", "\n//", "\nconsole.log"]
+  max_gen_toks: 1024
+  do_sample: true
+  temperature: 0.8
+  top_p: 0.95

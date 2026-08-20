@@ -1,7 +1,11 @@
 dataset_path: SaylorTwift/bbh
+dataset_kwargs:
+  revision: b5306be6f827cfafbb545ff5a51f96916029b0fd
 output_type: generate_until
 test_split: test
 doc_to_target: "{{target}}"
+doc_to_bpb_text: !function utils.bpb_text
+doc_to_bpb_target: !function utils.bpb_target
 target_delimiter: ""
 metric_list:
   - metric: exact_match

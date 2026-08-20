@@ -1,0 +1,26 @@
+group: basic_skills
+task:
+  - basic_skills_arithmetic_rc
+  - basic_skills_arithmetic_mc
+  - basic_skills_coding_rc
+  - basic_skills_coding_mc
+  - basic_skills_common_knowledge_rc
+  - basic_skills_common_knowledge_mc
+  - basic_skills_logical_reasoning_rc
+  - basic_skills_logical_reasoning_mc
+  - basic_skills_string_operations_rc
+  - basic_skills_string_operations_mc
+  - basic_skills_pattern_rc
+  - basic_skills_pattern_mc
+aggregate_metric_list:
+  - metric: acc_per_token
+    aggregation: mean
+    weight_by_size: false
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 0

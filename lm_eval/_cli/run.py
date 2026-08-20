@@ -162,6 +162,15 @@ class Run(SubCommand):
                 "Values should be parsable with ast.literal_eval."
             ),
         )
+        eval_group.add_argument(
+            "--compute_bpb",
+            action="store_true",
+            default=argparse.SUPPRESS,
+            help=(
+                "Report OLMES macro BPB and pooled corpus BPB alongside each "
+                "task's original metrics"
+            ),
+        )
 
         # Data and Output
         data_group = self._parser.add_argument_group(
@@ -422,6 +431,7 @@ class Run(SubCommand):
             torch_random_seed=cfg.seed[2] if cfg.seed else None,
             fewshot_random_seed=cfg.seed[3] if cfg.seed else None,
             confirm_run_unsafe_code=cfg.confirm_run_unsafe_code,
+            compute_bpb=cfg.compute_bpb,
             metadata=cfg.metadata,
         )
 

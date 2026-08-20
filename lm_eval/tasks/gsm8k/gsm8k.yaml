@@ -2,6 +2,8 @@ tag:
   - math_word_problems
 task: gsm8k
 dataset_path: openai/gsm8k
+dataset_kwargs:
+  revision: 740312add88f781978c0658806c59bc2815b9866
 dataset_name: main
 output_type: generate_until
 training_split: train
@@ -9,6 +11,7 @@ fewshot_split: train
 test_split: test
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
+doc_to_bpb_target: !function utils.bpb_target
 metric_list:
   - metric: exact_match
     aggregation: mean

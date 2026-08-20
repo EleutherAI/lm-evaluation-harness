@@ -1,4 +1,6 @@
 dataset_path: Idavidrein/gpqa
+dataset_kwargs:
+  revision: 633f5ee89ab8ad4522a9f850766b73f62147ffdd
 tag: gpqa
 output_type: multiple_choice
 process_docs: !function utils.process_docs

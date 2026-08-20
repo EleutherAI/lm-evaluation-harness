@@ -1,3 +1,5 @@
 include: humaneval.yaml
 task: humaneval_plus
 dataset_path: evalplus/humanevalplus
+dataset_kwargs:
+  revision: d32357cf319e50e9c8d8dab5ea876c72b0fd321b

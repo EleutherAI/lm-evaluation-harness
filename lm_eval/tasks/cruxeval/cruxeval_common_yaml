@@ -1,6 +1,7 @@
 task: null
 dataset_path: cruxeval-org/cruxeval
+dataset_kwargs:
+  revision: b96af0450242eb4da433032b90998f25588a5d0f
 unsafe_code: true
 output_type: generate_until
 test_split: test
-

@@ -1,0 +1,3 @@
+include: _rc_template.yaml
+task: basic_skills_common_knowledge_rc
+dataset_name: common_knowledge

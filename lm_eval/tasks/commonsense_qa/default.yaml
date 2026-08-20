@@ -1,5 +1,7 @@
 task: commonsense_qa
 dataset_path: tau/commonsense_qa
+dataset_kwargs:
+  revision: 94630fe30dad47192a8546eb75f094926d47e155
 training_split: train
 validation_split: validation
 output_type: multiple_choice

@@ -18,6 +18,11 @@ class Instance:
     )
     resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
+    # Populated by TemplateLM.loglikelihood with the exact number of tokenizer
+    # tokens scored for the continuation. This is runtime metadata rather than
+    # part of the request/cache key.
+    continuation_token_count: int | None = None
+    is_bpb_auxiliary: bool = False
 
     # initialized after init
     task_name: Optional[str] = None

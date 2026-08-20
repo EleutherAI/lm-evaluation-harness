@@ -124,6 +124,12 @@ class EvaluatorConfig:
             "help": "Only save model outputs, don't evaluate metrics. Use with log_samples."
         },
     )
+    compute_bpb: bool = field(
+        default=False,
+        metadata={
+            "help": "Report OLMES macro BPB and pooled corpus BPB with original metrics"
+        },
+    )
 
     # Chat and instruction handling
     system_instruction: str | None = field(

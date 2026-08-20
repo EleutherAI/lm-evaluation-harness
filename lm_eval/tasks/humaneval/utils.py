@@ -1,30 +1,24 @@
-import evaluate as hf_evaluate
+from lm_eval.tasks.code_eval_sandbox import pass_at_k as sandbox_pass_at_k
 
 
-try:
-    compute_ = hf_evaluate.load("code_eval")
-    test_cases = ["assert add(2, 3)==5"]
-    candidates = [["def add(a,b): return a*b"]]
-    results = compute_.compute(references=test_cases, predictions=candidates, k=[1])
-except Exception as e:
-    raise e
-
-
-def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] = None):
-    global compute_
+def pass_at_k(
+    references: list[str],
+    predictions: list[list[str]],
+    k: int | list[int] | None = None,
+):
     assert k is not None
-    if isinstance(k, int):
-        k = [k]
-    res = compute_.compute(
-        references=references,
-        predictions=predictions,
-        k=k,
-    )
-    return res[0]
+    return sandbox_pass_at_k(references, predictions, k)
+
+
+def canonical_solution(doc: dict) -> str:
+    """Return the reference implementation rather than the test harness."""
+    return doc["canonical_solution"]
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-    return [[doc["prompt"] + r for r in resp] for resp, doc in zip(resps, docs)]
+    return [
+        [doc["prompt"] + r for r in resp] for resp, doc in zip(resps, docs, strict=True)
+    ]
 
 
 def build_predictions_instruct(
@@ -35,5 +29,5 @@ def build_predictions_instruct(
             doc["prompt"] + (r if r.find("```") == -1 else r[: r.find("```")])
             for r in resp
         ]
-        for resp, doc in zip(resps, docs)
+        for resp, doc in zip(resps, docs, strict=True)
     ]

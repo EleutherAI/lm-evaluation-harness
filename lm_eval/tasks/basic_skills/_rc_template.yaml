@@ -1,0 +1,32 @@
+tag:
+  - multiple_choice
+  - olmes_basic_skills
+dataset_path: allenai/basic-skills
+dataset_kwargs:
+  revision: faf63e9719e124d7741519a024719c8992622630
+output_type: multiple_choice
+test_split: validation
+fewshot_split: validation
+fewshot_config:
+  sampler: !function utils.OLMESContextSampler
+num_fewshot: 5
+process_docs: !function utils.process_rc_docs
+doc_to_text: question
+doc_to_target: gold
+doc_to_choice: choices
+target_delimiter: " "
+fewshot_delimiter: "\n\n"
+metric_list:
+  - metric: acc_per_token
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0
+  source_commit: 5a51f502d463b8cdc4a2dcad7d7096c41ff1197e
+  dataset_revision: faf63e9719e124d7741519a024719c8992622630

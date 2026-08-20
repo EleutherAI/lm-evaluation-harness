@@ -2,6 +2,8 @@ tag:
   - super-glue-lm-eval-v1
 task: boolq
 dataset_path: aps/super_glue
+dataset_kwargs:
+  revision: 3de24cf8022e94f4ee4b9d55a6f539891524d646
 dataset_name: boolq
 output_type: multiple_choice
 training_split: train

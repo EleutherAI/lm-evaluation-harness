@@ -37,6 +37,11 @@ fewshot_to_text = partial(format_cot_example, including_answer=False)
 fewshot_to_target = partial(format_cot_target, including_answer=True)
 
 
+def bpb_target(example: dict) -> str:
+    """Return the correct option text used by OLMES gold-BPB scoring."""
+    return example["options"][example["answer_index"]]
+
+
 def process_docs(dataset, subject):
     return dataset.filter(lambda x: x["category"] == subject)
 

@@ -1,0 +1,49 @@
+dataset_path: m-a-p/SuperGPQA
+dataset_kwargs:
+  revision: 4430d4458112c7d4497fdcf94d7cc223313d6acf
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: train
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{answer_letter}}"
+target_delimiter: ""
+process_results: !function utils.process_results
+metric_list:
+  - metric: acc
+    aggregation: !function utils.aggregate_accuracy
+    higher_is_better: true
+  - metric: subfield_acc
+    aggregation: !function utils.aggregate_subfield_accuracy
+    higher_is_better: true
+  - metric: field_acc
+    aggregation: !function utils.aggregate_field_accuracy
+    higher_is_better: true
+  - metric: discipline_acc
+    aggregation: !function utils.aggregate_discipline_accuracy
+    higher_is_better: true
+  - metric: easy_acc
+    aggregation: !function utils.aggregate_easy_accuracy
+    higher_is_better: true
+  - metric: middle_acc
+    aggregation: !function utils.aggregate_middle_accuracy
+    higher_is_better: true
+  - metric: hard_acc
+    aggregation: !function utils.aggregate_hard_accuracy
+    higher_is_better: true
+  - metric: miss_rate
+    aggregation: !function utils.aggregate_miss_rate
+    higher_is_better: false
+  - metric: error_rate
+    aggregation: !function utils.aggregate_error_rate
+    higher_is_better: false
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 4096
+  until: []
+repeats: 1
+metadata:
+  version: 1.0
+  source_revision: e31e8bf3e7089aef808be5ddecafd4538dee6e41
+  dataset_revision: 4430d4458112c7d4497fdcf94d7cc223313d6acf

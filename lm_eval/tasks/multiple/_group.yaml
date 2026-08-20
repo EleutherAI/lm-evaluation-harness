@@ -1,0 +1,6 @@
+group: multiple
+task:
+  - multiple_pass_at_1
+  - multiple_pass_at_10_100
+metadata:
+  version: 1.0

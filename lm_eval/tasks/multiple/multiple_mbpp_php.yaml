@@ -1,0 +1,9 @@
+include: _pass_at_1.yaml
+task: multiple_mbpp_php
+dataset_name: mbpp-php
+generation_kwargs:
+  until: ["\nfunction", "\n?>", "\n//", "\n#"]
+  max_gen_toks: 1024
+  do_sample: true
+  temperature: 0.2
+  top_p: 0.95

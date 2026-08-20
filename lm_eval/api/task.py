@@ -286,6 +286,10 @@ class Task(abc.ABC):
         og_limit = limit
 
         cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
+        # Request construction gained runtime metadata and, in BPB mode,
+        # auxiliary teacher-forced requests. Keep those schemas isolated from
+        # caches written by older harness versions or the opposite BPB mode.
+        cache_key += f"-request_schema2-bpb{int(self._compute_bpb)}"
         cache_key += "-chat_template" if apply_chat_template else ""
         cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
         cache_key += (
@@ -411,6 +415,16 @@ class Task(abc.ABC):
             The results of the requests created in construct_requests.
         """
         pass
+
+    def process_results_with_instances(self, doc, results, instances):
+        """Process results with access to their originating request metadata.
+
+        Existing task implementations keep the historical two-argument
+        ``process_results`` contract. Configurable tasks override this hook for
+        metrics that need exact request metadata, such as continuation bytes or
+        tokenizer token counts.
+        """
+        return self.process_results(doc, results)
 
     @abc.abstractmethod
     def aggregation(self):
@@ -676,6 +690,7 @@ class ConfigurableTask(Task):
         self._metric_fn_kwargs = {}
         self._aggregation_list = {}
         self._higher_is_better = {}
+        self._compute_bpb = bool(self.config.compute_bpb)
 
         if self.config.metric_list is None:
             # TODO: handle this in TaskConfig.__post_init__ ?
@@ -1160,6 +1175,27 @@ class ConfigurableTask(Task):
     def apply_filters(self) -> list[Instance] | None:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
+            if self._compute_bpb:
+                primary_instances = [
+                    inst
+                    for inst in self._instances
+                    if not getattr(inst, "is_bpb_auxiliary", False)
+                ]
+                bpb_instances = [
+                    inst
+                    for inst in self._instances
+                    if getattr(inst, "is_bpb_auxiliary", False)
+                ]
+                for f in self._filters:
+                    f.apply(primary_instances)
+                    for inst in bpb_instances:
+                        if len(inst.resps) != 1:
+                            raise ValueError(
+                                f"{self.task_name}: expected one BPB response, "
+                                f"received {len(inst.resps)}"
+                            )
+                        inst.filtered_resps[f.name] = inst.resps[0]
+                return None
             for f in self._filters:
                 f.apply(self._instances)
         else:
@@ -1278,6 +1314,60 @@ class ConfigurableTask(Task):
                 return self.config.fewshot_delimiter
         else:
             raise TypeError
+
+    def doc_to_bpb_target(self, doc: Mapping) -> str:
+        """Resolve the canonical continuation used for teacher-forced BPB."""
+        target = self.doc_to_target(doc, self.config.doc_to_bpb_target)
+        if isinstance(target, list):
+            if not target:
+                raise ValueError(f"{self.task_name}: empty BPB target list")
+            target = target[0]
+        if isinstance(target, int) and self.config.doc_to_choice is not None:
+            target = self.doc_to_choice(doc)[target]
+        if not isinstance(target, str):
+            target = str(target)
+
+        delimiter = self.config.bpb_target_delimiter
+        if delimiter is None:
+            # OLMES prefixes gold generative continuations with one space
+            # unless the target already starts with whitespace. Code tasks
+            # that must begin immediately opt out with an explicit empty
+            # ``bpb_target_delimiter``.
+            delimiter = "" if target.startswith((" ", "\n")) else " "
+        return f"{delimiter}{target}"
+
+    def doc_to_bpb_text(self, doc: Mapping, context: str) -> str:
+        """Resolve an optional OLMES-specific likelihood context."""
+        if self.config.doc_to_bpb_text is None:
+            return context
+        bpb_context = self.doc_to_text(doc, self.config.doc_to_bpb_text)
+        if not isinstance(bpb_context, str):
+            raise TypeError(f"{self.task_name}: BPB context must be a string")
+        return bpb_context
+
+    def enable_bpb(self) -> None:
+        """Enable OLMES macro BPB and pooled corpus BPB for this task."""
+        if self.config.bpb_unsupported_reason:
+            raise ValueError(
+                f"{self.task_name}: BPB is unavailable: "
+                f"{self.config.bpb_unsupported_reason}"
+            )
+        if self.OUTPUT_TYPE == "loglikelihood_rolling":
+            raise ValueError(
+                f"{self.task_name}: --compute_bpb is for conditional benchmark "
+                "targets, not rolling language-model perplexity tasks"
+            )
+        self._compute_bpb = True
+        self.config.compute_bpb = True
+        for metric_name in (
+            "bpb_macro",
+            "bits_per_byte_corr",
+            "bpb_corpus",
+            "bpb_total_loglikelihood",
+            "bpb_total_bytes",
+        ):
+            self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
+            self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
     def doc_to_choice(self, doc: Any, doc_to_choice=None) -> list[str]:
         if self.prompt is not None:
@@ -1444,13 +1534,41 @@ class ConfigurableTask(Task):
 
             return request_list
 
-        return Instance(
+        primary_request = Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
             arguments=arguments,
             idx=0,
             **kwargs,
         )
+
+        if self.OUTPUT_TYPE == "generate_until" and self._compute_bpb:
+            if not isinstance(ctx, str):
+                raise TypeError(
+                    f"{self.task_name}: BPB requires one string context per document"
+                )
+            bpb_arguments = (
+                self.doc_to_bpb_text(doc, ctx),
+                self.doc_to_bpb_target(doc),
+            )
+            if bool(multimodal_arg):
+                bpb_arguments += (multimodal_arg,)
+
+            aux_kwargs = dict(kwargs)
+            if metadata := aux_kwargs.get("metadata"):
+                task_name, doc_id, _ = metadata
+                aux_kwargs["metadata"] = (task_name, doc_id, 1)
+            bpb_request = Instance(
+                request_type="loglikelihood",
+                doc=doc,
+                arguments=bpb_arguments,
+                idx=1,
+                is_bpb_auxiliary=True,
+                **aux_kwargs,
+            )
+            return [primary_request, bpb_request]
+
+        return primary_request
 
     def process_results(self, doc, results):
         if callable(self.config.process_results):
@@ -1649,9 +1767,15 @@ class ConfigurableTask(Task):
                         # Without this, _compute_task_aggregations falls back to mean()
                         # because it looks up the aggregation by the result-dict key, not
                         # by the originating callable's __name__.
-                        if metric in self._aggregation_list and k not in self._aggregation_list:
+                        if (
+                            metric in self._aggregation_list
+                            and k not in self._aggregation_list
+                        ):
                             self._aggregation_list[k] = self._aggregation_list[metric]
-                        if metric in self._higher_is_better and k not in self._higher_is_better:
+                        if (
+                            metric in self._higher_is_better
+                            and k not in self._higher_is_better
+                        ):
                             self._higher_is_better[k] = self._higher_is_better[metric]
                 else:
                     result_dict[metric] = result_score
@@ -1662,6 +1786,114 @@ class ConfigurableTask(Task):
             )
 
         return result_dict
+
+    def process_results_with_instances(self, doc, results, instances):
+        """Process ordinary task metrics plus request-aware BPB metrics."""
+        primary_pairs = [
+            (result, instance)
+            for result, instance in zip(results, instances, strict=True)
+            if not getattr(instance, "is_bpb_auxiliary", False)
+        ]
+        primary_results = [result for result, _ in primary_pairs]
+        primary_instances = [instance for _, instance in primary_pairs]
+        result_dict = self.process_results(doc, primary_results)
+
+        if (
+            self.OUTPUT_TYPE == "multiple_choice"
+            and "acc_per_token" in self._metric_fn_list
+        ):
+            choices = self.doc_to_choice(doc)
+            choice_results = primary_results[: len(choices)]
+            choice_instances = primary_instances[: len(choices)]
+            token_counts = [
+                instance.continuation_token_count for instance in choice_instances
+            ]
+            if any(count is None or count <= 0 for count in token_counts):
+                raise ValueError(
+                    f"{self.task_name}: acc_per_token requires continuation token "
+                    "counts from the model backend"
+                )
+            lls = np.asarray([result[0] for result in choice_results], dtype=float)
+            pred_per_token = int(np.argmax(lls / np.asarray(token_counts, dtype=float)))
+            gold = self._resolve_gold_indices(doc, choices)
+            result_dict["acc_per_token"] = float(pred_per_token in gold)
+
+        if self._compute_bpb:
+            result_dict.update(
+                self._compute_conditional_bpb(
+                    doc=doc,
+                    results=results,
+                    instances=instances,
+                )
+            )
+
+        return result_dict
+
+    def _resolve_gold_indices(self, doc, choices: list[str]) -> list[int]:
+        if self.multiple_input:
+            gold = self.doc_to_text(doc)
+        else:
+            gold = self.doc_to_target(doc)
+        if not isinstance(gold, list):
+            gold = [gold]
+
+        resolved = []
+        for target in gold:
+            if isinstance(target, str):
+                if target not in choices:
+                    raise ValueError(
+                        f"{self.task_name}: gold target {target!r} is not a choice"
+                    )
+                target = choices.index(target)
+            if not isinstance(target, int) or not 0 <= target < len(choices):
+                raise ValueError(
+                    f"{self.task_name}: invalid gold choice index {target!r}"
+                )
+            resolved.append(target)
+        return resolved
+
+    def _compute_conditional_bpb(self, doc, results, instances) -> dict:
+        if self.OUTPUT_TYPE == "multiple_choice":
+            choices = self.doc_to_choice(doc)
+            gold_index = self._resolve_gold_indices(doc, choices)[0]
+            result = results[gold_index]
+            instance = instances[gold_index]
+        elif self.OUTPUT_TYPE == "generate_until":
+            auxiliary = [
+                (result, instance)
+                for result, instance in zip(results, instances, strict=True)
+                if getattr(instance, "is_bpb_auxiliary", False)
+            ]
+            if len(auxiliary) != 1:
+                raise ValueError(
+                    f"{self.task_name}: expected one BPB likelihood request, "
+                    f"received {len(auxiliary)}"
+                )
+            result, instance = auxiliary[0]
+        elif self.OUTPUT_TYPE == "loglikelihood":
+            if len(results) != 1:
+                raise ValueError(
+                    f"{self.task_name}: expected one loglikelihood result for BPB"
+                )
+            result, instance = results[0], instances[0]
+        else:
+            raise ValueError(
+                f"{self.task_name}: BPB does not support {self.OUTPUT_TYPE}"
+            )
+
+        loglikelihood = float(result[0])
+        continuation = instance.args[1]
+        byte_count = len(continuation.encode("utf-8"))
+        if byte_count <= 0:
+            raise ValueError(f"{self.task_name}: BPB target must not be empty")
+        per_example_bpb = -loglikelihood / (byte_count * np.log(2))
+        return {
+            "bpb_macro": per_example_bpb,
+            "bits_per_byte_corr": per_example_bpb,
+            "bpb_corpus": (loglikelihood, byte_count),
+            "bpb_total_loglikelihood": loglikelihood,
+            "bpb_total_bytes": byte_count,
+        }
 
     def aggregation(self) -> dict:
         return self._aggregation_list

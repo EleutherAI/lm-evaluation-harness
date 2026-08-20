@@ -11,6 +11,8 @@ import tempfile
 
 import numpy as np
 
+from lm_eval.tasks.code_eval_sandbox import pass_at_k as sandbox_pass_at_k
+
 
 class TimeoutException(Exception):
     pass
@@ -259,34 +261,12 @@ def pass_at_k(
     if isinstance(k, int):
         k = [k]
 
-    # Execute all predictions and collect results
-    all_results = []
-    for pred_list in predictions:
-        results = []
-        for pred in pred_list:
-            try:
-                passed = check_correctness(pred, timeout=3)
-                results.append(passed)
-            except Exception:  # noqa: BLE001
-                results.append(False)
-        all_results.append(results)
-
-    # Calculate pass@k for each k value
-    pass_at_k_results = {f"pass@{kv}": [] for kv in k}
-
-    for results in all_results:
-        n = len(results)
-        c = sum(results)
-        for kv in k:
-            pass_at_k_results[f"pass@{kv}"].append(_pass_at_k(n, c, kv))
-
-    # Average across all samples
-    final_results = {}
-    for kv in k:
-        scores = pass_at_k_results[f"pass@{kv}"]
-        final_results[f"pass@{kv}"] = np.mean(scores) if scores else 0.0
-
-    return final_results
+    return sandbox_pass_at_k(
+        references,
+        predictions,
+        k,
+        predictions_include_tests=True,
+    )
 
 
 def build_predictions_input(
@@ -327,6 +307,11 @@ def build_predictions_output_cot(
         [extract_code_output(doc, r, True) for r in resp]
         for resp, doc in zip(resps, docs, strict=False)
     ]
+
+
+def canonical_output(doc: dict) -> str:
+    """Return the exact source-compatible answer expected by CRUXEval-O."""
+    return f"[ANSWER]\nassert f({doc['input']}) == {doc['output']}\n[/ANSWER]"
 
 
 def extract_code_output(doc: dict, generation: str, cot: bool) -> str:

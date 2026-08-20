@@ -83,6 +83,7 @@ def simple_evaluate(
     torch_random_seed: int = DEFAULT_OTHER_SEED,
     fewshot_random_seed: int = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
+    compute_bpb: bool = False,
     metadata: dict[str, Any] | None = None,
 ) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
@@ -152,6 +153,8 @@ def simple_evaluate(
             If set to None, the seed of generator will be set to None.
         confirm_run_unsafe_code (bool): Whether to confirm running tasks marked
             as unsafe (e.g. code execution tasks).
+        compute_bpb (bool): Add teacher-forced OLMES macro BPB and pooled corpus
+            BPB to each task while retaining its original metrics.
         metadata (dict | None): Additional metadata to be added to the task
             manager. Will get passed to the download function of the task.
 
@@ -306,6 +309,13 @@ def simple_evaluate(
 
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
+        if compute_bpb:
+            if not hasattr(task_obj, "enable_bpb"):
+                raise TypeError(
+                    f"Task {task_name} does not support conditional BPB metrics"
+                )
+            task_obj.enable_bpb()
+
         if task_obj.get_config("output_type") == "generate_until":
             if gen_kwargs is not None:
                 task_obj.set_config(
@@ -414,6 +424,7 @@ def simple_evaluate(
                 "numpy_seed": numpy_random_seed,
                 "torch_seed": torch_random_seed,
                 "fewshot_seed": fewshot_random_seed,
+                "compute_bpb": compute_bpb,
             }
         )
         results["git_hash"] = get_git_commit_hash()
@@ -636,8 +647,10 @@ def evaluate(
             for doc_id, doc in doc_iterator:
                 doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
+                metrics = task.process_results_with_instances(
+                    doc,
+                    [req.filtered_resps[filter_key] for req in requests],
+                    requests,
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)

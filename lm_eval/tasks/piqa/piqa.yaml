@@ -1,5 +1,7 @@
 task: piqa
 dataset_path: baber/piqa
+dataset_kwargs:
+  revision: 142f6d7367fd9877f0fb3b5734ea6a545f54cdd1
 dataset_name: null
 output_type: multiple_choice
 training_split: train

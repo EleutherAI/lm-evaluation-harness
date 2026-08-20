@@ -2,6 +2,8 @@ tag:
   - multiple_choice
 task: hellaswag
 dataset_path: Rowan/hellaswag
+dataset_kwargs:
+  revision: 218ec52e09a7e7462a5400043bb9a69a41d06b76
 dataset_name: null
 output_type: multiple_choice
 training_split: train

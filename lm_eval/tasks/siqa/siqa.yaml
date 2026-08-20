@@ -1,5 +1,7 @@
 task: social_iqa
 dataset_path: lighteval/siqa
+dataset_kwargs:
+  revision: 54c6a1f8cb6daf4f5abf24a601852612fb35eb25
 dataset_name: null
 output_type: multiple_choice
 training_split: train

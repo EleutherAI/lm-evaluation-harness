@@ -1,0 +1,7 @@
+include: _default_template_yaml
+task: bbeh_zebra_puzzles
+task_alias: zebra_puzzles
+dataset_kwargs:
+  data_files:
+    test: https://raw.githubusercontent.com/google-deepmind/bbeh/80d12ca916b7158f22293fcf3144f4d3d854d4be/bbeh/benchmark_tasks/bbeh_zebra_puzzles/task.json
+  field: examples

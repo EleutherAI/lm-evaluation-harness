@@ -1,0 +1,26 @@
+group: multiple_pass_at_10_100
+task:
+  - multiple_humaneval_cpp_pass_at_10_100
+  - multiple_humaneval_java_pass_at_10_100
+  - multiple_humaneval_js_pass_at_10_100
+  - multiple_humaneval_php_pass_at_10_100
+  - multiple_humaneval_rs_pass_at_10_100
+  - multiple_humaneval_sh_pass_at_10_100
+  - multiple_mbpp_cpp_pass_at_10_100
+  - multiple_mbpp_java_pass_at_10_100
+  - multiple_mbpp_js_pass_at_10_100
+  - multiple_mbpp_php_pass_at_10_100
+  - multiple_mbpp_rs_pass_at_10_100
+  - multiple_mbpp_sh_pass_at_10_100
+aggregate_metric_list:
+  - metric: pass@1
+    aggregation: mean
+    weight_by_size: true
+  - metric: pass@10
+    aggregation: mean
+    weight_by_size: true
+  - metric: pass@100
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

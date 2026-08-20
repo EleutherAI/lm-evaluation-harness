@@ -1,0 +1,11 @@
+group: bbeh_mini
+group_alias: BBEH Mini
+task:
+  - bbeh_mini_all
+aggregate_metric_list:
+  - metric: bbeh_acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
+  source_revision: 80d12ca916b7158f22293fcf3144f4d3d854d4be

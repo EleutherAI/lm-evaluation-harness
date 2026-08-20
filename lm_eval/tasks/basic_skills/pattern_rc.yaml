@@ -1,0 +1,3 @@
+include: _rc_template.yaml
+task: basic_skills_pattern_rc
+dataset_name: pattern

@@ -320,6 +320,19 @@ class CachingLM:
                 self.dbdict[hsh] = r
             self.dbdict.commit()
 
+            # Cached loglikelihood responses predate runtime-only token-count
+            # metadata. Reconstruct it with the underlying tokenizer so metrics
+            # such as acc_per_token remain identical on cached and fresh runs.
+            if attr == "loglikelihood" and hasattr(
+                self.lm, "continuation_token_count"
+            ):
+                for req in requests:
+                    if req.continuation_token_count is None:
+                        context, continuation = req.args[:2]
+                        req.continuation_token_count = (
+                            self.lm.continuation_token_count(context, continuation)
+                        )
+
             return res
 
         return _fn
@@ -405,6 +418,20 @@ class TemplateLM(LM):
 
         return context_enc, continuation_enc
 
+    def continuation_token_count(self, context: str, continuation: str) -> int:
+        """Return the exact number of continuation tokens scored by this LM."""
+        if context == "":
+            continuation_enc = self.tok_encode(
+                continuation, add_special_tokens=False
+            )
+            if (
+                continuation_enc and self.prefix_token_id == continuation_enc[0]
+            ):
+                continuation_enc = continuation_enc[1:]
+        else:
+            _, continuation_enc = self._encode_pair(context, continuation)
+        return len(continuation_enc)
+
     def loglikelihood(
         self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[tuple[float, bool]]:
@@ -422,11 +449,12 @@ class TemplateLM(LM):
             A list of ``(logprob, is_greedy)`` tuples, one per request.
         """
         new_reqs = []
-        for context, continuation in tqdm(
-            [req.args for req in requests],
+        for req in tqdm(
+            requests,
             desc="Tokenizing inputs",
             disable=disable_tqdm,
         ):
+            context, continuation = req.args[:2]
             if context == "":
                 continuation_enc = self.tok_encode(
                     continuation, add_special_tokens=False
@@ -434,13 +462,15 @@ class TemplateLM(LM):
                 # BOS or EOS as context: handle when context is empty -> (context + continuation) -> (BOS + continuation
                 context_enc, continuation_enc = (
                     ([self.prefix_token_id], continuation_enc)
-                    if self.prefix_token_id != continuation_enc[0]
+                    if not continuation_enc
+                    or self.prefix_token_id != continuation_enc[0]
                     else (continuation_enc[:1], continuation_enc[1:])
                 )
                 # BOS or EOS as context
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
 
+            req.continuation_token_count = len(continuation_enc)
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
         return self._loglikelihood_tokens(new_reqs, disable_tqdm=disable_tqdm)

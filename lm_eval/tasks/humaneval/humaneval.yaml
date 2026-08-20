@@ -1,10 +1,14 @@
 task: humaneval
 dataset_path: openai/openai_humaneval
+dataset_kwargs:
+  revision: 7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544
 unsafe_code: true
 output_type: generate_until
 test_split: test
 doc_to_text: "{{prompt}}"
 doc_to_target: "{{test}}\ncheck({{entry_point}})"
+doc_to_bpb_target: !function utils.canonical_solution
+bpb_target_delimiter: ""
 metric_list:
   - metric: !function utils.pass_at_k
     aggregation: mean

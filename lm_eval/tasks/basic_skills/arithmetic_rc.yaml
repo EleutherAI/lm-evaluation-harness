@@ -1,0 +1,3 @@
+include: _rc_template.yaml
+task: basic_skills_arithmetic_rc
+dataset_name: arithmetic

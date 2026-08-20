@@ -1,0 +1,10 @@
+include: _default_template_yaml
+task: supergpqa_five_shot
+task_alias: SuperGPQA five-shot
+doc_to_text: !function utils.doc_to_text_five_shot
+process_results: !function utils.process_results_five_shot
+metadata:
+  version: 1.0
+  num_fewshot: 5
+  source_revision: e31e8bf3e7089aef808be5ddecafd4538dee6e41
+  dataset_revision: 4430d4458112c7d4497fdcf94d7cc223313d6acf

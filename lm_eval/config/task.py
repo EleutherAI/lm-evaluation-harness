@@ -102,6 +102,13 @@ class TaskConfig(dict):
     process_docs: Callable | None = None
     doc_to_text: Callable | str | None = None
     doc_to_target: Callable | str | None = None
+    # Optional canonical continuation used only for teacher-forced BPB. This is
+    # needed when the task's generation target is a test harness or other
+    # grading artifact rather than the reference answer itself.
+    doc_to_bpb_target: Callable | str | None = None
+    doc_to_bpb_text: Callable | str | None = None
+    bpb_target_delimiter: str | None = None
+    bpb_unsupported_reason: str | None = None
     doc_to_image: Callable | str | None = None
     doc_to_audio: Callable | str | None = None
     unsafe_code: bool = False
@@ -123,6 +130,7 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
+    compute_bpb: bool = False
     metadata: dict | None = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )

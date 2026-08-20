@@ -1,5 +1,7 @@
 task: winogrande
 dataset_path: allenai/winogrande
+dataset_kwargs:
+  revision: 01e74176c63542e6b0bcb004dcdea22d94fb67b5
 dataset_name: winogrande_xl
 output_type: multiple_choice
 training_split: train

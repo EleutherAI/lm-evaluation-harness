@@ -1,0 +1,3 @@
+include: _mc_template.yaml
+task: basic_skills_logical_reasoning_mc
+dataset_name: logical_reasoning
