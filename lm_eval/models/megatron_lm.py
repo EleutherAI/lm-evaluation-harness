@@ -322,6 +322,14 @@ class MegatronLMEval(LM):
         from megatron.training.arguments import core_transformer_config_from_args
         from megatron.training.checkpointing import load_checkpoint
 
+        # Megatron moved argument parsing out of initialize_megatron() in
+        # core_v0.18. Detecting by import, not by version, because the refactor
+        # is not split by version number (commits both report version 0.18.0).
+        try:
+            from megatron.training.arguments import parse_and_validate_args
+        except ImportError:
+            parse_and_validate_args = None
+
         devices = kwargs["devices"]
         tp_size = kwargs["tensor_model_parallel_size"]
         pp_size = kwargs["pipeline_model_parallel_size"]
@@ -401,10 +409,21 @@ class MegatronLMEval(LM):
 
         try:
             # Initialize Megatron
-            initialize_megatron(
-                extra_args_provider=None,
-                args_defaults={"tokenizer_type": kwargs["tokenizer_type"]},
-            )
+            # parse_and_validate_args() must run first as it populates the global
+            # args, including --use-checkpoint-args, that initialize_megatron()
+            # then reads using get_args(). Previous Megatron parses args inside
+            # the initialize call instead.
+            if parse_and_validate_args is not None:
+                parse_and_validate_args(
+                    extra_args_provider=None,
+                    args_defaults={"tokenizer_type": kwargs["tokenizer_type"]},
+                )
+                initialize_megatron()
+            else:
+                initialize_megatron(
+                    extra_args_provider=None,
+                    args_defaults={"tokenizer_type": kwargs["tokenizer_type"]},
+                )
 
             args = get_args()
             self._args = args
