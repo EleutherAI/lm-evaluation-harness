@@ -26,13 +26,14 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v10.0.1
         with:
-          enable-cache: true
+          enable-cache: "auto"
+          prune-cache: true
           python-version: "3.10"
           activate-environment: true
       - name: Install pip
@@ -54,17 +55,18 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v10.0.1
         with:
-          enable-cache: true
+          enable-cache: "auto"
+          prune-cache: true
           python-version: ${{ matrix.python-version }}
           activate-environment: true
 
       # Cache HuggingFace cache directory for CPU tests
       - name: Cache HuggingFace cache (CPU tests)
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: cache-hf-cpu
         with:
           path: ~/.cache/huggingface
@@ -78,6 +80,8 @@ jobs:
           uv pip install hf_xet
 
       - name: Test with pytest
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: pytest -x --showlocals -s -vv -n=auto --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py --ignore=tests/scripts/test_zeno_visualize.py
 
       # Save test artifacts
