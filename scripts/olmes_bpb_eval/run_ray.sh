@@ -23,7 +23,7 @@ fi
 uv pip install \
   --python "${eval_venv}/bin/python" \
   --constraint "${constraints}" \
-  --editable "${repo_root}[vllm]" \
+  --editable "${repo_root}[vllm,math]" \
   openpyxl==3.1.5 \
   ray==2.55.1 \
   setuptools==80.10.2

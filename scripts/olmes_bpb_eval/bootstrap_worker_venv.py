@@ -58,7 +58,7 @@ def install_worker_venv(venv: str, constraints: str, repo: str) -> str:
             "--constraint",
             constraints,
             "--editable",
-            f"{repo}[vllm]",
+            f"{repo}[vllm,math]",
             "openpyxl==3.1.5",
             "ray==2.55.1",
             "setuptools==80.10.2",
@@ -70,7 +70,10 @@ def install_worker_venv(venv: str, constraints: str, repo: str) -> str:
         [
             str(python),
             "-c",
-            "import lm_eval, ray, torch, transformers, vllm",
+            (
+                "import antlr4, lm_eval, math_verify, ray, sympy, torch, "
+                "transformers, vllm"
+            ),
         ],
         check=True,
     )

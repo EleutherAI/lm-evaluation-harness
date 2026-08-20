@@ -10,10 +10,26 @@ from scripts.olmes_bpb_eval.run_eval import ROOT, _git, _source_snapshot_sha256
 
 
 SUITE_PATH = Path(__file__).parents[1] / "scripts" / "olmes_bpb_eval" / "suite.json"
+CAMPAIGN_PATH = SUITE_PATH.parent
 
 
 def load_suite():
     return json.loads(SUITE_PATH.read_text(encoding="utf-8"))
+
+
+def test_campaign_pins_and_preflights_minerva_math_dependencies():
+    constraints = (CAMPAIGN_PATH / "constraints.txt").read_text(encoding="utf-8")
+    runner = (CAMPAIGN_PATH / "run_ray.sh").read_text(encoding="utf-8")
+    bootstrap = (CAMPAIGN_PATH / "bootstrap_worker_venv.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "antlr4-python3-runtime==4.11.0" in constraints
+    assert "math-verify==0.9.0" in constraints
+    assert "sympy==1.14.0" in constraints
+    assert "[vllm,math]" in runner
+    assert "[vllm,math]" in bootstrap
+    assert "import antlr4" in bootstrap
 
 
 def test_runtime_provenance_is_independent_of_worker_cwd(tmp_path, monkeypatch):

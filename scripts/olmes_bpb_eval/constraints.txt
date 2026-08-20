@@ -2,10 +2,13 @@
 # The lm-eval implementation itself is pinned by the Git commit and source
 # snapshot recorded in each result manifest.
 accelerate==1.14.0
+antlr4-python3-runtime==4.11.0
 datasets==5.0.1
+math-verify==0.9.0
 numpy==2.3.5
 ray==2.55.1
 setuptools==80.10.2
+sympy==1.14.0
 tokenizers==0.22.2
 torch==2.13.0
 transformers==5.15.1
