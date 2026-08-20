@@ -8,6 +8,11 @@ fewshot_config:
 output_type: generate_until
 doc_to_text: "{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n정답："
 doc_to_target: "{{['A', 'B', 'C', 'D', 'E'][answer-1]}}"
+filter_list:
+  - name: "extract_answer"
+    filter:
+      - function: !function utils.ExtractChoiceFilter
+      - function: "take_first"
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -28,4 +33,4 @@ generation_kwargs:
   temperature: 0.0
   max_gen_toks: 1024
 metadata:
-  version: 2.0
+  version: 3.0

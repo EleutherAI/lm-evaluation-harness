@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_contract_nli_confidentiality_of_agreement
+dataset_name: contract_nli_confidentiality_of_agreement
+num_fewshot: 8
+description: "Identify if the clause provides that the Receiving Party shall not disclose the fact that Agreement was agreed or negotiated.\n\n"
+doc_to_text: "Clause: {{text}}\nLabel:"
