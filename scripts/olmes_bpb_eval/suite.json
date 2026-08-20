@@ -1,0 +1,86 @@
+{
+  "suite_id": "olmes-bpb-22-plus-basic-skills-v1",
+  "description": "The requested 22 benchmark families plus OLMES Basic Skills; MRCR and RULER are intentionally excluded.",
+  "excluded": ["mrcr", "ruler"],
+  "models": [
+    {
+      "name": "Qwen/Qwen3.5-0.8B-Base",
+      "revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68"
+    },
+    {
+      "name": "Qwen/Qwen3.5-2B-Base",
+      "revision": "b1485b2fa6dfa1287294f269f5fb618e03d52d7c"
+    }
+  ],
+  "families": [
+    {
+      "name": "basic_skills",
+      "selector": "basic_skills",
+      "phase": "non_code",
+      "primary_metrics": ["acc_per_token", "acc"],
+      "primary_metric_by_task_suffix": {"_rc": "acc_per_token", "_mc": "acc"},
+      "aggregation": "macro_task",
+      "weight": 12
+    },
+    {"name": "arc_challenge", "selector": "arc_challenge", "phase": "non_code", "primary_metrics": ["acc_norm", "acc"], "aggregation": "single", "weight": 2},
+    {"name": "arc_easy", "selector": "arc_easy", "phase": "non_code", "primary_metrics": ["acc_norm", "acc"], "aggregation": "single", "weight": 2},
+    {"name": "boolq", "selector": "boolq", "phase": "non_code", "primary_metrics": ["acc"], "aggregation": "single", "weight": 1},
+    {"name": "csqa", "selector": "commonsense_qa", "phase": "non_code", "primary_metrics": ["acc"], "aggregation": "single", "weight": 1},
+    {"name": "hellaswag", "selector": "hellaswag", "phase": "non_code", "primary_metrics": ["acc_norm", "acc"], "aggregation": "single", "weight": 3},
+    {"name": "piqa", "selector": "piqa", "phase": "non_code", "primary_metrics": ["acc_norm", "acc"], "aggregation": "single", "weight": 1},
+    {"name": "socialiqa", "selector": "social_iqa", "phase": "non_code", "primary_metrics": ["acc"], "aggregation": "single", "weight": 1},
+    {"name": "winogrande", "selector": "winogrande", "phase": "non_code", "primary_metrics": ["acc"], "aggregation": "single", "weight": 2},
+    {"name": "mmlu", "selector": "mmlu", "phase": "non_code", "primary_metrics": ["acc"], "aggregation": "micro", "weight": 57},
+    {"name": "mmlu_pro", "selector": "mmlu_pro", "phase": "non_code", "primary_metrics": ["exact_match"], "aggregation": "micro", "weight": 70},
+    {"name": "gsm8k", "selector": "gsm8k", "phase": "non_code", "primary_metrics": ["exact_match"], "aggregation": "single", "weight": 8},
+    {"name": "math", "selector": "minerva_math", "phase": "non_code", "primary_metrics": ["math_verify", "exact_match"], "aggregation": "micro", "weight": 35},
+    {"name": "humaneval", "selector": "humaneval", "phase": "python_code", "primary_metrics": ["pass@1"], "aggregation": "single", "weight": 8},
+    {"name": "mbpp", "selector": "mbpp", "phase": "python_code", "primary_metrics": ["pass@1"], "aggregation": "single", "weight": 15},
+    {"name": "evalplus", "selector": "humaneval_plus", "phase": "python_code", "primary_metrics": ["pass@1"], "aggregation": "single", "weight": 10},
+    {"name": "evalplus_mbpp", "selector": "mbpp_plus", "phase": "python_code", "primary_metrics": ["pass@1"], "aggregation": "single", "weight": 18},
+    {"name": "bbh", "selector": "bbh", "phase": "non_code", "primary_metrics": ["exact_match"], "aggregation": "micro", "weight": 81},
+    {"name": "gpqa", "selector": "gpqa_main_zeroshot", "phase": "non_code", "primary_metrics": ["acc", "acc_norm"], "aggregation": "single", "weight": 4},
+    {"name": "cruxeval_o", "selector": "cruxeval_output", "phase": "python_code", "primary_metrics": ["pass@1"], "aggregation": "single", "weight": 30},
+    {
+      "name": "multiple",
+      "selector": "multiple_pass_at_1",
+      "phase": "multiple",
+      "primary_metrics": ["pass@1"],
+      "aggregation": "micro",
+      "weight": 120,
+      "compute_bpb": false,
+      "bpb_status": "N/A: the pinned official MultiPL-E source has no canonical translated reference completions."
+    },
+    {"name": "bbeh", "selector": "bbeh", "phase": "non_code", "primary_metrics": ["bbeh_acc"], "aggregation": "bbeh_adjusted_harmonic", "weight": 92},
+    {"name": "supergpqa", "selector": "supergpqa", "phase": "non_code", "primary_metrics": ["acc"], "aggregation": "single", "weight": 120}
+  ],
+  "dataset_revisions": {
+    "allenai/ai2_arc": "210d026faf9955653af8916fad021475a3f00453",
+    "aps/super_glue": "3de24cf8022e94f4ee4b9d55a6f539891524d646",
+    "tau/commonsense_qa": "94630fe30dad47192a8546eb75f094926d47e155",
+    "Rowan/hellaswag": "218ec52e09a7e7462a5400043bb9a69a41d06b76",
+    "baber/piqa": "142f6d7367fd9877f0fb3b5734ea6a545f54cdd1",
+    "lighteval/siqa": "54c6a1f8cb6daf4f5abf24a601852612fb35eb25",
+    "allenai/winogrande": "01e74176c63542e6b0bcb004dcdea22d94fb67b5",
+    "cais/mmlu": "c30699e8356da336a370243923dbaf21066bb9fe",
+    "TIGER-Lab/MMLU-Pro": "b189ec765aa7ed75c8acfea42df31fdae71f97be",
+    "openai/gsm8k": "740312add88f781978c0658806c59bc2815b9866",
+    "EleutherAI/hendrycks_math": "21a5633873b6a120296cce3e2df9d5550074f4a3",
+    "openai/openai_humaneval": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+    "google-research-datasets/mbpp": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
+    "evalplus/humanevalplus": "d32357cf319e50e9c8d8dab5ea876c72b0fd321b",
+    "evalplus/mbppplus": "b2d74c91837c3f2a20c1299ae98133cbe7cfa077",
+    "SaylorTwift/bbh": "b5306be6f827cfafbb545ff5a51f96916029b0fd",
+    "Idavidrein/gpqa": "633f5ee89ab8ad4522a9f850766b73f62147ffdd",
+    "cruxeval-org/cruxeval": "b96af0450242eb4da433032b90998f25588a5d0f",
+    "allenai/basic-skills": "faf63e9719e124d7741519a024719c8992622630",
+    "nuprl/MultiPL-E": "28441b6024e71d4a1c1c0f6bf171c935cd5a43f2",
+    "m-a-p/SuperGPQA": "4430d4458112c7d4497fdcf94d7cc223313d6acf"
+  },
+  "source_revisions": {
+    "allenai/olmes": "5a51f502d463b8cdc4a2dcad7d7096c41ff1197e",
+    "google-deepmind/bbeh": "80d12ca916b7158f22293fcf3144f4d3d854d4be",
+    "SuperGPQA/SuperGPQA": "e31e8bf3e7089aef808be5ddecafd4538dee6e41",
+    "nuprl/MultiPL-E": "3025a531af7450e7df8b96fe0440e9804480bbad"
+  }
+}
