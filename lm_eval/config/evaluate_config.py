@@ -319,6 +319,14 @@ class EvaluatorConfig:
 
     def _process_arguments(self):
         """Process samples argument - load from a file if needed."""
+        if isinstance(self.cache_requests, (bool, str)):
+            from lm_eval._cli.utils import request_caching_arg_to_dict
+
+            cache_requests = self.cache_requests
+            if isinstance(cache_requests, bool):
+                cache_requests = "true" if cache_requests else None
+            self.cache_requests = request_caching_arg_to_dict(cache_requests)
+
         if self.samples:
             if isinstance(self.samples, dict):
                 self.samples = self.samples
