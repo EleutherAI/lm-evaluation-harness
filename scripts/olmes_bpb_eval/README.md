@@ -55,6 +55,16 @@ using all 16 booked B200 GPUs. The models need only one B200 each; the other GPU
 are for throughput, not memory. `ray_driver.py` resolves group/tag selectors to
 leaf tasks and balances expensive generation tasks across persistent shards.
 
+Gated families can be split from the public-data run without changing the
+release suite or colliding with its result files:
+
+```bash
+scripts/olmes_bpb_eval/run_ray.sh non_code results \
+  --exclude-family gpqa --shard-prefix non-code-public
+scripts/olmes_bpb_eval/run_ray.sh non_code results \
+  --include-family gpqa --shard-prefix gpqa
+```
+
 The `python_code` and `multiple` phases are double-gated and must only be run
 with their external sandbox configured. Generated programs must not execute in
 the Ray model-serving process. Python tasks require `LM_EVAL_PYTHON_EXECUTOR`

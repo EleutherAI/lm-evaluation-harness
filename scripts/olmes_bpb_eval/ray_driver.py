@@ -29,6 +29,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--suite", type=Path, default=DEFAULT_SUITE)
     parser.add_argument("--results-dir", type=Path, required=True)
     parser.add_argument("--workers-per-model", type=int, default=8)
+    parser.add_argument(
+        "--include-family",
+        action="append",
+        default=[],
+        help="Run only this suite family; repeat to select more than one.",
+    )
+    parser.add_argument(
+        "--exclude-family",
+        action="append",
+        default=[],
+        help="Skip this suite family; repeat to exclude more than one.",
+    )
+    parser.add_argument(
+        "--shard-prefix",
+        help="Unique output/manifest prefix for a split phase run.",
+    )
     parser.add_argument("--worker-python", default=sys.executable)
     parser.add_argument("--limit", type=float)
     parser.add_argument("--allow-unsafe", action="store_true")
@@ -77,7 +93,12 @@ def leaf_weight(family: dict[str, Any], task: str, leaf_count: int) -> float:
 
 
 def build_shards(
-    suite: dict[str, Any], phase: str, worker_count: int
+    suite: dict[str, Any],
+    phase: str,
+    worker_count: int,
+    *,
+    include_families: set[str] | None = None,
+    exclude_families: set[str] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, str]]:
     manager = TaskManager()
     if phase == "smoke":
@@ -94,6 +115,21 @@ def build_shards(
         phases = {"non_code", "python_code", "multiple"} if phase == "all" else {phase}
         families = [family for family in suite["families"] if family["phase"] in phases]
 
+    available_families = {family["name"] for family in families}
+    include_families = include_families or set()
+    exclude_families = exclude_families or set()
+    unknown = (include_families | exclude_families) - available_families
+    if unknown:
+        raise ValueError(
+            f"Family filter does not belong to phase {phase!r}: {sorted(unknown)}"
+        )
+    if include_families:
+        families = [family for family in families if family["name"] in include_families]
+    if exclude_families:
+        families = [
+            family for family in families if family["name"] not in exclude_families
+        ]
+
     weighted_tasks: list[tuple[float, str, bool]] = []
     task_families: dict[str, str] = {}
     for family in families:
@@ -108,6 +144,8 @@ def build_shards(
             weighted_tasks.append(
                 (leaf_weight(family, leaf, len(leaves)), leaf, compute_bpb)
             )
+    if not weighted_tasks:
+        raise ValueError("Family filters selected no task leaves")
 
     # BPB support changes the request graph, so never mix BPB and non-BPB
     # tasks in a shard. Greedy bin packing keeps the long generative leaves
@@ -224,17 +262,27 @@ def main() -> None:
             "--allow-unsafe only inside the documented external sandbox setup"
         )
     suite = json.loads(args.suite.read_text(encoding="utf-8"))
-    shards, task_families = build_shards(suite, args.phase, args.workers_per_model)
+    shards, task_families = build_shards(
+        suite,
+        args.phase,
+        args.workers_per_model,
+        include_families=set(args.include_family),
+        exclude_families=set(args.exclude_family),
+    )
     args.results_dir.mkdir(parents=True, exist_ok=True)
+    shard_prefix = args.shard_prefix or args.phase
     launch_manifest = {
         "suite": suite,
         "phase": args.phase,
         "limit": args.limit,
         "workers_per_model": args.workers_per_model,
+        "include_families": args.include_family,
+        "exclude_families": args.exclude_family,
+        "shard_prefix": shard_prefix,
         "task_families": task_families,
         "shards": shards,
     }
-    (args.results_dir / f"launch-{args.phase}.json").write_text(
+    (args.results_dir / f"launch-{shard_prefix}.json").write_text(
         json.dumps(launch_manifest, indent=2) + "\n", encoding="utf-8"
     )
 
@@ -261,7 +309,7 @@ def main() -> None:
             refs.append(
                 remote_run_shard.remote(
                     model=model,
-                    shard_id=f"{args.phase}-{index:02d}",
+                    shard_id=f"{shard_prefix}-{index:02d}",
                     tasks=shard["tasks"],
                     compute_bpb=shard["compute_bpb"],
                     results_dir=str(args.results_dir),
@@ -281,7 +329,7 @@ def main() -> None:
         completed_statuses.append(status)
         print(json.dumps(status, sort_keys=True), flush=True)
 
-    (args.results_dir / f"completed-{args.phase}.json").write_text(
+    (args.results_dir / f"completed-{shard_prefix}.json").write_text(
         json.dumps(completed_statuses, indent=2) + "\n", encoding="utf-8"
     )
 

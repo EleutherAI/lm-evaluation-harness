@@ -61,6 +61,25 @@ def test_non_code_shards_resolve_to_unique_leaf_tasks():
     assert not any("ruler" in task or "mrcr" in task for task in tasks)
 
 
+def test_phase_can_split_gated_family_without_changing_the_suite():
+    _, public_families = build_shards(
+        load_suite(), "non_code", 8, exclude_families={"gpqa"}
+    )
+    gpqa_shards, gpqa_families = build_shards(
+        load_suite(), "non_code", 8, include_families={"gpqa"}
+    )
+
+    assert set(gpqa_families.values()) == {"gpqa"}
+    assert "gpqa" not in set(public_families.values())
+    assert set(public_families).isdisjoint(gpqa_families)
+    assert len(gpqa_shards) == 1
+
+
+def test_family_filter_rejects_names_outside_the_phase():
+    with pytest.raises(ValueError, match="does not belong to phase"):
+        build_shards(load_suite(), "non_code", 8, include_families={"humaneval"})
+
+
 def test_all_phase_never_allocates_more_than_requested_workers():
     shards, _ = build_shards(load_suite(), "all", 8)
 
