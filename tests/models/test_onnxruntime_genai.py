@@ -134,6 +134,56 @@ def test_loglikelihood_tokens_empty_continuation():
     assert result == (0.0, True)
 
 
+class _FakeConfig:
+    """Records provider mutations made by _select_ep."""
+
+    def __init__(self):
+        self.cleared = False
+        self.appended = []
+        self.options = []
+
+    def clear_providers(self):
+        self.cleared = True
+
+    def append_provider(self, ep):
+        self.appended.append(ep)
+
+    def set_provider_option(self, ep, key, value):
+        self.options.append((ep, key, value))
+
+
+def _make_ep_lm(execution_provider, provider_options=None):
+    lm = ONNXRuntimeGenAILM.__new__(ONNXRuntimeGenAILM)
+    lm.execution_provider = execution_provider
+    lm.provider_options = provider_options or {}
+    return lm
+
+
+def test_select_ep_none_leaves_config_untouched():
+    # Regression: with no execution_provider, the providers Model Builder wrote
+    # into genai_config.json must survive (clear_providers must NOT be called),
+    # else a CUDA/DML/NPU export would be silently downgraded to CPU.
+    cfg = _FakeConfig()
+    _make_ep_lm(None)._select_ep(cfg)
+    assert cfg.cleared is False
+    assert cfg.appended == []
+
+
+def test_select_ep_cpu_clears_without_appending():
+    cfg = _FakeConfig()
+    _make_ep_lm("cpu")._select_ep(cfg)
+    assert cfg.cleared is True
+    assert cfg.appended == []
+
+
+def test_select_ep_named_provider_clears_and_appends():
+    cfg = _FakeConfig()
+    _make_ep_lm("cuda", {"device_id": 0})._select_ep(cfg)
+    assert cfg.cleared is True
+    assert cfg.appended == ["cuda"]
+    assert cfg.options == [("cuda", "device_id", "0")]
+
+
 # --------------------------------------------------------------------------- #
 # Smoke tests: build a tiny model and run real tasks end-to-end on CPU.
 # --------------------------------------------------------------------------- #

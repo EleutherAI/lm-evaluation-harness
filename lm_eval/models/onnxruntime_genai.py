@@ -54,7 +54,7 @@ class ONNXRuntimeGenAILM(TemplateLM):
     def __init__(
         self,
         pretrained: str,
-        execution_provider: str = "cpu",
+        execution_provider: str | None = None,
         max_length: int | None = None,
         batch_size: int = 1,
         max_gen_toks: int = 256,
@@ -67,7 +67,10 @@ class ONNXRuntimeGenAILM(TemplateLM):
             pretrained: Path to a Model Builder output directory or a ``.onnx``
                 file inside one.
             execution_provider: EP to run on (e.g. ``cpu``, ``cuda``, ``dml``,
-                ``VitisAI``). ``cpu`` runs with no provider appended.
+                ``VitisAI``). When ``None`` (default), the providers declared in
+                ``genai_config.json`` are used as-is — matching how a Model
+                Builder export is meant to run on its target device. Pass
+                ``cpu`` to force CPU, or a provider name to override the export.
             max_length: Maximum sequence length. Defaults to the
                 ``context_length`` from ``genai_config.json`` when available.
             batch_size: Only 1 is supported; other values are coerced to 1.
@@ -150,12 +153,27 @@ class ONNXRuntimeGenAILM(TemplateLM):
     def _select_ep(self, config) -> None:
         """Configure execution providers on an ``og.Config``.
 
-        Default is cross-platform: CPU runs with no provider appended; any other
-        provider is appended by name with optional ``provider_options``.
+        ``og.Config(model_dir)`` seeds its provider list from
+        ``genai_config.json``, so we only touch it when the user explicitly
+        asks for a provider:
+
+        * ``execution_provider is None`` — leave the config untouched, honoring
+          the providers the export was built with (a CUDA/DML/NPU export runs
+          on its target device without extra flags).
+        * ``execution_provider`` is a CPU alias — clear providers so it runs on
+          CPU (an empty provider list means CPU).
+        * otherwise — clear and append the named provider with any
+          ``provider_options``.
         """
-        config.clear_providers()
         ep = self.execution_provider
-        if ep is None or ep.lower() in _CPU_EP_ALIASES:
+        if ep is None:
+            eval_logger.info(
+                "No execution_provider given; using the providers declared in "
+                "genai_config.json."
+            )
+            return
+        config.clear_providers()
+        if ep.lower() in _CPU_EP_ALIASES:
             eval_logger.info("Using CPU execution provider (no provider appended).")
             return
         config.append_provider(ep)

@@ -30,7 +30,29 @@ class WindowsML(ONNXRuntimeGenAILM):
     :class:`~lm_eval.models.onnxruntime_genai.ONNXRuntimeGenAILM`, overriding
     only :meth:`_select_ep` to register execution providers through the Windows
     ML catalog.
+
+    The default ``max_length`` / ``max_gen_toks`` are pinned to the historical
+    winml values so numeric behavior is unchanged; the cross-platform backend
+    picks its own (more model-aware) defaults.
     """
+
+    # Historical winml defaults, kept so existing winml runs are unaffected.
+    _WINML_MAX_LENGTH = 4096
+    _WINML_MAX_GEN_TOKS = 4096
+
+    def __init__(
+        self,
+        pretrained: str,
+        max_length: int | None = None,
+        max_gen_toks: int | None = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            pretrained,
+            max_length=max_length or self._WINML_MAX_LENGTH,
+            max_gen_toks=max_gen_toks or self._WINML_MAX_GEN_TOKS,
+            **kwargs,
+        )
 
     def _select_ep(self, config) -> None:
         """Register Windows ML execution providers on the ``og.Config``.

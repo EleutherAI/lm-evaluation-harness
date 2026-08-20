@@ -32,10 +32,28 @@ def test_winml_registered_and_is_subclass():
 
     assert get_model("winml") is WindowsML
     assert issubclass(WindowsML, ONNXRuntimeGenAILM)
-    # winml should specialize only provider selection, not the scoring core.
+    # winml should specialize only provider selection + defaults, not the
+    # scoring core.
     assert "_select_ep" in vars(WindowsML)
     for inherited in ("_loglikelihood_tokens", "loglikelihood", "generate_until"):
         assert inherited not in vars(WindowsML)
+
+
+def test_winml_pins_historical_defaults(tiny_model_dir):
+    # winml keeps its historical max_length / max_gen_toks so existing runs are
+    # numerically unchanged, independent of the base backend's modern defaults.
+    from lm_eval.api.registry import get_model
+
+    lm = get_model("winml").create_from_arg_string(
+        f"pretrained={tiny_model_dir}", {"batch_size": 1}
+    )
+    assert lm.max_length == 4096
+    assert lm.max_gen_toks == 4096
+    # explicit overrides still win
+    lm2 = get_model("winml").create_from_arg_string(
+        f"pretrained={tiny_model_dir},max_length=1024", {"batch_size": 1}
+    )
+    assert lm2.max_length == 1024
 
 
 def _build_tiny_model_dir():
