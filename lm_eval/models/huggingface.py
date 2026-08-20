@@ -29,6 +29,8 @@ from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
+    DEFAULT_MAX_LENGTH,
+    TOKENIZER_INFINITY,  # noqa
     Collator,
     _add_special_kwargs,
     configure_pad_token,
@@ -36,6 +38,7 @@ from lm_eval.models.utils import (
     has_bos_prefix,
     normalize_gen_kwargs,
     postprocess_generated_text,
+    resolve_max_length,
 )
 from lm_eval.models.utils_hf import (
     clear_torch_cache,
@@ -53,7 +56,6 @@ if TYPE_CHECKING:
     from lm_eval.api.instance import Instance
 
 eval_logger = logging.getLogger(__name__)
-TOKENIZER_INFINITY = 1000000000000000019884624838656
 
 
 @register_model("hf-auto", "hf", "huggingface")
@@ -65,7 +67,7 @@ class HFLM(TemplateLM):
     """
 
     AUTO_MODEL_CLASS = None
-    _DEFAULT_MAX_LENGTH = 2048
+    _DEFAULT_MAX_LENGTH = DEFAULT_MAX_LENGTH
 
     def __init__(
         self,
@@ -140,8 +142,9 @@ class HFLM(TemplateLM):
                 which speeds up single-token loglikelihood tasks.
             max_length: Maximum input sequence length in tokens. If ``None``,
                 auto-detected from the model config (``n_positions``,
-                ``max_position_embeddings``, or ``n_ctx``). Falls back to 2048
-                if the config does not specify a value.
+                ``max_position_embeddings``, or ``n_ctx``), preferring a nested
+                ``text_config`` for multimodal models (e.g. Gemma3). Falls back
+                to 2048 if the config does not specify a value.
             device: Device to place the model on (e.g. ``"cuda"``, ``"cpu"``,
                 ``"cuda:0"``, ``"mps"``). Ignored when using ``parallelize=True``
                 or multi-process ``accelerate launch``.
@@ -617,15 +620,9 @@ class HFLM(TemplateLM):
     def max_length(self) -> int:
         if self._max_length:  # if max length manually set, return it
             return self._max_length
-        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
-        for attr in seqlen_config_attrs:
-            if hasattr(self.model.config, attr):
-                return getattr(self.model.config, attr)
-        if hasattr(self.tokenizer, "model_max_length"):
-            if self.tokenizer.model_max_length == TOKENIZER_INFINITY:
-                return self._DEFAULT_MAX_LENGTH
-            return self.tokenizer.model_max_length
-        return self._DEFAULT_MAX_LENGTH
+        return resolve_max_length(
+            self.model.config, self.tokenizer, default=self._DEFAULT_MAX_LENGTH
+        )
 
     @property
     def max_gen_toks(self) -> int:
