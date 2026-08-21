@@ -83,7 +83,9 @@ class POSFilter(Filter):
         self.group_select = group_select
         self.fallback = fallback
 
-    def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
+    def apply(
+        self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
+    ) -> list[list]:
         def extract_tagged_tokens(text):
             # Extract tagged tokens list from text input using regex
             tokens = re.findall(r"\('([^']*)', '([^']*)'\)", text)
@@ -103,7 +105,7 @@ class POSFilter(Filter):
                 filtered.append(match)
             return filtered
 
-        return (filter_set(x) for x in resps)
+        return [filter_set(x) for x in resps]
 
 
 @register_filter("remove_whitespace")
