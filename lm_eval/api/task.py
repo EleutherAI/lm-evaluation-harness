@@ -110,17 +110,43 @@ class Task(abc.ABC):
             - `datasets.DownloadMode.FORCE_REDOWNLOAD`
                 Fresh download and fresh dataset.
         """
-        self.download(data_dir, cache_dir, download_mode)
+        self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
+
+        self._dataset = None
+        self._download_callable = lambda: self.download(
+            data_dir, cache_dir, download_mode
+        )
+
+        defer = (
+            self._config.get("dataset_kwargs", {}).get("defer_download", False)
+            if self._config.get("dataset_kwargs")
+            else False
+        )
+        if not defer:
+            self._download_callable()
+
         self._training_docs: list | None = None
         self._fewshot_docs: list | None = None
         self._instances: list[Instance] | None = None
-
-        self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
         self.fewshot_rnd: random.Random | None = (
             None  # purposely induce errors in case of improper usage
         )
+
+    @property
+    def dataset(self):
+        if getattr(self, "_dataset", None) is None:
+            if (
+                hasattr(self, "_download_callable")
+                and self._download_callable is not None
+            ):
+                self._download_callable()
+        return self._dataset
+
+    @dataset.setter
+    def dataset(self, value):
+        self._dataset = value
 
     def download(
         self,
@@ -724,7 +750,7 @@ class ConfigurableTask(Task):
                     agg_name = metric_config["aggregation"]
                     if isinstance(agg_name, str):
                         self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
+                    elif callable(agg_name):
                         self._aggregation_list[metric_name] = metric_config[
                             "aggregation"
                         ]
@@ -750,7 +776,17 @@ class ConfigurableTask(Task):
                     )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
-        self.download(self.config.dataset_kwargs)
+        self._dataset = None
+        kwargs = self.config.dataset_kwargs or {}
+        defer = kwargs.get("defer_download", False)
+        dl_kwargs = kwargs.copy()
+        dl_kwargs.pop("defer_download", None)
+
+        self._download_callable = lambda: self.download(dl_kwargs)
+
+        if not defer:
+            self._download_callable()
+
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -1649,9 +1685,15 @@ class ConfigurableTask(Task):
                         # Without this, _compute_task_aggregations falls back to mean()
                         # because it looks up the aggregation by the result-dict key, not
                         # by the originating callable's __name__.
-                        if metric in self._aggregation_list and k not in self._aggregation_list:
+                        if (
+                            metric in self._aggregation_list
+                            and k not in self._aggregation_list
+                        ):
                             self._aggregation_list[k] = self._aggregation_list[metric]
-                        if metric in self._higher_is_better and k not in self._higher_is_better:
+                        if (
+                            metric in self._higher_is_better
+                            and k not in self._higher_is_better
+                        ):
                             self._higher_is_better[k] = self._higher_is_better[metric]
                 else:
                     result_dict[metric] = result_score
