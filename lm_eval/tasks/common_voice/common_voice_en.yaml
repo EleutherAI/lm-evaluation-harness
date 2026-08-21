@@ -2,17 +2,23 @@ task: common_voice_en
 task_alias: common_voice_en
 
 # subset only. The real dataset (mozilla-foundation/common_voice_17_0) is to huge
-dataset_path: fixie-ai/endpointing-audio
-dataset_name: common_voice_17_0-en
+# and gated. The previous stand-in (fixie-ai/endpointing-audio) is no longer
+# public and now 401s for everyone, so point at the ungated fixie-ai mirror and
+# pin a single test shard -- the full test split is ~8GB and train is ~44GB.
+# The revision is pinned so eval inputs stay reproducible. See issue #3955.
+dataset_path: fixie-ai/common_voice_17_0
+dataset_kwargs:
+  data_files:
+    test: en/test-00000-of-00019.parquet
+  revision: 34f78a43893414e7b6e271ba94c1d5e05f18b239
 
-training_split: train
 test_split: test
 
 output_type: generate_until
 
 doc_to_audio: !function utils.doc_to_audio
 doc_to_text: !function utils.doc_to_text
-doc_to_target: "{{transcript}}"
+doc_to_target: "{{sentence}}"
 
 generation_kwargs:
   until:
@@ -28,4 +34,4 @@ metric_list:
 
 # any metadata you need. Does not affect how the task is processed
 metadata:
-  version: 1.0
+  version: 2.0
