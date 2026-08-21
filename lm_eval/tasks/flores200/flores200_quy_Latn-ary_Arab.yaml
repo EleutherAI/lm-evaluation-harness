@@ -1,0 +1,7 @@
+"dataset_name": "quy_Latn-ary_Arab"
+"doc_to_target": "{{sentence_ary_Arab}}"
+"doc_to_text": "{{sentence_quy_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_quy_Latn-ary_Arab"
+"test_split": "dev"

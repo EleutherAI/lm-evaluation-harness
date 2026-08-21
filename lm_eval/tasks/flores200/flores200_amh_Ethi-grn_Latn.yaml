@@ -1,0 +1,7 @@
+"dataset_name": "amh_Ethi-grn_Latn"
+"doc_to_target": "{{sentence_grn_Latn}}"
+"doc_to_text": "{{sentence_amh_Ethi}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_amh_Ethi-grn_Latn"
+"test_split": "dev"
