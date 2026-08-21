@@ -28,9 +28,7 @@ def test_format_span_normalizes_label_only():
     # Labels are normalized, but entity text containing label-words as
     # substrings (e.g. "Company", "Country", "George") must be left intact.
     filt = SPANFilter()
-    resps = [
-        ["ORGANIZATION: Shell Company $ LOCATION: Country Club $ PERSON: George"]
-    ]
+    resps = [["ORGANIZATION: Shell Company $ LOCATION: Country Club $ PERSON: George"]]
 
     assert filt.apply(resps, [{}]) == [
         ["org: shell company $ loc: country club $ per: george"]
