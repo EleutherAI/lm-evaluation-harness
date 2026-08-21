@@ -241,6 +241,17 @@ class Run(SubCommand):
             metavar="<path>",
             help="Additional directory for external tasks",
         )
+        task_group.add_argument(
+            "--plugins",
+            default=None,
+            nargs="+",
+            action=SplitArgs,
+            metavar="<module>",
+            help="Comma-separated plugin modules to import before evaluation so their "
+            "@register_model (and other @register_*) decorators run. Use for local or "
+            "unpublished backends; pip-installed packages that declare an "
+            "'lm_eval.models' entry point are discovered automatically.",
+        )
 
         # Logging and Tracking
         logging_group = self._parser.add_argument_group("logging and tracking")
@@ -423,6 +434,7 @@ class Run(SubCommand):
             fewshot_random_seed=cfg.seed[3] if cfg.seed else None,
             confirm_run_unsafe_code=cfg.confirm_run_unsafe_code,
             metadata=cfg.metadata,
+            plugins=cfg.plugins,
         )
 
         # Process results

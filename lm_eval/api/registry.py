@@ -122,6 +122,19 @@ def _materialise_placeholder(ph: Placeholder) -> Any:
     return ph.load()
 
 
+def _safe_eq(a: Any, b: Any) -> bool:
+    """Equality that never raises on mismatched types.
+
+    ``md.EntryPoint`` is a NamedTuple whose ``__eq__`` accesses ``other._key()``
+    and raises ``AttributeError`` when compared against a non-EntryPoint (e.g. a
+    class). Registry collision handling compares heterogeneous values, so guard it.
+    """
+    try:
+        return bool(a == b)
+    except Exception:  # pragma: no cover - defensive
+        return a is b
+
+
 def _suggest_similar(
     query: str, options: Iterable[str], max_suggestions: int = 3
 ) -> list[str]:
@@ -151,6 +164,95 @@ def _build_key_error_msg(name: str, alias: str, keys: Iterable[str]) -> str:
     if len(available) > 20:
         msg += f"... ({len(available)} total)"
     return msg
+
+
+_loaded_plugin_groups: set[str] = set()
+
+
+def load_plugins(group: str, registry: Registry) -> list[str]:
+    """Register external components advertised via setuptools entry points.
+
+    Any installed distribution can contribute components to lm-eval by declaring
+    an entry point in the given ``group``, e.g. in its ``pyproject.toml``::
+
+        [project.entry-points."lm_eval.models"]
+        my-backend = "my_pkg.models:MyLM"
+
+    Each entry point is registered as a lazy placeholder, so the plugin module is
+    not imported until the component is actually requested. Existing aliases are
+    never overridden, and a single broken plugin is logged rather than allowed to
+    break discovery for the rest.
+
+    Args:
+        group: Entry point group name (e.g. "lm_eval.models").
+        registry: Registry instance to populate.
+
+    Returns:
+        The list of alias names newly discovered from installed plugins.
+    """
+    if group in _loaded_plugin_groups:
+        return []
+    _loaded_plugin_groups.add(group)
+
+    discovered: list[str] = []
+    try:
+        entry_points = md.entry_points(group=group)
+    except Exception as exc:  # pragma: no cover - defensive
+        eval_logger.warning(
+            "Failed to read entry points for group '%s': %s", group, exc
+        )
+        return discovered
+
+    for ep in entry_points:
+        if ep.name in registry:
+            eval_logger.debug(
+                "Plugin alias '%s' (group '%s') ignored; already registered.",
+                ep.name,
+                group,
+            )
+            continue
+        try:
+            registry.register(ep.name, target=ep)
+            discovered.append(ep.name)
+        except Exception as exc:  # noqa: BLE001 - one bad plugin must not break others
+            eval_logger.warning(
+                "Failed to register plugin '%s' from group '%s': %s",
+                ep.name,
+                group,
+                exc,
+            )
+    if discovered:
+        eval_logger.info(
+            "Registered %d plugin(s) from '%s': %s",
+            len(discovered),
+            group,
+            ", ".join(discovered),
+        )
+    return discovered
+
+
+def import_plugins(module_names: Iterable[str] | None) -> None:
+    """Import modules by name so their ``@register_*`` decorators run.
+
+    This is the explicit escape hatch for components that are not installed as
+    entry-point plugins (e.g. a local module during development). A failed import
+    is logged and skipped rather than raised, so a typo does not abort a run.
+
+    Args:
+        module_names: Module import paths (e.g. ["my_pkg.models"]). ``None`` or
+            empty is a no-op.
+    """
+    if not module_names:
+        return
+    for name in module_names:
+        name = name.strip()
+        if not name:
+            continue
+        try:
+            importlib.import_module(name)
+            eval_logger.info("Imported plugin module '%s'.", name)
+        except Exception as exc:  # noqa: BLE001 - tolerate bad plugin names
+            eval_logger.warning("Failed to import plugin module '%s': %s", name, exc)
 
 
 class Registry(Generic[T]):
@@ -214,15 +316,20 @@ class Registry(Generic[T]):
         def _store(alias: str, target: T | Placeholder) -> None:
             current = self._objs.get(alias)
             # collision handling ------------------------------------------
-            if current is not None and current != target:
-                # allow placeholder → real object upgrade
-                if (
-                    isinstance(current, str)
-                    and isinstance(target, type)
-                    and current == f"{target.__module__}:{target.__name__}"
+            if current is not None and not _safe_eq(current, target):
+                # allow placeholder → real object upgrade. This is the common
+                # path when a plugin advertises an EntryPoint *and* decorates its
+                # class with @register_model: materializing the EntryPoint imports
+                # the module, whose decorator then upgrades the placeholder here.
+                if isinstance(current, (str, md.EntryPoint)) and isinstance(
+                    target, type
                 ):
-                    self._objs[alias] = target
-                    return
+                    placeholder_path = (
+                        current if isinstance(current, str) else current.value
+                    )
+                    if placeholder_path == f"{target.__module__}:{target.__name__}":
+                        self._objs[alias] = target
+                        return
                 raise ValueError(
                     f"{self._name!r} alias '{alias}' already registered ("
                     f"existing={current}, new={target})"
@@ -503,6 +610,9 @@ def get_model(model_name: str):
     # Auto-import models module if registry is empty (lazy initialization)
     if len(model_registry) == 0:
         import lm_eval.models  # noqa: F401
+
+    # Discover external backends advertised via entry points (once).
+    load_plugins("lm_eval.models", model_registry)
 
     try:
         return model_registry.get(model_name)
