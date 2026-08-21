@@ -97,13 +97,13 @@ class Unitxt(ConfigurableTask):
     def test_docs(self):
         return self.dataset["test"]
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc, doc_to_text=None):
         return doc["source"]
 
     def should_decontaminate(self):
         return False
 
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc, doc_to_target=None):
         return doc["target"]
 
     def get_arguments(self, doc, ctx):
@@ -206,7 +206,7 @@ def extract_images(text, instance):
 class UnitxtMultiModal(Unitxt):
     MULTIMODAL = True
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc, doc_to_text=None):
         return re.sub(images_regex, "<image>", doc["source"])
 
     def doc_to_image(self, doc):
