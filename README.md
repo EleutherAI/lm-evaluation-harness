@@ -176,6 +176,22 @@ lm_eval --model hf \
 > [!Tip]
 > Ensure the tokenizer path points to a valid Hugging Face tokenizer directory (e.g., containing tokenizer_config.json, vocab.json, etc.).
 
+#### Evaluating GGUF Models Served by llama.cpp
+
+The `gguf` model type evaluates models hosted by a [llama.cpp](https://github.com/ggml-org/llama.cpp) server (`llama-server`) through its OpenAI-compatible `/v1/completions` endpoint:
+
+```bash
+lm_eval --model gguf \
+    --model_args base_url=http://127.0.0.1:8080 \
+    --tasks hellaswag
+```
+
+- Requires a llama.cpp release from December 2024 or newer, which returns logprobs in the modern OpenAI format (`logprobs.content`, see [llama.cpp#10783](https://github.com/ggml-org/llama.cpp/pull/10783)). The deprecated legacy format (`token_logprobs`) is not supported.
+- If the server runs in router mode (multiple models), pass the model name or alias: `--model_args base_url=http://127.0.0.1:8080,model=my-model-alias`.
+- Requests are issued concurrently. The default degree of parallelism is auto-detected from the server's slot count (`/props` → `total_slots`, i.e. llama-server's `--parallel` setting); override it with `parallel=<N>`. `loglikelihood` requests are additionally pinned to slots via llama.cpp's `id_slot` parameter, with consecutive requests sharing a context (e.g. the candidate continuations of one multiple-choice question) assigned to the same slot so they reuse its cached prompt prefix. `generate_until` requests are left unpinned, since the server's dynamic idle-slot assignment load-balances variable-length generations better.
+- `loglikelihood` is implemented via exact teacher forcing: llama.cpp ignores `echo` and never returns prompt logprobs, so the continuation is tokenized with the server's `/tokenize` endpoint (context and continuation encoded separately, matching the HF backend), and each continuation token is scored with its natural prefix as a token-id prompt plus a `logit_bias` that forces the server to sample it. llama.cpp reports the forced token's *pre-sampling* logprob and an unbiased `top_logprobs`, yielding loglikelihoods that match the HF backend to within quantization noise. (A naive alternative — forcing the continuation with a GBNF grammar — does *not* work: grammar-constrained decoding can pick a fragmented tokenization whose logprobs are not the natural-tokenization loglikelihoods, which systematically deflates scores.)
+- `loglikelihood_rolling` (perplexity tasks such as wikitext) is not implemented for this model type.
+
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
 We support three main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
