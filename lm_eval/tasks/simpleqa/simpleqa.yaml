@@ -1,0 +1,32 @@
+tag:
+  - world_knowledge
+task: simpleqa
+dataset_path: basicv8vc/SimpleQA
+output_type: generate_until
+test_split: test
+doc_to_text: "Answer the following question with a short, direct answer (a few words at most).\n\nQuestion: {{problem}}\nAnswer:"
+doc_to_target: "{{answer}}"
+process_results: !function utils.process_results
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+  - metric: not_attempted
+    aggregation: mean
+    higher_is_better: false
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\nQuestion:"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+    - "</s>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 100
+num_fewshot: 0
+metadata:
+  version: 1.0
