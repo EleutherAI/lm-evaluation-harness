@@ -15,6 +15,7 @@
 # adapted from https://github.com/NVIDIA/RULER/blob/main/scripts/data/synthetic/variable_tracking.py
 
 import itertools
+import logging
 import random
 import string
 from typing import TYPE_CHECKING, Union
@@ -25,6 +26,7 @@ from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
+eval_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
@@ -168,6 +170,11 @@ def sys_vartrack_w_noise_random(
     # Generate samples
     for index in tqdm(range(num_samples)):
         used_noises = num_noises
+        used_noises = max(1, used_noises)
+        too_long = False
+        input_text = ""
+        answer = ""
+        length = 0
         while True:
             try:
                 input_text, answer = generate_input_output(
@@ -184,8 +191,19 @@ def sys_vartrack_w_noise_random(
                 assert length <= max_seq_length, f"{length} exceeds max_seq_length."
                 break
             except:  # noqa: E722
-                if used_noises > incremental:
-                    used_noises -= incremental
+                if used_noises > 1:
+                    used_noises = max(1, used_noises - incremental)
+                else:
+                    eval_logger.warning(
+                        f"Skipping variable tracking sample {index}: "
+                        f"exceeds max_seq_length {max_seq_length} "
+                        f"even with minimum noise."
+                    )
+                    too_long = True
+                    break
+
+        if too_long:
+            continue
 
         if add_fewshot and (icl_example is not None):
             # insert icl_example between model template and input

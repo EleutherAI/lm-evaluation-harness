@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import itertools
+import logging
 import random
 
 import datasets
@@ -19,6 +20,8 @@ import wonderwords
 from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+
+eval_logger = logging.getLogger(__name__)
 
 
 CONFIG = {
@@ -129,6 +132,12 @@ def sys_word_pair_random(
         range(num_samples), desc=f"Generating CWE Samples | {max_seq_length}"
     ):
         used_words = num_words
+        used_words = max(1, used_words)
+        too_long = False
+        input_example = ""
+        input_text = ""
+        answer = ""
+        length = 0
         while True:
             try:
                 input_example, input_text, answer = generate_input_output(
@@ -138,8 +147,19 @@ def sys_word_pair_random(
                 assert length <= max_seq_length, f"{length} exceeds max_seq_length."
                 break
             except:  # noqa: E722
-                if used_words > incremental:
-                    used_words -= incremental
+                if used_words > 1:
+                    used_words = max(1, used_words - incremental)
+                else:
+                    eval_logger.warning(
+                        f"Skipping CWE sample {index}: "
+                        f"exceeds max_seq_length {max_seq_length} "
+                        f"even with minimum words."
+                    )
+                    too_long = True
+                    break
+
+        if too_long:
+            continue
 
         if remove_newline_tab:
             input_text = " ".join(
