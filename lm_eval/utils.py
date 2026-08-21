@@ -41,10 +41,12 @@ class _LMEvalFormatter(logging.Formatter):
 
 
 def is_torch_available() -> bool:
+    """Return True if the ``torch`` package is importable in the current environment."""
     return importlib.util.find_spec("torch") is not None
 
 
 def is_transformers_available() -> bool:
+    """Return True if the ``transformers`` package is importable in the current environment."""
     return importlib.util.find_spec("transformers") is not None
 
 
@@ -127,6 +129,14 @@ def maybe_warn(msg: str, verbose: bool = True):
 
 
 def hash_string(string: str) -> str:
+    """Return the SHA-256 hex digest of the given string.
+
+    Args:
+        string: Input string to hash (encoded as UTF-8).
+
+    Returns:
+        Hex-encoded SHA-256 digest of the input.
+    """
     return hashlib.sha256(string.encode("utf-8")).hexdigest()
 
 
@@ -237,11 +247,28 @@ def simple_parse_args_string(args_string: str | None) -> dict:
 
 
 def join_iters(iters):
+    """Flatten an iterable of iterables into a single iterator.
+
+    Args:
+        iters: An iterable whose elements are themselves iterable.
+
+    Yields:
+        Items from each inner iterable in sequence.
+    """
     for iter in iters:
         yield from iter
 
 
 def group(arr, fn):
+    """Group elements of ``arr`` by the key returned by ``fn``.
+
+    Args:
+        arr: Iterable of objects to group.
+        fn: Callable that returns the grouping key for each element.
+
+    Returns:
+        A list of lists, where each inner list contains elements that share the same key.
+    """
     res = collections.defaultdict(list)
 
     for ob in arr:
