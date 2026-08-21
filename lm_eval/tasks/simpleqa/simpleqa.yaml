@@ -1,0 +1,51 @@
+tag:
+  - factuality
+  - knowledge
+
+task: simpleqa
+dataset_path: basicv8vc/SimpleQA
+output_type: generate_until
+
+# SimpleQA has only a test split; zero-shot matches the original paper setup.
+test_split: test
+num_fewshot: 0
+
+# The instruction mirrors OpenAI's original prompt, nudging models toward
+# short, direct answers rather than hedged paragraphs.
+doc_to_text: "Answer the following question in a single brief, direct answer.\n\nQuestion: {{problem}}\nAnswer:"
+doc_to_target: "{{answer}}"
+
+generation_kwargs:
+  # Stop at newline — answers should be one line.
+  until:
+    - "\n"
+    - "</s>"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+    - "<|end_of_text|>"
+  do_sample: false
+  temperature: 0.0
+  # 64 tokens is generous for the typically short factual answers in SimpleQA.
+  max_gen_toks: 64
+
+process_results: !function utils.process_results
+
+metric_list:
+  # Fraction of questions answered CORRECTLY.
+  - metric: correct
+    aggregation: mean
+    higher_is_better: true
+
+  # Fraction of questions where the model declined to answer (NOT_ATTEMPTED).
+  - metric: not_attempted
+    aggregation: mean
+    higher_is_better: false
+
+  # Harmonic mean of accuracy-given-attempted and overall-correct-rate.
+  # This is the primary SimpleQA metric from the original paper.
+  - metric: f1
+    aggregation: !function utils.simpleqa_f1_agg
+    higher_is_better: true
+
+metadata:
+  version: 1.0
