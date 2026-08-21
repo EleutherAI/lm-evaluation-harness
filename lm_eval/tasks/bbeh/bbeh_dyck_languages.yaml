@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_dyck_languages"
+"process_docs": !function utils.process_dyck_languages

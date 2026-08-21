@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_boardgame_qa"
+"process_docs": !function utils.process_boardgame_qa

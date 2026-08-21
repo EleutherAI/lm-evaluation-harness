@@ -1,0 +1,20 @@
+dataset_path: BBEH/bbeh
+test_split: train
+output_type: generate_until
+doc_to_text: "{{input.strip()}}\n\nThink step by step. Then write your final answer in the form \"The answer is: <answer>\"."
+doc_to_target: "{{target}}"
+process_results: !function utils.process_results
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "<|im_end|>"
+    - "</s>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 4096
+num_fewshot: 0
+metadata:
+  version: 2.0
