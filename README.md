@@ -141,6 +141,50 @@ lm_eval --model hf \
 
 Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) and `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported.
 
+#### FlexRank models
+
+[FlexRank](https://github.com/RickZack/FlexRank) checkpoints contain nested
+low-rank submodels at multiple parameter budgets. Install the FlexRank runtime,
+then use the `flexrank` backend and select a submodel with either `size_ratio`
+or `compression_rate`:
+
+Until FlexRank is available on PyPI, install it from its source repository:
+
+```bash
+pip install "git+https://github.com/RickZack/FlexRank.git#subdirectory=flexrank"
+```
+
+```bash
+lm_eval --model flexrank \
+    --model_args pretrained=/path/to/flexrank-checkpoint,size_ratio=0.5,trust_remote_code=True \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8
+```
+
+`size_ratio` is the target parameter budget relative to the original model.
+Alternatively, `compression_rate=0.5` requests a 50% reduction. FlexRank
+validates these arguments and selects the closest profile stored in the
+checkpoint, which can differ slightly from the requested ratio.
+
+To evaluate several profiles without reloading the checkpoint, pass a
+colon-separated `size_ratios` list:
+
+```bash
+lm_eval --model flexrank \
+    --model_args pretrained=/path/to/flexrank-checkpoint,size_ratios=1.0:0.75:0.5,trust_remote_code=True \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8 \
+    --output_path results/flexrank
+```
+
+The model and tokenizer are loaded once. Each profile is otherwise evaluated
+as an independent run, with fresh task requests, reset random seeds and batch
+size state, profile-specific response caches, and a separate standard lm-eval
+result file whose `model_args` contains the evaluated `size_ratio`. YAML and
+JSON configurations may alternatively provide `size_ratios` as a list.
+
 Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
 ```bash
