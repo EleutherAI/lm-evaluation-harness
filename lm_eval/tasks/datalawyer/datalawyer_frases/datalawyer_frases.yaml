@@ -1,0 +1,40 @@
+group:
+  - legal_benchmark
+task: datalawyer_frases
+dataset_path: datalawyer/datalawyer-frases-v0_4
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: id_sampler
+  sampler_config:
+    # Balanced few-shot selected from the training set random selected
+    id_list: [102, 37, 5, 19, 9, 7, 23, 77, 16, 104, 61, 8, 94, 24, 26, 1247, 4, 1, 115, 1034, 662, 84, 36, 14, 6, 15, 142, 21, 13, 639, 53, 75, 643, 20, 1189, 0, 69, 18, 55, 12, 68, 17, 87, 35, 117, 50, 51, 10, 70, 3, 2, 11, 28, 62]
+    id_column: idx
+test_split: test
+num_fewshot: 15
+description: "Abaixo contém frases extraidas de documentos jurídicos, seu trabalho é classificá-las em um dos seguintes tópicos:\
+  \ \"Argumentação\", \"Decisão\", \"Definição\", \"Exposição\", \"Pedido\", \"Qualificação\", \"Referência\" ou \"Vebertação\", se não pertencer a nenhuma das anteriores\
+  \ classficar como \"Sem Classe\".\n\n"
+doc_to_text: "Frase: {{sentence}}\nA classificação da frase é:"
+doc_to_target: !function util.doc_to_target
+generation_kwargs:
+  max_gen_toks: 32
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: find_similar_label
+    filter:
+      - function: find_similar_label
+        labels: ['Argumentação', 'Decisão', 'Definição', 'Exposição', 'Pedido', 'Qualificação', 'Referência', 'Sem Classe', 'Vebertação']
+      - function: take_first
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.4

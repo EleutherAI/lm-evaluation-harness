@@ -1,0 +1,40 @@
+group:
+  - legal_benchmark
+task: brazilian_court_decisions_judgment
+dataset_path: eduagarcia/portuguese_benchmark
+dataset_name: brazilian_court_decisions_judgment
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: id_sampler
+  sampler_config:
+    # Balanced few-shot selected from the training set
+    id_list: [0,1,3,4,5,11,12,13,15,16,17,20,21,23,24]
+    id_column: idx
+test_split: test
+num_fewshot: 3
+description: "Abaixo estão ementas de decisões judiciais de um tribunal brasileiro. Para cada uma, classifique se a decisão foi\
+  \ totalmente favorável ao recurso (Aceita), parcialmente favorável (Parcial) ou se o recurso foi negado (Negada).\n\n"
+doc_to_text: "Decisão: {{sentence}}\nA decisão foi Aceita, Parcial ou Negada?\nResposta:"
+doc_to_target: !function util.doc_to_target
+generation_kwargs:
+  max_gen_toks: 32
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: find_similar_label
+    filter:
+      - function: find_similar_label
+        labels: ['Aceita', 'Parcial', 'Negada']
+      - function: take_first
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.4

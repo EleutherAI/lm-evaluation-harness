@@ -1,0 +1,53 @@
+tag:
+  - pt_benchmark
+
+task: portuguese_hate_speech
+task_alias: portuguese_hate_speech_binary
+
+dataset_path: eduagarcia/portuguese_benchmark
+dataset_name: Portuguese_Hate_Speech_binary
+
+output_type: generate_until
+
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+  samples: !function util.portuguese_hate_speech_binary_fewshot_samples
+
+test_split: test
+num_fewshot: 25
+
+description: "Abaixo contém o texto de tweets de usuários do Twitter em português, sua tarefa é classificar se o texto contém discurso de ódio ou não. Responda apenas com \"Sim\" ou \"Não\".\n\n"
+
+doc_to_text: "Texto: {{sentence}}\nPergunta: O texto contém discurso de ódio?\nResposta:"
+doc_to_target: "{{'Sim' if label == 1 else 'Não'}}"
+
+generation_kwargs:
+  until:
+    - "\n"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  top_k: null
+  top_p: null
+
+filter_list:
+  - name: all
+    filter:
+      - function: normalize_spaces
+      - function: remove_accents
+      - function: find_yes_no_with_think_filter
+        labels: [ 'Sim', 'Não' ]
+        fallback: "[invalid]"
+      - function: take_first
+
+metric_list:
+  - metric: f1_macro_score
+    aggregation: f1_macro_score
+    higher_is_better: true
+  - metric: acc
+    aggregation: pt_acc
+    higher_is_better: true
+
+metadata:
+  version: 1.2

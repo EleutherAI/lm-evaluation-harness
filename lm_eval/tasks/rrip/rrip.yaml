@@ -1,0 +1,40 @@
+group:
+  - legal_benchmark
+task: rrip
+dataset_path: eduagarcia/PortuLex_benchmark
+dataset_name: rrip
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: id_sampler
+  sampler_config:
+    # Balanced few-shot selected from the training set random selected
+    id_list: [29, 33, 32, 3, 8, 73, 180, 153, 154, 27, 726, 254, 74, 42, 25, 2056, 69, 70, 192, 37, 1, 2, 1809, 2027, 9, 165, 26, 152, 31, 204, 75, 257, 36, 7, 24, 6, 1595, 5, 178, 166, 194, 0, 30, 35, 193, 28, 22, 191, 23, 258, 72, 43, 188, 4, 189, 71]
+    id_column: idx
+test_split: test
+num_fewshot: 15
+description: "Abaixo contém frases extraidas de petições de ações cíveis de um Tribunal, seu trabalho é classificar o papel retórico:\
+  \ da frase em uma das seguintes classes: \"Identificação das Partes\", \"Fatos\", \"Argumentos\", \"Fundamentação Legal\", \"Jurisprudência\", \"Pedidos\" ou \"Valor da Causa\", se não pertencer a nenhuma das anteriores\
+  \ classficar como \"Outros\".\n\n"
+doc_to_text: "Frase: {{sentence}}\nA classificação da frase é:"
+doc_to_target: !function util.doc_to_target
+generation_kwargs:
+  max_gen_toks: 32
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: find_similar_label
+    filter:
+      - function: find_similar_label
+        labels: ['Identificação das Partes', 'Fatos', 'Argumentos', 'Fundamentação Legal', 'Jurisprudência', 'Pedidos', 'Valor da Causa', 'Outros']
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.4

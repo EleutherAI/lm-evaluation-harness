@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
+from unidecode import unidecode
 
 
 if TYPE_CHECKING:
@@ -239,3 +240,39 @@ class MultiChoiceRegexFilter(RegexFilter):
             filtered_resps.append(filtered)
 
         return filtered_resps
+
+
+@register_filter("remove_accents")
+class RemoveAccentsFilter(Filter):
+    def __init__(self) -> None:
+        pass
+
+    def remove_accents(self, text):
+        return unidecode(text)
+
+    def apply(self, resps, docs):
+        def filter_set(inst):
+            return [self.remove_accents(resp) for resp in inst]
+
+        return [filter_set(resp) for resp in resps]
+
+
+@register_filter("remove_punctuation")
+class RemovePunctuationFilter(Filter):
+    pattern_clean = re.compile(
+        r"(?u)[^a-z^A-Z^0-9^\sãáàâäăẽéèêëęĩíìîïõóòôöũúùûüç]",
+        re.UNICODE | re.IGNORECASE,
+    )
+
+    def __init__(self) -> None:
+        pass
+
+    def remove_punctuation(self, text):
+        text = re.sub(self.pattern_clean, "", text)
+        return text
+
+    def apply(self, resps, docs):
+        def filter_set(inst):
+            return [self.remove_punctuation(resp) for resp in inst]
+
+        return [filter_set(resp) for resp in resps]
