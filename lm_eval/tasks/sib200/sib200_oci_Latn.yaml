@@ -1,0 +1,5 @@
+"dataset_name": "oci_Latn"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_oci_Latn"
+"test_split": "test"
