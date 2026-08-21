@@ -1,0 +1,5 @@
+"dataset_name": "Law (High School in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_social_science"
+"task": "kazmmlu_law_(high_school_in_rus)"
+"task_alias": "Law (High School in rus)"

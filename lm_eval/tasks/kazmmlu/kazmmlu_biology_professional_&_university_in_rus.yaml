@@ -1,0 +1,5 @@
+"dataset_name": "Biology (Professional & University in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_stem"
+"task": "kazmmlu_biology_(professional_&_university_in_rus)"
+"task_alias": "Biology (Professional & University in rus)"

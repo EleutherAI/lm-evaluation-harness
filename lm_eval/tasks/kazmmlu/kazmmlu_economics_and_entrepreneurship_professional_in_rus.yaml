@@ -1,0 +1,5 @@
+"dataset_name": "Economics and Entrepreneurship (Professional in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_social_science"
+"task": "kazmmlu_economics_and_entrepreneurship_(professional_in_rus)"
+"task_alias": "Economics and Entrepreneurship (Professional in rus)"
