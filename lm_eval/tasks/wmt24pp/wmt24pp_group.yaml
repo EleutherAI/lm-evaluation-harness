@@ -1,0 +1,68 @@
+group: wmt24pp
+group_alias: WMT24++
+
+task:
+  - wmt24pp-en-ar_EG
+  - wmt24pp-en-ar_SA
+  - wmt24pp-en-bg_BG
+  - wmt24pp-en-bn_IN
+  - wmt24pp-en-ca_ES
+  - wmt24pp-en-cs_CZ
+  - wmt24pp-en-da_DK
+  - wmt24pp-en-de_DE
+  - wmt24pp-en-el_GR
+  - wmt24pp-en-es_MX
+  - wmt24pp-en-et_EE
+  - wmt24pp-en-fa_IR
+  - wmt24pp-en-fi_FI
+  - wmt24pp-en-fil_PH
+  - wmt24pp-en-fr_CA
+  - wmt24pp-en-fr_FR
+  - wmt24pp-en-gu_IN
+  - wmt24pp-en-he_IL
+  - wmt24pp-en-hi_IN
+  - wmt24pp-en-hr_HR
+  - wmt24pp-en-hu_HU
+  - wmt24pp-en-id_ID
+  - wmt24pp-en-is_IS
+  - wmt24pp-en-it_IT
+  - wmt24pp-en-ja_JP
+  - wmt24pp-en-kn_IN
+  - wmt24pp-en-ko_KR
+  - wmt24pp-en-lt_LT
+  - wmt24pp-en-lv_LV
+  - wmt24pp-en-ml_IN
+  - wmt24pp-en-mr_IN
+  - wmt24pp-en-nl_NL
+  - wmt24pp-en-no_NO
+  - wmt24pp-en-pa_IN
+  - wmt24pp-en-pl_PL
+  - wmt24pp-en-pt_BR
+  - wmt24pp-en-pt_PT
+  - wmt24pp-en-ro_RO
+  - wmt24pp-en-ru_RU
+  - wmt24pp-en-sk_SK
+  - wmt24pp-en-sl_SI
+  - wmt24pp-en-sr_RS
+  - wmt24pp-en-sv_SE
+  - wmt24pp-en-sw_KE
+  - wmt24pp-en-sw_TZ
+  - wmt24pp-en-ta_IN
+  - wmt24pp-en-te_IN
+  - wmt24pp-en-th_TH
+  - wmt24pp-en-tr_TR
+  - wmt24pp-en-uk_UA
+  - wmt24pp-en-ur_PK
+  - wmt24pp-en-vi_VN
+  - wmt24pp-en-zh_CN
+  - wmt24pp-en-zh_TW
+  - wmt24pp-en-zu_ZA
+
+aggregate_metric_list:
+  - metric: chrf
+    aggregation: mean
+    higher_is_better: true
+    weight_by_size: true
+
+metadata:
+  version: 1.0
