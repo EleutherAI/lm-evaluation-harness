@@ -1,0 +1,94 @@
+{
+  "group_subtasks": {
+    "regression_arc": [
+      "arc_challenge",
+      "arc_easy"
+    ]
+  },
+  "groups": {
+    "regression_arc": {
+      "acc,none": 0.15,
+      "acc_norm,none": 0.05,
+      "acc_norm_stderr,none": "N/A",
+      "acc_stderr,none": "N/A",
+      "alias": "regression_arc",
+      "name": "regression_arc",
+      "sample_count": {
+        "acc,none": 20,
+        "acc_norm,none": 20
+      },
+      "sample_len": 20
+    }
+  },
+  "higher_is_better": {
+    "arc_challenge": {
+      "acc": true,
+      "acc_norm": true
+    },
+    "arc_easy": {
+      "acc": true,
+      "acc_norm": true
+    },
+    "regression_arc": {
+      "acc": true,
+      "acc_norm": true
+    }
+  },
+  "n-samples": {
+    "arc_challenge": {
+      "effective": 10,
+      "original": 1172
+    },
+    "arc_easy": {
+      "effective": 10,
+      "original": 2376
+    }
+  },
+  "n-shot": {
+    "arc_challenge": 0,
+    "arc_easy": 0,
+    "regression_arc": 0
+  },
+  "results": {
+    "arc_challenge": {
+      "acc,none": 0.0,
+      "acc_norm,none": 0.0,
+      "acc_norm_stderr,none": "N/A",
+      "acc_stderr,none": "N/A",
+      "alias": "arc_challenge",
+      "name": "arc_challenge",
+      "sample_len": 10
+    },
+    "arc_easy": {
+      "acc,none": 0.3,
+      "acc_norm,none": 0.1,
+      "acc_norm_stderr,none": "N/A",
+      "acc_stderr,none": "N/A",
+      "alias": "arc_easy",
+      "name": "arc_easy",
+      "sample_len": 10
+    },
+    "regression_arc": {
+      "acc,none": 0.15,
+      "acc_norm,none": 0.05,
+      "acc_norm_stderr,none": "N/A",
+      "acc_stderr,none": "N/A",
+      "alias": "regression_arc",
+      "name": "regression_arc",
+      "sample_count": {
+        "acc,none": 20,
+        "acc_norm,none": 20
+      },
+      "sample_len": 20
+    }
+  },
+  "tables": {
+    "groups": "|    Groups    |Version|Filter|n-shot| Metric |   |Value|   |Stderr|\n|--------------|------:|------|-----:|--------|---|----:|---|------|\n|regression_arc|      1|none  |     0|acc     |↑  | 0.15|±  |   N/A|\n|              |       |none  |     0|acc_norm|↑  | 0.05|±  |   N/A|",
+    "results": "|     Tasks      |Version|Filter|n-shot| Metric |   |Value|   |Stderr|\n|----------------|------:|------|-----:|--------|---|----:|---|------|\n|regression_arc  |      1|none  |     0|acc     |↑  | 0.15|±  |   N/A|\n|                |       |none  |     0|acc_norm|↑  | 0.05|±  |   N/A|\n| - arc_challenge|      1|none  |     0|acc     |↑  | 0.00|±  |   N/A|\n|                |       |none  |     0|acc_norm|↑  | 0.00|±  |   N/A|\n| - arc_easy     |      1|none  |     0|acc     |↑  | 0.30|±  |   N/A|\n|                |       |none  |     0|acc_norm|↑  | 0.10|±  |   N/A|"
+  },
+  "versions": {
+    "arc_challenge": 1.0,
+    "arc_easy": 1.0,
+    "regression_arc": "1.0"
+  }
+}
