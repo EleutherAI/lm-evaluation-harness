@@ -301,10 +301,8 @@ class EvaluatorConfig:
             # defaults, so accept the same shape here rather than making the
             # config stricter than the flag it mirrors.
             eval_logger.warning(
-                "seed expects %s values "
-                "(random, numpy, torch, fewshot). Missing values will be "
-                "filled with defaults.",
-                (len(DEFAULT_SEED)),
+                "seed expects %s values (random, numpy, torch, fewshot). Missing values will be filled with defaults.",
+                len(DEFAULT_SEED),
             )
             values = values + DEFAULT_SEED[len(values) :]
         if len(values) != len(DEFAULT_SEED):
