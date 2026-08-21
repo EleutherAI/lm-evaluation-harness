@@ -1,0 +1,22 @@
+group: uncheatable_eval
+group_alias: Uncheatable Eval (core domains)
+task:
+  - uncheatable_eval_wikipedia_english
+  - uncheatable_eval_github_python
+  - uncheatable_eval_github_cpp
+  - uncheatable_eval_bbc_news
+  - uncheatable_eval_arxiv_physics
+  - uncheatable_eval_arxiv_computer_science
+  - uncheatable_eval_ao3_english
+aggregate_metric_list:
+  - metric: word_perplexity
+    aggregation: mean
+    weight_by_size: true
+  - metric: byte_perplexity
+    aggregation: mean
+    weight_by_size: true
+  - metric: bits_per_byte
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
