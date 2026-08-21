@@ -122,6 +122,34 @@ def _materialise_placeholder(ph: Placeholder) -> Any:
     return ph.load()
 
 
+def _safe_eq(a: Any, b: Any) -> bool:
+    """Equality that never raises on mismatched types.
+
+    ``md.EntryPoint`` is a NamedTuple whose ``__eq__`` accesses ``other._key()``
+    and raises ``AttributeError`` when compared against a non-EntryPoint (e.g. a
+    class). Registry collision handling compares heterogeneous values, so guard it.
+    """
+    try:
+        return bool(a == b)
+    except Exception:  # pragma: no cover - defensive
+        return a is b
+
+
+def _placeholder_path(obj: Any) -> str | None:
+    """Return the "module:qualname" path of a class or function, else None.
+
+    Used to match a materialized component back to the lazy placeholder string
+    it was registered under, so that a plugin declaring both an entry point and
+    an @register_* decorator upgrades cleanly instead of colliding. Applies to
+    both model classes and metric/aggregation functions.
+    """
+    module = getattr(obj, "__module__", None)
+    name = getattr(obj, "__name__", None)
+    if module and name:
+        return f"{module}:{name}"
+    return None
+
+
 def _suggest_similar(
     query: str, options: Iterable[str], max_suggestions: int = 3
 ) -> list[str]:
@@ -151,6 +179,95 @@ def _build_key_error_msg(name: str, alias: str, keys: Iterable[str]) -> str:
     if len(available) > 20:
         msg += f"... ({len(available)} total)"
     return msg
+
+
+_loaded_plugin_groups: set[str] = set()
+
+
+def load_plugins(group: str, registry: Registry) -> list[str]:
+    """Register external components advertised via setuptools entry points.
+
+    Any installed distribution can contribute components to lm-eval by declaring
+    an entry point in the given ``group``, e.g. in its ``pyproject.toml``::
+
+        [project.entry-points."lm_eval.models"]
+        my-backend = "my_pkg.models:MyLM"
+
+    Each entry point is registered as a lazy placeholder, so the plugin module is
+    not imported until the component is actually requested. Existing aliases are
+    never overridden, and a single broken plugin is logged rather than allowed to
+    break discovery for the rest.
+
+    Args:
+        group: Entry point group name (e.g. "lm_eval.models").
+        registry: Registry instance to populate.
+
+    Returns:
+        The list of alias names newly discovered from installed plugins.
+    """
+    if group in _loaded_plugin_groups:
+        return []
+    _loaded_plugin_groups.add(group)
+
+    discovered: list[str] = []
+    try:
+        entry_points = md.entry_points(group=group)
+    except Exception as exc:  # pragma: no cover - defensive
+        eval_logger.warning(
+            "Failed to read entry points for group '%s': %s", group, exc
+        )
+        return discovered
+
+    for ep in entry_points:
+        if ep.name in registry:
+            eval_logger.debug(
+                "Plugin alias '%s' (group '%s') ignored; already registered.",
+                ep.name,
+                group,
+            )
+            continue
+        try:
+            registry.register(ep.name, target=ep)
+            discovered.append(ep.name)
+        except Exception as exc:  # noqa: BLE001 - one bad plugin must not break others
+            eval_logger.warning(
+                "Failed to register plugin '%s' from group '%s': %s",
+                ep.name,
+                group,
+                exc,
+            )
+    if discovered:
+        eval_logger.info(
+            "Registered %d plugin(s) from '%s': %s",
+            len(discovered),
+            group,
+            ", ".join(discovered),
+        )
+    return discovered
+
+
+def import_plugins(module_names: Iterable[str] | None) -> None:
+    """Import modules by name so their ``@register_*`` decorators run.
+
+    This is the explicit escape hatch for components that are not installed as
+    entry-point plugins (e.g. a local module during development). A failed import
+    is logged and skipped rather than raised, so a typo does not abort a run.
+
+    Args:
+        module_names: Module import paths (e.g. ["my_pkg.models"]). ``None`` or
+            empty is a no-op.
+    """
+    if not module_names:
+        return
+    for name in module_names:
+        name = name.strip()
+        if not name:
+            continue
+        try:
+            importlib.import_module(name)
+            eval_logger.info("Imported plugin module '%s'.", name)
+        except Exception as exc:  # noqa: BLE001 - tolerate bad plugin names
+            eval_logger.warning("Failed to import plugin module '%s': %s", name, exc)
 
 
 class Registry(Generic[T]):
@@ -214,15 +331,21 @@ class Registry(Generic[T]):
         def _store(alias: str, target: T | Placeholder) -> None:
             current = self._objs.get(alias)
             # collision handling ------------------------------------------
-            if current is not None and current != target:
-                # allow placeholder → real object upgrade
-                if (
-                    isinstance(current, str)
-                    and isinstance(target, type)
-                    and current == f"{target.__module__}:{target.__name__}"
+            if current is not None and not _safe_eq(current, target):
+                # allow placeholder → real object upgrade. This is the common
+                # path when a plugin advertises an EntryPoint *and* decorates its
+                # component with @register_* (model class, metric/aggregation
+                # function, filter class): materializing the EntryPoint imports
+                # the module, whose decorator then upgrades the placeholder here.
+                if isinstance(current, (str, md.EntryPoint)) and _placeholder_path(
+                    target
                 ):
-                    self._objs[alias] = target
-                    return
+                    placeholder_path = (
+                        current if isinstance(current, str) else current.value
+                    )
+                    if placeholder_path == _placeholder_path(target):
+                        self._objs[alias] = target
+                        return
                 raise ValueError(
                     f"{self._name!r} alias '{alias}' already registered ("
                     f"existing={current}, new={target})"
@@ -504,6 +627,9 @@ def get_model(model_name: str):
     if len(model_registry) == 0:
         import lm_eval.models  # noqa: F401
 
+    # Discover external backends advertised via entry points (once).
+    load_plugins("lm_eval.models", model_registry)
+
     try:
         return model_registry.get(model_name)
     except KeyError as e:
@@ -556,6 +682,8 @@ def get_filter(filter_name: str | Callable) -> Callable:
     """
     if callable(filter_name):
         return filter_name
+    # Discover external filters advertised via entry points (once).
+    load_plugins("lm_eval.filters", filter_registry)
     try:
         return filter_registry.get(cast("str", filter_name))
     except KeyError as e:
@@ -620,6 +748,9 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
     if len(metric_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    # Discover external metrics advertised via entry points (once).
+    load_plugins("lm_eval.metrics", metric_registry)
+
     if not hf_evaluate_metric:
         if name in metric_registry:
             return metric_registry.get(name)
@@ -670,11 +801,29 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
     if len(aggregation_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    # Discover external aggregations advertised via entry points (once).
+    load_plugins("lm_eval.aggregations", aggregation_registry)
+
     try:
         return aggregation_registry.get(name)
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
         return None
+
+
+def _materialise_metric_side_effects(name: str) -> None:
+    """Ensure a plugin metric's ``@register_metric`` side effects have run.
+
+    ``register_metric`` populates the ``higher_is_better`` and metric-aggregation
+    registries as a side effect of the decorator. When a metric is contributed as
+    a lazy entry-point placeholder, those side effects only fire once the metric
+    function is materialized. ``is_higher_better`` / ``get_metric_aggregation``
+    may be called for such a metric, so trigger discovery + materialization here.
+    """
+    load_plugins("lm_eval.metrics", metric_registry)
+    if name in metric_registry:
+        # Force materialization of the placeholder so its decorator runs.
+        metric_registry.get(name)
 
 
 def get_metric_aggregation(name: str) -> Callable[..., float] | None:
@@ -689,6 +838,8 @@ def get_metric_aggregation(name: str) -> Callable[..., float] | None:
     # Auto-import metrics module if registry is empty (lazy initialization)
     if len(metric_agg_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
+
+    _materialise_metric_side_effects(name)
 
     try:
         return metric_agg_registry.get(name)
@@ -709,6 +860,8 @@ def is_higher_better(metric_name: str) -> bool | None:
     # Auto-import metrics module if registry is empty (lazy initialization)
     if len(higher_is_better_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
+
+    _materialise_metric_side_effects(metric_name)
 
     try:
         return higher_is_better_registry.get(metric_name)
