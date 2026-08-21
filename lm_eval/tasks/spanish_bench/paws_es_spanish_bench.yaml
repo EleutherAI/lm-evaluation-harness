@@ -1,5 +1,5 @@
 task: paws_es_spanish_bench
-dataset_path: paws-x
+dataset_path: google-research-datasets/paws-x
 dataset_name: es
 output_type: multiple_choice
 training_split: train
