@@ -281,22 +281,30 @@ class TaskManager:
 
     @staticmethod
     def _check_duplicates(built: list[Task | Group]) -> None:
-        """Check that no task appears in more than one top-level item.
+        """Deduplicate tasks that appear both standalone and inside a group.
 
-        For each top-level item (Task or Group), collect all leaf task names.
-        If any task name appears in multiple top-level items, raise an error.
-        This catches cases like requesting ["group_a", "group_b"] where both
-        groups contain the same task, or requesting a task both standalone
-        and as part of a group.
+        When a task is requested individually *and* as part of a group, the
+        standalone entry is removed from *built* (the group already covers it).
+        If two different *groups* share a task, that is still an error.
         """
-        seen: dict[str, str] = {}  # task_name -> source name
+        group_tasks: dict[str, str] = {}
         for item in built:
+            if isinstance(item, Group):
+                for t in item.get_all_tasks():
+                    group_tasks[t.task_name] = item.name
+
+        to_remove: list[int] = []
+        seen: dict[str, str] = {}
+        for idx, item in enumerate(built):
             if isinstance(item, Group):
                 source = item.name
                 task_names = [t.task_name for t in item.get_all_tasks()]
             else:
                 source = item.task_name
                 task_names = [item.task_name]
+                if item.task_name in group_tasks:
+                    to_remove.append(idx)
+                    continue
 
             for name in task_names:
                 if name in seen and seen[name] != source:
@@ -304,6 +312,9 @@ class TaskManager:
                         f"Duplicate task '{name}': found in both '{seen[name]}' and '{source}'"
                     )
                 seen[name] = source
+
+        for idx in reversed(to_remove):
+            del built[idx]
 
     # ---------------------------------------------------------------- utility
     def match_tasks(self, task_list: list[str]) -> list[str]:
