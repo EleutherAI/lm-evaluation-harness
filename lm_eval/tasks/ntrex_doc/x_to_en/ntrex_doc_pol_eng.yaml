@@ -1,0 +1,13 @@
+include: ../ntrex_doc_common.yaml
+
+task: ntrex-doc-pol-eng
+
+tag:
+  - translation
+  - ntrex_doc
+  - reverse_derived
+
+metadata:
+  version: 1.0
+  src_lang: "pol"
+  tgt_lang: "eng"

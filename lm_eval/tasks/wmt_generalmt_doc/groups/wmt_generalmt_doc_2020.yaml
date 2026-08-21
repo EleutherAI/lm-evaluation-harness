@@ -1,0 +1,24 @@
+group: wmt-generalmt-doc-2020
+task:
+  - wmt-generalmt-doc-newstest2020-cs-en
+  - wmt-generalmt-doc-newstest2020-de-en
+  - wmt-generalmt-doc-newstest2020-de-fr
+  - wmt-generalmt-doc-newstest2020-en-cs
+  - wmt-generalmt-doc-newstest2020-en-de
+  - wmt-generalmt-doc-newstest2020-en-iu
+  - wmt-generalmt-doc-newstest2020-en-ja
+  - wmt-generalmt-doc-newstest2020-en-km
+  - wmt-generalmt-doc-newstest2020-en-pl
+  - wmt-generalmt-doc-newstest2020-en-ps
+  - wmt-generalmt-doc-newstest2020-en-ru
+  - wmt-generalmt-doc-newstest2020-en-ta
+  - wmt-generalmt-doc-newstest2020-en-zh
+  - wmt-generalmt-doc-newstest2020-fr-de
+  - wmt-generalmt-doc-newstest2020-iu-en
+  - wmt-generalmt-doc-newstest2020-ja-en
+  - wmt-generalmt-doc-newstest2020-km-en
+  - wmt-generalmt-doc-newstest2020-pl-en
+  - wmt-generalmt-doc-newstest2020-ps-en
+  - wmt-generalmt-doc-newstest2020-ru-en
+  - wmt-generalmt-doc-newstest2020-ta-en
+  - wmt-generalmt-doc-newstest2020-zh-en

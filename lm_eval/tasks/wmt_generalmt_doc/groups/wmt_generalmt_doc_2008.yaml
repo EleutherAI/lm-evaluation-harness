@@ -1,0 +1,14 @@
+group: wmt-generalmt-doc-2008
+task:
+  - wmt-generalmt-doc-newstest2008-cs-en
+  - wmt-generalmt-doc-newstest2008-de-en
+  - wmt-generalmt-doc-newstest2008-de-es
+  - wmt-generalmt-doc-newstest2008-en-cs
+  - wmt-generalmt-doc-newstest2008-en-de
+  - wmt-generalmt-doc-newstest2008-en-es
+  - wmt-generalmt-doc-newstest2008-en-fr
+  - wmt-generalmt-doc-newstest2008-en-hu
+  - wmt-generalmt-doc-newstest2008-es-de
+  - wmt-generalmt-doc-newstest2008-es-en
+  - wmt-generalmt-doc-newstest2008-fr-en
+  - wmt-generalmt-doc-newstest2008-hu-en

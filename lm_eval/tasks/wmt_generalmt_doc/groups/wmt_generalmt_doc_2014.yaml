@@ -1,0 +1,12 @@
+group: wmt-generalmt-doc-2014
+task:
+  - wmt-generalmt-doc-newstest2014-cs-en
+  - wmt-generalmt-doc-newstest2014-de-en
+  - wmt-generalmt-doc-newstest2014-en-cs
+  - wmt-generalmt-doc-newstest2014-en-de
+  - wmt-generalmt-doc-newstest2014-en-fr
+  - wmt-generalmt-doc-newstest2014-en-hi
+  - wmt-generalmt-doc-newstest2014-en-ru
+  - wmt-generalmt-doc-newstest2014-fr-en
+  - wmt-generalmt-doc-newstest2014-hi-en
+  - wmt-generalmt-doc-newstest2014-ru-en

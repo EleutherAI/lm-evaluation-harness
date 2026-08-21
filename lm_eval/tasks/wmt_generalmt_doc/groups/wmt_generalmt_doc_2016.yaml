@@ -1,0 +1,14 @@
+group: wmt-generalmt-doc-2016
+task:
+  - wmt-generalmt-doc-newstest2016-cs-en
+  - wmt-generalmt-doc-newstest2016-de-en
+  - wmt-generalmt-doc-newstest2016-en-cs
+  - wmt-generalmt-doc-newstest2016-en-de
+  - wmt-generalmt-doc-newstest2016-en-fi
+  - wmt-generalmt-doc-newstest2016-en-ro
+  - wmt-generalmt-doc-newstest2016-en-ru
+  - wmt-generalmt-doc-newstest2016-en-tr
+  - wmt-generalmt-doc-newstest2016-fi-en
+  - wmt-generalmt-doc-newstest2016-ro-en
+  - wmt-generalmt-doc-newstest2016-ru-en
+  - wmt-generalmt-doc-newstest2016-tr-en

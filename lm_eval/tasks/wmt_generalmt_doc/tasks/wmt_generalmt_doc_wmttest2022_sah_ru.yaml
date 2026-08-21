@@ -1,0 +1,13 @@
+include: ../wmt_generalmt_doc_common.yaml
+
+task: wmt-generalmt-doc-wmttest2022-sah-ru
+
+tag:
+  - translation
+  - wmt_generalmt_doc
+
+metadata:
+  version: 1.0
+  testset: "wmttest2022"
+  src_lang: "sah"
+  tgt_lang: "ru"

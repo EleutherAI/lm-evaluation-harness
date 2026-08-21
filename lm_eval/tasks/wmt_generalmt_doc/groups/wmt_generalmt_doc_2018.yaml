@@ -1,0 +1,16 @@
+group: wmt-generalmt-doc-2018
+task:
+  - wmt-generalmt-doc-newstest2018-cs-en
+  - wmt-generalmt-doc-newstest2018-de-en
+  - wmt-generalmt-doc-newstest2018-en-cs
+  - wmt-generalmt-doc-newstest2018-en-de
+  - wmt-generalmt-doc-newstest2018-en-et
+  - wmt-generalmt-doc-newstest2018-en-fi
+  - wmt-generalmt-doc-newstest2018-en-ru
+  - wmt-generalmt-doc-newstest2018-en-tr
+  - wmt-generalmt-doc-newstest2018-en-zh
+  - wmt-generalmt-doc-newstest2018-et-en
+  - wmt-generalmt-doc-newstest2018-fi-en
+  - wmt-generalmt-doc-newstest2018-ru-en
+  - wmt-generalmt-doc-newstest2018-tr-en
+  - wmt-generalmt-doc-newstest2018-zh-en
