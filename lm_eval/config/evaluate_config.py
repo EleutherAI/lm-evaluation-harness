@@ -25,6 +25,7 @@ DICT_KEYS = [
     "metadata",
     "model_args",
     "gen_kwargs",
+    "trackio_args",
 ]
 
 
@@ -221,7 +222,7 @@ class EvaluatorConfig:
         config.update(cli_args)
 
         # Create an instance and validate
-        instance = cls(**config)._parse_dict_args()
+        instance = cls(**config)
         instance._configure()
 
         if used_config:
@@ -267,13 +268,13 @@ class EvaluatorConfig:
     def _parse_dict_args(self):
         # Parse string arguments that should be dictionaries
         for f in fields(self):
-            if f.type is dict and isinstance(getattr(self, f.name), str):
+            if f.name in DICT_KEYS and isinstance(getattr(self, f.name), str):
                 setattr(self, f.name, simple_parse_args_string(getattr(self, f.name)))
         return self
 
     def _configure(self):
         """Validate configuration and preprocess fields after creation."""
-        self._validate_arguments()._process_arguments()._set_trust_remote_code()
+        self._parse_dict_args()._validate_arguments()._process_arguments()._set_trust_remote_code()
 
         return self
 
