@@ -100,12 +100,17 @@ def bleu(items):
 
 @register_aggregation("chrf")
 def chrf(items):
-    """chrF++ is a tool for automatic evaluation of machine translation output
-    based on character n-gram precision and recall enhanced with word n-grams.
+    """chrF is an evaluation metric for machine translation output based on
+    character n-gram precision and recall.
+
+    This computes chrF, not chrF++: sacrebleu defaults to word_order=0, and
+    chrF++ is the word_order=2 variant. See #2256 for making the orders
+    configurable.
+
     Source: https://github.com/m-popovic/chrF
     Paper: https://www.aclweb.org/anthology/W15-3049.pdf
 
-    Higher is better  # TODO I think
+    Higher is better
     """
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
@@ -371,7 +376,7 @@ def chrf_fn(items):  # This is a passthrough function
 
 @register_metric(
     metric="ter",
-    higher_is_better=True,
+    higher_is_better=False,
     output_type="generate_until",
     aggregation="ter",
 )
