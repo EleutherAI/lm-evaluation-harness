@@ -52,7 +52,7 @@ def _build_tiny_model_dir():
 
     try:
         builder.create_model(None, src, out, "fp32", "cpu", cache)
-    except Exception as e:  # pragma: no cover - environment dependent
+    except Exception as e:  # noqa: BLE001
         pytest.skip(f"Model Builder could not create a CPU fixture: {e}")
     return out
 
@@ -66,9 +66,7 @@ def tiny_model_dir():
 # Unit tests: scoring math, no model load required.
 # --------------------------------------------------------------------------- #
 def _make_bare_lm(forward_logits, max_length=2048):
-    """Build an instance without loading a model, wiring only what the token
-    scoring path needs.
-    """
+    """Build an instance without loading a model, wiring only what the token scoring path needs."""
     lm = ONNXRuntimeGenAILM.__new__(ONNXRuntimeGenAILM)
     lm.max_length = max_length
     lm.cache_hook = CacheHook(None)

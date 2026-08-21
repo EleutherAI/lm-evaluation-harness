@@ -113,14 +113,14 @@ class WindowsML(ONNXRuntimeGenAILM):
                         provider.name, provider.library_path
                     )
                     eval_logger.info(
-                        f"Registered {provider.name} to ONNX Runtime GenAI"
+                        "Registered %s to ONNX Runtime GenAI", provider.name
                     )
             return True
         except ImportError as e:
-            eval_logger.warning(f"Windows ML import error: {e}")
+            eval_logger.warning("Windows ML import error: %s", e)
             return False
-        except Exception as e:
-            eval_logger.warning(f"Error registering providers to GenAI: {e}")
+        except Exception as e:  # noqa: BLE001
+            eval_logger.warning("Error registering providers to GenAI: %s", e)
             return False
 
     def _log_winml_devices(self) -> None:
@@ -134,17 +134,19 @@ class WindowsML(ONNXRuntimeGenAILM):
                 ep_device_map.setdefault(device.ep_name, []).append(device)
 
             eval_logger.info(
-                f"Available EP devices: {len(ep_device_map)} execution providers"
+                "Available EP devices: %s execution providers", len(ep_device_map)
             )
             for name, devices in ep_device_map.items():
-                eval_logger.info(f"Execution Provider: {name}")
+                eval_logger.info("Execution Provider: %s", name)
                 for device in devices:
                     try:
                         device_type = ort.OrtHardwareDeviceType(device.device.type).name
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         device_type = "Unknown"
                     eval_logger.info(
-                        f" | Vendor: {device.ep_vendor:<16} | Device Type: {device_type:<8}"
+                        " | Vendor: %-16s | Device Type: %-8s",
+                        device.ep_vendor,
+                        device_type,
                     )
-        except Exception as e:
-            eval_logger.warning(f"Windows ML device enumeration failed: {e}")
+        except Exception as e:  # noqa: BLE001
+            eval_logger.warning("Windows ML device enumeration failed: %s", e)

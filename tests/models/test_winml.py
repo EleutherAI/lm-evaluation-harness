@@ -87,7 +87,7 @@ def _build_tiny_model_dir():
 
     try:
         builder.create_model(None, src, out, "fp32", "cpu", cache)
-    except Exception as e:  # pragma: no cover - environment dependent
+    except Exception as e:  # noqa: BLE001
         pytest.skip(f"Model Builder could not create a CPU fixture: {e}")
     return out
 
