@@ -1,0 +1,13 @@
+# Generic dynamic pair task for OpenSubtitles Multi40.
+include: _opensubtitles_multi40_common.yaml
+task: opensubtitles_multi40_pair
+task_alias: opensubtitles pair(dynamic)
+tag:
+  - opensubtitles_multi40
+  - opensubtitles_dynamic_pair
+metadata:
+  version: 1
+  dataset_dir: Helsinki-NLP/OpenSubtitles2024-40-langs-15-movies
+  split: devtest
+  src_lang: en
+  tgt_lang: fi
