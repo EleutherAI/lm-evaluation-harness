@@ -1,0 +1,4 @@
+task: lica_bench_category_1
+include: _template_yaml
+task_alias: category-1
+custom_dataset: !function utils.build_category_1
