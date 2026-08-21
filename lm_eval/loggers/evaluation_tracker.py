@@ -421,6 +421,78 @@ class EvaluationTracker:
         else:
             eval_logger.info("Output path not provided, skipping saving sample results")
 
+    def save_llm_judge_details(
+        self,
+        llm_judge_details: dict,
+    ) -> None:
+        """
+        Saves the LLM judge detailed results to JSONL files.
+
+        Args:
+            llm_judge_details (dict): Dict mapping details_key to details dict containing:
+                - judge_name: Optional name for this judge variant (e.g., "accuracy")
+                - judge_model: The LLM judge model name
+                - results: List of individual judgment results
+
+                The details_key format is "task_name" or "task_name/judge_name" for named variants.
+        """
+        if not llm_judge_details:
+            return
+
+        if self.output_path:
+            try:
+                path = Path(self.output_path if self.output_path else Path.cwd())
+                if path.suffix == ".json":
+                    path = path.parent
+                else:
+                    path = path.joinpath(
+                        self.general_config_tracker.model_name_sanitized
+                    )
+                path.mkdir(parents=True, exist_ok=True)
+
+                for details_key, details in llm_judge_details.items():
+                    # Parse key: "task_name" or "task_name/judge_name"
+                    if "/" in details_key:
+                        task_name, judge_name = details_key.rsplit("/", 1)
+                    else:
+                        task_name = details_key
+                        judge_name = details.get("judge_name")
+
+                    judge_model = details.get("judge_model", "unknown_model")
+                    results = details.get("results", [])
+
+                    # Sanitize judge model name for filename (replace / with __)
+                    judge_model_safe = judge_model.replace("/", "__")
+
+                    # Build filename: include judge_name if present
+                    if judge_name:
+                        filename = f"llm_judge_{task_name}_{judge_name}_{judge_model_safe}_{self.date_id}.jsonl"
+                    else:
+                        filename = f"llm_judge_{task_name}_{judge_model_safe}_{self.date_id}.jsonl"
+
+                    file_llm_judge = path.joinpath(filename)
+
+                    eval_logger.info(f"Saving LLM judge details to {file_llm_judge}")
+
+                    with open(file_llm_judge, "w", encoding="utf-8") as f:
+                        for result in results:  # noqa: FURB122
+                            f.write(
+                                json.dumps(
+                                    result,
+                                    default=handle_non_serializable,
+                                    ensure_ascii=False,
+                                )
+                                + "\n"
+                            )
+
+            except Exception as e:
+                eval_logger.warning("Could not save LLM judge details")
+                eval_logger.info(repr(e))
+        else:
+            eval_logger.info(
+                "Output path not provided, skipping saving LLM judge details"
+            )
+
     def recreate_metadata_card(self) -> None:
         """Creates a metadata card for the evaluation results dataset.
 
