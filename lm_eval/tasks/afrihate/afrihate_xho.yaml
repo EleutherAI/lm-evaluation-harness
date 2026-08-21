@@ -1,0 +1,13 @@
+
+task: afrihate_xho
+dataset_path: afrihate/afrihate
+dataset_name: xho
+test_split: test
+doc_to_text: "Text: {tweet}\nQuestion: Is this text 'hate', 'abusive', or 'neutral'?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["hate", "abusive", "neutral"]
+metric_list:
+  - metric: acc
+    higher_is_better: true
+metadata:
+  version: 1.0
