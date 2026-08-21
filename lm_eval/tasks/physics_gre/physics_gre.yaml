@@ -1,0 +1,3 @@
+include: _physics_gre_template_yaml
+task: physics_gre
+dataset_name: physics_gre
