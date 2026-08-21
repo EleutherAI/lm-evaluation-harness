@@ -1,0 +1,5 @@
+tag: norsumm_nno_nob_translation
+doc_to_target: text_nob
+task: norsumm_nno_nob_translation_p3
+include: ../_norsumm_translation_yaml
+doc_to_text: "Hva blir \"{{text_nno}}\" på bokmål?\nBokmål:"

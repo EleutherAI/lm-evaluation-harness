@@ -1,0 +1,4 @@
+task: slide_p2
+include: _slide_yaml
+doc_to_text: "Se på følgende setning: {{text}}\nDet er et godt eksempel på en setning skrevet på"
+doc_to_choice: ["bokmål", "nynorsk", "dansk", "svensk", "et annet språk"]
