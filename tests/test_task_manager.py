@@ -947,8 +947,7 @@ class TestGroupBuilding:
     # ---- existing group reference with overrides (the key bug fix) ----
 
     def test_existing_group_ref_has_children(self, tm):
-        """
-        When a parent group references an existing group via
+        """When a parent group references an existing group via
         {group: include_group, ...}, the referenced group must still
         have its own children populated from the registry.
         """
@@ -968,8 +967,7 @@ class TestGroupBuilding:
         )
 
     def test_existing_group_ref_overrides_propagate(self, tm):
-        """
-        Overrides specified on a group reference should propagate
+        """Overrides specified on a group reference should propagate
         down to the leaf tasks of the referenced group.
         """
         loaded = tm.load(["group_ref_parent"])
@@ -985,8 +983,7 @@ class TestGroupBuilding:
     # ---- group-level config propagation ----
 
     def test_group_level_config_propagates_to_children(self, tm):
-        """
-        Config keys set at the group level (outside GROUP_ONLY_KEYS)
+        """Config keys set at the group level (outside GROUP_ONLY_KEYS)
         should propagate to all children as defaults.
         """
         loaded = tm.load(["propagation_group"])
@@ -1000,8 +997,7 @@ class TestGroupBuilding:
             )
 
     def test_caller_overrides_beat_group_defaults(self, tm):
-        """
-        Caller-supplied overrides should take precedence over
+        """Caller-supplied overrides should take precedence over
         group-level config values.
         """
         loaded = tm.load([{"group": "propagation_group", "num_fewshot": 0}])
@@ -1016,8 +1012,7 @@ class TestGroupBuilding:
     # ---- mixed member types ----
 
     def test_mixed_members_string_ref(self, tm):
-        """
-        A bare string in the task list should resolve to the task in
+        """A bare string in the task list should resolve to the task in
         the registry.
         """
         loaded = tm.load(["mixed_members_group"])
@@ -1031,8 +1026,7 @@ class TestGroupBuilding:
         assert task_b.config.num_fewshot == 7
 
     def test_mixed_members_inline_subgroup(self, tm):
-        """
-        A dict with 'group' key (not in registry) should create an
+        """A dict with 'group' key (not in registry) should create an
         inline subgroup with namespacing.
         """
         loaded = tm.load(["mixed_members_group"])
@@ -1048,8 +1042,7 @@ class TestGroupBuilding:
     # ---- empty group ----
 
     def test_empty_group_has_no_children(self, tm):
-        """
-        A group with no task list should build successfully with
+        """A group with no task list should build successfully with
         zero children.
         """
         loaded = tm.load(["empty_group"])
@@ -1083,8 +1076,7 @@ class TestGroupBuilding:
         assert result[1].weight_by_size is False
 
     def test_parse_aggregation_single_dict_normalized(self):
-        """
-        A single dict (not wrapped in a list) should be normalized
+        """A single dict (not wrapped in a list) should be normalized
         to a one-element list.
         """
         from lm_eval.config.group import AggMetricConfig, GroupConfig
@@ -1136,8 +1128,7 @@ class TestGroupBuilding:
     # ---- nested groups ----
 
     def test_deeply_nested_get_all_tasks_recursive(self, tm):
-        """
-        get_all_tasks(recursive=True) on a parent group should
+        """get_all_tasks(recursive=True) on a parent group should
         collect tasks from all levels of nesting.
         """
         loaded = tm.load(["group_ref_parent"])
@@ -1148,10 +1139,7 @@ class TestGroupBuilding:
         assert len(all_tasks) == 3
 
     def test_deeply_nested_get_all_tasks_non_recursive(self, tm):
-        """
-        get_all_tasks(recursive=False) on a parent group should
-        NOT return tasks from nested subgroups.
-        """
+        """The function get_all_tasks(recursive=False) on a parent group should NOT return tasks from nested subgroups."""
         loaded = tm.load(["group_ref_parent"])
         parent = loaded["groups"]["group_ref_parent"]
 
