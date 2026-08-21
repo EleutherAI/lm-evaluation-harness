@@ -1,0 +1,20 @@
+tag:
+  - agent_control
+  - tool_use
+task: agent_pre_action_control
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    validation: lm_eval/tasks/agent_pre_action_control/samples.jsonl
+output_type: multiple_choice
+validation_split: validation
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
