@@ -1,0 +1,11 @@
+group: longproc_countdown
+task:
+  - longproc_countdown_0.5k
+  - longproc_countdown_2k
+  - longproc_countdown_8k
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
