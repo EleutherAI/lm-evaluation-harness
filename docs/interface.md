@@ -164,6 +164,14 @@ lm-eval run --model hf \
   --tasks gsm8k --apply_chat_template
 ```
 
+OpenAI-compatible chat backends, including `local-chat-completions`, also accept a string `think_end_token`. The API server must include that delimiter in the returned message content:
+
+```bash
+lm-eval run --model local-chat-completions \
+  --model_args model=Qwen/Qwen3-32B,base_url=http://localhost:8000/v1/chat/completions,think_end_token="</think>" \
+  --tasks ifeval --apply_chat_template
+```
+
 The correct `think_end_token` for a given model can be found in its `tokenizer_config.json` (look for the token closing the thinking block in the chat template). For example, see [Qwen3-32B's tokenizer_config.json](https://huggingface.co/Qwen/Qwen3-32B/blob/main/tokenizer_config.json#L206).
 
 > **Note:** `enable_thinking=True` is only compatible with generative tasks. It cannot be used with loglikelihood-based tasks.

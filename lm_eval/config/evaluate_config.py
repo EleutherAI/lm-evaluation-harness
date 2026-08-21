@@ -25,6 +25,7 @@ DICT_KEYS = [
     "metadata",
     "model_args",
     "gen_kwargs",
+    "trackio_args",
 ]
 # Seeds for random, numpy, torch and fewshot sampling, in that order.
 DEFAULT_SEED = [0, 1234, 1234, 1234]
@@ -223,7 +224,7 @@ class EvaluatorConfig:
         config.update(cli_args)
 
         # Create an instance and validate
-        instance = cls(**config)._parse_dict_args()
+        instance = cls(**config)
         instance._configure()
 
         if used_config:
@@ -269,13 +270,13 @@ class EvaluatorConfig:
     def _parse_dict_args(self):
         # Parse string arguments that should be dictionaries
         for f in fields(self):
-            if f.type is dict and isinstance(getattr(self, f.name), str):
+            if f.name in DICT_KEYS and isinstance(getattr(self, f.name), str):
                 setattr(self, f.name, simple_parse_args_string(getattr(self, f.name)))
         return self
 
     def _configure(self):
         """Validate configuration and preprocess fields after creation."""
-        self._validate_arguments()._process_arguments()._normalize_seed()._set_trust_remote_code()
+        self._parse_dict_args()._validate_arguments()._process_arguments()._normalize_seed()._set_trust_remote_code()
 
         return self
 
@@ -426,7 +427,7 @@ class EvaluatorConfig:
             task_names = []
             yaml_path = Path(task_list[0]) / "*.yaml"
             for yaml_file in glob.glob(str(yaml_path)):
-                config = load_yaml(yaml_file, resolve_func=False)
+                config = load_yaml(yaml_file, resolve_func=True)
                 task_names.append(config)
             self.tasks = task_names
             return task_manager
@@ -447,7 +448,7 @@ class EvaluatorConfig:
                 # Custom config file(s) - support glob patterns
                 matches = []
                 for yaml_file in glob.glob(task):
-                    config = load_yaml(yaml_file, resolve_func=False)
+                    config = load_yaml(yaml_file, resolve_func=True)
                     matches.append(config)
             match_dict[task] = matches
 
