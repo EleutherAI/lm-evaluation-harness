@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_ces_Latn"
+"test_split": "ces_Latn"
+"fewshot_split": "ces_Latn"
+"doc_to_text": "Pasáž: {{flores_passage}}\nOtázka: {{question}}\nOdpověď:"

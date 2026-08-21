@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-eng_Latn-slk_Latn"
+"dataset_name": "eng_Latn-slk_Latn"
+"doc_to_text": "English phrase: {{sentence_eng_Latn}}\nSlovak phrase:"
+"doc_to_decontamination_query": "{{sentence_eng_Latn}}"
+"doc_to_target": "{{sentence_slk_Latn}}"

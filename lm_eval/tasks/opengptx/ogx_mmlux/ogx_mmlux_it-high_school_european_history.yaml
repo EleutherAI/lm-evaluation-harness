@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "high_school_european_history_IT"
+"task": "ogx_mmlux_it-high_school_european_history"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRisposta:"
+"description": "Le seguenti sono domande a scelta multipla (con relative risposte)\
+  \ sulla storia europea delle scuole superiori."

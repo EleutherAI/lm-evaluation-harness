@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "medical_genetics_HU"
+"task": "ogx_mmlux_hu-medical_genetics"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVálasz:"
+"description": "Az alábbi feleletválasztós kérdések (válaszokkal) az orvosi genetikáról\
+  \ szólnak."

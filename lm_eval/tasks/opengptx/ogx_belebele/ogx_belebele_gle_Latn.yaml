@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_gle_Latn"
+"test_split": "gle_Latn"
+"fewshot_split": "gle_Latn"
+"doc_to_text": "Sliocht: {{flores_passage}}\nCeist: {{question}}\nFreagra:"

@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_slv_Latn"
+"test_split": "slv_Latn"
+"fewshot_split": "slv_Latn"
+"doc_to_text": "Odlomek: {{flores_passage}}\nVprašanje: {{question}}\nOdgovor:"

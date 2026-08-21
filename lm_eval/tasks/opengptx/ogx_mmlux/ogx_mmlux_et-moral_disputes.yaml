@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "moral_disputes_ET"
+"task": "ogx_mmlux_et-moral_disputes"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVastus:"
+"description": "Järgnevalt on esitatud valikvastustega küsimused (koos vastustega)\
+  \ moraalsete vaidluste kohta."

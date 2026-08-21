@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "econometrics_DE"
+"task": "ogx_mmlux_de-econometrics"
+"group": "ogx_mmlux_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAntwort:"
+"description": "Im Folgenden finden Sie Multiple-Choice-Fragen (mit Antworten) zur\
+  \ Ökonometrie."
