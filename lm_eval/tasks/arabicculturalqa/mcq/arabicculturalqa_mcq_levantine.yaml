@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: arabicculturalqa_mcq_levantine
+process_docs: !function utils.process_docs_levantine
+doc_to_text: "{{question}}\n\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nالجواب:"
