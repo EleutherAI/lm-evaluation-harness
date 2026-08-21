@@ -376,7 +376,7 @@ class EvaluatorConfig:
             task_names = []
             yaml_path = Path(task_list[0]) / "*.yaml"
             for yaml_file in glob.glob(str(yaml_path)):
-                config = load_yaml(yaml_file, resolve_func=False)
+                config = load_yaml(yaml_file, resolve_func=True)
                 task_names.append(config)
             self.tasks = task_names
             return task_manager
@@ -397,7 +397,7 @@ class EvaluatorConfig:
                 # Custom config file(s) - support glob patterns
                 matches = []
                 for yaml_file in glob.glob(task):
-                    config = load_yaml(yaml_file, resolve_func=False)
+                    config = load_yaml(yaml_file, resolve_func=True)
                     matches.append(config)
             match_dict[task] = matches
 
