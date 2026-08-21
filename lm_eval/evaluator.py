@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import random
+import re
 import time
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, cast
@@ -84,6 +85,7 @@ def simple_evaluate(
     fewshot_random_seed: int = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
     metadata: dict[str, Any] | None = None,
+    plugins: list[str] | None = None,
 ) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -154,6 +156,12 @@ def simple_evaluate(
             as unsafe (e.g. code execution tasks).
         metadata (dict | None): Additional metadata to be added to the task
             manager. Will get passed to the download function of the task.
+        plugins (list[str] | None): Module import paths to import before
+            evaluation so their ``@register_*`` decorators run (for local or
+            unpublished components). Installed packages that declare an
+            ``lm_eval.models`` entry point are discovered automatically and do
+            not need to be listed here. The ``LM_EVAL_PLUGINS`` environment
+            variable (comma/colon separated) is honored as an additional source.
 
     Returns:
         dict | None: Dictionary of results, or None if not on rank 0.
@@ -161,6 +169,14 @@ def simple_evaluate(
     if verbosity is not None:
         eval_logger.info("Setting verbosity through simple_evaluate is deprecated.")
     start_date = time.time()
+
+    # Import explicit plugin modules (CLI --plugins / LM_EVAL_PLUGINS env) so their
+    # @register_* decorators run before any model/task/metric name is resolved.
+    plugin_modules = list(plugins) if plugins else []
+    if env_plugins := os.environ.get("LM_EVAL_PLUGINS"):
+        plugin_modules += re.split(r"[,:]", env_plugins)
+    if plugin_modules:
+        lm_eval.api.registry.import_plugins(plugin_modules)
 
     if limit is not None and samples is not None:
         raise ValueError(
