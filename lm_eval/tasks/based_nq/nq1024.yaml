@@ -1,0 +1,2 @@
+task: based_nq_1024
+class: !function task.BasedNQ1024
