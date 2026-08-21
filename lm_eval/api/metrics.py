@@ -637,6 +637,15 @@ def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None)
     return np.sqrt(variance)
 
 
+# Register juryeval metrics if juryeval is installed
+try:
+    from juryeval.lmeval import register_all as _register_juryeval_metrics
+
+    _register_juryeval_metrics()
+except ImportError:
+    pass
+
+
 def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
     # A helper function that is used to aggregate
     # subtask scores cross-task.
