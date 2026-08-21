@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import json
 import logging
 import random
 import re
@@ -265,6 +266,40 @@ class Task(abc.ABC):
     def doc_to_prefix(self, doc):
         return ""
 
+    def request_cache_key(
+        self,
+        *,
+        rank: int = 0,
+        world_size: int = 1,
+        system_instruction: str | None = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        tokenizer_name: str = "",
+    ) -> str:
+        """Build the request-cache file name for this task under a given run config.
+
+        Every input that changes the resulting Instances has to be folded in, otherwise
+        a cached run is silently reused under settings it was never built for.
+        """
+        cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
+        cache_key += "-chat_template" if apply_chat_template else ""
+        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
+        cache_key += (
+            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
+            if system_instruction is not None
+            else ""
+        )
+        cache_key += f"-tokenizer{tokenizer_name}"
+        # `generate_until` bakes `generation_kwargs` into every Instance's arguments, so
+        # runs that differ only in sampling parameters must not share a cache entry.
+        # Left out when unset so existing caches for non-generative tasks stay valid.
+        if self.config.generation_kwargs is not None:
+            gen_kwargs_repr = json.dumps(
+                self.config.generation_kwargs, sort_keys=True, default=str
+            )
+            cache_key += f"-gen_kwargs_hash{utils.hash_string(gen_kwargs_repr)}"
+        return cache_key
+
     def build_all_requests(
         self,
         *,
@@ -285,15 +320,14 @@ class Task(abc.ABC):
         # used with caching
         og_limit = limit
 
-        cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
-        cache_key += "-chat_template" if apply_chat_template else ""
-        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
-        cache_key += (
-            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
-            if system_instruction is not None
-            else ""
+        cache_key = self.request_cache_key(
+            rank=rank,
+            world_size=world_size,
+            system_instruction=system_instruction,
+            apply_chat_template=apply_chat_template,
+            fewshot_as_multiturn=fewshot_as_multiturn,
+            tokenizer_name=tokenizer_name,
         )
-        cache_key += f"-tokenizer{tokenizer_name}"
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
