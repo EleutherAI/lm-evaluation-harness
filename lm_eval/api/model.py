@@ -2,6 +2,7 @@ import abc
 import hashlib
 import json
 import logging
+import sqlite3
 import os
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Optional, TypeVar
@@ -12,8 +13,6 @@ from lm_eval import utils
 
 
 if TYPE_CHECKING:
-    from sqlitedict import SqliteDict
-
     from lm_eval.api.instance import Instance
 
 
@@ -235,7 +234,7 @@ def hash_args(attr: str, args: Iterable[Any]) -> str:
 class CacheHook:
     def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
         if cachinglm is None:
-            self.dbdict: SqliteDict | None = None
+            self.dbdict: "JsonSqliteDict | None" = None
             return
 
         self.dbdict = cachinglm.dbdict
@@ -247,6 +246,77 @@ class CacheHook:
         self.dbdict[hsh] = res
 
 
+class JsonSqliteDict:
+    """A minimal sqlite-backed key/value store using JSON instead of pickle.
+
+    Replaces ``sqlitedict.SqliteDict`` for lm-eval's response cache. Only the
+    operations actually used by ``CachingLM`` are implemented: ``__contains__``,
+    ``__getitem__``, ``__setitem__`` and ``commit()``.
+    """
+
+    _LEGACY_TABLE: str = "unnamed"
+
+    def __init__(self, filename: str) -> None:
+        self.filename = filename
+        self._conn = sqlite3.connect(filename)
+        self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, value TEXT)"
+        )
+        self._conn.commit()
+        self._pending: int = 0
+        self._legacy: bool = self._is_legacy_table()
+
+    def _is_legacy_table(self) -> bool:
+        """Detect whether this DB was created by sqlitedict (pickle format)."""
+        try:
+            row = self._conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE name='unnamed' AND type='table'"
+            ).fetchone()
+            return row is not None
+        except Exception:
+            return False
+
+    def __contains__(self, key: str) -> bool:
+        if self._legacy:
+            return False
+        row = self._conn.execute("SELECT 1 FROM cache WHERE key = ?", (key,)).fetchone()
+        return row is not None
+
+    def __getitem__(self, key: str) -> Any:
+        if self._legacy:
+            raise KeyError(key)
+        row = self._conn.execute(
+            "SELECT value FROM cache WHERE key = ?", (key,)
+        ).fetchone()
+        if row is None:
+            raise KeyError(key)
+        return json.loads(row[0])
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        if self._legacy:
+            raise RuntimeError(
+                "Refusing to write to a legacy sqlitedict (pickle) cache. "
+                "Delete or migrate the cache file first."
+            )
+        self._conn.execute(
+            "INSERT INTO cache VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, json.dumps(value)),
+        )
+        self._pending += 1
+        if self._pending >= 100:
+            self.commit()
+
+    def commit(self) -> None:
+        if self._pending:
+            self._conn.commit()
+            self._pending = 0
+
+    def close(self) -> None:
+        self.commit()
+        self._conn.close()
+
+
 class CachingLM:
     def __init__(self, lm: LM, cache_db: str) -> None:
         """LM wrapper that returns cached results when available, falling back to the underlying model.
@@ -255,13 +325,11 @@ class CachingLM:
             lm: The underlying language model to wrap.
             cache_db: Path to the SQLite cache database.
         """
-        from sqlitedict import SqliteDict
-
         self.lm: LM = lm
         self.cache_db: str = cache_db
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
-        self.dbdict = SqliteDict(cache_db, autocommit=True)
+        self.dbdict = JsonSqliteDict(cache_db)
 
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
