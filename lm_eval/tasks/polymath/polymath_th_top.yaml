@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_th_top
+dataset_name: th
+test_split: top

@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_zh_high
+dataset_name: zh
+test_split: high

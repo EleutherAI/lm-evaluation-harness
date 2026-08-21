@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_bn_medium
+dataset_name: bn
+test_split: medium
