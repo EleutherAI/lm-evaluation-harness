@@ -153,6 +153,39 @@ def test_acc_mutual_info_without_metric():
     assert result_dict["acc"] == 1.0
 
 
+class MockMultiTargetTask(MockConfigurableTask):
+    """Mock multiple-choice task with multiple correct answers (multiple_target)."""
+
+    def __init__(self):
+        super().__init__()
+        self.multiple_target = 2  # gold is a list of correct indices
+
+    def doc_to_target(self, doc):
+        return [0, 2]  # choices A and C are both correct
+
+
+def test_acc_mutual_info_multiple_target():
+    """acc_mutual_info must handle multiple_target tasks (gold is a list), not crash.
+
+    Regression: `1.0 if np.argmax(lls_mutual_info) == gold else 0.0` builds a numpy
+    bool array when gold is a list, so the truth test raised ValueError.
+    """
+    task = MockMultiTargetTask()
+    # conditional lls favor choice C (index 2); unconditional flat -> mutual-info argmax = 2.
+    results = [
+        (-3.0, False),
+        (-2.0, False),
+        (-1.0, True),  # conditional
+        (-2.0, False),
+        (-2.0, False),
+        (-2.0, False),  # unconditional
+    ]
+    result_dict = task.process_results({}, results)
+    assert "acc_mutual_info" in result_dict
+    # mutual-info argmax index 2 is one of the gold answers [0, 2]
+    assert result_dict["acc_mutual_info"] == 1.0
+
+
 def test_bootstrap_internal_no_mp():
     """Test basic functionality of _bootstrap_internal_no_mp"""
 
