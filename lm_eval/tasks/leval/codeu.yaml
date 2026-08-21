@@ -1,0 +1,25 @@
+tag:
+  - leval
+task: leval_codeu
+dataset_path: ""
+custom_dataset: !function utils.load_leval
+dataset_kwargs:
+  data_files:
+    test: "https://raw.githubusercontent.com/OpenLMLab/LEval/cd34b050269148aed75acbbe4a599873ad0f37e9/LEval-data/Closed-ended-tasks/codeU.jsonl"
+test_split: test
+output_type: generate_until
+process_docs: !function utils.process_docs_codeu
+doc_to_text: "{{text}}"
+doc_to_target: "{{gold}}"
+process_results: !function utils.process_results_codeu
+generation_kwargs:
+  max_gen_toks: 100
+  do_sample: false
+  temperature: 0.0
+  until: []
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
