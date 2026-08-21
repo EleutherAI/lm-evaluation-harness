@@ -1,0 +1,4 @@
+include: _arxivrollbench_c_template_yaml
+task: arxivrollbench2025a_econ_c
+dataset_path: liangzid/robench2025a_test_all_category_seteconSCP-c-50
+dataset_name: null

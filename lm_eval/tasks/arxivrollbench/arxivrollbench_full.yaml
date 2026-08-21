@@ -1,0 +1,11 @@
+group: arxivrollbench_full
+task:
+  - arxivrollbench2024b_full
+  - arxivrollbench2025a_full
+  - arxivrollbench2026a_full
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

@@ -1,0 +1,4 @@
+include: _arxivrollbench_s_template_yaml
+task: arxivrollbench2026a_cs_s_full
+dataset_path: liangzid/robench2026a_test_all_category_setcsSCP-s
+dataset_name: null
