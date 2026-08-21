@@ -1,0 +1,72 @@
+task: mrcr_8needle
+class: !function task.MRCR
+tag:
+  - mrcr
+custom_dataset: !function utils.load_dataset
+dataset_kwargs:
+  num_needles: 8
+output_type: generate_until
+test_split: train
+num_fewshot: 0
+doc_to_text: messages
+doc_to_target: answer
+process_results: !function utils.process_results
+generation_kwargs:
+  until: !function utils.DEFAULT_STOP_SEQUENCES
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_0_le_8k
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_8k_le_16k
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_16k_le_32k
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_32k_le_64k
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_64k_le_128k
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_128k_le_256k
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_256k_le_512k
+    aggregation: mean
+    higher_is_better: true
+  - metric: score_gt_512k_le_1m
+    aggregation: mean
+    higher_is_better: true
+  - metric: count_gt_0_le_8k
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: count_gt_8k_le_16k
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: count_gt_16k_le_32k
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: count_gt_32k_le_64k
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: count_gt_64k_le_128k
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: count_gt_128k_le_256k
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: count_gt_256k_le_512k
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: count_gt_512k_le_1m
+    aggregation: !function builtins.sum
+    higher_is_better: true
+  - metric: AUC
+    aggregation: !function utils.AUC
+    higher_is_better: true
+metadata:
+  version: 0.0
