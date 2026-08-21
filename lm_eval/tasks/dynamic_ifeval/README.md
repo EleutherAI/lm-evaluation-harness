@@ -1,0 +1,50 @@
+# Dynamic IFEval
+
+## Task Summary
+Dynamic-IFEval is a fully automated benchmark for evaluating and training Large Language Models (LLMs) on verifiable instruction-following. Unlike existing datasets such as IFEval, which rely on small, manually-validated sets of constraints, Dynamic-IFEval generates diverse, non-contradictory, and automatically verifiable instructions directly from real text sources.
+
+By construction, every generated instruction is guaranteed to have at least one valid solution, eliminating the need for human annotation, constraint dictionaries, or manual conflict checking. This makes Dynamic-IFEval especially suited for reinforcement learning (RL)–based alignment, where large amounts of verifiable training data are required.
+
+Dynamic-IFEval supports:
+- Unlimited dynamic generation of instruction-following tasks
+- Deterministic, rule-based evaluation (no reward models required)
+- Easy extensibility through new instruction types
+
+### Overview
+- A dataset of natural language texts is used as the source of truth.
+- A predefined set of instruction types defines the structure of rules (e.g., "The nth letter is", "The number of words is", etc.).
+- For each instance, a subset of instruction types is sampled, and a text is randomly selected from the dataset.
+- Based on these, a set of instructions is generated such that the original text satisfies all the given constraints.
+- The model is prompted to generate a response (a text) that adheres to the same instructions.
+
+### Purpose
+The benchmark ensures that:
+
+- All instruction sets are satisfiable: they are derived from a real text that serves as a "witness solution".
+- Evaluation is grounded: each response can be automatically verified for correctness exactly, without the need for a neural reward model.
+
+### References
+The benchmark is described in
+https://drive.google.com/file/d/1xCKYK88hEEMt0dHf3SgZldSbIOUF26Cs/view?usp=sharing
+
+### Additional Requirements
+datasets
+
+### Example Usage
+lm_eval \
+  --model vllm \
+  --model_args '{"pretrained":"Qwen/Qwen3-4B","trust_remote_code":true,"max_model_len":16384,"enable_thinking":true}' \
+  --gen_kwargs '{"max_gen_toks":8192,"temperature":0.6}' \
+  --apply_chat_template \
+  --tasks dynamic_ifeval \
+  --batch_size auto \
+  --output_path 'results.jsonl'
+
+You can set the seed used for the generation of the dataset with the following flag:
+  --metadata '{"dataset_seed":131}' \
+
+### Task Validity Checklist
+
+- [ ] Is the task an existing benchmark in the literature? Yes
+  - [ ] Have you referenced the original paper that introduced the task? Yes
+  - [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test? Yes
