@@ -1,0 +1,26 @@
+task: medical_mcqa_greek
+dataset_path: ilsp/medical_mcqa_greek
+dataset_name: default
+output_type: multiple_choice
+training_split: train
+fewshot_split: train
+test_split: validation
+validation_split: validation
+# ILSP medical_mcqa_greek uses the BIG-bench MCQA schema: `inputs` is the (Greek) question stem,
+# `multiple_choice_targets` are the full Greek options (each already Α./Β./… prefixed), and
+# `multiple_choice_scores` flags the correct one with 1.0. Score the options directly and take the
+# gold as the index of that 1.0 (same idiom as bigbench/multiple_choice_template_b_yaml and the
+# winogrande_greek task in this suite).
+doc_to_text: "{{inputs}}\n"
+doc_to_choice: "{{multiple_choice_targets}}"
+doc_to_target: "{{multiple_choice_scores.index(1)}}"
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
