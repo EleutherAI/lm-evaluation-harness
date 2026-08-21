@@ -3,6 +3,15 @@ import os
 from lm_eval.caching import cache
 
 
+def test_delete_cache_ignores_missing_directory(tmp_path, monkeypatch):
+    missing_cache = tmp_path / "never-created"
+    monkeypatch.setattr(cache, "PATH", str(missing_cache))
+
+    cache.delete_cache()
+
+    assert not missing_cache.exists()
+
+
 def test_long_cache_keys_are_hashed_below_filesystem_limit(tmp_path, monkeypatch):
     monkeypatch.setattr(cache, "PATH", str(tmp_path))
 
