@@ -50,7 +50,7 @@ bibtex
 * `turblimp_subject_agreement`: Person/number agreement violations
 * `turblimp_suspended_affixation`: Improper tense suffix suspension
 
-**Implementation Note:**  The [original implementation](https://github.com/ezgibasar/TurBLiMP) normalizes length by number of tokens, which is not supported by the Language Model Evaluation Harness (see [[1](https://blog.eleuther.ai/multiple-choice-normalization/)], [[2](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md)], [[3](https://github.com/EleutherAI/lm-evaluation-harness/issues/1396)]). For this reason, the implementation provided here includes both the `acc` (accuracy based on comparing the unnormalized log-probability of the correct and incorrect versions of each sentence) and `acc_norm` (the same as `acc` but with sentence log-probability normalized by number of bytes) metrics.
+**Implementation Note:**  The [original implementation](https://github.com/ezgibasar/TurBLiMP) normalizes length by number of tokens, which is not supported by the Language Model Evaluation Harness (see [[1](https://blog.eleuther.ai/multiple-choice-normalization/)], [[2](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md)], [[3](https://github.com/EleutherAI/lm-evaluation-harness/issues/1396)]). For this reason, the implementation provided here includes both the `acc` (accuracy based on comparing the unnormalized log-probability of the correct and incorrect versions of each sentence) and `acc_norm` (the same as `acc` but with sentence log-probability normalized by character length) metrics.
 
 
 ### Checklist
