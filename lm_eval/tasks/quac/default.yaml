@@ -1,0 +1,21 @@
+task: quac
+dataset_path: lighteval/quac_helm
+output_type: generate_until
+training_split: train
+validation_split: validation
+doc_to_text: "{{prompt}}\nAnswer:"
+doc_to_target: "{{references[0]}}"
+process_results: !function utils.process_results
+target_delimiter: " "
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 64
+metric_list:
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
