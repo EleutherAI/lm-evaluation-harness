@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import textwrap
@@ -9,6 +10,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import yaml
 
+from lm_eval._cli.utils import request_caching_arg_to_dict
 from lm_eval.utils import simple_parse_args_string
 
 
@@ -368,7 +370,20 @@ class EvaluatorConfig:
         return self
 
     def _process_arguments(self):
-        """Process samples argument - load from a file if needed."""
+        """Normalize arguments loaded from configuration files."""
+        if isinstance(self.cache_requests, (bool, str)):
+            cache_requests = self.cache_requests
+            if isinstance(cache_requests, bool):
+                cache_requests = "true" if cache_requests else None
+            else:
+                cache_requests = cache_requests.lower()
+                if cache_requests in {"false", "no", "off"}:
+                    cache_requests = None
+            try:
+                self.cache_requests = request_caching_arg_to_dict(cache_requests)
+            except argparse.ArgumentTypeError as e:
+                raise ValueError(f"Invalid cache_requests configuration: {e}") from None
+
         if self.samples:
             if isinstance(self.samples, dict):
                 self.samples = self.samples
