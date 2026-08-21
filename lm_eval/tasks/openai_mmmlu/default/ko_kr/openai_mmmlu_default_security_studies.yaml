@@ -1,0 +1,16 @@
+"dataset_name": "security_studies"
+"description": "The following are multiple choice questions (with answers) about security_studies.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\n답변:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_ko_kr_social_sciences"
+"task": "openai_mmmlu_default_ko_kr_security_studies"
+"task_alias": "ko_kr security studies"
+"test_split": "KO_KR"

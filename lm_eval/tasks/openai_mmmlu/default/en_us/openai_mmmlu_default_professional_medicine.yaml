@@ -1,0 +1,16 @@
+"dataset_name": "professional_medicine"
+"description": "The following are multiple choice questions (with answers) about professional_medicine.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nAnswer:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_en_us_other"
+"task": "openai_mmmlu_default_en_us_professional_medicine"
+"task_alias": "en_us professional medicine"
+"test_split": "EN_US"

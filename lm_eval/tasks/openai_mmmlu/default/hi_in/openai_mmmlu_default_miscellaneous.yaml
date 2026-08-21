@@ -1,0 +1,16 @@
+"dataset_name": "miscellaneous"
+"description": "The following are multiple choice questions (with answers) about miscellaneous.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nउत्तर:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_hi_in_other"
+"task": "openai_mmmlu_default_hi_in_miscellaneous"
+"task_alias": "hi_in miscellaneous"
+"test_split": "HI_IN"
