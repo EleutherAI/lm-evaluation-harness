@@ -1,0 +1,921 @@
+diff --git a/lm_eval/tasks/README.md b/lm_eval/tasks/README.md
+index bea9a827..9a7b7dea 100644
+--- a/lm_eval/tasks/README.md
++++ b/lm_eval/tasks/README.md
+@@ -40,6 +40,7 @@ provided to the individual README.md files for each subfolder.
+ | [bhs](bhs/README.md)                                                     | Grammatical knowledge evaluation for low-resource langauges.                                                                                                                                                                                                                                                                           | Basque, Hindi, Swahili                                                                                                                                                                                                                                        |
+ | [bigbench](bigbench/README.md)                                           | Broad tasks from the BIG-bench benchmark designed to push the boundaries of large models.                                                                                                                                                                                                                                              | Multiple                                                                                                                                                                                                                                                      |
+ | [blimp](blimp/README.md)                                                 | Tasks testing grammatical phenomena to evaluate language model's linguistic capabilities.                                                                                                                                                                                                                                              | English                                                                                                                                                                                                                                                       |
++| [blimp_it](blimp_it/README.md)                                           | A benchmark evaluating language models' grammatical capabilities in Italian, combining minimal pairs adapted from the original BLiMP with contrasts derived from Italian linguistic literature and the COnVERSA psycholinguistic battery.                                                                                              | Italian                                                                                                                                                                                                                                                       |
+ | [blimp_nl](blimp_nl/README.md)                                           | A benchmark evaluating language models' grammatical capabilities in Dutch based on comparing the probabilities of minimal pairs of grammatical and ungrammatical sentences.                                                                                                                                                            | Dutch                                                                                                                                                                                                                                                         |
+ | [c4](c4/README.md)                                                       | Tasks based on a colossal, cleaned version of Common Crawl's web crawl corpus to assess models' language modeling capabilities.                                                                                                                                                                                                        | English                                                                                                                                                                                                                                                       |
+ | [cabbq](cabbq/README.md)                                                 | Adaptation of the [BBQ](bbq/README.md) benchmark to the Catalan language and stereotypes prevalent in Spain.                                                                                                                                                                                                                           | Catalan                                                                                                                                                                                                                                                       |
+diff --git a/lm_eval/tasks/blimp_it/README.md b/lm_eval/tasks/blimp_it/README.md
+index 28283b9a..51619313 100644
+--- a/lm_eval/tasks/blimp_it/README.md
++++ b/lm_eval/tasks/blimp_it/README.md
+@@ -117,10 +117,10 @@ Some phenomena originate from the original BLiMP benchmark, while others are ada
+   - `conversa_a_agreement_subject_nominal_predicate_attraction`
+ 
+ - Past participle agreement
+-  - `conversa_a_agreement_past_particple_pre_v_cl`
+-  - `conversa_a_agreement_past_particple_unacc`
+-  - `conversa_a_past_particple_pre_v_cl`
+-  - `conversa_a_past_particple_unacc`
++  - `conversa_a_agreement_past_participle_pre_v_cl`
++  - `conversa_a_agreement_past_participle_unacc`
++  - `conversa_a_past_participle_pre_v_cl`
++  - `conversa_a_past_participle_unacc`
+ 
+ - Psych verbs
+   - `conversa_a_agreement_psych_verbs_piacere`
+@@ -141,14 +141,14 @@ Some phenomena originate from the original BLiMP benchmark, while others are ada
+   - `conversa_b_auxiliary_selection_transitives`
+   - `conversa_b_auxiliary_selection_unaccusatives`
+   - `conversa_b_auxiliary_selection_unergatives`
+-  - `conversa_b_auxiliary_selection_ditranstitives`
++  - `conversa_b_auxiliary_selection_ditransitives`
+   - `conversa_b_auxiliary_selection_passive_active_diathesis`
+ 
+ - Argument structure variants
+   - `conversa_b_argument_structure_b_auxiliary_selection_transitives`
+   - `conversa_b_argument_structure_b_auxiliary_selection_unaccusatives`
+   - `conversa_b_argument_structure_b_auxiliary_selection_unergatives`
+-  - `conversa_b_argument_structure_b_auxiliary_selection_ditranstitives`
++  - `conversa_b_argument_structure_b_auxiliary_selection_ditransitives`
+   - `conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis`
+ 
+ ---
+@@ -194,16 +194,16 @@ Some phenomena originate from the original BLiMP benchmark, while others are ada
+ 
+ Configurations include
+ 
+-- `conversa_d_answering_yes_no_questions`
+-- `conversa_d_answering_why_questions`
+-- `conversa_d_answering_wh_adjunct_questions`
+-- `conversa_d_answering_wh_argument_questions`
+-- `conversa_d_answering_wh_argument_questions_number_disambiguation`
+-- `conversa_d_answering_questions_with_rc_subj`
+-- `conversa_d_answering_questions_with_rc_obj`
+-- `conversa_d_question_formation_subject_position`
++- `conversa_d_questions_answering_yes_no_questions`
++- `conversa_d_questions_answering_why_questions`
++- `conversa_d_questions_answering_wh_adjunct_questions`
++- `conversa_d_questions_answering_wh_argument_questions`
++- `conversa_d_questions_answering_wh_argument_questions_number_disambiguation`
++- `conversa_d_questions_answering_questions_with_rc_subj`
++- `conversa_d_questions_answering_questions_with_rc_obj`
++- `conversa_d_questions_question_formation_subject_position`
+ 
+-and their corresponding `conversa_d_questions_*` variants.
++all exposed under the `conversa_d_questions_*` naming scheme.
+ 
+ ---
+ 
+@@ -246,7 +246,7 @@ The benchmark contains extensive coverage of filler–gap dependencies and synta
+ 
+ - adjunct island variants
+ 
+-Both the original BLiMP-derived (`blimp_it_original_non_local_dependencies_*`) and the manually refined (`non_local_dependencies_*`) versions are included.
++These are exposed as `blimp_it_non_local_dependencies_*` tasks (the underlying data files on the Hub are stored under `blimp_it_original_non_local_dependencies_*`).
+ 
+ ---
+ 
+@@ -320,6 +320,25 @@ BLiMP-IT is intended for
+ 
+ CC BY-SA 4.0
+ 
++---
++
++# Groups and Tasks
++
++#### Groups
++
++* `blimp_it`: the full benchmark; unweighted mean accuracy over the four macro-phenomena below.
++* `blimp_it_agreement_and_inflection`: determiner-noun, subject-verb, predicate and past-participle agreement, plus psych verbs (15 paradigms).
++* `blimp_it_argument_structure`: theta-role assignment and auxiliary selection (6 paradigms).
++* `blimp_it_pronouns`: personal pronouns, clitics and reflexives (8 paradigms).
++* `blimp_it_non_local_dependencies`: filler-gap dependencies, islands, across-the-board movement, parasitic gaps and question formation/comprehension (40 paradigms).
++
++Aggregation is an unweighted mean at both levels, following the convention of the original `blimp` task. Paradigm sizes range from 4 to 344 pairs, so size-weighted aggregation would be dominated by a handful of the larger non-local-dependency conditions.
++
++#### Tasks
++
++69 paradigms in total, one per Hugging Face configuration of `NeTSlab/BLiMP-IT`. Task names match their `dataset_name` exactly. Individual paradigms can be run directly, e.g. `--tasks blimp_it_non_local_dependencies_wh_island_embedd`.
++
++
+ ### Checklist
+ 
+ For adding novel benchmarks/datasets to the library:
+diff --git a/lm_eval/tasks/blimp_it/_blimp_it.yaml b/lm_eval/tasks/blimp_it/_blimp_it.yaml
+index 4ebf5020..e9fef207 100644
+--- a/lm_eval/tasks/blimp_it/_blimp_it.yaml
++++ b/lm_eval/tasks/blimp_it/_blimp_it.yaml
+@@ -1,79 +1,13 @@
+ group: blimp_it
+ task:
+-  - "blimp_it_agreement_and_inflection_dp"
+-  - "blimp_it_non_local_dependencies_adjunctisland"
+-  - "blimp_it_non_local_dependencies_atb_affirmative2"
+-  - "blimp_it_non_local_dependencies_atb_affirmative_mi"
+-  - "blimp_it_non_local_dependencies_atb_affirmative_ti"
+-  - "blimp_it_non_local_dependencies_atb_interrogative_gap_nogap_clitic"
+-  - "blimp_it_non_local_dependencies_atb_interrogative_gap_nogap_np_aux"
+-  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_gap_clitic"
+-  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_gap_np_aux"
+-  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_nogap_clitic"
+-  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_nogap_np_aux"
+-  - "blimp_it_non_local_dependencies_atb_rc_object_gap_nogap"
+-  - "blimp_it_non_local_dependencies_atb_rc_object_nogap_gap"
+-  - "blimp_it_non_local_dependencies_atb_rc_object_nogap_nogap"
+-  - "blimp_it_non_local_dependencies_complexnpisland"
+-  - "blimp_it_non_local_dependencies_coordinatestructureconstraint_complex_object_extraction"
+-  - "blimp_it_non_local_dependencies_left_branch_island_echo_question"
+-  - "blimp_it_non_local_dependencies_parasiticgap_adjunctisland1"
+-  - "blimp_it_non_local_dependencies_parasiticgap_adjunctisland2"
+-  - "blimp_it_non_local_dependencies_rc_object"
+-  - "blimp_it_non_local_dependencies_rc_object_nogap"
+-  - "blimp_it_non_local_dependencies_rc_subject"
+-  - "blimp_it_non_local_dependencies_rc_subject_nogap"
+-  - "blimp_it_non_local_dependencies_sententialsubjectisland"
+-  - "blimp_it_non_local_dependencies_wh_extraction_embedd2_clitic_inanimate"
+-  - "blimp_it_non_local_dependencies_wh_extraction_embedd2_np_inanimate"
+-  - "blimp_it_non_local_dependencies_wh_extraction_embedd2_np_inanimate_dem"
+-  - "blimp_it_non_local_dependencies_wh_extraction_embedd_clitic_inanimate"
+-  - "blimp_it_non_local_dependencies_wh_extraction_embedd_np_inanimate"
+-  - "blimp_it_non_local_dependencies_wh_extraction_embedd_np_inanimate_dem"
+-  - "blimp_it_non_local_dependencies_wh_island_embedd"
+-  - "blimp_it_non_local_dependencies_wh_island_root"
+-  - "blimp_it_non_local_dependencies_wh_island_root_affirmative_dove"
+-  - "conversa_a_agreement_dp"
+-  - "conversa_a_agreement_past_particple_pre_v_cl"
+-  - "conversa_a_agreement_past_particple_unacc"
+-  - "conversa_a_agreement_psych_verbs_piacere"
+-  - "conversa_a_agreement_psych_verbs_preoccupare"
+-  - "conversa_a_agreement_subject_nominal_predicate"
+-  - "conversa_a_agreement_subject_nominal_predicate_attraction"
+-  - "conversa_a_agreement_subject_verb_attraction"
+-  - "conversa_a_agreement_subject_verb_cumulative"
+-  - "conversa_a_agreement_subject_verb_trans"
+-  - "conversa_a_agreement_subject_verb_unacc"
+-  - "conversa_a_agreement_subject_verb_unerg"
+-  - "conversa_a_agreement_subject_verb_unerg_trans"
+-  - "conversa_a_agreement_verb_subject_unacc"
+-  - "conversa_b_argument_structure_b_auxiliary_selection_ditranstitives"
+-  - "conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis"
+-  - "conversa_b_argument_structure_b_auxiliary_selection_transtitives"
+-  - "conversa_b_argument_structure_b_auxiliary_selection_unaccusatives"
+-  - "conversa_b_argument_structure_b_auxiliary_selection_unergatives"
+-  - "conversa_b_argument_structure_b_theta_roles"
+-  - "conversa_b_argument_structure_theta_roles"
+-  - "conversa_c_pronouns_1_2_person_answers"
+-  - "conversa_c_pronouns_1_2_person_elicited_declaratives"
+-  - "conversa_c_pronouns_clitics_answering_with_acc_cl"
+-  - "conversa_c_pronouns_clitics_coordinating_with_acc_cl"
+-  - "conversa_c_pronouns_clitics_coordinating_with_dat_cl"
+-  - "conversa_c_pronouns_reflexives_other"
+-  - "conversa_c_pronouns_reflexives_psych_verbs"
+-  - "conversa_c_pronouns_reflexives_unacc"
+-  - "conversa_d_questions_d_answering_questions_with_rc_obj"
+-  - "conversa_d_questions_d_answering_questions_with_rc_subj"
+-  - "conversa_d_questions_d_answering_wh_adjunct_questions"
+-  - "conversa_d_questions_d_answering_wh_argument_questions"
+-  - "conversa_d_questions_d_answering_wh_argument_questions_number_disambiguation"
+-  - "conversa_d_questions_d_answering_why_questions"
+-  - "conversa_d_questions_d_answering_yes_no_questions"
+-  - "conversa_d_questions_d_question_formation_subject_position"
++  - "blimp_it_agreement_and_inflection"
++  - "blimp_it_argument_structure"
++  - "blimp_it_pronouns"
++  - "blimp_it_non_local_dependencies"
+ aggregate_metric_list:
+   - metric: acc
+     aggregation: mean
+-    weight_by_size: true
++    weight_by_size: false
+ metadata:
+   version: 1.0
+   description: "BLiMP-IT: Italian Benchmark of Linguistic Minimal Pairs"
+diff --git a/lm_eval/tasks/blimp_it/_blimp_it_agreement_and_inflection.yaml b/lm_eval/tasks/blimp_it/_blimp_it_agreement_and_inflection.yaml
+new file mode 100644
+index 00000000..ea21fd52
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/_blimp_it_agreement_and_inflection.yaml
+@@ -0,0 +1,24 @@
++group: blimp_it_agreement_and_inflection
++task:
++  - "blimp_it_agreement_and_inflection_dp"
++  - "conversa_a_agreement_dp"
++  - "conversa_a_agreement_past_participle_pre_v_cl"
++  - "conversa_a_agreement_past_participle_unacc"
++  - "conversa_a_agreement_psych_verbs_piacere"
++  - "conversa_a_agreement_psych_verbs_preoccupare"
++  - "conversa_a_agreement_subject_nominal_predicate"
++  - "conversa_a_agreement_subject_nominal_predicate_attraction"
++  - "conversa_a_agreement_subject_verb_attraction"
++  - "conversa_a_agreement_subject_verb_cumulative"
++  - "conversa_a_agreement_subject_verb_trans"
++  - "conversa_a_agreement_subject_verb_unacc"
++  - "conversa_a_agreement_subject_verb_unerg"
++  - "conversa_a_agreement_subject_verb_unerg_trans"
++  - "conversa_a_agreement_verb_subject_unacc"
++aggregate_metric_list:
++  - metric: acc
++    aggregation: mean
++    weight_by_size: false
++metadata:
++  version: 1.0
++  description: "BLiMP-IT — Agreement & Inflection"
+diff --git a/lm_eval/tasks/blimp_it/_blimp_it_argument_structure.yaml b/lm_eval/tasks/blimp_it/_blimp_it_argument_structure.yaml
+new file mode 100644
+index 00000000..aecbeda3
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/_blimp_it_argument_structure.yaml
+@@ -0,0 +1,15 @@
++group: blimp_it_argument_structure
++task:
++  - "conversa_b_argument_structure_auxiliary_selection_ditransitives"
++  - "conversa_b_argument_structure_auxiliary_selection_passive_active_diathesis"
++  - "conversa_b_argument_structure_auxiliary_selection_transitives"
++  - "conversa_b_argument_structure_auxiliary_selection_unaccusatives"
++  - "conversa_b_argument_structure_auxiliary_selection_unergatives"
++  - "conversa_b_argument_structure_theta_roles"
++aggregate_metric_list:
++  - metric: acc
++    aggregation: mean
++    weight_by_size: false
++metadata:
++  version: 1.0
++  description: "BLiMP-IT — Verbal Class & Argument Structure"
+diff --git a/lm_eval/tasks/blimp_it/_blimp_it_non_local_dependencies.yaml b/lm_eval/tasks/blimp_it/_blimp_it_non_local_dependencies.yaml
+new file mode 100644
+index 00000000..bebe1e55
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/_blimp_it_non_local_dependencies.yaml
+@@ -0,0 +1,49 @@
++group: blimp_it_non_local_dependencies
++task:
++  - "blimp_it_non_local_dependencies_adjunctisland"
++  - "blimp_it_non_local_dependencies_atb_affirmative2"
++  - "blimp_it_non_local_dependencies_atb_affirmative_mi"
++  - "blimp_it_non_local_dependencies_atb_affirmative_ti"
++  - "blimp_it_non_local_dependencies_atb_interrogative_gap_nogap_clitic"
++  - "blimp_it_non_local_dependencies_atb_interrogative_gap_nogap_np_aux"
++  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_gap_clitic"
++  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_gap_np_aux"
++  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_nogap_clitic"
++  - "blimp_it_non_local_dependencies_atb_interrogative_nogap_nogap_np_aux"
++  - "blimp_it_non_local_dependencies_atb_rc_object_gap_nogap"
++  - "blimp_it_non_local_dependencies_atb_rc_object_nogap_gap"
++  - "blimp_it_non_local_dependencies_atb_rc_object_nogap_nogap"
++  - "blimp_it_non_local_dependencies_complexnpisland"
++  - "blimp_it_non_local_dependencies_coordinatestructureconstraint_complex_object_extraction"
++  - "blimp_it_non_local_dependencies_left_branch_island_echo_question"
++  - "blimp_it_non_local_dependencies_parasiticgap_adjunctisland1"
++  - "blimp_it_non_local_dependencies_parasiticgap_adjunctisland2"
++  - "blimp_it_non_local_dependencies_rc_object"
++  - "blimp_it_non_local_dependencies_rc_object_nogap"
++  - "blimp_it_non_local_dependencies_rc_subject"
++  - "blimp_it_non_local_dependencies_rc_subject_nogap"
++  - "blimp_it_non_local_dependencies_sententialsubjectisland"
++  - "blimp_it_non_local_dependencies_wh_extraction_embedd2_clitic_inanimate"
++  - "blimp_it_non_local_dependencies_wh_extraction_embedd2_np_inanimate"
++  - "blimp_it_non_local_dependencies_wh_extraction_embedd2_np_inanimate_dem"
++  - "blimp_it_non_local_dependencies_wh_extraction_embedd_clitic_inanimate"
++  - "blimp_it_non_local_dependencies_wh_extraction_embedd_np_inanimate"
++  - "blimp_it_non_local_dependencies_wh_extraction_embedd_np_inanimate_dem"
++  - "blimp_it_non_local_dependencies_wh_island_embedd"
++  - "blimp_it_non_local_dependencies_wh_island_root"
++  - "blimp_it_non_local_dependencies_wh_island_root_affirmative_dove"
++  - "conversa_d_questions_answering_questions_with_rc_obj"
++  - "conversa_d_questions_answering_questions_with_rc_subj"
++  - "conversa_d_questions_answering_wh_adjunct_questions"
++  - "conversa_d_questions_answering_wh_argument_questions"
++  - "conversa_d_questions_answering_wh_argument_questions_number_disambiguation"
++  - "conversa_d_questions_answering_why_questions"
++  - "conversa_d_questions_answering_yes_no_questions"
++  - "conversa_d_questions_question_formation_subject_position"
++aggregate_metric_list:
++  - metric: acc
++    aggregation: mean
++    weight_by_size: false
++metadata:
++  version: 1.0
++  description: "BLiMP-IT — Non-local Dependencies"
+diff --git a/lm_eval/tasks/blimp_it/_blimp_it_pronouns.yaml b/lm_eval/tasks/blimp_it/_blimp_it_pronouns.yaml
+new file mode 100644
+index 00000000..dc32bd18
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/_blimp_it_pronouns.yaml
+@@ -0,0 +1,17 @@
++group: blimp_it_pronouns
++task:
++  - "conversa_c_pronouns_1_2_person_answers"
++  - "conversa_c_pronouns_1_2_person_elicited_declaratives"
++  - "conversa_c_pronouns_clitics_answering_with_acc_cl"
++  - "conversa_c_pronouns_clitics_coordinating_with_acc_cl"
++  - "conversa_c_pronouns_clitics_coordinating_with_dat_cl"
++  - "conversa_c_pronouns_reflexives_other"
++  - "conversa_c_pronouns_reflexives_psych_verbs"
++  - "conversa_c_pronouns_reflexives_unacc"
++aggregate_metric_list:
++  - metric: acc
++    aggregation: mean
++    weight_by_size: false
++metadata:
++  version: 1.0
++  description: "BLiMP-IT — Pronouns"
+diff --git a/lm_eval/tasks/blimp_it/_template_yaml b/lm_eval/tasks/blimp_it/_template_yaml
+index 07371aea..9ce5ca70 100644
+--- a/lm_eval/tasks/blimp_it/_template_yaml
++++ b/lm_eval/tasks/blimp_it/_template_yaml
+@@ -1,7 +1,8 @@
+ dataset_path: NeTSlab/BLiMP-IT
+ output_type: multiple_choice
+-validation_split: train
++test_split: test
+ doc_to_text: ""
++target_delimiter: ""
+ doc_to_target: 0
+ doc_to_choice: "{{[sentence_good, sentence_bad]}}"
+ num_fewshot: 0
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_agreement_in_dp.yaml b/lm_eval/tasks/blimp_it/conversa_a_agreement_in_dp.yaml
+deleted file mode 100644
+index 789e84fe..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_a_agreement_in_dp.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_a_agreement_in_dp
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_a_agreement_in_dp
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_agreement_past_participle_pre_v_cl.yaml b/lm_eval/tasks/blimp_it/conversa_a_agreement_past_participle_pre_v_cl.yaml
+new file mode 100644
+index 00000000..7ab46055
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_a_agreement_past_participle_pre_v_cl.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_a_agreement_past_participle_pre_v_cl
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_a_agreement_past_participle_pre_v_cl
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_agreement_past_participle_unacc.yaml b/lm_eval/tasks/blimp_it/conversa_a_agreement_past_participle_unacc.yaml
+new file mode 100644
+index 00000000..48477578
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_a_agreement_past_participle_unacc.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_a_agreement_past_participle_unacc
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_a_agreement_past_participle_unacc
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_agreement_past_particple_pre_v_cl.yaml b/lm_eval/tasks/blimp_it/conversa_a_agreement_past_particple_pre_v_cl.yaml
+deleted file mode 100644
+index 91ae9d68..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_a_agreement_past_particple_pre_v_cl.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_a_agreement_past_particple_pre_v_cl
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_a_agreement_past_particple_pre_v_cl
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_agreement_past_particple_unacc.yaml b/lm_eval/tasks/blimp_it/conversa_a_agreement_past_particple_unacc.yaml
+deleted file mode 100644
+index ec0d1338..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_a_agreement_past_particple_unacc.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_a_agreement_past_particple_unacc
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_a_agreement_past_particple_unacc
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_past_particple_pre_v_cl.yaml b/lm_eval/tasks/blimp_it/conversa_a_past_particple_pre_v_cl.yaml
+deleted file mode 100644
+index 6e35fa16..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_a_past_particple_pre_v_cl.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_a_past_particple_pre_v_cl
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_a_past_particple_pre_v_cl
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_past_particple_unacc.yaml b/lm_eval/tasks/blimp_it/conversa_a_past_particple_unacc.yaml
+deleted file mode 100644
+index ea165abb..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_a_past_particple_unacc.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_a_past_particple_unacc
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_a_past_particple_unacc
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_psych_verbs_piacere.yaml b/lm_eval/tasks/blimp_it/conversa_a_psych_verbs_piacere.yaml
+deleted file mode 100644
+index 7020ff37..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_a_psych_verbs_piacere.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_a_psych_verbs_piacere
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_a_psych_verbs_piacere
+diff --git a/lm_eval/tasks/blimp_it/conversa_a_psych_verbs_preoccupare.yaml b/lm_eval/tasks/blimp_it/conversa_a_psych_verbs_preoccupare.yaml
+deleted file mode 100644
+index 50db2d5f..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_a_psych_verbs_preoccupare.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_a_psych_verbs_preoccupare
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_a_psych_verbs_preoccupare
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_ditransitives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_ditransitives.yaml
+new file mode 100644
+index 00000000..5d8f1ab7
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_ditransitives.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_b_argument_structure_auxiliary_selection_ditransitives
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_b_argument_structure_auxiliary_selection_ditransitives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_passive_active_diathesis.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_passive_active_diathesis.yaml
+new file mode 100644
+index 00000000..6400a29a
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_passive_active_diathesis.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_b_argument_structure_auxiliary_selection_passive_active_diathesis
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_b_argument_structure_auxiliary_selection_passive_active_diathesis
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_transitives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_transitives.yaml
+new file mode 100644
+index 00000000..f3a3ce3f
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_transitives.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_b_argument_structure_auxiliary_selection_transitives
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_b_argument_structure_auxiliary_selection_transitives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_unaccusatives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_unaccusatives.yaml
+new file mode 100644
+index 00000000..0ea6c365
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_unaccusatives.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_b_argument_structure_auxiliary_selection_unaccusatives
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_b_argument_structure_auxiliary_selection_unaccusatives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_unergatives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_unergatives.yaml
+new file mode 100644
+index 00000000..7c31f70a
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_auxiliary_selection_unergatives.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_b_argument_structure_auxiliary_selection_unergatives
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_b_argument_structure_auxiliary_selection_unergatives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_ditranstitives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_ditranstitives.yaml
+deleted file mode 100644
+index ba640ffb..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_ditranstitives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_argument_structure_b_auxiliary_selection_ditranstitives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_argument_structure_b_auxiliary_selection_ditranstitives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis.yaml
+deleted file mode 100644
+index c1d8a947..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_argument_structure_b_auxiliary_selection_passive_active_diathesis
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_transtitives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_transtitives.yaml
+deleted file mode 100644
+index d4bd16e0..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_transtitives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_argument_structure_b_auxiliary_selection_transtitives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_argument_structure_b_auxiliary_selection_transtitives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_unaccusatives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_unaccusatives.yaml
+deleted file mode 100644
+index f8b47b53..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_unaccusatives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_argument_structure_b_auxiliary_selection_unaccusatives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_argument_structure_b_auxiliary_selection_unaccusatives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_unergatives.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_unergatives.yaml
+deleted file mode 100644
+index 540c6666..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_auxiliary_selection_unergatives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_argument_structure_b_auxiliary_selection_unergatives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_argument_structure_b_auxiliary_selection_unergatives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_theta_roles.yaml b/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_theta_roles.yaml
+deleted file mode 100644
+index 8163eb50..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_argument_structure_b_theta_roles.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_argument_structure_b_theta_roles
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_argument_structure_b_theta_roles
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_ditranstitives.yaml b/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_ditranstitives.yaml
+deleted file mode 100644
+index 3b6d0b0c..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_ditranstitives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_auxiliary_selection_ditranstitives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_auxiliary_selection_ditranstitives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_passive_active_diathesis.yaml b/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_passive_active_diathesis.yaml
+deleted file mode 100644
+index 25616df2..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_passive_active_diathesis.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_auxiliary_selection_passive_active_diathesis
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_auxiliary_selection_passive_active_diathesis
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_transtitives.yaml b/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_transtitives.yaml
+deleted file mode 100644
+index dd6a8981..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_transtitives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_auxiliary_selection_transtitives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_auxiliary_selection_transtitives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_unaccusatives.yaml b/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_unaccusatives.yaml
+deleted file mode 100644
+index abdb6931..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_unaccusatives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_auxiliary_selection_unaccusatives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_auxiliary_selection_unaccusatives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_unergatives.yaml b/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_unergatives.yaml
+deleted file mode 100644
+index 9fe3f8a1..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_auxiliary_selection_unergatives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_auxiliary_selection_unergatives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_auxiliary_selection_unergatives
+diff --git a/lm_eval/tasks/blimp_it/conversa_b_theta_roles.yaml b/lm_eval/tasks/blimp_it/conversa_b_theta_roles.yaml
+deleted file mode 100644
+index 69440e6b..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_b_theta_roles.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_b_theta_roles
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_b_theta_roles
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_1_2_person_in_answers.yaml b/lm_eval/tasks/blimp_it/conversa_c_1_2_person_in_answers.yaml
+deleted file mode 100644
+index 248d86b9..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_1_2_person_in_answers.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_1_2_person_in_answers
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_1_2_person_in_answers
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_1_2_person_in_elicited_declaratives.yaml b/lm_eval/tasks/blimp_it/conversa_c_1_2_person_in_elicited_declaratives.yaml
+deleted file mode 100644
+index 83c84543..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_1_2_person_in_elicited_declaratives.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_1_2_person_in_elicited_declaratives
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_1_2_person_in_elicited_declaratives
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_clitics_answering_with_acc_cl.yaml b/lm_eval/tasks/blimp_it/conversa_c_clitics_answering_with_acc_cl.yaml
+deleted file mode 100644
+index 974dae6c..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_clitics_answering_with_acc_cl.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_clitics_answering_with_acc_cl
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_clitics_answering_with_acc_cl
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_clitics_coordinating_with_acc_cl.yaml b/lm_eval/tasks/blimp_it/conversa_c_clitics_coordinating_with_acc_cl.yaml
+deleted file mode 100644
+index 2ec55bc9..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_clitics_coordinating_with_acc_cl.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_clitics_coordinating_with_acc_cl
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_clitics_coordinating_with_acc_cl
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_clitics_coordinating_with_dat_cl.yaml b/lm_eval/tasks/blimp_it/conversa_c_clitics_coordinating_with_dat_cl.yaml
+deleted file mode 100644
+index cca931ed..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_clitics_coordinating_with_dat_cl.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_clitics_coordinating_with_dat_cl
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_clitics_coordinating_with_dat_cl
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_reflexives_other.yaml b/lm_eval/tasks/blimp_it/conversa_c_reflexives_other.yaml
+deleted file mode 100644
+index b05e0783..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_reflexives_other.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_reflexives_other
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_reflexives_other
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_reflexives_psych_verbs.yaml b/lm_eval/tasks/blimp_it/conversa_c_reflexives_psych_verbs.yaml
+deleted file mode 100644
+index a3bd78dc..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_reflexives_psych_verbs.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_reflexives_psych_verbs
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_reflexives_psych_verbs
+diff --git a/lm_eval/tasks/blimp_it/conversa_c_reflexives_unacc.yaml b/lm_eval/tasks/blimp_it/conversa_c_reflexives_unacc.yaml
+deleted file mode 100644
+index 46b5538d..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_c_reflexives_unacc.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_c_reflexives_unacc
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_c_reflexives_unacc
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_answering_questions_with_rc_obj.yaml b/lm_eval/tasks/blimp_it/conversa_d_answering_questions_with_rc_obj.yaml
+deleted file mode 100644
+index eb1159ef..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_answering_questions_with_rc_obj.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_answering_questions_with_rc_obj
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_answering_questions_with_rc_obj
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_answering_questions_with_rc_subj.yaml b/lm_eval/tasks/blimp_it/conversa_d_answering_questions_with_rc_subj.yaml
+deleted file mode 100644
+index 65b3c977..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_answering_questions_with_rc_subj.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_answering_questions_with_rc_subj
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_answering_questions_with_rc_subj
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_answering_wh_adjunct_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_answering_wh_adjunct_questions.yaml
+deleted file mode 100644
+index de2a3c12..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_answering_wh_adjunct_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_answering_wh_adjunct_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_answering_wh_adjunct_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_answering_wh_argument_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_answering_wh_argument_questions.yaml
+deleted file mode 100644
+index f28fd8a6..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_answering_wh_argument_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_answering_wh_argument_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_answering_wh_argument_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_answering_wh_argument_questions_number_disambiguation.yaml b/lm_eval/tasks/blimp_it/conversa_d_answering_wh_argument_questions_number_disambiguation.yaml
+deleted file mode 100644
+index fc99b4c6..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_answering_wh_argument_questions_number_disambiguation.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_answering_wh_argument_questions_number_disambiguation
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_answering_wh_argument_questions_number_disambiguation
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_answering_why_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_answering_why_questions.yaml
+deleted file mode 100644
+index dd89cfbf..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_answering_why_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_answering_why_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_answering_why_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_answering_yes_no_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_answering_yes_no_questions.yaml
+deleted file mode 100644
+index 9443f3f4..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_answering_yes_no_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_answering_yes_no_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_answering_yes_no_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_question_formation_subject_position.yaml b/lm_eval/tasks/blimp_it/conversa_d_question_formation_subject_position.yaml
+deleted file mode 100644
+index 8b7b7087..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_question_formation_subject_position.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_question_formation_subject_position
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_question_formation_subject_position
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_answering_questions_with_rc_obj.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_questions_with_rc_obj.yaml
+new file mode 100644
+index 00000000..6b2d20a1
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_questions_with_rc_obj.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_answering_questions_with_rc_obj
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_answering_questions_with_rc_obj
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_answering_questions_with_rc_subj.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_questions_with_rc_subj.yaml
+new file mode 100644
+index 00000000..c54544a3
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_questions_with_rc_subj.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_answering_questions_with_rc_subj
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_answering_questions_with_rc_subj
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_adjunct_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_adjunct_questions.yaml
+new file mode 100644
+index 00000000..671d4ea2
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_adjunct_questions.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_answering_wh_adjunct_questions
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_answering_wh_adjunct_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_argument_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_argument_questions.yaml
+new file mode 100644
+index 00000000..a825a621
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_argument_questions.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_answering_wh_argument_questions
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_answering_wh_argument_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_argument_questions_number_disambiguation.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_argument_questions_number_disambiguation.yaml
+new file mode 100644
+index 00000000..04c50188
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_wh_argument_questions_number_disambiguation.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_answering_wh_argument_questions_number_disambiguation
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_answering_wh_argument_questions_number_disambiguation
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_answering_why_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_why_questions.yaml
+new file mode 100644
+index 00000000..083f2e75
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_why_questions.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_answering_why_questions
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_answering_why_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_answering_yes_no_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_yes_no_questions.yaml
+new file mode 100644
+index 00000000..fb412ba7
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_answering_yes_no_questions.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_answering_yes_no_questions
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_answering_yes_no_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_questions_with_rc_obj.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_questions_with_rc_obj.yaml
+deleted file mode 100644
+index deeaab2f..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_questions_with_rc_obj.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_answering_questions_with_rc_obj
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_answering_questions_with_rc_obj
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_questions_with_rc_subj.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_questions_with_rc_subj.yaml
+deleted file mode 100644
+index ced02185..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_questions_with_rc_subj.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_answering_questions_with_rc_subj
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_answering_questions_with_rc_subj
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_adjunct_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_adjunct_questions.yaml
+deleted file mode 100644
+index ade0848d..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_adjunct_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_answering_wh_adjunct_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_answering_wh_adjunct_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_argument_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_argument_questions.yaml
+deleted file mode 100644
+index 2c61f4dd..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_argument_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_answering_wh_argument_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_answering_wh_argument_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_argument_questions_number_disambiguation.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_argument_questions_number_disambiguation.yaml
+deleted file mode 100644
+index 7b1d0fb9..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_wh_argument_questions_number_disambiguation.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_answering_wh_argument_questions_number_disambiguation
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_answering_wh_argument_questions_number_disambiguation
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_why_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_why_questions.yaml
+deleted file mode 100644
+index d7c90656..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_why_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_answering_why_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_answering_why_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_yes_no_questions.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_yes_no_questions.yaml
+deleted file mode 100644
+index 05162ff8..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_answering_yes_no_questions.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_answering_yes_no_questions
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_answering_yes_no_questions
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_d_question_formation_subject_position.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_d_question_formation_subject_position.yaml
+deleted file mode 100644
+index b4a2ca07..00000000
+--- a/lm_eval/tasks/blimp_it/conversa_d_questions_d_question_formation_subject_position.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-dataset_name: conversa_d_questions_d_question_formation_subject_position
+-dataset_path: NeTSlab/BLiMP-IT
+-include: _template_yaml
+-task: conversa_d_questions_d_question_formation_subject_position
+diff --git a/lm_eval/tasks/blimp_it/conversa_d_questions_question_formation_subject_position.yaml b/lm_eval/tasks/blimp_it/conversa_d_questions_question_formation_subject_position.yaml
+new file mode 100644
+index 00000000..e6b098e3
+--- /dev/null
++++ b/lm_eval/tasks/blimp_it/conversa_d_questions_question_formation_subject_position.yaml
+@@ -0,0 +1,4 @@
++dataset_name: conversa_d_questions_question_formation_subject_position
++dataset_path: NeTSlab/BLiMP-IT
++include: _template_yaml
++task: conversa_d_questions_question_formation_subject_position
