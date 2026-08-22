@@ -33,3 +33,16 @@ def test_format_span_normalizes_label_only():
     assert filt.apply(resps, [{}]) == [
         ["org: shell company $ loc: country club $ per: george"]
     ]
+
+
+def test_multi_choice_regex_with_punctuation_and_empty_responses():
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"()()",
+        ignore_case=True,
+        ignore_punctuation=True,
+    )
+    resps = [["Hello, world! (A)", None, ""]]
+    docs = [{"choices": ["Hello world!", "Other choice"]}]
+
+    assert filt.apply(resps, docs) == [["(A)", "[invalid]", "[invalid]"]]
+
