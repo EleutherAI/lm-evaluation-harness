@@ -45,7 +45,7 @@ class RegexFilter(Filter):
                 if not isinstance(resp, str):
                     resp = ""
                 match = self.regex.findall(resp)
-                if match:
+                if match and -len(match) <= self.group_select < len(match):
                     match = match[self.group_select]
                     if isinstance(match, tuple):
                         match = [m for m in match if m]
@@ -165,6 +165,8 @@ class MultiChoiceRegexFilter(RegexFilter):
             if not isinstance(resp, str):
                 resp = ""
             match = regex.findall(resp)
+            if match and not (-len(match) <= self.group_select < len(match)):
+                return ""
             if match:
                 match = match[self.group_select]
                 if isinstance(match, tuple):
