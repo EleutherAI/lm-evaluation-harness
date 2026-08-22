@@ -302,8 +302,11 @@ def normalize_final_answer(final_answer: str) -> str:
     final_answer = re.sub(r"(sqrt)([^{])", "sqrt{\\2}", final_answer)
     final_answer = final_answer.replace("$", "")
 
-    # Normalize 100,000 -> 100000
-    if final_answer.replace(",", "").isdigit():
+    # Normalize 100,000 -> 100000: strip commas only when they are true
+    # thousands-group separators. A bare tuple like "0,1" would otherwise
+    # pass the old digit check and get fused into the garbage number "01"
+    # (16 MATH test-set gold answers are bare tuples).
+    if re.fullmatch(r"-?\d{1,3}(,\d{3})+", final_answer):
         final_answer = final_answer.replace(",", "")
 
     return final_answer
