@@ -1,3 +1,0 @@
-dataset_name: ckm_latn
-include: _template
-task: global_piqa_completions_ckm_latn

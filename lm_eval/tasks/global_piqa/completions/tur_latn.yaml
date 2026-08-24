@@ -1,3 +1,0 @@
-dataset_name: tur_latn
-include: _template
-task: global_piqa_completions_tur_latn

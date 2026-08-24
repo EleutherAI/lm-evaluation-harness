@@ -187,6 +187,8 @@ If not implemented for a given model type, the flags `--apply_chat_template` , `
 
 **Pro tip**: In order to make the Evaluation Harness overestimate total runtimes rather than underestimate it, HuggingFace models come in-built with the ability to provide responses on data points in *descending order by total input length* via `lm_eval.utils.Reorderer`. Take a look at `lm_eval.models.hf_causal.HFLM` to see how this is done, and see if you can implement it in your own model!
 
+**Subclassing an existing backend**: If your backend shares most of its logic with an existing one and differs only in a narrow concern (e.g. how the underlying model is created or which device it targets), prefer subclassing over duplication. For example, `lm_eval.models.optimum_lm.OptimumLM` subclasses `HFLM` and overrides only `_create_model`.
+
 ## Conclusion
 
 After reading this guide, you should be able to add new model APIs or implementations to the Eval Harness library!

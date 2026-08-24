@@ -1,3 +1,0 @@
-dataset_name: slk_latn_sari
-include: _template
-task: global_piqa_prompted_slk_latn_sari

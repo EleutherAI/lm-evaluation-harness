@@ -1,3 +1,0 @@
-dataset_name: arq_arab
-include: _template
-task: global_piqa_prompted_arq_arab
