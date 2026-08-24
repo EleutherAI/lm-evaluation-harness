@@ -119,6 +119,17 @@ class WhitespaceFilter(Filter):
         return [filter_set(resp) for resp in resps]
 
 
+import unicodedata
+
+# Module-level cached punctuation translation table to avoid re-scanning
+# all 1.1M unicode codepoints on every filter application.
+_PUNCT_TBL = dict.fromkeys(
+    i
+    for i in range(sys.maxunicode)
+    if unicodedata.category(chr(i)).startswith("P")
+)
+
+
 @register_filter("multi_choice_regex")
 class MultiChoiceRegexFilter(RegexFilter):
     """Extract a model's answer on multiple choice questions with letter answers.
@@ -157,8 +168,6 @@ class MultiChoiceRegexFilter(RegexFilter):
     def apply(
         self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
     ) -> list[list[str]]:
-        import unicodedata
-
         def find_match(regex, resp, convert_dict: dict[str, str] | None = None):
             if convert_dict is None:
                 convert_dict = {}
@@ -177,13 +186,11 @@ class MultiChoiceRegexFilter(RegexFilter):
                     match = convert_dict[match]
             return match
 
-        punct_tbl = dict.fromkeys(
-            i
-            for i in range(sys.maxunicode)
-            if unicodedata.category(chr(i)).startswith("P")
-        )
-
         def filter_ignores(st):
+            if st is None:
+                return ""
+            if not isinstance(st, str):
+                st = str(st)
             if self.regexes_to_ignore is not None:
                 for s in self.regexes_to_ignore:
                     st = re.sub(s, "", st)
@@ -193,7 +200,7 @@ class MultiChoiceRegexFilter(RegexFilter):
 
             if self.ignore_punctuation:
                 # https://stackoverflow.com/a/266162
-                st = st.translate(punct_tbl)
+                st = st.translate(_PUNCT_TBL)
             return st
 
         filtered_resps = []
