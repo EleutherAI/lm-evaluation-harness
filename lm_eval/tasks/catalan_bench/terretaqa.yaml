@@ -1,0 +1,24 @@
+task: terretaqa
+dataset_path: gplsi/TerretaQA
+dataset_name: null
+output_type: generate_until
+doc_to_text: "Pregunta: {{input}}. \nResposta:"
+doc_to_target: "{{target}}"
+training_split: null
+validation_split: null
+test_split: test
+fewshot_split: test
+target_delimiter: ' '
+generation_kwargs:
+  max_new_tokens: 150
+  until:
+    - "\n"
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: !function utils.rouge1
+    aggregation: !function utils.rouge1_agg
+    higher_is_better: true
+metadata:
+  version: 1.0
