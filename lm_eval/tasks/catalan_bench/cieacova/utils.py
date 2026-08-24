@@ -193,7 +193,7 @@ def process_results(doc, results):
     options = doc["parsed_opciones"]
     targets = doc["parsed_respuesta"]
 
-    lls_norm = [ll / max(1, len(opt)) for ll, opt in zip(lls, options)]
+    lls_norm = [ll / max(1, len(opt)) for ll, opt in zip(lls, options, strict=True)]
     pred = int(np.argmax(lls))
     pred_norm = int(np.argmax(lls_norm))
 
