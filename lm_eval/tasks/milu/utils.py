@@ -29,6 +29,6 @@ def doc_to_target(doc) -> int:
     Returns the index of the correct answer in the list of choices
     """
     target = doc["target"]
-    option_number = ['1', '2', '3', '4'].index(target.split("option")[1])
+    option_number = ["1", "2", "3", "4"].index(target.split("option")[1])
 
     return option_number

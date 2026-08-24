@@ -27,7 +27,7 @@ Abstract: `Evaluating Large Language Models (LLMs) in low-resource and linguisti
 - Python 3.7+
 - `lm-eval-harness` library
 - HuggingFace Transformers
-- vLLM (optional, for faster inference)\
+- vLLM (optional, for faster inference)
 
 1. Clone this repository:
 
@@ -68,7 +68,7 @@ For HuggingFace models, you may use the following sample command:
 lm_eval --model hf \
     --model_args 'pretrained=google/gemma-2-27b-it,temperature=0.0,top_p=1.0,parallelize=True' \
     --tasks milu \
-    --batch_size auto:40 \  
+    --batch_size auto:40 \
     --log_samples \
     --output_path $EVAL_OUTPUT_PATH \
     --max_batch_size 64 \
@@ -92,7 +92,7 @@ lm_eval --model vllm \
 
 ## Single Language Evaluation
 
-To evaluate your on a specific language, modify the `--tasks` parameter:
+To evaluate your model on a specific language, modify the `--tasks` parameter:
 
 ```bash
 --tasks milu_English
@@ -107,3 +107,18 @@ Replace `English` with the available language (e.g., Odia, Hindi, etc.).
 3. If vLLM encounters out-of-memory errors, try reducing `max_gpu_utilization` else switch to HuggingFace.
 4. For HuggingFace, use `--batch_size=auto:<n_batch_resize_tries>` to re-select the batch size multiple times.
 5. When using vLLM, pass generation kwargs in the `--gen_kwargs` flag. For HuggingFace, include them in `model_args`.
+
+### Checklist
+
+For adding novel benchmarks/datasets to the library:
+
+* [x] Is the task an existing benchmark in the literature?
+  * [x] Have you referenced the original paper that introduced the task?
+  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+    * The reference implementation is [AI4Bharat/MILU](https://github.com/AI4Bharat/MILU), which itself builds on lm-evaluation-harness. This implementation matches its setup: 4-way multiple choice scored over the full option texts, with accuracy as the metric.
+
+If other tasks on this dataset are already supported:
+
+* [ ] Is the "Main" variant of this task clearly denoted?
+* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
