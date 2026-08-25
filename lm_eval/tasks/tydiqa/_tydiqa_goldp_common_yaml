@@ -3,7 +3,9 @@ task: null
 dataset_path: google-research-datasets/tydiqa
 dataset_name: secondary_task
 output_type: generate_until
+training_split: train
 validation_split: validation
+fewshot_split: train
 doc_to_text: null
 doc_to_target: "{{answers[0]}}"
 process_docs: null
