@@ -1,12 +1,13 @@
+class: !function utils.IncludeTask
 dataset_path: CohereForAI/include-base-44
 dataset_name: Estonian
 test_split: test
 fewshot_split: validation
 fewshot_config:
   process_docs: null
+  sampler: !function utils.DomainMatchedSampler
 output_type: multiple_choice
-doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\n
-  D. {{option_d}}\nAnswer:"
+doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nAnswer:"
 doc_to_choice:
   - A
   - B
