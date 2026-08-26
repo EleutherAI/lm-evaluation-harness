@@ -1,0 +1,17 @@
+include: ../mgsm/direct/direct_yaml
+task: mgsm_direct_greek
+tag: []  # detach inherited mgsm_direct tag so this Greek task doesn't join the English tag-group
+dataset_path: ilsp/mgsm_greek
+dataset_name: null
+# ilsp/mgsm_greek has empty `answer`/`equation_solution` fields; the numeric gold is in
+# `answer_number`. The `question` field carries no prefix, so we prepend "Question:".
+# These overrides are required (the shared mgsm direct template assumes juletxara/mgsm's schema).
+doc_to_text: '{{"Question: " + question + "\nAnswer:"}}'
+doc_to_target: '{{answer_number|string}}'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"

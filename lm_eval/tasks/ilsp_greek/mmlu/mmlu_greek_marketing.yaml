@@ -1,0 +1,7 @@
+"dataset_name": "marketing"
+"description": "The following are multiple choice questions (with answers) about marketing.\n\
+  \n"
+"include": "_default_template_yaml"
+"tag": "mmlu_greek_other_tasks"
+"task": "mmlu_greek_marketing"
+"task_alias": "marketing"
