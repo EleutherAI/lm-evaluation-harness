@@ -1,0 +1,17 @@
+task: afridoc_swa_health_en_sw
+dataset_path: masakhane/AfriDocMT
+dataset_name: health
+test_split: test
+fewshot_split: train
+doc_to_text: "Translate the following health document from English to Swahili:\nEnglish: {{en}}\nSwahili:"
+doc_to_target: "{{sw}}"
+output_type: generate_until
+generation_kwargs:
+  until: ["\n"]
+  do_sample: false
+  temperature: 0
+metric_list:
+  - metric: bleu
+    higher_is_better: true
+  - metric: chrf
+    higher_is_better: true
