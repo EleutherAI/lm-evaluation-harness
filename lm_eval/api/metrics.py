@@ -4,8 +4,8 @@ import os
 import random
 import re
 import string
-from collections.abc import Iterable
-from typing import Callable, List, Optional, Sequence, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import TypeVar
 
 import numpy as np
 import sacrebleu
@@ -62,7 +62,7 @@ def bits_per_byte(items):
 def f1_score(items):
     from sklearn.metrics import f1_score
 
-    unzipped_list = list(zip(*items))
+    unzipped_list = list(zip(*items, strict=False))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds)
@@ -74,7 +74,7 @@ def f1_score(items):
 def matthews_corrcoef(items):
     from sklearn.metrics import matthews_corrcoef
 
-    unzipped_list = list(zip(*items))
+    unzipped_list = list(zip(*items, strict=False))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     return matthews_corrcoef(golds, preds)
@@ -92,8 +92,8 @@ def bleu(items):
 
     Higher is better
     """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
+    refs = next(zip(*items, strict=False))
+    preds = list(zip(*items, strict=False))[1]
     refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_bleu(preds, refs).score
 
@@ -107,8 +107,8 @@ def chrf(items):
 
     Higher is better  # TODO I think
     """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
+    refs = next(zip(*items, strict=False))
+    preds = list(zip(*items, strict=False))[1]
     refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_chrf(preds, refs).score
 
@@ -123,16 +123,16 @@ def ter(items):
 
     Lower is better
     """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
+    refs = next(zip(*items, strict=False))
+    preds = list(zip(*items, strict=False))[1]
     refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_ter(preds, refs).score
 
 
 @register_aggregation("brier_score")
 def brier_score(items):  # This is a passthrough function
-    gold, predictions = list(zip(*items))
-    bs, num_class = np.array(predictions).shape
+    gold, predictions = list(zip(*items, strict=False))
+    _bs, num_class = np.array(predictions).shape
 
     gold = list(gold)
     gold_one_hot = np.eye(num_class)[gold]
@@ -214,6 +214,7 @@ def exact_match_hf_evaluate(
     ignore_case=False,
     ignore_punctuation=False,
     ignore_numbers=False,
+    ignore_whitespace=False,
 ):
     if regexes_to_ignore is not None:
         for s in regexes_to_ignore:
@@ -236,6 +237,15 @@ def exact_match_hf_evaluate(
         repl_table = string.digits.maketrans("", "", string.digits)
         predictions = np.char.translate(predictions, table=repl_table)
         references = np.char.translate(references, table=repl_table)
+
+    # Whitespace normalization. Stripping punctuation/digits via the flags
+    # above can leave internal/edge whitespace behind (e.g. "( B )" -> " B "),
+    # causing semantically identical answers to be scored as mismatches.
+    # Opt-in to preserve existing behavior: collapse runs of whitespace to a
+    # single space and trim both ends before comparison.
+    if ignore_whitespace:
+        predictions = np.array([" ".join(str(x).split()) for x in predictions])
+        references = np.array([" ".join(str(x).split()) for x in references])
 
     score_list = predictions == references
 
@@ -307,12 +317,12 @@ def bits_per_byte_fn(items):  # This is a passthrough function
 
 def pop_stddev(arr):
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / len(arr))
+    return math.sqrt(sum((x - mu) ** 2 for x in arr) / len(arr))
 
 
 def sample_stddev(arr: Sequence[T]) -> float:
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+    return math.sqrt(sum((x - mu) ** 2 for x in arr) / (len(arr) - 1))
 
 
 def mean_stderr(arr):
@@ -388,10 +398,10 @@ def ter_fn(items):  # This is a passthrough function
 def acc_all(items):
     # Only count as correct if all answers are labeled correctly for each question
     question_scoring_dict = {}
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
+    preds = next(zip(*items, strict=False))
+    docs = list(zip(*items, strict=False))[1]
 
-    for doc, pred in zip(docs, preds):
+    for doc, pred in zip(docs, preds, strict=False):
         paragraph_id = doc["idx"]["paragraph"]
         question_id = doc["idx"]["question"]
         if (paragraph_id, question_id) not in question_scoring_dict:
@@ -407,10 +417,10 @@ def acc_all(items):
 def acc_all_stderr(items):
     # Only count as correct if all answers are labeled correctly for each question
     question_scoring_dict = {}
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
+    preds = next(zip(*items, strict=False))
+    docs = list(zip(*items, strict=False))[1]
 
-    for doc, pred in zip(docs, preds):
+    for doc, pred in zip(docs, preds, strict=False):
         question_id = doc["idx"]["question"]
         if question_id not in question_scoring_dict:
             question_scoring_dict[question_id] = []
@@ -432,7 +442,7 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
 
 
 def weighted_mean(items):
-    a, b = zip(*items)
+    a, b = zip(*items, strict=False)
     return sum(a) / sum(b)
 
 
@@ -455,7 +465,7 @@ def _sacreformat(refs, preds):
         refs = list(refs)
     if not is_non_str_iterable(refs[0]):
         refs = [[ref] for ref in refs]
-    refs = list(zip(*refs))
+    refs = list(zip(*refs, strict=False))
     # Note the number of refs in each ref list much match the number of preds
 
     # We expect preds to be List[str] or List[List[str]]. Must become List[str]
@@ -554,7 +564,7 @@ def bootstrap_stderr(
 
 def stderr_for_metric(
     metric: Callable[[Sequence[T]], float], bootstrap_iters: int
-) -> Optional[Callable[[Sequence[T]], float]]:
+) -> Callable[[Sequence[T]], float] | None:
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
@@ -584,10 +594,10 @@ def stderr_for_metric(
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
-    return stderr.get(metric, None)
+    return stderr.get(metric)
 
 
-def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
     #
@@ -599,13 +609,16 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     # this empirically seems to match running `stderr_for_metric` on all instances
     # from the subtasks concatenated with each other.
     pooled_sample_var = (
-        sum([(size - 1) * stderr**2 * size for size, stderr in zip(sizes, stderrs)])
+        sum(
+            (size - 1) * stderr**2 * size
+            for size, stderr in zip(sizes, stderrs, strict=False)
+        )
     ) / (sum(sizes) - len(sizes))
 
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
-def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None):
     assert metrics is not None, (
         "Need to pass a list of each subtask's metric for this stderr aggregation"
     )
@@ -623,7 +636,7 @@ def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None)
     curr_size = sizes[0]
     curr_score = metrics[0]
 
-    for stderr, size, score in zip(stderrs[1:], sizes[1:], metrics[1:]):
+    for stderr, size, score in zip(stderrs[1:], sizes[1:], metrics[1:], strict=False):
         curr_score = ((curr_score * curr_size) + (score * size)) / (
             curr_size + size
         )  # NOTE: this assumes our aggregation fn is "mean"
@@ -646,4 +659,6 @@ def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
 
     assert len(metrics) == len(sizes)
 
-    return sum([metric * size for metric, size in zip(metrics, sizes)]) / sum(sizes)
+    return sum(
+        metric * size for metric, size in zip(metrics, sizes, strict=False)
+    ) / sum(sizes)
