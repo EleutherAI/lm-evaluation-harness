@@ -596,6 +596,7 @@ def stderr_for_metric(
         perplexity,
         bleu,
         chrf,
+        chrf_pp,
         ter,
         nanmean,
     ]
