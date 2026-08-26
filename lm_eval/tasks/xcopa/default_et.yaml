@@ -1,5 +1,5 @@
 task: xcopa_et
-dataset_path: xcopa
+dataset_path: cambridgeltl/xcopa
 dataset_name: et
 output_type: multiple_choice
 validation_split: validation

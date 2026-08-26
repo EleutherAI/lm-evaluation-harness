@@ -100,9 +100,12 @@ def bleu(items):
 
 @register_aggregation("chrf")
 def chrf(items):
-    """ChrF (character n-gram F-score) for machine translation evaluation.
-    Computes character n-gram precision and recall (char_order=6, word_order=0).
-    Use the ``chrf++`` aggregation for word-enhanced scoring (word_order=2).
+    """chrF is an evaluation metric for machine translation output based on
+    character n-gram precision and recall.
+
+    Computed with sacrebleu's defaults: char_order=6, word_order=0, beta=2.
+    For chrF++ (word_order=2), use the ``chrf++`` metric instead.
+
     Source: https://github.com/m-popovic/chrF
     Paper: https://www.aclweb.org/anthology/W15-3049.pdf
 
@@ -116,9 +119,13 @@ def chrf(items):
 
 @register_aggregation("chrf++")
 def chrfpp(items):
-    """ChrF++ metric for machine translation evaluation.
-    Extends ChrF with word n-grams (word_order=2) for improved correlation
-    with human judgements on higher-resource language pairs.
+    """chrF++ is chrF extended with word n-grams, for automatic evaluation of
+    machine translation output.
+
+    Computed with word_order=2 and sacrebleu's remaining defaults:
+    char_order=6, beta=2. For plain chrF (word_order=0), use the ``chrf``
+    metric instead.
+
     Source: https://github.com/m-popovic/chrF
     Paper: https://aclanthology.org/W17-4770.pdf
 
@@ -398,7 +405,7 @@ def chrfpp_fn(items):  # This is a passthrough function
 
 @register_metric(
     metric="ter",
-    higher_is_better=True,
+    higher_is_better=False,
     output_type="generate_until",
     aggregation="ter",
 )

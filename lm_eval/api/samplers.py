@@ -99,10 +99,11 @@ class FirstNSampler(ContextSampler):
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
-        assert n <= len(self.df), (
-            f"Error: number of fewshot samples requested exceeds the {len(self.df)} that are available."
+        pool = self.rm_eval_doc(eval_doc, self.df) if eval_doc is not None else self.df
+        assert n <= len(pool), (
+            f"Error: number of fewshot samples requested exceeds the {len(pool)} that are available."
         )
-        return self.df[:n]
+        return pool[:n]
 
 
 class BalancedSampler(ContextSampler):
@@ -117,7 +118,6 @@ class BalancedSampler(ContextSampler):
 
 class ManualSampler(ContextSampler):
     def sample(self, n: int, eval_doc=None, df=None, **kwargs):
-        """ """
         raise NotImplementedError
 
 
