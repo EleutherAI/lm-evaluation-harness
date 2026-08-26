@@ -224,8 +224,8 @@ def simple_evaluate(
         if isinstance(gen_kwargs, str):
             gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
-            "Ensure 'do_sample=True' for non-greedy decoding!"
+            "generation_kwargs: %s specified through cli, these settings will update set parameters in yaml tasks. Ensure 'do_sample=True' for non-greedy decoding!",
+            gen_kwargs,
         )
         if not gen_kwargs:
             gen_kwargs = None
@@ -237,7 +237,7 @@ def simple_evaluate(
 
         if isinstance(model_args, dict):
             eval_logger.info(
-                f"Initializing {model} model, with arguments: {model_args}"
+                "Initializing %s model, with arguments: %s", model, model_args
             )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
@@ -317,7 +317,8 @@ def simple_evaluate(
 
         if predict_only:
             eval_logger.info(
-                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+                "Processing %s in output-only mode. Metrics will not be calculated!",
+                task_name,
             )
             # we have to change the class properties post-hoc. This is pretty hacky.
             task_obj.override_metric(metric_name="bypass")
@@ -327,11 +328,15 @@ def simple_evaluate(
         if num_fewshot is not None:
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
                 eval_logger.info(
-                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                    "num_fewshot has been set to 0 for %s in its config. Manual configuration will be ignored.",
+                    task_name,
                 )
             else:
                 eval_logger.warning(
-                    f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                    "Overwriting default num_fewshot of %s from %s to %s",
+                    task_name,
+                    default_num_fewshot,
+                    num_fewshot,
                 )
                 task_obj.set_config(key="num_fewshot", value=num_fewshot)
         else:
@@ -474,7 +479,6 @@ def evaluate(
     Returns:
         dict | None: Dictionary of results, or None if not on rank 0.
     """
-
     if limit is not None and samples is not None:
         raise ValueError(
             "Either 'limit' or 'samples' must be None, but both are not None."
@@ -582,7 +586,7 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
-        eval_logger.info(f"Running {reqtype} requests")
+        eval_logger.info("Running %s requests", reqtype)
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
