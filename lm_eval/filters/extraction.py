@@ -216,7 +216,13 @@ class MultiChoiceRegexFilter(RegexFilter):
                 without_paren_to_target[next_alpha] = f"({next_alpha})"
 
                 next_alpha = chr(ord(next_alpha) + 1)
-            fallback_regex = re.compile("|".join(fallback_regexes))
+            # Sort branches longest-first so a choice whose text is a prefix of another
+            # choice can't shadow it: regex alternation is leftmost-wins, so without this
+            # "Guilty" would match inside "Guilty of Romance". choice_to_alpha is keyed by
+            # the choice text, so branch order does not affect the letter assignment.
+            fallback_regex = re.compile(
+                "|".join(sorted(fallback_regexes, key=len, reverse=True))
+            )
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
                 rf":[\s]*({without_paren_fallback_regex})"
