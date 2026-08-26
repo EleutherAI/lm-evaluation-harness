@@ -513,6 +513,34 @@ The `pretrained` path is a Model Builder output directory (containing `genai_con
 > [!Note]
 > Supported architectures are whatever the Model Builder supports (Llama, Phi, Qwen, Gemma, Mistral, Granite, ChatGLM, …). Inference is batch-size 1 and runs one execution provider per run.
 
+### ONNX Runtime
+
+We also support running the *same* Model Builder export through a raw `onnxruntime.InferenceSession` instead of the GenAI loop. Use this backend when you want scores to come from the exact runtime a deployment uses, or when you need an execution provider that `onnxruntime-genai` does not build — notably **ROCm** and **MIGraphX** for AMD GPUs.
+
+```bash
+# CPU
+pip install "lm_eval[onnxruntime]"
+# CUDA / ROCm instead of the CPU wheel (mutually exclusive):
+#   pip install onnxruntime-gpu
+#   pip install onnxruntime-rocm
+```
+
+```bash
+lm_eval --model onnxruntime \
+    --model_args pretrained=/path/to/model_builder_output,execution_provider=rocm \
+    --tasks hellaswag,arc_easy,wikitext \
+    --batch_size 1
+```
+
+`execution_provider` accepts short aliases (`cpu`, `cuda`, `rocm`, `migraphx`, `dml`, `openvino`, `tensorrt`, `vitisai`, `webgpu`, `qnn`) as well as full ONNX Runtime provider names. As with the `onnxruntime-genai` backend, leaving it unset honors the providers declared in the export's `genai_config.json`, so an export built for a specific device runs there without extra flags. Non-CPU providers keep `CPUExecutionProvider` as a per-node fallback, since Model Builder graphs use contrib ops that not every provider implements.
+
+Because both ONNX backends share one scoring implementation and end up in the same ORT kernels, they agree on the same model and provider; `tests/models/test_onnxruntime_parity.py` enforces that as a standing check.
+
+> [!Note]
+> This backend currently covers `loglikelihood`, `multiple_choice`, and `loglikelihood_rolling` (hellaswag, arc, mmlu, wikitext, …). For generative tasks such as gsm8k, use `--model onnxruntime-genai` with the same model directory.
+>
+> The installed `onnxruntime` must be new enough to load the contrib-op schemas your Model Builder version emitted. An older runtime can reject the graph outright — for example a 12-input `GroupQueryAttention` fails to load on ONNX Runtime 1.22.
+
 ### Windows ML
 
 We support **Windows ML** for hardware-accelerated inference on Windows platforms. This enables evaluation on CPU, GPU, and **NPU (Neural Processing Unit)** devices.
@@ -585,6 +613,7 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | NVIDIA Megatron-LM                                                                                                        | :heavy_check_mark:                                                                                      | `megatron_lm`                                         | [Megatron-LM GPT models](https://github.com/NVIDIA/Megatron-LM) (standard and distributed checkpoints)                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Watsonx.ai                                                                                                                | :heavy_check_mark:                                                                                      | `watsonx_llm`                                         | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                      | `generate_until` `loglikelihood`                                               |
 | ONNX Runtime GenAI                                                                                                        | :heavy_check_mark:                                                                                      | `onnxruntime-genai`                                   | [ONNX models in GenAI format](https://onnxruntime.ai/docs/genai/howto/build-model.html) (cross-platform: CPU/CUDA/DirectML/NPU)                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
+| ONNX Runtime                                                                                                              | :heavy_check_mark:                                                                                      | `onnxruntime`                                         | [ONNX models in GenAI format](https://onnxruntime.ai/docs/genai/howto/build-model.html) via a raw `InferenceSession` (adds ROCm/MIGraphX)                        | `loglikelihood`, `loglikelihood_rolling`                                       |
 | Windows ML                                                                                                                | :heavy_check_mark:                                                                                      | `winml`                                               | [ONNX models in GenAI format](https://code.visualstudio.com/docs/intelligentapps/modelconversion)                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | [Your local inference server!](docs/API_guide.md)                                                                         | :heavy_check_mark:                                                                                      | `local-completions` or `local-chat-completions`       | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                              | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 
@@ -831,6 +860,7 @@ These extras install dependencies required to run specific model backends:
 | optimum        | Intel OpenVINO models                            |
 | neuronx        | AWS Inferentia2 instances                        |
 | onnxruntime-genai | ONNX Runtime GenAI (cross-platform) - CPU/CUDA/DirectML/NPU |
+| onnxruntime    | ONNX Runtime raw session - adds ROCm/MIGraphX    |
 | winml          | Windows ML (ONNX Runtime GenAI) - CPU/GPU/NPU    |
 | sparsify       | Sparsify model steering                          |
 | sae_lens       | SAELens model steering                           |
