@@ -107,6 +107,29 @@ class TestContextSampler:
         assert len(result) == 4
         assert eval_doc not in result
 
+    def test_sample_with_duplicate_eval_doc_in_pool(self):
+        """Duplicate rows equal to eval_doc must not drop the result below n.
+
+        The eval_doc path samples n + 1 docs as headroom for removing a single
+        eval_doc occurrence. When the pool holds duplicate copies of eval_doc,
+        more than one can be drawn and removed; seed=4 below draws two copies and
+        previously tripped the `len(res) == n` assertion.
+        """
+        eval_doc = {"id": 0, "text": "dup"}
+        pool = [
+            dict(eval_doc),
+            {"id": 1, "text": "b"},
+            dict(eval_doc),
+            {"id": 2, "text": "c"},
+            {"id": 3, "text": "d"},
+        ]
+        sampler = ContextSampler(pool, rnd=4)
+
+        result = sampler.sample(n=2, eval_doc=dict(eval_doc))
+
+        assert len(result) == 2
+        assert eval_doc not in result
+
     def test_fewshot_indices_filters_documents(self, sample_docs):
         """fewshot_indices parameter limits which docs are available."""
         indices = [0, 2, 4]  # Only use docs at positions 0, 2, 4
