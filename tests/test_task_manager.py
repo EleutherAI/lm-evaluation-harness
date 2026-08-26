@@ -413,6 +413,15 @@ class TestTaskManagerIntegration:
                 and shared_task_manager._entry(t).kind == Kind.TAG
             )
 
+    def test_afrobench_prompt_2_tags_registered(self, shared_task_manager):
+        """Regression: afrobench afrisenti/mafand groups list ``*_prompt_2`` tags
+        that must be registered. Previously the prompt_2 templates declared the
+        wrong tag (``afrisent_prompt_2`` typo; ``mafand_afr-eng_prompt_3``
+        duplicating prompt_3), so loading those groups raised a not-found error."""
+        tags = set(shared_task_manager.all_tags)
+        assert "afrisenti_prompt_2" in tags
+        assert "mafand_afr-eng_prompt_2" in tags
+
     def test_load_task_by_name(self, test_configs_task_manager):
         """Load a single task by name"""
         result = test_configs_task_manager.load_task_or_group(["simple_task"])
@@ -423,7 +432,7 @@ class TestTaskManagerIntegration:
         result = test_configs_task_manager.load_task_or_group(["test_group"])
         # Result is {ConfigurableGroup: {task_name: task_obj}}
         # Get the children dict from the group
-        children = list(result.values())[0]
+        children = next(iter(result.values()))
         # test_group contains inline tasks, namespaced as group_name::task_name
         assert "test_group::group_task_fs0" in children
         assert "test_group::group_task_fs2" in children
@@ -699,7 +708,7 @@ metadata:
         result = test_configs_task_manager.load_task_or_group(["tag_subgroup"])
 
         # Get the children dict from the group
-        group_key = list(result.keys())[0]
+        group_key = next(iter(result.keys()))
         children = result[group_key]
 
         # All 3 tasks from the tag should be expanded
@@ -724,14 +733,14 @@ metadata:
         result = test_configs_task_manager.load_task_or_group(["tag_parent_group"])
 
         # Navigate the nested structure
-        parent_key = list(result.keys())[0]
+        parent_key = next(iter(result.keys()))
         parent_children = result[parent_key]
 
         # Should contain the subgroup
         assert len(parent_children) == 1, "Parent should have 1 child (the subgroup)"
 
         # Get the subgroup
-        subgroup_key = list(parent_children.keys())[0]
+        subgroup_key = next(iter(parent_children.keys()))
         subgroup_children = parent_children[subgroup_key]
 
         # The subgroup should have all 3 tasks expanded from the TAG
@@ -938,8 +947,7 @@ class TestGroupBuilding:
     # ---- existing group reference with overrides (the key bug fix) ----
 
     def test_existing_group_ref_has_children(self, tm):
-        """
-        When a parent group references an existing group via
+        """When a parent group references an existing group via
         {group: include_group, ...}, the referenced group must still
         have its own children populated from the registry.
         """
@@ -959,8 +967,7 @@ class TestGroupBuilding:
         )
 
     def test_existing_group_ref_overrides_propagate(self, tm):
-        """
-        Overrides specified on a group reference should propagate
+        """Overrides specified on a group reference should propagate
         down to the leaf tasks of the referenced group.
         """
         loaded = tm.load(["group_ref_parent"])
@@ -976,8 +983,7 @@ class TestGroupBuilding:
     # ---- group-level config propagation ----
 
     def test_group_level_config_propagates_to_children(self, tm):
-        """
-        Config keys set at the group level (outside GROUP_ONLY_KEYS)
+        """Config keys set at the group level (outside GROUP_ONLY_KEYS)
         should propagate to all children as defaults.
         """
         loaded = tm.load(["propagation_group"])
@@ -991,8 +997,7 @@ class TestGroupBuilding:
             )
 
     def test_caller_overrides_beat_group_defaults(self, tm):
-        """
-        Caller-supplied overrides should take precedence over
+        """Caller-supplied overrides should take precedence over
         group-level config values.
         """
         loaded = tm.load([{"group": "propagation_group", "num_fewshot": 0}])
@@ -1007,8 +1012,7 @@ class TestGroupBuilding:
     # ---- mixed member types ----
 
     def test_mixed_members_string_ref(self, tm):
-        """
-        A bare string in the task list should resolve to the task in
+        """A bare string in the task list should resolve to the task in
         the registry.
         """
         loaded = tm.load(["mixed_members_group"])
@@ -1022,8 +1026,7 @@ class TestGroupBuilding:
         assert task_b.config.num_fewshot == 7
 
     def test_mixed_members_inline_subgroup(self, tm):
-        """
-        A dict with 'group' key (not in registry) should create an
+        """A dict with 'group' key (not in registry) should create an
         inline subgroup with namespacing.
         """
         loaded = tm.load(["mixed_members_group"])
@@ -1039,8 +1042,7 @@ class TestGroupBuilding:
     # ---- empty group ----
 
     def test_empty_group_has_no_children(self, tm):
-        """
-        A group with no task list should build successfully with
+        """A group with no task list should build successfully with
         zero children.
         """
         loaded = tm.load(["empty_group"])
@@ -1074,8 +1076,7 @@ class TestGroupBuilding:
         assert result[1].weight_by_size is False
 
     def test_parse_aggregation_single_dict_normalized(self):
-        """
-        A single dict (not wrapped in a list) should be normalized
+        """A single dict (not wrapped in a list) should be normalized
         to a one-element list.
         """
         from lm_eval.config.group import AggMetricConfig, GroupConfig
@@ -1127,8 +1128,7 @@ class TestGroupBuilding:
     # ---- nested groups ----
 
     def test_deeply_nested_get_all_tasks_recursive(self, tm):
-        """
-        get_all_tasks(recursive=True) on a parent group should
+        """get_all_tasks(recursive=True) on a parent group should
         collect tasks from all levels of nesting.
         """
         loaded = tm.load(["group_ref_parent"])
@@ -1139,12 +1139,105 @@ class TestGroupBuilding:
         assert len(all_tasks) == 3
 
     def test_deeply_nested_get_all_tasks_non_recursive(self, tm):
-        """
-        get_all_tasks(recursive=False) on a parent group should
-        NOT return tasks from nested subgroups.
-        """
+        """The function get_all_tasks(recursive=False) on a parent group should NOT return tasks from nested subgroups."""
         loaded = tm.load(["group_ref_parent"])
         parent = loaded["groups"]["group_ref_parent"]
 
         direct_tasks = parent.get_all_tasks(recursive=False)
         assert len(direct_tasks) == 0  # parent only has a subgroup, no direct tasks
+
+
+# =============================================================================
+# IrokoBench (AfriMMLU/AfriMGSM/AfriXNLI) registration tests
+# =============================================================================
+
+
+class TestIrokobenchRegistration:
+    """Regression tests for the IrokoBench task registry.
+
+    https://github.com/EleutherAI/lm-evaluation-harness/issues/3360
+    """
+
+    IROKOBENCH_GROUPS = (
+        "afrimgsm-irokobench",
+        "afrimgsm_cot-irokobench",
+        "afrimgsm_tt-irokobench",
+        "afrimgsm_tt_cot-irokobench",
+        "afrimmlu-irokobench",
+        "afrimmlu_tt-irokobench",
+        "afrixnli-irokobench",
+        "afrixnli_tt-irokobench",
+    )
+
+    # Spot-check of the names documented in the AfriMMLU/AfriMGSM/AfriXNLI
+    # READMEs (one language per task pattern).
+    DOCUMENTED_NAMES = (
+        # tags
+        "afrimmlu_tasks",
+        "afrimmlu_tasks_prompt_2",
+        "afrimmlu_tt_tasks",
+        "afrobench_mmlu_tasks",
+        "afrimgsm_tasks",
+        "afrimgsm_tasks_prompt_2",
+        "afrimgsm_cot_tasks",
+        "afrimgsm_cot_tasks_prompt_2",
+        "afrimgsm_tt_tasks",
+        "afrimgsm_tt_cot_tasks",
+        "afrixnli_tasks",
+        "afrixnli_tasks_prompt_2",
+        "afrixnli_tt_tasks",
+        "afrixnli",
+        "afrixnli_en_direct",
+        "afrixnli_native_direct",
+        "afrixnli_translate",
+        "afrixnli_manual_direct",
+        "afrixnli_manual_translate",
+        # per-language tasks
+        "afrimmlu_direct_amh_prompt_1",
+        "afrimmlu_translate_amh_prompt_5",
+        "afrimgsm_amh_prompt_1",
+        "afrimgsm_cot_amh_prompt_1",
+        "afrimgsm_translate_amh_prompt_1",
+        "afrimgsm_cot_translate_amh_prompt_1",
+        "afrixnli_amh_prompt_1",
+        "afrixnli_translate_amh_prompt_1",
+        "afrixnli_en_direct_amh",
+        "afrixnli_manual_translate_amh",
+    )
+
+    def test_group_members_are_registered(self, shared_task_manager):
+        """Every name referenced by an irokobench group must resolve.
+
+        afrimgsm direct prompt_2 used to carry the prompt_1 tag, so the
+        'afrimgsm_tasks_prompt_2' tag referenced by 'afrimgsm-irokobench'
+        was never registered and loading the group raised a KeyError.
+        """
+        for group in self.IROKOBENCH_GROUPS:
+            entry = shared_task_manager.task_index[group]
+            assert entry.kind == Kind.GROUP
+            assert entry.cfg is not None
+            for member in entry.cfg["task"]:
+                assert member in shared_task_manager.task_index, (
+                    f"group '{group}' references unregistered '{member}'"
+                )
+
+    def test_documented_names_are_registered(self, shared_task_manager):
+        """Names documented in the READMEs must be registered."""
+        for name in self.DOCUMENTED_NAMES:
+            assert name in shared_task_manager.task_index, name
+
+    def test_afrimmlu_yaml_functions_resolve(self, shared_task_manager):
+        """The afrimmlu per-prompt utils.py must re-export weighted_f1_score.
+
+        The import was dropped as unused by a lint cleanup, after which every
+        afrimmlu task failed to load with an AttributeError on the
+        '!function utils.weighted_f1_score' reference in the config.
+        """
+        for variant in ("direct", "translate"):
+            for i in range(1, 6):
+                entry = shared_task_manager.task_index[
+                    f"afrimmlu_{variant}_amh_prompt_{i}"
+                ]
+                cfg = load_yaml(entry.yaml_path, resolve_func=True)
+                aggregations = [m.get("aggregation") for m in cfg["metric_list"]]
+                assert any(callable(agg) for agg in aggregations), entry.yaml_path
