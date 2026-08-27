@@ -13,6 +13,7 @@
 # limitations under the License
 
 
+import logging
 import os
 import random
 import re
@@ -59,6 +60,8 @@ DEPTHS = list(np.round(np.linspace(0, 100, num=40, endpoint=True)).astype(int))
 
 NLTK_MIN_VERSION = "3.9.1"
 RANK = os.environ.get("LOCAL_RANK", "0")
+
+eval_logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1024)
@@ -232,7 +235,10 @@ def generate_samples(
 ) -> list[dict]:
     assert TOKENIZER is not None, "TOKENIZER is not defined."
     num_needle_k = max(num_needle_k, num_needle_q)
+    num_needles = num_needle_k * num_needle_v
     write_jsons = []
+    skipped = 0
+    last_skip_reason = None
     tokens_to_generate = tokens_to_generate
 
     if type_haystack == "essay":
@@ -245,7 +251,9 @@ def generate_samples(
     if type_haystack != "essay" and max_seq_length < 4096:
         incremental = 5
 
-    num_haystack = incremental
+    # `num_haystack` must stay large enough to host every needle, otherwise
+    # `generate_input_output` raises for any value we try (see #2963).
+    num_haystack = max(incremental, num_needles)
 
     total_tokens = 0  # Track the total tokens generated for the first example
     while total_tokens + tokens_to_generate < max_seq_length:
@@ -273,7 +281,9 @@ def generate_samples(
 
         num_haystack += incremental
 
-    # print("Num haystack:", num_haystack)
+    # The loop above subtracts `incremental` on overflow, which lands on 0 when
+    # even the smallest haystack does not fit `max_seq_length`.
+    num_haystack = max(num_haystack, num_needles)
 
     # Generate samples
     for index in tqdm(
@@ -281,9 +291,12 @@ def generate_samples(
         desc=f"Generating synthetic samples: {type_haystack} | {max_seq_length}",
     ):
         used_haystack = num_haystack
-        retry_counter = 0
-        max_retries = 10
-        while retry_counter < max_retries:
+        sample = None
+        last_error = None
+        # Shrink the haystack until the sample fits. `used_haystack` decreases
+        # monotonically towards 0, so this always terminates -- the previous
+        # `while True` spun forever once shrinking stopped helping (#2963).
+        while used_haystack > 0:
             try:
                 input_text, answer, query = generate_input_output(
                     used_haystack,
@@ -298,25 +311,23 @@ def generate_samples(
                     random_seed=random_seed,
                 )
                 length = len(TOKENIZER(input_text).input_ids) + tokens_to_generate
+                if length <= max_seq_length:
+                    sample = (input_text, answer, query, length)
+                    break
+                last_error = f"{length} exceeds max_seq_length={max_seq_length}"
+            except Exception as e:  # noqa: BLE001 - any failure means "try smaller"
+                last_error = e
+            used_haystack -= incremental
 
-                if length > max_seq_length:
-                    raise ValueError(f"{length} exceeds max_seq_length")
-
-                break
-
-            except Exception as e:
-                retry_counter += 1
-                if used_haystack > incremental:
-                    used_haystack -= incremental
-                else:
-                    print(
-                        f"[Warning] Could not generate valid sample #{index} "
-                        f"within max_seq_length={max_seq_length}. Error: {e}"
-                    )
-                    break  # avoid infinite retry
-
-        if retry_counter >= max_retries:
+        # Bail out *before* the formatting block: on failure `input_text` and
+        # `length` still hold the previous sample's values (or are unbound on
+        # the first iteration), so falling through would emit a duplicate, an
+        # over-length sample, or raise `UnboundLocalError`.
+        if sample is None:
+            skipped += 1
+            last_skip_reason = last_error
             continue
+        input_text, answer, query, length = sample
 
         if remove_newline_tab:
             input_text = " ".join(
@@ -340,10 +351,25 @@ def generate_samples(
             not formatted_output["outputs"]
             or formatted_output["outputs"][0] not in formatted_output["input"]
         ):
-            print(f"[Warning] Needle missing in sample #{index}. Skipping.")
-            continue
+            raise RuntimeError(
+                f"Needle not in input: {formatted_output}. Something went wrong."
+            )
 
         write_jsons.append(formatted_output)
+
+    if skipped:
+        eval_logger.warning(
+            f"Skipped {skipped}/{num_samples} samples for {type_haystack} | "
+            f"max_seq_length={max_seq_length}: could not fit them within the "
+            f"sequence length. Last reason: {last_skip_reason}"
+        )
+    if not write_jsons:
+        raise ValueError(
+            f"Could not generate any sample for haystack '{type_haystack}' at "
+            f"max_seq_length={max_seq_length}. It leaves no room for the prompt "
+            f"template, {num_needles} needle(s) and {tokens_to_generate} generated "
+            f"tokens. Raise `max_seq_lengths` for this task."
+        )
     return write_jsons
 
 
