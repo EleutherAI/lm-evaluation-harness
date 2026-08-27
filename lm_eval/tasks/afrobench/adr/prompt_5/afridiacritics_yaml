@@ -2,7 +2,6 @@ tag:
 - adr_tasks
 - adr_prompt_5
 dataset_path: masakhane/diacritics-restoration
-dataset_kwargs: {trust_remote_code: True}
 doc_to_target: target
 output_type: generate_until
 fewshot_split: dev

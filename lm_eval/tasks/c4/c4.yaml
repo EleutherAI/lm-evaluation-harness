@@ -20,5 +20,4 @@ dataset_kwargs:
     train: en/c4-train.00000-of-01024.json.gz
     validation: en/c4-validation.00000-of-00008.json.gz
   # following the choice of https://arxiv.org/abs/2410.07461
-  trust_remote_code: true
   verification_mode: "no_checks"

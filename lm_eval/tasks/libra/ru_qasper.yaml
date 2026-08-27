@@ -1,0 +1,29 @@
+tag:
+- libra
+task: ru_qasper
+task_alias: ruQasper
+dataset_name: ru_qasper
+dataset_kwargs:
+  dataset_name: ru_qasper
+include: _template_yaml
+doc_to_text: 'Тебе предоставляется научная статья и вопрос.
+
+  {{context}}
+
+  Ответь на вопрос как можно более кратко, по возможности используя одну фразу или
+  предложение. Не приводи никаких объяснений.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 256
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_f1
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

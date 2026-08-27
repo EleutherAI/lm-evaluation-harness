@@ -1,7 +1,7 @@
 tag:
   - qa4mre
 task: qa4mre_2011
-dataset_path: qa4mre
+dataset_path: community-datasets/qa4mre
 dataset_name: 2011.main.EN
 output_type: multiple_choice
 test_split: train

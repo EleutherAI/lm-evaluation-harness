@@ -39,7 +39,6 @@ BibTeX-formatted citation goes here
 * `mmlu_hi_llama`: `Hindi version of generation MMLU`
 * `mmlu_es_llama`: `Spanish version of generation MMLU`
 * `mmlu_de_llama`: `German version of generation MMLU`
-* `arc_chalenge_chat`: `generation variant of ARC-Challenge using MMLU format`
 * `arc_challenge_llama`: `generation variant of ARC-Challenge following Meta pre-processing`
 * `gsm8k_llama`: `Chain-of-though variant of GSM8k`
 

@@ -1,0 +1,9 @@
+description: 'The following are multiple choice questions (with answers) about math.
+  Think step by step and then finish your answer with "the answer is (X)" where X
+  is the correct letter choice.
+
+  '
+include: _en_lite_template_yaml
+task: mmlu_prox_lite_en_math
+task_alias: math
+process_docs: !function utils.process_math

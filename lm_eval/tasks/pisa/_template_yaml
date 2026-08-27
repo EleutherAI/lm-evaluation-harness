@@ -1,0 +1,16 @@
+dataset_path: PisaBench/pisa-bench
+output_type: generate_until
+doc_to_text: !function utils.pisa_doc_to_text
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+process_results: !function utils.pisa_process_results
+doc_to_image: !function utils.pisa_doc_to_visual
+
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

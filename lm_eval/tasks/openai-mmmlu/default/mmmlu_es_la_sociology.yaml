@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ES_LA"
+process_docs: !function utils.process_sociology
+"tag": "mmmlu_es_la_social_sciences_tasks"
+"task": "mmmlu_es_la_sociology"
+"task_alias": "sociology (Spanish)"
+"description": "The following are multiple choice questions (with answers) about sociology (Spanish).\n\n"

@@ -1,4 +1,4 @@
-group: include_base_44_french
+group: include_base_44_french_few_shot_og
 task:
 - include_base_44_french_few_shot_og_stem
 - include_base_44_french_few_shot_og_social_science
@@ -9,4 +9,4 @@ aggregate_metric_list:
 - metric: acc
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 0.1

@@ -1,0 +1,9 @@
+description: 'Berikut adalah pertanyaan pilihan ganda tentang Biologi (dengan jawaban).
+  Harap berpikir langkah demi langkah, lalu akhiri jawaban Anda dengan "Jawabannya
+  adalah (X)", di mana X adalah huruf pilihan yang benar.
+
+  '
+include: _id_lite_template_yaml
+task: mmlu_prox_lite_id_biology
+task_alias: biology
+process_docs: !function utils.process_biology

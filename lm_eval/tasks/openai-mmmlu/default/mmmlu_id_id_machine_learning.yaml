@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ID_ID"
+process_docs: !function utils.process_machine_learning
+"tag": "mmmlu_id_id_stem_tasks"
+"task": "mmmlu_id_id_machine_learning"
+"task_alias": "machine learning (Indonesian)"
+"description": "The following are multiple choice questions (with answers) about machine learning (Indonesian).\n\n"

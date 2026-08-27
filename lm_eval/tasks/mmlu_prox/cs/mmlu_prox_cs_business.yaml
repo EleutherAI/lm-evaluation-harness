@@ -1,0 +1,9 @@
+description: 'Zde je otázka s výběrem možností k tématu obchod (s odpovědí). Přemýšlejte
+  prosím krok za krokem a svou odpověď zakončete "Odpověď je (X)", kde X je písmeno
+  správné možnosti.
+
+  '
+include: _cs_template_yaml
+task: mmlu_prox_cs_business
+task_alias: business
+process_docs: !function utils.process_business

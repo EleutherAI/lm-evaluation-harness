@@ -18,9 +18,7 @@ fewshot_config:
       (A) rubber terrible ship
 
       (B) terrible rubber ship'
-    target: 'Let''s think step by step.
-
-      When there is more than one adjective before a noun, the adjectives need to
+    target: 'When there is more than one adjective before a noun, the adjectives need to
       respect the following order before a noun: "[1. opinion] [2. size] [3. age]
       [4. shape] [5. color] [6. origin] [7. material] [8. purpose] noun".
 
@@ -39,9 +37,7 @@ fewshot_config:
       (A) repulsive small Brazilian exercise ship
 
       (B) Brazilian repulsive exercise small ship'
-    target: 'Let''s think step by step.
-
-      When there is more than one adjective before a noun, the adjectives need to
+    target: 'When there is more than one adjective before a noun, the adjectives need to
       respect the following order before a noun: "[1. opinion] [2. size] [3. age]
       [4. shape] [5. color] [6. origin] [7. material] [8. purpose] noun".
 
@@ -63,9 +59,7 @@ fewshot_config:
       (A) blue gold wonderful square shoe
 
       (B) wonderful square blue gold shoe'
-    target: 'Let''s think step by step.
-
-      When there is more than one adjective before a noun, the adjectives need to
+    target: 'When there is more than one adjective before a noun, the adjectives need to
       respect the following order before a noun: "[1. opinion] [2. size] [3. age]
       [4. shape] [5. color] [6. origin] [7. material] [8. purpose] noun".
 

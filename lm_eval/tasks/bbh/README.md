@@ -53,4 +53,7 @@ None.
 - [ ] Majority voting "without CoT"
 
 ### Changelog
-no version change: changed dataset to `SaylorTwift/bbh`. Do not expect any change in the results.
+- no version change: changed dataset to `SaylorTwift/bbh`. Do not expect any change in the results.
+- `bbh_cot_fewshot` v.4.0; 2025-07-14:
+  - PR #3140. Removed duplicate "Let's think step by step" from the fewshots.
+  - set target_delimiter to "" as the fewshot samples end with a newline character.

@@ -17,9 +17,9 @@ def prompt_func(mode, lang):
         "prompt_3": f"You are an assistant able to classify topics in texts. \n\n"
         f"Given the categories science/technology, travel, politics, sports, health, entertainment, or geography; what is "
         f"the topic of the {lang} statement below? Return only the category. "
-        "\n\ntext: {{text}} \category:\n\n",
+        "\n\ntext: {{text}} \\category:\n\n",
         "prompt_4": "Label the following text as science/technology, travel, politics, sports, health, entertainment, or geography. Provide only the category as your "
-        "response. \n\ntext: {{text}} \category: \n\n",
+        "response. \n\ntext: {{text}} \\category: \n\n",
         "prompt_5": f"You are tasked with performing topic classification on the following {lang} text. "
         f"For each input, classify the topic as science/technology, travel, politics, sports, health, entertainment, or geography. "
         f"Use the following guidelines: \n\n "
@@ -32,7 +32,7 @@ def prompt_func(mode, lang):
         f"geography: The text involves geographical information, locations, or related topics. \n\n"
         f"If the text contains multiple topics, choose the dominant topic. "
         f"For ambiguous or unclear topics, select the category that best reflects the overall content. "
-        "Please provide a single classification for each input.\n\ntext: {{text}} \category: \n\n",
+        "Please provide a single classification for each input.\n\ntext: {{text}} \\category: \n\n",
     }
     return prompt_map[mode]
 

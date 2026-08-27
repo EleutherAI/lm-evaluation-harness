@@ -1,0 +1,9 @@
+group: egymmlu_mmlu
+group_alias: MMLU
+task:
+  - egymmlu_mmlu_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0

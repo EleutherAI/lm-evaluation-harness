@@ -1,0 +1,9 @@
+description: 'Itt van egy feleletválasztós kérdés a(z) egészség témában (választ is
+  tartalmazza). Kérjük, gondolkodjon lépésről lépésre, és a válaszát a(z) "A válasz
+  (X)" kifejezéssel fejezze be, ahol X a helyes válasz betűjele.
+
+  '
+include: _hu_lite_template_yaml
+task: mmlu_prox_lite_hu_health
+task_alias: health
+process_docs: !function utils.process_health

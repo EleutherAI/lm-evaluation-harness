@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_pt_br_stem_tasks"
+"task": "mmmlu_pt_br_abstract_algebra"
+"task_alias": "abstract algebra (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (Brazilian Portuguese).\n\n"

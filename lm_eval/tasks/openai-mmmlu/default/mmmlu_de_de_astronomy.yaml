@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_astronomy
+"tag": "mmmlu_de_de_stem_tasks"
+"task": "mmmlu_de_de_astronomy"
+"task_alias": "astronomy (German)"
+"description": "The following are multiple choice questions (with answers) about astronomy (German).\n\n"

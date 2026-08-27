@@ -1,0 +1,7 @@
+"dataset_name": "driving_test"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_other_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_driving_test"
+"task_alias": "driving test"

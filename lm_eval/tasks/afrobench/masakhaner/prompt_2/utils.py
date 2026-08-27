@@ -67,7 +67,7 @@ def span_f1_agg(items):
 
         def remove_blank_spaces(text):
             text = re.sub(pattern=get_blank_spaces_pattern(), repl="", string=text)
-            text = re.sub("\s+", " ", text)
+            text = re.sub(r"\s+", " ", text)
             return text
 
         def remove_punctuation(text):

@@ -23,6 +23,4 @@ metric_list:
     ignore_punctuation: true
 metadata:
   version: 1.0
-dataset_kwargs:
-  trust_remote_code: true
 num_fewshot: 0

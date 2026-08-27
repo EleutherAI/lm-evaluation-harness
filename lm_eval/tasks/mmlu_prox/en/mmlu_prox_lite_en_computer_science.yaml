@@ -1,0 +1,9 @@
+description: 'The following are multiple choice questions (with answers) about computer_science.
+  Think step by step and then finish your answer with "the answer is (X)" where X
+  is the correct letter choice.
+
+  '
+include: _en_lite_template_yaml
+task: mmlu_prox_lite_en_computer_science
+task_alias: computer_science
+process_docs: !function utils.process_computer_science

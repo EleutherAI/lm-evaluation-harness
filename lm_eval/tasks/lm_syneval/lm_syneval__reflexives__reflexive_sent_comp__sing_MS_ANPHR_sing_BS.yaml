@@ -1,0 +1,3 @@
+dataset_name: lm_syneval__reflexives__reflexive_sent_comp__sing_MS_ANPHR_sing_BS
+include: _template_yaml
+task: lm_syneval__reflexives__reflexive_sent_comp__sing_MS_ANPHR_sing_BS

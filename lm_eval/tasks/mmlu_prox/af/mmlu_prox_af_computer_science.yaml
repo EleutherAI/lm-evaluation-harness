@@ -1,0 +1,9 @@
+description: 'Hier is ''n multikeusevraag oor Rekenaarwetenskap (met antwoorde). Dink
+  asseblief stap vir stap en eindig jou antwoord met "Die antwoord is (X)", waar X
+  die letter van die korrekte opsie is.
+
+  '
+include: _af_template_yaml
+task: mmlu_prox_af_computer_science
+task_alias: computer_science
+process_docs: !function utils.process_computer_science

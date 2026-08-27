@@ -1,0 +1,30 @@
+tag:
+- libra
+task: matreshka_yes_no
+task_alias: MatreshkaYesNo
+dataset_name: matreshka_yes_no
+dataset_kwargs:
+  dataset_name: matreshka_yes_no
+include: _template_yaml
+doc_to_text: 'Тебе предоставляются несколько диалогов. Запомни названия тем, на которые
+  говорили собеседники.
+
+  {{context}}
+
+  В ответе тебе нужно указать только ''Да'', если такая тема была, и ''Нет'', если
+  такой темы не было в диалогах.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 4
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

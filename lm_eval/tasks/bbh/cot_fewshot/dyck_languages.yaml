@@ -13,9 +13,7 @@ fewshot_config:
   samples:
   - input: 'Complete the rest of the sequence, making sure that the parentheses are
       closed properly. Input: [ { ['
-    target: 'Let''s think step by step.
-
-      We should process each input one by one and keep track of the stack configuration.
+    target: 'We should process each input one by one and keep track of the stack configuration.
 
       0: empty stack
 
@@ -32,9 +30,7 @@ fewshot_config:
       So, we need "]", "}", "]". So the answer is ] } ].'
   - input: 'Complete the rest of the sequence, making sure that the parentheses are
       closed properly. Input: < > ( ( [ [ ( { } ) [ < > ] ]'
-    target: 'Let''s think step by step.
-
-      We should process each input one by one and keep track of the stack configuration.
+    target: 'We should process each input one by one and keep track of the stack configuration.
 
       0: empty stack
 
@@ -76,9 +72,7 @@ fewshot_config:
   - input: 'Complete the rest of the sequence, making sure that the parentheses are
       closed properly. Input: < [ < [ { < [ ] < { } > > } ] > { { ( ) } { < [ < >
       ] > }'
-    target: 'Let''s think step by step.
-
-      We should process each input one by one and keep track of the stack configuration.
+    target: 'We should process each input one by one and keep track of the stack configuration.
 
       0: empty stack
 

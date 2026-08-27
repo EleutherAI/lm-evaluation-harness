@@ -14,9 +14,7 @@ fewshot_config:
   - input: 'Question: Fidel tells the truth. Jerry says Fidel tells the truth. Vina
       says Jerry tells the truth. Millicent says Vina lies. Raymond says Millicent
       lies. Does Raymond tell the truth?'
-    target: 'Let''s think step by step.
-
-      (1) Fidel tells the truth. So, we know that Fidel tells the truth.
+    target: '(1) Fidel tells the truth. So, we know that Fidel tells the truth.
 
       (2) Jerry says Fidel tells the truth. Since we know from (1) that Fidel tells
       the truth, if Jerry says that Fidel tells the truth, then Jerry tells the truth.
@@ -35,9 +33,7 @@ fewshot_config:
   - input: 'Question: Kristian lies. Millie says Kristian lies. Maybelle says Millie
       tells the truth. Fidel says Maybelle lies. Leda says Fidel lies. Does Leda tell
       the truth?'
-    target: 'Let''s think step by step.
-
-      (1) Kristian lies. So, we know that Kristian lies.
+    target: '(1) Kristian lies. So, we know that Kristian lies.
 
       (2) Millie says Kristian lies. Since we know from (1) that Kristian lies, if
       Millie says Kristian lies, then Millie tells the truth.
@@ -57,9 +53,7 @@ fewshot_config:
   - input: 'Question: Kristian tells the truth. Michaela says Kristian lies. Raymond
       says Michaela tells the truth. Osvaldo says Raymond tells the truth. Jamey says
       Osvaldo tells the truth. Does Jamey tell the truth?'
-    target: 'Let''s think step by step.
-
-      (1) Kristian tells the truth. So, we know that Kristian tells the truth.
+    target: '(1) Kristian tells the truth. So, we know that Kristian tells the truth.
 
       (2) Michaela says Kristian lies. Since we know from (1) that Kristian tells
       the truth, if Michaela says Kristian lies, then Michaela lies.

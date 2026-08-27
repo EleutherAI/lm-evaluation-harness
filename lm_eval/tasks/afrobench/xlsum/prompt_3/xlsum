@@ -4,8 +4,6 @@ tag:
 task: null
 dataset_path: csebuetnlp/xlsum
 dataset_name: null
-dataset_kwargs:
-  trust_remote_code: true
 output_type: generate_until
 generation_kwargs:
   until:

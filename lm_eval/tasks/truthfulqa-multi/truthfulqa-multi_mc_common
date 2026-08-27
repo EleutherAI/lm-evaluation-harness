@@ -1,0 +1,21 @@
+tag:
+  - truthfulqa-multi
+dataset_path: HiTZ/truthfulqa-multi
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: null
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+doc_to_target: 0
+doc_to_choice: "{{mc1_targets.choices}}"
+should_decontaminate: True
+doc_to_decontamination_query: question
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 2.0
+doc_to_text: "{{'Q: ' + question + '\nA:'}}"

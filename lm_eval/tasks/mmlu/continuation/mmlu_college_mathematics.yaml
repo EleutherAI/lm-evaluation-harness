@@ -1,6 +1,6 @@
 "dataset_name": "college_mathematics"
 "description": "The following are questions (with answers) about college\
   \ mathematics.\n\n"
-"tag": "mmlu_continuation_stem"
+"tag": "mmlu_stem_continuation"
 "include": "_continuation_template_yaml"
-"task": "mmlu_continuation_college_mathematics"
+"task": "mmlu_college_mathematics_continuation"

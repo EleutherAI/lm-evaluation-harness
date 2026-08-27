@@ -29,39 +29,37 @@ generation_kwargs:
 process_results: !function utils_mmlu_pro.option_order_robustness_process_results
 metric_list:
   - metric: per_option_macro_accuracy_A
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_a
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_a
     higher_is_better: true
   - metric: per_option_macro_accuracy_B
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_b
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_b
     higher_is_better: true
   - metric: per_option_macro_accuracy_C
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_c
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_c
     higher_is_better: true
   - metric: per_option_macro_accuracy_D
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_d
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_d
     higher_is_better: true
   - metric: per_option_macro_accuracy_E
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_e
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_e
     higher_is_better: true
   - metric: per_option_macro_accuracy_F
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_f
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_f
     higher_is_better: true
   - metric: per_option_macro_accuracy_G
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_g
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_g
     higher_is_better: true
   - metric: per_option_macro_accuracy_H
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_h
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_h
     higher_is_better: true
   - metric: per_option_macro_accuracy_I
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_i
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_i
     higher_is_better: true
   - metric: per_option_macro_accuracy_J
-    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_j
+    aggregation: !function utils_mmlu_pro.per_option_macro_accuracy_j
     higher_is_better: true
   - metric: options_consistency_rate
-    aggregation:  !function utils_mmlu_pro.options_consistency_rate
+    aggregation: !function utils_mmlu_pro.options_consistency_rate
     higher_is_better: true
 metadata:
   version: 1.0
-dataset_kwargs:
-  trust_remote_code: true

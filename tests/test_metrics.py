@@ -1,4 +1,8 @@
-from lm_eval.api.task import ConfigurableTask, TaskConfig
+import unittest.mock as mock
+
+from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
+from lm_eval.api.task import ConfigurableTask
+from lm_eval.config.task import TaskConfig
 
 
 class MockConfigurableTask(ConfigurableTask):
@@ -149,8 +153,71 @@ def test_acc_mutual_info_without_metric():
     assert result_dict["acc"] == 1.0
 
 
+def test_bootstrap_internal_no_mp():
+    """Test basic functionality of _bootstrap_internal_no_mp"""
+
+    data = [1, 2, 3, 4, 5]
+
+    # Mock tqdm to avoid progress bar output during testing
+    with mock.patch("tqdm.tqdm") as mock_tqdm:
+        mock_tqdm.return_value = range(1)  # Single chunk
+
+        # Mock print to avoid output during testing
+        with mock.patch("builtins.print"):
+            result = _bootstrap_internal_no_mp(mean, data, 100)
+
+    # Should return 100 bootstrap replicates
+    assert len(result) == 100
+
+    # All results should be numbers (means)
+    assert all(isinstance(x, (int, float)) for x in result)
+
+    # Bootstrap means should be close to original mean
+    bootstrap_mean = mean(result)
+    original_mean = mean(data)
+    assert abs(bootstrap_mean - original_mean) < 0.5  # Should be reasonably close
+
+
+def test_dict_metric_uses_custom_aggregation():
+    """Regression test for #3314: dict-valued metrics must use the custom
+    aggregation function, not silently fall back to mean()."""
+    from collections import defaultdict
+
+    from lm_eval.evaluator_utils import _compute_task_aggregations
+
+    def pass_at_k(references, predictions):
+        return {"pass@1": 1.0, "pass@3": 0.5}
+
+    def custom_sum(arr):
+        return sum(arr)
+
+    task = MockConfigurableTask()
+    task.OUTPUT_TYPE = "generate_until"
+    task.multiple_target = 0
+    task._metric_fn_list = {"pass_at_k": pass_at_k}
+    task._metric_fn_kwargs = {"pass_at_k": {}}
+    task._aggregation_list = {"pass_at_k": custom_sum}
+    task._higher_is_better = {"pass_at_k": True}
+
+    # Simulate evaluating 3 docs
+    raw_metrics = defaultdict(list)
+    for _ in range(3):
+        result_dict = task.process_results({"target": "hello"}, ["hello"])
+        for key, value in result_dict.items():
+            raw_metrics[(key, "none")].append(value)
+
+    agg_metrics, _ = _compute_task_aggregations(task, raw_metrics, bootstrap_iters=0)
+
+    # If fix works: sum([1.0, 1.0, 1.0]) = 3.0; if broken (mean fallback): 1.0
+    assert agg_metrics["pass@1,none"] == 3.0
+    # sum([0.5, 0.5, 0.5]) = 1.5; if broken: 0.5
+    assert agg_metrics["pass@3,none"] == 1.5
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()
     test_acc_mutual_info_without_metric()
+    test_bootstrap_internal_no_mp()
+    test_dict_metric_uses_custom_aggregation()
     print("All tests passed!")

@@ -1,0 +1,4 @@
+include: _default_click_cul_yaml
+process_docs: !function utils.extract_history
+task: click_cul_history
+tag: click_cul_tasks

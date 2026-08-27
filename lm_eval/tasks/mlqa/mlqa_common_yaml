@@ -1,7 +1,5 @@
 dataset_path: facebook/mlqa
 tag: mlqa
-dataset_kwargs:
-  trust_remote_code: true
 test_split: test
 validation_split: validation
 output_type: generate_until
@@ -20,4 +18,4 @@ generation_kwargs:
     - "\n"
   do_sample: false
 metadata:
-  version: 0.0
+  version: 0.1

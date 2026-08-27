@@ -1,0 +1,9 @@
+description: 'Ниже приведен вопрос с множественным выбором о Инженерия (с ответами).
+  Пожалуйста, размышляйте шаг за шагом, а затем завершите свой ответ с "Ответ - (X)",
+  где X - это буква правильного варианта.
+
+  '
+include: _ru_template_yaml
+task: mmlu_prox_ru_engineering
+task_alias: engineering
+process_docs: !function utils.process_engineering

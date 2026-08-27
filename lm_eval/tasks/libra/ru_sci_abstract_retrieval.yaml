@@ -1,0 +1,30 @@
+tag:
+- libra
+task: ru_sci_abstract_retrieval
+task_alias: ruSciAbstractRetrieval
+dataset_name: ru_sci_abstract_retrieval
+dataset_kwargs:
+  dataset_name: ru_sci_abstract_retrieval
+include: _template_yaml
+doc_to_text: 'Ниже приведены несколько параграфов. Определи какому параграфу соответствует
+  краткое описание.
+
+  {{context}}
+
+  Определи какому параграфу соответствует краткое описание. Ответ должен содержать
+  номер параграфа.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 32
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

@@ -14,28 +14,51 @@ language_word_to_abbr = {
     "German": "de",
     "Spanish": "es",
     "Portuguese": "pt",
+    "Zulu": "zu",
     "Swahili": "sw",
+    "Wolof": "wo",
+    "Yoruba": "yo",
     "Thai": "th",
     "Arabic": "ar",
     "Hindi": "hi",
     "Bengali": "bn",
+    "Marathi": "mr",
+    "Afrikaans": "af",
+    "Nepali": "ne",
+    "Telugu": "te",
+    "Urdu": "ur",
+    "Russian": "ru",
+    "Indonesian": "id",
+    "Czech": "cs",
+    "Hungarian": "hu",
+    "Italian": "it",
+    "Serbian": "sr",
+    "Ukrainian": "uk",
+    "Vietnamese": "vi",
 }
 
 language_abbr_to_word = {v: k for k, v in language_word_to_abbr.items()}
 
 
+CURRENT_DIR = os.path.dirname(__file__)
+
 if __name__ == "__main__":
-    mmlu_pro_config_dir = "../mmlu_pro"
+    mmlu_pro_config_dir = os.path.abspath(f"{CURRENT_DIR}/../mmlu_pro")
     mmlu_prox_repo_id = "li-lab/MMLU-ProX"
 
     for lang_abbr in language_abbr_to_word:
-        os.makedirs(lang_abbr, exist_ok=True)
+        os.makedirs(f"{CURRENT_DIR}/{lang_abbr}", exist_ok=True)
         lang_lib_list = LANG_LIBS[lang_abbr]
         lang_sbj_dict = LANG_SUBJECTS[lang_abbr]
 
+        que_desc = lang_lib_list[3]
+
         with (
-            open("template/_lang_template_yaml", "r") as reader,
-            open(f"{lang_abbr}/_{lang_abbr}_template_yaml", "w") as writer,
+            open(f"{CURRENT_DIR}/template/_lang_template_yaml", "r") as reader,
+            open(
+                f"{CURRENT_DIR}/{lang_abbr}/_{lang_abbr}_template_yaml",
+                "w",
+            ) as writer,
         ):
             for line in reader.readlines():
                 if "{repo_id}" in line:
@@ -44,7 +67,7 @@ if __name__ == "__main__":
                     line = line.format(lang=lang_abbr)
                 if "{ans_regex}" in line:
                     ans_regex = lang_lib_list[-1].replace(
-                        "({})", "\(?([ABCDEFGHIJ])\)?"
+                        "({})", r"\(?([ABCDEFGHIJ])\)?"
                     )
                     if lang_abbr == "en":
                         ans_regex = ans_regex.lstrip("the").strip()
@@ -53,7 +76,10 @@ if __name__ == "__main__":
                     line = line.format(que_prefix=lang_lib_list[0])
                 writer.write(line)
 
-        shutil.copy("template/utils.py", f"{lang_abbr}/utils.py")
+        shutil.copy(
+            f"{CURRENT_DIR}/template/utils.py",
+            f"{CURRENT_DIR}/{lang_abbr}/utils.py",
+        )
 
         group_name = f"mmlu_prox_{lang_abbr}"
         group_dict = dict(
@@ -69,7 +95,11 @@ if __name__ == "__main__":
             ],
             metadata=dict(version=0.0),
         )
-        with open(f"{lang_abbr}/_{group_name}.yaml", "w", encoding="utf-8") as f:
+        with open(
+            f"{CURRENT_DIR}/{lang_abbr}/_{group_name}.yaml",
+            "w",
+            encoding="utf-8",
+        ) as f:
             yaml.dump(
                 group_dict,
                 f,
@@ -88,16 +118,20 @@ if __name__ == "__main__":
                         sbj_yaml_last_line = line.strip()
 
             sbj_dict = dict(
-                description=lang_lib_list[3].format(
-                    subject=lang_sbj_dict[sbj], ans_suffix=lang_lib_list[5].format("X")
+                description=que_desc.format(
+                    subject=lang_sbj_dict[sbj],
+                    ans_suffix=lang_lib_list[5].format("X"),
                 )
                 + "\n",
                 include=f"_{lang_abbr}_template_yaml",
                 task=f"{group_name}_{sbj}",
                 task_alias=sbj,
             )
+
             with open(
-                f"{lang_abbr}/{group_name}_{sbj}.yaml", "w", encoding="utf-8"
+                f"{CURRENT_DIR}/{lang_abbr}/{group_name}_{sbj}.yaml",
+                "w",
+                encoding="utf-8",
             ) as f:
                 yaml.dump(
                     sbj_dict,
@@ -107,7 +141,9 @@ if __name__ == "__main__":
                     sort_keys=False,
                 )
             with open(
-                f"{lang_abbr}/{group_name}_{sbj}.yaml", "a", encoding="utf-8"
+                f"{CURRENT_DIR}/{lang_abbr}/{group_name}_{sbj}.yaml",
+                "a",
+                encoding="utf-8",
             ) as f:
                 f.write(sbj_yaml_last_line + "\n")
 

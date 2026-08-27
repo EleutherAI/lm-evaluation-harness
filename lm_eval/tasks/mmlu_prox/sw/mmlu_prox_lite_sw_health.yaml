@@ -1,0 +1,9 @@
+description: 'Yafuatayo ni maswali ya chaguo-nyingi (yenye majibu) kuhusu afya. Fikiria
+  hatua kwa hatua kisha malizia jibu lako kwa "Jibu ni (X)" ambapo X ni herufi ya
+  chaguo sahihi.
+
+  '
+include: _sw_lite_template_yaml
+task: mmlu_prox_lite_sw_health
+task_alias: health
+process_docs: !function utils.process_health

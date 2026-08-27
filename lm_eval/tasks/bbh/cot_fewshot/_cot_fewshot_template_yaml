@@ -2,6 +2,7 @@ dataset_path: SaylorTwift/bbh
 output_type: generate_until
 test_split: test
 doc_to_target: "{{target}}"
+target_delimiter: ""
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -24,4 +25,4 @@ filter_list:
       - function: "take_first"
 num_fewshot: 3
 metadata:
-  version: 3.0
+  version: 4.0

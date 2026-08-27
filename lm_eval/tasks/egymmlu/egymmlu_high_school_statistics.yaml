@@ -1,0 +1,7 @@
+"dataset_name": "high_school_statistics"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_stem_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_high_school_statistics"
+"task_alias": "high school statistics"

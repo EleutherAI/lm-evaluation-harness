@@ -1,0 +1,25 @@
+dataset_path: "amias-mx/mmlu-redux-2.0-spanish"
+test_split: test
+dataset_kwargs:
+  trust_remote_code: true
+output_type: generate_until
+doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nPor favor, responde con la letra correcta (A, B, C o D) sin absolutamente nada adicional, solo la letra correcta:"
+doc_to_target: "{{['A','B','C','D'][answer]}}"
+target_delimiter: ":"
+generation_kwargs:
+  until:
+    - "</s>"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+filter_list:
+  - name: default
+    filter:
+      - function: regex
+        regex_pattern: "([ABCD])"
+      - function: take_first
+metadata:
+  version: 3.0

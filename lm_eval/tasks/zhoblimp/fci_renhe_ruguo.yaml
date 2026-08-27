@@ -1,0 +1,3 @@
+dataset_name: fci_renhe_ruguo
+include: _template_yaml
+task: zhoblimp_fci_renhe_ruguo

@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_typographical_errors
+include: toksuite_stem_base.yaml
+task: toksuite_stem_typographical_errors
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: Typographical errors
+  num_samples: 38

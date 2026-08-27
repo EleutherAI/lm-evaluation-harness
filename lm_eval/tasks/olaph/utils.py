@@ -12,7 +12,9 @@ try:
 
 except (ModuleNotFoundError, ImportError):
     raise ModuleNotFoundError(
-        "Please install evaluation metrics via pip install evaluate and pip install bert-score",
+        "Please install evaluation metrics via pip install evaluate bert-score "
+        "rouge_score>=0.1.2 nltk absl-py "
+        "git+https://github.com/google-research/bleurt.git"
     )
 except Exception as e:
     raise RuntimeError(

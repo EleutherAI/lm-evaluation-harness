@@ -1,0 +1,9 @@
+description: 'Ecco una domanda a scelta multipla su storia (con risposta). Si prega
+  di ragionare passo dopo passo e terminare la risposta con "La risposta è (X)", dove
+  X è la lettera dell''opzione corretta.
+
+  '
+include: _it_lite_template_yaml
+task: mmlu_prox_lite_it_history
+task_alias: history
+process_docs: !function utils.process_history

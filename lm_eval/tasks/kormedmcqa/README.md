@@ -34,6 +34,9 @@ Homepage: https://huggingface.co/datasets/sean0042/KorMedMCQA
 * `kormedmcqa_pharm`: `Official Korean Pharmacist Examination`
 * `kormedmcqa_dentist`: `Official Korean Dentist Examination`
 
+### Changelog
+- v3.0: added the answer-extraction filter from Appendix B of the paper, so verbose generations (e.g. `정답: B`) are scored on the extracted option letter instead of the raw text. Expect higher scores for models that do not answer with a bare letter.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:

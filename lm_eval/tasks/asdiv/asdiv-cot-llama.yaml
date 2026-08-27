@@ -41,41 +41,41 @@ fewshot_config:
     target: Olivia had 23 dollars. 5 bagels for 3 dollars each will be 5 x 3 = 15
       dollars. So she has 23 - 15 dollars left. 23 - 15 is 8. The final answer is 8
 filter_list:
-- filter:
-  - function: regex
-    group_select: -1
-    regex_pattern: The final answer is ((-?[$0-9.,]{2,})|(-?[0-9]+))
-  - function: take_first
-  name: strict-match
-- filter:
-  - function: regex
-    group_select: -1
-    regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
-  - function: take_first
-  name: flexible-extract
+  - filter:
+      - function: regex
+        group_select: -1
+        regex_pattern: The final answer is ((-?[$0-9.,]{2,})|(-?[0-9]+))
+      - function: take_first
+    name: strict-match
+  - filter:
+      - function: regex
+        group_select: -1
+        regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
+      - function: take_first
+    name: flexible-extract
 generation_kwargs:
   do_sample: false
   until:
-  - '<|eot_id|>'
-  - '<|start_header_id|>user<|end_header_id|>'
-  - 'Q:'
-  - </s>
-  - <|im_end|>
+    - '<|eot_id|>'
+    - '<|start_header_id|>user<|end_header_id|>'
+    - 'Q:'
+    - </s>
+    - <|im_end|>
 tag:
-- chain_of_thought
+  - chain_of_thought
 metadata:
   version: 1.0
 metric_list:
-- aggregation: mean
-  higher_is_better: true
-  ignore_case: true
-  ignore_punctuation: false
-  metric: exact_match
-  regexes_to_ignore:
-  - ','
-  - \$
-  - '(?s).*#### '
-  - \.$
+  - aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: false
+    metric: exact_match
+    regexes_to_ignore:
+      - ','
+      - \$
+      - '(?s).*#### '
+      - \.$
 num_fewshot: 8
 output_type: generate_until
 repeats: 1
@@ -84,5 +84,3 @@ validation_split: validation
 test_split: validation
 should_decontaminate: true
 doc_to_decontamination_query: "{{body}} {{question}}"
-dataset_kwargs:
-  trust_remote_code: true

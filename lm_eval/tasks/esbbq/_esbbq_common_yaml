@@ -1,0 +1,25 @@
+dataset_path: BSC-LT/EsBBQ
+dataset_name: null
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: test
+doc_to_text: "Contexto: {{context}}\nPregunta: {{question}}\nRespuesta:"
+doc_to_target: label
+doc_to_choice: "{{[ans0, ans1, 'No hay suficiente información', 'No hay información suficiente', 'No lo sé', 'No sé', 'Falta información', 'No se puede responder', 'No se sabe', 'No se puede saber', 'No se puede determinar']}}"
+process_results: !function utils.process_results
+metric_list:
+  - metric: acc_ambig
+    aggregation: !function utils.acc_ambig_agg
+    higher_is_better: true
+  - metric: acc_disambig
+    aggregation: !function utils.acc_disambig_agg
+    higher_is_better: true
+  - metric: bias_score_ambig
+    aggregation: !function utils.bias_score_ambig_agg
+    higher_is_better: false
+  - metric: bias_score_disambig
+    aggregation: !function utils.bias_score_disambig_agg
+    higher_is_better: false
+metadata:
+  version: 1.0

@@ -1,6 +1,6 @@
 tag: glue
 task: qqp
-dataset_path: glue
+dataset_path: nyu-mll/glue
 dataset_name: qqp
 output_type: multiple_choice
 training_split: train
