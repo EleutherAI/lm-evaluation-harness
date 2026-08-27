@@ -207,6 +207,43 @@ class TestRunCommand:
         )
         assert args.model_args == {"pretrained": "gpt2", "device": "cuda"}
 
+    def test_run_command_metadata(self):
+        """Test Run command metadata parsing accepts key=value and JSON."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        # key=value format, with a bracketed value containing commas
+        args = parser.parse_args(
+            ["run", "--metadata", "tokenizer=gpt2,max_seq_lengths=[4096,8192]"]
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096, 8192]}
+
+        # space-separated key=value pairs
+        args = parser.parse_args(
+            ["run", "--metadata", "tokenizer=gpt2", "max_seq_lengths=[4096]"]
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096]}
+
+        # JSON object remains supported
+        args = parser.parse_args(
+            ["run", "--metadata", '{"tokenizer": "gpt2", "max_seq_lengths": [4096]}']
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096]}
+
+        # unset stays None so config defaults apply
+        args = parser.parse_args(["run", "--tasks", "ruler"])
+        assert args.metadata is None
+
+    def test_run_command_metadata_invalid(self):
+        """Test Run command exits cleanly on metadata missing an `=`."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        with pytest.raises(SystemExit):
+            parser.parse_args(["run", "--metadata", "tokenizer"])
+
     def test_run_command_batch_size(self):
         """Test Run command batch size arguments."""
         parser = argparse.ArgumentParser()
