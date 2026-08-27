@@ -65,8 +65,7 @@ def load_from_cache(file_name: str, cache: bool = False):
 
 
 def save_to_cache(file_name, obj):
-    if not os.path.exists(PATH):
-        os.mkdir(PATH)
+    os.makedirs(PATH, exist_ok=True)
 
     file_path = _cache_file_path(file_name)
 
