@@ -674,6 +674,7 @@ class ConfigurableTask(Task):
 
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
+        self._custom_metric_names = set()
         self._aggregation_list = {}
         self._higher_is_better = {}
 
@@ -712,6 +713,7 @@ class ConfigurableTask(Task):
                 elif callable(metric_name):
                     metric_fn = metric_name.__call__
                     metric_name = metric_name.__name__
+                    self._custom_metric_names.add(metric_name)
                     self._metric_fn_list[metric_name] = metric_fn
                     self._metric_fn_kwargs[metric_name] = kwargs
                 else:
@@ -1603,7 +1605,13 @@ class ConfigurableTask(Task):
                         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
                         # print(gold)
                         gold = [gold]
-                    if metric == "exact_match":
+                    if metric in getattr(self, "_custom_metric_names", set()):
+                        result_score = self._metric_fn_list[metric](
+                            references=gold,
+                            predictions=[result],
+                            **self._metric_fn_kwargs[metric],
+                        )
+                    elif metric == "exact_match":
                         result = [result for _ in range(len(gold))]
                         scores = self._metric_fn_list[metric](
                             references=gold,
