@@ -1,0 +1,10 @@
+group: mmmlu_id_id_stem
+group_alias: "Indonesian stem"
+task:
+  - mmmlu_id_id_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

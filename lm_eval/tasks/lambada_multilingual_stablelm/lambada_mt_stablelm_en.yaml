@@ -1,6 +1,6 @@
 tag: lambada_multilingual_stablelm
 task: lambada_openai_mt_stablelm_en
-dataset_path: marcob/lambada_multilingual
+dataset_path: EleutherAI/lambada_multilingual_stablelm
 dataset_name: en
 output_type: loglikelihood
 test_split: test

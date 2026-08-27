@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ID_ID"
+process_docs: !function utils.process_college_mathematics
+"tag": "mmmlu_id_id_stem_tasks"
+"task": "mmmlu_id_id_college_mathematics"
+"task_alias": "college mathematics (Indonesian)"
+"description": "The following are multiple choice questions (with answers) about college mathematics (Indonesian).\n\n"

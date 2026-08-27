@@ -1,4 +1,4 @@
-dataset_path: "edinburgh-dawg/mmlu-redux-2.0"
+dataset_path: "fxmarty/mmlu-redux-2.0-ok"
 test_split: test
 dataset_kwargs:
   trust_remote_code: true
@@ -29,4 +29,4 @@ filter_list:
       - function: take_first
 
 metadata:
-  version: 3.0
+  version: 4.0

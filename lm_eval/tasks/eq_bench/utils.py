@@ -1,9 +1,10 @@
+import ast
 import math
 import re
 
 
 def calculate_score_fullscale(docs, results):
-    reference = eval(docs["reference_answer_fullscale"])
+    reference = ast.literal_eval(docs["reference_answer_fullscale"])
     user = dict(re.findall(r"(\w+):\s+(\d+)", results[0]))
     # First check that the emotions specified in the answer match those in the reference
     if len(user.items()) != 4:
@@ -11,7 +12,7 @@ def calculate_score_fullscale(docs, results):
         # print(user)
         return {"eqbench": 0, "percent_parseable": 0}
     emotions_dict = {}
-    for emotion, user_emotion_score in user.items():
+    for emotion, _user_emotion_score in user.items():
         for i in range(1, 5):
             if emotion == reference[f"emotion{i}"]:
                 emotions_dict[emotion] = True

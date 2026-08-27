@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_global_facts
+"tag": "mmmlu_bn_bd_other_tasks"
+"task": "mmmlu_bn_bd_global_facts"
+"task_alias": "global facts (Bengali)"
+"description": "The following are multiple choice questions (with answers) about global facts (Bengali).\n\n"

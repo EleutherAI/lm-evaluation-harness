@@ -1,14 +1,14 @@
+import ast
 import re
 
 import datasets
-import numpy as np
 
 
 def process_docs(dataset: datasets.Dataset):
     def _process_doc(doc):
-        ctx = re.sub(r"\[.*?\]", "", doc["ctx"])  # Remove latin words within brackets
+        ctx = re.sub(r"\[.*?]", "", doc["ctx"])  # Remove latin words within brackets
         endings = [
-            re.sub(r"\[.*?\]", "", e) for e in eval(doc["endings"])
+            re.sub(r"\[.*?]", "", e) for e in ast.literal_eval(doc["endings"])
         ]  # endings is a string representation of a list
         answer_index = doc["label"]
         instruction = (

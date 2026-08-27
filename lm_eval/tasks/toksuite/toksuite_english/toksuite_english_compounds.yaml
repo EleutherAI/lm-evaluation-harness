@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_compounds
+include: toksuite_english_base.yaml
+task: toksuite_english_compounds
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Compounds
+  num_samples: 42

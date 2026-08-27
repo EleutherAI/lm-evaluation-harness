@@ -4,7 +4,7 @@ include:
   - doda_common_yaml
 "tag":
 - "darija_translation_tasks_doda"
-"task": "trasnlation_msa_dr_doda"
+"task": "translation_msa_dr_doda"
 "task_alias": "msa_dr_doda"
 metric_list:
   - metric: !function utils.bert

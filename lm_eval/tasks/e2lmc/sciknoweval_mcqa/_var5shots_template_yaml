@@ -1,0 +1,14 @@
+dataset_path: ShAIkespear/SciKnowEval_mcqa
+output_type: multiple_choice
+test_split: test
+fewshot_split: dev
+num_fewshot: 5
+fewshot_config:
+  sampler: first_n
+doc_to_text: "Question: {{question.strip()}}\nAnswer:"
+doc_to_choice: "{{choices}}"
+doc_to_target: "{{answer}}"
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true

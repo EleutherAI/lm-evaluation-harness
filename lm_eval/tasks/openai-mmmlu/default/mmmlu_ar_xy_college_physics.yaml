@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_college_physics
+"tag": "mmmlu_ar_xy_stem_tasks"
+"task": "mmmlu_ar_xy_college_physics"
+"task_alias": "college physics (Arabic)"
+"description": "The following are multiple choice questions (with answers) about college physics (Arabic).\n\n"

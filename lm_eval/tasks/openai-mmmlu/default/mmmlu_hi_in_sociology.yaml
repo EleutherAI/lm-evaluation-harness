@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_sociology
+"tag": "mmmlu_hi_in_social_sciences_tasks"
+"task": "mmmlu_hi_in_sociology"
+"task_alias": "sociology (Hindi)"
+"description": "The following are multiple choice questions (with answers) about sociology (Hindi).\n\n"

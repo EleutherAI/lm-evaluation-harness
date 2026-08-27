@@ -13,6 +13,6 @@ doc_to_text: "You are tasked with performing topic classification on the followi
   \ related topics. \n\nIf the text contains multiple topics, choose the dominant\
   \ topic. For ambiguous or unclear topics, select the category that best reflects\
   \ the overall content. Please provide a single classification for each input.\n\n\
-  text: {{headline_text}} \\category: \n\n"
+  text: {{headline}} \\category: \n\n"
 include: masakhanews
 task: masakhanews_fra_prompt_5

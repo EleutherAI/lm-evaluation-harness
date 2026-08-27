@@ -1,4 +1,4 @@
-from typing import List
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -7,6 +7,32 @@ from lm_eval.api.instance import Instance
 
 
 task_manager = tasks.TaskManager()
+
+
+class TestVLLMValidation:
+    """Tests for VLLM constructor validation."""
+
+    vllm = pytest.importorskip("vllm")
+
+    def test_data_parallel_with_expert_parallel_raises(self):
+        """data_parallel_size > 1 with enable_expert_parallel=True must raise."""
+        from lm_eval.models.vllm_causallms import VLLM
+
+        with (
+            patch.multiple(
+                "lm_eval.models.vllm_causallms",
+                find_spec=lambda name: None if name == "ray" else MagicMock(),
+                LLM=MagicMock(),
+                get_tokenizer=MagicMock(return_value=MagicMock()),
+            ),
+            patch("transformers.AutoConfig.from_pretrained", MagicMock()),
+            pytest.raises(ValueError, match=r"data_parallel_size > 1.*expert_parallel"),
+        ):
+            VLLM(
+                pretrained="mock-model",
+                data_parallel_size=2,
+                enable_expert_parallel=True,
+            )
 
 
 @pytest.mark.skip(reason="requires CUDA")
@@ -19,17 +45,17 @@ class Test_VLLM:
     except ModuleNotFoundError:
         pass
     # torch.use_deterministic_algorithms(True)
-    task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
+    task_list = task_manager.load(["arc_easy", "gsm8k", "wikitext"])["tasks"]
     multiple_choice_task = task_list["arc_easy"]  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
-    MULTIPLE_CH: List[Instance] = multiple_choice_task.instances
+    MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
     generate_until_task = task_list["gsm8k"]  # type: ignore
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
     generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
-    generate_until: List[Instance] = generate_until_task.instances
+    generate_until: list[Instance] = generate_until_task.instances
     rolling_task = task_list["wikitext"]  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
-    ROLLING: List[Instance] = rolling_task.instances
+    ROLLING: list[Instance] = rolling_task.instances
 
     # TODO: make proper tests
     def test_logliklihood(self) -> None:
@@ -48,3 +74,10 @@ class Test_VLLM:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
         for x in res:
             assert isinstance(x, float)
+
+    def test_loglikelihood_rejects_enable_thinking(self) -> None:
+        with patch.object(self.LM, "enable_thinking", True):
+            with pytest.raises(ValueError) as exc_info:
+                self.LM.loglikelihood(self.MULTIPLE_CH)
+            assert "arc_easy" in str(exc_info.value)
+            assert "enable_thinking=True" in str(exc_info.value)

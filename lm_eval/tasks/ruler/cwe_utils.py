@@ -91,7 +91,6 @@ def sys_word_pair_random(
 ):
     assert tokenizer is not None, "Tokenizer is not provided."
     write_jsons = []
-    tokens_to_generate = tokens_to_generate
 
     # Find the perfect num_words
     num_words = incremental

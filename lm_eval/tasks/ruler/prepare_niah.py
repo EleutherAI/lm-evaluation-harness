@@ -197,8 +197,6 @@ def generate_input_output(
         else queries[0]
     )
 
-    template = template
-    type_needle_v = type_needle_v
     if num_needle_q * num_needle_v == 1:
         template = template.replace("Some", "A")
         template = template.replace("are all", "is")

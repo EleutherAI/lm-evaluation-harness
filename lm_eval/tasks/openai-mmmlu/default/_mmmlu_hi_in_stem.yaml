@@ -1,0 +1,10 @@
+group: mmmlu_hi_in_stem
+group_alias: "Hindi stem"
+task:
+  - mmmlu_hi_in_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

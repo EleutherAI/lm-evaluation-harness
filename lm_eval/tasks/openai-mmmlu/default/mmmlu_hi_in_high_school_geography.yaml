@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_high_school_geography
+"tag": "mmmlu_hi_in_social_sciences_tasks"
+"task": "mmmlu_hi_in_high_school_geography"
+"task_alias": "high school geography (Hindi)"
+"description": "The following are multiple choice questions (with answers) about high school geography (Hindi).\n\n"

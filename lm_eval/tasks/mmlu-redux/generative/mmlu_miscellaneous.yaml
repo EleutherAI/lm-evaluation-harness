@@ -1,7 +1,7 @@
 "dataset_name": "miscellaneous"
 "description": "The following are multiple choice questions (with answers) about miscellaneous.\n\
   \n"
-"tag": "mmlu_other_generative"
+"tag": "mmlu_redux_other_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_miscellaneous_generative"
+"task": "mmlu_redux_miscellaneous_generative"
 "task_alias": "miscellaneous"

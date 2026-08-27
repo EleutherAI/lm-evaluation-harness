@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ID_ID"
+process_docs: !function utils.process_computer_security
+"tag": "mmmlu_id_id_stem_tasks"
+"task": "mmmlu_id_id_computer_security"
+"task_alias": "computer security (Indonesian)"
+"description": "The following are multiple choice questions (with answers) about computer security (Indonesian).\n\n"

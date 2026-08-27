@@ -1,0 +1,15 @@
+group: mmmlu_de_de
+group_alias: "German"
+task:
+  - mmmlu_de_de_stem
+  - mmmlu_de_de_other
+  - mmmlu_de_de_social_sciences
+  - mmmlu_de_de_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

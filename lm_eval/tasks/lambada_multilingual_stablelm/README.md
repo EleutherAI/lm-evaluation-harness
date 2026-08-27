@@ -40,7 +40,7 @@ Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 
 #### Tasks
 
-* `lambada_mt_stablelm_{en, fr, de, it, es}`: Machine-translated versions of OpenAI's Lambada variant as reported in "Stable LM 2 1.6 B Technical Report" (Bellagente et. al.).
+* `lambada_openai_mt_stablelm_{en, fr, de, it, es}`: Machine-translated versions of OpenAI's Lambada variant as reported in "Stable LM 2 1.6 B Technical Report" (Bellagente et. al.).
 
 ### Checklist
 
