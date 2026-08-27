@@ -40,6 +40,7 @@ EXPECTED_METRIC_DIRECTIONS = {
     "bypass": True,
     "byte_perplexity": False,
     "chrf": True,
+    "chrf++": True,
     "exact_match": True,
     "f1": True,
     "likelihood": True,
