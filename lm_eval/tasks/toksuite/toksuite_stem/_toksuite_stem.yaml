@@ -1,0 +1,31 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+group: toksuite_stem
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+task:
+- toksuite_stem_unusual_formatting
+- toksuite_stem_unicode_formatting
+- toksuite_stem_latex
+- toksuite_stem_superscript_subscript
+- toksuite_stem_character_deletion
+- toksuite_stem_colloquial
+- toksuite_stem_equivalent_expressions
+- toksuite_stem_diacriticized_styling
+- toksuite_stem_enclosed_characters
+- toksuite_stem_upside_down_rotated
+- toksuite_stem_canonical
+- toksuite_stem_scripted_text
+- toksuite_stem_strikethrough
+- toksuite_stem_morpheme_separation
+- toksuite_stem_spelled_out
+- toksuite_stem_space_removal
+- toksuite_stem_fullwidth_characters
+- toksuite_stem_typographical_errors
+- toksuite_stem_double_struck

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_anatomy
+"tag": "mmmlu_hi_in_stem_tasks"
+"task": "mmmlu_hi_in_anatomy"
+"task_alias": "anatomy (Hindi)"
+"description": "The following are multiple choice questions (with answers) about anatomy (Hindi).\n\n"

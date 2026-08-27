@@ -1,0 +1,7 @@
+description: '以下は生物学に関する選択問題（解答付き）です。段階的に考え、最後に「答えは (X) です」と回答を締めくくってください。Xは正解の選択肢を示す文字です。
+
+  '
+include: _ja_lite_template_yaml
+task: mmlu_prox_lite_ja_biology
+task_alias: biology
+process_docs: !function utils.process_biology

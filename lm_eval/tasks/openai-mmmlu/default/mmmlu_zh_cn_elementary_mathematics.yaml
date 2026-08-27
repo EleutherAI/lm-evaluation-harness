@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_elementary_mathematics
+"tag": "mmmlu_zh_cn_stem_tasks"
+"task": "mmmlu_zh_cn_elementary_mathematics"
+"task_alias": "elementary mathematics (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about elementary mathematics (Simplified Chinese).\n\n"

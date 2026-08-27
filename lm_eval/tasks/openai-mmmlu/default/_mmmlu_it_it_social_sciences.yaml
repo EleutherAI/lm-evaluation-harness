@@ -1,0 +1,10 @@
+group: mmmlu_it_it_social_sciences
+group_alias: "Italian social sciences"
+task:
+  - mmmlu_it_it_social_sciences_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

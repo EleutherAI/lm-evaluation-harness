@@ -3,7 +3,7 @@ tag:
   - french_bench
   - french_bench_extra
 description: "La prémisse et l'hypothèse sont elles en accord, neutres en elles, ou en contradiction ?"
-dataset_path: xnli
+dataset_path: facebook/xnli
 dataset_name: fr
 output_type: multiple_choice
 validation_split: validation

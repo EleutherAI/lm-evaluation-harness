@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_computer_security
+"tag": "mmmlu_sw_ke_stem_tasks"
+"task": "mmmlu_sw_ke_computer_security"
+"task_alias": "computer security (Swahili)"
+"description": "The following are multiple choice questions (with answers) about computer security (Swahili).\n\n"

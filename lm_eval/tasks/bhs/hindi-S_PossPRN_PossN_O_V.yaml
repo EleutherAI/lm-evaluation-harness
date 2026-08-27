@@ -1,0 +1,3 @@
+dataset_name: hindi-S_PossPRN_PossN_O_V
+include: _template_yaml
+task: bhs__hindi__S_PossPRN_PossN_O_V

@@ -1,0 +1,7 @@
+dataset_name: toksuite_chinese_ocr_errors
+include: toksuite_chinese_base.yaml
+task: toksuite_chinese_ocr_errors
+metadata:
+  canonical_task: toksuite_chinese_canonical
+  task_pretty_name: OCR Errors
+  num_samples: 40

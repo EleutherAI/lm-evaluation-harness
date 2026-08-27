@@ -1,0 +1,9 @@
+description: 'Berikut adalah pertanyaan pilihan ganda tentang Lainnya (dengan jawaban).
+  Harap berpikir langkah demi langkah, lalu akhiri jawaban Anda dengan "Jawabannya
+  adalah (X)", di mana X adalah huruf pilihan yang benar.
+
+  '
+include: _id_lite_template_yaml
+task: mmlu_prox_lite_id_other
+task_alias: other
+process_docs: !function utils.process_other

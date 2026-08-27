@@ -1,0 +1,3 @@
+include: _cabbq_common_yaml
+task: cabbq_physical_appearance
+dataset_name: PhysicalAppearance

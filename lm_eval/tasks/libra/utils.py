@@ -7,12 +7,12 @@ import datasets
 
 
 try:
-    import pymorphy2
+    import pymorphy3
 
-    normalizer = pymorphy2.MorphAnalyzer()
+    normalizer = pymorphy3.MorphAnalyzer()
 except ImportError:
     print(
-        "Can not import pymorphy2. If you try to score libra, do `pip install pymorphy2`"
+        "Can not import pymorphy3. If you try to score libra, do `pip install pymorphy3`"
     )
 
 

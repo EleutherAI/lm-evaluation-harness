@@ -199,7 +199,11 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
                 without_paren_to_target[next_alpha] = f"({next_alpha})"
 
                 next_alpha = chr(ord(next_alpha) + 1)
-            fallback_regex = re.compile("|".join(fallback_regexes))
+            # Longest-first, so a choice that is a prefix of another cannot shadow it
+            # via leftmost-wins alternation. Mirrors lm_eval/filters/extraction.py.
+            fallback_regex = re.compile(
+                "|".join(sorted(fallback_regexes, key=len, reverse=True))
+            )
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
                 rf":[\s]*({without_paren_fallback_regex})"

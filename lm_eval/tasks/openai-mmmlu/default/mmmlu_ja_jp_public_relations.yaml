@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "JA_JP"
+process_docs: !function utils.process_public_relations
+"tag": "mmmlu_ja_jp_social_sciences_tasks"
+"task": "mmmlu_ja_jp_public_relations"
+"task_alias": "public relations (Japanese)"
+"description": "The following are multiple choice questions (with answers) about public relations (Japanese).\n\n"

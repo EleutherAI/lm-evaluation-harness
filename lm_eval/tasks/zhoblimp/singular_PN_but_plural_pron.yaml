@@ -1,0 +1,3 @@
+dataset_name: singular_PN_but_plural_pron
+include: _template_yaml
+task: zhoblimp_singular_PN_but_plural_pron

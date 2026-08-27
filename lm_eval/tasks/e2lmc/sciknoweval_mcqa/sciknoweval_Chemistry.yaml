@@ -1,0 +1,7 @@
+"dataset_name": "Chemistry"
+"description": "The following are multiple choice questions (with answers) about Chemistry.\n\
+  \n"
+"include": "_var5shots_template_yaml"
+"tag": "sciknoweval_mcqa_task"
+"task": "sciknoweval_mcqa_var5shots_Chemistry"
+"task_alias": "Chemistry"

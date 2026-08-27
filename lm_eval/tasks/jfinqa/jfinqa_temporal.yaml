@@ -1,0 +1,26 @@
+task: jfinqa_temporal
+dataset_path: ajtgjmdjp/jfinqa
+dataset_name: temporal_reasoning
+output_type: generate_until
+test_split: test
+num_fewshot: 0
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{answer}}"
+process_results: !function utils.process_results
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: numerical_match
+    aggregation: mean
+    higher_is_better: true
+generation_kwargs:
+  max_gen_toks: 256
+  temperature: 0.0
+  do_sample: false
+  until:
+    - "\n\n"
+    - "Question:"
+metadata:
+  version: 0.3.0
+  description: "Japanese financial temporal reasoning QA — year-over-year trend analysis"

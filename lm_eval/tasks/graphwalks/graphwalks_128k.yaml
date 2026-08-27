@@ -1,0 +1,25 @@
+task: graphwalks_128k
+custom_dataset: !function utils.load_dataset
+dataset_kwargs:
+  data_file: graphwalks_128k_and_shorter.parquet
+output_type: generate_until
+test_split: train
+doc_to_text: "{{prompt}}"
+doc_to_target: "{{answer_nodes}}"
+process_results: !function utils.process_results
+target_delimiter: ""
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "<|endoftext|>"
+  max_gen_toks: 16384
+metric_list:
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+  - metric: flexible_f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

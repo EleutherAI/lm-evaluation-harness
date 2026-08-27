@@ -1,0 +1,7 @@
+dataset_name: toksuite_italian_contractions
+include: toksuite_italian_base.yaml
+task: toksuite_italian_contractions
+metadata:
+  canonical_task: toksuite_italian_canonical
+  task_pretty_name: Contractions
+  num_samples: 21

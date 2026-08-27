@@ -1,0 +1,27 @@
+group: cabbq
+task:
+  - cabbq_age
+  - cabbq_disability_status
+  - cabbq_gender
+  - cabbq_lgbtqia
+  - cabbq_nationality
+  - cabbq_physical_appearance
+  - cabbq_race_ethnicity
+  - cabbq_religion
+  - cabbq_ses
+  - cabbq_spanish_region
+tag:
+  - social_bias
+aggregate_metric_list:
+  - metric: "acc_ambig"
+    weight_by_size: true
+  - metric: "acc_disambig"
+    weight_by_size: true
+  - metric: "bias_score_ambig"
+    weight_by_size: true
+  - metric: "bias_score_disambig"
+    weight_by_size: true
+
+  # `weight_by_size`:
+  # `true` for micro average: retain all subtasks' per-document results and take the mean over all documents' scores to get the aggregate mean
+  # `false` for macro average: take the mean of the subtasks' aggregated results

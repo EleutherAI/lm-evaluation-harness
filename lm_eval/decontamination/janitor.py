@@ -5,8 +5,9 @@ import traceback
 from typing import Iterator, List, Sequence, Tuple, TypeVar
 
 
-# This is a cpp module. Compile janitor_util.cpp with:
-# c++ -O3 -Wall -shared -std=c++11 -fPIC $(python3 -m pybind11 --includes) janitor_util.cpp -o janitor_util$(python3-config --extension-suffix) -undefined dynamic_lookup
+# This is a cpp module.
+# See scripts/clean_training_data/README.md for instructions to compile janitor_util.cpp
+
 try:
     import janitor_util
 

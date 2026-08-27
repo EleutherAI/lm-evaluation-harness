@@ -1,0 +1,13 @@
+group: legalbench
+task:
+  - legalbench_abercrombie
+  - legalbench_corporate_lobbying
+  - legalbench_function_of_decision_section
+  - legalbench_international_citizenship_questions
+  - legalbench_proa
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

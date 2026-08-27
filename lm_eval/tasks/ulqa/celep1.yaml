@@ -1,0 +1,24 @@
+tag:
+  - uyghur_literature
+  - uyghur_llm
+task: celep1
+dataset_path: keramjan/CELEP1
+dataset_name: main
+output_type: multiple_choice
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text: "{{instruction}}\n{{passage}}\nسۇئال: {{question}}\nجاۋاپ:"
+doc_to_target: "{{ ['A','B','C','D'].index(answer) }}"
+doc_to_choice: "{{[A, B, C, D]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{passage}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true  
+metadata:
+  version: 1.0.0

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_business_ethics
+"tag": "mmmlu_fr_fr_other_tasks"
+"task": "mmmlu_fr_fr_business_ethics"
+"task_alias": "business ethics (French)"
+"description": "The following are multiple choice questions (with answers) about business ethics (French).\n\n"

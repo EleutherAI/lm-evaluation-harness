@@ -1,0 +1,15 @@
+group: mmmlu_id_id
+group_alias: "Indonesian"
+task:
+  - mmmlu_id_id_stem
+  - mmmlu_id_id_other
+  - mmmlu_id_id_social_sciences
+  - mmmlu_id_id_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

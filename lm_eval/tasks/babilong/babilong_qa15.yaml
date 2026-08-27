@@ -1,0 +1,19 @@
+include: _babilong_common_yaml
+task: babilong_qa15
+test_split: qa15
+dataset_name: 0k
+description: "I will give you context with the facts about animals, their names and relations. The facts and a question are hidden in some random text. You need to answer the question based only on the information from the facts.\nYour answer should contain only one word - an animal species. Do not write anything else after that. Do not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Mice are afraid of wolves. Gertrude is a mouse. Cats are afraid of sheep. Winona is a mouse. Sheep are afraid of wolves. Emily is a mouse. Jessica is a wolf."
+      question: "What is gertrude afraid of?"
+      target: "wolf"
+    - input: "Mice are afraid of wolves. Gertrude is a mouse. Cats are afraid of sheep. Winona is a mouse. Sheep are afraid of wolves. Emily is a mouse. Jessica is a wolf."
+      question: "What is jessica afraid of?"
+      target: "cat"
+    - input: "Mice are afraid of cats. Wolves are afraid of sheep. Emily is a wolf. Cats are afraid of sheep. Gertrude is a wolf. Sheep are afraid of cats. Winona is a wolf."
+      question: "What is emily afraid of?"
+      target: "sheep"

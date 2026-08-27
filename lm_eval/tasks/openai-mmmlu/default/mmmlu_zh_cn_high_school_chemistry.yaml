@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_high_school_chemistry
+"tag": "mmmlu_zh_cn_stem_tasks"
+"task": "mmmlu_zh_cn_high_school_chemistry"
+"task_alias": "high school chemistry (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about high school chemistry (Simplified Chinese).\n\n"

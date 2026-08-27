@@ -1,0 +1,9 @@
+description: 'Im Folgenden sind Multiple-Choice-Fragen (mit Antworten) zu Sonstiges.
+  Denken Sie Schritt für Schritt nach und beenden Sie Ihre Antwort mit "Die Antwort
+  ist (X)", wobei X der richtige Buchstabe ist.
+
+  '
+include: _de_lite_template_yaml
+task: mmlu_prox_lite_de_other
+task_alias: other
+process_docs: !function utils.process_other

@@ -1,0 +1,26 @@
+group: turblimp_core
+task:
+  - turblimp_anaphor_agreement
+  - turblimp_argument_structure_ditransitive
+  - turblimp_argument_structure_transitive
+  - turblimp_binding
+  - turblimp_determiners
+  - turblimp_ellipsis
+  - turblimp_irregular_forms
+  - turblimp_island_effects
+  - turblimp_nominalization
+  - turblimp_npi_licensing
+  - turblimp_passives
+  - turblimp_quantifiers
+  - turblimp_relative_clauses
+  - turblimp_scrambling
+  - turblimp_subject_agreement
+  - turblimp_suspended_affixation
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+aggregate_metric_list:
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false

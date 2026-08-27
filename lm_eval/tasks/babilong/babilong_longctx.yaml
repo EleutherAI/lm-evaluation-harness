@@ -1,0 +1,12 @@
+group: babilong_longctx
+task:
+  - babilong_qa1
+  - babilong_qa2
+  - babilong_qa3
+  - babilong_qa4
+  - babilong_qa5
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0.0

@@ -2144,7 +2144,6 @@ def doc_to_text_hard(doc) -> str:
         )
     )
 
-    print(prompt)
     return prompt
 
 
@@ -2153,7 +2152,10 @@ def get_diagnosis(doc):
     if "procedure" in results_dict:
         if "chief_complaints_diagnosis" in results_dict["procedure"]:
             diagnosis = results_dict["procedure"]["chief_complaints_diagnosis"]
-        elif "chief_complaints" and "diagnosis" in results_dict["procedure"]:
+        elif (
+            "chief_complaints" in results_dict["procedure"]
+            and "diagnosis" in results_dict["procedure"]
+        ):
             diagnosis = (
                 "Complains: "
                 + results_dict["procedure"]["chief_complaints"]

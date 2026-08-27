@@ -69,6 +69,7 @@ class Unitxt(ConfigurableTask):
                 "metadata": {"version": self.VERSION},
                 "dataset_name": config["recipe"],
                 "dataset_kwargs": config.get("dataset_kwargs", {}),
+                "task": config.get("task", None),
             }
         )
         self.image_decoder = datasets.Image()

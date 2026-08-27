@@ -7,16 +7,10 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from datasets import load_dataset
 from datasets.utils.metadata import MetadataConfigs
-from huggingface_hub import (
-    DatasetCard,
-    DatasetCardData,
-    HfApi,
-    hf_hub_url,
-)
-from huggingface_hub.utils import build_hf_headers, get_session, hf_raise_for_status
 
 from lm_eval.utils import (
     get_file_datetime,
@@ -25,10 +19,16 @@ from lm_eval.utils import (
     get_sample_results_filenames,
     handle_non_serializable,
     hash_string,
+    info_once,
+    random_name_id,
     sanitize_list,
     sanitize_model_name,
     sanitize_task_name,
 )
+
+
+if TYPE_CHECKING:
+    from huggingface_hub import HfApi
 
 
 eval_logger = logging.getLogger(__name__)
@@ -36,36 +36,43 @@ eval_logger = logging.getLogger(__name__)
 
 @dataclass(init=False)
 class GeneralConfigTracker:
-    """
-    Tracker for the evaluation parameters.
+    """Tracker for the evaluation parameters.
 
     Attributes:
-        model_source (str): Source of the model (e.g. Hugging Face, GGUF, etc.)
-        model_name (str): Name of the model.
-        model_name_sanitized (str): Sanitized model name for directory creation.
+        model_source (str | None): Source of the model (e.g. hf, vllm, etc.)
+        model_name (str | None): Name of the model.
+        model_name_sanitized (str | None): Sanitized model name for directory creation.
+        system_instruction (str | None): System instruction/prompt provided to the model.
+        system_instruction_sha (str | None): SHA hash of the system instruction for
+            tracking and reproducibility.
+        fewshot_as_multiturn (bool | None): Whether few-shot examples are formatted
+            as multi-turn conversations.
+        chat_template (str | None): Chat template used for formatting prompts.
+        chat_template_sha (str | None): SHA hash of the chat template for tracking
+            and reproducibility.
         start_time (float): Start time of the experiment. Logged at class init.
-        end_time (float): Start time of the experiment. Logged when calling [`GeneralConfigTracker.log_end_time`]
-        total_evaluation_time_seconds (str): Inferred total evaluation time in seconds (from the start and end times).
+        end_time (float): End time of the experiment. Logged when calling
+            `GeneralConfigTracker.log_end_time`.
+        total_evaluation_time_seconds (str | None): Inferred total evaluation time
+            in seconds (from the start and end times).
     """
 
-    model_source: str = None
-    model_name: str = None
-    model_name_sanitized: str = None
-    system_instruction: str = None
-    system_instruction_sha: str = None
-    fewshot_as_multiturn: bool = None
-    chat_template: str = None
-    chat_template_sha: str = None
-    start_time: float = None
-    end_time: float = None
-    total_evaluation_time_seconds: str = None
+    model_source: str | None = None
+    model_name: str | None = None
+    model_name_sanitized: str | None = None
+    system_instruction: str | None = None
+    system_instruction_sha: str | None = None
+    fewshot_as_multiturn: bool | None = None
+    chat_template: str | None = None
+    chat_template_sha: str | None = None
+    total_evaluation_time_seconds: str | None = None
 
     def __init__(self) -> None:
         """Starts the evaluation timer."""
         self.start_time = time.perf_counter()
 
     @staticmethod
-    def _get_model_name(model_args: str) -> str:
+    def _get_model_name(model_args: str | dict[str, Any] | None) -> str | None:
         """Extracts the model name from the model arguments."""
 
         def extract_model_name(model_args: str, key: str) -> str:
@@ -74,23 +81,30 @@ class GeneralConfigTracker:
             return args_after_key.split(",")[0]
 
         # order does matter, e.g. peft and delta are provided together with pretrained
-        prefixes = ["peft=", "delta=", "pretrained=", "model=", "path=", "engine="]
-        for prefix in prefixes:
-            if prefix in model_args:
-                return extract_model_name(model_args, prefix)
-        return ""
+        prefixes = ["peft", "delta", "pretrained", "model", "path", "engine"]
+        if isinstance(model_args, dict):
+            for key in prefixes:
+                if key in model_args:
+                    return str(model_args[key])
+        elif isinstance(model_args, str):
+            for prefix in prefixes:
+                if f"{prefix}=" in model_args:
+                    return extract_model_name(model_args, f"{prefix}=")
+        return None
 
     def log_experiment_args(
         self,
         model_source: str,
-        model_args: str,
-        system_instruction: str,
-        chat_template: str,
+        model_args: str | dict[str, Any],
+        system_instruction: str | None,
+        chat_template: str | None,
         fewshot_as_multiturn: bool,
     ) -> None:
         """Logs model parameters and job ID."""
         self.model_source = model_source
-        self.model_name = GeneralConfigTracker._get_model_name(model_args)
+        self.model_name = (
+            GeneralConfigTracker._get_model_name(model_args) or random_name_id()
+        )
         self.model_name_sanitized = sanitize_model_name(self.model_name)
         self.system_instruction = system_instruction
         self.system_instruction_sha = (
@@ -107,14 +121,15 @@ class GeneralConfigTracker:
 
 
 class EvaluationTracker:
-    """
-    Keeps track and saves relevant information of the evaluation process.
-    Compiles the data from trackers and writes it to files, which can be published to the Hugging Face hub if requested.
+    """Keeps track and saves relevant information of the evaluation process.
+
+    Compiles the data from trackers and writes it to files, which can be published
+    to the Hugging Face hub if requested.
     """
 
     def __init__(
         self,
-        output_path: str = None,
+        output_path: str | None = None,
         hub_results_org: str = "",
         hub_repo_name: str = "",
         details_repo_name: str = "",
@@ -127,21 +142,34 @@ class EvaluationTracker:
         point_of_contact: str = "",
         gated: bool = False,
     ) -> None:
-        """
-        Creates all the necessary loggers for evaluation tracking.
+        """Creates all the necessary loggers for evaluation tracking.
 
         Args:
-            output_path (str): Path to save the results. If not provided, the results won't be saved.
-            hub_results_org (str): The Hugging Face organization to push the results to. If not provided, the results will be pushed to the owner of the Hugging Face token.
-            hub_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will be pushed to `lm-eval-results`.
-            details_repo_name (str): The name of the Hugging Face repository to push the details to. If not provided, the results will be pushed to `lm-eval-results`.
-            result_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will not be pushed and will be found in the details_hub_repo.
-            push_results_to_hub (bool): Whether to push the results to the Hugging Face hub.
-            push_samples_to_hub (bool): Whether to push the samples to the Hugging Face hub.
-            public_repo (bool): Whether to push the results to a public or private repository.
-            token (str): Token to use when pushing to the Hugging Face hub. This token should have write access to `hub_results_org`.
-            leaderboard_url (str): URL to the leaderboard on the Hugging Face hub on the dataset card.
-            point_of_contact (str): Contact information on the Hugging Face hub dataset card.
+            output_path (str | None): Path to save the results. If not provided,
+                the results won't be saved.
+            hub_results_org (str): The Hugging Face organization to push the results
+                to. If not provided, the results will be pushed to the owner of the
+                Hugging Face token.
+            hub_repo_name (str): The name of the Hugging Face repository to push
+                the results to. If not provided, the results will be pushed to
+                `lm-eval-results`. Deprecated in favor of details_repo_name and
+                results_repo_name.
+            details_repo_name (str): The name of the Hugging Face repository to push
+                the details to. If not provided, defaults to `lm-eval-results`.
+            results_repo_name (str): The name of the Hugging Face repository to push
+                the results to. If not provided, defaults to details_repo_name.
+            push_results_to_hub (bool): Whether to push the results to the Hugging
+                Face hub.
+            push_samples_to_hub (bool): Whether to push the samples to the Hugging
+                Face hub.
+            public_repo (bool): Whether to push the results to a public or private
+                repository.
+            token (str): Token to use when pushing to the Hugging Face hub. This
+                token should have write access to `hub_results_org`.
+            leaderboard_url (str): URL to the leaderboard on the Hugging Face hub
+                on the dataset card.
+            point_of_contact (str): Contact information on the Hugging Face hub
+                dataset card.
             gated (bool): Whether to gate the repository.
         """
         self.general_config_tracker = GeneralConfigTracker()
@@ -152,7 +180,7 @@ class EvaluationTracker:
         self.public_repo = public_repo
         self.leaderboard_url = leaderboard_url
         self.point_of_contact = point_of_contact
-        self.api = HfApi(token=token) if token else None
+        self.api = self._api(token)
         self.gated_repo = gated
 
         if not self.api and (push_results_to_hub or push_samples_to_hub):
@@ -190,17 +218,27 @@ class EvaluationTracker:
         self.results_repo = f"{hub_results_org}/{results_repo_name}"
         self.results_repo_private = f"{hub_results_org}/{results_repo_name}-private"
 
+    @staticmethod
+    def _api(token: str | None = None) -> "HfApi | None":
+        """Initializes the Hugging Face API if a token is provided."""
+        if not token:
+            return None
+        from huggingface_hub import HfApi
+
+        return HfApi(token=token)
+
     def save_results_aggregated(
         self,
         results: dict,
-        samples: dict,
+        samples: dict | None = None,
     ) -> None:
-        """
-        Saves the aggregated results and samples to the output path and pushes them to the Hugging Face hub if requested.
+        """Saves the aggregated results and samples to the output path.
+
+        Pushes them to the Hugging Face hub if requested.
 
         Args:
             results (dict): The aggregated results to save.
-            samples (dict): The samples results to save.
+            samples (dict | None): The samples results to save.
         """
         self.general_config_tracker.log_end_time()
 
@@ -236,15 +274,11 @@ class EvaluationTracker:
                         f"{path.stem}_{self.date_id}.json"
                     )
                 else:
-                    path = path.joinpath(
-                        self.general_config_tracker.model_name_sanitized
-                    )
+                    path = path / str(self.general_config_tracker.model_name_sanitized)
                     path.mkdir(parents=True, exist_ok=True)
-                    file_results_aggregated = path.joinpath(
-                        f"results_{self.date_id}.json"
-                    )
+                    file_results_aggregated = path / f"results_{self.date_id}.json"
 
-                file_results_aggregated.open("w", encoding="utf-8").write(dumped)
+                file_results_aggregated.write_text(dumped, encoding="utf-8")
 
                 if self.api and self.push_results_to_hub:
                     repo_id = (
@@ -261,9 +295,11 @@ class EvaluationTracker:
                     self.api.upload_file(
                         repo_id=repo_id,
                         path_or_fileobj=str(file_results_aggregated),
-                        path_in_repo=os.path.join(
-                            self.general_config_tracker.model_name,
-                            file_results_aggregated.name,
+                        path_in_repo=(
+                            os.path.join(
+                                str(self.general_config_tracker.model_name),
+                                file_results_aggregated.name,
+                            )
                         ),
                         repo_type="dataset",
                         commit_message=f"Adding aggregated results for {self.general_config_tracker.model_name}",
@@ -286,8 +322,9 @@ class EvaluationTracker:
         task_name: str,
         samples: dict,
     ) -> None:
-        """
-        Saves the samples results to the output path and pushes them to the Hugging Face hub if requested.
+        """Saves the samples results to the output path.
+
+        Pushes them to the Hugging Face hub if requested.
 
         Args:
             task_name (str): The task name to save the samples for.
@@ -295,49 +332,54 @@ class EvaluationTracker:
         """
         if self.output_path:
             try:
-                eval_logger.info(f"Saving per-sample results for: {task_name}")
+                eval_logger.debug(f"Saving per-sample results for: {task_name}")
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
                 if path.suffix == ".json":
                     path = path.parent
                 else:
-                    path = path.joinpath(
-                        self.general_config_tracker.model_name_sanitized
-                    )
+                    path = path / str(self.general_config_tracker.model_name_sanitized)
                 path.mkdir(parents=True, exist_ok=True)
 
-                file_results_samples = path.joinpath(
-                    f"samples_{task_name}_{self.date_id}.jsonl"
+                file_results_samples = (
+                    path / f"samples_{task_name}_{self.date_id}.jsonl"
                 )
+                info_once(eval_logger, f"Saving per-task samples to {path}/*.jsonl")
+                with open(file_results_samples, "a", encoding="utf-8") as f:
+                    for sample in samples:
+                        # we first need to sanitize arguments and resps
+                        # otherwise we won't be able to load the dataset
+                        # using the datasets library
+                        arguments = {}
+                        for i, arg in enumerate(sample["arguments"]):
+                            arguments[f"gen_args_{i}"] = {}
+                            for j, tmp in enumerate(arg):
+                                arguments[f"gen_args_{i}"][f"arg_{j}"] = tmp
 
-                for sample in samples:
-                    # we first need to sanitize arguments and resps
-                    # otherwise we won't be able to load the dataset
-                    # using the datasets library
-                    arguments = {}
-                    for i, arg in enumerate(sample["arguments"]):
-                        arguments[f"gen_args_{i}"] = {}
-                        for j, tmp in enumerate(arg):
-                            arguments[f"gen_args_{i}"][f"arg_{j}"] = tmp
-
-                    sample["resps"] = sanitize_list(sample["resps"])
-                    sample["filtered_resps"] = sanitize_list(sample["filtered_resps"])
-                    sample["arguments"] = arguments
-                    sample["target"] = str(sample["target"])
-
-                    sample_dump = (
-                        json.dumps(
-                            sample,
-                            default=handle_non_serializable,
-                            ensure_ascii=False,
+                        sample["resps"] = sanitize_list(sample["resps"])
+                        sample["filtered_resps"] = sanitize_list(
+                            sample["filtered_resps"]
                         )
-                        + "\n"
-                    )
+                        sample["arguments"] = arguments
+                        sample["target"] = str(sample["target"])
 
-                    with open(file_results_samples, "a", encoding="utf-8") as f:
+                        sample_dump = (
+                            json.dumps(
+                                sample,
+                                default=handle_non_serializable,
+                                ensure_ascii=False,
+                            )
+                            + "\n"
+                        )
                         f.write(sample_dump)
 
                 if self.api and self.push_samples_to_hub:
+                    from huggingface_hub.utils import (
+                        build_hf_headers,
+                        get_session,
+                        hf_raise_for_status,
+                    )
+
                     repo_id = (
                         self.details_repo
                         if self.public_repo
@@ -380,9 +422,16 @@ class EvaluationTracker:
             eval_logger.info("Output path not provided, skipping saving sample results")
 
     def recreate_metadata_card(self) -> None:
+        """Creates a metadata card for the evaluation results dataset.
+
+        Pushes the card to the Hugging Face hub.
         """
-        Creates a metadata card for the evaluation results dataset and pushes it to the Hugging Face hub.
-        """
+
+        from huggingface_hub import (
+            DatasetCard,
+            DatasetCardData,
+            hf_hub_url,
+        )
 
         eval_logger.info("Recreating metadata card")
         repo_id = self.details_repo if self.public_repo else self.details_repo_private
@@ -430,11 +479,11 @@ class EvaluationTracker:
             results_filename = file_path.name
             model_name = file_path.parent
             eval_date = get_file_datetime(results_filename)
-            eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
+            eval_date_sanitized = re.sub(r"[^\w.]", "_", eval_date)
             results_filename = Path("**") / Path(results_filename).name
             config_name = f"{model_name}__results"
             sanitized_last_eval_date_results = re.sub(
-                r"[^\w\.]", "_", latest_task_results_datetime[config_name]
+                r"[^\w.]", "_", latest_task_results_datetime[config_name]
             )
 
             if eval_date_sanitized == sanitized_last_eval_date_results:
@@ -457,11 +506,11 @@ class EvaluationTracker:
             task_name = get_file_task_name(filename)
             eval_date = get_file_datetime(filename)
             task_name_sanitized = sanitize_task_name(task_name)
-            eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
+            eval_date_sanitized = re.sub(r"[^\w.]", "_", eval_date)
             results_filename = Path("**") / Path(filename).name
             config_name = f"{model_name}__{task_name_sanitized}"
             sanitized_last_eval_date_results = re.sub(
-                r"[^\w\.]", "_", latest_task_results_datetime[config_name]
+                r"[^\w.]", "_", latest_task_results_datetime[config_name]
             )
             if eval_date_sanitized == sanitized_last_eval_date_results:
                 # Ensure that all sample results files are listed in the metadata card
@@ -491,7 +540,7 @@ class EvaluationTracker:
         latest_results_file = load_dataset(
             "json", data_files=last_results_file_path, split="train"
         )
-        results_dict = latest_results_file["results"][0]
+        results_dict = latest_results_file["results"][0]  # type: ignore
         new_dictionary = {"all": results_dict}
         new_dictionary.update(results_dict)
         results_string = json.dumps(new_dictionary, indent=4)

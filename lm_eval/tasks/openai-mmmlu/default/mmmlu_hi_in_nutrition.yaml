@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_nutrition
+"tag": "mmmlu_hi_in_other_tasks"
+"task": "mmmlu_hi_in_nutrition"
+"task_alias": "nutrition (Hindi)"
+"description": "The following are multiple choice questions (with answers) about nutrition (Hindi).\n\n"

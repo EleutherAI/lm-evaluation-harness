@@ -1,6 +1,6 @@
 tag: storycloze
 task: storycloze_2016
-dataset_path: story_cloze
+dataset_path: LSDSem/story_cloze
 dataset_name: "2016"
 output_type: multiple_choice
 validation_split: validation

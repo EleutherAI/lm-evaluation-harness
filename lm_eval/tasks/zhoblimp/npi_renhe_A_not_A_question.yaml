@@ -1,0 +1,3 @@
+dataset_name: npi_renhe_A_not_A_question
+include: _template_yaml
+task: zhoblimp_npi_renhe_A_not_A_question
