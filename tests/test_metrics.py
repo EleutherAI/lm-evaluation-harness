@@ -153,6 +153,21 @@ def test_acc_mutual_info_without_metric():
     assert result_dict["acc"] == 1.0
 
 
+def test_acc_norm_uses_character_length_and_acc_bytes_uses_utf8_bytes():
+    task = MockConfigurableTask()
+    task._metric_fn_list = {"acc_norm": None, "acc_bytes": None}
+    e_acute = "\N{LATIN SMALL LETTER E WITH ACUTE}"
+    task.doc_to_choice = lambda doc: [e_acute, "aa"]
+    task.doc_to_target = lambda doc: 1
+
+    # e_acute has 1 character but 2 UTF-8 bytes; "aa" has 2 characters and 2 bytes.
+    # Character normalization selects "aa", while byte normalization selects e_acute.
+    result_dict = task.process_results({}, [(-1.8, False), (-2.0, False)])
+
+    assert result_dict["acc_norm"] == 1.0
+    assert result_dict["acc_bytes"] == 0.0
+
+
 def test_bootstrap_internal_no_mp():
     """Test basic functionality of _bootstrap_internal_no_mp"""
 
