@@ -39,7 +39,6 @@ import importlib.metadata as md
 import inspect
 import logging
 import threading
-from collections.abc import Callable
 from functools import lru_cache
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast, overload
@@ -56,36 +55,31 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    # Core registry class
-    "Registry",
-    # Registry instances
-    "model_registry",
-    "filter_registry",
-    "aggregation_registry",
-    "metric_registry",
-    "metric_agg_registry",
-    "higher_is_better_registry",
-    "freeze_all",
-    # Helper functions
-    "register_model",
-    "get_model",
-    "register_metric",
-    "get_metric",
-    "register_aggregation",
-    "get_aggregation",
-    "get_metric_aggregation",
-    "is_higher_better",
-    "register_filter",
-    "get_filter",
-    # Backward compat aliases (point to Registry instances)
-    "MODEL_REGISTRY",
-    "FILTER_REGISTRY",
-    "METRIC_REGISTRY",
-    "METRIC_AGGREGATION_REGISTRY",
     "AGGREGATION_REGISTRY",
-    "HIGHER_IS_BETTER_REGISTRY",
-    # Default metric configuration
     "DEFAULT_METRIC_REGISTRY",
+    "FILTER_REGISTRY",
+    "HIGHER_IS_BETTER_REGISTRY",
+    "METRIC_AGGREGATION_REGISTRY",
+    "METRIC_REGISTRY",
+    "MODEL_REGISTRY",
+    "Registry",
+    "aggregation_registry",
+    "filter_registry",
+    "freeze_all",
+    "get_aggregation",
+    "get_filter",
+    "get_metric",
+    "get_metric_aggregation",
+    "get_model",
+    "higher_is_better_registry",
+    "is_higher_better",
+    "metric_agg_registry",
+    "metric_registry",
+    "model_registry",
+    "register_aggregation",
+    "register_filter",
+    "register_metric",
+    "register_model",
 ]
 
 
@@ -126,9 +120,7 @@ def _materialise_placeholder(ph: Placeholder) -> Any:
     try:
         return ph.load()
     except Exception as exc:
-        eval_logger.error(
-            "Failed to load plugin '%s' (%s): %s", ph.name, ph.value, exc
-        )
+        eval_logger.error("Failed to load plugin '%s' (%s): %s", ph.name, ph.value, exc)
         raise
 
 
@@ -141,7 +133,7 @@ def _safe_eq(a: Any, b: Any) -> bool:
     """
     try:
         return bool(a == b)
-    except Exception:  # pragma: no cover - defensive
+    except Exception:  # noqa: BLE001 - pragma: no cover - defensive
         return a is b
 
 
@@ -207,7 +199,7 @@ def load_plugins(group: str, registry: Registry) -> list[str]:
     discovered: list[str] = []
     try:
         entry_points = md.entry_points(group=group)
-    except Exception as exc:  # pragma: no cover - defensive
+    except Exception as exc:  # noqa: BLE001 - pragma: no cover - defensive
         eval_logger.warning(
             "Failed to read entry points for group '%s': %s", group, exc
         )
@@ -499,7 +491,7 @@ class Registry(Generic[T]):
             path = inspect.getfile(obj)  # type: ignore[arg-type]
             line = inspect.getsourcelines(obj)[1]  # type: ignore[arg-type]
             return f"{path}:{line}"
-        except Exception:  # pragma: no cover – best‑effort only
+        except Exception:  # noqa: BLE001 - pragma: no cover – best‑effort only
             return None
 
     def freeze(self):
@@ -675,9 +667,9 @@ def get_filter(filter_name: str | Callable) -> Callable:
         return filter_name
     try:
         return filter_registry.get(cast("str", filter_name))
-    except KeyError as e:
+    except KeyError:
         eval_logger.warning(f"filter `{filter_name}` is not registered!")
-        raise e
+        raise
 
 
 # Backward compatibility alias
@@ -750,7 +742,7 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
 
         metric_object = hf_evaluate.load(name)
         return metric_object.compute
-    except Exception:
+    except Exception:  # noqa: BLE001 - surface any load failure as a warning
         eval_logger.error(
             f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
         )
