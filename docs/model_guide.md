@@ -128,8 +128,6 @@ more modules to import before evaluation, so their `@register_model` decorators 
 
 ```bash
 lm-eval run --model my-backend --plugins my_pkg.models --tasks hellaswag
-# or, equivalently, via environment variable (comma/colon separated):
-LM_EVAL_PLUGINS=my_pkg.models lm-eval run --model my-backend --tasks hellaswag
 ```
 
 The same `plugins=[...]` argument is available on `lm_eval.simple_evaluate(...)` for

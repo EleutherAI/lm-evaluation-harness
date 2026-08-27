@@ -119,7 +119,17 @@ def _materialise_placeholder(ph: Placeholder) -> Any:
         if not attr:
             raise ValueError(f"Invalid lazy path '{ph}', expected 'module:object'")
         return getattr(importlib.import_module(mod), attr)
-    return ph.load()
+    # EntryPoint plugins register lazily and validate nothing, so a broken plugin
+    # only surfaces here, when its component is explicitly requested. Log with the
+    # offending name for context, then re-raise so the run aborts rather than
+    # silently resolving to a half-loaded component.
+    try:
+        return ph.load()
+    except Exception as exc:
+        eval_logger.error(
+            "Failed to load plugin '%s' (%s): %s", ph.name, ph.value, exc
+        )
+        raise
 
 
 def _safe_eq(a: Any, b: Any) -> bool:
@@ -211,16 +221,11 @@ def load_plugins(group: str, registry: Registry) -> list[str]:
                 group,
             )
             continue
-        try:
-            registry.register(ep.name, target=ep)
-            discovered.append(ep.name)
-        except Exception as exc:  # noqa: BLE001 - one bad plugin must not break others
-            eval_logger.warning(
-                "Failed to register plugin '%s' from group '%s': %s",
-                ep.name,
-                group,
-                exc,
-            )
+        # Registration is lazy: it stores the EntryPoint without importing the
+        # plugin, so it cannot fail here. A broken plugin surfaces only when its
+        # component is materialized on access (see _materialise_placeholder).
+        registry.register(ep.name, target=ep)
+        discovered.append(ep.name)
     if discovered:
         eval_logger.info(
             "Registered %d plugin(s) from '%s': %s",
@@ -325,7 +330,9 @@ class Registry(Generic[T]):
                     target, type
                 ):
                     placeholder_path = (
-                        current if isinstance(current, str) else current.value
+                        current
+                        if isinstance(current, str)
+                        else f"{current.module}:{current.attr}"
                     )
                     if placeholder_path == f"{target.__module__}:{target.__name__}":
                         self._objs[alias] = target

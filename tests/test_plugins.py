@@ -98,7 +98,11 @@ def test_load_plugins_broken_entry_point_is_tolerated(monkeypatch):
     discovered = load_plugins("lm_eval.things", reg)
 
     assert "good" in discovered
+    assert "bad" in discovered
     assert reg.get("good") is good
+    # The broken plugin surfaces its failure only on access, not at discovery.
+    with pytest.raises(AttributeError):
+        reg.get("bad")
 
 
 def test_import_plugins_runs_register_decorator(monkeypatch):
