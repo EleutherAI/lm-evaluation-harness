@@ -5,6 +5,16 @@ import pytest
 from lm_eval.caching import cache
 
 
+def test_save_to_cache_creates_missing_parent_directories(tmp_path, monkeypatch):
+    nested_cache = tmp_path / "missing-parent" / "cache"
+    monkeypatch.setattr(cache, "PATH", str(nested_cache))
+
+    cache.save_to_cache("nested-key", {"ok": True})
+
+    assert nested_cache.is_dir()
+    assert cache.load_from_cache("nested-key", cache=True) == {"ok": True}
+
+
 def test_long_cache_keys_are_hashed_below_filesystem_limit(tmp_path, monkeypatch):
     monkeypatch.setattr(cache, "PATH", str(tmp_path))
 
