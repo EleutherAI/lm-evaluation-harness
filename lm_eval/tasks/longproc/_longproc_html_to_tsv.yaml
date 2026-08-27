@@ -1,0 +1,11 @@
+group: longproc_html_to_tsv
+task:
+  - longproc_html_to_tsv_0.5k
+  - longproc_html_to_tsv_2k
+  - longproc_html_to_tsv_8k
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
