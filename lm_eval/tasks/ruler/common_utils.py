@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import logging
 import re
 from functools import cache
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from transformers import AutoTokenizer
 
@@ -20,11 +22,25 @@ DEFAULT_SEQ_LENGTHS = [
 @cache
 def get_tokenizer(
     tokenizer=None, pretrained=None, **kwargs
-) -> Union["transformers.PreTrainedTokenizer", "transformers.PreTrainedTokenizerFast"]:
+) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     pretrained = tokenizer or pretrained
     assert pretrained, "No tokenizer or pretrained provided."
-    eval_logger.info(f"Using tokenizer {pretrained} for synthetic tasks.")
-    return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
+    eval_logger.info("Using tokenizer %s for synthetic tasks.", pretrained)
+    tok = AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
+
+    # Every synthetic task sizes its prompts by token count, so a tokenizer that
+    # under-reports lengths sends the samplers into unbounded loops. A repo that
+    # ships no tokenizer files (a GGUF-only repo, say) still loads under
+    # `trust_remote_code=True` as an empty-vocab tokenizer that encodes anything
+    # to 0 tokens -- reject it here rather than in each sampler.
+    if len(tok("The quick brown fox jumps over the lazy dog.").input_ids) == 0:
+        raise ValueError(
+            f"Tokenizer '{pretrained}' encodes a non-empty string to 0 tokens "
+            f"(vocab_size={getattr(tok, 'vocab_size', '?')}), so sequence lengths "
+            "cannot be measured. Point the synthetic tasks at a repo that ships "
+            'tokenizer files, e.g. --metadata=\'{"tokenizer": "Qwen/Qwen3-0.6B"}\'.'
+        )
+    return tok
 
 
 def postprocess_pred(prediction: list[str]) -> list[str]:
@@ -42,20 +58,16 @@ def postprocess_pred(prediction: list[str]) -> list[str]:
 
 def string_match_all(preds: list[str], refs: list[list[str]]) -> float:
     score = sum(
-        [
-            sum([1.0 if r.lower() in pred.lower() else 0.0 for r in ref]) / len(ref)
-            for pred, ref in zip(preds, refs)
-        ]
+        sum(1.0 if r.lower() in pred.lower() else 0.0 for r in ref) / len(ref)
+        for pred, ref in zip(preds, refs, strict=False)
     ) / len(preds)
     return score
 
 
 def string_match_part(preds: list[str], refs: list[list[str]]) -> float:
     score = max(
-        [
-            sum([1.0 if r.lower() in pred.lower() else 0.0 for r in ref]) / len(ref)
-            for pred, ref in zip(preds, refs)
-        ]
+        sum(1.0 if r.lower() in pred.lower() else 0.0 for r in ref) / len(ref)
+        for pred, ref in zip(preds, refs, strict=False)
     ) / len(preds)
     return score
 

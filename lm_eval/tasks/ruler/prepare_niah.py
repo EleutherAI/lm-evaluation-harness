@@ -20,7 +20,7 @@ import re
 import uuid
 from functools import cache, lru_cache
 from importlib.metadata import version
-from typing import List, Literal, Union
+from typing import Literal
 
 import datasets
 import numpy as np
@@ -53,7 +53,7 @@ nouns = r._categories["nouns"]
 adjs = r._categories["adjectives"]
 verbs = r._categories["verbs"]
 words = [f"{adj}-{noun}" for adj in adjs for noun in nouns]
-WORDS = sorted(list(set(words)))
+WORDS = sorted(set(words))
 
 # Positions
 DEPTHS = list(np.round(np.linspace(0, 100, num=40, endpoint=True)).astype(int))
@@ -65,12 +65,12 @@ eval_logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1024)
-def cached_sent_tokenize(text: str) -> List[str]:
+def cached_sent_tokenize(text: str) -> list[str]:
     return sent_tokenize(text)
 
 
 def download_nltk_resources():
-    """Download 'punkt' if not already installed"""
+    """Download 'punkt' if not already installed."""
     assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
         NLTK_MIN_VERSION
     ), (
@@ -116,7 +116,7 @@ def generate_random(type_needle: str) -> str:
 
 def generate_input_output(
     num_haystack: int,
-    haystack: Union[list[str], str],
+    haystack: list[str] | str,
     *,
     type_haystack: str,
     num_needle_k: int,
@@ -183,7 +183,7 @@ def generate_input_output(
             ]
 
         indexes = sorted(random.sample(range(num_haystack), len(needles)), reverse=True)
-        for index, element in zip(indexes, needles):
+        for index, element in zip(indexes, needles, strict=False):
             sentences.insert(index, element)
         context = "\n".join(sentences)
 
@@ -237,7 +237,6 @@ def generate_samples(
     write_jsons = []
     skipped = 0
     last_skip_reason = None
-    tokens_to_generate = tokens_to_generate
 
     if type_haystack == "essay":
         incremental = 500
@@ -250,19 +249,6 @@ def generate_samples(
     # `num_haystack` must stay large enough to host every needle, otherwise
     # `generate_input_output` raises for any value we try (see #2963).
     num_haystack = max(incremental, num_needles)
-
-    # A tokenizer that under-reports length makes the calibration loop below
-    # grow `num_haystack` without bound. This happens with repos that ship no
-    # tokenizer files (e.g. a GGUF-only repo): `trust_remote_code=True` can
-    # yield a tokenizer with an empty vocab that encodes everything to 0 tokens.
-    if len(TOKENIZER("The quick brown fox jumps over the lazy dog.").input_ids) == 0:
-        raise ValueError(
-            f"Tokenizer '{getattr(TOKENIZER, 'name_or_path', TOKENIZER)}' encodes a "
-            f"non-empty string to 0 tokens (vocab_size="
-            f"{getattr(TOKENIZER, 'vocab_size', '?')}), so sequence lengths cannot be "
-            "measured. Point the synthetic tasks at a repo that ships tokenizer files, "
-            "e.g. --metadata='{\"tokenizer\": \"Qwen/Qwen3-0.6B\"}'."
-        )
 
     total_tokens = 0  # Track the total tokens generated for the first example
     while total_tokens + tokens_to_generate < max_seq_length:
@@ -377,9 +363,12 @@ def generate_samples(
 
     if skipped:
         eval_logger.warning(
-            f"Skipped {skipped}/{num_samples} samples for {type_haystack} | "
-            f"max_seq_length={max_seq_length}: could not fit them within the "
-            f"sequence length. Last reason: {last_skip_reason}"
+            "Skipped %s/%s samples for %s | max_seq_length=%s: could not fit them within the sequence length. Last reason: %s",
+            skipped,
+            num_samples,
+            type_haystack,
+            max_seq_length,
+            last_skip_reason,
         )
     if not write_jsons:
         raise ValueError(
@@ -394,7 +383,7 @@ def generate_samples(
 @cache
 def get_haystack(
     type_haystack: Literal["essay", "repeat", "needle"],
-) -> Union[list[str], str]:
+) -> list[str] | str:
     NEEDLE = "One of the special magic {type_needle_v} for {key} is: {value}."
     if type_haystack == "essay":
         essay = datasets.load_dataset("baber/paul_graham_essays", split="train")["text"]
