@@ -32,10 +32,10 @@ try:
     import nltk
     import wonderwords
     from nltk import sent_tokenize
-except ImportError:
+except ImportError as e:
     raise ImportError(
         'Please install the `wonderwords` and `nltk` packages to run this script. You can install them with `pip install lm_eval["ruler"]` or`pip install wonderwords nltk`.'
-    )
+    ) from e
 
 
 NUM_SAMPLES = 500
@@ -241,9 +241,7 @@ def generate_samples(
 
     if type_haystack == "essay":
         incremental = 500
-    elif type_haystack == "repeat":
-        incremental = 25
-    elif type_haystack == "needle":
+    elif type_haystack == "repeat" or type_haystack == "needle":
         incremental = 25
 
     if type_haystack != "essay" and max_seq_length < 4096:
@@ -252,6 +250,19 @@ def generate_samples(
     # `num_haystack` must stay large enough to host every needle, otherwise
     # `generate_input_output` raises for any value we try (see #2963).
     num_haystack = max(incremental, num_needles)
+
+    # A tokenizer that under-reports length makes the calibration loop below
+    # grow `num_haystack` without bound. This happens with repos that ship no
+    # tokenizer files (e.g. a GGUF-only repo): `trust_remote_code=True` can
+    # yield a tokenizer with an empty vocab that encodes everything to 0 tokens.
+    if len(TOKENIZER("The quick brown fox jumps over the lazy dog.").input_ids) == 0:
+        raise ValueError(
+            f"Tokenizer '{getattr(TOKENIZER, 'name_or_path', TOKENIZER)}' encodes a "
+            f"non-empty string to 0 tokens (vocab_size="
+            f"{getattr(TOKENIZER, 'vocab_size', '?')}), so sequence lengths cannot be "
+            "measured. Point the synthetic tasks at a repo that ships tokenizer files, "
+            "e.g. --metadata='{\"tokenizer\": \"Qwen/Qwen3-0.6B\"}'."
+        )
 
     total_tokens = 0  # Track the total tokens generated for the first example
     while total_tokens + tokens_to_generate < max_seq_length:
@@ -276,6 +287,15 @@ def generate_samples(
         if type_haystack == "essay" and num_haystack > len(haystack):
             num_haystack = len(haystack)
             break
+
+        # Every haystack unit costs at least one token, so needing more units
+        # than `max_seq_length` means the loop will never converge.
+        if num_haystack > max_seq_length:
+            raise ValueError(
+                f"Haystack for '{type_haystack}' grew past {max_seq_length} units without "
+                f"reaching max_seq_length={max_seq_length} (last measurement: "
+                f"{total_tokens} tokens). The tokenizer is under-reporting lengths."
+            )
 
         num_haystack += incremental
 
