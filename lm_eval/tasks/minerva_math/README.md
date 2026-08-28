@@ -91,3 +91,7 @@ If other tasks on this dataset are already supported:
 - version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For
   details [see](https://huggingface.co/blog/math_verify_leaderboard)
 - version 3.0 (21-Aug-2025); pass the full solution and model generation to `math_verify`'s `parse`
+- version 3.1 (28-Aug-2026); corrected the hardcoded 4-shot prompt: restored the `\\` row separators in the two
+  `align*` blocks (emitted as a single `\` since the raw prompt string was split into Python string literals in
+  #1895) and removed an unmatched trailing `}` from the first few-shot problem. The few-shot text now matches the
+  source rows in `EleutherAI/hendrycks_math`; scores shift slightly relative to version 3.0.
