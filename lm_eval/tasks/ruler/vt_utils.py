@@ -25,7 +25,11 @@ import datasets
 import numpy as np
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_SEQ_LENGTHS,
+    get_tokenizer,
+    resolve_tokenizer_name,
+)
 
 
 if TYPE_CHECKING:
@@ -245,9 +249,9 @@ def get_dataset(
 
 
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
-    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", ""))
+    tokenizer = get_tokenizer(resolve_tokenizer_name(kwargs))
     df = (
-        get_dataset(tokenizer=get_tokenizer(pretrained), seq=seq)
+        get_dataset(tokenizer=tokenizer, seq=seq)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

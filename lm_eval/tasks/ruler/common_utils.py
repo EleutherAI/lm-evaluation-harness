@@ -18,13 +18,39 @@ DEFAULT_SEQ_LENGTHS = [
     4096,
 ]
 
+# The keys a model name can arrive under. RULER tasks are handed the parsed
+# `--model_args`, and each backend names the model differently: `pretrained`
+# for local HuggingFace models, `model` for the API backends.
+TOKENIZER_ARG_KEYS = ("tokenizer", "pretrained", "model")
+
+
+def resolve_tokenizer_name(kwargs: dict) -> str | None:
+    """Pick the tokenizer name out of the model args a synthetic task is given.
+
+    Returns the first non-empty string among `tokenizer`, `pretrained` and
+    `model`, or None if there is none. Returning None rather than a container
+    matters: `get_tokenizer` is decorated with `functools.cache`, which hashes
+    its arguments before the body runs, so an unhashable default such as `{}`
+    raises `TypeError: unhashable type: 'dict'` and the assertion below never
+    gets the chance to say what is actually wrong.
+    """
+    for key in TOKENIZER_ARG_KEYS:
+        value = kwargs.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return None
+
 
 @cache
 def get_tokenizer(
     tokenizer=None, pretrained=None, **kwargs
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     pretrained = tokenizer or pretrained
-    assert pretrained, "No tokenizer or pretrained provided."
+    assert pretrained, (
+        "No tokenizer or pretrained provided. RULER tasks generate their own "
+        "data and need a tokenizer to size it to each target length; pass one "
+        "with `--model_args tokenizer=<name>`."
+    )
     eval_logger.info("Using tokenizer %s for synthetic tasks.", pretrained)
     tok = AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
