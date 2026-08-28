@@ -295,10 +295,27 @@ def normalize_final_answer(final_answer: str) -> str:
     """
     final_answer = final_answer.split("=")[-1]
 
+    # Remove unit words while whitespace still delimits them, so that
+    # "2\pi cm" loses "cm" and "\left" keeps its "ft" (word boundaries
+    # cannot match inside a LaTeX command name)
+    for expr in REMOVED_EXPRESSIONS:
+        if expr.isalpha():
+            final_answer = re.sub(rf"(?<!\\)\b{expr}\b", "", final_answer)
+
     for before, after in SUBSTITUTIONS:
         final_answer = final_answer.replace(before, after)
     for expr in REMOVED_EXPRESSIONS:
-        final_answer = final_answer.replace(expr, "")
+        if expr.isalpha():
+            # Units glued to their surroundings once whitespace is gone;
+            # skip LaTeX command spans so "ft" cannot corrupt "\left".
+            # Trade-off: a zero-separator <command><unit> run like "\picm"
+            # survives as one token instead of being stripped by accident.
+            segments = re.split(r"(\\[a-zA-Z]+)", final_answer)
+            for i in range(0, len(segments), 2):
+                segments[i] = segments[i].replace(expr, "")
+            final_answer = "".join(segments)
+        else:
+            final_answer = final_answer.replace(expr, "")
 
     # Extract answer that is in LaTeX math, is bold,
     # is surrounded by a box, etc.
@@ -315,7 +332,12 @@ def normalize_final_answer(final_answer: str) -> str:
     #  \sqrta -> \sqrt{a}
     #  \sqrtab -> sqrt{a}b
     final_answer = re.sub(r"(frac)([^{])(.)", "frac{\\2}{\\3}", final_answer)
-    final_answer = re.sub(r"(sqrt)([^{])", "sqrt{\\2}", final_answer)
+    # \sqrt[3]a -> \sqrt[3]{a}: canonicalize indexed roots with an unbraced
+    # argument before the shorthand rule below, which must skip them entirely
+    # or its [^ {] class would consume the "[" of the index and corrupt
+    # \sqrt[3]{8} into \sqrt{[}3]{8}.
+    final_answer = re.sub(r"(sqrt)(\[[^\]]*\])(\w)", "\\1\\2{\\3}", final_answer)
+    final_answer = re.sub(r"(sqrt)(?!\[)([^{])", "sqrt{\\2}", final_answer)
     final_answer = final_answer.replace("$", "")
 
     # Normalize 100,000 -> 100000: strip commas only when they are true
