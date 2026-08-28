@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 import itertools
 import logging
-from typing import Generator
+from typing import TYPE_CHECKING
 
 import datasets
 
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 from lm_eval.tasks.ruler.prepare_niah import generate_samples, get_haystack
+
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nWhat are all the special magic {type_needle_v} for {query} mentioned in the provided text?"""

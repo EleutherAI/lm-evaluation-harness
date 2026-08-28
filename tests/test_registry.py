@@ -24,6 +24,33 @@ from lm_eval.api.registry import (
 )
 
 
+# Pins the direction of every built-in metric. `higher_is_better` is metadata
+# only -- it drives the arrow in the result table and the field of the same
+# name in the result JSON -- so a wrong value is invisible at runtime and can
+# sit unnoticed. `ter` shipped as True for years despite being an edit rate.
+EXPECTED_METRIC_DIRECTIONS = {
+    "acc": True,
+    "acc_all": True,
+    "acc_bytes": True,
+    "acc_mutual_info": True,
+    "acc_norm": True,
+    "bits_per_byte": False,
+    "bleu": True,
+    "brier_score": False,
+    "bypass": True,
+    "byte_perplexity": False,
+    "chrf": True,
+    "chrf++": True,
+    "exact_match": True,
+    "f1": True,
+    "likelihood": True,
+    "mcc": True,
+    "perplexity": False,
+    "ter": False,
+    "word_perplexity": False,
+}
+
+
 class TestRegistryBasics:
     """Test basic Registry class functionality."""
 
@@ -197,11 +224,9 @@ class TestRegistryFreeze:
             reg.register("b", target="os:getenv")
 
     def test_freeze_all(self):
-        """Test freeze_all function."""
-
+        """Test the freeze_all function."""
         # This would freeze all global registries - skip in test
         # freeze_all()
-        pass
 
 
 class TestRegistryThreadSafety:
@@ -215,7 +240,7 @@ class TestRegistryThreadSafety:
         def register_item(i):
             try:
                 reg.register(f"item_{i}", target="os:getcwd")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 errors.append(e)
 
         threads = [
@@ -360,6 +385,36 @@ class TestMetricRegistry:
         # Check some common metrics are registered
         assert "acc" in metric_registry
         assert "mean" in aggregation_registry
+
+    @pytest.mark.parametrize(
+        "metric_name,expected", sorted(EXPECTED_METRIC_DIRECTIONS.items())
+    )
+    def test_builtin_metric_direction(self, metric_name, expected):
+        """Test that built-in metrics report the expected higher_is_better."""
+        from lm_eval.api import metrics  # noqa: F401
+
+        assert is_higher_better(metric_name) is expected
+
+    def test_every_registered_metric_has_a_direction(self):
+        """Test that no registered metric is missing a higher_is_better value."""
+        from lm_eval.api import metrics  # noqa: F401
+
+        missing = [m for m in metric_registry if is_higher_better(m) is None]
+        assert not missing, f"metrics registered without higher_is_better: {missing}"
+
+    def test_expected_directions_cover_builtin_metrics(self):
+        """Test that a newly added built-in metric also pins its direction."""
+        from lm_eval.api import metrics  # noqa: F401
+
+        # Metrics registered by other tests in this module are not built-ins.
+        unpinned = {
+            m
+            for m in metric_registry
+            if m not in EXPECTED_METRIC_DIRECTIONS and not m.startswith("test_")
+        }
+        assert not unpinned, (
+            f"add these metrics to EXPECTED_METRIC_DIRECTIONS: {sorted(unpinned)}"
+        )
 
 
 class TestBackwardCompatibility:
