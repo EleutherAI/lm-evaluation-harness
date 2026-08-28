@@ -160,6 +160,13 @@ def is_equiv(x1: str, x2: str) -> bool:
     """
     x1 and x2 are normalized latex string
     """
+    # parse_latex raises on tuples, intervals and matrices, and the handler
+    # below then returns False for the pair -- so without this an answer
+    # identical to the gold is scored wrong. Only ever turns a False into a
+    # True: identical strings sympy can parse already compare equal below.
+    if isinstance(x1, str) and x1 and x1 == x2:
+        return True
+
     try:
         with timeout(seconds=5):
             try:
