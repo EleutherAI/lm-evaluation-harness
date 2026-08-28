@@ -17,16 +17,12 @@ These tasks evaluate autoregressive language models on [Uncheatable Eval](https:
 }
 ```
 
-### Groups, Tags, and Tasks
+### Groups and Tasks
 
 #### Groups
 
 * `uncheatable_eval`: aggregating Wikipedia (English), GitHub (Python/C++), BBC News, arXiv (physics + CS), and AO3 (English).
 * `uncheatable_eval_full`: spanning every available Uncheatable Eval dump, including all supported Wikipedia languages plus GitHub, BBC, arXiv, and AO3 (English + Chinese).
-
-#### Tags
-
-* `uncheatable_eval`
 
 #### Tasks
 

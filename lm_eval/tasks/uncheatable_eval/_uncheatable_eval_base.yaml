@@ -2,8 +2,6 @@ output_type: loglikelihood_rolling
 test_split: test
 doc_to_text: ""
 doc_to_target: "{{text}}"
-tag:
-  - uncheatable_eval
 should_decontaminate: false
 metric_list:
   - metric: word_perplexity
