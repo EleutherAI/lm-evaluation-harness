@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_conceptual_physics
+"tag": "mmmlu_hi_in_stem_tasks"
+"task": "mmmlu_hi_in_conceptual_physics"
+"task_alias": "conceptual physics (Hindi)"
+"description": "The following are multiple choice questions (with answers) about conceptual physics (Hindi).\n\n"

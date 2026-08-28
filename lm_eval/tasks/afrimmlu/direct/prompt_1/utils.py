@@ -1,8 +1,12 @@
-from lm_eval.utils import weighted_f1_score
+import ast
+
+# referenced as `!function utils.weighted_f1_score` in the task configs;
+# keep the import even though it looks unused (noqa guards against ruff --fix)
+from lm_eval.utils import weighted_f1_score  # noqa: F401
 
 
 def doc_to_choice(doc):
-    choices = eval(doc["choices"])
+    choices = ast.literal_eval(doc["choices"])
     return choices
 
 
@@ -20,7 +24,7 @@ def doc_to_text(doc):
 
                 Answer:  """
 
-    choices = eval(doc["choices"])
+    choices = ast.literal_eval(doc["choices"])
     text = output.format(
         subject=doc["subject"],
         question=doc["question"],

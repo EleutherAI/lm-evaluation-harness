@@ -24,5 +24,8 @@ task:
     - phrases_va
     - cocoteros_va
     - xnli_va
+    - truthfulqa_va
+    - terretaqa
+    - cieacova
 metadata:
-  version: 2.1
+  version: 2.5

@@ -1,0 +1,10 @@
+group: mmmlu_pt_br_stem
+group_alias: "Brazilian Portuguese stem"
+task:
+  - mmmlu_pt_br_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

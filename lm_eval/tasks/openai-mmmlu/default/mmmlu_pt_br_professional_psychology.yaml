@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_pt_br_social_sciences_tasks"
+"task": "mmmlu_pt_br_professional_psychology"
+"task_alias": "professional psychology (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Brazilian Portuguese).\n\n"

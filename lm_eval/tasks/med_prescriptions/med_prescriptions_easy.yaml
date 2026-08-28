@@ -1,4 +1,5 @@
-group: med_prescriptions
+tag:
+  - med_prescriptions
 task: med_prescriptions_easy
 dataset_path: devlocalhost/prescription-full
 output_type: multiple_choice
@@ -17,4 +18,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 1.0
+  version: 1.1

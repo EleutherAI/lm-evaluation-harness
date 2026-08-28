@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_bn_bd_stem_tasks"
+"task": "mmmlu_bn_bd_abstract_algebra"
+"task_alias": "abstract algebra (Bengali)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (Bengali).\n\n"

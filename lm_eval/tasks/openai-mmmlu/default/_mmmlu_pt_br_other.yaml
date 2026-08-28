@@ -1,0 +1,10 @@
+group: mmmlu_pt_br_other
+group_alias: "Brazilian Portuguese other"
+task:
+  - mmmlu_pt_br_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

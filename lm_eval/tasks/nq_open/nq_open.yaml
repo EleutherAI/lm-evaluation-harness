@@ -1,5 +1,5 @@
 task: nq_open
-dataset_path: nq_open
+dataset_path: google-research-datasets/nq_open
 output_type: generate_until
 training_split: train
 validation_split: validation

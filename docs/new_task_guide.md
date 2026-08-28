@@ -77,7 +77,24 @@ fewshot_config:
   ]
 ```
 
-or by adding the function `list_fewshot_samples` in the associated utils.py file:
+The full `fewshot_config` supports the following fields:
+
+```yaml
+fewshot_config:
+  sampler: default        # Sampling strategy: "default" (random) or "first_n"
+  split: train            # Dataset split to draw fewshot examples from (overrides fewshot_split)
+  samples: [...]          # Hardcoded list of fewshot examples, or a callable returning them
+  doc_to_text: "..."      # Override doc_to_text for fewshot examples only
+  doc_to_target: "..."    # Override doc_to_target for fewshot examples only
+  doc_to_choice: "..."    # Override doc_to_choice for fewshot examples only
+  gen_prefix: "Answer:"   # Prefix for assistant response in fewshot examples
+  fewshot_delimiter: "\n\n"  # Delimiter between fewshot examples
+  target_delimiter: " "      # Delimiter between question and answer
+```
+
+All fields are optional. If not specified, they inherit from the parent `TaskConfig`. This allows you to format fewshot examples differently from the evaluation examples — useful when your fewshot source has different field names or requires different formatting.
+
+You can also hardcode fewshot examples by adding the function `list_fewshot_samples` in the associated utils.py file:
 
 ```python
 def list_fewshot_samples() -> list[dict]:

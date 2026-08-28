@@ -1,7 +1,8 @@
 import unittest.mock as mock
 
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
-from lm_eval.api.task import ConfigurableTask, TaskConfig
+from lm_eval.api.task import ConfigurableTask
+from lm_eval.config.task import TaskConfig
 
 
 class MockConfigurableTask(ConfigurableTask):
@@ -177,9 +178,85 @@ def test_bootstrap_internal_no_mp():
     assert abs(bootstrap_mean - original_mean) < 0.5  # Should be reasonably close
 
 
+def test_dict_metric_uses_custom_aggregation():
+    """Regression test for #3314: dict-valued metrics must use the custom
+    aggregation function, not silently fall back to mean()."""
+    from collections import defaultdict
+
+    from lm_eval.evaluator_utils import _compute_task_aggregations
+
+    def pass_at_k(references, predictions):
+        return {"pass@1": 1.0, "pass@3": 0.5}
+
+    def custom_sum(arr):
+        return sum(arr)
+
+    task = MockConfigurableTask()
+    task.OUTPUT_TYPE = "generate_until"
+    task.multiple_target = 0
+    task._metric_fn_list = {"pass_at_k": pass_at_k}
+    task._metric_fn_kwargs = {"pass_at_k": {}}
+    task._aggregation_list = {"pass_at_k": custom_sum}
+    task._higher_is_better = {"pass_at_k": True}
+
+    # Simulate evaluating 3 docs
+    raw_metrics = defaultdict(list)
+    for _ in range(3):
+        result_dict = task.process_results({"target": "hello"}, ["hello"])
+        for key, value in result_dict.items():
+            raw_metrics[(key, "none")].append(value)
+
+    agg_metrics, _ = _compute_task_aggregations(task, raw_metrics, bootstrap_iters=0)
+
+    # If fix works: sum([1.0, 1.0, 1.0]) = 3.0; if broken (mean fallback): 1.0
+    assert agg_metrics["pass@1,none"] == 3.0
+    # sum([0.5, 0.5, 0.5]) = 1.5; if broken: 0.5
+    assert agg_metrics["pass@3,none"] == 1.5
+
+
+def test_chrf_uses_zero_word_order():
+    """chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
+    import sacrebleu as sb
+
+    from lm_eval.api.metrics import chrf
+
+    items = [("the cat sat on the mat", "the dog ran across the floor")]
+    result = chrf(items)
+    refs, preds = [["the cat sat on the mat"]], ["the dog ran across the floor"]
+    expected = sb.corpus_chrf(preds, refs, word_order=0).score
+    assert abs(result - expected) < 1e-6
+
+
+def test_chrfpp_uses_word_order_two():
+    """chrf++ aggregation should use word_order=2, producing a different score than chrf."""
+    import sacrebleu as sb
+
+    from lm_eval.api.metrics import chrf, chrfpp
+
+    items = [("the cat sat on the mat", "the dog ran across the floor")]
+    chrf_score = chrf(items)
+    chrfpp_score = chrfpp(items)
+
+    refs, preds = [["the cat sat on the mat"]], ["the dog ran across the floor"]
+    expected_chrfpp = sb.corpus_chrf(preds, refs, word_order=2).score
+    assert abs(chrfpp_score - expected_chrfpp) < 1e-6
+    assert chrf_score != chrfpp_score, (
+        "chrf and chrf++ should differ when word n-grams affect the score"
+    )
+
+
+def test_chrfpp_perfect_match():
+    """chrf++ should return 100.0 for identical hypothesis and reference."""
+    from lm_eval.api.metrics import chrfpp
+
+    items = [("the cat sat on the mat", "the cat sat on the mat")]
+    assert chrfpp(items) == 100.0
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()
     test_acc_mutual_info_without_metric()
     test_bootstrap_internal_no_mp()
+    test_dict_metric_uses_custom_aggregation()
     print("All tests passed!")

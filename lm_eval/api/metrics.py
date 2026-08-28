@@ -38,7 +38,7 @@ def mean(arr):
 
 @register_aggregation("median")
 def median(arr):
-    return arr[len(arr) // 2]
+    return sorted(arr)[len(arr) // 2]
 
 
 # Certain metrics must be calculated across all documents in a benchmark.
@@ -100,17 +100,41 @@ def bleu(items):
 
 @register_aggregation("chrf")
 def chrf(items):
-    """chrF++ is a tool for automatic evaluation of machine translation output
-    based on character n-gram precision and recall enhanced with word n-grams.
+    """chrF is an evaluation metric for machine translation output based on
+    character n-gram precision and recall.
+
+    Computed with sacrebleu's defaults: char_order=6, word_order=0, beta=2.
+    For chrF++ (word_order=2), use the ``chrf++`` metric instead.
+
     Source: https://github.com/m-popovic/chrF
     Paper: https://www.aclweb.org/anthology/W15-3049.pdf
 
-    Higher is better  # TODO I think
+    Higher is better
     """
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_chrf(preds, refs).score
+
+
+@register_aggregation("chrf++")
+def chrfpp(items):
+    """chrF++ is chrF extended with word n-grams, for automatic evaluation of
+    machine translation output.
+
+    Computed with word_order=2 and sacrebleu's remaining defaults:
+    char_order=6, beta=2. For plain chrF (word_order=0), use the ``chrf``
+    metric instead.
+
+    Source: https://github.com/m-popovic/chrF
+    Paper: https://aclanthology.org/W17-4770.pdf
+
+    Higher is better
+    """
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = _sacreformat(refs, preds)
+    return sacrebleu.corpus_chrf(preds, refs, word_order=2).score
 
 
 @register_aggregation("ter")
@@ -266,6 +290,16 @@ def perplexity_fn(items):  # This is a passthrough function
 
 
 @register_metric(
+    metric="likelihood",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="mean",
+)
+def likelihood_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
     metric="word_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
@@ -360,8 +394,18 @@ def chrf_fn(items):  # This is a passthrough function
 
 
 @register_metric(
-    metric="ter",
+    metric="chrf++",
     higher_is_better=True,
+    output_type="generate_until",
+    aggregation="chrf++",
+)
+def chrfpp_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="ter",
+    higher_is_better=False,
     output_type="generate_until",
     aggregation="ter",
 )
@@ -565,6 +609,7 @@ def stderr_for_metric(
         perplexity,
         bleu,
         chrf,
+        chrfpp,
         ter,
         nanmean,
     ]
@@ -593,6 +638,17 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     ) / (sum(sizes) - len(sizes))
 
     return np.sqrt(pooled_sample_var / sum(sizes))
+
+
+def unweighted_mean_stderr(stderrs: List[float]) -> float:
+    # Used to aggregate stderrs across subtasks in a group when we are NOT weighting
+    # by subtask size (weight_by_size=False), i.e. the group score is the simple
+    # unweighted mean of the k subtask means. For k independent subtask means,
+    # Var(mean) = (1 / k**2) * sum(se_i**2), so the stderr is sqrt(sum(se_i**2)) / k.
+    # (This coincides exactly with pooled_sample_stderr when all subtasks are the same
+    # size; it diverges only for unequal sizes, which is precisely the case the pooled
+    # formula mis-handles for an unweighted mean.)
+    return np.sqrt(sum(stderr**2 for stderr in stderrs)) / len(stderrs)
 
 
 def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):

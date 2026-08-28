@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_econometrics
+"tag": "mmmlu_de_de_social_sciences_tasks"
+"task": "mmmlu_de_de_econometrics"
+"task_alias": "econometrics (German)"
+"description": "The following are multiple choice questions (with answers) about econometrics (German).\n\n"

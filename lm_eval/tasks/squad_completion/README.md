@@ -40,6 +40,10 @@ Homepage: https://github.com/HazyResearch/based-evaluation-harness
 
 * `squad_completion`: the SQuAD task as implemented in the paper "Simple linear attention language models balance the recall-throughput tradeoff". Designed for zero-shot evaluation of small LMs.
 
+### Changelog
+
+* **v1** (2026-06-22, PR #3795): strip surrounding whitespace from the prompt (`doc_to_text`) and the gold target (`doc_to_target`), and route `process_results` through the stripped target so the `contains` metric compares against it. The raw `text`/`value` fields carry leading/trailing whitespace that previously corrupted both the prompt and the target, depressing `contains` scores. Results are not comparable to v0.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:

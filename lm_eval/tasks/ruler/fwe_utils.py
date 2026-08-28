@@ -11,17 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+from __future__ import annotations
+
 import itertools
 import random
 import string
+from typing import TYPE_CHECKING
 
 import datasets
 import numpy as np
-import transformers
 from scipy.special import zeta
 from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+
+
+if TYPE_CHECKING:
+    import transformers
 
 
 CONFIG = {
@@ -37,7 +43,7 @@ TEMPLATE = CONFIG["template"] + CONFIG["answer_prefix"]
 
 def generate_input_output(
     max_len: int,
-    tokenizer: "transformers.PreTrainedTokenizerFast",
+    tokenizer: transformers.PreTrainedTokenizerFast,
     num_words=-1,
     coded_wordlen=6,
     vocab_size=2000,
@@ -51,7 +57,7 @@ def generate_input_output(
     ]
     while len(set(vocab)) < vocab_size:
         vocab.append("".join(random.choices(string.ascii_lowercase, k=coded_wordlen)))
-    vocab = sorted(list(set(vocab)))
+    vocab = sorted(set(vocab))
     random.Random(SEED).shuffle(vocab)
     vocab[0] = "..."  # treat the top ranked as noise
 
@@ -61,13 +67,14 @@ def generate_input_output(
     def gen_text(num_words):
         k = np.arange(1, len(vocab) + 1)
         sampled_cnt = num_words * (k**-alpha) / zeta(alpha)
-        sampled_words = [[w] * zi for w, zi in zip(vocab, sampled_cnt.astype(int))]
+        sampled_words = [
+            [w] * zi for w, zi in zip(vocab, sampled_cnt.astype(int), strict=False)
+        ]
         sampled_words = [x for wlst in sampled_words for x in wlst]
         random.Random(SEED).shuffle(sampled_words)
         return template.format(context=" ".join(sampled_words), query=""), vocab[1:4]
 
     if num_words > 0:
-        num_words = num_words
         text, answer = gen_text(num_words)
         while len(tokenizer(text).input_ids) > max_len:
             num_words -= incremental
@@ -84,7 +91,7 @@ def generate_input_output(
 
 
 def sys_kwext(
-    tokenizer: "transformers.PreTrainedTokenizerFast",
+    tokenizer: transformers.PreTrainedTokenizerFast,
     max_seq_length: int,
     num_samples: int = 500,
     vocab_size: int = -1,
@@ -94,7 +101,6 @@ def sys_kwext(
     remove_newline_tab: bool = False,
 ) -> list[dict]:
     write_jsons = []
-    tokens_to_generate = tokens_to_generate
 
     vocab_size = max_seq_length // 50 if vocab_size == -1 else vocab_size
 

@@ -24,15 +24,23 @@ Homepage: https://github.com/hendrycks/math
 @article{hendrycksmath2021,
   title={Measuring Mathematical Problem Solving With the MATH Dataset},
   author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
-  journal={NeurIPS},
+  journal={Advances in neural information processing systems},
   year={2021}
 }
 
-@misc{2206.14858,
-Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
-Title = {Solving Quantitative Reasoning Problems with Language Models},
-Year = {2022},
-Eprint = {arXiv:2206.14858},
+@article{lewkowycz2022solving,
+  title={Solving quantitative reasoning problems with language models},
+  author={Lewkowycz, Aitor and Andreassen, Anders and Dohan, David and Dyer, Ethan and Michalewski, Henryk and Ramasesh, Vinay and Slone, Ambrose and Anil, Cem and Schlag, Imanol and Gutman-Solo, Theo and others},
+  journal={Advances in neural information processing systems},
+  volume={35},
+  pages={3843--3857},
+  year={2022}
+}
+
+@misc{kydlicek2025fixing,
+  title={Fixing open llm leaderboard with math-verify},
+  author={Kydlicek, Hynek and Lozovskaya, Alina and Habib, Nathan and Fourrier, Cl{\'e}mentine},
+  year={2025}
 }
 ```
 
@@ -83,3 +91,13 @@ If other tasks on this dataset are already supported:
 - version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For
   details [see](https://huggingface.co/blog/math_verify_leaderboard)
 - version 3.0 (21-Aug-2025); pass the full solution and model generation to `math_verify`'s `parse`
+- version 3.1 (28-Aug-2026); prompt and scoring fixes. Scores shift slightly relative to 3.0.
+  - corrected the hardcoded 4-shot prompt: restored the `\\` row separators in the two `align*` blocks (emitted
+    as a single `\` since #1895 split the prompt into Python string literals) and removed a stray trailing `}`.
+    The few-shot text now matches the source rows in `EleutherAI/hendrycks_math` (#4045)
+  - an answer identical to the gold now scores correct even when sympy cannot parse it — tuples, intervals and
+    matrices (#4034)
+  - commas are stripped only from true thousands separators, so bare tuples like `0,1` are no longer fused into
+    `01` (#4039)
+  - unit-word stripping no longer corrupts LaTeX command names (`\left` -> `\le`, `\infty` -> `\iny`), and
+    `\sqrt[n]{...}` survives the sqrt shorthand rule (#4037)

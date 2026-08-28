@@ -33,9 +33,7 @@ TEMPLATE = CONFIG["template"] + CONFIG["answer_prefix"]
 
 r = wonderwords.RandomWord()
 WORDS = sorted(
-    list(
-        set([item for x in ["noun", "adjective", "verb"] for item in r._categories[x]])
-    )
+    {item for x in ["noun", "adjective", "verb"] for item in r._categories[x]}
 )
 RNG.shuffle(WORDS)
 
@@ -91,7 +89,6 @@ def sys_word_pair_random(
 ):
     assert tokenizer is not None, "Tokenizer is not provided."
     write_jsons = []
-    tokens_to_generate = tokens_to_generate
 
     # Find the perfect num_words
     num_words = incremental
@@ -166,8 +163,9 @@ def sys_word_pair_random(
     return write_jsons
 
 
-def get_dataset(pretrained, seq=None, **kwargs):
+def get_dataset(pretrained, seq: int | None = None, **kwargs):
     tokenizer = get_tokenizer(pretrained)
+    assert seq is not None, "max_seq_length must be specified"
     write_jsons = sys_word_pair_random(
         num_samples=500, max_seq_length=seq, tokenizer=tokenizer
     )

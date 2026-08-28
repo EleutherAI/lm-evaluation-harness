@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_conceptual_physics
+"tag": "mmmlu_ko_kr_stem_tasks"
+"task": "mmmlu_ko_kr_conceptual_physics"
+"task_alias": "conceptual physics (Korean)"
+"description": "The following are multiple choice questions (with answers) about conceptual physics (Korean).\n\n"

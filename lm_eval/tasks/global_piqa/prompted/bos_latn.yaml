@@ -1,3 +1,0 @@
-dataset_name: bos_latn
-include: _template
-task: global_piqa_prompted_bos_latn
