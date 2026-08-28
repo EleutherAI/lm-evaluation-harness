@@ -170,7 +170,7 @@ class timeout:
         signal.signal(signal.SIGALRM, self.handle_timeout)
         signal.alarm(self.seconds)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, value, traceback):
         signal.alarm(0)
 
 
@@ -201,6 +201,7 @@ def is_equiv(x1: str, x2: str) -> bool:
                 eval_logger.debug(
                     "Had some trouble simplifying when comparing %s and %s", x1, x2
                 )
+                return False
     except TimeoutError:
         eval_logger.debug("Timed out comparing %s and %s", x1, x2)
         return False

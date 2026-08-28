@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import logging
 import re
 import signal
 from importlib.metadata import version
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING
 
-import datasets
+
+if TYPE_CHECKING:
+    import datasets
 
 
 eval_logger = logging.getLogger(__name__)
 
 
 try:
-    import antlr4
+    import antlr4  # noqa: F401
     import sympy
     from math_verify import parse, verify
     from sympy.parsing.latex import parse_latex
@@ -96,7 +100,7 @@ def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     return res
 
 
-def last_boxed_only_string(string: str) -> Optional[str]:
+def last_boxed_only_string(string: str) -> str | None:
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
         return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
@@ -152,14 +156,12 @@ class timeout:
         signal.signal(signal.SIGALRM, self.handle_timeout)
         signal.alarm(self.seconds)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, value, traceback):
         signal.alarm(0)
 
 
 def is_equiv(x1: str, x2: str) -> bool:
-    """
-    x1 and x2 are normalized latex string
-    """
+    """x1 and x2 are normalized latex string."""
     # parse_latex raises on tuples, intervals and matrices, and the handler
     # below then returns False for the pair -- so without this an answer
     # identical to the gold is scored wrong. Only ever turns a False into a
@@ -177,32 +179,30 @@ def is_equiv(x1: str, x2: str) -> bool:
                 sympy.SympifyError,
                 TypeError,
             ):
-                eval_logger.debug(f"couldn't parse one of {x1} or {x2}")
+                eval_logger.debug("couldn't parse one of %s or %s", x1, x2)
                 return False
 
             try:
                 diff = parsed_x1 - parsed_x2
             except TypeError:
-                eval_logger.debug(f"couldn't subtract {x1} and {x2}")
+                eval_logger.debug("couldn't subtract %s and %s", x1, x2)
                 return False
 
             try:
-                if sympy.simplify(diff) == 0:
-                    return True
-                else:
-                    return False
+                return sympy.simplify(diff) == 0
             except ValueError:
                 eval_logger.debug(
-                    f"Had some trouble simplifying when comparing {x1} and {x2}"
+                    "Had some trouble simplifying when comparing %s and %s", x1, x2
                 )
+                return False
     except TimeoutError:
-        eval_logger.debug(f"Timed out comparing {x1} and {x2}")
+        eval_logger.debug("Timed out comparing %s and %s", x1, x2)
         return False
     except ImportError as e:
         eval_logger.error(e)
         raise
-    except Exception as e:
-        eval_logger.debug(f"Failed comparing {x1} and {x2} with {e}")
+    except Exception as e:  # noqa: BLE001
+        eval_logger.debug("Failed comparing %s and %s with %s", x1, x2, e)
         return False
 
 
@@ -279,8 +279,7 @@ REMOVED_EXPRESSIONS = [
 
 
 def normalize_final_answer(final_answer: str) -> str:
-    """
-    Normalize a final answer to a quantitative reasoning question.
+    """Normalize a final answer to a quantitative reasoning question.
 
     Copied character for character from appendix D of Lewkowycz et al. (2022)
     """
