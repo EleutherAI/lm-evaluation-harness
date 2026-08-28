@@ -1,10 +1,8 @@
 include: _uncheatable_eval_base.yaml
 task: uncheatable_eval_arxiv_physics
 task_alias: UE_arxiv_ph
-custom_dataset: !function uncheatable_eval_utils.load_uncheatable_eval
-dataset_kwargs:
-  dataset: arxiv_physics
+process_docs: !function uncheatable_eval_utils.filter_arxiv_physics
 metadata:
   description: >-
-    Rolling perplexity on Uncheatable Eval arXiv physics papers and abstracts
-    downloaded after mid-2024.
+    Rolling perplexity on arXiv physics papers from the Uncheatable Eval 2026-07
+    snapshot.
