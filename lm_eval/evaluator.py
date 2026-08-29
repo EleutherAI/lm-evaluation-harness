@@ -51,6 +51,28 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 
+def _model_identity(model, model_args) -> str | None:
+    """Describe the model under evaluation, for cache-ownership checks.
+
+    Returns None when `model` is an already-initialized LM, since its
+    configuration is not reliably introspectable from here and a wrong
+    identity would be worse than none.
+    """
+    if not isinstance(model, str):
+        return None
+    if isinstance(model_args, str):
+        parsed = simple_parse_args_string(model_args)
+    elif isinstance(model_args, dict):
+        parsed = model_args
+    else:
+        parsed = {}
+    try:
+        rendered = json.dumps(parsed, sort_keys=True, default=str)
+    except (TypeError, ValueError):
+        rendered = str(sorted(parsed.items()))
+    return f"{model}({rendered})"
+
+
 @positional_deprecated
 def simple_evaluate(
     model: str | LM,
@@ -286,6 +308,10 @@ def simple_evaluate(
             + "_rank"
             + str(cache_rank)
             + ".db",
+            # Cache keys come from request arguments alone, so a db shared
+            # between models silently serves the first model's responses to the
+            # second. Pass what identifies this run so CachingLM can warn.
+            model_identity=_model_identity(model, model_args),
         )
 
     if task_manager is None:
