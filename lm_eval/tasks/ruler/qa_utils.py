@@ -14,6 +14,7 @@
 
 
 import itertools  # noqa: I001
+import logging
 import random
 from functools import cache
 
@@ -21,7 +22,11 @@ import datasets
 import requests
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_SEQ_LENGTHS,
+    get_tokenizer,
+    resolve_tokenizer_name,
+)
 
 CONFIG = {
     "tokens_to_generate": 32,
@@ -31,6 +36,8 @@ CONFIG = {
 SEED = 42
 TEMPLATE = CONFIG["template"]
 DOCUMENT_PROMPT = "Document {i}:\n{document}"
+
+eval_logger = logging.getLogger(__name__)
 
 
 @cache
@@ -118,7 +125,9 @@ def generate_input_output(
                 )
             )
         else:
-            all_docs = curr_docs + random.sample(curr_more, num_docs - len(curr_docs))
+            all_docs = curr_docs + random.sample(
+                curr_more, max(0, num_docs - len(curr_docs))
+            )
 
         all_docs = [docs[idx] for idx in all_docs]
     else:
@@ -145,6 +154,8 @@ def generate_samples(
     remove_newline_tab=False,
 ) -> list[dict]:
     write_jsons = []
+    skipped = 0
+    last_skip_reason = None
 
     # Find the perfect num_docs
     num_docs = incremental
@@ -154,9 +165,6 @@ def generate_samples(
         input_text, answer = generate_input_output(0, num_docs, qas=qas, docs=docs)
         # Calculate the number of tokens in the example
         total_tokens = len(tokenizer(input_text + f" {answer}").input_ids)
-        # print(
-        #     f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate} | Docs: {num_docs}"
-        # )
         if total_tokens + tokens_to_generate > max_seq_length:
             num_docs -= incremental
             break
@@ -165,24 +173,52 @@ def generate_samples(
         if num_docs > len(docs):
             num_docs = len(docs)
             break
-    # print("Number of documents:", num_docs)
+
+    # The loop above subtracts `incremental` on overflow, which lands on 0 when
+    # even `incremental` documents do not fit `max_seq_length`.
+    num_docs = max(num_docs, 1)
 
     # Generate samples
     for index in tqdm(
         range(num_samples), desc=f"Generating QA Samples | {max_seq_length}"
     ):
-        used_docs = num_docs
-        while True:
+        # A sample has to keep every gold document for its question, so that
+        # count is the floor for shrinking: below it the answer is no longer
+        # supported by the context and `generate_input_output` would ask
+        # `random.sample` for a negative number of documents.
+        min_docs = len(qas[index + pre_samples]["context"])
+        # Try progressively smaller documents sets, always ending on `min_docs`.
+        # This list is finite, so it always terminates -- the previous
+        # `while True` spun forever once `used_docs` reached `incremental` and
+        # the `used_docs > incremental` guard stopped shrinking it.
+        candidates = [
+            *range(max(num_docs, min_docs), min_docs, -incremental),
+            min_docs,
+        ]
+        sample = None
+        last_error = None
+        for used_docs in candidates:
             try:
                 input_text, answer = generate_input_output(
                     index + pre_samples, used_docs, qas=qas, docs=docs
                 )
                 length = len(tokenizer(input_text).input_ids) + tokens_to_generate
-                assert length <= max_seq_length, f"{length} exceeds max_seq_length."
-                break
-            except:  # noqa: E722
-                if used_docs > incremental:
-                    used_docs -= incremental
+                if length <= max_seq_length:
+                    sample = (input_text, answer, length)
+                    break
+                last_error = f"{length} exceeds max_seq_length={max_seq_length}"
+            except Exception as e:  # noqa: BLE001 - any failure means "try smaller"
+                last_error = e
+
+        # Bail out *before* the formatting block: on failure `input_text` and
+        # `length` still hold the previous sample's values (or are unbound on
+        # the first iteration), so falling through would emit a duplicate, an
+        # over-length sample, or raise `UnboundLocalError`.
+        if sample is None:
+            skipped += 1
+            last_skip_reason = last_error
+            continue
+        input_text, answer, length = sample
 
         if remove_newline_tab:
             input_text = " ".join(
@@ -199,11 +235,26 @@ def generate_samples(
         }
         write_jsons.append(formatted_output)
 
+    if skipped:
+        eval_logger.warning(
+            "Skipped %s/%s QA samples | max_seq_length=%s: their gold documents do "
+            "not fit within the sequence length. Last reason: %s",
+            skipped,
+            num_samples,
+            max_seq_length,
+            last_skip_reason,
+        )
+    if not write_jsons:
+        raise ValueError(
+            f"Could not generate any QA sample at max_seq_length={max_seq_length}. "
+            "It leaves no room for the prompt template, the gold documents and "
+            f"{tokens_to_generate} generated tokens. Raise `max_seq_lengths` for "
+            "this task."
+        )
     return write_jsons
 
 
-def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs) -> list[dict]:
-    tokenizer = get_tokenizer(pretrained)
+def get_dataset(tokenizer, docs, qas, max_seq_length=None, **kwargs) -> list[dict]:
     write_jsons = generate_samples(
         tokenizer=tokenizer,
         docs=docs,
@@ -216,13 +267,15 @@ def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs) -> list[di
 
 
 def get_qa_dataset(ds, **kwargs) -> dict[str, datasets.Dataset]:
-    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
+    # Resolved before the documents are fetched, so a missing tokenizer is
+    # reported immediately rather than after a large download.
+    tokenizer = get_tokenizer(resolve_tokenizer_name(kwargs))
     if ds == "squad":
         qas, docs = read_squad()
     else:
         qas, docs = read_hotpotqa()
     df = (
-        get_dataset(pretrained=pretrained, docs=docs, qas=qas, max_seq_length=seq)
+        get_dataset(tokenizer=tokenizer, docs=docs, qas=qas, max_seq_length=seq)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

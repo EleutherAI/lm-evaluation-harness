@@ -14,16 +14,22 @@
 
 # adapted from https://github.com/NVIDIA/RULER/blob/main/scripts/data/synthetic/variable_tracking.py
 
+from __future__ import annotations
+
 import itertools
 import random
 import string
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import datasets
 import numpy as np
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_SEQ_LENGTHS,
+    get_tokenizer,
+    resolve_tokenizer_name,
+)
 
 
 if TYPE_CHECKING:
@@ -68,7 +74,7 @@ def generate_chains(
 
 
 def generate_input_output(num_noises, num_chains, num_hops, is_icl=False):
-    vars, chains = generate_chains(num_chains, num_hops, is_icl=is_icl)
+    _vars, chains = generate_chains(num_chains, num_hops, is_icl=is_icl)
 
     noise = "The grass is green. The sky is blue. The sun is yellow. Here we go. There and back again.\n"
 
@@ -89,8 +95,8 @@ def generate_input_output(num_noises, num_chains, num_hops, is_icl=False):
     # sample random positions to insert variable assignment
     for chain_i in chains:
         # sample random positions (sorted) to insert variable assignment
-        positions = list(sorted(random.sample(range(len(sentences)), len(chain_i))))
-        for insert_pi, j in zip(positions, range(len(chain_i))):
+        positions = sorted(random.sample(range(len(sentences)), len(chain_i)))
+        for insert_pi, j in zip(positions, range(len(chain_i)), strict=False):
             sentences.insert(insert_pi + j, chain_i[j])
 
     # Insert the passkey sentence at the random position
@@ -114,7 +120,7 @@ def generate_input_output(num_noises, num_chains, num_hops, is_icl=False):
     value = chains[0][0].split("=")[-1].strip()
     input_text = template.format(context=context, query=value, num_v=num_hops + 1)
 
-    return input_text, vars[0]
+    return input_text, _vars[0]
 
 
 def randomize_icl(icl_example: str) -> str:
@@ -135,7 +141,7 @@ def sys_vartrack_w_noise_random(
     num_hops: int = 4,
     add_fewshot: bool = True,
     tokens_to_generate=30,
-    icl_example: dict = None,
+    icl_example: dict | None = None,
     remove_newline_tab=False,
 ):
     write_jsons = []
@@ -222,8 +228,8 @@ def sys_vartrack_w_noise_random(
 
 
 def get_dataset(
-    tokenizer: Union["PreTrainedTokenizer", "PreTrainedTokenizerFast"],
-    seq=None,
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    seq: int | None = None,
     **kwargs,
 ) -> list[dict]:
     icl_example = sys_vartrack_w_noise_random(
@@ -232,6 +238,7 @@ def get_dataset(
         max_seq_length=500,
         incremental=5,
     )[0]
+    assert seq is not None, "Require a max seq length"
     write_jsons = sys_vartrack_w_noise_random(
         tokenizer=tokenizer,
         num_samples=500,
@@ -242,9 +249,9 @@ def get_dataset(
 
 
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
-    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", ""))
+    tokenizer = get_tokenizer(resolve_tokenizer_name(kwargs))
     df = (
-        get_dataset(tokenizer=get_tokenizer(pretrained), seq=seq)
+        get_dataset(tokenizer=tokenizer, seq=seq)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

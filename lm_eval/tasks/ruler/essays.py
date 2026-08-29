@@ -15,7 +15,6 @@ import asyncio
 import glob
 import os
 from functools import cache
-from typing import Dict
 
 import html2text
 import httpx
@@ -23,20 +22,33 @@ from bs4 import BeautifulSoup
 from tqdm.asyncio import tqdm as async_tqdm
 
 
-@cache
+def _write_text(path: str, text: str) -> None:
+    """Write `text` to `path`; call via `asyncio.to_thread` from async code."""
+    with open(path, "w", encoding="utf-8") as file:
+        file.write(text)
+
+
+def _read_all_text(paths: list[str]) -> str:
+    """Concatenate the contents of `paths`; call via `asyncio.to_thread`."""
+    chunks = []
+    for path in paths:
+        with open(path, encoding="utf-8") as file:
+            chunks.append(file.read())
+    return "".join(chunks)
+
+
 async def fetch_url(client: httpx.AsyncClient, url: str) -> str:
     response = await client.get(url)
     response.raise_for_status()
     return response.text
 
 
-@cache
 async def process_html_essay(
     client: httpx.AsyncClient, url: str, h: html2text.HTML2Text, temp_folder: str
 ) -> None:
     filename = url.split("/")[-1].replace(".html", ".txt")
     if os.path.exists(os.path.join(temp_folder, filename)):
-        return None
+        return
     try:
         content = await fetch_url(client, url)
         soup = BeautifulSoup(content, "html.parser")
@@ -44,31 +56,32 @@ async def process_html_essay(
         if specific_tag:
             parsed = h.handle(str(specific_tag))
 
-            with open(
-                os.path.join(temp_folder, filename), "w", encoding="utf-8"
-            ) as file:
-                file.write(parsed)
-    except Exception as e:
-        print(f"Failed to download {filename}: {str(e)}")
+            await asyncio.to_thread(
+                _write_text, os.path.join(temp_folder, filename), parsed
+            )
+    except (httpx.HTTPError, OSError) as e:
+        print(f"Failed to download {filename}: {e!s}")
 
 
-@cache
 async def process_text_essay(
     client: httpx.AsyncClient, url: str, temp_folder: str
 ) -> None:
     filename = url.split("/")[-1]
     if os.path.exists(os.path.join(temp_folder, filename)):
-        return None
+        return
     try:
         content = await fetch_url(client, url)
-        with open(os.path.join(temp_folder, filename), "w", encoding="utf-8") as file:
-            file.write(content)
-    except Exception as e:
-        print(f"Failed to download {filename}: {str(e)}")
+        await asyncio.to_thread(
+            _write_text, os.path.join(temp_folder, filename), content
+        )
+    except (httpx.HTTPError, OSError) as e:
+        print(f"Failed to download {filename}: {e!s}")
 
 
-@cache
-async def get_essays() -> Dict[str, str]:
+# Deliberately not `@cache`d: `functools.cache` stores the coroutine object rather
+# than the awaited result, so a cache hit would re-await an exhausted coroutine and
+# raise RuntimeError. `get_all_essays` below is the memoised sync entry point.
+async def get_essays() -> dict[str, str]:
     temp_folder_repo = "essay_repo"
     temp_folder_html = "essay_html"
     os.makedirs(temp_folder_repo, exist_ok=True)
@@ -109,15 +122,12 @@ async def get_essays() -> Dict[str, str]:
     files_html = sorted(glob.glob(os.path.join(temp_folder_html, "*.txt")))
 
     # Combine all texts
-    text = ""
-    for file in files_repo + files_html:
-        with open(file, "r", encoding="utf-8") as f:
-            text += f.read()
+    text = await asyncio.to_thread(_read_all_text, files_repo + files_html)
 
     return {"text": text}
 
 
 @cache
-def get_all_essays() -> Dict[str, str]:
-    """Synchronous wrapper for get_essays()"""
+def get_all_essays() -> dict[str, str]:
+    """Synchronous wrapper for get_essays()."""
     return asyncio.run(get_essays())
