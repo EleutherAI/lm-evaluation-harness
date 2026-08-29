@@ -227,8 +227,23 @@ class LM(abc.ABC):
 
 
 ### SQLite-based caching of LM responses
+def _json_default(obj: Any) -> Any:
+    if isinstance(obj, (bytes, bytearray, memoryview)):
+        return utils.convert_bytes_to_hash(obj)
+
+    try:
+        from PIL import Image
+    except ImportError:
+        Image = None
+
+    if Image is not None and isinstance(obj, Image.Image):
+        return utils.convert_pil_to_hash(obj)
+
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
 def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args))
+    dat = json.dumps([attr] + list(args), default=_json_default)
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 

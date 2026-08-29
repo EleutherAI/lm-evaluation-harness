@@ -3,12 +3,35 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from PIL import Image
 
+from lm_eval.api.model import hash_args
 from lm_eval.models.api_models import create_image_prompt
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 
 
 TEST_AUTH_TOKEN = "secure-token"  # noqa: S105 - fixed test sentinel
+
+
+def test_hash_args_supports_content_sensitive_multimodal_values():
+    image = Image.new("RGB", (1, 1), (255, 0, 0))
+
+    same_image = Image.new("RGB", (1, 1), (255, 0, 0))
+    other_image = Image.new("RGB", (1, 1), (0, 255, 0))
+    assert hash_args(
+        "generate_until", (("prompt", {}, {"visual": [image]}),)
+    ) == hash_args("generate_until", (("prompt", {}, {"visual": [same_image]}),))
+    assert hash_args(
+        "generate_until", (("prompt", {}, {"visual": [image]}),)
+    ) != hash_args("generate_until", (("prompt", {}, {"visual": [other_image]}),))
+    assert hash_args(
+        "generate_until", (("prompt", {}, {"visual": [b"red"]}),)
+    ) != hash_args("generate_until", (("prompt", {}, {"visual": [b"green"]}),))
+
+
+def test_hash_args_rejects_unsupported_values():
+    with pytest.raises(TypeError, match="not JSON serializable"):
+        hash_args("generate_until", (("prompt", {}, {"visual": [object()]}),))
 
 
 @pytest.fixture
