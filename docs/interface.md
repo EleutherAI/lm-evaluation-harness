@@ -80,7 +80,7 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | `--tasks` | `-t` | Space or comma-separated list of task names or groups. Use `lm-eval ls tasks` to see available tasks. |
 | `--apply_chat_template` | | Apply chat template to prompts. Use without argument for default template, or specify template name. |
 | `--limit` | `-L` | Limit examples per task. Integer for count, float (0.0-1.0) for percentage. **For testing only.** |
-| `--use_cache` | `-c` | Path prefix for SQLite cache of model responses (e.g., `/path/to/cache_`). |
+| `--use_cache` | `-c` | Path prefix for SQLite cache of model responses (e.g., `/path/to/cache_`). Responses are keyed by the model as well as the request, so a cache written for one model is not reused for another; prefer one prefix per model to avoid re-running. |
 
 ### Evaluation Settings
 
