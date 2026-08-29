@@ -252,8 +252,22 @@ def _multimodal_cache_default(obj: Any) -> Any:
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
-def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args), default=_multimodal_cache_default)
+# Key under which a cache db records which model wrote it. Not a response key:
+# it is a plain string, where every response key is a sha256 hex digest, so the
+# two can never collide.
+CACHE_IDENTITY_KEY = "__model_identity__"
+
+
+def hash_args(attr: str, args: Iterable[Any], model_identity: str | None = None) -> str:
+    """Key a cached response by what was asked *and* who was asked.
+
+    `model_identity` is a separate element of the hashed list rather than being
+    concatenated onto `attr`, so that no pair of (identity, attr) can be split
+    two ways into the same string.
+    """
+    dat = json.dumps(
+        [model_identity, attr] + list(args), default=_multimodal_cache_default
+    )
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
@@ -261,35 +275,88 @@ class CacheHook:
     def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
         if cachinglm is None:
             self.dbdict: SqliteDict | None = None
+            self.model_identity: str | None = None
             return
 
         self.dbdict = cachinglm.dbdict
+        self.model_identity = cachinglm.model_identity
 
     def add_partial(self, attr: str, req: Iterable[Any], res: Any) -> None:
         if self.dbdict is None:
             return
-        hsh = hash_args(attr, req)
+        hsh = hash_args(attr, req, self.model_identity)
         self.dbdict[hsh] = res
 
 
 class CachingLM:
-    def __init__(self, lm: LM, cache_db: str) -> None:
+    def __init__(
+        self, lm: LM, cache_db: str, model_identity: str | None = None
+    ) -> None:
         """LM wrapper that returns cached results when available, falling back to the underlying model.
 
         Args:
             lm: The underlying language model to wrap.
             cache_db: Path to the SQLite cache database.
+            model_identity: Which model these responses belong to. Part of every
+                cache key, so that a db written while evaluating one model can
+                never answer for another. Leaving it None keys the cache on the
+                request alone, which is what this class did before the identity
+                existed.
         """
         from sqlitedict import SqliteDict
 
         self.lm: LM = lm
         self.cache_db: str = cache_db
+        self.model_identity: str | None = model_identity
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
+        self._check_model_identity()
 
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
+
+    def _check_model_identity(self) -> None:
+        """Say something when a db was written by a different model.
+
+        The identity is part of the key, so a mismatch is already safe — every
+        lookup simply misses and the model is run. It is not obvious, though:
+        without this the user sees a cache that silently stopped working, and
+        the one thing worth telling them is that it was somebody else's.
+        """
+        if self.model_identity is None:
+            # Nothing here can work out which model `self.lm` is; only the caller
+            # knows. Without it the key is the request alone, which is what
+            # shares one db between two models. simple_evaluate always passes an
+            # identity, so this is only reachable by constructing CachingLM
+            # directly.
+            eval_logger.warning(
+                f"Cache '{self.cache_db}' is being used without a model identity, so its "
+                "responses are keyed by the request alone. Two different models sharing this "
+                "db will read each other's responses. Pass model_identity= to prevent it."
+            )
+
+        # Presence of the key, not its value: a db written with no identity at
+        # all records None under it, which `.get()` cannot tell from absent.
+        if CACHE_IDENTITY_KEY in self.dbdict:
+            previous = self.dbdict[CACHE_IDENTITY_KEY]
+            if previous != self.model_identity:
+                eval_logger.warning(
+                    f"Cache '{self.cache_db}' was written for model '{previous}' and this run "
+                    f"is '{self.model_identity}'. Responses cached for the other model will "
+                    "not be used. Use one cache db per model to avoid re-running."
+                )
+            return
+
+        # Either a fresh db, or one written before responses were keyed by
+        # model. In the second case none of its entries can be hit any more.
+        if len(self.dbdict):
+            eval_logger.warning(
+                f"Cache '{self.cache_db}' does not record which model wrote it, so its "
+                "entries cannot be matched to one. They will be ignored and the model "
+                "will be run again."
+            )
+        self.dbdict[CACHE_IDENTITY_KEY] = self.model_identity
 
     def __getattr__(self, attr: str) -> Any:
         lm_attr = getattr(self.lm, attr)
@@ -306,7 +373,7 @@ class CachingLM:
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
             for req in tqdm(requests, desc="Checking cached requests"):
-                hsh = hash_args(attr, req.args)
+                hsh = hash_args(attr, req.args, self.model_identity)
                 if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
@@ -341,7 +408,7 @@ class CachingLM:
                 res[resptr] = r
 
                 # caching
-                hsh = hash_args(attr, req.args)
+                hsh = hash_args(attr, req.args, self.model_identity)
                 self.dbdict[hsh] = r
             self.dbdict.commit()
 
