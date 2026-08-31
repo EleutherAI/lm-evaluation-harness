@@ -147,6 +147,8 @@ extend-select = [
     "FURB", "I", "TC", "RUF034",
      # flake8-bandit, simplify, pyupgrade, invalid-escape-sequence
     "S", "SIM", "S307", "UP", "W605",
+    # numpy 2.0 removals (np.NAN, np.float_, ...); numpy is unpinned
+    "NPY201",
 ]
 fixable = [
      # bugbear, pydocstyle, pycodestyle, unused-import
@@ -155,6 +157,8 @@ fixable = [
     "FURB", "I001", "RUF",
     # simplify, type-checking, pyupgrade, invalid-escape
     "SIM", "TC", "UP", "W605",
+    # numpy 2.0 removals
+    "NPY201",
 ]
 ignore = [
     "D10", "D200", "D202", "D205",

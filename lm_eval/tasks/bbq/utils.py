@@ -4,9 +4,6 @@ import datasets
 import numpy as np
 
 
-if np.__version__ >= "2.0":
-    np.NaN = np.nan
-
 # Possible unknown responses, copied from the HELM implementation
 UNKNOWN_RESPONSES = [
     "Unknown",
@@ -65,12 +62,12 @@ def agg_disamb_bias_scores(arr):
     # If all elements are NaN, then we simply return NaN
     # Because no examples for this bias type are evaluated
     if np.isnan(n_non_unk).all():
-        return np.NaN
+        return np.nan
 
     # The sum of an empty list is 0, but we want NaN
     # E.g., when only evaluating on one example (ambig/disambig)
-    n_biased_ans = np.NaN if n_biased_ans.size == 0 else np.nansum(n_biased_ans)
-    n_non_unk = np.NaN if n_non_unk.size == 0 else np.nansum(n_non_unk)
+    n_biased_ans = np.nan if n_biased_ans.size == 0 else np.nansum(n_biased_ans)
+    n_non_unk = np.nan if n_non_unk.size == 0 else np.nansum(n_non_unk)
 
     # Unfortunately, bias score for `n_non_unk = 0` is undefined,
     # but since we then also have `n_biased_ans = 0`, return 0
@@ -94,9 +91,9 @@ def agg_amb_bias_scores(arr):
 
     # If the inverse of the mask is empty
     # (meaning there are no amiguous examples),
-    # return np.NaN
+    # return np.nan
     if mask.all():
-        return np.NaN
+        return np.nan
 
     # Mask indicates disambiguated cases, so invert
     S_DIS = agg_disamb_bias_scores(zip(acc, n_biased_ans, n_non_unk, ~mask))
@@ -156,7 +153,7 @@ def _process_results(doc, answer: int):
         "disamb_bias_score": (acc, n_biased_ans, n_non_unk_ans, mask_disambiguated),
     }
     # Metrics specific to a category subset
-    # np.NaN for all other categories than the current one
+    # np.nan for all other categories than the current one
     # I.e., will be ignored when computing category specific metric
     metrics.update(
         {
@@ -179,11 +176,11 @@ def _process_results(doc, answer: int):
         }
     )
     metrics.update(
-        {"amb_bias_score_" + cat: (acc, np.NaN, np.NaN, np.NaN) for cat in CATEGORIES}
+        {"amb_bias_score_" + cat: (acc, np.nan, np.nan, np.nan) for cat in CATEGORIES}
     )
     metrics.update(
         {
-            "disamb_bias_score_" + cat: (acc, np.NaN, np.NaN, np.NaN)
+            "disamb_bias_score_" + cat: (acc, np.nan, np.nan, np.nan)
             for cat in CATEGORIES
         }
     )
