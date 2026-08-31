@@ -41,18 +41,26 @@ None.
 
 #### Tasks
 
-* `physics_gre`: Exam GR8677, the split Inflection reports results on (image-free items).
-* `physics_gre_additional`: Three additional exams (GR9277, GR9677, GR0177).
-* `physics_gre_all`: The union of all four exams.
+* `physics_gre_multiple_choice`: Exam GR8677, the split Inflection reports results on (image-free items).
+* `physics_gre_additional_multiple_choice`: Three additional exams (GR9277, GR9677, GR0177).
+* `physics_gre_all_multiple_choice`: The union of all four exams.
 
-The "Main" variant is `physics_gre` (GR8677), matching the split used in the
-original report.
+The "Main" variant is `physics_gre_multiple_choice` (GR8677), matching the split
+used in the original report.
+
+The `_multiple_choice` suffix follows the bigbench convention: these tasks are
+scored as `output_type: multiple_choice` (loglikelihood over the five options),
+which is a different setup from the sampled-generation scoring of the original
+report. A `_generate_until` variant is not provided here.
 
 ### Scoring note
 
-The original benchmark reports a percentile derived from a GRE-style raw score
-(+1 per correct answer, −0.25 per incorrect answer). These tasks report standard
-`acc` over image-free items; the GRE penalty scoring is not applied.
+The original benchmark reports maj@8 / maj@32 — majority vote over sampled
+generations — and derives a percentile from a GRE-style raw score (+1 per correct
+answer, −0.25 per incorrect answer). These tasks are loglikelihood multiple-choice
+and report standard `acc` over image-free items, with neither majority voting nor
+the GRE penalty applied, so scores are **not** directly comparable to the numbers
+in the original report.
 
 ### Checklist
 
