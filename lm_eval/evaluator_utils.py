@@ -201,7 +201,13 @@ def _compute_task_aggregations(
 
         metric_key = f"{metric},{filter_key}"
         agg_metrics[metric_key] = agg_fn(items)
-        sample_len = len(items)  # TODO: reflects only the last metric's count
+        # Metrics can hold different numbers of values: a document whose
+        # process_results omits a key contributes to some metrics and not others.
+        # Assigning here would report whichever metric came last, so the same run
+        # reports a different count depending on dict ordering. The number of
+        # documents evaluated is the largest of the per-metric counts, since a
+        # document contributes at most one value to each metric.
+        sample_len = max(sample_len, len(items))
 
         if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
             stderr_fn = stderr_for_metric(

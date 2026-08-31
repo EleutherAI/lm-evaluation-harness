@@ -211,6 +211,32 @@ class TestComputeTaskAggregations:
         # len(items) <= 1 → "N/A"
         assert metrics["acc_stderr,none"] == "N/A"
 
+    def test_sample_count_does_not_depend_on_metric_order(self):
+        # Three documents were scored for acc; only one of them also produced f1,
+        # which is what a task does when a sample is unscorable for one metric
+        # (a refusal, an unparseable answer, an empty extraction).
+        task = MockEvalTask("t", agg={"acc": mean, "f1": mean})
+        acc_first = {("acc", "none"): [1.0, 0.0, 1.0], ("f1", "none"): [0.5]}
+        f1_first = {("f1", "none"): [0.5], ("acc", "none"): [1.0, 0.0, 1.0]}
+
+        _, count_acc_first = _compute_task_aggregations(
+            task, acc_first, bootstrap_iters=0
+        )
+        _, count_f1_first = _compute_task_aggregations(
+            task, f1_first, bootstrap_iters=0
+        )
+
+        assert count_acc_first == count_f1_first
+        assert count_acc_first == 3
+
+    def test_sample_count_unchanged_when_metrics_agree(self):
+        # The common case: every document produced every metric. The count is
+        # that shared length, exactly as before.
+        task = MockEvalTask("t", agg={"acc": mean, "f1": mean})
+        raw = {("acc", "none"): [1.0, 0.0], ("f1", "none"): [0.5, 0.25]}
+        _, count = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        assert count == 2
+
     def test_fallback_to_mean_for_unknown_metric(self):
         # Task has no aggregation for "custom_metric"
         task = MockEvalTask("t", agg={})
