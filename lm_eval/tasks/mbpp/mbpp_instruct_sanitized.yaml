@@ -1,0 +1,15 @@
+# MBPP-instruct on the SANITIZED test split.
+#
+# WHY: mbpp_instruct.yaml uses `dataset_name: full`, whose 500-problem test split is the raw
+# crowd-sourced set -- it contains ambiguous prompts and tests that do not match their description.
+# The sanitized config (257 problems) is the hand-checked subset and is what should be reported.
+#   https://huggingface.co/datasets/google-research-datasets/mbpp/viewer/sanitized/test
+#
+# ONLY doc_to_text changes: the sanitized config names the description field `prompt`, not `text`
+# (it also carries `test_imports` in place of `test_setup_code`, which this task never reads).
+# Everything else -- gen_prefix, filters, pass_at_1, the hardcoded fewshot samples in utils.py --
+# is inherited unchanged, so scoring is identical to the full-split task.
+include: mbpp_instruct.yaml
+task: mbpp_instruct_sanitized
+dataset_name: sanitized
+doc_to_text: "You are an expert Python programmer, and here is your task:\n{{prompt}}\nYour code should pass these tests:\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}"
