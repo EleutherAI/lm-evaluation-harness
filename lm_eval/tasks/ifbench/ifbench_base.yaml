@@ -1,0 +1,5 @@
+include: _ifbench.yml
+task: ifbench
+dataset_path: allenai/IFBench_test
+test_split: train
+doc_to_text: "{{prompt}}"
