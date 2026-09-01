@@ -1,0 +1,10 @@
+"include": "_default_gsm8kx_template_yaml"
+"task": "ogx_gsm8kx_hu"
+"dataset_name": "HU"
+"doc_to_text": "Kérdés: {{question}}\nVálasz:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Kérdés:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

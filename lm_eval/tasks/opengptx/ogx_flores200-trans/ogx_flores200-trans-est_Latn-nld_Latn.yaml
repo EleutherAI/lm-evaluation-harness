@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-est_Latn-nld_Latn"
+"dataset_name": "est_Latn-nld_Latn"
+"doc_to_text": "Estonian phrase: {{sentence_est_Latn}}\nDutch phrase:"
+"doc_to_decontamination_query": "{{sentence_est_Latn}}"
+"doc_to_target": "{{sentence_nld_Latn}}"

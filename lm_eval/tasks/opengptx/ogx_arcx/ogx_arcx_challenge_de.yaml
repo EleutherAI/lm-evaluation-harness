@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_challenge_de"
+"dataset_name": "challenge_DE"
+"doc_to_text": "Frage: {{question}}\nAntwort:"
+"doc_to_decontamination_query": "Frage: {{question}}\nAntwort:"

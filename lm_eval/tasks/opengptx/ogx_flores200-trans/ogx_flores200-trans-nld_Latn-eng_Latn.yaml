@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-nld_Latn-eng_Latn"
+"dataset_name": "nld_Latn-eng_Latn"
+"doc_to_text": "Dutch phrase: {{sentence_nld_Latn}}\nEnglish phrase:"
+"doc_to_decontamination_query": "{{sentence_nld_Latn}}"
+"doc_to_target": "{{sentence_eng_Latn}}"

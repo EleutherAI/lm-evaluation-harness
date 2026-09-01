@@ -1,0 +1,14 @@
+include: ogx_truthfulqax_mc1_sl.yaml
+task: ogx_truthfulqax_mc2_sl
+dataset_name: mc_SL
+doc_to_target: 0
+doc_to_choice: '{{mc2_targets.choices}}'
+process_results: !function 'utils.process_results_mc2'
+should_decontaminate: true
+doc_to_decontamination_query: question
+metric_list:
+- metric: acc
+  aggregation: mean
+  higher_is_better: true
+metadata:
+  version: 1.0

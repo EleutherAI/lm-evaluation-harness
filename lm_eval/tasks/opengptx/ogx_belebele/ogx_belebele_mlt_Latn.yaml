@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_mlt_Latn"
+"test_split": "mlt_Latn"
+"fewshot_split": "mlt_Latn"
+"doc_to_text": "Silta: {{flores_passage}}\nMistoqsija: {{question}}\nTweġiba:"

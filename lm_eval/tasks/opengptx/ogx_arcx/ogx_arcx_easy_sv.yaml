@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_easy_sv"
+"dataset_name": "easy_SV"
+"doc_to_text": "Fråga: {{question}}\nSvar:"
+"doc_to_decontamination_query": "Fråga: {{question}}\nSvar:"

@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_easy_lv"
+"dataset_name": "easy_LV"
+"doc_to_text": "Jautājums: {{question}}\nAtbilde:"
+"doc_to_decontamination_query": "Jautājums: {{question}}\nAtbilde:"

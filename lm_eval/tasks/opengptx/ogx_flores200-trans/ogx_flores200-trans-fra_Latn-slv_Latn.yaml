@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-fra_Latn-slv_Latn"
+"dataset_name": "fra_Latn-slv_Latn"
+"doc_to_text": "French phrase: {{sentence_fra_Latn}}\nSlovenian phrase:"
+"doc_to_decontamination_query": "{{sentence_fra_Latn}}"
+"doc_to_target": "{{sentence_slv_Latn}}"

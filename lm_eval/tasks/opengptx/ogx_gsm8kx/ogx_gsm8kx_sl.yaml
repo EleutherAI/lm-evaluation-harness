@@ -1,0 +1,10 @@
+"include": "_default_gsm8kx_template_yaml"
+"task": "ogx_gsm8kx_sl"
+"dataset_name": "SL"
+"doc_to_text": "Vprašanje: {{question}}\nOdgovor:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Vprašanje:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"
