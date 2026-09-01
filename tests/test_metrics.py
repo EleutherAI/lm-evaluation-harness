@@ -214,6 +214,29 @@ def test_dict_metric_uses_custom_aggregation():
     assert agg_metrics["pass@3,none"] == 1.5
 
 
+def test_custom_metric_receives_all_multiple_targets():
+    """Custom metrics must see the complete target list, not one target at a time."""
+
+    received = []
+
+    def score(references, predictions):
+        received.append((references, predictions))
+        return 1.0 if references == ["red", "blue"] else 0.0
+
+    task = MockConfigurableTask()
+    task.OUTPUT_TYPE = "generate_until"
+    task.multiple_target = 2
+    task._config.doc_to_choice = None
+    task.doc_to_target = lambda _doc: ["red", "blue"]
+    task._config.metric_list = [{"metric": score}]
+    task._metric_fn_list = {"score": score}
+    task._metric_fn_kwargs = {"score": {}}
+    task._custom_metric_names = {"score"}
+
+    assert task.process_results({}, ["red"]) == {"score": 1.0}
+    assert received == [(["red", "blue"], ["red"])]
+
+
 def test_chrf_uses_zero_word_order():
     """chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
     import sacrebleu as sb
