@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_temporal_sequence"
+"process_docs": !function utils.process_temporal_sequence
