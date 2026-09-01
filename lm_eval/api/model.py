@@ -272,13 +272,26 @@ class CacheHook:
         self.dbdict[hsh] = res
 
 
+# Reserved key recording which model populated a cache db. Request keys are
+# sha256 hexdigests, so this cannot collide with one.
+MODEL_IDENTITY_KEY = "__lm_eval_model_identity__"
+
+
 class CachingLM:
-    def __init__(self, lm: LM, cache_db: str) -> None:
+    def __init__(
+        self, lm: LM, cache_db: str, model_identity: str | None = None
+    ) -> None:
         """LM wrapper that returns cached results when available, falling back to the underlying model.
 
         Args:
             lm: The underlying language model to wrap.
             cache_db: Path to the SQLite cache database.
+            model_identity: Identifier for the model populating the cache. Cache
+                keys are derived from request arguments alone, so a db reused
+                across models returns the first model's responses for the
+                second. Recorded on first use and compared afterwards to warn
+                when that happens. `None` skips the check, for callers that
+                cannot describe the model (e.g. a pre-initialized LM object).
         """
         from sqlitedict import SqliteDict
 
@@ -287,9 +300,40 @@ class CachingLM:
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
+        self._check_model_identity(model_identity)
 
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
+
+    def _check_model_identity(self, model_identity: str | None) -> None:
+        """Record the model that owns this cache, warning if it changed.
+
+        Responses are keyed on request arguments only, so nothing otherwise
+        prevents a db written by one model from being served to another --
+        producing identical metrics for different models with no error.
+        """
+        if model_identity is None:
+            if MODEL_IDENTITY_KEY in self.dbdict:
+                eval_logger.warning(
+                    f"Cache '{self.cache_db}' was written by {self.dbdict[MODEL_IDENTITY_KEY]}, "
+                    "but the current model could not be identified, so responses cannot be "
+                    "verified as belonging to it. Use a separate cache file per model."
+                )
+            return
+
+        previous = self.dbdict.get(MODEL_IDENTITY_KEY)
+        if previous is None:
+            self.dbdict[MODEL_IDENTITY_KEY] = model_identity
+            self.dbdict.commit()
+        elif previous != model_identity:
+            eval_logger.warning(
+                f"Cache '{self.cache_db}' was written by a different model.\n"
+                f"  cache was populated by: {previous}\n"
+                f"  currently evaluating:   {model_identity}\n"
+                "Cached responses are keyed on request arguments only, so this run will "
+                "reuse the other model's responses and report its scores. Use a separate "
+                "--use_cache path per model."
+            )
 
     def __getattr__(self, attr: str) -> Any:
         lm_attr = getattr(self.lm, attr)
