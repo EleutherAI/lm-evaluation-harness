@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import argparse
 import ast
 import json
 import logging
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 eval_logger = logging.getLogger(__name__)
@@ -53,9 +58,10 @@ def _int_or_none_list_arg_type(
             f"Argument requires {max_len} integers or None, separated by '{split_char}'"
         )
     elif num_items != max_len:
-        logging.warning(
-            f"Argument requires {max_len} integers or None, separated by '{split_char}'. "
-            "Missing values will be filled with defaults."
+        eval_logger.warning(
+            "Argument requires %s integers or None, separated by '%s'. Missing values will be filled with defaults.",
+            max_len,
+            split_char,
         )
         default_items = [parse_value(v) for v in defaults.split(split_char)]
         items.extend(default_items[num_items:])
@@ -79,9 +85,7 @@ def request_caching_arg_to_dict(cache_requests: str | None) -> dict[str, bool]:
 
 
 def check_argument_types(parser: argparse.ArgumentParser) -> None:
-    """
-    Check to make sure all CLI args are typed, raises error if not
-    """
+    """Check to make sure all CLI args are typed, raises error if not."""
     for action in parser._actions:
         # Skip help, subcommands, and const actions
         if action.dest in ["help", "command"] or action.const is not None:
@@ -108,16 +112,46 @@ def handle_cli_value_string(arg: str) -> bool | int | float | str:
             return arg
 
 
+def split_top_level(args: str) -> list[str]:
+    """Split on commas that sit outside of brackets, braces and quotes."""
+    parts: list[str] = []
+    buf: list[str] = []
+    depth = 0
+    quote: str | None = None
+
+    for char in args:
+        if quote is not None:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char in "[({":
+            depth += 1
+        elif char in "])}":
+            depth = max(depth - 1, 0)
+        elif char == "," and depth == 0:
+            parts.append("".join(buf))
+            buf = []
+            continue
+        buf.append(char)
+
+    parts.append("".join(buf))
+    return [part for part in parts if part]
+
+
 def key_val_to_dict(args: str) -> dict[str, Any]:
     """Parse model arguments from a string into a dictionary."""
     res = {}
     if not args:
         return res
 
-    for k, v in (item.split("=", 1) for item in args.split(",")):
+    for item in split_top_level(args):
+        if "=" not in item:
+            raise ValueError(f"expected `key=value`, got {item!r}")
+        k, v = item.split("=", 1)
         v = handle_cli_value_string(v)
         if k in res:
-            eval_logger.warning(f"Overwriting key '{k}': {res[k]!r} -> {v!r}")
+            eval_logger.warning("Overwriting key '%s': %r -> %r", k, res[k], v)
         res[k] = v
     return res
 
@@ -146,10 +180,17 @@ class MergeDictAction(argparse.Action):
             # e.g. parses `max_gen_toks=8000`
             if values:
                 for v in values:
-                    v = key_val_to_dict(v)
+                    try:
+                        v = key_val_to_dict(v)
+                    except ValueError as e:
+                        parser.error(f"argument {option_string or self.dest}: {e}")
                     if overlap := current.keys() & v.keys():
                         eval_logger.warning(
-                            rf"{option_string or self.dest}: Overwriting {', '.join(f'{k}: {current[k]!r} -> {v[k]!r}' for k in overlap)}"
+                            "%s: Overwriting %s",
+                            option_string or self.dest,
+                            ", ".join(
+                                f"{k}: {current[k]!r} -> {v[k]!r}" for k in overlap
+                            ),
                         )
                     current.update(v)
 

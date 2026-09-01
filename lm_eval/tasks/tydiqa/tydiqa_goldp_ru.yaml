@@ -1,0 +1,5 @@
+include: _tydiqa_goldp_common_yaml
+task: tydiqa_goldp_ru
+doc_to_text: "Контекст: {{context}}\n\nВопрос: {{question}}\n\nОтвет:"
+process_docs: !function utils.process_docs_ru
+process_results: !function utils.process_results_ru

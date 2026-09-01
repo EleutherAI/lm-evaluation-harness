@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import random
-import re
 import time
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, cast
@@ -65,7 +64,7 @@ def simple_evaluate(
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
-    limit: int | float | None = None,
+    limit: float | None = None,
     samples: dict[str, list[int]] | None = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
@@ -160,8 +159,7 @@ def simple_evaluate(
             evaluation so their ``@register_*`` decorators run (for local or
             unpublished components). Installed packages that declare an
             ``lm_eval.models`` entry point are discovered automatically and do
-            not need to be listed here. The ``LM_EVAL_PLUGINS`` environment
-            variable (comma/colon separated) is honored as an additional source.
+            not need to be listed here.
 
     Returns:
         dict | None: Dictionary of results, or None if not on rank 0.
@@ -170,13 +168,10 @@ def simple_evaluate(
         eval_logger.info("Setting verbosity through simple_evaluate is deprecated.")
     start_date = time.time()
 
-    # Import explicit plugin modules (CLI --plugins / LM_EVAL_PLUGINS env) so their
-    # @register_* decorators run before any model/task/metric name is resolved.
-    plugin_modules = list(plugins) if plugins else []
-    if env_plugins := os.environ.get("LM_EVAL_PLUGINS"):
-        plugin_modules += re.split(r"[,:]", env_plugins)
-    if plugin_modules:
-        lm_eval.api.registry.import_plugins(plugin_modules)
+    # Import explicit plugin modules (--plugins) so their @register_* decorators
+    # run before any model/task/metric name is resolved.
+    if plugins:
+        lm_eval.api.registry.import_plugins(plugins)
 
     if limit is not None and samples is not None:
         raise ValueError(

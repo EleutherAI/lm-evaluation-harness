@@ -5,7 +5,7 @@ Multiple-choice benchmark covering 13,207 questions across 12 subsets of low-res
 ## Dataset
 
 - **HuggingFace**: [bharatgenai/IndicParam](https://huggingface.co/datasets/bharatgenai/IndicParam)
-- **Paper**: [IndicParam: Benchmarking LLMs on Low-Resource Indic Languages](https://arxiv.org/abs/2512.00333)
+- **Paper**: [IndicParam: Benchmark to evaluate LLMs on low-resource Indic Languages](https://arxiv.org/abs/2512.00333)
 - **Reference impl**: https://github.com/ayushbits/IndicParam
 - **Split**: test only (13,207 examples)
 - **Config**: `IndicParam` (single config, filtered by `subject` column)
@@ -47,13 +47,10 @@ lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks indi
 ## Citation
 
 ```bibtex
-@misc{joshi2025indicparam,
-  title={IndicParam: Benchmarking Large Language Models on Low-Resource Indic Languages},
-  author={Joshi, Ayush and others},
-  year={2025},
-  eprint={2512.00333},
-  archivePrefix={arXiv},
-  primaryClass={cs.CL},
-  url={https://arxiv.org/abs/2512.00333}
+@inproceedings{maheshwari2026indicparam,
+  title={IndicParam: Benchmark to evaluate LLMs on low-resource Indic Languages},
+  author={Maheshwari, Ayush and Sharma, Kaushal and Patel, Vivek and Maheshwari, Aditya},
+  booktitle={Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+  year={2026}
 }
 ```

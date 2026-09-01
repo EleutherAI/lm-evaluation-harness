@@ -45,6 +45,8 @@ MODEL_MAPPING = {
     "megatron_lm": "lm_eval.models.megatron_lm:MegatronLMEval",
     "nemo_lm": "lm_eval.models.nemo_lm:NeMoLM",
     "neuronx": "lm_eval.models.neuron_optimum:NeuronModelForCausalLM",
+    "onnxruntime": "lm_eval.models.onnxruntime_ort:ONNXRuntimeLM",
+    "onnxruntime-genai": "lm_eval.models.onnxruntime_genai:ONNXRuntimeGenAILM",
     "openai-chat-completions": "lm_eval.models.openai_completions:OpenAIChatCompletion",
     "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
