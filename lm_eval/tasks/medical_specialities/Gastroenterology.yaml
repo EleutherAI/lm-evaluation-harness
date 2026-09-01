@@ -1,0 +1,3 @@
+dataset_name: Gastroenterology
+include: _default_template_yaml
+task: Gastroenterology
