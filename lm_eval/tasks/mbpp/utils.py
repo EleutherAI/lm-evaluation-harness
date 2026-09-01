@@ -32,8 +32,17 @@ def pass_at_1(
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"
-    # (+ ```) as we add the opening "```python" to the gen_prefix
-    matches = re.findall(pattern, r"```" + text, re.DOTALL)
+    # Some tasks (e.g. `mbpp_instruct`) include an opening fence in `gen_prefix`
+    # (e.g. "```python\n"), so model generations commonly end with only the
+    # closing fence. In that case, prefix with "```\n" so the first token of the
+    # code doesn't get misinterpreted as the language tag (e.g. "def").
+    stripped = text.lstrip()
+    if not stripped.startswith("```") and stripped.endswith("```"):
+        candidate = "```\n" + text
+    else:
+        candidate = text
+
+    matches = re.findall(pattern, candidate, re.DOTALL)
     # if no matches, try to match ```...``` blocks (after removing the language)
     if not matches:
         text_without_lang = re.sub(r"```python", "```", text)
