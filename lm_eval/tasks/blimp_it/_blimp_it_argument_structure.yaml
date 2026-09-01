@@ -1,0 +1,15 @@
+group: blimp_it_argument_structure
+task:
+  - "conversa_b_argument_structure_auxiliary_selection_ditransitives"
+  - "conversa_b_argument_structure_auxiliary_selection_passive_active_diathesis"
+  - "conversa_b_argument_structure_auxiliary_selection_transitives"
+  - "conversa_b_argument_structure_auxiliary_selection_unaccusatives"
+  - "conversa_b_argument_structure_auxiliary_selection_unergatives"
+  - "conversa_b_argument_structure_theta_roles"
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
+  description: "BLiMP-IT — Verbal Class & Argument Structure"

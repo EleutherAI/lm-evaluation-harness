@@ -1,0 +1,13 @@
+group: blimp_it
+task:
+  - "blimp_it_agreement_and_inflection"
+  - "blimp_it_argument_structure"
+  - "blimp_it_pronouns"
+  - "blimp_it_non_local_dependencies"
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
+  description: "BLiMP-IT: Italian Benchmark of Linguistic Minimal Pairs"
