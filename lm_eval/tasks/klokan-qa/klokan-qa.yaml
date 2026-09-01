@@ -1,0 +1,43 @@
+group:
+  - math_word_problems
+task: klokan-qa
+dataset_path: hynky/klokan-qa
+dataset_name: default
+output_type: generate_until
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text:
+  "Jsi expert v matematice, logice, českém jazyce a všeobecných znalostech.\nDostaneš otázku s 5 možnými odpověďmi (A, B, C, D, E) a tvým úkolem je vybrat správnou odpověď.\nNejprve bys měl o odpovědi přemýšlet a poté vypsat písmeno správné odpovědi.\nJazyk otázek a odpovědí je čeština.\n\n\
+  Q: Jak se jmenuje hlavní město České republiky?\n(A) Brno\n(B) Praha\n(C) Ostrava\n(D): Plzeň\n(E) Liberec\nA: Přestože Brno a Ostrava jsou velká města, Praha je hlavní město České republiky, správná odpověď je Praha. Správná odpověď: B.\n\n\
+  Q: Mařenka má 5 jablíček a 3 hrušky. Kolik má ovoce?\n(A) 5\n(B) 1\n(C) 3\n(D) 2\n(E) 8\nA: Jak jablka, tak hrušky jsou ovoce a tedy 3 + 5 = 8. Správná odpověď: E\n\n\
+  Q: {{question}}\n(A) {{A}}\n(B) {{B}}\n(C) {{C}}\n(D) {{D}}\n(E) {{E}}"
+doc_to_target: "{{correct_answer}}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: false
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+repeats: 1
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "(?i)odpověď(?:\\s?je)?:?\\s?([A-E])"
+      - function: "take_first"
+
+  - name: "flexible-extract"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "[A-E]"
+      - function: "take_first"
+metadata:
+  version: 3.0
