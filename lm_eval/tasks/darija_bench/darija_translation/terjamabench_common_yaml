@@ -1,0 +1,23 @@
+output_type: generate_until
+training_split: null
+validation_split: null
+fewshot_split: null
+test_split: test
+metric_list:
+  - metric: bleu
+  - metric: ter
+  - metric: chrf
+generation_kwargs:
+  until:
+    - "\n"
+    - "<end_of_turn>"
+    - "<eos>"
+    - "</s>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+metadata:
+  version: 1.0
