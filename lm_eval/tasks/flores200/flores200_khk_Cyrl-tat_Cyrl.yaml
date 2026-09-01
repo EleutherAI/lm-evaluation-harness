@@ -1,0 +1,7 @@
+"dataset_name": "khk_Cyrl-tat_Cyrl"
+"doc_to_target": "{{sentence_tat_Cyrl}}"
+"doc_to_text": "{{sentence_khk_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_khk_Cyrl-tat_Cyrl"
+"test_split": "dev"

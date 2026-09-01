@@ -1,0 +1,7 @@
+"dataset_name": "tgk_Cyrl-pap_Latn"
+"doc_to_target": "{{sentence_pap_Latn}}"
+"doc_to_text": "{{sentence_tgk_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tgk_Cyrl-pap_Latn"
+"test_split": "dev"

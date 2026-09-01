@@ -1,0 +1,7 @@
+"dataset_name": "mkd_Cyrl-bul_Cyrl"
+"doc_to_target": "{{sentence_bul_Cyrl}}"
+"doc_to_text": "{{sentence_mkd_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mkd_Cyrl-bul_Cyrl"
+"test_split": "dev"

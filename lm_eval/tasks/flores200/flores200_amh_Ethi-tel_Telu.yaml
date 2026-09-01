@@ -1,0 +1,7 @@
+"dataset_name": "amh_Ethi-tel_Telu"
+"doc_to_target": "{{sentence_tel_Telu}}"
+"doc_to_text": "{{sentence_amh_Ethi}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_amh_Ethi-tel_Telu"
+"test_split": "dev"

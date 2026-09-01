@@ -1,0 +1,7 @@
+"dataset_name": "fra_Latn-ory_Orya"
+"doc_to_target": "{{sentence_ory_Orya}}"
+"doc_to_text": "{{sentence_fra_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_fra_Latn-ory_Orya"
+"test_split": "dev"

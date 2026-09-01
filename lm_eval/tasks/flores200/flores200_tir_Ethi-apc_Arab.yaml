@@ -1,0 +1,7 @@
+"dataset_name": "tir_Ethi-apc_Arab"
+"doc_to_target": "{{sentence_apc_Arab}}"
+"doc_to_text": "{{sentence_tir_Ethi}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tir_Ethi-apc_Arab"
+"test_split": "dev"

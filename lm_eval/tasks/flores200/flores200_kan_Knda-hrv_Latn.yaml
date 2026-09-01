@@ -1,0 +1,7 @@
+"dataset_name": "kan_Knda-hrv_Latn"
+"doc_to_target": "{{sentence_hrv_Latn}}"
+"doc_to_text": "{{sentence_kan_Knda}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kan_Knda-hrv_Latn"
+"test_split": "dev"

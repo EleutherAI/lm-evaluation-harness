@@ -1,0 +1,7 @@
+"dataset_name": "epo_Latn-mos_Latn"
+"doc_to_target": "{{sentence_mos_Latn}}"
+"doc_to_text": "{{sentence_epo_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_epo_Latn-mos_Latn"
+"test_split": "dev"

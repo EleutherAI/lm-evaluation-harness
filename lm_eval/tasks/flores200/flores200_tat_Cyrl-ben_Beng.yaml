@@ -1,0 +1,7 @@
+"dataset_name": "tat_Cyrl-ben_Beng"
+"doc_to_target": "{{sentence_ben_Beng}}"
+"doc_to_text": "{{sentence_tat_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tat_Cyrl-ben_Beng"
+"test_split": "dev"

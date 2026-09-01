@@ -1,0 +1,7 @@
+"dataset_name": "snd_Arab-amh_Ethi"
+"doc_to_target": "{{sentence_amh_Ethi}}"
+"doc_to_text": "{{sentence_snd_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_snd_Arab-amh_Ethi"
+"test_split": "dev"
