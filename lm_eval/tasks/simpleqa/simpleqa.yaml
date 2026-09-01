@@ -1,0 +1,80 @@
+# SimpleQA Task Configuration
+# ============================================================
+# SimpleQA is OpenAI's short-form factuality benchmark.
+# Paper: https://openai.com/index/introducing-simpleqa/
+# Dataset: basicv8vc/SimpleQA (4,326 fact-seeking questions)
+#
+# Each question has exactly one unambiguous answer.
+# Evaluation: normalized string match + not-attempted detection.
+# ============================================================
+
+tag:
+  - world_knowledge
+
+task: simpleqa
+dataset_path: basicv8vc/SimpleQA
+
+# ── Concept: output_type ──────────────────────────────────────
+# "generate_until" means the model freely generates text
+# until it hits a stop token (like a newline or </s>).
+# This is used for open-ended QA — not multiple choice.
+output_type: generate_until
+
+# The test set on HuggingFace is labeled 'train' (common for
+# benchmarks that only ship one split).
+test_split: train
+
+# ── Concept: doc_to_text ──────────────────────────────────────
+# A Jinja2 template: {{ problem }} is replaced with the actual
+# question text from each row of the dataset.
+# We ask for a short answer to discourage the model from
+# writing an essay when the answer is just "1867".
+doc_to_text: "Answer the following question with a short, direct answer (a few words at most).\n\nQuestion: {{problem}}\nAnswer:"
+
+# ── Concept: doc_to_target ────────────────────────────────────
+# The reference answer for each example.
+# process_results() (see utils.py) receives this alongside
+# the model's output to compute the metric.
+doc_to_target: "{{answer}}"
+
+# Custom scoring logic lives in utils.py.
+# "!function" is the harness's way of calling a Python function.
+process_results: !function utils.process_results
+
+# ── Concept: metric_list ──────────────────────────────────────
+# Each entry declares a metric key that process_results returns.
+# The harness aggregates them across all examples.
+metric_list:
+  - metric: exact_match      # strict: normalized strings must match
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1               # token-overlap F1 (partial credit)
+    aggregation: mean
+    higher_is_better: true
+  - metric: not_attempted    # fraction where model said "I don't know"
+    aggregation: mean
+    higher_is_better: false  # lower = more willing to answer
+
+# ── Concept: generation_kwargs ───────────────────────────────
+# Stop generating when the model produces any of these tokens.
+# This prevents the model from answering multiple questions
+# or producing paragraphs when we only want a short answer.
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\nQuestion:"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+    - "</s>"
+  do_sample: false       # greedy decoding = deterministic eval
+  temperature: 0.0
+  max_gen_toks: 100      # SimpleQA answers are short (≤ ~20 tokens)
+
+# ── Concept: num_fewshot ──────────────────────────────────────
+# Zero-shot: no example (Q, A) pairs shown before each question.
+# The SimpleQA paper evaluates zero-shot; set to 0 to match.
+# Users can override this with --num_fewshot N at the CLI.
+num_fewshot: 0
+
+metadata:
+  version: 1.0
