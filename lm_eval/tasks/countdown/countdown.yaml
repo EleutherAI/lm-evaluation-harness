@@ -1,0 +1,27 @@
+tag:
+  - arithmetic
+  - math
+task: countdown
+dataset_path: Stephen-Xie/Countdown
+dataset_name: null
+dataset_kwargs: null
+output_type: generate_until
+training_split: train
+validation_split: null
+test_split: test
+doc_to_text: !function utils.doc_to_text
+doc_to_target: ""
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "Question:"
+    - "<|im_end|>"
+metric_list:
+  - metric: countdown_score
+    aggregation: mean
+    higher_is_better: true
+repeats: 1
+num_fewshot: 0
+metadata:
+  version: 1.0
+
