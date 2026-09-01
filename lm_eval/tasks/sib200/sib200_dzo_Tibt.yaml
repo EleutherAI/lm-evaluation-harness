@@ -1,0 +1,5 @@
+"dataset_name": "dzo_Tibt"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_dzo_Tibt"
+"test_split": "test"
