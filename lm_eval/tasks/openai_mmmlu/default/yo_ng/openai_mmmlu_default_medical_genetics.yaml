@@ -1,0 +1,16 @@
+"dataset_name": "medical_genetics"
+"description": "The following are multiple choice questions (with answers) about medical_genetics.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nIdahun:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_yo_ng_other"
+"task": "openai_mmmlu_default_yo_ng_medical_genetics"
+"task_alias": "yo_ng medical genetics"
+"test_split": "YO_NG"

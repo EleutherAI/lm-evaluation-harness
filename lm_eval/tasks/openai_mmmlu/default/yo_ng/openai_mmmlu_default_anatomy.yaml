@@ -1,0 +1,16 @@
+"dataset_name": "anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nIdahun:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_yo_ng_stem"
+"task": "openai_mmmlu_default_yo_ng_anatomy"
+"task_alias": "yo_ng anatomy"
+"test_split": "YO_NG"
