@@ -27,6 +27,7 @@ MODEL_MAPPING = {
     "anthropic-chat-completions": "lm_eval.models.anthropic_llms:AnthropicChat",
     "anthropic-completions": "lm_eval.models.anthropic_llms:AnthropicLM",
     "dummy": "lm_eval.models.dummy:DummyLM",
+    "flexrank": "lm_eval.models.flexrank:FlexRankLM",
     "ggml": "lm_eval.models.gguf:GGUFLM",
     "gguf": "lm_eval.models.gguf:GGUFLM",
     "hf": "lm_eval.models.huggingface:HFLM",

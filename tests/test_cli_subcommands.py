@@ -15,6 +15,7 @@ from lm_eval._cli.utils import (
     try_parse_json,
 )
 from lm_eval._cli.validate import Validate
+from lm_eval.models.flexrank import FlexRankLM, run_flexrank_size_sweep
 
 
 class TestHarnessCLI:
@@ -332,6 +333,63 @@ class TestRunCommand:
         mock_config.from_cli.assert_called_once()
         mock_simple_evaluate.assert_called_once()
         mock_make_table.assert_called_once()
+
+    @patch.object(Run, "_execute_config")
+    @patch.object(FlexRankLM, "create_from_arg_obj")
+    def test_flexrank_size_sweep_reuses_model_with_isolated_runs(
+        self, mock_create_model, mock_execute_config
+    ):
+        cfg = MagicMock()
+        cfg.model = "flexrank"
+        cfg.model_args = {
+            "pretrained": "flexrank-checkpoint",
+            "size_ratios": "1.0:0.5",
+            "trust_remote_code": True,
+        }
+        cfg.metadata = dict(cfg.model_args)
+        cfg.batch_size = 4
+        cfg.max_batch_size = 16
+        cfg.device = "cuda:0"
+        cfg.use_cache = "flexrank-cache"
+        cfg.seed = [0, 1234, 1234, 1234]
+
+        model = MagicMock()
+        mock_create_model.return_value = model
+
+        rng_state = object()
+        with (
+            patch("lm_eval.models.flexrank._seed_rngs") as mock_seed_rngs,
+            patch(
+                "lm_eval.models.flexrank._capture_rng_state", return_value=rng_state
+            ) as mock_capture,
+        ):
+            run_flexrank_size_sweep(cfg, mock_execute_config)
+
+        mock_seed_rngs.assert_called_once_with(cfg.seed)
+        mock_capture.assert_called_once_with()
+        mock_create_model.assert_called_once_with(
+            {
+                "pretrained": "flexrank-checkpoint",
+                "trust_remote_code": True,
+                "size_ratio": 1.0,
+            },
+            {"batch_size": 4, "max_batch_size": 16, "device": "cuda:0"},
+        )
+        assert mock_execute_config.call_count == 2
+        for execute_call, ratio in zip(
+            mock_execute_config.call_args_list, (1.0, 0.5), strict=True
+        ):
+            profile_cfg = execute_call.args[0]
+            assert profile_cfg.model_args == {
+                "pretrained": "flexrank-checkpoint",
+                "trust_remote_code": True,
+                "size_ratio": ratio,
+            }
+            assert profile_cfg.metadata == profile_cfg.model_args
+            assert profile_cfg.use_cache == f"flexrank-cache_size_ratio_{ratio}"
+
+        assert FlexRankLM._sweep_model is None
+        assert FlexRankLM._sweep_rng_state is None
 
 
 class TestValidateCommand:

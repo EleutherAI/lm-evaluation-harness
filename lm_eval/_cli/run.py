@@ -364,10 +364,19 @@ class Run(SubCommand):
 
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
-        eval_logger = logging.getLogger(__name__)
-
         # Create and validate config (most validation now occurs in EvaluationConfig)
         cfg = EvaluatorConfig.from_cli(args)
+
+        if cfg.model == "flexrank" and "size_ratios" in cfg.model_args:
+            from lm_eval.models.flexrank import run_flexrank_size_sweep
+
+            return run_flexrank_size_sweep(cfg, Run._execute_config)
+        return Run._execute_config(cfg)
+
+    @staticmethod
+    def _execute_config(cfg) -> None:
+        """Run and report one evaluation from a validated config."""
+        eval_logger = logging.getLogger(__name__)
 
         from lm_eval import simple_evaluate
         from lm_eval.loggers import EvaluationTracker, TrackioLogger, WandbLogger
