@@ -5,6 +5,7 @@
 ---
 
 ## Latest News 📣
+- [2026/09] **Plugins**: model backends, filters, metrics and aggregations can now be registered from your own package instead of forking — declare an `lm_eval.*` entry point for zero-config discovery, or point `--plugins` at a local module. See the [Plugin Guide](./docs/plugins.md).
 - [2025/12] **CLI refactored** with subcommands (`run`, `ls`, `validate`) and YAML config file support via `--config`. See the [CLI Reference](./docs/interface.md) and [Configuration Guide](./docs/config_files.md).
 - [2025/12] **Lighter install**: Base package no longer includes `transformers`/`torch`. Install model backends separately: `pip install lm_eval[hf]`, `lm_eval[vllm]`, etc.
 - [2025/07] Added `think_end_token` arg to `hf` (token/str), `vllm` and `sglang` (str) for stripping CoT reasoning traces from models that support it.
