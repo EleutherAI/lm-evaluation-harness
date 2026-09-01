@@ -248,9 +248,9 @@ class Run(SubCommand):
             action=SplitArgs,
             metavar="<module>",
             help="Comma-separated plugin modules to import before evaluation so their "
-            "@register_model (and other @register_*) decorators run. Use for local or "
-            "unpublished backends; pip-installed packages that declare an "
-            "'lm_eval.models' entry point are discovered automatically.",
+            "@register_* decorators run (models, filters, metrics, aggregations). Use "
+            "for local or unpublished components; pip-installed packages that declare "
+            "an 'lm_eval.*' entry point are discovered automatically.",
         )
 
         # Logging and Tracking
@@ -369,6 +369,16 @@ class Run(SubCommand):
         # Create and validate config (most validation now occurs in EvaluationConfig)
         cfg = EvaluatorConfig.from_cli(args)
 
+        # Import explicit plugin modules (--plugins) so their @register_* decorators
+        # run before task discovery or any model/filter/metric name is resolved.
+        # Registration is process-global, so this belongs here rather than inside
+        # simple_evaluate. Installed entry-point plugins need no wiring: they are
+        # discovered lazily by the registry getters.
+        if cfg.plugins:
+            from lm_eval.api.registry import import_plugins
+
+            import_plugins(cfg.plugins)
+
         from lm_eval import simple_evaluate
         from lm_eval.loggers import EvaluationTracker, TrackioLogger, WandbLogger
         from lm_eval.utils import handle_non_serializable, make_table
@@ -438,7 +448,6 @@ class Run(SubCommand):
             fewshot_random_seed=cfg.seed[3] if cfg.seed else None,
             confirm_run_unsafe_code=cfg.confirm_run_unsafe_code,
             metadata=cfg.metadata,
-            plugins=cfg.plugins,
         )
 
         # Process results
