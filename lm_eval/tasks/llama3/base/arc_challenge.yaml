@@ -1,0 +1,24 @@
+tag:
+  - llama
+task: llama_arc_challenge
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Challenge
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+fewshot_split: train
+doc_to_text: "Question: {{question.strip()}}\nA. {{choices.text[0]}}\nB. {{choices.text[1]}}\nC. {{choices.text[2]}}{% if choices.text|length > 3 %}\nD. {{choices.text[3]}}{% endif %}\nAnswer:"
+fewshot_delimiter: "\n\n"
+doc_to_target: "{{ 'ABCD'[answerKey|int - 1] if answerKey|string in '1234' else answerKey }}"
+doc_to_choice: "{{ choices.label|map('replace', '1', 'A')|map('replace', '2', 'B')|map('replace', '3', 'C')|map('replace', '4', 'D')|list if choices.label[0] in '1234' else choices.label }}"
+num_fewshot: 25
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
