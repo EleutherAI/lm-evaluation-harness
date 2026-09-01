@@ -21,10 +21,14 @@ def get_result(logprobs, context_length):
     idx = 0
     while offsets[idx] < context_length:
         idx += 1
-    continuation_logprobs = sum(tokens_logprobs[idx:-1])
+    # llama.cpp returns None for the leading token's logprob and top_logprobs
+    # when it has no context (empty prompts, e.g. xnli); skip those. See #3385.
+    continuation_logprobs = sum(lp for lp in tokens_logprobs[idx:-1] if lp is not None)
     for i in range(idx, len(tokens)):
         token = tokens[i]
         top_tokens = logprobs["top_logprobs"][i]
+        if not top_tokens:
+            continue
         top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
         if top_token != token:
             is_greedy = False
@@ -35,13 +39,14 @@ def get_result(logprobs, context_length):
 
 @register_model("gguf", "ggml")
 class GGUFLM(LM):
-    def __init__(self, base_url=None, max_length=2048, **kwargs):
+    def __init__(self, base_url=None, max_length=2048, timeout=300, **kwargs):
         super().__init__()
         self.base_url = base_url
         assert self.base_url, "must pass `base_url` to use GGUF LM!"
         self.logprobs = 10
         self.temperature = 0.0
         self.max_length = max_length
+        self.timeout = timeout
 
     def gguf_completion(
         self, context, continuation=None, stop=None, retries=3, delay=5, **kwargs
@@ -60,17 +65,16 @@ class GGUFLM(LM):
                 if stop is not None:
                     request["stop"] = stop
                 response = requests.post(
-                    f"{self.base_url}/v1/completions", json=request
+                    f"{self.base_url}/v1/completions",
+                    json=request,
+                    timeout=self.timeout,
                 )
                 response.raise_for_status()
                 return response.json()
             except RequestException as e:
                 logger.error(f"RequestException: {e}")
                 time.sleep(delay)  # wait before retrying
-        else:
-            raise RuntimeError(
-                f"Failed to get a valid response after {retries} retries."
-            )
+        raise RuntimeError(f"Failed to get a valid response after {retries} retries.")
 
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         if not requests:
@@ -98,7 +102,7 @@ class GGUFLM(LM):
                 logger.error(
                     f"Invalid response for loglikelihood. Response: {response}"
                 )
-                assert False
+                raise AssertionError
         return res
 
     def generate_until(self, requests, disable_tqdm: bool = False):
