@@ -29,6 +29,8 @@ MODEL_MAPPING = {
     "dummy": "lm_eval.models.dummy:DummyLM",
     "ggml": "lm_eval.models.gguf:GGUFLM",
     "gguf": "lm_eval.models.gguf:GGUFLM",
+    "gigachat": "lm_eval.models.gigachat:GigaChatLM",
+    "gigachat-chat": "lm_eval.models.gigachat:GigaChatLM",
     "hf": "lm_eval.models.huggingface:HFLM",
     "hf-audiolm-qwen": "lm_eval.models.hf_audiolm:HFAudioLM",
     "hf-auto": "lm_eval.models.huggingface:HFLM",
