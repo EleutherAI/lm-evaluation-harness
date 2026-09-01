@@ -1,5 +1,4 @@
 include: _lithuanian_few_shot_og_template_yaml
-description: Toliau pateikiami klausimai su atsakymų variantais (su atsakymais) apie
-  Business & Commerce.
+description: "Toliau pateikiami klausimai su atsakymų variantais (su atsakymais) apie Business & Commerce.\n\n"
 process_docs: !function 'utils.process_business_commerce'
 task: include_base_44_lithuanian_few_shot_og_business_commerce
