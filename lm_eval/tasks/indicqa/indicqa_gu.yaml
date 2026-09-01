@@ -1,0 +1,3 @@
+include: indicqa_common_yaml
+task: indicqa_gu
+dataset_name: indicqa.gu
