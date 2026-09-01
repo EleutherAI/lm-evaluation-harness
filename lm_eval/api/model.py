@@ -299,9 +299,10 @@ class CachingLM:
             cache_db: Path to the SQLite cache database.
             model_identity: Which model these responses belong to. Part of every
                 cache key, so that a db written while evaluating one model can
-                never answer for another. Leaving it None keys the cache on the
-                request alone, which is what this class did before the identity
-                existed.
+                never answer for another. Leaving it None keys every entry under
+                a null identity rather than reproducing the pre-identity keys, so
+                a db written before this existed is not readable either way — the
+                warning below is what tells the user that.
         """
         from sqlitedict import SqliteDict
 
