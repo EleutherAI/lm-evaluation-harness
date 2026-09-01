@@ -288,11 +288,25 @@ For example, For Super Glue BoolQ, if we want to use the prompt template `GPT-3 
 use_prompt: "promptsource:GPT-3 Style"
 ```
 
-If you would like to run evaluation on all prompt templates, you can simply call it this way.
+`use_prompt` selects a **single** template, so each template needs its own task config. To evaluate several templates of the same dataset at once, create one config per template, use `include` to share the common settings, and give them a common `tag` so they can be run together:
 
 ```yaml
-use_prompt: "promptsource:*"
+# wsc_gpt3.yaml
+tag: my_wsc_prompts
+include: default.yaml
+task: wsc_gpt3
+use_prompt: "promptsource:GPT-3 Style"
 ```
+
+```yaml
+# wsc_pronoun.yaml
+tag: my_wsc_prompts
+include: default.yaml
+task: wsc_pronoun
+use_prompt: "promptsource:the pronoun refers to"
+```
+
+Running `--tasks my_wsc_prompts` then evaluates every template sharing that tag.
 
 ### Setting metrics
 
