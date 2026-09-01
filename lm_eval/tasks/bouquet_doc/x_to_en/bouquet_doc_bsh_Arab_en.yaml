@@ -1,0 +1,12 @@
+include: ../bouquet_doc_common.yaml
+
+task: bouquet-doc-bsh_Arab-en
+
+tag:
+  - translation
+  - bouquet_doc
+
+metadata:
+  version: 1.0
+  src_lang: "bsh_Arab"
+  tgt_lang: "eng_Latn"

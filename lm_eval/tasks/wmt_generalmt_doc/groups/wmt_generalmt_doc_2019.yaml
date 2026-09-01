@@ -1,0 +1,20 @@
+group: wmt-generalmt-doc-2019
+task:
+  - wmt-generalmt-doc-newstest2019-cs-de
+  - wmt-generalmt-doc-newstest2019-de-cs
+  - wmt-generalmt-doc-newstest2019-de-en
+  - wmt-generalmt-doc-newstest2019-en-cs
+  - wmt-generalmt-doc-newstest2019-en-de
+  - wmt-generalmt-doc-newstest2019-en-fi
+  - wmt-generalmt-doc-newstest2019-en-gu
+  - wmt-generalmt-doc-newstest2019-en-kk
+  - wmt-generalmt-doc-newstest2019-en-lt
+  - wmt-generalmt-doc-newstest2019-en-ru
+  - wmt-generalmt-doc-newstest2019-en-zh
+  - wmt-generalmt-doc-newstest2019-fi-en
+  - wmt-generalmt-doc-newstest2019-fr-de
+  - wmt-generalmt-doc-newstest2019-gu-en
+  - wmt-generalmt-doc-newstest2019-kk-en
+  - wmt-generalmt-doc-newstest2019-lt-en
+  - wmt-generalmt-doc-newstest2019-ru-en
+  - wmt-generalmt-doc-newstest2019-zh-en

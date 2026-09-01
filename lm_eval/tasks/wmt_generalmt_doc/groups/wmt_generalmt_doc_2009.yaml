@@ -1,0 +1,14 @@
+group: wmt-generalmt-doc-2009
+task:
+  - wmt-generalmt-doc-newstest2009-cs-en
+  - wmt-generalmt-doc-newstest2009-de-en
+  - wmt-generalmt-doc-newstest2009-en-cs
+  - wmt-generalmt-doc-newstest2009-en-de
+  - wmt-generalmt-doc-newstest2009-en-es
+  - wmt-generalmt-doc-newstest2009-en-fr
+  - wmt-generalmt-doc-newstest2009-en-hu
+  - wmt-generalmt-doc-newstest2009-en-it
+  - wmt-generalmt-doc-newstest2009-es-en
+  - wmt-generalmt-doc-newstest2009-fr-en
+  - wmt-generalmt-doc-newstest2009-hu-en
+  - wmt-generalmt-doc-newstest2009-it-en

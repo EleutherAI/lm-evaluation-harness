@@ -1,0 +1,12 @@
+include: ../bouquet_doc_common.yaml
+
+task: bouquet-doc-en-chr_Cher
+
+tag:
+  - translation
+  - bouquet_doc
+
+metadata:
+  version: 1.0
+  src_lang: "eng_Latn"
+  tgt_lang: "chr_Cher"

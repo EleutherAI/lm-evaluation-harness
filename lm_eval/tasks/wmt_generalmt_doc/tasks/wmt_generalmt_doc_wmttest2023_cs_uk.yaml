@@ -1,0 +1,13 @@
+include: ../wmt_generalmt_doc_common.yaml
+
+task: wmt-generalmt-doc-wmttest2023-cs-uk
+
+tag:
+  - translation
+  - wmt_generalmt_doc
+
+metadata:
+  version: 1.0
+  testset: "wmttest2023"
+  src_lang: "cs"
+  tgt_lang: "uk"
