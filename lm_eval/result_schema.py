@@ -59,6 +59,10 @@ EvalResults = TypedDict(
         "lm_eval_version": str,
         # Git hash of the parent repo, if this repo is a submodule.
         "upper_git_hash": str | None,
+        # Installed entry-point plugins, grouped by kind (models, filters,
+        # metrics, aggregations, tasks). Each entry is {target, dist, used},
+        # where "used" is True only if that plugin was resolved by name this run.
+        "plugins": dict[str, dict[str, dict[str, Any]]],
         # --- Tokenizer info (added by add_tokenizer_info()) ---
         #
         # Pad token and its ID as [token, token_id].

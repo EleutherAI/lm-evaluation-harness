@@ -185,6 +185,20 @@ def _build_key_error_msg(name: str, alias: str, keys: Iterable[str]) -> str:
 
 _loaded_plugin_groups: set[str] = set()
 
+# Entry-point plugins (group, alias) whose component was actually materialized by
+# name during this process. Feeds run provenance (see collect_plugin_provenance).
+_used_plugins: set[tuple[str, str]] = set()
+
+# Entry-point groups that carry lm-eval plugins, used to enumerate the installed
+# snapshot for provenance.
+_PLUGIN_GROUPS: tuple[str, ...] = (
+    "lm_eval.models",
+    "lm_eval.filters",
+    "lm_eval.metrics",
+    "lm_eval.aggregations",
+    "lm_eval.tasks",
+)
+
 
 def load_plugins(group: str, registry: Registry) -> list[str]:
     """Register external components advertised via setuptools entry points.
@@ -222,10 +236,14 @@ def load_plugins(group: str, registry: Registry) -> list[str]:
 
     for ep in entry_points:
         if ep.name in registry:
-            eval_logger.debug(
-                "Plugin alias '%s' (group '%s') ignored; already registered.",
+            winner = registry.origin(ep.name) or "a built-in component"
+            eval_logger.warning(
+                "Plugin '%s' (group '%s', %s) is shadowed by %s already registered "
+                "under that name; the plugin will not be used.",
                 ep.name,
                 group,
+                ep.value,
+                winner,
             )
             continue
         # Registration is lazy: it stores the EntryPoint without importing the
@@ -265,6 +283,44 @@ def import_plugins(module_names: Iterable[str] | None) -> None:
             eval_logger.info("Imported plugin module '%s'.", name)
         except Exception as exc:  # noqa: BLE001 - tolerate bad plugin names
             eval_logger.warning("Failed to import plugin module '%s': %s", name, exc)
+
+
+def collect_plugin_provenance() -> dict[str, dict[str, dict[str, Any]]]:
+    """Snapshot the installed entry-point plugins for run provenance.
+
+    Enumerates every ``lm_eval.*`` entry-point group and records each installed
+    plugin, so a run traces its plugin environment and a stale or unexpected
+    plugin is visible in the results metadata. Enumeration does not import the
+    plugin, so this is cheap and side-effect free. Each entry is flagged
+    ``used=True`` only when its component was actually materialized by name during
+    this run (see ``Registry.get``).
+
+    Returns:
+        ``{short_group: {alias: {"target", "dist", "used"}}}`` where ``short_group``
+        is the group name without the ``lm_eval.`` prefix (e.g. ``"models"``).
+        Groups with no installed plugins are omitted; ``{}`` when none are found.
+    """
+    provenance: dict[str, dict[str, dict[str, Any]]] = {}
+    for group in _PLUGIN_GROUPS:
+        short = group.removeprefix("lm_eval.")
+        try:
+            entry_points = md.entry_points(group=group)
+        except Exception as exc:  # noqa: BLE001 - provenance must never break a run
+            eval_logger.debug(
+                "Could not enumerate entry points for '%s': %s", group, exc
+            )
+            continue
+        for ep in entry_points:
+            dist = getattr(ep, "dist", None)
+            dist_label = None
+            if dist is not None and getattr(dist, "name", None):
+                dist_label = f"{dist.name} {dist.version}".strip()
+            provenance.setdefault(short, {})[ep.name] = {
+                "target": ep.value,
+                "dist": dist_label,
+                "used": (group, ep.name) in _used_plugins,
+            }
+    return provenance
 
 
 class Registry(Generic[T]):
@@ -429,6 +485,10 @@ class Registry(Generic[T]):
                 # Re‑check under lock (another thread might have resolved it)
                 fresh = self._objs[alias]
                 if isinstance(fresh, (str, md.EntryPoint)):
+                    # An EntryPoint (not a built-in "module:obj" string) means a
+                    # plugin is being resolved by name; record it for provenance.
+                    if isinstance(fresh, md.EntryPoint):
+                        _used_plugins.add((fresh.group, alias))
                     concrete = self._materialise(fresh)
                     # Only update if not frozen (MappingProxyType)
                     if not isinstance(self._objs, MappingProxyType):
