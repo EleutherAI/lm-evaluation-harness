@@ -35,6 +35,19 @@ class ResultAcc(TypedDict):
 
 
 def print_writeout(task: Task) -> None:
+    """Log the prompt and request string for the first instance in a task.
+
+    Useful for debugging: writes the context prompt and target for document 0
+    to the eval logger at INFO level so the caller can inspect what the model
+    is actually seeing.
+
+    Args:
+        task: A Task object whose instances have already been populated.
+            Only the instance with doc_id 0 is logged.
+
+    Returns:
+        None
+    """
     for inst in task.instances:
         # print the prompt for the first few documents
         if inst.doc_id is not None and inst.doc_id < 1:
@@ -47,6 +60,20 @@ def print_writeout(task: Task) -> None:
 
 
 def get_sample_size(task, limit: int | float | None) -> int | None:
+    """Resolve the effective number of evaluation samples for a task.
+
+    Converts a fractional limit to an absolute count based on the number of
+    evaluation documents available in the task.
+
+    Args:
+        task: A Task object with an eval_docs attribute.
+        limit: Maximum number of samples to evaluate.  If a float in (0, 1),
+            treated as a fraction of len(task.eval_docs) and rounded up.
+            If an int >= 1, used directly.  If None, all documents are used.
+
+    Returns:
+        The resolved integer sample count, or None if limit was None.
+    """
     if limit is not None:
         limit = (
             int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
