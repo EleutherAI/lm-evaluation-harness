@@ -1,0 +1,14 @@
+group: lica_bench_temporal
+task:
+  - lica_bench_temporal_1
+  - lica_bench_temporal_2
+  - lica_bench_temporal_3
+  - lica_bench_temporal_4
+  - lica_bench_temporal_5
+  - lica_bench_temporal_6
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.1

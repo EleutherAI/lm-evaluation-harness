@@ -1,0 +1,10 @@
+group: lica_bench_lottie
+task:
+  - lica_bench_lottie_1
+  - lica_bench_lottie_2
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.1
