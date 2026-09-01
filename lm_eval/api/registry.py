@@ -10,10 +10,10 @@ filters, and other components in the lm_eval framework.
 from lm_eval.api.registry import register_model
 from lm_eval.api.model import LM
 
+
 @register_model("my-model")
 class MyModel(LM):
-    def __init__(self, **kwargs):
-        ...
+    def __init__(self, **kwargs): ...
 ```
 
 ### Registering with Lazy Loading
@@ -135,6 +135,21 @@ def _safe_eq(a: Any, b: Any) -> bool:
         return bool(a == b)
     except Exception:  # noqa: BLE001 - pragma: no cover - defensive
         return a is b
+
+
+def _placeholder_path(obj: Any) -> str | None:
+    """Return the "module:qualname" path of a class or function, else None.
+
+    Used to match a materialized component back to the lazy placeholder string
+    it was registered under, so that a plugin declaring both an entry point and
+    an @register_* decorator upgrades cleanly instead of colliding. Applies to
+    both model classes and metric/aggregation functions.
+    """
+    module = getattr(obj, "__module__", None)
+    name = getattr(obj, "__name__", None)
+    if module and name:
+        return f"{module}:{name}"
+    return None
 
 
 def _suggest_similar(
@@ -316,17 +331,18 @@ class Registry(Generic[T]):
             if current is not None and not _safe_eq(current, target):
                 # allow placeholder → real object upgrade. This is the common
                 # path when a plugin advertises an EntryPoint *and* decorates its
-                # class with @register_model: materializing the EntryPoint imports
-                # the module, whose decorator then upgrades the placeholder here.
-                if isinstance(current, (str, md.EntryPoint)) and isinstance(
-                    target, type
+                # component with @register_* (a model/filter class, or a metric or
+                # aggregation function): materializing the EntryPoint imports the
+                # module, whose decorator then upgrades the placeholder here.
+                if isinstance(current, (str, md.EntryPoint)) and (
+                    target_path := _placeholder_path(target)
                 ):
                     placeholder_path = (
                         current
                         if isinstance(current, str)
                         else f"{current.module}:{current.attr}"
                     )
-                    if placeholder_path == f"{target.__module__}:{target.__name__}":
+                    if placeholder_path == target_path:
                         self._objs[alias] = target
                         return
                 raise ValueError(
@@ -642,8 +658,13 @@ def register_filter(name: str):
     """
 
     def decorate(cls):
-        if name in filter_registry:
-            eval_logger.info(f"Registering filter `{name}` that is already in Registry")
+        # origin() returns None only while the alias still holds a lazy placeholder:
+        # that is a plugin's own entry point being upgraded by its decorator on
+        # import, which is the sanctioned path rather than a clash worth reporting.
+        if name in filter_registry and filter_registry.origin(name) is not None:
+            eval_logger.info(
+                "Registering filter `%s` that is already in Registry", name
+            )
         # Use Registry's public API for registration
         filter_registry.register(name)(cls)
         return cls
@@ -665,10 +686,12 @@ def get_filter(filter_name: str | Callable) -> Callable:
     """
     if callable(filter_name):
         return filter_name
+    # Discover external filters advertised via entry points (once).
+    load_plugins("lm_eval.filters", filter_registry)
     try:
         return filter_registry.get(cast("str", filter_name))
     except KeyError:
-        eval_logger.warning(f"filter `{filter_name}` is not registered!")
+        eval_logger.warning("filter `%s` is not registered!", filter_name)
         raise
 
 
@@ -729,12 +752,16 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
     if len(metric_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    # Discover external metrics advertised via entry points (once).
+    load_plugins("lm_eval.metrics", metric_registry)
+
     if not hf_evaluate_metric:
         if name in metric_registry:
             return metric_registry.get(name)
         else:
             eval_logger.warning(
-                f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
+                "Could not find registered metric '%s' in lm-eval, searching in HF Evaluate library...",
+                name,
             )
 
     try:
@@ -744,7 +771,8 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
         return metric_object.compute
     except Exception:  # noqa: BLE001 - surface any load failure as a warning
         eval_logger.error(
-            f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
+            "%s not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
+            name,
         )
         return None
 
@@ -779,11 +807,35 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
     if len(aggregation_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    # Discover external aggregations advertised via entry points (once).
+    load_plugins("lm_eval.aggregations", aggregation_registry)
+
     try:
         return aggregation_registry.get(name)
     except KeyError:
-        eval_logger.warning(f"{name} not a registered aggregation metric!")
+        eval_logger.warning("%s not a registered aggregation metric!", name)
         return None
+
+
+def _materialise_metric_side_effects(name: str) -> None:
+    """Ensure a plugin metric's ``@register_metric`` side effects have run.
+
+    ``register_metric`` populates the ``higher_is_better`` and metric-aggregation
+    registries as a side effect of the decorator. When a metric is contributed as
+    a lazy entry-point placeholder, those side effects only fire once the metric
+    function is materialized. ``is_higher_better`` / ``get_metric_aggregation``
+    may be called for such a metric, so trigger discovery + materialization here.
+    """
+    # Built-ins must be registered *before* discovery so that a plugin advertising
+    # an existing name is skipped rather than shadowing core. The callers guard on
+    # a different registry, so repeat the lazy import here.
+    if len(metric_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
+    load_plugins("lm_eval.metrics", metric_registry)
+    if name in metric_registry:
+        # Force materialization of the placeholder so its decorator runs.
+        metric_registry.get(name)
 
 
 def get_metric_aggregation(name: str) -> Callable[..., float] | None:
@@ -799,10 +851,12 @@ def get_metric_aggregation(name: str) -> Callable[..., float] | None:
     if len(metric_agg_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    _materialise_metric_side_effects(name)
+
     try:
         return metric_agg_registry.get(name)
     except KeyError:
-        eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
+        eval_logger.warning("%s metric is not assigned a default aggregation!", name)
         return None
 
 
@@ -819,10 +873,12 @@ def is_higher_better(metric_name: str) -> bool | None:
     if len(higher_is_better_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
+    _materialise_metric_side_effects(metric_name)
+
     try:
         return higher_is_better_registry.get(metric_name)
     except KeyError:
         eval_logger.warning(
-            f"higher_is_better not specified for metric '{metric_name}'!"
+            "higher_is_better not specified for metric '%s'!", metric_name
         )
         return None
