@@ -17,12 +17,9 @@ import json
 import logging
 import re
 import string
-import sys
-from functools import partial
 from itertools import combinations
-from typing import Any, Dict, List
+from typing import Any
 
-import numpy as np
 from datasets import Dataset
 
 
@@ -49,9 +46,10 @@ def process_docs_add_prompts(
     try:
         with open(template_file_path) as f:
             prompt_templates = json.load(f)[templates_key]
-    except FileNotFoundError:
-        eval_logger.error("Prompt templates not found")
-        sys.exit()
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(
+            f"Prompt templates not found: {template_file_path}"
+        ) from exc
     if dataset_specific_preprocess is not None:
         doc = dataset_specific_preprocess(doc)
 
@@ -83,9 +81,10 @@ def option_order_robustness_process_docs(
             prompt_template = json.load(f)[templates_key]
             prompt = prompt_template["prompt"]
             options_format = prompt_template["options_format"]
-    except FileNotFoundError:
-        eval_logger.error("Prompt templates not found")
-        sys.exit()
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(
+            f"Prompt templates not found: {template_file_path}"
+        ) from exc
 
     if dataset_specific_preprocess is not None:
         doc = dataset_specific_preprocess(doc)
@@ -143,9 +142,10 @@ def non_greedy_robustness_process_docs(
             prompt_template = json.load(f)[templates_key]
             prompt = prompt_template["prompt"]
             options_format = prompt_template.get("options_format", None)
-    except FileNotFoundError:
-        eval_logger.error("Prompt templates not found")
-        sys.exit()
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(
+            f"Prompt templates not found: {template_file_path}"
+        ) from exc
 
     if dataset_specific_preprocess is not None:
         doc = dataset_specific_preprocess(doc)
@@ -217,7 +217,7 @@ def translate_model_answer_to_labels(answer, labels, option_format=None):
     return answer
 
 
-def calculate_consistency_rate(responses: List[List[str]]) -> float:
+def calculate_consistency_rate(responses: list[list[str]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -240,7 +240,7 @@ def calculate_consistency_rate(responses: List[List[str]]) -> float:
     return total_similarity / total_combinations if total_combinations > 0 else 0.0
 
 
-def prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
+def prompt_consistency_rate(results: list[dict[str, Any]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -263,7 +263,7 @@ def prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
     return calculate_consistency_rate(question_answers_list)
 
 
-def options_consistency_rate(results: List[Dict[str, Any]], labels) -> float:
+def options_consistency_rate(results: list[dict[str, Any]], labels) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 

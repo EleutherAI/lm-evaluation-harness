@@ -1,12 +1,11 @@
 import shutil
-import sys
 
 from evaluate import load
 
 
 if shutil.which("swipl") is None:
-    sys.exit(
-        "Error: SWI-Prolog (swipl) is not installed or not in PATH. Please install SWI-Prolog to use this task."
+    raise RuntimeError(
+        "SWI-Prolog (swipl) is not installed or not in PATH. Please install SWI-Prolog to use this task."
     )
 
 try:
