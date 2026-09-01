@@ -1,3 +1,0 @@
-dataset_name: swh_latn
-include: _template
-task: global_piqa_completions_swh_latn

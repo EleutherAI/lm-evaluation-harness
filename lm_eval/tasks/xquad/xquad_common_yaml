@@ -3,7 +3,7 @@
 # by the harness.
 tag: xquad
 task: null
-dataset_path: xquad
+dataset_path: google/xquad
 dataset_name: null
 output_type: generate_until
 validation_split: validation

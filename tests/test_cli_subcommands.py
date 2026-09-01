@@ -207,6 +207,43 @@ class TestRunCommand:
         )
         assert args.model_args == {"pretrained": "gpt2", "device": "cuda"}
 
+    def test_run_command_metadata(self):
+        """Test Run command metadata parsing accepts key=value and JSON."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        # key=value format, with a bracketed value containing commas
+        args = parser.parse_args(
+            ["run", "--metadata", "tokenizer=gpt2,max_seq_lengths=[4096,8192]"]
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096, 8192]}
+
+        # space-separated key=value pairs
+        args = parser.parse_args(
+            ["run", "--metadata", "tokenizer=gpt2", "max_seq_lengths=[4096]"]
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096]}
+
+        # JSON object remains supported
+        args = parser.parse_args(
+            ["run", "--metadata", '{"tokenizer": "gpt2", "max_seq_lengths": [4096]}']
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096]}
+
+        # unset stays None so config defaults apply
+        args = parser.parse_args(["run", "--tasks", "ruler"])
+        assert args.metadata is None
+
+    def test_run_command_metadata_invalid(self):
+        """Test Run command exits cleanly on metadata missing an `=`."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        with pytest.raises(SystemExit):
+            parser.parse_args(["run", "--metadata", "tokenizer"])
+
     def test_run_command_batch_size(self):
         """Test Run command batch size arguments."""
         parser = argparse.ArgumentParser()
@@ -477,6 +514,110 @@ doc_to_target: "{{answer}}"
         with pytest.raises(ValueError, match="Tasks not found"):
             cfg.process_tasks()
 
+    @staticmethod
+    def _write_custom_task(directory):
+        """Write a self-contained task YAML plus the sibling utils.py it references.
+
+        The YAML uses `!function` in every place a custom callable is accepted:
+        `process_docs`, `metric`, and `aggregation`.
+        """
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "utils.py").write_text(
+            "def process(dataset):\n"
+            "    return dataset\n"
+            "\n"
+            "\n"
+            "def exact(references, predictions):\n"
+            "    return float(references[0].strip() == predictions[0].strip())\n"
+            "\n"
+            "\n"
+            "def mean(items):\n"
+            "    return sum(items) / len(items) if items else 0.0\n"
+        )
+        (directory / "data.json").write_text('[{"question": "2+2?", "answer": "4"}]\n')
+
+        task_yaml = directory / "custom_fn_task.yaml"
+        task_yaml.write_text(f"""
+task: custom_fn_task
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: {directory / "data.json"}
+test_split: test
+output_type: generate_until
+process_docs: !function utils.process
+doc_to_text: "{{{{question}}}}"
+doc_to_target: "{{{{answer}}}}"
+generation_kwargs:
+  until: ["\\n"]
+metric_list:
+  - metric: !function utils.exact
+    aggregation: !function utils.mean
+    higher_is_better: true
+""")
+        return task_yaml
+
+    def test_custom_yaml_file_resolves_function_refs(self, tmp_path):
+        """`!function` refs must resolve to callables when a YAML path is passed to --tasks.
+
+        Regression guard: the TaskManager refactor (#3549) loaded these configs with
+        `resolve_func=False`, the mode meant for building the task *index*. Nothing
+        downstream re-resolves them, because `entry_from_config` produces an Entry with
+        `yaml_path=None` and the factory then uses the dict verbatim.
+        """
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        task_yaml = self._write_custom_task(tmp_path / "task")
+
+        cfg = EvaluatorConfig(tasks=[str(task_yaml)], output_path=str(tmp_path))
+        cfg._configure()
+        cfg.process_tasks()
+
+        (spec,) = cfg.tasks
+        assert callable(spec["process_docs"])
+        assert callable(spec["metric_list"][0]["metric"])
+        assert callable(spec["metric_list"][0]["aggregation"])
+
+    def test_custom_yaml_directory_resolves_function_refs(self, tmp_path):
+        """Same as above for the directory branch of process_tasks (--tasks <dir>)."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        task_dir = tmp_path / "task"
+        self._write_custom_task(task_dir)
+
+        cfg = EvaluatorConfig(tasks=[str(task_dir)], output_path=str(tmp_path))
+        cfg._configure()
+        cfg.process_tasks()
+
+        (spec,) = cfg.tasks
+        assert callable(spec["process_docs"])
+        assert callable(spec["metric_list"][0]["metric"])
+        assert callable(spec["metric_list"][0]["aggregation"])
+
+    def test_custom_metric_survives_into_built_task(self, tmp_path):
+        """A custom metric must still be a live callable on the constructed Task.
+
+        This covers the *silent* half of the regression: an unresolved metric ref is a
+        string, so it misses the registry, warns, and drops out of `process_results()`
+        entirely -- a run completes and simply reports no metric.
+        """
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        task_yaml = self._write_custom_task(tmp_path / "task")
+
+        cfg = EvaluatorConfig(tasks=[str(task_yaml)], output_path=str(tmp_path))
+        cfg._configure()
+        task_manager = cfg.process_tasks()
+        task = task_manager.load(cfg.tasks)["tasks"]["custom_fn_task"]
+
+        assert list(task.aggregation()) == ["exact"]
+        assert callable(task.aggregation()["exact"])
+        assert task.higher_is_better() == {"exact": True}
+
+        doc = {"question": "2+2?", "answer": "4"}
+        assert task.process_results(doc, ["4"]) == {"exact": 1.0}
+        assert task.process_results(doc, ["5"]) == {"exact": 0.0}
+
 
 class TestEvaluatorConfigFromCLI:
     """Test EvaluatorConfig.from_cli defaults and argument handling."""
@@ -564,6 +705,42 @@ class TestEvaluatorConfigFromCLI:
         assert cfg.gen_kwargs is not None
         assert cfg.gen_kwargs["temperature"] == 0.7
         assert cfg.gen_kwargs["max_tokens"] == 100
+
+    def test_string_dict_args_from_cli_config(self, tmp_path):
+        """Test that CLI-style dict strings from a config file are parsed."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        config_path = tmp_path / "eval.yaml"
+        config_path.write_text(
+            "tasks: [hellaswag]\n"
+            'model_args: "pretrained=gpt2,dtype=float16"\n'
+            'gen_kwargs: "temperature=0.7,max_tokens=100"\n'
+            'trackio_args: "project=lm-eval,name=test-run"\n'
+        )
+
+        cfg = EvaluatorConfig.from_cli(Namespace(config=str(config_path)))
+
+        assert cfg.model_args == {"pretrained": "gpt2", "dtype": "float16"}
+        assert cfg.gen_kwargs == {"temperature": 0.7, "max_tokens": 100}
+        assert cfg.trackio_args == {"project": "lm-eval", "name": "test-run"}
+
+    def test_string_dict_args_from_config(self, tmp_path):
+        """Test that from_config parses CLI-style dict strings."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        config_path = tmp_path / "eval.yaml"
+        config_path.write_text(
+            "tasks: [hellaswag]\n"
+            'model_args: "pretrained=gpt2,dtype=float16"\n'
+            'wandb_args: "project=lm-eval,name=test-run"\n'
+        )
+
+        cfg = EvaluatorConfig.from_config(config_path)
+
+        assert cfg.model_args == {"pretrained": "gpt2", "dtype": "float16"}
+        assert cfg.wandb_args == {"project": "lm-eval", "name": "test-run"}
 
     def test_none_args_use_defaults(self, tmp_path):
         """Test that None values fall back to defaults."""
@@ -952,3 +1129,117 @@ log_samples: true
         # 0 is a valid explicit value and should override YAML
         assert cfg.num_fewshot == 0, "CLI 0 should override YAML's 5"
         assert cfg.batch_size == 1, "Truthy CLI value overrides YAML"
+
+
+def _run_seed_accessors(cfg):
+    """Read cfg.seed the way lm_eval/_cli/run.py hands seeds to simple_evaluate()."""
+    return (
+        cfg.seed[0] if cfg.seed else None,
+        cfg.seed[1] if cfg.seed else None,
+        cfg.seed[2] if cfg.seed else None,
+        cfg.seed[3] if cfg.seed else None,
+    )
+
+
+class TestEvaluatorConfigSeedNormalization:
+    """Test that a `seed` coming from a config file is normalized like --seed is."""
+
+    def test_scalar_seed_from_yaml_config(self, tmp_path):
+        """A scalar `seed: 42` in YAML should behave like `--seed 42`."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text("""
+model: hf
+tasks:
+  - arc_easy
+seed: 42
+""")
+
+        cfg = EvaluatorConfig.from_cli(Namespace(config=str(yaml_config)))
+
+        assert cfg.seed == [42, 42, 42, 42]
+        assert _run_seed_accessors(cfg) == (42, 42, 42, 42)
+
+    def test_zero_seed_from_yaml_config_still_seeds(self, tmp_path):
+        """`seed: 0` must actually seed with 0, not silently disable seeding."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text("""
+model: hf
+tasks:
+  - arc_easy
+seed: 0
+""")
+
+        cfg = EvaluatorConfig.from_cli(Namespace(config=str(yaml_config)))
+
+        assert cfg.seed == [0, 0, 0, 0]
+        assert _run_seed_accessors(cfg) == (0, 0, 0, 0)
+
+    def test_single_element_list_is_expanded(self):
+        """`seed: [42]` should expand to all four seeds, as the CLI does."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed=[42])._configure()
+
+        assert cfg.seed == [42, 42, 42, 42]
+        assert _run_seed_accessors(cfg) == (42, 42, 42, 42)
+
+    def test_string_scalar_seed_is_parsed(self):
+        """A quoted `seed: "42"` should not be indexed character by character."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed="42")._configure()
+
+        assert cfg.seed == [42, 42, 42, 42]
+
+    def test_four_element_list_is_unchanged(self):
+        """A fully specified seed list should pass through untouched."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(
+            tasks=["arc_easy"], seed=[0, 1234, 1234, 1234]
+        )._configure()
+
+        assert cfg.seed == [0, 1234, 1234, 1234]
+        assert _run_seed_accessors(cfg) == (0, 1234, 1234, 1234)
+
+    def test_none_seed_disables_seeding(self):
+        """`seed: null` keeps its meaning of not seeding anything."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed=None)._configure()
+
+        assert cfg.seed is None
+        assert _run_seed_accessors(cfg) == (None, None, None, None)
+
+    def test_partial_list_raises_clear_error(self):
+        """A wrong-length list should be rejected up front, not IndexError later."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        with pytest.raises(ValueError, match="seed"):
+            EvaluatorConfig(tasks=["arc_easy"], seed=[1, 2])._configure()
+
+    def test_three_seeds_are_filled_from_defaults_like_the_cli(self):
+        """`--seed 1,2,3` fills the last seed from the defaults; config matches."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        cfg = EvaluatorConfig(tasks=["arc_easy"], seed=[1, 2, 3])._configure()
+
+        assert cfg.seed == [1, 2, 3, 1234]
+        assert _run_seed_accessors(cfg) == (1, 2, 3, 1234)
+
+    def test_non_integer_seed_raises_clear_error(self):
+        """Seed entries that are not integers or None should be rejected."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        with pytest.raises(ValueError, match="seed"):
+            EvaluatorConfig(
+                tasks=["arc_easy"], seed=[0, "abc", 1234, 1234]
+            )._configure()

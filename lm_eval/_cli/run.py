@@ -71,7 +71,7 @@ class Run(SubCommand):
             action=SplitArgs,
             help=textwrap.dedent("""
                 Space (or comma-separated) list of task names or groupings.
-                Use 'lm-eval list tasks' to see all available tasks.
+                Use 'lm-eval ls tasks' to see all available tasks.
             """).strip(),
         )
         model_group.add_argument(
@@ -312,11 +312,12 @@ class Run(SubCommand):
             "--seed",
             type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
             default=None,
-            metavar="<seed>",
+            metavar="<python,numpy,torch,fewshot>",
             help=textwrap.dedent(f"""
-                Random seeds for python,numpy,torch,fewshot (default: {default_seed_string}).
-                Use single integer for all, or comma-separated list of 4 values.
-                Use 'None' to skip setting a seed. Example: --seed 42 or --seed 0,None,8,52
+                Random seeds, one per slot (default: {default_seed_string}).
+                Pass a single integer to use it for all four (e.g. --seed 42), or a
+                comma-separated list of 4 values, using 'None' to leave that seed
+                unset (e.g. --seed 0,None,8,52).
             """).strip(),
         )
         advanced_group.add_argument(
@@ -333,12 +334,15 @@ class Run(SubCommand):
         )
         advanced_group.add_argument(
             "--metadata",
-            type=json.loads,
             default=None,
-            metavar="<arg>",
+            nargs="+",
+            action=MergeDictAction,
+            metavar="<args>",
             help=textwrap.dedent(
-                """`key=val` `key2=val` args parsable by ast.literal_eval (merged with model_args),
-                required for some tasks such as RULER"""
+                """`key=val` `key2=val` args parsable by ast.literal_eval
+                (e.g. tokenizer=gpt2 max_seq_lengths=[4096,8192]), or a JSON object
+                (e.g. '{"tokenizer": "gpt2", "max_seq_lengths": [4096, 8192]}').
+                Merged with model_args; required for some tasks such as RULER"""
             ),
         )
 

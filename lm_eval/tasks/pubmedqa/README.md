@@ -40,7 +40,7 @@ Homepage: https://pubmedqa.github.io/
 
 #### Tasks
 
-* `pubmed_qa`
+* `pubmedqa`
 
 ### Checklist
 

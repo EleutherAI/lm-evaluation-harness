@@ -1,3 +1,0 @@
-dataset_name: apc_arab_jord
-include: _template
-task: global_piqa_prompted_apc_arab_jord

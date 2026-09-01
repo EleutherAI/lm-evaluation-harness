@@ -1,0 +1,3 @@
+dataset_name: arb_arab
+include: _template
+task: global_piqa_nonparallel_generation_arb_arab

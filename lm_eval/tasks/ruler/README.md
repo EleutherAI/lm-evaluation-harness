@@ -12,7 +12,7 @@ Homepage: `https://github.com/NVIDIA/RULER`
 
 > [!NOTE]
 > When using Ruler tasks, please note:
-> 1. A tokenizer is required for data processing. The system will use the `tokenizer` from model_args, or fall back to the tokenizer associated with the `pretrained` model name.
+> 1. A tokenizer is required for data processing. The system will use the `tokenizer` from model_args, falling back to `pretrained` and then to `model`, which is the name the API backends use. If none of the three is given the task stops and says so, since the data cannot be sized without one.
 > 2. The default maximum sequence length is 4096. For calculating metrics of different max seq lengths, specify additional lengths using the metadata parameter:
 >   `--metadata='{"max_seq_lengths":[4096,8192,16384,32768,65536,131072]}'`. The metadata parameter can also be passed to the TaskManager (metadata: dict).
 > 3. To prevent truncation of longer sequences, we recommend setting the max_length parameter in model_args:
