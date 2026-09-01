@@ -3,6 +3,7 @@ import math
 import os
 import random
 import re
+import statistics
 import string
 from collections.abc import Iterable
 from typing import Callable, List, Optional, Sequence, TypeVar
@@ -38,7 +39,9 @@ def mean(arr):
 
 @register_aggregation("median")
 def median(arr):
-    return sorted(arr)[len(arr) // 2]
+    # statistics.median averages the two middle values for an even-sized sample;
+    # indexing at len(arr) // 2 returns the upper one instead.
+    return statistics.median(arr)
 
 
 # Certain metrics must be calculated across all documents in a benchmark.
@@ -439,18 +442,22 @@ def acc_all(items):
 
 
 def acc_all_stderr(items):
-    # Only count as correct if all answers are labeled correctly for each question
+    # Only count as correct if all answers are labeled correctly for each question.
+    # Key on (paragraph, question) exactly as acc_all does: question indices restart
+    # inside every paragraph, so keying on the question alone merges answers from
+    # unrelated paragraphs and describes a different population than the metric.
     question_scoring_dict = {}
     preds = list(zip(*items))[0]
     docs = list(zip(*items))[1]
 
     for doc, pred in zip(docs, preds):
+        paragraph_id = doc["idx"]["paragraph"]
         question_id = doc["idx"]["question"]
-        if question_id not in question_scoring_dict:
-            question_scoring_dict[question_id] = []
+        if (paragraph_id, question_id) not in question_scoring_dict:
+            question_scoring_dict[(paragraph_id, question_id)] = []
 
         gold_label = doc["label"] == 1
-        question_scoring_dict[question_id].append(gold_label == pred)
+        question_scoring_dict[(paragraph_id, question_id)].append(gold_label == pred)
 
     acc = mean_stderr([int(all(x)) for x in question_scoring_dict.values()])
     return acc

@@ -253,6 +253,78 @@ def test_chrfpp_perfect_match():
     assert chrfpp(items) == 100.0
 
 
+def test_median_averages_the_two_middle_values():
+    """An even-sized sample has no single middle element."""
+    import statistics
+
+    from lm_eval.api.metrics import median
+
+    for arr in ([0.0, 1.0], [1, 2, 3, 4], [1, 2, 3], [0, 0, 0, 1], [5]):
+        assert median(arr) == statistics.median(arr)
+
+
+def _multirc_item(paragraph, question, answer, label, pred):
+    doc = {
+        "idx": {"paragraph": paragraph, "question": question, "answer": answer},
+        "label": label,
+    }
+    return pred, doc
+
+
+def _multirc_items():
+    """Four paragraphs, two questions each, two answers each; one answer wrong.
+
+    Question indices restart inside every paragraph, which is what separates the
+    two groupings.
+    """
+    items = []
+    for paragraph in range(4):
+        for question in range(2):
+            for answer in range(2):
+                label = 1 if answer == 0 else 0
+                pred = label == 1
+                if (paragraph, question, answer) == (0, 0, 1):
+                    pred = not pred
+                items.append(_multirc_item(paragraph, question, answer, label, pred))
+    return items
+
+
+def test_acc_all_stderr_groups_the_same_way_as_acc_all():
+    """The stderr must describe the population its own metric scores.
+
+    Keyed on the question alone the four paragraphs collapse into two groups and
+    the stderr comes out four times too large.
+    """
+    from lm_eval.api.metrics import acc_all, acc_all_stderr, mean_stderr
+
+    items = _multirc_items()
+    groups = {}
+    for pred, doc in items:
+        key = (doc["idx"]["paragraph"], doc["idx"]["question"])
+        groups.setdefault(key, []).append((doc["label"] == 1) == pred)
+    expected = mean_stderr([int(all(scores)) for scores in groups.values()])
+
+    assert len(groups) == 8
+    assert acc_all(items) == 0.875
+    assert acc_all_stderr(items) == expected == 0.125
+
+
+def test_acc_all_stderr_survives_one_question_index_per_paragraph():
+    """Keyed on the question alone this collapsed to a single group, and
+    `mean_stderr` then divided by `len(arr) - 1`.
+    """
+    from lm_eval.api.metrics import acc_all_stderr
+
+    items = [
+        _multirc_item(0, 0, 0, 1, True),
+        _multirc_item(0, 0, 1, 0, False),
+        _multirc_item(1, 0, 0, 1, True),
+        _multirc_item(1, 0, 1, 0, False),
+    ]
+
+    assert acc_all_stderr(items) == 0.0
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()
