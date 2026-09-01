@@ -1572,7 +1572,11 @@ class ConfigurableTask(Task):
                     ll_c - ll_u
                     for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
                 ]
-                acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
+                pred_mutual_info = np.argmax(lls_mutual_info)
+                if self.multiple_target:
+                    acc_mutual_info = 1.0 if pred_mutual_info in gold else 0.0
+                else:
+                    acc_mutual_info = 1.0 if pred_mutual_info == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
         elif self.OUTPUT_TYPE == "generate_until":
