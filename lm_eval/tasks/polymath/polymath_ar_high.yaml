@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_ar_high
+dataset_name: ar
+test_split: high

@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_ko_high
+dataset_name: ko
+test_split: high

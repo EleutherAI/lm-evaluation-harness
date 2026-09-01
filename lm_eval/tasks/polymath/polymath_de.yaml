@@ -1,0 +1,12 @@
+group: polymath_de
+task:
+- polymath_de_low
+- polymath_de_medium
+- polymath_de_high
+- polymath_de_top
+aggregate_metric_list:
+- metric: math_verify
+  aggregation: !function utils.aggregate_dw_acc
+  weight_by_size: false
+metadata:
+  version: 1

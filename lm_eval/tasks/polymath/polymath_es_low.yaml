@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_es_low
+dataset_name: es
+test_split: low

@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_en_medium
+dataset_name: en
+test_split: medium
