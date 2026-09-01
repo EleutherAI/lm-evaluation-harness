@@ -6,4 +6,3 @@ metadata:
   num_samples: 21
   task_pretty_name: Canonical
   version: 1.0.2
-  canonical_task: toksuite_math_canonical
