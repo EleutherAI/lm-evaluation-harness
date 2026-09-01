@@ -1,7 +1,3 @@
-import hashlib
-import json
-import os
-import pickle
 import unittest
 from unittest.mock import patch
 
@@ -9,143 +5,214 @@ from lm_eval.api.instance import Instance
 from lm_eval.models.gguf import GGUFLM
 
 
-base_url = "https://matthoffner-ggml-llm-api.hf.space"
+base_url = "http://fake-server:8080"
 
 
-def gguf_completion_mock(base_url=None, **kwargs):
-    # Generate a hash from the parameters
-    hash_kwargs = {"base_url": base_url, **kwargs}
-    parameters_hash = hashlib.sha256(
-        json.dumps(hash_kwargs, sort_keys=True).encode("utf-8")
-    ).hexdigest()
+class FakeResponse:
+    def __init__(self, data):
+        self._data = data
 
-    fname = f"./tests/testdata/gguf_test_{parameters_hash}.pkl"
+    def json(self):
+        return self._data
 
-    if os.path.exists(fname):
-        with open(fname, "rb") as fh:
-            return pickle.load(fh)
-    else:
-        print("The file does not exist, attempting to write...")
-        if "stop" in kwargs:
-            result = {
-                "choices": [
-                    {
-                        "text": f"generated text until {kwargs['stop']}",
-                        "logprobs": {"token_logprobs": [-1.2345], "text_offset": 0},
-                        "finish_reason": "length",
-                    }
-                ]
-            }
-        else:
-            # generated with # curl -X 'POST'   'http://localhost:8000/v1/completions'   -H 'accept: application/json'   -H 'Content-Type: application/json'   -d '{"prompt": "string", "logprobs": 10, "temperature": 0.0, "max_tokens": 1, "echo": true}'
-            result = {
-                "id": "cmpl-4023976b-bc6a-43b0-a5a9-629f4216c7f3",
-                "object": "text_completion",
-                "created": 1700511361,
-                "model": "../llama-2-7b.Q8_0.gguf",
-                "choices": [
-                    {
-                        "text": "string(",
-                        "index": 0,
-                        "logprobs": {
-                            "text_offset": [0, 7],
-                            "token_logprobs": [None, -1.033263319857306],
-                            "tokens": [" string", "("],
-                            "top_logprobs": [
-                                None,
-                                {
-                                    "(": -1.033263319857306,
-                                    "[]": -2.6530743779017394,
-                                    ".": -3.0377145947291324,
-                                    "\n": -3.0399156750513976,
-                                    "_": -3.510376089937872,
-                                    " =": -3.6957918347193663,
-                                    ",": -3.9309459866358702,
-                                    " of": -4.2834550083949035,
-                                    '("': -4.322762841112799,
-                                    "()": -4.426229113466925,
-                                },
-                            ],
-                        },
-                        "finish_reason": "length",
-                    }
-                ],
-                "usage": {
-                    "prompt_tokens": 2,
-                    "completion_tokens": 1,
-                    "total_tokens": 3,
-                },
-            }
+    def raise_for_status(self):
+        pass
 
-        try:
-            os.makedirs(os.path.dirname(fname), exist_ok=True)
-            print("Writing file at", fname)
-            with open(fname, "wb") as fh:
-                pickle.dump(result, fh)
-            print("File written successfully")
-        except Exception as e:
-            print("File writing failed:", e)
 
-        return result
+def make_fake_server(token_logprobs=None, top_token_id=None):
+    """Build a fake llama.cpp server.
+
+    Tokenization is byte-level: each UTF-8 byte is a token id; a fake BOS
+    (id 1) is prepended when add_special is true. Scoring requests (prompt
+    given as a token-id array) return `token_logprobs[target_id]` as the
+    sampled logprob (default -1.0), and a top_logprobs list whose argmax is
+    `top_token_id` if given, else the target itself.
+    """
+    calls = {"tokenize": [], "completions": []}
+
+    def fake_post(url, json=None, timeout=None, **kwargs):
+        if url.endswith("/tokenize"):
+            calls["tokenize"].append(json)
+            ids = list(json["content"].encode("utf-8"))
+            if json.get("add_special"):
+                ids = [1] + ids
+            return FakeResponse({"tokens": ids})
+        elif url.endswith("/completions"):
+            calls["completions"].append(json)
+            prompt = json["prompt"]
+            if isinstance(prompt, list):
+                # scoring request
+                target_id = json["logit_bias"][0][0]
+                lp = (token_logprobs or {}).get(target_id, -1.0)
+                top_id = top_token_id if top_token_id is not None else target_id
+                top_lp = lp + 1.0 if top_id != target_id else lp
+                entry = {
+                    "id": target_id,
+                    "token": "x",
+                    "logprob": lp,
+                    "top_logprobs": [
+                        {"id": top_id, "token": "y", "logprob": top_lp},
+                        {"id": target_id, "token": "x", "logprob": lp},
+                    ],
+                }
+                return FakeResponse(
+                    {"choices": [{"text": "x", "logprobs": {"content": [entry]}}]}
+                )
+            # generation request
+            stop = json.get("stop")
+            return FakeResponse({"choices": [{"text": f"generated text until {stop}"}]})
+        raise AssertionError(f"unexpected url {url}")
+
+    return fake_post, calls
+
+
+def llm_instances(args_list, request_type="loglikelihood"):
+    return [
+        Instance(
+            request_type=request_type,
+            doc=args,
+            arguments=args if request_type == "loglikelihood" else (args[0], args[1]),
+            idx=i,
+        )
+        for i, args in enumerate(args_list)
+    ]
 
 
 class GGUFLMTest(unittest.TestCase):
-    @patch(
-        "lm_eval.models.gguf.GGUFLM.gguf_completion", side_effect=gguf_completion_mock
-    )
-    def test_loglikelihood(self, gguf_completion_mock):
-        lm = GGUFLM(base_url)
+    def test_loglikelihood_scoring(self):
+        fake_post, calls = make_fake_server(
+            token_logprobs={97: -0.5, 98: -2.0}  # 'a', 'b'
+        )
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("x", "ab")]))
+        self.assertEqual(res, [(-2.5, True)])
 
-        # Test loglikelihood
-        requests = [
-            Instance(
-                request_type="loglikelihood",
-                doc=args,
-                arguments=args,
-                idx=i,
-            )
-            for i, args in enumerate([("str", "ing"), ("str", "ing")])
+        # continuation tokenized separately, without special tokens;
+        # context tokenized once, with special tokens (fake BOS prepended)
+        tok_calls = calls["tokenize"]
+        self.assertEqual(
+            {(c["content"], c["add_special"]) for c in tok_calls},
+            {("x", True), ("ab", False)},
+        )
+        # one scoring request per continuation token, with correct prompts
+        # ([BOS, 'x'] ++ prefix) and logit bias on the target token
+        prompts = [c["prompt"] for c in calls["completions"]]
+        biases = [c["logit_bias"][0][0] for c in calls["completions"]]
+        self.assertEqual(prompts, [[1, ord("x")], [1, ord("x"), ord("a")]])
+        self.assertEqual(biases, [ord("a"), ord("b")])
+
+    def test_loglikelihood_empty_continuation(self):
+        fake_post, calls = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("x", ""), ("x", "a")]))
+        # empty continuation scores (0.0, True) with no scoring requests
+        self.assertEqual(res[0], (0.0, True))
+        self.assertEqual(res[1], (-1.0, True))
+        self.assertEqual(len(calls["completions"]), 1)
+
+    def test_loglikelihood_non_greedy(self):
+        fake_post, _ = make_fake_server(top_token_id=999)
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("x", "ab")]))
+        self.assertEqual(res, [(-2.0, False)])
+
+    def test_loglikelihood_forced_token_mismatch_raises(self):
+        fake_post, _ = make_fake_server()
+
+        def bad_post(url, json=None, timeout=None, **kwargs):
+            resp = fake_post(url, json, timeout)
+            if url.endswith("/completions") and isinstance(json["prompt"], list):
+                data = resp.json()
+                data["choices"][0]["logprobs"]["content"][0]["id"] = 424242
+                return FakeResponse(data)
+            return resp
+
+        with patch("lm_eval.models.gguf.requests.post", side_effect=bad_post):
+            lm = GGUFLM(base_url, parallel=1)
+            with self.assertRaises(RuntimeError):
+                lm.loglikelihood(llm_instances([("x", "a")]))
+
+    def test_tokenize_cached(self):
+        fake_post, calls = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            lm.loglikelihood(llm_instances([("x", "a"), ("x", "b")]))
+        ctx_calls = [c for c in calls["tokenize"] if c["content"] == "x"]
+        self.assertEqual(len(ctx_calls), 1)
+
+    def test_generate_until(self):
+        fake_post, _ = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            requests = [
+                Instance(
+                    request_type="generate_until",
+                    doc={"input": doc},
+                    arguments=(doc, {"until": stop}),
+                    idx=i,
+                )
+                for i, (doc, stop) in enumerate(
+                    [("input1", "stop1"), ("input2", "stop2")]
+                )
+            ]
+            res = lm.generate_until(requests)
+        self.assertEqual(
+            res, ["generated text until stop1", "generated text until stop2"]
+        )
+
+    def test_parallel_mapping_preserves_order(self):
+        lm = GGUFLM(base_url, parallel=3)
+        items = list(range(20))
+        res = lm._map_requests(lambda x: x * 2, items, disable_tqdm=True)
+        self.assertEqual(res, [x * 2 for x in items])
+
+    def test_assign_slots_by_context(self):
+        # consecutive same-context requests share a slot; groups round-robin
+        args = [
+            ("ctx1", "a"),
+            ("ctx1", "b"),
+            ("ctx2", "c"),
+            ("ctx3", "d"),
+            ("ctx2", "e"),
         ]
-        res = lm.loglikelihood(requests)
+        self.assertEqual(GGUFLM._assign_slots_by_context(args, 2), [0, 0, 1, 0, 1])
+        # parallel=1 pins everything to slot 0
+        self.assertEqual(GGUFLM._assign_slots_by_context(args, 1), [0, 0, 0, 0, 0])
 
-        # Assert the loglikelihood response is correct
-        expected_res = [(logprob, True) for logprob in [0, 0]]
-        self.assertEqual(res, expected_res)
-
-    @patch(
-        "lm_eval.models.gguf.GGUFLM.gguf_completion", side_effect=gguf_completion_mock
-    )
-    def test_generate_until(self, gguf_completion_mock):
+    def test_detect_total_slots(self):
         lm = GGUFLM(base_url)
+        with patch("lm_eval.models.gguf.requests.get") as mock_get:
+            mock_get.return_value.json.return_value = {"total_slots": 4}
+            self.assertEqual(lm._detect_total_slots(), 4)
+            self.assertEqual(lm._resolve_parallel(), 4)
 
-        # Test generate_until
-        requests = [
-            Instance(
-                request_type="generate_until",
-                doc={"input": doc},
-                arguments=(doc, {"until": stop}),
-                idx=i,
-            )
-            for i, (doc, stop) in enumerate([("input1", "stop1"), ("input2", "stop2")])
-        ]
+        from requests.exceptions import RequestException
 
-        res = lm.generate_until(requests)
+        lm = GGUFLM(base_url)
+        with patch(
+            "lm_eval.models.gguf.requests.get",
+            side_effect=RequestException("no server"),
+        ):
+            self.assertIsNone(lm._detect_total_slots())
+            # falls back to serial requests
+            self.assertEqual(lm._resolve_parallel(), 1)
 
-        # Assert the generate_until response is correct
-        expected_res = ["generated text until stop1", "generated text until stop2"]
-        self.assertEqual(res, expected_res)
-
-    # @patch('lm_eval.models.gguf.GGUFLM.gguf_completion', side_effect=gguf_completion_mock)
-    # def test_loglikelihood_rolling(self, gguf_completion_mock):
-    #     lm = GGUFLM(base_url)
-
-    #     # Test loglikelihood_rolling
-    #     requests = ["input1", "input2"]
-    #     res = lm.loglikelihood_rolling(requests)
-
-    #     # Assert the loglikelihood_rolling response is correct
-    #     expected_res = [(-1.2345, True), (-1.2345, True)]
-    #     self.assertEqual(res, expected_res)
+    def test_completions_url_derivation(self):
+        for base, expected in [
+            ("http://localhost:8080", "http://localhost:8080/v1/completions"),
+            ("http://localhost:8080/", "http://localhost:8080/v1/completions"),
+            ("http://localhost:8080/v1", "http://localhost:8080/v1/completions"),
+            (
+                "http://localhost:8080/v1/completions",
+                "http://localhost:8080/v1/completions",
+            ),
+        ]:
+            lm = GGUFLM(base, parallel=1)
+            self.assertEqual(lm.completions_url, expected)
+            self.assertEqual(lm.server_url, "http://localhost:8080")
 
 
 if __name__ == "__main__":
