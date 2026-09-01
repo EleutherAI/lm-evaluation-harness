@@ -399,6 +399,11 @@ class TemplateLM(LM):
         word-boundary tokenization. Causal models encode the full sequence then
         split; seq2seq models encode each part independently.
 
+        For causal models the split can leave the continuation with no tokens at
+        all, when the tokenizer merges the end of the context and the whole of
+        the continuation into a single token. The continuation is then encoded
+        on its own, so that there is something left to score.
+
         Note:
             Does NOT handle empty context — the caller is responsible for that
             (see ``loglikelihood``).
@@ -423,6 +428,16 @@ class TemplateLM(LM):
 
             context_enc_len = len(context_enc)
             continuation_enc = whole_enc[context_enc_len:]
+            if not continuation_enc:
+                # A single token spanned the join, so the split has nothing
+                # left to attribute to the continuation and there is nothing
+                # to score. Seen with extended or retrained vocabularies, one
+                # in which ": C" is a single token for instance; without this
+                # the run dies later on `assert len(continuation_enc) > 0`.
+                # See #1053, #1297, #3336.
+                continuation_enc = self.tok_encode(
+                    continuation, add_special_tokens=False
+                )
         else:
             # for SEQ2SEQ case we need to encode separately
             context_enc = self.tok_encode(context)
