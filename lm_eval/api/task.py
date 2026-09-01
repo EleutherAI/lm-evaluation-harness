@@ -615,6 +615,28 @@ class Task(abc.ABC):
         return getattr(self.config, "task", None) or random_task_id()
 
 
+def _features_from_dict(features: dict) -> datasets.Features:
+    """Convert a YAML feature spec into a `datasets.Features` instance.
+
+    Task YAMLs declare `dataset_kwargs.features` as a plain mapping, e.g.
+
+        features:
+          id:     {dtype: int64}
+          answer: {dtype: string, sequence: true}
+
+    A leaf carrying a `dtype` becomes a `Value`, wrapped in a `Sequence` when
+    `sequence: true`; any other mapping is treated as a nested struct.
+    """
+
+    def parse(spec: dict):
+        if "dtype" in spec:
+            value = datasets.Value(spec["dtype"])
+            return datasets.Sequence(value) if spec.get("sequence") else value
+        return {name: parse(sub) for name, sub in spec.items()}
+
+    return datasets.Features(parse(features))
+
+
 class ConfigurableTask(Task):
     VERSION = "Yaml"
     OUTPUT_TYPE = None
@@ -857,6 +879,10 @@ class ConfigurableTask(Task):
 
         if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
             dataset_kwargs.pop("trust_remote_code", None)
+        feats = dataset_kwargs.get("features") if dataset_kwargs else None
+        # `Features` subclasses `dict`, so an already-converted spec must not be reparsed.
+        if isinstance(feats, dict) and not isinstance(feats, datasets.Features):
+            dataset_kwargs["features"] = _features_from_dict(feats)
         if isinstance(self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
