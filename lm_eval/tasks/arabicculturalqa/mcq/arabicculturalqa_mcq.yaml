@@ -1,0 +1,15 @@
+group: arabicculturalqa_mcq
+task:
+  - arabicculturalqa_mcq_msa
+  - arabicculturalqa_mcq_english
+  - arabicculturalqa_mcq_egyptian
+  - arabicculturalqa_mcq_gulf
+  - arabicculturalqa_mcq_levantine
+  - arabicculturalqa_mcq_maghrebi
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true
+  - metric: acc_norm
+    weight_by_size: true
+metadata:
+  version: 1.0

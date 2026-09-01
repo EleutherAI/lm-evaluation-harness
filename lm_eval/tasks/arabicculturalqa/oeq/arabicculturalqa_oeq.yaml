@@ -1,0 +1,15 @@
+group: arabicculturalqa_oeq
+task:
+  - arabicculturalqa_oeq_msa
+  - arabicculturalqa_oeq_english
+  - arabicculturalqa_oeq_egyptian
+  - arabicculturalqa_oeq_gulf
+  - arabicculturalqa_oeq_levantine
+  - arabicculturalqa_oeq_maghrebi
+aggregate_metric_list:
+  - metric: bertscore_f1
+    weight_by_size: true
+  - metric: rougeL_f1
+    weight_by_size: true
+metadata:
+  version: 1.0

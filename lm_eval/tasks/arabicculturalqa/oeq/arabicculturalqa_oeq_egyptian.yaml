@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: arabicculturalqa_oeq_egyptian
+process_docs: !function utils.process_docs_egyptian
+doc_to_text: "السؤال: {{open_question}}\nالإجابة:"
