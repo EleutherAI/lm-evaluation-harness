@@ -31,6 +31,8 @@ dependencies = [
     "word2number",
     "more_itertools",
     "typing_extensions",
+    "textdistance>=4.6.3",
+    "unidecode>=1.4.0",
     "tqdm>=4.59.0"
 ]
 

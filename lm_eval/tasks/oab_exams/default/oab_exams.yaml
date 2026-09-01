@@ -1,0 +1,51 @@
+group:
+  - legal_benchmark
+  - pt_benchmark
+dataset_path: eduagarcia/oab_exams
+task: oab_exams
+test_split: train
+fewshot_split: train
+fewshot_config:
+  sampler: id_sampler
+  sampler_config:
+    # One question for each type (max 15 few-shot)
+    id_list: ["2010-01_1", "2010-01_11", "2010-01_13", "2010-01_23", "2010-01_26", "2010-01_28", "2010-01_38", "2010-01_48", "2010-01_58", "2010-01_68", "2010-01_76", "2010-01_83", "2010-01_85", "2010-01_91", "2010-01_99"]
+    id_column: id
+    exclude_from_task: true
+num_fewshot: 3
+description: "As perguntas a seguir são questões de múltipla escolha do Exame de Ordem da\
+  \ Ordem dos Advogados do Brasil (OAB), selecione a única alternativa correta e\
+  \ responda apenas com as letras \"A\", \"B\", \"C\" ou \"D\".\n\n"
+output_type: generate_until
+doc_to_text: !function util.doc_to_text
+doc_to_target: "{{answerKey}}"
+should_decontaminate: true
+doc_to_decontamination_query: !function util.doc_to_text
+generation_kwargs:
+  max_gen_toks: 32
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: all
+    filter:
+      - function: normalize_spaces
+      - function: remove_accents
+      - function: find_choices
+        choices: ["A", "B", "C", "D"]
+        regex_patterns: 
+          - "(?:[Ll]etra|[Aa]lternativa|[Rr]esposta|[Rr]esposta [Cc]orreta|[Rr]esposta [Cc]orreta e|[Oo]pcao):? ([ABCD])\\b"
+          - "\\b([ABCD])\\."          
+          - "\\b([ABCD]) ?[.):-]"
+          - "\\b([ABCD])$"
+          - "\\b([ABCD])\\b"
+      - function: take_first
+    group_by:
+      column: exam_id
+metric_list:
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.5

@@ -157,10 +157,10 @@ class TaskIndex:
             case {"class": _}:
                 return Kind.PY_TASK
             # Group configs have task: list[str | dict]
-            case {"group": _}:
-                return Kind.GROUP
             case {"task": _}:
                 return Kind.TASK
+            case {"group": _}:
+                return Kind.GROUP
             case _:
                 raise ValueError(f"Unknown config shape: keys={list(cfg.keys())}")
 
