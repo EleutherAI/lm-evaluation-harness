@@ -6,9 +6,11 @@ training_split: train
 # Because huggingface dataset only has train split
 validation_split: train
 test_split: null
-description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly.\n"
+description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly, that is finish your answer with \"The answer is (X).\" where X is the correct letter choice.\n"
 doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nAnswer:"
 doc_to_target: answer
+fewshot_config:
+  doc_to_target: "The answer is {{answer}}."
 filter_list:
   - name: "strict-match"
     filter:
