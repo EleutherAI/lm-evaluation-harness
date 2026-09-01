@@ -275,9 +275,12 @@ class TaskManager:
                 return {cg: nested}
             return {obj.task_name: obj}
 
-        return dict(
-            collections.ChainMap(*[_to_nested(self._load_spec(s)) for s in task_list])
+        built = [self._load_spec(s) for s in task_list]
+        self._check_duplicates(
+            [item for obj in built for item in (obj if isinstance(obj, list) else [obj])]
         )
+
+        return dict(collections.ChainMap(*[_to_nested(obj) for obj in built]))
 
     @staticmethod
     def _check_duplicates(built: list[Task | Group]) -> None:
