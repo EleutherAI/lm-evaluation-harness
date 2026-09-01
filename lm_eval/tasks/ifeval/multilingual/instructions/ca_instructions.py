@@ -42,7 +42,7 @@ _NUM_BULLETS = 5
 
 #The options of constrained response.
 _CONSTRAINED_RESPONSE_OPTIONS = (
-    "Sí.", "No.", "Quizás.")
+    "sí.", "no.", "potser.")
 
 #The options of starter keywords.
 _STARTER_OPTIONS = ("Diría que", "Mi respuesta es", "Creo que",
@@ -387,9 +387,9 @@ class ConstrainedResponseChecker(Instruction):
       True if the actual response contains one of the options in the constrained
       responses; otherwise False.
     """
-    value = value.strip()
+    value = value.strip().lower()
     for constrained_response in self._constrained_responses:
-      if constrained_response in value:
+      if constrained_response.lower() in value:
         return True
     return False
 
