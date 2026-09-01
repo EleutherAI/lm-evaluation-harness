@@ -1,0 +1,28 @@
+task: spider
+dataset_path: Nick888999/spider-eval
+dataset_kwargs:
+  data_files:
+    train: data/train.jsonl
+    validation: data/validation.jsonl
+output_type: generate_until
+training_split: train
+validation_split: validation
+test_split: null
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: gold_sql
+generation_kwargs:
+  until:
+    - ";"
+    - "```\n"
+  do_sample: false
+  max_gen_toks: 512
+process_results: !function utils.process_results
+metric_list:
+  - metric: execution_accuracy
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
+tag:
+  - text_to_sql
