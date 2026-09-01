@@ -1,7 +1,6 @@
-import copy
 import logging
 from importlib.util import find_spec
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
 
 from tqdm import tqdm
 
@@ -11,6 +10,8 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
     handle_stop_sequences,
+    maybe_truncate,
+    normalize_gen_kwargs,
     postprocess_generated_text,
 )
 from lm_eval.utils import (
@@ -43,6 +44,7 @@ class SGLangLM(TemplateLM):
         max_model_len: int = None,
         max_gen_toks: int = 256,
         add_bos_token: Optional[bool] = False,
+        truncation_side: Literal["left", "right", "middle"] = "left",
         ########## SGlang native args ##########
         # Todo(Jinwei): Include more args of SGLang Engine if needed. Refer to https://docs.sglang.ai/backend/server_arguments.html .
         tokenizer_path: Optional[str] = None,
@@ -78,6 +80,7 @@ class SGLangLM(TemplateLM):
         )
         # Initialize your sglang model here
         self.think_end_token = think_end_token
+        self.truncation_side = truncation_side
         self._max_length = (
             max_model_len if max_model_len is not None else context_length
         )
@@ -196,12 +199,13 @@ class SGLangLM(TemplateLM):
         res = []
 
         # batch tokenize contexts
-        context, all_gen_kwargs = zip(*(req.args for req in requests))
+        context, all_gen_kwargs = zip(*(req.args for req in requests), strict=True)
         context_encoding: List[List[int]] = self.tok_encode(
             context, add_special_tokens=self.add_bos_token
         )
         requests = [
-            ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
+            ((a, b), c)
+            for a, b, c in zip(context, context_encoding, all_gen_kwargs, strict=True)
         ]
 
         def _collate_gen(_requests):
@@ -229,37 +233,46 @@ class SGLangLM(TemplateLM):
         # for each different set of kwargs, we execute all requests, by batch.
         eos = self.tokenizer.decode(self.eot_token_id)
         for chunk in chunks:
-            context_and_encoding, all_gen_kwargs = zip(*chunk)
-            context, context_encoding = zip(*context_and_encoding)
+            context_and_encoding, all_gen_kwargs = zip(*chunk, strict=True)
+            context, context_encoding = zip(*context_and_encoding, strict=True)
 
             context_encoding_truncated = []
             sampling_params = []
-            for x, gen_kwargs in zip(context_encoding, all_gen_kwargs):
+            cache_gen_kwargs = []
+            for toks, gen_kwargs in zip(context_encoding, all_gen_kwargs, strict=True):
                 # unpack our keyword arguments.
-                if isinstance(gen_kwargs, dict):
-                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                    # add EOS token to stop sequences
-                    until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
-                else:
+                if not isinstance(gen_kwargs, dict):
                     raise ValueError(
                         f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                     )
-                if "max_gen_toks" in kwargs.keys():
-                    max_gen_toks = kwargs.pop("max_gen_toks")
-                else:
-                    max_gen_toks = self.max_gen_toks
+                kwargs, until, max_gen_toks = self.modify_gen_kwargs(
+                    gen_kwargs, eos=eos, default_max_gen_toks=self.max_gen_toks
+                )
 
                 # set the max length in tokens of inputs ("context_enc")
                 # max len for inputs = max length, minus room to generate the max new tokens
-                max_ctx_len = self.max_length - max_gen_toks
-                if len(x) > max_ctx_len:
-                    context_encoding_truncated.append(x[-max_ctx_len:])
-                else:
-                    context_encoding_truncated.append(x)
+                toks, max_gen_toks = maybe_truncate(
+                    toks,
+                    max_gen_toks=max_gen_toks,
+                    max_model_len=self.max_length,
+                    side=self.truncation_side,
+                    verbose=True,
+                )
+                context_encoding_truncated.append(toks)
+
+                # When a reasoning model is active, task-level stop sequences
+                # (e.g. the fewshot delimiter "\n\n") should not go to SGLang —
+                # they often exist inside <think> blocks and cause it to truncate
+                # before any response is produced.  Only EOS should be passed
+                # to SGLang; task stops are applied in postprocess_generated_text
+                # after thinking content is stripped.
+                stop = [s for s in until if s == eos] if self.think_end_token else until
                 # create sampling params
-                kwargs = self.modify_gen_kwargs(kwargs)
                 sampling_params.append(
-                    kwargs | {"max_new_tokens": max_gen_toks, "stop": until}
+                    kwargs | {"max_new_tokens": max_gen_toks, "stop": stop}
+                )
+                cache_gen_kwargs.append(
+                    kwargs | {"until": until, "max_gen_toks": max_gen_toks}
                 )
             # perform batched generation
             # cont is a list of dic. See here https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 .
@@ -270,14 +283,16 @@ class SGLangLM(TemplateLM):
             )
 
             # cache generations
-            for output, context in zip(cont, context):
+            for output, _context, gen_kwargs in zip(
+                cont, context, cache_gen_kwargs, strict=True
+            ):
                 generated_text = output.get("text", "")
                 generated_text = postprocess_generated_text(
-                    generated_text, until, self.think_end_token
+                    generated_text, gen_kwargs.get("until"), self.think_end_token
                 )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
+                    "generate_until", (_context, gen_kwargs), generated_text
                 )
                 pbar.update(1)
 
@@ -516,18 +531,44 @@ class SGLangLM(TemplateLM):
         return continuation_logprobs, is_greedy
 
     @staticmethod
-    def modify_gen_kwargs(kwargs: dict) -> dict:
-        # sampling_params
-        kwargs["temperature"] = kwargs.get("temperature", 0.0)
-        do_sample = kwargs.pop("do_sample", None)
-        if do_sample is False and "temperature" not in kwargs:
-            eval_logger.debug(
-                "Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ..."
-            )
-            kwargs["temperature"] = 0.0
-        # hf defaults
-        kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
-        kwargs["spaces_between_special_tokens"] = kwargs.get(
-            "spaces_between_special_tokens", False
+    def modify_gen_kwargs(
+        gen_kwargs: dict[str, Any],
+        eos: str | list[str] | None = None,
+        default_max_gen_toks: int = 256,
+    ) -> tuple[dict[str, Any], list[str], int]:
+        """Process generation kwargs into SGLang-compatible format.
+
+        Args:
+            gen_kwargs: Raw generation kwargs from the request.
+            eos: EOS token string for stop sequence handling.
+            default_max_gen_toks: Default max tokens if not specified in gen_kwargs.
+
+        Returns:
+            A tuple of (kwargs, stop_sequences, max_gen_toks) where:
+            - kwargs: Processed kwargs ready for SGLang sampling params
+            - stop_sequences: List of stop sequences including EOS
+            - max_gen_toks: Maximum tokens to generate
+        """
+        _gen_kwargs = normalize_gen_kwargs(
+            gen_kwargs, default_max_gen_toks=default_max_gen_toks
         )
-        return kwargs
+
+        # Extract and process stop sequences
+        until = handle_stop_sequences(
+            _gen_kwargs.pop("until", None), eos=eos[0] if isinstance(eos, list) else eos
+        )
+
+        # Extract max_tokens
+        max_gen_toks = int(_gen_kwargs.pop("max_gen_toks", default_max_gen_toks))
+
+        # do_sample and temperature normalization is handled by `normalize_gen_kwargs` utility
+        _gen_kwargs.pop("do_sample", None)
+        # hf defaults. Unlike vLLM we also pin `temperature`: SGLang's sampling
+        # default is not greedy, and `normalize_gen_kwargs` only writes the key
+        # back when `do_sample`/`temperature` were given explicitly.
+        _gen_kwargs = {
+            "temperature": 0.0,
+            "skip_special_tokens": False,
+            "spaces_between_special_tokens": False,
+        } | _gen_kwargs
+        return _gen_kwargs, until, max_gen_toks
