@@ -27,7 +27,9 @@ BibTeX-formatted citation goes here
 
 #### Tasks
 
-* `coqa`
+* `coqa`: evaluates each conversation turn separately, matching the official
+  CoQA set-up where scores are averaged across all turn IDs.
+* `coqa_last_turn`: evaluates only the final turn from each conversation.
 
 ### Checklist
 
