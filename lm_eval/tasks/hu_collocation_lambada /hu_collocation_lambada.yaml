@@ -1,0 +1,41 @@
+task: hu_collocation_lambada
+dataset_path: graphium-company/hu-collocation-lambada
+test_split: test
+dataset_name: default
+output_type: generate_until
+doc_to_text: "Megcélzott szókapcsolat leírása: {{description}}\
+ \\nFolytasd a szöveget! Válaszodban csak a helyes szót add vissza!\
+ \\n{{text.split(' ')[:-1]|join(' ')}}"
+doc_to_target: "{{text.split(' ')[-1]}}"
+generation_kwargs:
+  until:
+    - "."
+    - "!"
+    - "?"
+    - ","
+    - "\\n"
+    - "</s>"
+  do_sample: false
+  temperature: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_punctuation: true
+    ignore_case: true
+filter_list:
+  - name: get_response
+    filter:
+      # Remove leading white spaces
+      - function: remove_whitespace
+      # function to ignore right white spaces or line breaks
+      - function: "regex"
+        regex_pattern: "^(\\S+)"
+      # Remove punctiation
+      - function: "regex"
+        regex_pattern: "[\\s\\w\\d]+"
+      - function: take_first
+metadata:
+  version: 0.0
+dataset_kwargs:
+  trust_remote_code: true
