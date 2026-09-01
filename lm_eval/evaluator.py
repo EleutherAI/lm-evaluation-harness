@@ -51,6 +51,15 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 
+def _resolve_model_name(model: str | LM) -> str:
+    """The name this run is reported under in ``results["config"]["model"]``."""
+    if isinstance(model, str):
+        return model
+    if hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
+        return model.config._name_or_path
+    return type(model).__name__
+
+
 @positional_deprecated
 def simple_evaluate(
     model: str | LM,
@@ -285,6 +294,10 @@ def simple_evaluate(
     # LOCAL_RANK so each process gets its own cache db and only LOCAL_RANK==0
     # performs final result aggregation / I/O.
     cache_rank = lm.rank or int(os.environ.get("LOCAL_RANK", "0"))
+    # The same pair this run will be stamped with in results["config"] below.
+    # Cached responses are keyed by it so that a db written while evaluating one
+    # model can never answer for another and be reported under its name.
+    model_name = _resolve_model_name(model)
     if use_cache is not None:
         eval_logger.info(
             f"Using cache at {use_cache + '_rank' + str(cache_rank) + '.db'}"
@@ -297,6 +310,9 @@ def simple_evaluate(
             + "_rank"
             + str(cache_rank)
             + ".db",
+            model_identity=json.dumps(
+                [model_name, model_args], sort_keys=True, default=str
+            ),
         )
 
     if task_manager is None:
@@ -394,13 +410,6 @@ def simple_evaluate(
     # (torchrun), where every rank reports rank==0 but only one process should
     # build/return results so callers don't duplicate file writes.
     if lm.rank == 0 and int(os.environ.get("LOCAL_RANK", "0")) == 0:
-        if isinstance(model, str):
-            model_name = model
-        elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
-            model_name = model.config._name_or_path
-        else:
-            model_name = type(model).__name__
-
         # add info about the model and few shot config
         results["config"] = {
             "model": model_name,
