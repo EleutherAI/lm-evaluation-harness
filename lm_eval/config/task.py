@@ -39,6 +39,7 @@ class FewshotConfig:
     gen_prefix: str | None = None
     fewshot_delimiter: str | None = None
     target_delimiter: str | None = None
+    doc_to_target_type: str = "auto"
 
     def __post_init__(self):
         if self.split is not None and self.samples is not None:
@@ -60,6 +61,7 @@ class FewshotConfig:
         doc_to_text: str | Callable[..., str] | None = None,
         doc_to_choice: str | Callable[..., str] | dict | list | None = None,
         doc_to_target: str | Callable[..., str] | None = None,
+        doc_to_target_type: str | None = None,
         **overloads,
     ) -> FewshotConfig:
         cfg_dict = {
@@ -71,10 +73,13 @@ class FewshotConfig:
             "doc_to_text": doc_to_text,
             "doc_to_choice": doc_to_choice,
             "doc_to_target": doc_to_target,
+            "doc_to_target_type": doc_to_target_type,
             **cfg,
             **overloads,
         }
         cfg_dict.setdefault("sampler", "default")
+        if cfg_dict["doc_to_target_type"] is None:
+            cfg_dict["doc_to_target_type"] = "auto"
         return cls(**cfg_dict)
 
 
@@ -126,6 +131,7 @@ class TaskConfig(dict):
     metadata: dict | None = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
+    doc_to_target_type: str = "auto"
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
@@ -162,10 +168,13 @@ class TaskConfig(dict):
                 doc_to_text=self.doc_to_text,
                 doc_to_choice=self.doc_to_choice,
                 doc_to_target=self.doc_to_target,
+                doc_to_target_type=self.doc_to_target_type,
             )
             if (isinstance(self.fewshot_config, dict) or self.fewshot_config is None)
             else self.fewshot_config
         )
+        if self.doc_to_target_type not in {"auto", "string", "list"}:
+            raise ValueError("doc_to_target_type must be one of: auto, string, list")
 
     def __getitem__(self, item):
         return getattr(self, item)
