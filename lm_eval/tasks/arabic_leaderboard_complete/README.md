@@ -153,7 +153,7 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
       * `arabic_leaderboard_arabic_mmlu_virology`
       * `arabic_leaderboard_arabic_mmlu_world_religions`
 * `arabic_leaderboard_arabic_mt_arc_challenge`: AI2 Reasoning Challenge (ARC) is a multiple-choice question task. The dataset contains only natural, grade-school science questions,
-  written for human tests. The challenge set contains only questions answered incorrectly by both a retrieval-based algorithm and a word co-occurence algorithm. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+  written for human tests. The challenge set contains only questions answered incorrectly by both a retrieval-based algorithm and a word co-occurrence algorithm. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
 * `arabic_leaderboard_arabic_mt_arc_easy`: This dataset is the same as `arabic_arc_challenge`, except it is not from the challenge set.
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
