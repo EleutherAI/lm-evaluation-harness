@@ -41,6 +41,7 @@ class VLLM_VLM(VLLM):
         interleave: bool = True,
         # TODO<baber>: handle max_images and limit_mm_per_prompt better
         max_images: int = 999,
+        convert_img_format=False,
         image_width: int | None = None,
         image_height: int | None = None,
         image_max_side: int | None = None,
@@ -66,12 +67,14 @@ class VLLM_VLM(VLLM):
         )
         self.interleave = interleave
         self.max_images = max_images
+        self.rgb = convert_img_format
         self.processor = transformers.AutoProcessor.from_pretrained(
             pretrained,
             revision=revision,
             trust_remote_code=trust_remote_code,
         )
         self.chat_applied: bool = False
+        self._chat_template_warning_issued: bool = False
 
     def tok_batch_multimodal_encode(
         self,
@@ -80,9 +83,8 @@ class VLLM_VLM(VLLM):
         left_truncate_len: int | None = None,
         truncation: bool = False,
     ) -> list[TextPrompt]:
-        images = [img[: self.max_images] for img in images]
         # TODO<baber>: is the default placeholder always <image>?
-        if self.chat_applied is False:
+        if not self.chat_applied:
             strings = [
                 replace_placeholders(
                     string,
@@ -92,6 +94,10 @@ class VLLM_VLM(VLLM):
                 )
                 for string in strings
             ]
+
+        images = [img[: self.max_images] for img in images]
+        if self.rgb:
+            images = [[img.convert("RGB") for img in sublist] for sublist in images]
 
         outputs = []
         for x, i in zip(strings, images, strict=True):
@@ -154,10 +160,37 @@ class VLLM_VLM(VLLM):
             )
         return outputs
 
+    def _supports_processor_chat_template(self) -> bool:
+        """Check if the processor natively supports multimodal chat templates.
+
+        Some processors (e.g. Phi3VProcessor) lack a `chat_template` attribute,
+        requiring a fallback to the tokenizer for chat template formatting.
+        """
+        return hasattr(self.processor, "apply_chat_template") and hasattr(
+            self.processor, "chat_template"
+        )
+
     def apply_chat_template(
         self, chat_history: list[dict[str, Any]], add_generation_prompt=True
     ) -> str:
         self.chat_applied = True
+
+        if not self._supports_processor_chat_template():
+            # Fall back to tokenizer for models whose processor does not have
+            # a chat_template (e.g. Phi-3.5-vision). Keep content as plain
+            # strings so the tokenizer can handle them directly.
+            if not self._chat_template_warning_issued:
+                eval_logger.info(
+                    "Processor does not support chat templates, "
+                    "falling back to tokenizer.apply_chat_template"
+                )
+                self._chat_template_warning_issued = True
+            return self.tokenizer.apply_chat_template(
+                chat_history,
+                add_generation_prompt=add_generation_prompt,
+                tokenize=False,
+            )
+
         if not self.interleave:
             for content in chat_history:
                 c = []
