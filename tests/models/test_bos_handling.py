@@ -636,3 +636,155 @@ class TestEdgeCases:
 
         assert mock_vllm.tok_encode("") == []
         assert mock_vllm.tok_encode([]) == []
+
+
+# =============================================================================
+# Behavior 5: sglang and api_models delegate the same way (#3295)
+# =============================================================================
+
+
+def create_sglang_mock(tokenizer, add_bos_token):
+    """Create SGLang model mock with tokenization methods."""
+    from lm_eval.models.sglang_causallms import SGLangLM
+
+    mock = Mock()
+    mock.add_bos_token = add_bos_token
+    mock.prefix_token_id = tokenizer.bos_token_id or 0
+    mock.tokenizer = tokenizer
+    mock.tok_encode = SGLangLM.tok_encode.__get__(mock, SGLangLM)
+    return mock
+
+
+def create_api_mock(tokenizer, add_bos_token):
+    """Create TemplateAPI mock with the huggingface tokenizer backend."""
+    from lm_eval.models.api_models import TemplateAPI
+
+    mock = Mock()
+    mock.add_bos_token = add_bos_token
+    mock.prefix_token_id = tokenizer.bos_token_id or 0
+    mock.tokenizer = tokenizer
+    mock.tokenizer_backend = "huggingface"
+    mock.tok_encode = TemplateAPI.tok_encode.__get__(mock, TemplateAPI)
+    return mock
+
+
+@pytest.mark.parametrize("factory", [create_sglang_mock, create_api_mock])
+class TestSglangAndApiDelegateBos:
+    """
+    sglang and the API backends were left on the pre-#3347 behaviour.
+
+    They defaulted `add_bos_token` to False and passed it to the tokenizer
+    explicitly, which overrides a tokenizer whose own config asks for a BOS
+    token. These mirror the huggingface/vllm expectations above.
+    """
+
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
+    def test_none_uses_tokenizer_default(self, factory, tokenizer_name, request):
+        """
+        add_bos_token=None must defer to the tokenizer's own configuration.
+
+        Pythia does not add BOS by default; OLMo does. Before #3295 both
+        backends forced add_special_tokens=False, so the OLMo case lost its BOS.
+        """
+        tokenizer = request.getfixturevalue(tokenizer_name)
+        mock = factory(tokenizer, add_bos_token=None)
+
+        assert mock.tok_encode("Hello") == tokenizer.encode("Hello")
+
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
+    def test_explicit_true_adds_bos(self, factory, tokenizer_name, request):
+        """add_bos_token=True forces the BOS token on."""
+        tokenizer = request.getfixturevalue(tokenizer_name)
+        mock = factory(tokenizer, add_bos_token=True)
+
+        expected = tokenizer.encode("Hello", add_special_tokens=True)
+        assert mock.tok_encode("Hello") == expected
+
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
+    def test_explicit_false_suppresses_bos(self, factory, tokenizer_name, request):
+        """add_bos_token=False forces it off, even for a tokenizer that adds one."""
+        tokenizer = request.getfixturevalue(tokenizer_name)
+        mock = factory(tokenizer, add_bos_token=False)
+
+        expected = tokenizer.encode("Hello", add_special_tokens=False)
+        assert mock.tok_encode("Hello") == expected
+
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
+    def test_no_duplicate_bos(self, factory, tokenizer_name, request):
+        """A string that already starts with BOS must not be given a second."""
+        tokenizer = request.getfixturevalue(tokenizer_name)
+        mock = factory(tokenizer, add_bos_token=True)
+
+        encoded = mock.tok_encode(f"{tokenizer.bos_token}Hello")
+
+        assert encoded[:2] != [tokenizer.bos_token_id, tokenizer.bos_token_id]
+
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
+    def test_mixed_batch_keeps_order(self, factory, tokenizer_name, request):
+        """
+        A batch split by BOS presence must come back in the input order.
+
+        The implementation encodes the with-BOS and without-BOS strings as two
+        groups, so ordering is the thing a careless version gets wrong.
+        """
+        tokenizer = request.getfixturevalue(tokenizer_name)
+        mock = factory(tokenizer, add_bos_token=True)
+
+        strings = ["Alpha", f"{tokenizer.bos_token}Beta", "Gamma"]
+        batched = mock.tok_encode(strings)
+
+        assert len(batched) == 3
+        assert batched == [mock.tok_encode(s) for s in strings]
+
+    def test_explicit_add_special_tokens_overrides(self, factory, pythia_tokenizer):
+        """An explicit add_special_tokens argument beats add_bos_token."""
+        mock = factory(pythia_tokenizer, add_bos_token=True)
+
+        result = mock.tok_encode("Hello", add_special_tokens=False)
+
+        assert result == pythia_tokenizer.encode("Hello", add_special_tokens=False)
+
+
+def test_sglang_no_longer_special_cases_gemma():
+    """
+    The gemma-by-name branch is gone; the tokenizer config carries it.
+
+    Guards the substring match coming back: it set add_bos_token=True for any
+    model whose name contains "gemma", which is both too broad and unnecessary
+    now that an unset value defers to the tokenizer.
+    """
+    import inspect
+
+    from lm_eval.models import sglang_causallms
+
+    assert "gemma" not in inspect.getsource(sglang_causallms.SGLangLM.__init__).lower()
+
+
+@pytest.mark.parametrize(
+    "module_name, class_name",
+    [
+        ("lm_eval.models.huggingface", "HFLM"),
+        ("lm_eval.models.vllm_causallms", "VLLM"),
+        ("lm_eval.models.sglang_causallms", "SGLangLM"),
+        ("lm_eval.models.api_models", "TemplateAPI"),
+    ],
+)
+def test_add_bos_token_defaults_to_none(module_name, class_name):
+    """
+    Every backend must default `add_bos_token` to None, not False.
+
+    This is the defect #3295 reports. A False default is not "no opinion" — it
+    is passed to the tokenizer and *overrides* a tokenizer_config.json that asks
+    for a BOS token, so models that declare they need one silently do not get
+    one. None means nothing is passed and the tokenizer's own setting stands.
+    """
+    import importlib
+    import inspect
+
+    cls = getattr(importlib.import_module(module_name), class_name)
+    default = inspect.signature(cls.__init__).parameters["add_bos_token"].default
+
+    assert default is None, (
+        f"{class_name}.add_bos_token defaults to {default!r}; "
+        "a non-None default overrides the tokenizer's own configuration"
+    )
