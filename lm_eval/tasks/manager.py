@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import functools
+import importlib
+import importlib.metadata as md
+import importlib.util
+import logging
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -18,6 +23,96 @@ from lm_eval.tasks._yaml_loader import load_yaml
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+
+
+log = logging.getLogger(__name__)
+
+TASKS_ENTRY_POINT_GROUP = "lm_eval.tasks"
+
+
+@functools.cache
+def discover_plugin_task_paths() -> tuple[Path, ...]:
+    """Resolve external task directories advertised via entry points.
+
+    Installed packages can contribute a directory of task YAMLs to lm-eval by
+    declaring an ``lm_eval.tasks`` entry point whose value points at the package
+    (or module) that holds them, e.g. in ``pyproject.toml``::
+
+        [project.entry-points."lm_eval.tasks"]
+        my_tasks = "my_pkg.tasks"
+
+    Each entry point is resolved to the directory containing that package/module,
+    which is then scanned recursively for ``*.yaml`` task configs exactly like the
+    built-in task tree. A broken entry point is logged and skipped rather than
+    allowed to break task discovery.
+
+    Entry-point metadata is process-stable, so the result is cached: discovery
+    runs once per process rather than on every ``TaskManager`` construction. Tests
+    that install fake entry points must call ``discover_plugin_task_paths
+    .cache_clear()``.
+
+    Returns:
+        Directory paths, de-duplicated, in entry-point iteration order.
+    """
+    paths: list[Path] = []
+    seen: set[Path] = set()
+    try:
+        entry_points = md.entry_points(group=TASKS_ENTRY_POINT_GROUP)
+    except Exception as exc:  # noqa: BLE001 - pragma: no cover - defensive
+        log.warning(
+            "Failed to read entry points for '%s': %s", TASKS_ENTRY_POINT_GROUP, exc
+        )
+        return ()
+
+    for ep in entry_points:
+        try:
+            directory = _resolve_task_dir(ep.value)
+        except Exception as exc:  # noqa: BLE001 - one bad plugin must not break others
+            log.warning(
+                "Failed to resolve task plugin '%s' (%s): %s", ep.name, ep.value, exc
+            )
+            continue
+        if directory is None:
+            log.warning(
+                "Task plugin '%s' (%s) did not resolve to a directory; skipping.",
+                ep.name,
+                ep.value,
+            )
+            continue
+        if directory not in seen:
+            seen.add(directory)
+            paths.append(directory)
+            log.info("Discovered task plugin '%s' -> %s", ep.name, directory)
+    return tuple(paths)
+
+
+def _resolve_task_dir(value: str) -> Path | None:
+    """Resolve an entry-point value to a task directory.
+
+    The value is an import target, either a bare module/package (``my_pkg.tasks``)
+    or ``module:attr``. The directory returned is the package directory (for a
+    package) or the directory containing the module file (for a plain module).
+    """
+    module_name = value.split(":", 1)[0].strip()
+    if not module_name:
+        return None
+    # Prefer resolving via the module's location without importing its contents
+    # where possible, but importing is acceptable and reliable across layouts.
+    spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        # Fall back to import (handles namespace edge cases / editable installs).
+        module = importlib.import_module(module_name)
+        spec = getattr(module, "__spec__", None)
+    if spec is None:
+        return None
+    # Package with a directory (has submodule_search_locations) -> that directory.
+    locations = list(getattr(spec, "submodule_search_locations", None) or [])
+    if locations:
+        return Path(locations[0]).resolve()
+    # Plain module -> the directory that contains its file.
+    if spec.origin and spec.origin != "built-in":
+        return Path(spec.origin).resolve().parent
+    return None
 
 
 class TaskDict(TypedDict):
@@ -78,9 +173,11 @@ class TaskManager:
         self._factory: TaskFactory = TaskFactory(meta=metadata)
 
         all_paths: list[Path] = []
-        # Process defaults FIRST, then include_path (later paths can override earlier)
+        # Process defaults FIRST, then plugin task dirs, then include_path
+        # (later paths override earlier, so user --include_path still wins).
         if include_defaults:
             all_paths.append(Path(__file__).parent)
+        all_paths += discover_plugin_task_paths()
         if include_path:
             all_paths += [
                 Path(p)
