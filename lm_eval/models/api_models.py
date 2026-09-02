@@ -32,7 +32,13 @@ from io import BytesIO
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
-from lm_eval.models.utils import Collator, chunks, configure_pad_token
+from lm_eval.models.utils import (
+    Collator,
+    _add_special_kwargs,
+    chunks,
+    configure_pad_token,
+    has_bos_prefix,
+)
 
 
 if TYPE_CHECKING:
@@ -125,7 +131,7 @@ class TemplateAPI(TemplateLM):
         batch_size: str | int = 1,
         seed: int = 1234,
         max_length: int | None = 2048,
-        add_bos_token: bool = False,
+        add_bos_token: bool | None = None,
         custom_prefix_token_id: int | None = None,
         # send the requests as tokens or strings
         tokenized_requests: bool = True,
@@ -397,31 +403,62 @@ class TemplateAPI(TemplateLM):
         self,
         string: str,
         left_truncate_len: int | None = None,
-        add_special_tokens: bool = False,
+        add_special_tokens: bool | None = None,
         truncation: bool = False,
         **kwargs,
     ) -> list[list[int]] | list[int] | list[str]:
         if self.tokenizer_backend is None:
             return [string]
         elif self.tokenizer_backend == "huggingface":
-            # by default for CausalLM - false or self.add_bos_token is set
-            if not add_special_tokens:
-                add_special_tokens = False or self.add_bos_token
-            encoding: list[list[int]] | list[int] = self.tokenizer(
-                string,
-                add_special_tokens=add_special_tokens,
-                truncation=truncation,
-                return_attention_mask=False,
-            ).input_ids
+            # `add_special_tokens=None` and `self.add_bos_token=None` means nothing
+            # is passed to the tokenizer, so its own configuration decides whether
+            # a BOS token is prepended. Mirrors HFLM.tok_encode.
+            is_batched = not isinstance(string, str)
+            _string: list[str] = list(string) if is_batched else [string]
+
+            _bos_token = (
+                self.tokenizer.decode(self.prefix_token_id)
+                if self.prefix_token_id is not None
+                else None
+            )
+            special_tokens_kwargs = _add_special_kwargs(
+                add_special_tokens, self.add_bos_token
+            )
+
+            # A string that already begins with BOS must not be given a second one.
+            has_prefix_flags = [
+                isinstance(s, str) and has_bos_prefix(s, _bos_token) for s in _string
+            ]
+            idx_has = [i for i, f in enumerate(has_prefix_flags) if f]
+            idx_not = [i for i, f in enumerate(has_prefix_flags) if not f]
+
+            def _encode(strs: list[str], enc_kwargs) -> list[list[int]]:
+                if not strs:
+                    return []
+                return self.tokenizer(
+                    strs,
+                    truncation=truncation,
+                    return_attention_mask=False,
+                    **enc_kwargs,
+                ).input_ids
+
+            enc_has = _encode(
+                [_string[i] for i in idx_has],
+                {**special_tokens_kwargs, "add_special_tokens": False},
+            )
+            enc_not = _encode([_string[i] for i in idx_not], special_tokens_kwargs)
+
+            encoding: list[list[int]] = [None] * len(_string)  # type: ignore[list-item]
+            for j, i in enumerate(idx_has):
+                encoding[i] = enc_has[j]
+            for j, i in enumerate(idx_not):
+                encoding[i] = enc_not[j]
 
             # left-truncate the encoded context to be at most `left_truncate_len` tokens long
             if left_truncate_len:
-                if not isinstance(string, str):
-                    encoding = [enc[-left_truncate_len:] for enc in encoding]
-                else:
-                    encoding = encoding[-left_truncate_len:]
+                encoding = [enc[-left_truncate_len:] for enc in encoding]
 
-            return encoding
+            return encoding if is_batched else encoding[0]
         elif self.tokenizer_backend == "remote":
             if isinstance(string, str):
                 encoding = self.tokenizer.encode(string)
@@ -730,9 +767,7 @@ class TemplateAPI(TemplateLM):
                 *(req.args for req in requests), strict=False
             )
         if self.tokenized_requests:
-            encodings_list = self.tok_encode(
-                requests, add_special_tokens=self.add_bos_token
-            )
+            encodings_list = self.tok_encode(requests)
         else:
             encodings_list = [None] * len(requests)
         requests = [
