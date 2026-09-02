@@ -633,8 +633,14 @@ def evaluate(
                 world_size=WORLD_SIZE,
                 samples=indices,
             )
+            # doc_iterator yields positions within the dataset-ordered
+            # selection, so map back through the sorted id list rather
+            # than the caller's (possibly unsorted) samples list
+            ordered_indices = sorted(indices) if indices else None
             for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
+                doc_id_true = (
+                    ordered_indices[doc_id] if ordered_indices else doc_id
+                )
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
