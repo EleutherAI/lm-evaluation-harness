@@ -42,7 +42,7 @@ def print_writeout(task: Task) -> None:
                 f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
     \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
             )
-            eval_logger.info(f"Request: {str(inst)}")
+            eval_logger.info(f"Request: {inst!s}")
             break
 
 

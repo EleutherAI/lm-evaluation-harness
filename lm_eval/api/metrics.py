@@ -4,8 +4,8 @@ import os
 import random
 import re
 import string
-from collections.abc import Iterable
-from typing import Callable, List, Optional, Sequence, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import TypeVar
 
 import numpy as np
 import sacrebleu
@@ -100,7 +100,7 @@ def bleu(items):
 
 @register_aggregation("chrf")
 def chrf(items):
-    """chrF is an evaluation metric for machine translation output based on
+    """ChrF is an evaluation metric for machine translation output based on
     character n-gram precision and recall.
 
     Computed with sacrebleu's defaults: char_order=6, word_order=0, beta=2.
@@ -588,7 +588,7 @@ def bootstrap_stderr(
 
 def stderr_for_metric(
     metric: Callable[[Sequence[T]], float], bootstrap_iters: int
-) -> Optional[Callable[[Sequence[T]], float]]:
+) -> Callable[[Sequence[T]], float] | None:
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
@@ -619,10 +619,10 @@ def stderr_for_metric(
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
-    return stderr.get(metric, None)
+    return stderr.get(metric)
 
 
-def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
     #
@@ -640,7 +640,7 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
-def unweighted_mean_stderr(stderrs: List[float]) -> float:
+def unweighted_mean_stderr(stderrs: list[float]) -> float:
     # Used to aggregate stderrs across subtasks in a group when we are NOT weighting
     # by subtask size (weight_by_size=False), i.e. the group score is the simple
     # unweighted mean of the k subtask means. For k independent subtask means,
@@ -651,7 +651,7 @@ def unweighted_mean_stderr(stderrs: List[float]) -> float:
     return np.sqrt(sum(stderr**2 for stderr in stderrs)) / len(stderrs)
 
 
-def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None):
     assert metrics is not None, (
         "Need to pass a list of each subtask's metric for this stderr aggregation"
     )
