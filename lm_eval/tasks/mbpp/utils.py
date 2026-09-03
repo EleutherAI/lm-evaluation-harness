@@ -30,8 +30,11 @@ def pass_at_1(
 
 
 def extract_code_blocks(text: str) -> str:
-    # Pattern to match ```...``` blocks
-    pattern = r"```(?:\w+)?\n?(.*?)\n?```"
+    # Pattern to match ```...``` blocks. The optional language tag must be followed by a newline: because "```" is
+    # prepended below, a response that starts directly with code (e.g. "def f():" or "from typing import List", as
+    # chat models often do under --apply_chat_template) would otherwise have its first keyword swallowed as the
+    # language tag, leaving " f():" behind and scoring 0 on syntactically valid code.
+    pattern = r"```(?:\w+[ \t]*\n)?\n?(.*?)\n?```"
     # (+ ```) as we add the opening "```python" to the gen_prefix
     matches = re.findall(pattern, r"```" + text, re.DOTALL)
     # if no matches, try to match ```...``` blocks (after removing the language)
