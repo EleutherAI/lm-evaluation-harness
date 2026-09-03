@@ -10,7 +10,10 @@ from typing import TYPE_CHECKING, Any
 from typing_extensions import TypedDict
 
 from lm_eval.api.metrics import (
+    BOUNDARY_CI_SUFFIX,
+    boundary_ci,
     mean,
+    nanmean,
     stderr_for_metric,
 )
 from lm_eval.result_schema import EvalResults, _SampleCount, _TaskMetrics
@@ -42,7 +45,7 @@ def print_writeout(task: Task) -> None:
                 f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
     \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
             )
-            eval_logger.info(f"Request: {str(inst)}")
+            eval_logger.info(f"Request: {inst!s}")
             break
 
 
@@ -218,9 +221,38 @@ def _compute_task_aggregations(
                 if metric in ["bleu", "chrf", "chrf++", "ter"]
                 else bootstrap_iters,
             )
-            agg_metrics[f"{metric}_stderr,{filter_key}"] = (
-                stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
-            )
+            stderr = stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+            agg_metrics[f"{metric}_stderr,{filter_key}"] = stderr
+
+            # A score vector sitting entirely on 0 (or entirely on 1) has zero
+            # sample variance, so its standard error is 0.0 at every sample size:
+            # 25 documents and 5000 documents both publish "0.0 +- 0.0000". Report
+            # the Wilson interval beside it, which stays defined at the boundary
+            # and keeps the sample size visible. Purely additive: the stderr value
+            # itself is untouched, and the key is absent for every other vector.
+            #
+            # Restricted to mean aggregations: the interval describes a proportion,
+            # so it only bounds the published value when that value is the mean of
+            # the same 0/1 items. A median or sum of the same vector is a different
+            # statistic and gets no interval.
+            if (
+                stderr == 0.0
+                and agg_fn in (mean, nanmean)
+                and (interval := boundary_ci(items)) is not None
+            ):
+                agg_metrics[f"{metric}{BOUNDARY_CI_SUFFIX},{filter_key}"] = interval
+                lower, upper = interval
+                bound = (
+                    f"true rate <= {upper:.4f}"
+                    if lower == 0.0
+                    else f"true rate >= {lower:.4f}"
+                )
+                eval_logger.warning(
+                    f"[{task.task_name}] {metric} is at a boundary "
+                    f"({agg_metrics[metric_key]:.1f}) on all {len(items)} scored "
+                    f"documents, so its stderr is 0.0 by construction and does not "
+                    f"reflect the sample size. 95% Wilson bound: {bound}."
+                )
         else:
             agg_metrics[f"{metric}_stderr,{filter_key}"] = "N/A"
 

@@ -480,6 +480,8 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
+    from lm_eval.api.metrics import BOUNDARY_CI_SUFFIX
+
     column_name = "Groups" if column == "groups" else "Tasks"
 
     all_headers = [
@@ -508,7 +510,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         group_subtasks, set(result_dict[column].keys())
     )
 
-    if sort_results:  # noqa: SIM108
+    if sort_results:
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
@@ -539,7 +541,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
         for (mf), v in metric_items:
             m, _, f = mf.partition(",")
-            if m.endswith("_stderr"):
+            if m.endswith(("_stderr", BOUNDARY_CI_SUFFIX)):
                 continue
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
@@ -549,6 +551,14 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
                 se = "   N/A" if se == "N/A" else f"{se:.4f}"
+                # A boundary interval is only present when the stderr degenerated
+                # to 0.0 (see `boundary_ci`). Show the bound so the cell does not
+                # read as infinite precision.
+                interval = dic.get(f"{m}{BOUNDARY_CI_SUFFIX},{f}")
+                if interval is not None:
+                    lower, upper = interval
+                    bound = f"<= {upper:.4f}" if lower == 0.0 else f">= {lower:.4f}"
+                    se = f"{se} ({bound} at 95%)"
                 values.append([k, version, f, n, m, hib, v, "±", se])
             else:
                 values.append([k, version, f, n, m, hib, v, "", ""])
