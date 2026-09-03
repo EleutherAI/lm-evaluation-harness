@@ -343,6 +343,66 @@ def mean_stderr(arr):
     return sample_stddev(arr) / math.sqrt(len(arr))
 
 
+# Two-sided 95% coverage. Named so the interval helpers below don't carry a bare
+# 1.96, and so the coverage level is changeable in one place.
+Z_95 = 1.959963984540054
+
+# Suffix of the key that carries a boundary interval in a task's metric dict, e.g.
+# "acc_boundary_ci95,none". Only present for a metric whose score vector is
+# degenerate (see `boundary_ci`); readers must treat it as optional.
+BOUNDARY_CI_SUFFIX = "_boundary_ci95"
+
+
+def wilson_score_interval(
+    successes: float, n: int, z: float = Z_95
+) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion.
+
+    Unlike the Wald interval implied by `mean_stderr`, this stays inside [0, 1] and
+    keeps a width at p_hat = 0 and p_hat = 1, which is exactly where the Wald
+    standard error degenerates to a point.
+    """
+    if n <= 0:
+        raise ValueError("the Wilson interval is undefined for an empty sample")
+
+    p_hat = successes / n
+    denominator = 1 + z**2 / n
+    center = (p_hat + z**2 / (2 * n)) / denominator
+    margin = (z / denominator) * math.sqrt(p_hat * (1 - p_hat) / n + z**2 / (4 * n**2))
+    lower, upper = center - margin, center + margin
+
+    # At the boundaries the interval is closed exactly: with no successes the true
+    # rate can be 0, with no failures it can be 1. Pin those ends rather than let
+    # floating-point noise report a 1e-17 lower bound on a null result.
+    lower = 0.0 if successes <= 0 else max(0.0, lower)
+    upper = 1.0 if successes >= n else min(1.0, upper)
+    return lower, upper
+
+
+def boundary_ci(items: Sequence[T], z: float = Z_95) -> tuple[float, float] | None:
+    """Wilson interval for a score vector that sits entirely on 0 or entirely on 1.
+
+    Returns None for every other vector, including a constant vector off the
+    boundary (0.5 is not a degenerate proportion) and vectors of non-numeric items
+    such as the (reference, prediction) pairs some metrics aggregate.
+
+    Only the all-0 and all-1 cases are treated. There the sample variance is 0 by
+    construction, so the reported standard error is 0.0 at any sample size and says
+    nothing about how much evidence backs the null (or saturated) result.
+    """
+    if not items:
+        return None
+    if not all(isinstance(x, (int, float)) for x in items):
+        return None
+
+    observed = {float(x) for x in items}
+    if observed not in ({0.0}, {1.0}):
+        return None
+
+    successes = observed.pop() * len(items)
+    return wilson_score_interval(successes, len(items), z)
+
+
 @register_metric(
     metric="bypass",
     higher_is_better=True,
