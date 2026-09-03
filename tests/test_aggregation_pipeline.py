@@ -514,3 +514,23 @@ class TestBoundaryReporting:
         result = _process_results(acc, groups={}, bootstrap_iters=100)
 
         assert "acc_boundary_ci95,none" not in result.metrics["t1"]
+
+    def test_boundary_interval_does_not_reach_group_aggregation(self):
+        # Group aggregation discovers filters by the exact "<metric>," prefix, so the
+        # extra key must not be picked up as a metric of its own or weighted into the
+        # group score.
+        t1 = MockTask("t1", agg={"acc": mean}, n_eval_docs=25)
+        t2 = MockTask("t2", agg={"acc": mean}, n_eval_docs=25)
+        group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
+        group.add(t1)
+        group.add(t2)
+        acc = {
+            "t1": _make_acc(t1, {("acc", "none"): [0.0] * 25}),
+            "t2": _make_acc(t2, {("acc", "none"): [1.0, 0.0] * 12 + [1.0]}),
+        }
+
+        result = _process_results(acc, groups={"g": group}, bootstrap_iters=1000)
+
+        assert "acc_boundary_ci95,none" in result.metrics["t1"]
+        assert not any("boundary" in key for key in result.metrics["g"])
+        assert result.metrics["g"]["acc,none"] == pytest.approx(0.26)

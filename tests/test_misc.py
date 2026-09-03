@@ -1,3 +1,4 @@
+import json
 import random
 
 import pytest
@@ -64,3 +65,21 @@ def test_make_table_is_unchanged_without_a_boundary_interval():
     assert "0.1" in table
     assert "<=" not in table
     assert ">=" not in table
+
+
+def test_make_table_accepts_a_boundary_interval_reloaded_from_json():
+    # results.json turns the tuple into a list; rendering a saved run must still work.
+    reloaded = json.loads(
+        json.dumps(
+            _table_result_dict(
+                {
+                    "acc,none": 0.0,
+                    "acc_stderr,none": 0.0,
+                    "acc_boundary_ci95,none": (0.0, 0.13319225093904846),
+                }
+            )
+        )
+    )
+
+    assert isinstance(reloaded["results"]["t1"]["acc_boundary_ci95,none"], list)
+    assert "<= 0.1332" in make_table(reloaded)
