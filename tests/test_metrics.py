@@ -329,3 +329,22 @@ class TestBoundaryInterval:
 
     def test_boundary_ci_ignores_an_empty_vector(self):
         assert boundary_ci([]) is None
+
+    def test_boundary_ci_handles_numpy_scalars(self):
+        # Tasks return whatever their process_results produced; several compute with
+        # numpy, and np.int64 / np.bool_ are not instances of int.
+        import numpy as np
+
+        assert boundary_ci([np.float64(0.0)] * 25) == pytest.approx(
+            (0.0, 0.13319), abs=1e-5
+        )
+        assert boundary_ci([np.int64(0)] * 25) == pytest.approx(
+            (0.0, 0.13319), abs=1e-5
+        )
+        assert boundary_ci([np.bool_(True)] * 25) == pytest.approx(
+            (0.86681, 1.0), abs=1e-5
+        )
+
+    def test_boundary_ci_ignores_numeric_looking_strings(self):
+        # float("0") would succeed; a string score is not a proportion.
+        assert boundary_ci(["0"] * 25) is None

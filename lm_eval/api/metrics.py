@@ -392,10 +392,17 @@ def boundary_ci(items: Sequence[T], z: float = Z_95) -> tuple[float, float] | No
     """
     if not items:
         return None
-    if not all(isinstance(x, (int, float)) for x in items):
+    # Scores reach here as whatever a task's process_results returned: Python floats,
+    # but also numpy scalars, which are not all instances of int/float (np.bool_ and
+    # np.int64 are not). Convert instead of type-checking, and reject the strings and
+    # the (reference, prediction) pairs some metrics aggregate.
+    if any(isinstance(x, (str, bytes)) for x in items):
+        return None
+    try:
+        observed = {float(x) for x in items}
+    except (TypeError, ValueError):
         return None
 
-    observed = {float(x) for x in items}
     if observed not in ({0.0}, {1.0}):
         return None
 
