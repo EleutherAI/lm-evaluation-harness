@@ -291,8 +291,17 @@ def _collect_results(
 
         # Compute n_samples: effective comes from sample_len (actual evaluated count)
         original = len(task.eval_docs)
+        # effective is one number for the whole task, but metrics do not always
+        # share a denominator. Report what each metric was actually scored on, so
+        # a metric that lost documents is visible rather than hidden behind the
+        # task-level count. This is the same quantity the warning above reports
+        # when the counts diverge, kept for the case where they do not.
+        per_metric = {
+            f"{metric},{filter_key}": len(items)
+            for (metric, filter_key), items in acc["raw_metrics"].items()
+        }
         result.n_samples[task_name] = _SampleCount(
-            original=original, effective=sample_len
+            original=original, effective=sample_len, per_metric=per_metric
         )
 
     return result

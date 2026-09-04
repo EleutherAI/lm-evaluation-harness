@@ -137,6 +137,14 @@ class _SampleCount(TypedDict):
     effective: int
     """Actual number of documents actually evaluated (e.g. using limit)."""
 
+    per_metric: NotRequired[dict[str, int]]
+    """Number of documents each metric was actually scored on. Maps metric keys
+    like ``"acc,none"`` to a count. ``effective`` is a single number for the task,
+    but metrics do not always share a denominator: a document whose
+    ``process_results`` omits a key contributes to some metrics and not others.
+    This reports what each metric was scored on, mirroring the per-metric
+    ``sample_count`` that groups already carry."""
+
 
 class _EvalConfig(TypedDict, total=False):
     """Model and execution configuration stored in results."""
