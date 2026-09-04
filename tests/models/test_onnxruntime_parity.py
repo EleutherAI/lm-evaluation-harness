@@ -120,6 +120,57 @@ def test_both_backends_share_one_base():
 
 
 # --------------------------------------------------------------------------- #
+# Response cache: no runtime needed either.
+# --------------------------------------------------------------------------- #
+def test_generate_until_caches_under_the_request_arguments(tmp_path):
+    """The key written must be the key `CachingLM` reads back.
+
+    `generate_until` pops `until` out of a copy of the generation kwargs before
+    calling the backend. Caching that copy writes a row under a key no lookup
+    ever forms, because `CachingLM` hashes `req.args`, so the entry is dead
+    weight in the sqlite file.
+    """
+    pytest.importorskip("sqlitedict")
+
+    from lm_eval.api.model import CachingLM, hash_args
+    from lm_eval.models._onnx_base import _ONNXLMBase
+
+    class _StubONNXLM(_ONNXLMBase):
+        def __init__(self):  # bypass model loading
+            self._max_gen_toks = 8
+
+        def _load(self):
+            raise AssertionError("the stub never loads a model")
+
+        def _forward_logits(self, tokens):
+            raise AssertionError("generate_until does not score")
+
+        def _generate(self, tokens, gen_kwargs):
+            assert "until" not in gen_kwargs, "backends receive kwargs without `until`"
+            return [1, 2, 3]
+
+        def tok_encode(self, string, **kwargs):
+            return [0]
+
+        def tok_decode(self, tokens, **kwargs):
+            return "generated\nrest"
+
+        @property
+        def eot_token_id(self):
+            return 0
+
+    args = ("What is 2 + 2?", {"until": ["\n"], "max_gen_toks": 8})
+    request = Instance(request_type="generate_until", doc={}, arguments=args, idx=0)
+
+    lm = CachingLM(_StubONNXLM(), str(tmp_path / "responses.db"))
+    assert lm.generate_until([request]) == ["generated"]
+
+    # One request, one row, and it is the row a second run would look up.
+    assert len(lm.dbdict) == 1
+    assert hash_args("generate_until", args) in lm.dbdict
+
+
+# --------------------------------------------------------------------------- #
 # Provider resolution: no runtime needed, so these run in CI.
 # --------------------------------------------------------------------------- #
 class _FakeORT:

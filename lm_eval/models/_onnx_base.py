@@ -276,12 +276,12 @@ class _ONNXLMBase(TemplateLM, abc.ABC):
     ) -> list[str]:
         results: list[str] = []
 
-        for context, gen_kwargs in tqdm(
+        for context, request_args in tqdm(
             [req.args for req in requests],
             disable=disable_tqdm,
             desc="Generating text",
         ):
-            gen_kwargs = dict(gen_kwargs)
+            gen_kwargs = dict(request_args)
             until = gen_kwargs.pop("until", None)
             if isinstance(until, str):
                 until = [until]
@@ -299,7 +299,11 @@ class _ONNXLMBase(TemplateLM, abc.ABC):
                         text = text[:idx]
 
             results.append(text)
-            self.cache_hook.add_partial("generate_until", (context, gen_kwargs), text)
+            # Cache under the request's own arguments, as every other backend
+            # does. `CachingLM` reads entries back with
+            # `hash_args("generate_until", req.args)`, so a key built from the
+            # copy that `until` was popped out of can never match a lookup.
+            self.cache_hook.add_partial("generate_until", (context, request_args), text)
 
         return results
 
