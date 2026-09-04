@@ -568,10 +568,12 @@ def positional_deprecated(fn):
     A decorator to nudge users into passing only keyword args (`kwargs`) to the
     wrapped function, `fn`.
     """
+    first_parameter = next(iter(inspect.signature(fn).parameters), None)
+    allowed_positional_args = 1 if first_parameter in {"self", "cls"} else 0
 
     @functools.wraps(fn)
     def _wrapper(*args, **kwargs):
-        if len(args) != 1 if inspect.ismethod(fn) else 0:
+        if len(args) > allowed_positional_args:
             print(
                 f"WARNING: using {fn.__name__} with positional arguments is "
                 "deprecated and will be disallowed in a future version of "
