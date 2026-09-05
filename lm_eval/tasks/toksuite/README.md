@@ -25,7 +25,7 @@ Homepage: [https://huggingface.co/toksuite](https://huggingface.co/toksuite)
 
 ## Groups and Tasks
 TokSuite benchmark consists of seven individual datasets, each with simple multiple-choice completion questions:
-- **Parallel Multilingual Benchmark**: There are 40 sentences (denoted by the English canonical subset, i.e. `toksuite_english_canonical`), which are then translated into canonical questions in the four target languages: Turkish (`tur_Latn`), Chinese (`zho_Hans`), Italian (`ita_Latn`), and Farsi/Persian (`pes_Arab`) by native speakers. Each dataset contains naturally possible variations of the canonical question, reflecting linguistic variaties of each language.
+- **Parallel Multilingual Benchmark**: There are 40 sentences (denoted by the English canonical subset, i.e. `toksuite_english_canonical`), which are then translated into canonical questions in the four target languages: Turkish (`tur_Latn`), Chinese (`zho_Hans`), Italian (`ita_Latn`), and Farsi/Persian (`pes_Arab`) by native speakers. Each dataset contains naturally possible variations of the canonical question, reflecting linguistic varieties of each language.
 - **STEM Benchmark**: This benchmark contains multiple-choice completion questions spanning STEM subjects.
 - **MATH Benchmark**: This benchmark contains simple arithmetic questions, also translated into the target languages
 

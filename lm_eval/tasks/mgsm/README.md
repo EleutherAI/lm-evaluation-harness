@@ -78,7 +78,7 @@ Homepage: https://github.com/google-research/url-nlp/tree/main/mgsm
   * `mgsm_cot_native_th`: Thai
   * `mgsm_cot_native_zh`: Chinese
 
-Examplar Samples: https://github.com/google-research/url-nlp/blob/main/mgsm/exemplars.py
+exemplar Samples: https://github.com/google-research/url-nlp/blob/main/mgsm/exemplars.py
 
 ### Checklist
 
