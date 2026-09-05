@@ -294,6 +294,11 @@ class Task(abc.ABC):
             else ""
         )
         cache_key += f"-tokenizer{tokenizer_name}"
+        # doc_iterator visits selected documents once, in dataset order. An empty
+        # selection means all documents. Always add a suffix so legacy entries,
+        # which may contain an unknown subset, cannot supply a full-dataset run.
+        sample_key = utils.hash_string(str(sorted(set(samples)))) if samples else "all"
+        cache_key += f"-samples{sample_key}"
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
