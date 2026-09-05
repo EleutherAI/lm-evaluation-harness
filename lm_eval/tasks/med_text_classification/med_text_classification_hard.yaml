@@ -1,8 +1,7 @@
 include: med_text_classification_easy.yaml
 task: med_text_classification_hard
-dataset_kwargs:
-  data_files:
-    train: /gpfs/projects/bsc70/heka/data/datasets/mtsamples.csv
+dataset_path: harishnair04/mtsamples
+dataset_name: null
 process_docs: !function utils.process_docs_hard
 doc_to_text: !function utils.doc_to_text_hard
 doc_to_choice: !function utils.doc_to_choice_hard

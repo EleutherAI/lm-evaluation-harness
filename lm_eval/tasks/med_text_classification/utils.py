@@ -1,14 +1,17 @@
-import random
-
 import datasets
 
 
 def process_docs_hard(dataset: datasets.Dataset):
-    return dataset
+    # A small number of rows in the source dataset have a null transcription,
+    # which would make doc_to_text_hard emit the literal string "None".
+    return dataset.filter(lambda doc: doc["transcription"] is not None)
 
 
 def process_docs(dataset: datasets.Dataset):
     def _helper(doc):
+        # Map the upstream column names onto the ones used by this task.
+        doc["text"] = doc["medical_abstract"]
+        doc["class"] = doc["condition_label"]
         return doc
 
     num_entries = len(dataset)
