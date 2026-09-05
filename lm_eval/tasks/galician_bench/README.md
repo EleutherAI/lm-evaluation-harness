@@ -2,7 +2,7 @@
 
 ### Paper
 
-GalicianBench is a benchmark for evaluating language models in Galician tasks. This is, it evaluates the ability of a language model to understand and generate Galician text. GalicianBench offers a combination of pre-existing, open datasets and datasets developed exclusivelly for this benchmark. All the details of GalicianBench will be published in a paper soon.
+GalicianBench is a benchmark for evaluating language models in Galician tasks. This is, it evaluates the ability of a language model to understand and generate Galician text. GalicianBench offers a combination of pre-existing, open datasets and datasets developed exclusively for this benchmark. All the details of GalicianBench will be published in a paper soon.
 
 The new evaluation datasets included in GalicianBench are:
 | Task          | Category       | Homepage  |
