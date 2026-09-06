@@ -8,7 +8,7 @@ We propose MMLU-SR, a novel dataset designed to measure the true comprehension a
 Notwithstanding the high scores achieved by recent popular LLMs on the MMLU leaderboard, we found a substantial reduction in model performance after such replacement, suggesting poor comprehension. This new benchmark provides a rigorous benchmark for testing true model comprehension, and poses a challenge to the broader scientific community.
 
 Github Homepage: [https://github.com/Wang-ML-Lab/MMLU-SR](https://github.com/Wang-ML-Lab/MMLU-SR)
-Huggingface Dataset: [https://huggingface.co/datasets/NiniCat/MMLU-SR]([https://huggingface.co/datasets/NiniCat/MMLU-SR)
+Huggingface Dataset: [https://huggingface.co/datasets/NiniCat/MMLU-SR](https://huggingface.co/datasets/NiniCat/MMLU-SR)
 
 
 ## Citation
