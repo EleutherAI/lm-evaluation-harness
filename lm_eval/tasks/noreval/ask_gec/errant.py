@@ -60,7 +60,7 @@ def evaluate(fpath: str, out_fpath: str):
     Runs the evaluation based on the ERRANT performance metric.
     Args:
         fpath: A path to the prediction file.
-        out_Fpath: A path for the output file for saving the results.
+        out_fpath: A path for the output file for saving the results.
     """
     tmp_name = fpath.replace(".jsonl", "").replace("/", "-")
     os.makedirs("tmp", exist_ok=True)
