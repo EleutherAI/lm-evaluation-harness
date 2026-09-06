@@ -271,6 +271,33 @@ if __name__ == "__main__":
     print("All tests passed!")
 
 
+# Wilson 95% intervals at the degenerate boundary, contributed by @arrdel in #4090.
+# Generated with statsmodels `proportion_confint(method="wilson")` and cross-checked
+# against `scipy.stats.binomtest(...).proportion_ci(method="wilson")`, so these pin the
+# implementation to two independent ones rather than to itself. Values are rounded to
+# 1e-10, hence the 1e-9 tolerance below.
+WILSON_BOUNDARY_CI95 = [
+    (0, 10, (0.0, 0.2775327999)),
+    (10, 10, (0.7224672001, 1.0)),
+    (0, 25, (0.0, 0.1331922509)),
+    (25, 25, (0.8668077491, 1.0)),
+    (0, 50, (0.0, 0.0713475991)),
+    (50, 50, (0.9286524009, 1.0)),
+    (0, 100, (0.0, 0.0369934982)),
+    (100, 100, (0.9630065018, 1.0)),
+    (0, 200, (0.0, 0.0188453264)),
+    (200, 200, (0.9811546736, 1.0)),
+    (0, 500, (0.0, 0.0076243405)),
+    (500, 500, (0.9923756595, 1.0)),
+    (0, 1000, (0.0, 0.0038267585)),
+    (1000, 1000, (0.9961732415, 1.0)),
+    (0, 2000, (0.0, 0.0019170473)),
+    (2000, 2000, (0.9980829527, 1.0)),
+    (0, 5000, (0.0, 0.0007677019)),
+    (5000, 5000, (0.9992322981, 1.0)),
+]
+
+
 class TestBoundaryInterval:
     """`mean_stderr` degenerates to 0.0 when every score sits on 0 or on 1.
 
@@ -291,13 +318,6 @@ class TestBoundaryInterval:
 
         assert upper_large < upper_small
         assert upper_large == pytest.approx(0.00077, abs=1e-5)
-
-    def test_wilson_interval_is_symmetric_at_the_upper_boundary(self):
-        _, null_upper = wilson_score_interval(successes=0, n=25)
-        saturated_lower, saturated_upper = wilson_score_interval(successes=25, n=25)
-
-        assert saturated_upper == 1.0
-        assert saturated_lower == pytest.approx(1.0 - null_upper)
 
     def test_wilson_interval_rejects_an_empty_sample(self):
         with pytest.raises(ValueError):
@@ -348,3 +368,29 @@ class TestBoundaryInterval:
     def test_boundary_ci_ignores_numeric_looking_strings(self):
         # float("0") would succeed; a string score is not a proportion.
         assert boundary_ci(["0"] * 25) is None
+
+    @pytest.mark.parametrize(("successes", "n", "expected"), WILSON_BOUNDARY_CI95)
+    def test_wilson_interval_matches_an_independent_implementation(
+        self, successes, n, expected
+    ):
+        assert wilson_score_interval(successes, n) == pytest.approx(expected, abs=1e-9)
+
+    @pytest.mark.parametrize(("successes", "n", "expected"), WILSON_BOUNDARY_CI95)
+    def test_boundary_ci_matches_an_independent_implementation(
+        self, successes, n, expected
+    ):
+        # The same table through the caller the aggregation path actually uses, so a
+        # regression in how a score vector reaches the estimator is caught here too.
+        items = [1.0 if successes else 0.0] * n
+
+        assert mean_stderr(items) == 0.0
+        assert boundary_ci(items) == pytest.approx(expected, abs=1e-9)
+
+    @pytest.mark.parametrize("n", sorted({n for _, n, _ in WILSON_BOUNDARY_CI95}))
+    def test_the_two_boundaries_mirror_about_one_half(self, n):
+        # A one-sided table would not catch a sign or mirror error in the margin.
+        _, null_upper = wilson_score_interval(successes=0, n=n)
+        saturated_lower, saturated_upper = wilson_score_interval(successes=n, n=n)
+
+        assert saturated_upper == 1.0
+        assert saturated_lower == pytest.approx(1.0 - null_upper, abs=1e-12)
