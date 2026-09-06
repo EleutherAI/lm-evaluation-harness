@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-import lm_eval.api.metrics as metrics
+from lm_eval.api import metrics
 from lm_eval.utils import make_table
 
 

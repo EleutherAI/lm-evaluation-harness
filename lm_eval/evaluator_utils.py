@@ -49,11 +49,9 @@ def print_writeout(task: Task) -> None:
             break
 
 
-def get_sample_size(task, limit: int | float | None) -> int | None:
+def get_sample_size(task, limit: float | None) -> int | None:
     if limit is not None:
-        limit = (
-            int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
-        )
+        limit = math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
     return limit
 
 
