@@ -3,7 +3,14 @@ task: mbpp_plus_instruct
 dataset_path: evalplus/mbppplus
 dataset_name: null
 doc_to_text: "{{prompt if prompt is defined else text}} Your code should satisfy the following assertion:\n{{test_list[0]}}"
-doc_to_target: "{{test_list[0]}}"
+# doc_to_target is the GRADING REFERENCE, not the prompt. It was {{test_list[0]}}: a single
+# ORIGINAL MBPP assertion (~233 chars of test_list), which left the EvalPlus suite in
+# doc["test"] (~9,460 chars) completely unused -- so "mbpp_plus" scored strictly EASIER than
+# mbpp_instruct, which grades on three assertions. That is not MBPP+. Grade on doc["test"];
+# test_imports (10/378 docs, all "import math") is prepended because the suite assumes it.
+# doc_to_text still shows only test_list[0] -- that is the PROMPT and must not change, or
+# generations stop being comparable with everything already run.
+doc_to_target: "{{ test_imports | join('\n') }}\n{{ test }}"
 gen_prefix: "Here is a solution to this programming problem:\n```python\n"
 num_fewshot: 0
 generation_kwargs:
