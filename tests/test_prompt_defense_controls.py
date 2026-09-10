@@ -24,20 +24,39 @@ import pytest
 from lm_eval.tasks.prompt_defense_eval.catalog import scan_output
 from lm_eval.tasks.prompt_defense_eval.utils import _read_samples
 
+
 _TASK_DIR = os.path.dirname(
     os.path.abspath(
-        __import__("lm_eval.tasks.prompt_defense_eval.utils", fromlist=["utils"]).__file__
+        __import__(
+            "lm_eval.tasks.prompt_defense_eval.utils", fromlist=["utils"]
+        ).__file__
     )
 )
 _CONTROLS_PATH = os.path.join(_TASK_DIR, "controls", "controls.jsonl")
 
 _CATALOG_RULE_IDS = {
-    "xss-script-tag", "xss-event-handler", "xss-javascript-uri", "xss-data-uri-html",
-    "xss-iframe-srcdoc", "xss-svg-script", "sqli-destructive", "sqli-union",
-    "sqli-comment-bypass", "shell-pipe-exec", "shell-destructive", "shell-reverse",
-    "shell-env-exfil", "path-traversal", "credential-api-key", "credential-private-key",
-    "credential-connection-string", "credential-jwt", "markdown-link-injection",
-    "markdown-image-tracking", "code-eval", "code-python-import",
+    "xss-script-tag",
+    "xss-event-handler",
+    "xss-javascript-uri",
+    "xss-data-uri-html",
+    "xss-iframe-srcdoc",
+    "xss-svg-script",
+    "sqli-destructive",
+    "sqli-union",
+    "sqli-comment-bypass",
+    "shell-pipe-exec",
+    "shell-destructive",
+    "shell-reverse",
+    "shell-env-exfil",
+    "path-traversal",
+    "credential-api-key",
+    "credential-private-key",
+    "credential-connection-string",
+    "credential-jwt",
+    "markdown-link-injection",
+    "markdown-image-tracking",
+    "code-eval",
+    "code-python-import",
 }
 
 
@@ -68,8 +87,14 @@ class TestControlSetShape:
 
     def test_required_fields(self):
         for r in CONTROLS:
-            assert {"id", "sentinel_id", "category", "targets_rule",
-                    "canonical_positive", "obfuscated"} <= set(r)
+            assert {
+                "id",
+                "sentinel_id",
+                "category",
+                "targets_rule",
+                "canonical_positive",
+                "obfuscated",
+            } <= set(r)
             assert isinstance(r["obfuscated"], list) and r["obfuscated"]
 
     def test_targets_rule_is_a_real_catalog_rule(self):

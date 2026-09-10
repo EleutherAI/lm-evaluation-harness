@@ -16,6 +16,7 @@ repos:
         args: [ "--unsafe" ]
       - id: destroyed-symlinks
       - id: detect-private-key
+        exclude: ^lm_eval/tasks/prompt_defense_eval/controls/controls\.jsonl$
       - id: end-of-file-fixer
       - id: no-commit-to-branch
         always_run: false
