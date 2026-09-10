@@ -406,7 +406,7 @@ class TemplateAPI(TemplateLM):
         elif self.tokenizer_backend == "huggingface":
             # by default for CausalLM - false or self.add_bos_token is set
             if not add_special_tokens:
-                add_special_tokens = False or self.add_bos_token
+                add_special_tokens = self.add_bos_token or False
             encoding: list[list[int]] | list[int] = self.tokenizer(
                 string,
                 add_special_tokens=add_special_tokens,
