@@ -1,0 +1,16 @@
+# HumanEval+ in the INSTRUCT format.
+#
+# WHY: the harness ships `humaneval_plus` (EvalPlus tests, completion prompt) and
+# `humaneval_instruct` (original tests, chat prompt), but not the composition. Every CoDD eval runs
+# the instruct format, so scoring our generations against the EvalPlus suite needs both at once.
+#
+# EvalPlus adds ~80x more tests per problem (the `test` field is ~77KB here against ~1KB in stock
+# HumanEval), which is what makes it a check on "passes weak tests" rather than a new benchmark:
+# same 164 problems, same prompts, same generations -- only the grader is stricter. A gap between
+# humaneval_instruct and this task is test-overfitting, not capability.
+#
+# ONLY dataset_path changes from humaneval_instruct; prompt, gen_prefix and the create_test filter
+# are inherited unchanged so the comparison is exact.
+include: humaneval_instruct.yaml
+task: humaneval_plus_instruct
+dataset_path: evalplus/humanevalplus
