@@ -1,6 +1,9 @@
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
+import numpy as np
+import pytest
+
+from lm_eval.api.metrics import _bootstrap_internal_no_mp, exact_match_fn, mean
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
@@ -251,6 +254,62 @@ def test_chrfpp_perfect_match():
 
     items = [("the cat sat on the mat", "the cat sat on the mat")]
     assert chrfpp(items) == 100.0
+
+
+@pytest.mark.parametrize(
+    "input_type", [list, tuple, np.asarray], ids=["list", "tuple", "array"]
+)
+@pytest.mark.parametrize("regexes_to_ignore", [None, []], ids=["none", "empty"])
+@pytest.mark.parametrize(
+    ("predictions", "expected"),
+    [(["alpha", "beta"], 1.0), (["alpha", "wrong"], 0.5), (["wrong", "wrong"], 0.0)],
+    ids=["all-match", "partial-match", "no-match"],
+)
+def test_exact_match_batch(input_type, regexes_to_ignore, predictions, expected):
+    """An empty ignore list should still score each prediction separately."""
+    result = exact_match_fn(
+        predictions=input_type(predictions),
+        references=input_type(["alpha", "beta"]),
+        regexes_to_ignore=regexes_to_ignore,
+    )
+    assert result["exact_match"] == expected
+
+
+@pytest.mark.parametrize(
+    ("predictions", "references", "kwargs"),
+    [
+        (
+            ["alpha!", "beta", "wrong"],
+            ["alpha", "beta!", "gamma"],
+            {"regexes_to_ignore": ["!"]},
+        ),
+        (
+            ["alpha!1", "beta", "wrong"],
+            ["alpha", "beta!2", "gamma"],
+            {"regexes_to_ignore": ["!", r"\d"]},
+        ),
+        (
+            ["ALPHA", "beta", "wrong"],
+            ["alpha", "BETA", "gamma"],
+            {"regexes_to_ignore": [], "ignore_case": True},
+        ),
+        (
+            ["alpha!", "beta", "wrong"],
+            ["alpha", "beta?", "gamma"],
+            {"regexes_to_ignore": [], "ignore_punctuation": True},
+        ),
+        (
+            ["alpha1", "beta", "wrong"],
+            ["alpha", "beta2", "gamma"],
+            {"regexes_to_ignore": [], "ignore_numbers": True},
+        ),
+    ],
+    ids=["regex", "multiple-regexes", "case", "punctuation", "numbers"],
+)
+def test_exact_match_batch_normalization(predictions, references, kwargs):
+    """Normalize both predictions and references before scoring the batch."""
+    result = exact_match_fn(predictions=predictions, references=references, **kwargs)
+    assert result["exact_match"] == pytest.approx(2 / 3)
 
 
 if __name__ == "__main__":

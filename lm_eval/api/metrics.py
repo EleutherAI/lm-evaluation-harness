@@ -243,9 +243,8 @@ def exact_match_hf_evaluate(
         for s in regexes_to_ignore:
             predictions = np.array([re.sub(s, "", x) for x in predictions])
             references = np.array([re.sub(s, "", x) for x in references])
-    else:
-        predictions = np.asarray(predictions)
-        references = np.asarray(references)
+    predictions = np.asarray(predictions)
+    references = np.asarray(references)
 
     if ignore_case:
         predictions = np.char.lower(predictions)
