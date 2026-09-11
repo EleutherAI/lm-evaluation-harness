@@ -8,7 +8,7 @@ import pytest
 import lm_eval.api as api
 import lm_eval.evaluator as evaluator
 from lm_eval import tasks
-from lm_eval.utils import make_table
+from lm_eval.utils import _build_hierarchy_info, make_table
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -268,3 +268,44 @@ def test_make_table_regression_sorted_results_is_alphabetical(fake_pytablewriter
         ["Parent", "    N/A", "none", " ", "acc", "", "0.9000", "", ""],
         ["Standalone", "    N/A", "none", " ", "acc", "", "0.7000", "", ""],
     ]
+
+
+def test_build_hierarchy_info_valid_non_cyclic_hierarchy():
+    # Regression check: a normal, non-cyclic hierarchy (with a group,
+    # a nested child, and an unrelated standalone entry) is still
+    # traversed and ordered exactly as before.
+    group_subtasks = {"parent": ["child"]}
+    available_keys = {"parent", "child", "standalone"}
+
+    depth_map, ordered_keys = _build_hierarchy_info(group_subtasks, available_keys)
+
+    assert depth_map == {"parent": 0, "child": 1}
+    assert ordered_keys == ["parent", "child", "standalone"]
+
+
+def test_build_hierarchy_info_raises_on_reachable_cycle():
+    # Reproduction from https://github.com/EleutherAI/lm-evaluation-harness/issues/4133
+    # A cycle reachable from a root used to recurse until Python raised
+    # RecursionError; it must now be rejected deterministically instead.
+    group_subtasks = {
+        "root": ["a"],
+        "a": ["b"],
+        "b": ["a"],
+    }
+
+    with pytest.raises(ValueError, match="Cyclic group hierarchy detected"):
+        _build_hierarchy_info(group_subtasks, set(group_subtasks))
+
+
+def test_build_hierarchy_info_raises_on_rootless_cycle():
+    # Same as above but with the separate "root" entry removed, so no
+    # group qualifies as a root. Previously this cycle was never
+    # traversed or rejected, and "a"/"b" were silently flattened in as
+    # unrelated top-level entries instead.
+    group_subtasks = {
+        "a": ["b"],
+        "b": ["a"],
+    }
+
+    with pytest.raises(ValueError, match="Cyclic group hierarchy detected"):
+        _build_hierarchy_info(group_subtasks, set(group_subtasks))

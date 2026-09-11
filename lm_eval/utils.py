@@ -450,23 +450,54 @@ def _build_hierarchy_info(
 
     Uses a tree-walk approach over group_subtasks for ordering.
 
+    Raises:
+        ValueError: if `group_subtasks` contains a cycle. This is checked
+            explicitly (rather than letting recursion blow the stack) so
+            invalid cyclic group metadata is rejected deterministically
+            before any recursive display ordering begins. This covers both
+            a cycle reachable from a root, and a cycle with no distinct
+            root (which would otherwise be silently skipped by the
+            root-based traversal below and have its members flattened in
+            as if they were unrelated top-level entries).
+
     Returns:
         (depth_map, ordered_keys) — depths for indentation, keys in display order
     """
     depth_map: dict[str, int] = {}
     ordered: list[str] = []
+    visiting: set[str] = set()  # current recursion stack, for cycle detection
 
-    def visit(name: str, depth: int):
+    def visit(name: str, depth: int, path: list[str]):
+        if name in visiting:
+            cycle = path[path.index(name) :] + [name]
+            raise ValueError(
+                "Cyclic group hierarchy detected in group_subtasks: "
+                + " -> ".join(cycle)
+            )
+        visiting.add(name)
         depth_map[name] = depth
         if name in available_keys:
             ordered.append(name)
         for child in sorted(group_subtasks.get(name, [])):
-            visit(child, depth + 1)
+            visit(child, depth + 1, path + [name])
+        visiting.discard(name)
 
     all_children = {c for children in group_subtasks.values() for c in children}
     for name in sorted(group_subtasks):
         if name not in all_children:
-            visit(name, 0)
+            visit(name, 0, [])
+
+    # Any group that was never reached from a root cannot be a valid part of
+    # the hierarchy: every group is either a root or a descendant of one, so
+    # a group left unvisited here has no acyclic path back to a root and is
+    # therefore part of a cycle with no distinct root.
+    unreached = sorted(set(group_subtasks) - depth_map.keys())
+    if unreached:
+        raise ValueError(
+            "Cyclic group hierarchy detected in group_subtasks: no root "
+            "group could reach the following group(s), indicating a cycle "
+            f"with no distinct root: {unreached}"
+        )
 
     # Add remaining keys not in any hierarchy (sorted for determinism)
     for key in sorted(available_keys):
