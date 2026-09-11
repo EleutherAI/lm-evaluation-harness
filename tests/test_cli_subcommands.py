@@ -11,6 +11,8 @@ from lm_eval._cli.utils import (
     MergeDictAction,
     _int_or_none_list_arg_type,
     check_argument_types,
+    handle_cli_value_string,
+    key_val_to_dict,
     request_caching_arg_to_dict,
     try_parse_json,
 )
@@ -948,6 +950,61 @@ class TestCLIUtils:
 
         # Should not raise
         check_argument_types(parser)
+
+    def test_handle_cli_value_string_signed_int(self):
+        """Test handle_cli_value_string parses signed integers as int.
+
+        Regression test for #4135: negative/positive-signed integers were
+        previously falling through to float parsing.
+        """
+        result = handle_cli_value_string("-1")
+        assert result == -1
+        assert isinstance(result, int)
+
+        result = handle_cli_value_string("+2")
+        assert result == 2
+        assert isinstance(result, int)
+
+    def test_handle_cli_value_string_unsigned_int(self):
+        """Test handle_cli_value_string parses unsigned integers as int."""
+        result = handle_cli_value_string("3")
+        assert result == 3
+        assert isinstance(result, int)
+
+    def test_handle_cli_value_string_float(self):
+        """Test handle_cli_value_string parses decimal values as float."""
+        result = handle_cli_value_string("-0.5")
+        assert result == -0.5
+        assert isinstance(result, float)
+
+        result = handle_cli_value_string("3.14")
+        assert result == 3.14
+        assert isinstance(result, float)
+
+    def test_handle_cli_value_string_scientific_notation(self):
+        """Test handle_cli_value_string parses scientific notation as float."""
+        result = handle_cli_value_string("1e3")
+        assert result == 1000.0
+        assert isinstance(result, float)
+
+        result = handle_cli_value_string("2.5e-4")
+        assert result == 2.5e-4
+        assert isinstance(result, float)
+
+    def test_handle_cli_value_string_bool_and_none_unaffected(self):
+        """Test handle_cli_value_string still handles bool/None/string literals."""
+        assert handle_cli_value_string("true") is True
+        assert handle_cli_value_string("false") is False
+        assert handle_cli_value_string("None") is None
+        assert handle_cli_value_string("hello") == "hello"
+
+    def test_key_val_to_dict_signed_integers(self):
+        """Test key_val_to_dict from the #4135 issue reproduction."""
+        result = key_val_to_dict("top_k=-1,max_tokens=+2,temperature=-0.5")
+        assert result == {"top_k": -1, "max_tokens": 2, "temperature": -0.5}
+        assert isinstance(result["top_k"], int)
+        assert isinstance(result["max_tokens"], int)
+        assert isinstance(result["temperature"], float)
 
 
 class TestMergeDictAction:

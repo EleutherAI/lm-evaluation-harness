@@ -101,8 +101,10 @@ def handle_cli_value_string(arg: str) -> bool | int | float | str:
         return True
     elif arg.lower() == "false":
         return False
-    elif arg.isnumeric():
+    try:
         return int(arg)
+    except ValueError:
+        pass
     try:
         return float(arg)
     except ValueError:
