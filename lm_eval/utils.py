@@ -294,7 +294,8 @@ def get_file_datetime(filename: str) -> str:
     """
     Given the results and sample results filenames, extracts and returns the datetime.
     """
-    return filename[filename.rfind("_") + 1 :].replace(".jsonl", "")
+    datetime_str = filename[filename.rfind("_") + 1 :]
+    return datetime_str.removesuffix(".jsonl").removesuffix(".json")
 
 
 def sanitize_model_name(model_name: str) -> str:
