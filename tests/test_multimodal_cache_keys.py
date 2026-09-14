@@ -50,10 +50,14 @@ def test_bytearray_matches_equivalent_bytes():
     )
 
 
-def test_text_only_keys_remain_compatible():
+def test_text_only_keys_are_not_touched_by_the_default_handler():
+    # The `default` handler is only consulted for values `json.dumps` cannot
+    # serialize, so a text-only request must hash exactly as plain `json.dumps`
+    # of the key would. The leading element is the model identity, which every
+    # key carries and which is None when the caller did not supply one.
     req = ("prompt", {"until": ["\n"]}, {})
     expected = hashlib.sha256(
-        json.dumps(["generate_until"] + list(req)).encode("utf-8")
+        json.dumps([None, "generate_until"] + list(req)).encode("utf-8")
     ).hexdigest()
     assert hash_args("generate_until", req) == expected
 
