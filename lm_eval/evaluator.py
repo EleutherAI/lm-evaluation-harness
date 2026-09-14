@@ -624,9 +624,15 @@ def evaluate(
         # Sort instances within each group
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
+        indices = samples.get(task_name, None) if samples is not None else None
+        # doc_iterator enumerates selected documents in dataset order, not caller order.
+        selected_doc_ids = (
+            sorted(set(indices).intersection(range(len(task.eval_docs))))
+            if indices
+            else None
+        )
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps:
-            indices = samples.get(task_name, None) if samples is not None else None
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
@@ -634,7 +640,9 @@ def evaluate(
                 samples=indices,
             )
             for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
+                doc_id_true = (
+                    selected_doc_ids[doc_id] if selected_doc_ids is not None else doc_id
+                )
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
