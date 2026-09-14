@@ -9,8 +9,7 @@ doc_to_target: !function utils_medmcqa.doc_to_target_cot
 should_decontaminate: true
 doc_to_decontamination_query: "{{question}}"
 generation_kwargs:
-  until:
-    - "<eos>"
+  until: []
   do_sample: false
   temperature: 0.0
   max_gen_toks: 512
