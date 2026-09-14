@@ -1,0 +1,15 @@
+dataset_path: microsoft/MMLU-CF
+test_split: val
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_text: "{{Question.strip()}}\nA.{{A}}\nB.{{B}}\nC.{{C}}\nD.{{D}}\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: "{{['A', 'B', 'C', 'D'].index(Answer)}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

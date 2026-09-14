@@ -1,0 +1,7 @@
+task: mmlu_cf_law
+task_alias: law
+test_split: Law_val
+fewshot_split: Law_dev
+description: "There is a single choice question (with answers). Answer the question by replying A, B, C or D.\n\n"
+tag: mmlu_cf_social_sciences_tasks
+include: _default_template_yaml
