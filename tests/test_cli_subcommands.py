@@ -808,6 +808,90 @@ class TestEvaluatorConfigFromCLI:
             EvaluatorConfig.from_cli(ns)
 
 
+class TestEvaluatorConfigFromFile:
+    """Test EvaluatorConfig values loaded from YAML files."""
+
+    @pytest.mark.parametrize(
+        ("yaml_value", "expected"),
+        [
+            (
+                "true",
+                {
+                    "cache_requests": True,
+                    "rewrite_requests_cache": False,
+                    "delete_requests_cache": False,
+                },
+            ),
+            ("false", {}),
+            ('"false"', {}),
+            ('"no"', {}),
+            ('"off"', {}),
+            (
+                "refresh",
+                {
+                    "cache_requests": True,
+                    "rewrite_requests_cache": True,
+                    "delete_requests_cache": False,
+                },
+            ),
+            (
+                "delete",
+                {
+                    "cache_requests": False,
+                    "rewrite_requests_cache": False,
+                    "delete_requests_cache": True,
+                },
+            ),
+        ],
+    )
+    def test_cache_requests_is_normalized(self, tmp_path, yaml_value, expected):
+        """Test that YAML request-cache options are normalized."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text(
+            f"tasks: [hellaswag]\ncache_requests: {yaml_value}\n", encoding="utf-8"
+        )
+
+        cfg = EvaluatorConfig.from_config(yaml_config)
+
+        assert cfg.cache_requests == expected
+
+    def test_invalid_cache_requests_raises_value_error(self, tmp_path):
+        """Test that invalid YAML request-cache options raise config errors."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text(
+            'tasks: [hellaswag]\ncache_requests: "bogus"\n', encoding="utf-8"
+        )
+
+        with pytest.raises(ValueError, match="invalid value 'bogus'"):
+            EvaluatorConfig.from_config(yaml_config)
+
+    def test_cache_requests_dict_is_preserved(self, tmp_path):
+        """Test that expanded YAML request-cache settings remain unchanged."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text(
+            "tasks: [hellaswag]\n"
+            "cache_requests:\n"
+            "  cache_requests: true\n"
+            "  rewrite_requests_cache: false\n"
+            "  delete_requests_cache: false\n",
+            encoding="utf-8",
+        )
+
+        cfg = EvaluatorConfig.from_config(yaml_config)
+
+        assert cfg.cache_requests == {
+            "cache_requests": True,
+            "rewrite_requests_cache": False,
+            "delete_requests_cache": False,
+        }
+
+
 class TestCLIUtils:
     """Test CLI utility functions."""
 
