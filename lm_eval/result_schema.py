@@ -112,6 +112,11 @@ class _TaskMetrics(TypedDict, Generic[T], extra_items=T):
 
     Fixed keys are ``name``, ``alias`` and ``sample_len``.  The remaining keys are
     dynamic ``metric,filter`` pairs like ``"acc,none"`` and ``"acc_stderr,none"``.
+
+    A ``"<metric>_boundary_ci95,<filter>"`` key holds a ``(lower, upper)`` Wilson
+    interval and is present only when that metric scored 0 (or 1) on every
+    document, where the standard error is 0.0 by construction. Readers must treat
+    it as optional.
     """
 
     name: str
