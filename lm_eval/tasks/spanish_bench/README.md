@@ -9,7 +9,7 @@ The new evaluation datasets included in SpanishBench are:
 |:-------------:|:-----:|:-----:|
 | COPA-es | Commonsense Reasoning | https://huggingface.co/datasets/BSC-LT/COPA-es |
 | OpenBookQA_es | Question Answering | https://huggingface.co/datasets/BSC-LT/openbookqa-es |
-
+| almo_mwe | Translation | https://huggingface.co/datasets/gplsi/almo-mwe |
 
 The datasets included in SpanishBench that have been made public in previous publications are:
 | Task          | Category       | Paper title          | Homepage  |
@@ -25,6 +25,7 @@ The datasets included in SpanishBench that have been made public in previous pub
 | XNLI_es | Natural Language Inference | [XNLI: Evaluating Cross-lingual Sentence Representations](https://aclanthology.org/D18-1269/) | https://huggingface.co/datasets/facebook/xnli |
 | XQuAD_es | Question Answering | [On the Cross-lingual Transferability of Monolingual Representations](https://aclanthology.org/2020.acl-main.421/) | https://huggingface.co/datasets/google/xquad |
 | XStoryCloze_es | Commonsense Reasoning | [Few-shot Learning with Multilingual Generative Language Models](https://aclanthology.org/2022.emnlp-main.616/) | https://huggingface.co/datasets/juletxara/xstory_cloze |
+
 
 
 
@@ -77,6 +78,7 @@ The datasets included in SpanishBench that have been made public in previous pub
 #### Tasks
 
 The following tasks evaluate tasks on SpanishBench dataset using various scoring methods.
+  - `almo_mwe`
   - `belebele_spa_Latn`
   - `cocoteros_es`
   - `copa_es`
@@ -131,3 +133,4 @@ If other tasks on this dataset are already supported:
 
 * v1.1 (2025-09-22, PR #3168): add `eqbench_es` task
 * v1.2 (2026-01-16, PR #3465): excluded line breaks from stop criteria in `mgsm_direct_es_spanish_bench`
+* v1.3 (2026-05-12, PR #3767): add `almo_mwe` task
