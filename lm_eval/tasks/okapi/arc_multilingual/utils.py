@@ -1,14 +1,4 @@
-import re
-
 import datasets
-
-
-def preprocess(text):
-    text = text.strip()
-    text = text.replace(" [title]", ". ")
-    text = re.sub("\\[.*?\\]", "", text)
-    text = text.replace("  ", " ")
-    return text
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
@@ -16,9 +6,9 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         # breakpoint()
         out_doc = {
             "id": doc["id"],
-            "query": "Question: " + preprocess(doc["instruction"]) + "\nAnswer:",
+            "query": "Question: " + doc["instruction"] + "\nAnswer:",
             "choices": [
-                preprocess(option)
+                option
                 for option in [
                     doc["option_a"],
                     doc["option_b"],
