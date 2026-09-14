@@ -264,7 +264,7 @@ def pattern_match(patterns, source_list):
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
-    return sorted(list(task_names))
+    return sorted(task_names)
 
 
 def softmax(x) -> np.ndarray:
@@ -452,9 +452,35 @@ def _build_hierarchy_info(
 
     Returns:
         (depth_map, ordered_keys) — depths for indentation, keys in display order
+
+    Raises:
+        ValueError: If the group hierarchy contains a cycle.
     """
     depth_map: dict[str, int] = {}
     ordered: list[str] = []
+
+    active: set[str] = set()
+    completed: set[str] = set()
+    path: list[str] = []
+
+    def validate(name: str) -> None:
+        if name in active:
+            cycle_start = path.index(name)
+            cycle = [*path[cycle_start:], name]
+            raise ValueError(f"Cycle detected in group hierarchy: {' -> '.join(cycle)}")
+        if name in completed:
+            return
+
+        active.add(name)
+        path.append(name)
+        for child in sorted(group_subtasks.get(name, [])):
+            validate(child)
+        path.pop()
+        active.remove(name)
+        completed.add(name)
+
+    for name in sorted(group_subtasks):
+        validate(name)
 
     def visit(name: str, depth: int):
         depth_map[name] = depth
@@ -508,7 +534,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         group_subtasks, set(result_dict[column].keys())
     )
 
-    if sort_results:  # noqa: SIM108
+    if sort_results:
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
@@ -813,7 +839,9 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         tokens = resp.json().get("tokens")
         if not isinstance(tokens, list):
-            raise RuntimeError("Malformed response from /tokenize endpoint.")
+            raise RuntimeError(  # noqa: TRY004
+                "Malformed response from /tokenize endpoint."
+            )
         return tokens
 
     def decode(self, tokens: list[int]) -> str:
@@ -822,7 +850,9 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         prompt = resp.json().get("prompt")
         if not isinstance(prompt, str):
-            raise RuntimeError("Malformed response from /detokenize endpoint.")
+            raise RuntimeError(  # noqa: TRY004
+                "Malformed response from /detokenize endpoint."
+            )
         return prompt
 
     def batch_decode(self, tokens_list: list[list[int]]) -> list[str]:
