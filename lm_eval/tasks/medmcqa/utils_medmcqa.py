@@ -1,6 +1,7 @@
 # Copied from Master
 def doc_to_text(doc) -> str:
-    """
+    """Construct a prompt with the format below.
+
     Question: <question>
     Choices:
     A. <choice1>
@@ -23,6 +24,7 @@ def doc_to_text(doc) -> str:
     prompt += "Answer:"
     return prompt
 
+
 def doc_to_text_cot(doc) -> str:
     choices = [doc["opa"], doc["opb"], doc["opc"], doc["opd"]]
     option_choices = {
@@ -35,9 +37,10 @@ def doc_to_text_cot(doc) -> str:
     prompt = "Question: " + doc["question"] + "\nChoices:\n"
     for choice, option in option_choices.items():
         prompt += f"{choice.upper()}. {option}\n"
-    
+
     prompt += "First, think step-by-step. End your response with exactly this format:\nFinal Answer: X\n(where X is A, B, C, or D)."
     return prompt
+
 
 def doc_to_target_cot(doc) -> str:
     choices = ["A", "B", "C", "D"]

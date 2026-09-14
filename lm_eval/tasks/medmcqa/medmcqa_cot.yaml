@@ -1,4 +1,4 @@
-task: medmcqa_cot_zeroshot
+task: medmcqa_cot
 dataset_path: openlifescienceai/medmcqa
 output_type: generate_until
 training_split: train
