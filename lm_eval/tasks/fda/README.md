@@ -3,7 +3,7 @@
 ### Paper
 
 Title: Language Models Enable Simple Systems For
-Generating Structured Views Of Heterogenous Data
+Generating Structured Views Of Heterogeneous Data
 Lakes
 
 Abstract: A long standing goal of the data management community is to develop general, automated systems

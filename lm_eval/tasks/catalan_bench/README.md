@@ -2,7 +2,7 @@
 
 ### Paper
 
-CatalanBench is a benchmark for evaluating language models in Catalan tasks. This is, it evaluates the ability of a language model to understand and generate Catalan text. CatalanBench offers a combination of pre-existing, open datasets and datasets developed exclusivelly for this benchmark. All the details of CatalanBench will be published in a paper soon.
+CatalanBench is a benchmark for evaluating language models in Catalan tasks. This is, it evaluates the ability of a language model to understand and generate Catalan text. CatalanBench offers a combination of pre-existing, open datasets and datasets developed exclusively for this benchmark. All the details of CatalanBench will be published in a paper soon.
 
 The new evaluation datasets included in CatalanBench are:
 | Task          | Category       | Homepage  |

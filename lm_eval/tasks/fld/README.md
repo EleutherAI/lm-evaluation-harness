@@ -6,7 +6,7 @@ Title: Learning Deductive Reasoning from Synthetic Corpus based on Formal Logic
 
 Abstract: https://arxiv.org/abs/2308.07336
 
-**FLD** (**F**ormal **L**ogic **D**eduction) is a deductive reasoning benchmark.
+**FLD** (**F**ormal **L**ogic **D**education) is a deductive reasoning benchmark.
 Given a set of facts and a hypothesis, an LLM is required to generate (i) proof steps to (dis-)prove the hypothesis, and (ii) an answer ("proved", "disproved" or unknown").
 
 Unique features of FLD are:

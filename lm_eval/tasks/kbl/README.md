@@ -55,8 +55,8 @@ Homepage: `https://github.com/lbox-kr/kbl`
 * `kbl_knowledge_query_and_statute_matching_qa`: `A QA task assessing whether the language model can accurately identify the relevant statute for a given query.`
 * `kbl_knowledge_statute_hallucination_qa`: `A QA task evaluating whether a model can select the correct answer consists of a pair of (fictitious) statute and corresponding reasoning for given confusing legal questions.`
 * `kbl_knowledge_statute_number_and_content_matching_qa`: `A QA dataset for evaluating where a model can accurately match the content of a law to its specific statute number.`
-* `kbl_reasoning_case_relevance_qa_p`: `A QA task where a model needs to determine whether a given precedent is relavent to an input precedent.`
-* `kbl_reasoning_case_relevance_qa_q`: `A QA task where a model needs to determine whether a given precedent is relavent to an input query.`
+* `kbl_reasoning_case_relevance_qa_p`: `A QA task where a model needs to determine whether a given precedent is relevant to an input precedent.`
+* `kbl_reasoning_case_relevance_qa_q`: `A QA task where a model needs to determine whether a given precedent is relevant to an input query.`
 * `kbl_reasoning_causal_reasoning_qa`: `A QA task where a model needs to assess whether the defendant’s actions were the direct and decisive cause of the victim’s injury or death for each given factual description and claims.`
 * `kbl_reasoning_statement_consistency_qa`: `A QA task where a model is required to accurately determine whether two presented statements are consistent with each other.`
 * `bar_exam_civil_2012`: `Korean bar exam multiple-choice questions, civil law`

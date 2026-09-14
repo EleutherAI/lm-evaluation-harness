@@ -28,8 +28,8 @@ Homepage: https://github.com/fajri91/ArabicCulture
 
 ### There are two variant of this task: `arab_culture`, and `arab_culture_completion`
 
-- The `arab_culture` is the normal MCQ evaluation type, which appends the answers to the question, and then measure the likelihood of the different choices markers (A,B,C or "أ","ب","ج"). For more info, follow the MMLU style [tempelate](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/mmlu/default/_default_template_yaml#L7-L8)
-- The `arab_culture_completion` do the evaluation in a sentence completion manner, by appending each asnwer to the question separetley and chooses the answer with the higher likelihood. See [this](https://github.com/EleutherAI/lm-evaluation-harness/blob/1f9bc88fe61f6bfa36f74e91ce3d59ab5685e4f1/lm_eval/tasks/arc/arc_easy.yaml#L10-L12) for more information
+- The `arab_culture` is the normal MCQ evaluation type, which appends the answers to the question, and then measure the likelihood of the different choices markers (A,B,C or "أ","ب","ج"). For more info, follow the MMLU style [template](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/mmlu/default/_default_template_yaml#L7-L8)
+- The `arab_culture_completion` do the evaluation in a sentence completion manner, by appending each answer to the question separetley and chooses the answer with the higher likelihood. See [this](https://github.com/EleutherAI/lm-evaluation-harness/blob/1f9bc88fe61f6bfa36f74e91ce3d59ab5685e4f1/lm_eval/tasks/arc/arc_easy.yaml#L10-L12) for more information
 
 ### Groups and Tasks
 
@@ -37,13 +37,13 @@ Homepage: https://github.com/fajri91/ArabicCulture
 
 * `arabculture`: evaluates all ArabCulture tasks.
 
-* `arab_culture_gulf`: evaluates Gulf countires ArabCulture tasks.
-* `arab_culture_levant`: evaluates Levant countires ArabCulture tasks.
-* `arab_culture_nile_valley`: evaluates Nile Valley countires ArabCulture tasks.
+* `arab_culture_gulf`: evaluates Gulf countries ArabCulture tasks.
+* `arab_culture_levant`: evaluates Levant countries ArabCulture tasks.
+* `arab_culture_nile_valley`: evaluates Nile Valley countries ArabCulture tasks.
 * `arab_culture_north_africa`: evaluates North Africa ArabCulture tasks.
 
 ###  Evaluation modes
-This bechmark allows for different evaluation settings by allowing to adding more extra context for the model:
+This benchmark allows for different evaluation settings by allowing to adding more extra context for the model:
 
 We have three settings:
 * without any information

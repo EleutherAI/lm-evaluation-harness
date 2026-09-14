@@ -2,7 +2,7 @@
 
 ### Paper
 
-BasqueBench is a benchmark for evaluating language models in Basque tasks. This is, it evaluates the ability of a language model to understand and generate Basque text. BasqueBench offers a combination of pre-existing, open datasets and datasets developed exclusivelly for this benchmark. All the details of BasqueBench will be published in a paper soon.
+BasqueBench is a benchmark for evaluating language models in Basque tasks. This is, it evaluates the ability of a language model to understand and generate Basque text. BasqueBench offers a combination of pre-existing, open datasets and datasets developed exclusively for this benchmark. All the details of BasqueBench will be published in a paper soon.
 
 The new evaluation datasets included in BasqueBench are:
 | Task     | Category                   | Homepage                                      |

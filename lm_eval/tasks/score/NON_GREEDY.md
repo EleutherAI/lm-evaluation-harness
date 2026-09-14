@@ -16,7 +16,7 @@ limitations under the License.
 # Non Greedy Evaluation
 
 This task checks for model's consistency towards seed changes during generation.
-More particularly it evaluates the model's accuracy and consistancy rate with 5
+More particularly it evaluates the model's accuracy and consistency rate with 5
 different seeds (seed = 1, 2,...,5) for a fixed prompt with temperature set to 0.7.
 
 ## How to run the Non-Greedy evaluation of SCORE?
@@ -35,7 +35,7 @@ To run the evaluation of the Non-Greedy tasks with 5 different seeds you should:
 
 3. When all 5 runs are finished and logs are saved, run the `./lm_eval/tasks/score/non_greedy_summarizer.py` script by passing the the output directory of the above runs to the `--log_dir` argument***, and by specifying the dataset name for which the evaluations were run with `--dataset` argument(`agieval`, `mmlu_pro` or `math`). \
 
-4. The script will return the default lm_evaluation_harness table where accuracies for each seed and the consistancy rate are calculated.
+4. The script will return the default lm_evaluation_harness table where accuracies for each seed and the consistency rate are calculated.
 
 
 \* _As this evaluation requires `--log_samples` to be True, it will need some extra disk space to save the prediction results for each seed._

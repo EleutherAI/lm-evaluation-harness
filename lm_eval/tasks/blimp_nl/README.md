@@ -61,7 +61,7 @@ Homepage: https://data.ru.nl/collections/ru/cls/blimp-nl_dsc_550
 
 Each of these is further divided into specific experimental paradigms (which here are represented as individual tasks; 100 items each), which are described in the [Suijkerbuijk et al., (2025)](https://doi.org/10.1162/coli_a_00559).
 
-**Implementation note**: The original implementation as discussed in the paper uses masked language models and compares syntactic log-odds ratios (SLOG; [Pauls & Klein, 2012](https://aclanthology.org/P12-1101/)) between sentences, which normalizes for word frequency. Neither masked langauge models nor SLOG are currently supported by the Harness, and so the implementation provided here includes both un-normalized accuracy (`acc`) and byte-length-normalized accuracy (`acc_norm`).
+**Implementation note**: The original implementation as discussed in the paper uses masked language models and compares syntactic log-odds ratios (SLOG; [Pauls & Klein, 2012](https://aclanthology.org/P12-1101/)) between sentences, which normalizes for word frequency. Neither masked language models nor SLOG are currently supported by the Harness, and so the implementation provided here includes both un-normalized accuracy (`acc`) and byte-length-normalized accuracy (`acc_norm`).
 
 ### Checklist
 

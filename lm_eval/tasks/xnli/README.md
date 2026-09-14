@@ -12,7 +12,7 @@ Prompt format (same as XGLM and mGPT):
 
 sentence1 + ", right? " + mask = (Yes|Also|No) + ", " + sentence2
 
-Predicition is the full sequence with the highest likelihood.
+Prediction is the full sequence with the highest likelihood.
 
 Language specific prompts are translated word-by-word with Google Translate
 and may differ from the ones used by mGPT and XGLM (they do not provide their prompts).
