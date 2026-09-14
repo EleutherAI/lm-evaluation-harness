@@ -1,9 +1,11 @@
 import asyncio
 import json
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from lm_eval.api.model import CacheHook, hash_args
 from lm_eval.models.api_models import create_image_prompt
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 
@@ -244,6 +246,38 @@ class DummyAsyncContextManager:
 
     async def __aexit__(self, exc_type, exc, tb):
         pass
+
+
+def test_amodel_call_skips_none_cache_keys(api):
+    # Given
+    response = MagicMock()
+    response.ok = True
+    response.raise_for_status = MagicMock()
+    response.json = AsyncMock(return_value={"mocked": "response"})
+    session = MagicMock()
+    session.post.return_value = DummyAsyncContextManager(response)
+    api.parse_logprobs = MagicMock(return_value=[(-1.0, True), (-2.0, False)])
+    cache_key = ("context", "continuation")
+    expected_answers = [(-1.0, True), (-2.0, False)]
+    expected_cache = {hash_args("loglikelihood", cache_key): (-2.0, False)}
+    cache = {}
+    api.cache_hook = CacheHook(SimpleNamespace(dbdict=cache))
+
+    # When
+    answers = asyncio.run(
+        api.amodel_call(
+            session=session,
+            sem=asyncio.Semaphore(1),
+            messages=["first request", "second request"],
+            generate=False,
+            cache_keys=[None, cache_key],
+            ctxlens=[1, 1],
+        )
+    )
+
+    # Then
+    assert answers == expected_answers
+    assert cache == expected_cache
 
 
 @pytest.mark.parametrize(
