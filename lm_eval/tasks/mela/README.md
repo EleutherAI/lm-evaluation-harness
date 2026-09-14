@@ -43,7 +43,7 @@ Homepage: https://github.com/sjtu-compling/MELA
 - `mela_es`: Spanish
 - `mela_ja`: Japanese
 - `mela_ar`: Arabic
-- `mela_ar`: Icelandic
+- `mela_is`: Icelandic
 
 ### Checklist
 
@@ -58,3 +58,6 @@ If other tasks on this dataset are already supported:
 - [ ] Is the "Main" variant of this task clearly denoted?
 - [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 - [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+- v1.1 (`mela` group) Fixed `mela_is` not being included

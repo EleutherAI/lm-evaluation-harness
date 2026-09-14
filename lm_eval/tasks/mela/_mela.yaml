@@ -9,9 +9,9 @@ task:
   - mela_es
   - mela_ja
   - mela_ar
-  - mela_ar
+  - mela_is
 aggregate_metric_list:
   - metric: mcc
     weight_by_size: False
 metadata:
-  version: 1
+  version: 1.1
