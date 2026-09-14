@@ -83,6 +83,7 @@ audiolm_qwen = ["librosa", "soundfile"]
 dev = ["pytest>=9.0", "pytest-cov", "pytest-xdist", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece", "pillow"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
+ltb = ["openai"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
@@ -99,6 +100,7 @@ tasks = [
     "lm_eval[ifeval]",
     "lm_eval[japanese_leaderboard]",
     "lm_eval[longbench]",
+    "lm_eval[ltb]",
     "lm_eval[libra]",
     "lm_eval[math]",
     "lm_eval[multilingual]",

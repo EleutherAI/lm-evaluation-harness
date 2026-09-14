@@ -1,0 +1,22 @@
+task: ltb_v1
+dataset_path: zouhar/last-translation-benchmark
+dataset_kwargs:
+  revision: a483825ddbe2d7756f5bdfb1e4f611bee9026c4c
+process_docs: !function utils.process_docs
+output_type: generate_until
+test_split: train
+num_fewshot: 0
+doc_to_text: !function utils.doc_to_text
+doc_to_target: ""
+process_results: !function utils.process_results
+metric_list:
+  - metric: ltb_pass_rate
+    aggregation: !function utils.aggregate_pass_rate
+    higher_is_better: true
+generation_kwargs:
+  until: []
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 4096
+metadata:
+  version: 1.0
