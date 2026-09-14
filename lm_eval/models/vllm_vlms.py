@@ -1,7 +1,6 @@
 import logging
 from typing import TYPE_CHECKING, Any
 
-import ray
 import transformers
 from more_itertools import distribute
 from tqdm import tqdm
@@ -116,6 +115,8 @@ class VLLM_VLM(VLLM):
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
         if self.data_parallel_size > 1:
+            import ray
+
             # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
