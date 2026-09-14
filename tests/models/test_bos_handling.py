@@ -65,8 +65,8 @@ class MockModuleFinder:
 # Mock ray and vllm (and all subpackages) before importing from lm_eval.models
 sys.meta_path.insert(0, MockModuleFinder(["vllm", "ray"]))  # type: ignore
 
-import pytest  # noqa: E402
-from transformers import AutoTokenizer  # noqa: E402
+import pytest
+from transformers import AutoTokenizer
 
 from lm_eval.models.utils import _add_special_kwargs, has_bos_prefix
 
@@ -141,6 +141,18 @@ def create_vllm_mock(tokenizer, add_bos_token):
     mock.prefix_token_id = tokenizer.bos_token_id or 0
     mock.tokenizer = tokenizer
     mock.tok_encode = VLLM.tok_encode.__get__(mock, VLLM)
+    return mock
+
+
+def create_api_mock(tokenizer, add_bos_token):
+    """Create TemplateAPI model mock with tokenization methods."""
+    from lm_eval.models.api_models import TemplateAPI
+
+    mock = Mock()
+    mock.add_bos_token = add_bos_token
+    mock.tokenizer_backend = "huggingface"
+    mock.tokenizer = tokenizer
+    mock.tok_encode = TemplateAPI.tok_encode.__get__(mock, TemplateAPI)
     return mock
 
 
@@ -228,6 +240,25 @@ class TestDefaultsToNone:
 
         result = mock_vllm.tok_encode("Hello")
         expected = tokenizer.encode("Hello")
+        assert result == expected
+
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
+    def test_api_none_does_not_crash_and_matches_false(self, tokenizer_name, request):
+        """
+        TemplateAPI: When add_bos_token=None, tok_encode must not pass None
+        through to the tokenizer (regression test for
+        https://github.com/EleutherAI/lm-evaluation-harness/issues/3075).
+
+        Unlike HFLM/vLLM, TemplateAPI has no BOS-prefix detection, so `None`
+        falls back to `False` rather than the tokenizer's own default.
+        """
+        tokenizer = request.getfixturevalue(tokenizer_name)
+        mock_api = create_api_mock(tokenizer, add_bos_token=None)
+
+        result = mock_api.tok_encode("Hello")
+        expected = tokenizer(
+            "Hello", add_special_tokens=False, return_attention_mask=False
+        ).input_ids
         assert result == expected
 
 
