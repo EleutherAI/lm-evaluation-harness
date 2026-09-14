@@ -16,6 +16,7 @@ from lm_eval.models.utils import Collator
 from lm_eval.utils import (
     RemoteTokenizer,
     check_remote_tokenizer_support,
+    get_file_datetime,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -711,3 +712,29 @@ class TestSimpleParseArgsString:
         result = simple_parse_args_string("trust_remote_code=true,temperature=0.7")
         assert result["trust_remote_code"] is True
         assert result["temperature"] == 0.7
+
+
+@pytest.mark.parametrize(
+    "date_id",
+    [
+        "2026-09-13T10-00-00.123456",
+        "2024-06-01T09-30-15.000001",
+        # isoformat() omits .%f when microsecond == 0
+        "2026-09-13T10-00-00",
+    ],
+)
+def test_get_file_datetime_strips_both_results_and_samples_suffixes(date_id):
+    """Both filename families must yield the bare datetime, and yield the same one.
+
+    Regression: the helper stripped only ".jsonl", so a results file kept its
+    ".json" and the equality guard in recreate_metadata_card between the two
+    families could never hold. Stripping only ".json" is the mirror bug, since
+    removesuffix would leave ".jsonl" untouched, so both are asserted.
+    """
+    results = f"results_{date_id}.json"
+    samples = f"samples_gsm8k_{date_id}.jsonl"
+
+    assert get_file_datetime(results) == date_id
+    assert get_file_datetime(samples) == date_id
+    # the guard in recreate_metadata_card compares these two directly
+    assert get_file_datetime(results) == get_file_datetime(samples)
