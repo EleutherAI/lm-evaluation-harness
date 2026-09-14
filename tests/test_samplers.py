@@ -1,6 +1,9 @@
-"""Tests for lm_eval.api.samplers module."""
+"""Tests for lm_eval.api.samplers module and its task-config wiring."""
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
 
 import pytest
 
@@ -10,6 +13,7 @@ from lm_eval.api.samplers import (
     FirstNSampler,
     get_sampler,
 )
+from lm_eval.api.task import ConfigurableTask
 
 
 # =============================================================================
@@ -287,6 +291,73 @@ class TestFirstNSampler:
         assert result == sample_docs[1:4]
         assert len(result) == 3
         assert eval_doc not in result
+
+    def test_sample_honours_fewshot_indices(self, sample_docs):
+        """fewshot_indices restricts the pool, as it already does for ContextSampler.
+
+        fewshot_docs() is what applies the indices, so reading self.df directly
+        skipped them. Nothing calls fewshot_docs() beforehand in production.
+        Fewer are requested than indexed so the truncation is exercised too.
+        """
+        sampler = FirstNSampler(sample_docs, fewshot_indices=[3, 1, 0])
+
+        result = sampler.sample(n=2)
+
+        assert result == [sample_docs[3], sample_docs[1]]
+
+    def test_fewshot_indices_bound_the_available_pool(self, sample_docs):
+        """The narrowed pool, not the full df, bounds how many can be drawn."""
+        sampler = FirstNSampler(sample_docs, fewshot_indices=[3, 1])
+
+        with pytest.raises(AssertionError, match="exceeds"):
+            sampler.sample(n=3)
+
+    def test_excluding_eval_doc_bounds_the_available_pool(self, sample_docs):
+        """Removing the eval doc leaves one fewer to draw from."""
+        sampler = FirstNSampler(sample_docs)
+
+        with pytest.raises(AssertionError, match="exceeds"):
+            sampler.sample(n=5, eval_doc=sample_docs[0])
+
+
+# =============================================================================
+# Task Config Wiring Tests
+# =============================================================================
+
+
+class TestFewshotConfigWiring:
+    """fewshot_config fields must reach the sampler they configure."""
+
+    def test_fewshot_indices_from_config_reaches_sampler(self):
+        """A task-declared fewshot_indices restricts the pool, in declared order.
+
+        FewshotConfig accepts the field, so a task YAML can set it without
+        error, but it was never handed to the sampler constructor.
+        """
+        data_file = Path(__file__).parent / "test_configs" / "test_data.json"
+        task = ConfigurableTask(
+            config={
+                "task": "fewshot_indices_probe",
+                "dataset_path": "json",
+                "dataset_kwargs": {"data_files": {"test": str(data_file)}},
+                "test_split": "test",
+                "fewshot_split": "test",
+                "output_type": "multiple_choice",
+                "doc_to_text": "{{question}}",
+                "doc_to_target": "{{answer}}",
+                "doc_to_choice": "{{choices}}",
+                "fewshot_config": {
+                    "sampler": "first_n",
+                    "split": "test",
+                    "fewshot_indices": [3, 1, 0],
+                },
+                "metric_list": [{"metric": "acc"}],
+            }
+        )
+        docs = json.loads(data_file.read_text())
+
+        assert task.sampler.fewshot_indices == [3, 1, 0]
+        assert task.sampler.sample(n=2) == [docs[3], docs[1]]
 
 
 # =============================================================================

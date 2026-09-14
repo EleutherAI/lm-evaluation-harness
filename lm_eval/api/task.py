@@ -797,7 +797,17 @@ class ConfigurableTask(Task):
                     f"fewshot_config.sampler should be a string or subclass of ContextSampler, "
                     f"not {type(config_sampler)}"
                 )
-            self.sampler: samplers.ContextSampler = sampler_cls(fewshot_docs, rnd=None)  # type: ignore
+            fewshot_indices = (
+                self.fewshot_cfg.fewshot_indices if self.config.fewshot_config else None
+            )
+            # only forwarded when set, so a user-supplied sampler class that does
+            # not accept the argument keeps working
+            extra_kwargs = (
+                {"fewshot_indices": fewshot_indices} if fewshot_indices else {}
+            )
+            self.sampler: samplers.ContextSampler = sampler_cls(  # type: ignore
+                fewshot_docs, rnd=None, **extra_kwargs
+            )
 
         self.task_docs = self.eval_docs
 

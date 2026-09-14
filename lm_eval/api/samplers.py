@@ -107,7 +107,8 @@ class FirstNSampler(ContextSampler):
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
-        pool = self.rm_eval_doc(eval_doc, self.df) if eval_doc is not None else self.df
+        docs = self.fewshot_docs()
+        pool = self.rm_eval_doc(eval_doc, docs) if eval_doc is not None else docs
         assert n <= len(pool), (
             f"Error: number of fewshot samples requested exceeds the {len(pool)} that are available."
         )
