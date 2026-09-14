@@ -88,7 +88,12 @@ bare tuples ("0,1" x4, "3,5,7", "12,10,6", ...), and the fused gold can no
 longer match a model's "(0,1)" or "0, 1" spelling.
 """
 
-NORMS = (norm, norm_leaderboard, norm_putnam)
+# `leaderboard.math` is deliberately excluded: it reproduces Open LLM
+# Leaderboard v2 MATH-hard scoring and is frozen at that behavior (see the note
+# at the top of lm_eval/tasks/leaderboard/math/utils.py), so the fix above was
+# reverted there on purpose. What that copy actually does is pinned separately
+# in test_leaderboard_math_comma_handling_stays_frozen.
+NORMS = (norm, norm_putnam)
 
 
 def test_bare_digit_tuple_is_not_fused():
@@ -117,6 +122,23 @@ def test_malformed_grouping_is_left_untouched():
 def test_negative_thousands_grouping_is_stripped():
     for f in NORMS:
         assert f("-1,024") == "-1024"
+
+
+def test_leaderboard_math_comma_handling_stays_frozen():
+    """The frozen leaderboard copy keeps the pre-fix comma behavior.
+
+    Pinned rather than fixed: `leaderboard_math_hard` exists to reproduce the
+    published Open LLM Leaderboard v2 numbers, and changing its normalization
+    would silently make new runs incomparable with the historical ones. This
+    asserts the divergence is the intended one, so a future sync cannot quietly
+    port the Minerva fix across.
+    """
+    assert norm_leaderboard("0,1") == "01"
+    assert norm_leaderboard("3,5,7") == "357"
+    assert norm_leaderboard("12,34") == "1234"
+    assert norm_leaderboard("-1,024") == "-1,024"
+    # unchanged by the freeze: true thousands grouping is stripped either way
+    assert norm_leaderboard("100,000") == "100000"
 
 
 def test_equiv_harm_case_tuple_spelling_variants():
