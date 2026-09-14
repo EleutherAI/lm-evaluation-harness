@@ -91,7 +91,9 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
 
 - `add_bos_token` (bool, optional):
   - Whether to add the beginning-of-sequence token to inputs (when tokenizing).
-  - Default is False.
+  - Default is None, which defers to the tokenizer's own configuration
+    (`tokenizer_config.json`). Set it to True to always add the token, or to
+    False to never add it.
 
 - `custom_prefix_token_id` (int, optional):
   - Custom token ID to use as a prefix for inputs.

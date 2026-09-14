@@ -10,7 +10,9 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
+    _add_special_kwargs,
     handle_stop_sequences,
+    has_bos_prefix,
     postprocess_generated_text,
 )
 from lm_eval.utils import (
@@ -42,7 +44,7 @@ class SGLangLM(TemplateLM):
         max_batch_size=None,
         max_model_len: int = None,
         max_gen_toks: int = 256,
-        add_bos_token: Optional[bool] = False,
+        add_bos_token: Optional[bool] = None,
         ########## SGlang native args ##########
         # Todo(Jinwei): Include more args of SGLang Engine if needed. Refer to https://docs.sglang.ai/backend/server_arguments.html .
         tokenizer_path: Optional[str] = None,
@@ -114,11 +116,6 @@ class SGLangLM(TemplateLM):
         self.tokenizer = self.model.tokenizer_manager.tokenizer
         self._max_gen_toks = max_gen_toks
         self.add_bos_token = add_bos_token
-        if "gemma" in pretrained.lower():
-            self.add_bos_token = True
-            eval_logger.info(
-                "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
-            )
         self.custom_prefix_token_id = prefix_token_id
 
     def loglikelihood_rolling(
@@ -197,9 +194,7 @@ class SGLangLM(TemplateLM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding: List[List[int]] = self.tok_encode(
-            context, add_special_tokens=self.add_bos_token
-        )
+        context_encoding: List[List[int]] = self.tok_encode(context)
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
@@ -348,26 +343,60 @@ class SGLangLM(TemplateLM):
         self,
         string: Union[str, List[str]],
         left_truncate_len: int = None,
-        add_special_tokens: bool = False,
+        add_special_tokens: bool | None = None,
         truncation: bool = False,
     ) -> Union[List[int], List[List[int]]]:
-        if not add_special_tokens:
-            add_special_tokens = False or self.add_bos_token
-        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
-            string,
-            add_special_tokens=add_special_tokens,
-            truncation=truncation,
-            return_attention_mask=False,
-        ).input_ids
+        # `add_special_tokens=None` and `self.add_bos_token=None` means nothing is
+        # passed to the tokenizer, so its own configuration decides whether a BOS
+        # token is prepended. Mirrors HFLM.tok_encode and VLLM.tok_encode.
+        is_batched = not isinstance(string, str)
+        _string: list[str] = list(string) if is_batched else [string]
+
+        _bos_token = (
+            self.tokenizer.decode(self.prefix_token_id)
+            if self.prefix_token_id is not None
+            else None
+        )
+        special_tokens_kwargs = _add_special_kwargs(
+            add_special_tokens, self.add_bos_token
+        )
+
+        # A string that already starts with BOS — a chat template usually adds one
+        # — must not be given a second. Encode those with add_special_tokens=False
+        # and the rest as configured, then put the batch back in order.
+        has_prefix_flags = [
+            isinstance(s, str) and has_bos_prefix(s, _bos_token) for s in _string
+        ]
+        idx_has = [i for i, f in enumerate(has_prefix_flags) if f]
+        idx_not = [i for i, f in enumerate(has_prefix_flags) if not f]
+
+        def _encode(strs: list[str], kwargs) -> list[list[int]]:
+            if not strs:
+                return []
+            return self.tokenizer(
+                strs,
+                truncation=truncation,
+                return_attention_mask=False,
+                **kwargs,
+            ).input_ids
+
+        enc_has = _encode(
+            [_string[i] for i in idx_has],
+            {**special_tokens_kwargs, "add_special_tokens": False},
+        )
+        enc_not = _encode([_string[i] for i in idx_not], special_tokens_kwargs)
+
+        out: list[list[int]] = [None] * len(_string)  # type: ignore[list-item]
+        for j, i in enumerate(idx_has):
+            out[i] = enc_has[j]
+        for j, i in enumerate(idx_not):
+            out[i] = enc_not[j]
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
-            if not isinstance(string, str):
-                encoding = [enc[-left_truncate_len:] for enc in encoding]
-            else:
-                encoding = encoding[-left_truncate_len:]
+            out = [enc[-left_truncate_len:] for enc in out]
 
-        return encoding
+        return out if is_batched else out[0]
 
     def tok_decode(self, tokens: List[int]) -> str:
         # Implement token-to-text decoding
