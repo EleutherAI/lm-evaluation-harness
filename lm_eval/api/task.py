@@ -17,6 +17,7 @@ from typing import (
 
 import datasets
 import numpy as np
+from datasets.fingerprint import Hasher
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -294,6 +295,18 @@ class Task(abc.ABC):
             else ""
         )
         cache_key += f"-tokenizer{tokenizer_name}"
+        if cache_requests:
+            # Cached Instances contain prompts and arguments derived from the task config.
+            try:
+                cache_key += f"-config{Hasher.hash(self.config.to_dict(keep_callable=True))}"
+            except Exception as exc:  # noqa: BLE001
+                # Custom configuration objects may not support serialization.
+                eval_logger.warning(
+                    "Skipping request cache for task %s: configuration fingerprint failed (%s).",
+                    self.config.task,
+                    type(exc).__name__,
+                )
+                cache_requests = False
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 

@@ -107,6 +107,13 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | `--cache_requests` | Cache preprocessed prompts: `true`, `refresh`, or `delete`. Cached files stored in `lm_eval/cache/.cache` or path set by `LM_HARNESS_CACHE_PATH` env var. |
 | `--check_integrity` | Run task test suite validation before evaluation. |
 
+Request caches include a fingerprint of the task configuration, so changing a prompt
+template or other task setting rebuilds the requests. Caches created before this
+fingerprint was added are rebuilt once. Use `--cache_requests refresh` when external
+data or resources change without a corresponding task configuration change.
+If a custom configuration cannot be fingerprinted, a warning is logged and requests
+are built without reading or writing the request cache for that call.
+
 ### Prompt Formatting
 
 | Argument | Description |
