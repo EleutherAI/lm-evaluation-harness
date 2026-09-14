@@ -1,0 +1,24 @@
+task: theoremqa
+dataset_path: TIGER-Lab/TheoremQA
+output_type: generate_until
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{Answer if few_shot is undefined else Solution}}"
+process_results: !function utils.process_results
+target_delimiter: " "
+num_fewshot: 5
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples
+generation_kwargs:
+  until:
+    - "Question:"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
