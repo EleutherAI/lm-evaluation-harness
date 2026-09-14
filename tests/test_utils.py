@@ -18,6 +18,7 @@ from lm_eval.utils import (
     check_remote_tokenizer_support,
     get_rolling_token_windows,
     make_disjoint_window,
+    sanitize_model_name,
 )
 
 
@@ -711,3 +712,40 @@ class TestSimpleParseArgsString:
         result = simple_parse_args_string("trust_remote_code=true,temperature=0.7")
         assert result["trust_remote_code"] is True
         assert result["temperature"] == 0.7
+
+
+class TestSanitizeModelName:
+    def test_invalid_chars_replaced(self):
+        assert (
+            sanitize_model_name("pretrained=meta-llama/Llama-3-8B")
+            == "pretrained=meta-llama__Llama-3-8B"
+        )
+
+    def test_short_name_unchanged(self):
+        # Names within the limit must round-trip exactly (no regression for the
+        # common case).
+        for name in ["gpt2", "pretrained=meta-llama/Llama-3-8B", "hf__model:rev"]:
+            sanitized = sanitize_model_name(name)
+            assert len(sanitized) <= 200
+            assert all(c not in sanitized for c in '"<>:/|\\?*[]')
+
+    def test_long_name_is_capped(self):
+        # A long --model_args (e.g. a deeply nested local pretrained path) used
+        # to overflow the 255-byte path-component limit (OSError Errno 36).
+        long_args = (
+            "pretrained=/data/models/"
+            + "very_long_nested_directory_segment/" * 15
+            + "checkpoint,dtype=float16,tensor_parallel_size=1"
+        )
+        sanitized = sanitize_model_name(long_args)
+        assert len(sanitized) == 200
+
+    def test_long_name_truncation_is_deterministic_and_collision_safe(self):
+        a = "x" * 300 + "AAAA"
+        b = "x" * 300 + "BBBB"
+        assert sanitize_model_name(a) == sanitize_model_name(a)
+        # Long names sharing a prefix must not collapse to the same path.
+        assert sanitize_model_name(a) != sanitize_model_name(b)
+
+    def test_custom_max_length(self):
+        assert len(sanitize_model_name("a" * 100, max_length=32)) == 32
