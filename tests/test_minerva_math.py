@@ -169,3 +169,54 @@ def test_is_equiv_indexed_roots_through_pipeline(pred, gold):
 
 def test_is_equiv_shorthand_still_works():
     assert is_equiv(normalize("\\sqrt8"), normalize("2\\sqrt{2}"))
+
+
+r"""
+`REMOVED_EXPRESSIONS` strips unit words with a plain `str.replace`, which
+matches anywhere in the string instead of on word boundaries. "ft" is the
+damaging entry: it turns `\left` into `\le`, `\infty` into `\iny`, and
+`\leftarrow` into `\learrow`. Eight MATH-500 gold answers are interval or
+ordered-pair spellings built from those commands, so the gold target is
+corrupted before any comparison happens and a correct model answer scores 0.
+
+minerva_math and putnam_axiom already guard this with word boundaries; the
+leaderboard/math copy did not, so these tests pin all three.
+"""
+
+
+def test_ft_does_not_corrupt_latex_commands():
+    for f in NORMS:
+        # \left / \right delimiters survive
+        assert "\\left" in f("\\left( 3, \\frac{\\pi}{2} \\right)")
+        assert "\\iny" not in f("(2,\\infty)")
+        assert "\\infty" in f("(2,\\infty)")
+        assert "\\learrow" not in f("x \\leftarrow y")
+
+
+@pytest.mark.parametrize(
+    "gold",
+    [
+        # real MATH-500 gold answers that the substring strip mangled
+        "\\left( 3, \\frac{\\pi}{2} \\right)",
+        "(2,\\infty)",
+        "\\left( \\frac{3}{2}, -13 \\right)",
+        "\\left(\\frac{3}{5},\\frac{8}{3}\\right]",
+        "(-\\infty, 0]",
+        "(5,\\infty)",
+        "\\left[ \\frac{\\pi^2}{8}, \\frac{5 \\pi^2}{4} \\right]",
+    ],
+)
+def test_math500_interval_golds_round_trip(gold):
+    for f in NORMS:
+        out = f(gold)
+        assert "\\le(" not in out and "\\le[" not in out
+        assert "\\iny" not in out
+
+
+def test_unit_words_are_still_stripped():
+    for f in NORMS:
+        # the feature itself must keep working
+        assert f("2 ft") == "2"
+        assert f("5 cm") == "5"
+        assert f("10 meters") == "10"
+        assert f("3 inches") == "3"
