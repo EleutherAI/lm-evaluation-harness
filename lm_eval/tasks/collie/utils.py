@@ -2,100 +2,114 @@
 
 from __future__ import annotations
 
-import base64
 import json
-import os
-import urllib.request
 from typing import TYPE_CHECKING
+
+from lm_eval.tasks.collie.constraints import (
+    All,
+    Constraint,
+    Count,
+    ForEach,
+    InputLevel,
+    Position,
+    Reduction,
+    Relation,
+    TargetLevel,
+)
 
 
 if TYPE_CHECKING:
     from typing import Any
 
-    import datasets
+    from lm_eval.tasks.collie.constraints import LevelStr, OperandStr, ReductionStr
 
 
-_COLLIE_URL = "https://collie-benchmark.github.io/data/all_data.dill"
-
-
-def _download_dill() -> str:
-    """Return a local path to the official COLLIE dill, downloading if absent."""
-    cache = os.path.join(
-        os.environ.get("HF_DATASETS_CACHE", os.path.expanduser("~/.cache/lm_eval")),
-        "collie",
-        "all_data.dill",
+def _make_constraint(
+    target_level: LevelStr,
+    transformation: Any,
+    operand: OperandStr,
+    input_level: LevelStr | None = None,
+    reduction: ReductionStr | None = None,
+) -> Constraint:
+    return Constraint(
+        input_level=InputLevel(input_level),
+        target_level=TargetLevel(target_level),
+        transformation=transformation,
+        relation=Relation(operand),
+        reduction=Reduction(reduction),
     )
-    if not os.path.exists(cache):
-        os.makedirs(os.path.dirname(cache), exist_ok=True)
-        urllib.request.urlretrieve(_COLLIE_URL, cache)  # fails explicitly if absent
-    return cache
 
 
-def load_dill(path: str) -> dict[str, list[dict[str, Any]]]:
-    """Deserialize the COLLIE dill, returning ``dict[str, list[record]]``.
-
-    Each record is a dict with keys: ``example``, ``metadata``, ``targets``,
-    ``constraint`` (a live constraint object), and ``prompt``.
-
-    Note:
-    Constraint classes are pickled under the path ``src.constraints``;
-    defined in the upstream repo ``github.com/princeton-nlp/collie``.
-    We redirect to our version of ``constraints.py`` by subclassing
-    ``dill.Unpickler``.
-    """
-    import importlib
-
-    import dill
-
-    vendored = importlib.import_module("lm_eval.tasks.collie.constraints")
-
-    # Subclassing dill.Unpickler to redirect constraint class lookups to the vendored module.
-    class _Unpickler(dill.Unpickler):  # noqa: S301
-        def find_class(self, module: str, name: str) -> Any:
-            if module == "src.constraints":
-                return getattr(vendored, name)
-            return super().find_class(module, name)
-
-    with open(path, "rb") as f:
-        return _Unpickler(f).load()
-
-
-def load_dataset(**kwargs: Any) -> dict[str, datasets.Dataset]:
-    """Build the COLLIE table for use as an lm-eval ``custom_dataset`` loader.
-
-    Downloads the official benchmark dill, flattens its ``dict[str, list]`` of
-    constraint buckets into rows, and returns a single eval split. Heterogeneous
-    fields are JSON-encoded so the Arrow schema is homogeneous; the live
-    constraint is dill-serialized (by reference, ~340 B) and base64-encoded so
-    docs stay JSON-safe for ``--log_samples``.
-    """
-    import datasets
-    import dill
-
-    data = load_dill(_download_dill())  # dict[str, list[record]]
-    rows = []
-    for bucket, records in data.items():
-        for r in records:
-            rows.append(
-                {
-                    "bucket": bucket,
-                    "prompt": r["prompt"],
-                    "example": r["example"],
-                    "targets": json.dumps(r["targets"]),
-                    "metadata": json.dumps(r["metadata"]),
-                    "constraint": base64.b64encode(
-                        dill.dumps(r["constraint"], byref=True)
-                    ).decode(),
-                }
-            )
-    return {"test": datasets.Dataset.from_list(rows)}
+# The 13 COLLIE-v1 constraint structures, reconstructed from the objects in the official `all_data.dill`.
+CONSTRAINTS: dict[str, Constraint | All] = {
+    # word level
+    "c01": _make_constraint("character", Count(), ">="),
+    "c02": All(
+        _make_constraint("character", Count(), "=="),
+        _make_constraint("character", Position([3, 7, 10]), "=="),
+    ),
+    "c03": All(
+        _make_constraint("character", Count(), "=="),
+        _make_constraint("character", Position(-1), "=="),
+    ),
+    # sentence level
+    "c04": _make_constraint("character", Count(), "=="),
+    "c05": All(
+        _make_constraint("word", Count(), "=="),
+        _make_constraint("word", Position([3, 7, 10]), "=="),
+    ),
+    "c06a": All(
+        _make_constraint("word", Count(), ">="),
+        _make_constraint(
+            "character", ForEach(Count()), "<=", input_level="word", reduction="all"
+        ),
+    ),
+    "c07": _make_constraint("word", ForEach(...), "in"),
+    # paragraph level
+    "c08": _make_constraint(
+        "word", ForEach(Position(0)), "==", input_level="sentence", reduction="all"
+    ),
+    "c09": All(
+        _make_constraint("sentence", Count(), ">="),
+        _make_constraint("word", ForEach(...), "not in"),
+        _make_constraint("word", ForEach(...), "not in"),
+        _make_constraint("word", ForEach(...), "not in"),
+    ),
+    "c10": All(
+        _make_constraint("sentence", Count(), "=="),
+        _make_constraint(
+            "word", ForEach(Count()), ">=", input_level="sentence", reduction="all"
+        ),
+        _make_constraint(
+            "word", ForEach(Count()), "<=", input_level="sentence", reduction="all"
+        ),
+    ),
+    "c11": All(
+        _make_constraint("sentence", Count(), ">="),
+        _make_constraint(
+            "word", ForEach(Count()), ">=", input_level="sentence", reduction="all"
+        ),
+    ),
+    "c12": All(
+        _make_constraint("sentence", Count(), "=="),
+        _make_constraint(
+            "word", ForEach(Position(-1)), "==", input_level="sentence", reduction="all"
+        ),
+    ),
+    # passage level
+    "c14": _make_constraint(
+        "sentence",
+        ForEach(Position(-1)),
+        "==",
+        input_level="paragraph",
+        reduction="all",
+    ),
+}
 
 
 def process_results(doc: dict[str, Any], results: list[str]) -> dict[str, bool]:
     """Score a generation against its COLLIE constraint (pass-rate accuracy)."""
-    import dill
-
-    constraint = dill.loads(base64.b64decode(doc["constraint"]))  # noqa: S301
+    constraint = CONSTRAINTS[doc["constraint_id"]]
     targets = json.loads(doc["targets"])
     try:
         passed = bool(constraint.check(results[0], targets))

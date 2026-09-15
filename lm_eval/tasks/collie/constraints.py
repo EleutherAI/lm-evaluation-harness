@@ -70,11 +70,11 @@ if TYPE_CHECKING:
         argument (`x`) or two (`x, target`) and expose `extract`.
         """
 
-        def __call__(self, x: Any, target: Any = ...) -> Any: ...
+        def __call__(self, x: Any, target: Any = ..., /) -> Any: ...
 
-        def check(self, text: Any, target: Any) -> bool: ...
+        def check(self, text: Any, target: Any = ..., /) -> bool: ...
 
-        def extract(self, x: Any) -> Any: ...
+        def extract(self, x: Any, /) -> Any: ...
 
 
 def download_nltk_resources():
@@ -511,12 +511,12 @@ class Constraint:
             x = self.transformation(x)
         return x
 
-    def check(self, text: Any, target: Any) -> bool:
+    def check(self, text: Any, target: Any = None) -> bool:
         x = self.extract(text)
         assert self.relation is not None
         return self.reduction(x, target, self.relation)
 
-    def __call__(self, text: Any, target: Any) -> bool:
+    def __call__(self, text: Any, target: Any = None) -> bool:
         return self.check(text, target)
 
     def __str__(self) -> str:
