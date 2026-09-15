@@ -16,7 +16,7 @@ from lm_eval.api.registry import (
 _FAKE_MODULE = "lm_eval_fake_plugin_module"
 
 
-def _make_ep(name, obj, *, broken=False):
+def _make_ep(name, obj, *, broken=False, group="test"):
     """Build a real EntryPoint whose load() resolves against an in-memory module.
 
     Using a genuine md.EntryPoint (not a stub) ensures Registry.get() takes its
@@ -28,7 +28,7 @@ def _make_ep(name, obj, *, broken=False):
     if not broken:
         setattr(mod, attr, obj)
     return registry_mod.md.EntryPoint(
-        name=name, value=f"{_FAKE_MODULE}:{attr}", group="test"
+        name=name, value=f"{_FAKE_MODULE}:{attr}", group=group
     )
 
 
@@ -52,6 +52,7 @@ def _reset_plugin_state(monkeypatch):
     into each other regardless of ordering.
     """
     monkeypatch.setattr(registry_mod, "_loaded_plugin_groups", set())
+    monkeypatch.setattr(registry_mod, "_used_plugins", set())
     snapshots = {name: dict(getattr(registry_mod, name)._objs) for name in _REGISTRIES}
     yield
     for name, snapshot in snapshots.items():
@@ -115,16 +116,22 @@ def test_load_plugins_is_once_per_group(monkeypatch):
     assert load_plugins("lm_eval.things", reg) == []
 
 
-def test_load_plugins_does_not_override_builtin(monkeypatch):
+def test_load_plugins_does_not_override_builtin(monkeypatch, caplog):
     reg = Registry("thing")
     builtin = object()
     reg.register("taken", target="os:getcwd")  # pre-existing alias
     _patch_entry_points(monkeypatch, "lm_eval.things", [_make_ep("taken", builtin)])
 
-    discovered = load_plugins("lm_eval.things", reg)
+    with caplog.at_level("WARNING", logger="lm_eval.api.registry"):
+        discovered = load_plugins("lm_eval.things", reg)
 
     assert discovered == []  # collision skipped, not registered
     assert reg._objs["taken"] == "os:getcwd"
+    # The shadowed plugin is surfaced at WARNING so a silent clash leaves a trace.
+    assert any(
+        rec.levelname == "WARNING" and "taken" in rec.getMessage()
+        for rec in caplog.records
+    )
 
 
 def test_load_plugins_broken_entry_point_is_tolerated(monkeypatch):
@@ -375,3 +382,58 @@ def test_import_plugins_tolerates_bad_module():
 def test_import_plugins_noop_on_empty():
     import_plugins(None)
     import_plugins([])
+
+
+def test_collect_plugin_provenance_empty_when_none_installed(monkeypatch):
+    """No installed plugins -> empty snapshot (no crash, no keys)."""
+    from lm_eval.api.registry import collect_plugin_provenance
+
+    _patch_entry_points(monkeypatch, "lm_eval.models", [])  # every group empty
+    assert collect_plugin_provenance() == {}
+
+
+def test_collect_plugin_provenance_lists_installed_snapshot(monkeypatch):
+    """Every installed plugin appears, grouped by kind, regardless of use."""
+    from lm_eval.api.registry import collect_plugin_provenance
+
+    ep = _make_ep("plug-model", object(), group="lm_eval.models")
+    _patch_entry_points(monkeypatch, "lm_eval.models", [ep])
+
+    prov = collect_plugin_provenance()
+
+    assert "plug-model" in prov["models"]
+    entry = prov["models"]["plug-model"]
+    assert entry["target"] == ep.value
+    assert entry["used"] is False  # installed but not resolved this run
+
+
+def test_collect_plugin_provenance_flags_used_after_resolution(monkeypatch):
+    """A plugin is flagged used only once its component is materialized by name."""
+    from lm_eval.api.registry import collect_plugin_provenance
+
+    sentinel = object()
+    ep = _make_ep("plug-model", sentinel, group="lm_eval.models")
+    _patch_entry_points(monkeypatch, "lm_eval.models", [ep])
+
+    reg = Registry("model")
+    load_plugins("lm_eval.models", reg)
+    # Before resolution: installed, not used.
+    assert collect_plugin_provenance()["models"]["plug-model"]["used"] is False
+
+    # Resolving by name materializes the EntryPoint and records usage.
+    assert reg.get("plug-model") is sentinel
+    assert collect_plugin_provenance()["models"]["plug-model"]["used"] is True
+
+
+def test_provenance_reaches_results_env(monkeypatch):
+    """add_env_info writes the provenance snapshot into the results dict."""
+    from lm_eval.loggers.utils import add_env_info
+
+    ep = _make_ep("plug-model", object(), group="lm_eval.models")
+    _patch_entry_points(monkeypatch, "lm_eval.models", [ep])
+
+    results: dict = {}
+    add_env_info(results)
+
+    assert "plugins" in results
+    assert "plug-model" in results["plugins"]["models"]
