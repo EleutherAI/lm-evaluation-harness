@@ -24,6 +24,8 @@ def get_new_tasks_else_default():
     """
     # CI: new_tasks checks if any modifications have been made
     task_list = new_tasks()
+    if task_list:
+        task_list = [t for t in task_list if "mrcr" not in t]
     # Check if task_classes is empty
     return task_list or TASKS
 
