@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import json
 import logging
 import random
 import re
@@ -265,6 +266,50 @@ class Task(abc.ABC):
     def doc_to_prefix(self, doc):
         return ""
 
+    @staticmethod
+    def _build_request_cache_key(
+        *,
+        task: str,
+        num_fewshot: int | None,
+        rank: int,
+        world_size: int,
+        apply_chat_template: bool,
+        fewshot_as_multiturn: bool,
+        system_instruction: str | None,
+        tokenizer_name: str,
+        generation_kwargs: dict | None = None,
+    ) -> str:
+        """Build the request-cache key for a task.
+
+        The key reflects everything that changes which instances get built:
+        task, fewshot count, rank/world size, chat-template and system-prompt
+        settings, tokenizer, and the sampling configuration. Folding
+        ``generation_kwargs`` in means that changing a sampling parameter
+        (temperature, top_p, max_gen_toks, until, ...) between two
+        ``--cache_requests`` runs produces a cache miss instead of silently
+        reusing instances built for the previous settings (see issue #3881).
+        """
+        cache_key = (
+            f"requests-{task}-{num_fewshot}shot-rank{rank}-world_size{world_size}"
+        )
+        cache_key += "-chat_template" if apply_chat_template else ""
+        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
+        cache_key += (
+            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
+            if system_instruction is not None
+            else ""
+        )
+        cache_key += f"-tokenizer{tokenizer_name}"
+        # generate_until tasks bake generation_kwargs into each instance's
+        # arguments, so the same docs at different sampling settings are not
+        # interchangeable; hash the sampling config into the key. multiple_choice
+        # tasks carry no generation_kwargs and keep their previous (suffix-free)
+        # key, so this is backward compatible for them.
+        if generation_kwargs:
+            gen_repr = json.dumps(generation_kwargs, sort_keys=True, default=str)
+            cache_key += f"-gen_kwargs{utils.hash_string(gen_repr)}"
+        return cache_key
+
     def build_all_requests(
         self,
         *,
@@ -285,15 +330,17 @@ class Task(abc.ABC):
         # used with caching
         og_limit = limit
 
-        cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
-        cache_key += "-chat_template" if apply_chat_template else ""
-        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
-        cache_key += (
-            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
-            if system_instruction is not None
-            else ""
+        cache_key = self._build_request_cache_key(
+            task=self._config.task,
+            num_fewshot=self.config.num_fewshot,
+            rank=rank,
+            world_size=world_size,
+            apply_chat_template=apply_chat_template,
+            fewshot_as_multiturn=fewshot_as_multiturn,
+            system_instruction=system_instruction,
+            tokenizer_name=tokenizer_name,
+            generation_kwargs=self.config.generation_kwargs,
         )
-        cache_key += f"-tokenizer{tokenizer_name}"
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
