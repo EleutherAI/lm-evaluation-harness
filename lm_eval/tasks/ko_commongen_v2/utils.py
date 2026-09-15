@@ -1,0 +1,15 @@
+import datasets
+
+
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+    def _process_doc(doc):
+        query = f"""concept set: {{{doc["concept_set"].replace("#", ", ")}}}\n"""
+        query += "\n".join([f"{i + 1}. {doc[str(i + 1)]}" for i in range(4)])
+
+        return {
+            "query": query,
+            "choices": [f"{i + 1}. {doc[str(i + 1)]}" for i in range(4)],
+            "gold": doc["gold"] - 1,
+        }
+
+    return dataset.map(_process_doc)
