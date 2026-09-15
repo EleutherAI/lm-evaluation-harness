@@ -107,6 +107,17 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | `--cache_requests` | Cache preprocessed prompts: `true`, `refresh`, or `delete`. Cached files stored in `lm_eval/cache/.cache` or path set by `LM_HARNESS_CACHE_PATH` env var. |
 | `--check_integrity` | Run task test suite validation before evaluation. |
 
+For tasks with a positive few-shot count, request-cache entries are separated by
+the few-shot seed (the fourth value in `--seed`). Repeating the same seed reuses
+cached prompts; changing it builds a separate entry. This also applies to fixed
+samplers, while zero-shot entries remain shared across seeds. Older few-shot
+cache entries without seed information are rebuilt on first use.
+
+For random samplers, a few-shot seed of `None` initializes the sampler from
+entropy. With request caching, the sampled prompts are reused by subsequent
+`None` runs. Use `--cache_requests refresh`, or disable request caching, to
+sample again.
+
 ### Prompt Formatting
 
 | Argument | Description |
