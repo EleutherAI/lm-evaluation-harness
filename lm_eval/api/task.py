@@ -79,6 +79,9 @@ class Task(abc.ABC):
 
     OUTPUT_TYPE: OutputType | None = None
 
+    # ConfigurableTask does not call Task.__init__; an unset seed uses entropy.
+    _fewshot_seed: int | None = None
+
     def __init__(
         self,
         data_dir: str | None = None,
@@ -288,6 +291,8 @@ class Task(abc.ABC):
             else ""
         )
         cache_key += f"-tokenizer{tokenizer_name}"
+        if (self.config.num_fewshot or 0) > 0:
+            cache_key += f"-fewshot_seed{self._fewshot_seed}"
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
@@ -548,6 +553,7 @@ class Task(abc.ABC):
         self._config["process_results"] = "process_results"
 
     def set_fewshot_seed(self, seed: int | None = None) -> None:
+        self._fewshot_seed = seed
         self.fewshot_rnd = random.Random(seed)
         if hasattr(self, "sampler"):
             self.sampler.set_rnd(seed)
