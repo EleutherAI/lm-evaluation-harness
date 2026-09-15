@@ -9,6 +9,9 @@ Text generation under constraints have seen increasing interests in natural lang
 
 Homepage: https://github.com/princeton-nlp/Collie
 
+Dataset: https://huggingface.co/datasets/anath2/collie — the official
+`all_data.dill` (https://collie-benchmark.github.io/data/all_data.dill, 1,306 instances)
+converted to plain columns.
 
 ### Citation
 
@@ -39,7 +42,7 @@ For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-    * Scoring reuses the upstream constraint checker directly. `constraints.py` is from `github.com/princeton-nlp/collie` and the official `all_data.dill` is loaded as-is.
+    * Scoring reuses the upstream constraint checker directly: `constraints.py` is from `github.com/princeton-nlp/collie`. The constraint structures in `utils.py` were verified to give identical `check()` results to the objects pickled in the official `all_data.dill`.
 
 
 If other tasks on this dataset are already supported:
