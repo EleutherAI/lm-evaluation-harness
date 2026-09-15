@@ -32,8 +32,15 @@ def pass_at_1(
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"
-    # (+ ```) as we add the opening "```python" to the gen_prefix
-    matches = re.findall(pattern, r"```" + text, re.DOTALL)
+    # Tasks like mbpp_instruct use `gen_prefix: "\n```python\n"` so the prompt
+    # opens the fence and the model emits raw code (no leading ```). To match
+    # that case we simulate the opening fence by prepending. We include the
+    # trailing newline ("```\n") so an identifier like `def` or `import` at the
+    # start of the model's output isn't swallowed by the optional `(?:\w+)?`
+    # language-tag group, which would silently strip the first word of the code.
+    # If the model already opened with its own ```, search directly.
+    haystack = text if text.lstrip().startswith("```") else "```\n" + text
+    matches = re.findall(pattern, haystack, re.DOTALL)
     # if no matches, try to match ```...``` blocks (after removing the language)
     if not matches:
         text_without_lang = re.sub(r"```python", "```", text)
