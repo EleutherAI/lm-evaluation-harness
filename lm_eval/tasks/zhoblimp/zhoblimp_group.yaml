@@ -122,7 +122,6 @@ aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: false
-aggregate_metric_list:
   - metric: acc_norm
     aggregation: mean
     weight_by_size: false
