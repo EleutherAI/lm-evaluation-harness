@@ -850,8 +850,16 @@ class TestCollectResultsNSamples:
             "t2": make_result_acc(t2, {("acc", "none"): [0.0]}),
         }
         result = _collect_results(accs, bootstrap_iters=0)
-        assert result.n_samples["t1"] == {"original": 100, "effective": 3}
-        assert result.n_samples["t2"] == {"original": 200, "effective": 1}
+        assert result.n_samples["t1"] == {
+            "original": 100,
+            "effective": 3,
+            "per_metric": {"acc,none": 3},
+        }
+        assert result.n_samples["t2"] == {
+            "original": 200,
+            "effective": 1,
+            "per_metric": {"acc,none": 1},
+        }
 
     def test_n_samples_original_from_eval_docs(self):
         task = MockEvalTask("t1", agg={"acc": mean}, n_eval_docs=42)
@@ -859,3 +867,60 @@ class TestCollectResultsNSamples:
         result = _collect_results(accs, bootstrap_iters=0)
         assert result.n_samples["t1"]["original"] == 42
         assert result.n_samples["t1"]["effective"] == 2
+
+    def test_per_metric_counts_expose_a_metric_scored_on_fewer_documents(self):
+        """`effective` is one number for the task. When metrics disagree it takes
+        the largest, so a metric scored on fewer documents is invisible in it.
+        """
+        task = MockEvalTask("t1", agg={"acc": mean, "f1": mean}, n_eval_docs=6)
+        accs = {
+            "t1": make_result_acc(
+                task,
+                {
+                    ("acc", "none"): [1.0, 0.0, 1.0, 1.0, 0.0, 1.0],
+                    ("f1", "none"): [1.0, 1.0, 1.0, 1.0],
+                },
+            )
+        }
+        result = _collect_results(accs, bootstrap_iters=0)
+        n = result.n_samples["t1"]
+        assert n["effective"] == 6
+        assert n["per_metric"] == {"acc,none": 6, "f1,none": 4}
+
+    def test_per_metric_counts_reported_when_every_metric_dropped_together(self):
+        """The case the divergence warning cannot see: when all metrics omit the
+        same document the counts agree, nothing warns, and the aggregate is still
+        a mean over the survivors.
+        """
+        task = MockEvalTask("t1", agg={"acc": mean, "f1": mean}, n_eval_docs=6)
+        accs = {
+            "t1": make_result_acc(
+                task,
+                {
+                    ("acc", "none"): [1.0, 1.0, 1.0, 1.0],
+                    ("f1", "none"): [1.0, 1.0, 1.0, 1.0],
+                },
+            )
+        }
+        result = _collect_results(accs, bootstrap_iters=0)
+        n = result.n_samples["t1"]
+        assert n["original"] == 6
+        assert n["effective"] == 4
+        assert n["per_metric"] == {"acc,none": 4, "f1,none": 4}
+
+    def test_per_metric_counts_are_keyed_by_metric_and_filter(self):
+        task = MockEvalTask("t1", agg={"acc": mean}, n_eval_docs=4)
+        accs = {
+            "t1": make_result_acc(
+                task,
+                {
+                    ("acc", "none"): [1.0, 0.0, 1.0, 1.0],
+                    ("acc", "strict"): [1.0, 0.0],
+                },
+            )
+        }
+        result = _collect_results(accs, bootstrap_iters=0)
+        assert result.n_samples["t1"]["per_metric"] == {
+            "acc,none": 4,
+            "acc,strict": 2,
+        }
