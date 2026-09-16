@@ -1,3 +1,26 @@
+# Language Model Evaluation Harness for Portuguese benchmark and Steered
+
+## Provenance and Adaptations
+
+This project is based on the original `lm-evaluation-harness` from EleutherAI.
+
+To support Portuguese evaluation tasks together with steering-based evaluation, selected components and task definitions were adapted/ported from the fork:
+
+- `eduagarcia/lm-evaluation-harness-pt`
+
+The current repository keeps the upstream EleutherAI harness as the main evaluation engine and incorporates Portuguese task support on top of it.
+
+Main motivation:
+- preserve compatibility with the current `steered` backend
+- reuse valuable Portuguese evaluation tasks and utilities
+- enable steering experiments on Portuguese benchmarks
+
+This repository does not claim authorship of the original harness or the original Portuguese task implementations; 
+it integrates and adapts them for the present research workflow.
+
+See [eduagarcia/lm-evalution-harness-pt](https://github.com/eduagarcia/lm-evaluation-harness-pt)
+
+
 # Language Model Evaluation Harness
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)

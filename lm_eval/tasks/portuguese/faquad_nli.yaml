@@ -1,0 +1,37 @@
+group:
+  - pt_benchmark
+task: faquad_nli
+dataset_path: ruanchaves/faquad-nli
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+  sampler_config:
+    # 50 random selected instances from the training set
+    fewshot_indices: [1893, 949, 663, 105, 1169, 2910, 2227, 2813, 974, 558, 1503, 1958, 2918, 601, 1560, 984, 2388, 995, 2233, 1982, 165, 2788, 1312, 2285, 522, 1113, 1670, 323, 236, 1263, 1562, 2519, 1049, 432, 1167, 1394, 2022, 2551, 2194, 2187, 2282, 2816, 108, 301, 1185, 1315, 1420, 2436, 2322, 766]
+test_split: test
+num_fewshot: 15
+description: "Abaixo estão pares de pergunta e resposta. Para cada par, você deve julgar se a resposta\
+  \ responde à pergunta de maneira satisfatória e aparenta estar correta. Escreva apenas \"Sim\" ou \"Não\".\n\n"
+doc_to_text: "Pergunta: {{question}}\nResposta: {{answer}}\nA resposta dada satisfaz à pergunta? Sim ou Não?"
+doc_to_target: "{{['Não', 'Sim'][label]}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: all
+    filter:
+      - function: find_similar_label
+        labels: ['Sim', 'Não']
+      - function: take_first
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.1

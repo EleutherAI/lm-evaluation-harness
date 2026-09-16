@@ -1,0 +1,39 @@
+group:
+  - pt_benchmark
+  - assin2
+task: assin2_rte
+dataset_path: assin2
+output_type: generate_until
+fewshot_split: train
+fewshot_config:
+  sampler: id_sampler
+  sampler_config:
+    # 50 Balanced few-shot selected from the training set with random order
+    id_list: [1, 3251, 2, 3252, 3, 4, 5, 6, 3253, 7, 3254, 3255, 3256, 8, 9, 10, 3257, 11, 3258, 12, 13, 14, 15, 3259, 3260, 3261, 3262, 3263, 16, 17, 3264, 18, 3265, 3266, 3267, 19, 20, 3268, 3269, 21, 3270, 3271, 22, 3272, 3273, 23, 3274, 24, 25, 3275]
+    id_column: sentence_pair_id
+test_split: test
+num_fewshot: 15
+description: "Abaixo estão pares de premissa e hipótese. Para cada par, indique se a hipótese\
+  \ pode ser inferida a partir da premissa, responda apenas com \"Sim\" ou \"Não\".\n\n"
+doc_to_text: "Premissa: {{premise}}\nHipótese: {{hypothesis}}\nPergunta: A hipótese pode ser inferida pela premissa? Sim ou Não?\nResposta:"
+doc_to_target: "{{['Não', 'Sim'][entailment_judgment]}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  top_k: null
+  top_p: null
+filter_list:
+  - name: all
+    filter:
+      - function: find_similar_label
+        labels: ['Sim', 'Não']
+      - function: take_first
+metric_list:
+  - metric: f1_macro
+    aggregation: f1_macro
+    higher_is_better: true
+  - metric: acc
+    aggregation: acc
+    higher_is_better: true
+metadata:
+  version: 1.1

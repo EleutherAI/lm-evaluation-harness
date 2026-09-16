@@ -1,0 +1,57 @@
+tag:
+  - pt_benchmark
+  - vestibular
+
+dataset_path: eduagarcia/enem_challenge
+custom_dataset: !function util.enem_custom_dataset
+
+task: enem_challenge
+task_alias: enem
+
+test_split: test
+
+fewshot_config:
+  sampler: first_n
+  samples: !function util.enem_fewshot_samples
+
+num_fewshot: 3
+
+description: "As perguntas a seguir são questões de múltipla escolha do Exame Nacional do Ensino Médio (ENEM), selecione a única alternativa correta e responda apenas com as letras \"A\", \"B\", \"C\", \"D\" ou \"E\".\n\n"
+
+output_type: generate_until
+
+doc_to_text: !function util.enem_doc_to_text
+doc_to_target: "{{answerKey}}"
+
+should_decontaminate: true
+doc_to_decontamination_query: !function util.enem_doc_to_text
+
+generation_kwargs:
+  until:
+    - "\n"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  top_k: null
+  top_p: null
+
+filter_list:
+  - name: all
+    filter:
+      - function: normalize_spaces
+      - function: remove_accents
+      - function: find_choices_thinking_case
+        choices: ["A", "B", "C", "D", "E"]
+        fallback: "[invalid]"
+      - function: take_first
+
+metric_list:
+  - metric: f1_macro_score
+    aggregation: f1_macro_score
+    higher_is_better: true
+  - metric: acc
+    aggregation: pt_acc
+    higher_is_better: true
+
+metadata:
+  version: 1.2
