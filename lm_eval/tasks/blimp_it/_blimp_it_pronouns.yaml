@@ -11,7 +11,7 @@ task:
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
-    weight_by_size: false
+    weight_by_size: true
 metadata:
   version: 1.0
   description: "BLiMP-IT — Pronouns"
