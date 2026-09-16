@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_causal_understanding"
+"process_docs": !function utils.process_causal_understanding

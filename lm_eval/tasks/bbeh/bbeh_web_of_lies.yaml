@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_web_of_lies"
+"process_docs": !function utils.process_web_of_lies

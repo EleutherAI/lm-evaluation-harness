@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_buggy_tables"
+"process_docs": !function utils.process_buggy_tables

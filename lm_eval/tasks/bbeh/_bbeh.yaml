@@ -1,0 +1,31 @@
+group: bbeh
+task:
+  - bbeh_boardgame_qa
+  - bbeh_boolean_expressions
+  - bbeh_buggy_tables
+  - bbeh_causal_understanding
+  - bbeh_disambiguation_qa
+  - bbeh_dyck_languages
+  - bbeh_geometric_shapes
+  - bbeh_hyperbaton
+  - bbeh_linguini
+  - bbeh_movie_recommendation
+  - bbeh_multistep_arithmetic
+  - bbeh_nycc
+  - bbeh_object_counting
+  - bbeh_object_properties
+  - bbeh_sarc_triples
+  - bbeh_shuffled_objects
+  - bbeh_spatial_reasoning
+  - bbeh_sportqa
+  - bbeh_temporal_sequence
+  - bbeh_time_arithmetic
+  - bbeh_web_of_lies
+  - bbeh_word_sorting
+  - bbeh_zebra_puzzles
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_boolean_expressions"
+"process_docs": !function utils.process_boolean_expressions

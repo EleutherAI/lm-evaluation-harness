@@ -1,0 +1,3 @@
+"include": "_bbeh_template_yaml"
+"task": "bbeh_disambiguation_qa"
+"process_docs": !function utils.process_disambiguation_qa
