@@ -1,0 +1,11 @@
+# Legacy single-turn variant of CoQA: only the last answer of each story is
+# predicted. Kept for comparability with older results; the official
+# per-turn evaluation (EleutherAI/lm-evaluation-harness#1231) is the
+# default `coqa` task.
+include: default.yaml
+task: coqa_last_turn
+# Null out the parent's per-turn expansion: this variant keeps the legacy
+# single-doc-per-story behavior (last answer only).
+process_docs:
+metadata:
+  version: 3.0
