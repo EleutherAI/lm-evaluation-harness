@@ -16,6 +16,56 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # test once we break evaluator into smaller, more manageable pieces
 
 
+# ---------------------------------------------------------------------------
+# Regression tests for input-validation paths in simple_evaluate().
+# Closes the "evaluator-level validation" gap noted in
+# https://github.com/EleutherAI/lm-evaluation-harness/issues/1883.
+#
+# These tests intentionally avoid loading any model or dataset: they exercise
+# the validation checks that fire *before* the LM and tasks are constructed,
+# so they run on CPU in milliseconds.
+# ---------------------------------------------------------------------------
+
+
+def test_simple_evaluate_rejects_limit_and_samples_both_set():
+    """simple_evaluate() must raise ValueError when both `limit` and `samples`
+    are provided -- they are mutually exclusive.
+    """
+    with pytest.raises(ValueError, match="both are not None"):
+        evaluator.simple_evaluate(
+            model="hf",
+            tasks=["arc_easy"],
+            limit=5,
+            samples={"arc_easy": "ignored"},
+        )
+
+
+def test_simple_evaluate_rejects_empty_tasks_list():
+    """simple_evaluate() must raise ValueError when `tasks` is an empty list
+    (or None). The error message should steer the user toward verifying task
+    names, which is what they can actually fix.
+    """
+    with pytest.raises(ValueError, match="No tasks specified"):
+        evaluator.simple_evaluate(
+            model="hf",
+            tasks=[],
+            limit=5,
+        )
+
+
+def test_simple_evaluate_rejects_unknown_model_name():
+    """simple_evaluate() must raise ValueError when the `model` argument does
+    not match any registered model class -- the registry lookup is the
+    immediate failure mode for typos like ``hf`` vs ``hf-causal``.
+    """
+    with pytest.raises(ValueError, match="no model for this name found"):
+        evaluator.simple_evaluate(
+            model="definitely-not-a-real-model",
+            tasks=["arc_easy"],
+            limit=5,
+        )
+
+
 @pytest.mark.parametrize(
     "task_name,limit,model,model_args,bootstrap_iters",
     [
