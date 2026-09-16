@@ -49,6 +49,8 @@ MODEL_MAPPING = {
     "onnxruntime-genai": "lm_eval.models.onnxruntime_genai:ONNXRuntimeGenAILM",
     "openai-chat-completions": "lm_eval.models.openai_completions:OpenAIChatCompletion",
     "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
+    "orcarouter": "lm_eval.models.orcarouter_llms:OrcaRouterChatCompletion",
+    "orcarouter-chat-completions": "lm_eval.models.orcarouter_llms:OrcaRouterChatCompletion",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
     "habana": "lm_eval.models.optimum_habana:HabanaLM",
     "sglang": "lm_eval.models.sglang_causallms:SGLangLM",
