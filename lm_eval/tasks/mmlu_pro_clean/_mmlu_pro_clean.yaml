@@ -1,0 +1,23 @@
+group: mmlu_pro_clean
+task:
+  - mmlu_pro_clean_biology
+  - mmlu_pro_clean_business
+  - mmlu_pro_clean_chemistry
+  - mmlu_pro_clean_computer_science
+  - mmlu_pro_clean_economics
+  - mmlu_pro_clean_engineering
+  - mmlu_pro_clean_health
+  - mmlu_pro_clean_history
+  - mmlu_pro_clean_law
+  - mmlu_pro_clean_math
+  - mmlu_pro_clean_other
+  - mmlu_pro_clean_philosophy
+  - mmlu_pro_clean_physics
+  - mmlu_pro_clean_psychology
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: true
+    filter_list: custom-extract
+metadata:
+  version: 1.0

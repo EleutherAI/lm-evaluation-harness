@@ -1,0 +1,4 @@
+include: _gpqa_clean_zeroshot_yaml
+task: gpqa_diamond_clean_zeroshot
+dataset_name: gpqa_diamond
+process_docs: !function utils.process_diamond_clean
