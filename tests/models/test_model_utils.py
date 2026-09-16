@@ -1,6 +1,73 @@
 import pytest
 
-from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
+from lm_eval.models.utils import (
+    maybe_truncate,
+    normalize_gen_kwargs,
+    retry_on_specific_exceptions,
+    truncate_tokens,
+)
+
+
+class RetryableError(Exception):
+    pass
+
+
+class TestRetryOnSpecificExceptions:
+    def test_returns_after_retry_succeeds(self, monkeypatch):
+        attempts = 0
+        sleep_calls = []
+        callback_calls = []
+        monkeypatch.setattr("lm_eval.models.utils.time.sleep", sleep_calls.append)
+
+        @retry_on_specific_exceptions(
+            [RetryableError],
+            max_retries=3,
+            backoff_time=1,
+            backoff_multiplier=2,
+            on_exception_callback=lambda error, delay: callback_calls.append(
+                (error, delay)
+            ),
+        )
+        def succeeds_on_third_attempt():
+            nonlocal attempts
+            attempts += 1
+            if attempts < 3:
+                raise RetryableError("try again")
+            return "success"
+
+        assert succeeds_on_third_attempt() == "success"
+        assert attempts == 3
+        assert sleep_calls == [1, 2]
+        assert [delay for _, delay in callback_calls] == [1, 2]
+        assert all(isinstance(error, RetryableError) for error, _ in callback_calls)
+
+    def test_reraises_after_max_retries(self, monkeypatch):
+        attempts = 0
+        sleep_calls = []
+        callback_calls = []
+        monkeypatch.setattr("lm_eval.models.utils.time.sleep", sleep_calls.append)
+
+        @retry_on_specific_exceptions(
+            [RetryableError],
+            max_retries=3,
+            backoff_time=1,
+            backoff_multiplier=2,
+            on_exception_callback=lambda error, delay: callback_calls.append(
+                (error, delay)
+            ),
+        )
+        def always_fails():
+            nonlocal attempts
+            attempts += 1
+            raise RetryableError("still failing")
+
+        with pytest.raises(RetryableError, match="still failing"):
+            always_fails()
+
+        assert attempts == 3
+        assert sleep_calls == [1, 2]
+        assert [delay for _, delay in callback_calls] == [1, 2]
+        assert all(isinstance(error, RetryableError) for error, _ in callback_calls)
 
 
 class TestTruncateTokens:
