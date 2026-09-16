@@ -83,6 +83,43 @@ def test_evaluator(
     )
 
 
+def test_simple_evaluate_rejects_limit_and_samples():
+    with pytest.raises(
+        ValueError,
+        match="Either 'limit' or 'samples' must be None",
+    ):
+        evaluator.simple_evaluate(
+            model="hf",
+            tasks=["arc_easy"],
+            limit=1,
+            samples={"arc_easy": [0]},
+        )
+
+
+def test_evaluate_rejects_limit_and_samples():
+    with pytest.raises(
+        ValueError,
+        match="Either 'limit' or 'samples' must be None",
+    ):
+        evaluator.evaluate(
+            lm=None,
+            task_dict={},
+            limit=1,
+            samples={"arc_easy": [0]},
+        )
+
+
+def test_simple_evaluate_rejects_empty_tasks():
+    with pytest.raises(
+        ValueError,
+        match="No tasks specified",
+    ):
+        evaluator.simple_evaluate(
+            model="hf",
+            tasks=[],
+        )
+
+
 @pytest.mark.parametrize(
     "task_name,limit,model,model_args",
     [
