@@ -44,7 +44,7 @@ In this work, we focus on a suite of 23 challenging BIG-Bench tasks which we cal
 ```
 @article{suzgun2022challenging,
   title={Challenging BIG-Bench Tasks and Whether Chain-of-Thought Can Solve Them},
-  author={Suzgun, Mirac and Scales, Nathan and Sch{\"a}rli, Nathanael and Gehrmann, Sebastian and Tay, Yi and Chung, Hyung Won and Chowdhery, Aakanksha and Le, Quoc V and Chi, Ed H and Zhou, Denny and and Wei, Jason},
+  author={Suzgun, Mirac and Scales, Nathan and Sch{\"a}rli, Nathanael and Gehrmann, Sebastian and Tay, Yi and Chung, Hyung Won and Chowdhery, Aakanksha and Le, Quoc V and Chi, Ed H and Zhou, Denny and Wei, Jason},
   journal={arXiv preprint arXiv:2210.09261},
   year={2022}
 }
