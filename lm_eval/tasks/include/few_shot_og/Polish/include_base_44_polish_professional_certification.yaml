@@ -1,5 +1,4 @@
 include: _polish_few_shot_og_template_yaml
-description: Poniżej znajdują się pytania wielokrotnego wyboru (z odpowiedziami) na
-  temat Professional certification.
+description: "Poniżej znajdują się pytania wielokrotnego wyboru (z odpowiedziami) na temat Professional certification.\n\n"
 process_docs: !function 'utils.process_professional_certification'
 task: include_base_44_polish_few_shot_og_professional_certification

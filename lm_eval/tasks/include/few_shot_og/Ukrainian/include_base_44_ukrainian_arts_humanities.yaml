@@ -1,5 +1,4 @@
 include: _ukrainian_few_shot_og_template_yaml
-description: Нижче наведено запитання з кількома варіантами відповідей (з відповідями)
-  про Arts & Humanities.
+description: "Нижче наведено запитання з кількома варіантами відповідей (з відповідями) про Arts & Humanities.\n\n"
 process_docs: !function 'utils.process_arts_humanities'
 task: include_base_44_ukrainian_few_shot_og_arts_humanities

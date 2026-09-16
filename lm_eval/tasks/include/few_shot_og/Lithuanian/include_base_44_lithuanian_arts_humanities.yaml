@@ -1,5 +1,4 @@
 include: _lithuanian_few_shot_og_template_yaml
-description: Toliau pateikiami klausimai su atsakymų variantais (su atsakymais) apie
-  Arts & Humanities.
+description: "Toliau pateikiami klausimai su atsakymų variantais (su atsakymais) apie Arts & Humanities.\n\n"
 process_docs: !function 'utils.process_arts_humanities'
 task: include_base_44_lithuanian_few_shot_og_arts_humanities

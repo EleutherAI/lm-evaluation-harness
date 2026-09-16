@@ -1,5 +1,11 @@
 from functools import partial
 
+from lm_eval.tasks.include import common
+
+
+IncludeTask = common.IncludeTask
+DomainMatchedSampler = common.DomainMatchedSampler
+
 
 CATEGORIES = [
     "Applied Science",

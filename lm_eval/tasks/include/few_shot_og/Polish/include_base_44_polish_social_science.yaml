@@ -1,5 +1,4 @@
 include: _polish_few_shot_og_template_yaml
-description: Poniżej znajdują się pytania wielokrotnego wyboru (z odpowiedziami) na
-  temat Social Science.
+description: "Poniżej znajdują się pytania wielokrotnego wyboru (z odpowiedziami) na temat Social Science.\n\n"
 process_docs: !function 'utils.process_social_science'
 task: include_base_44_polish_few_shot_og_social_science
