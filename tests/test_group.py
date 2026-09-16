@@ -98,6 +98,27 @@ class TestAggMetricConfig:
         assert config.weight_by_size is True
 
 
+class TestGroupTraversal:
+    def test_shared_nested_task_is_returned_once(self):
+        first_shared = MockTask("shared_task")
+        second_shared = MockTask("shared_task")
+        other = MockTask("other_task")
+
+        subgroup_a = Group(name="subgroup_a")
+        subgroup_a.add(first_shared)
+        subgroup_b = Group(name="subgroup_b")
+        subgroup_b.add(second_shared)
+        subgroup_b.add(other)
+
+        root = Group(name="root")
+        root.add(subgroup_a)
+        root.add(subgroup_b)
+
+        tasks = root.get_all_tasks()
+
+        assert tasks == [first_shared, other]
+
+
 class TestGroupFilterDiscovery:
     """Tests for filter auto-discovery in Group.aggregate()."""
 
@@ -249,6 +270,31 @@ class TestGroupAggregation:
 
         # "custom" only in task_b
         assert result["acc_norm,custom"] == 0.92
+
+    def test_shared_nested_task_is_aggregated_once(self):
+        subgroup_a = Group(name="subgroup_a")
+        subgroup_a.add(MockTask("shared_task"))
+        subgroup_b = Group(name="subgroup_b")
+        subgroup_b.add(MockTask("shared_task"))
+        subgroup_b.add(MockTask("other_task"))
+
+        root = Group(
+            name="root",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", filter_list=["none"])],
+        )
+        root.add(subgroup_a)
+        root.add(subgroup_b)
+
+        result = root.aggregate(
+            {
+                "shared_task": {"sample_len": 100, "acc,none": 0.0},
+                "other_task": {"sample_len": 200, "acc,none": 1.0},
+            }
+        )
+
+        assert result["sample_len"] == 300
+        assert result["sample_count"] == {"acc,none": 300}
+        assert result["acc,none"] == pytest.approx(2 / 3)
 
     def test_explicit_filter_list_backward_compatibility(self):
         """Test that explicit filter_list only aggregates specified filters."""

@@ -90,23 +90,31 @@ class Group:
 
     def get_all_tasks(self, recursive: bool = True) -> list[Task]:
         """
-        Get all leaf Task objects.
+        Get all unique leaf Task objects.
 
         Args:
             recursive: If True, include tasks from nested subgroups.
                        If False, only return direct Task children.
 
         Returns:
-            List of Task objects (not Groups).
+            List of Task objects (not Groups), de-duplicated by task name while
+            preserving first-seen traversal order.
         """
         from lm_eval.api.task import Task
 
-        tasks = []
-        for item in self._children.values():
-            if isinstance(item, Task):
-                tasks.append(item)
-            elif isinstance(item, Group) and recursive:
-                tasks.extend(item.get_all_tasks(recursive=True))
+        tasks: list[Task] = []
+        seen: set[str] = set()
+
+        def collect(group: Group) -> None:
+            for item in group._children.values():
+                if isinstance(item, Task):
+                    if item.task_name not in seen:
+                        seen.add(item.task_name)
+                        tasks.append(item)
+                elif recursive:
+                    collect(item)
+
+        collect(self)
         return tasks
 
     def get_all_groups(self, recursive: bool = True) -> list[Group]:
@@ -178,7 +186,7 @@ class Group:
                     filter_name = key[len(prefix) :]  # Extract filter part
                     discovered_filters.add(filter_name)
 
-        return sorted(list(discovered_filters))  # Sort for deterministic ordering
+        return sorted(discovered_filters)  # Sort for deterministic ordering
 
     def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
         """
