@@ -1,11 +1,8 @@
 tag:
   - med_text_classification
 task: med_text_classification_easy
-dataset_path: csv
+dataset_path: TimSchopf/medical_abstracts
 dataset_name: null
-dataset_kwargs:
-  data_files:
-    train: /gpfs/projects/bsc70/heka/data/datasets/med_text_class_train.csv
 output_type: multiple_choice
 training_split: train
 validation_split: train
