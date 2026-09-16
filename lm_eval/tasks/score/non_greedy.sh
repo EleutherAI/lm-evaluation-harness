@@ -11,7 +11,7 @@ helpFunction()
    exit 1 # Exit script after printing help
 }
 
-while getopts "m:t:s:" opt
+while getopts "m:t:s:o:" opt
 do
    case "$opt" in
       m ) MODEL="$OPTARG" ;;
@@ -22,7 +22,7 @@ do
    esac
 done
 
-if [ -z "$MODEL" ] | [ -z "$TASK" ] | [ -z "$SEED" ] | [ -z "$OUTPUT_DIR" ]
+if [ -z "$MODEL" ] || [ -z "$TASK" ] || [ -z "$SEED" ] || [ -z "$OUTPUT_DIR" ]
 then
    echo "Some or all of the parameters are empty";
    helpFunction
@@ -40,7 +40,7 @@ lm_eval --model vllm \\
  --model_args pretrained=$MODEL,dtype=bfloat16,tensor_parallel_size=$TENSOR_PARALLEL,gpu_memory_utilization=0.9,\\
  max_model_len=4096,data_parallel_size=1,disable_custom_all_reduce=True,enforce_eager=False,seed=$SEED\\
  --apply_chat_template \\
- --tasks $TASKS \\
+ --tasks $TASK \\
  --batch_size $BATCH_SIZE \\
  --log_samples \\
  --output_path $OUTPUT_DIR \\
