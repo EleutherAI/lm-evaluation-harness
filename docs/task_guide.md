@@ -29,7 +29,7 @@ Dataset configuration options:
 - **training_split** (`str`, *optional*) — Split in the dataset to use as the training split.
 - **validation_split** (`str`, *optional*) — Split in the dataset to use as the validation split.
 - **test_split** (`str`, *optional*) — Split in the dataset to use as the test split.
-- **fewshot_split** (`str`, *optional*) — Split in the dataset to draw few-shot exemplars from. assert that this not None if num_fewshot > 0.
+- **fewshot_split** (`str`, *optional*) — Split in the dataset to draw few-shot exemplars from. If neither this nor `fewshot_config.split` is set and no `fewshot_config.samples` are given while `num_fewshot > 0`, exemplars are drawn from `training_split`, else `validation_split`, else `test_split`, and a warning is logged; the fallback to `test_split` is additionally flagged as not recommended.
 - **process_docs** (`Callable`, *optional*) — Optionally define a function to apply to each HF dataset split, to preprocess all documents before being fed into prompt template rendering or other evaluation steps. Can be used to rename dataset columns, or to process documents into a format closer to the expected format expected by a prompt template.
 
 Prompting / in-context formatting options:
