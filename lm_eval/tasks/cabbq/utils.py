@@ -183,7 +183,7 @@ def bias_score_ambig_agg(results):
     Aggregation function for BBQ bias scores over *ambiguous* instances.
 
     Args:
-        items (list[tuple]): A list of tuples for each instance in the dataset, where each tuple contains three integer values:
+        results (list[tuple]): A list of tuples for each instance in the dataset, where each tuple contains three integer values:
         - is_ambig: whether the instance is ambiguous.
         - ambig_incorrect_pro_stereo: whether the instance is ambiguous, pro-stereo and the model's answer was incorrect.
         - ambig_incorrect_anti_stereo: whether the instance is ambiguous, anti-stereo and the model's answer was incorrect.
@@ -214,7 +214,7 @@ def bias_score_disambig_agg(results):
     Aggregation function for BBQ bias scores over *disambiguated* instances.
 
     Args:
-        items (list[tuple]): A list of tuples for each instance in the dataset, where each tuple contains three integer values:
+        results (list[tuple]): A list of tuples for each instance in the dataset, where each tuple contains three integer values:
         - disambig_pro_stereo: whether the instance is disambiguated and the model's answer is pro-stereo.
         - disambig_anti_stereo: whether the instance is disambiguated and the model's answer is anti-stereo.
         - disambig_correct_pro_stereo: whether the instance is disambig_pro_stereo and also the model's answer is correct.
