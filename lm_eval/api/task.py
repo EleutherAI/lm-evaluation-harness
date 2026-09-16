@@ -990,7 +990,11 @@ class ConfigurableTask(Task):
                     self.doc_to_choice(fs_doc, self.fewshot_cfg.doc_to_choice)
                     if self.fewshot_cfg.doc_to_choice
                     else None,
-                    self.doc_to_target(fs_doc, self.fewshot_cfg.doc_to_target),
+                    self.doc_to_target(
+                        fs_doc,
+                        self.fewshot_cfg.doc_to_target,
+                        self.fewshot_cfg.doc_to_target_type,
+                    ),
                 )
                 _gen_prefix = self.resolve_field(fs_doc, self.fewshot_cfg.gen_prefix)
                 # for multiple inputs, q: int, c: list[str], target: str
@@ -1233,13 +1237,23 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> int | str | list:
+    def doc_to_target(
+        self, doc: Mapping, doc_to_target=None, doc_to_target_type=None
+    ) -> int | str | list:
         if self.prompt is not None:
             doc_to_target = self.prompt
         elif doc_to_target is not None:
             doc_to_target = doc_to_target
         else:
             doc_to_target = self.config.doc_to_target
+
+        target_type = (
+            self.config.doc_to_target_type
+            if doc_to_target_type is None
+            else doc_to_target_type
+        )
+        if target_type not in {"auto", "string", "list"}:
+            raise ValueError("doc_to_target_type must be one of: auto, string, list")
 
         if isinstance(doc_to_target, int):
             return doc_to_target
@@ -1251,6 +1265,20 @@ class ConfigurableTask(Task):
                 return doc[doc_to_target]
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
+                if target_type == "string":
+                    return target_string
+                if target_type == "list":
+                    try:
+                        target = ast.literal_eval(target_string)
+                    except (SyntaxError, ValueError) as exc:
+                        raise ValueError(
+                            "doc_to_target_type='list' requires a valid list literal"
+                        ) from exc
+                    if not isinstance(target, list):
+                        raise ValueError(
+                            "doc_to_target_type='list' requires a list literal"
+                        )
+                    return target
                 if target_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(target_string)
                 elif (

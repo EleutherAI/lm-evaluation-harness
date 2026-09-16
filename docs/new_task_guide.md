@@ -86,6 +86,7 @@ fewshot_config:
   samples: [...]          # Hardcoded list of fewshot examples, or a callable returning them
   doc_to_text: "..."      # Override doc_to_text for fewshot examples only
   doc_to_target: "..."    # Override doc_to_target for fewshot examples only
+  doc_to_target_type: "auto" # Interpret rendered targets as auto, string, or list
   doc_to_choice: "..."    # Override doc_to_choice for fewshot examples only
   gen_prefix: "Answer:"   # Prefix for assistant response in fewshot examples
   fewshot_delimiter: "\n\n"  # Delimiter between fewshot examples
