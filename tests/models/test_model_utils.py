@@ -1,6 +1,24 @@
 import pytest
 
-from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
+from lm_eval.models.utils import (
+    maybe_truncate,
+    normalize_gen_kwargs,
+    truncate_tokens,
+    undistribute,
+)
+
+
+@pytest.mark.parametrize(
+    ("distributed", "expected"),
+    [
+        ([[1, 3, 5], [2, 4, 6]], [1, 2, 3, 4, 5, 6]),
+        ([[1, 4, 7], [2, 5], [3, 6]], [1, 2, 3, 4, 5, 6, 7]),
+        ([[1], [2], [3], [], []], [1, 2, 3]),
+        ([[1, None], [2, 3]], [1, 2, None, 3]),
+    ],
+)
+def test_undistribute(distributed, expected):
+    assert undistribute(distributed) == expected
 
 
 class TestTruncateTokens:

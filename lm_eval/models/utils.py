@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -185,12 +186,13 @@ def undistribute(iterable):
         [1, 2, 3]
 
     """
+    fillvalue = object()
     return [
         x
         for x in itertools.chain.from_iterable(
-            itertools.zip_longest(*[list(x) for x in iterable])
+            itertools.zip_longest(*[list(x) for x in iterable], fillvalue=fillvalue)
         )
-        if x is not None
+        if x is not fillvalue
     ]
 
 
