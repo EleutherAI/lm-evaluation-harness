@@ -1,0 +1,6 @@
+group: jailbreakbench
+task:
+  - jbb_harmful
+  - jbb_benign
+metadata:
+  version: 0.0

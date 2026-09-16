@@ -1,0 +1,22 @@
+task: jbb_harmful
+tag:
+  - jailbreakbench
+dataset_path: JailbreakBench/JBB-Behaviors
+dataset_name: behaviors
+test_split: harmful
+output_type: generate_until
+doc_to_text: !function utils.doc_to_text
+doc_to_target: ""
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 256
+metric_list:
+  - metric: refusal_rate
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
