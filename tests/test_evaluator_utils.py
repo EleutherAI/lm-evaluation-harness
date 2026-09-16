@@ -859,3 +859,42 @@ class TestCollectResultsNSamples:
         result = _collect_results(accs, bootstrap_iters=0)
         assert result.n_samples["t1"]["original"] == 42
         assert result.n_samples["t1"]["effective"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Sampled doc-id mapping (regression for unsorted --samples lists)
+# ---------------------------------------------------------------------------
+
+
+class TestSampledDocIdMapping:
+    """doc_iterator yields positions in dataset order; logged doc ids must
+    map through the sorted selection, not the caller's list order."""
+
+    def _task_with_docs(self, n=10):
+        from tests.test_metrics import MockConfigurableTask
+
+        docs = [{"i": i} for i in range(n)]
+        task = MockConfigurableTask()
+        task.has_test_docs = lambda: True
+        task.test_docs = lambda: docs
+        return task
+
+    def test_iterator_yields_dataset_order_for_unsorted_samples(self):
+        task = self._task_with_docs()
+        yielded = [(pos, doc["i"]) for pos, doc in task.doc_iterator(samples=[5, 2, 9])]
+        # positions are 0..k-1; docs arrive in dataset order (2, 5, 9)
+        assert yielded == [(0, 2), (1, 5), (2, 9)]
+
+    def test_sorted_mapping_pairs_ids_with_docs(self):
+        # the evaluator's rule: doc_id_true = sorted(samples)[position]
+        samples = [5, 2, 9]
+        ordered = sorted(samples)
+        task = self._task_with_docs()
+        for pos, doc in task.doc_iterator(samples=samples):
+            doc_id_true = ordered[pos]
+            assert doc_id_true == doc["i"]
+
+    def test_sorted_mapping_identity_for_sorted_samples(self):
+        samples = [2, 5, 9]
+        ordered = sorted(samples)
+        assert ordered == samples  # the historical behavior is a special case
