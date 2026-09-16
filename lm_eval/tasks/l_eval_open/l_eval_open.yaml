@@ -1,0 +1,10 @@
+group: l_eval_open
+task:
+  - l_eval_financial_qa
+  - l_eval_gov_report_summ
+  - l_eval_meeting_summ
+  - l_eval_multidoc_qa
+  - l_eval_narrative_qa
+  - l_eval_paper_assistant
+  - l_eval_patent_summ
+  - l_eval_review_summ
