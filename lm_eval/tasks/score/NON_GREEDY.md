@@ -33,7 +33,7 @@ To run the evaluation of the Non-Greedy tasks with 5 different seeds you should:
 
 2. Repeat the process for 5 times**, changing the `--seed` and the `--output_path` arguments accordingly from 1 to 5.
 
-3. When all 5 runs are finished and logs are saved, run the `./lm_eval/tasks/score/non_greedy_summarizer.py` script by passing the the output directory of the above runs to the `--log_dir` argument***, and by specifying the dataset name for which the evaluations were run with `--dataset` argument(`agieval`, `mmlu_pro` or `math`). \
+3. When all 5 runs are finished and logs are saved, run the `./lm_eval/tasks/score/non_greedy_summarizer.py` script by passing the output directory of the above runs to the `--log_dir` argument***, and by specifying the dataset name for which the evaluations were run with `--dataset` argument(`agieval`, `mmlu_pro` or `math`). \
 
 4. The script will return the default lm_evaluation_harness table where accuracies for each seed and the consistancy rate are calculated.
 
