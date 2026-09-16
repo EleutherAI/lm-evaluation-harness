@@ -23,11 +23,11 @@ limitations under the License.
 
 ## Groups
 
-- `score_robustness_mmlu_pro`: two 0-shot robutstness tasks on MMLU-PRO dataset [[1](#mmlu_pro)]
+- `score_robustness_mmlu_pro`: two 0-shot robustness tasks on MMLU-PRO dataset [[1](#mmlu_pro)]
 
-- `score_robustness_agieval`: two 0-shot robutstness tasks on the AGIEVAL datasets [[2](#agi_eval)] multiple choice questions subsets:  `'agieval-sat-math'`, `'agieval-lsat-lr'`, `'agieval-lsat-rc'`, `'agieval-logiqa-en'`, `'agieval-aqua-rat'`, `'agieval-sat-en'`, `'agieval-lsat-ar'`
+- `score_robustness_agieval`: two 0-shot robustness tasks on the AGIEVAL datasets [[2](#agi_eval)] multiple choice questions subsets:  `'agieval-sat-math'`, `'agieval-lsat-lr'`, `'agieval-lsat-rc'`, `'agieval-logiqa-en'`, `'agieval-aqua-rat'`, `'agieval-sat-en'`, `'agieval-lsat-ar'`
 
-- `score_robustness_math`: one 0-shot robutstness tasks on Hendryk's MATH dataset [[3](#math)]
+- `score_robustness_math`: one 0-shot robustness tasks on Hendrycks' MATH dataset [[3](#math)]
 
 ## Tasks
 
