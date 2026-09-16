@@ -100,6 +100,7 @@ def parse_args():
 
     # Optional prefix to add to group names in the YAML files
     parser.add_argument("--group_prefix", default="")
+    parser.add_argument("--save_prefix_path", default="./", help="Prefix path to save the YAML files")
 
     # Which MMLU-SR variant to generate. Each one lives in its own directory
     # and reads its own base YAML.
