@@ -156,11 +156,16 @@ def ter(items):
 @register_aggregation("brier_score")
 def brier_score(items):  # This is a passthrough function
     gold, predictions = list(zip(*items))
-    bs, num_class = np.array(predictions).shape
-
-    gold = list(gold)
-    gold_one_hot = np.eye(num_class)[gold]
-    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+    # Docs may have different numbers of choices (e.g. ARC mixes 3-, 4- and
+    # 5-option questions), so score each doc against a one-hot vector of its
+    # own length instead of stacking everything into one rectangular array.
+    scores = []
+    for g, pred in zip(gold, predictions, strict=True):
+        pred = np.asarray(pred, dtype=float)
+        gold_one_hot = np.zeros(len(pred))
+        gold_one_hot[g] = 1.0
+        scores.append(np.sum((pred - gold_one_hot) ** 2))
+    return np.mean(scores)
 
 
 @register_metric(

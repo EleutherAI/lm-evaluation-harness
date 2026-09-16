@@ -245,6 +245,27 @@ def test_chrfpp_uses_word_order_two():
     )
 
 
+def test_brier_score_uniform_choice_counts():
+    """brier_score over docs that all have the same number of choices."""
+    from lm_eval.api.metrics import brier_score
+
+    items = [(0, [0.5, 0.5]), (1, [0.25, 0.75])]
+    # doc 1: (0.5-1)^2 + 0.5^2 = 0.5; doc 2: 0.25^2 + (0.75-1)^2 = 0.125
+    assert abs(brier_score(items) - 0.3125) < 1e-9
+
+
+def test_brier_score_ragged_choice_counts():
+    """brier_score must not crash when docs have different numbers of choices
+    (e.g. ARC mixes 3-, 4- and 5-option questions).
+    """
+    from lm_eval.api.metrics import brier_score
+
+    items = [(0, [0.7, 0.2, 0.1]), (1, [0.1, 0.6, 0.2, 0.1])]
+    # doc 1: (0.7-1)^2 + 0.2^2 + 0.1^2 = 0.14
+    # doc 2: 0.1^2 + (0.6-1)^2 + 0.2^2 + 0.1^2 = 0.22
+    assert abs(brier_score(items) - 0.18) < 1e-9
+
+
 def test_chrfpp_perfect_match():
     """chrf++ should return 100.0 for identical hypothesis and reference."""
     from lm_eval.api.metrics import chrfpp
