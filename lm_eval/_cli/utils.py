@@ -114,6 +114,27 @@ def handle_cli_value_string(arg: str) -> bool | int | float | str:
             return arg
 
 
+_QUOTE_OPENERS = "=,[({: \t"
+
+
+def _opens_quote(args: str, i: int) -> bool:
+    """Whether the quote character at index ``i`` starts a quoted span.
+
+    A quote only opens a span when it begins a token: at the start of the
+    string, or right after a separator. An apostrophe inside a word (``don't``)
+    is a literal character, and treating it as an opening quote would swallow
+    every following comma and silently merge the remaining ``key=value`` pairs
+    into one value.
+
+    The quote must also have a partner later in the string, so an unterminated
+    quote degrades to a literal character instead of eating the rest of the
+    input.
+    """
+    if i and args[i - 1] not in _QUOTE_OPENERS:
+        return False
+    return args.find(args[i], i + 1) != -1
+
+
 def split_top_level(args: str) -> list[str]:
     """Split on commas that sit outside of brackets, braces and quotes."""
     parts: list[str] = []
@@ -121,11 +142,11 @@ def split_top_level(args: str) -> list[str]:
     depth = 0
     quote: str | None = None
 
-    for char in args:
+    for i, char in enumerate(args):
         if quote is not None:
             if char == quote:
                 quote = None
-        elif char in "\"'":
+        elif char in "\"'" and _opens_quote(args, i):
             quote = char
         elif char in "[({":
             depth += 1

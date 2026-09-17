@@ -235,6 +235,40 @@ class TestRunCommand:
         args = parser.parse_args(["run", "--tasks", "ruler"])
         assert args.metadata is None
 
+    def test_run_command_apostrophe_does_not_swallow_later_args(self):
+        """An apostrophe inside a value must not open a quoted span.
+
+        `split_top_level` treated any quote character as opening a quoted
+        region, so a value such as `Bob's` left the parser inside a quote for
+        the rest of the string and every following `key=value` pair was
+        silently folded into that one value instead of being parsed.
+        """
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        args = parser.parse_args(
+            ["run", "--gen_kwargs", "until=Bob's,temperature=0,max_gen_toks=256"]
+        )
+        assert args.gen_kwargs == {
+            "until": "Bob's",
+            "temperature": 0,
+            "max_gen_toks": 256,
+        }
+
+        args = parser.parse_args(
+            [
+                "run",
+                "--model_args",
+                "pretrained=gpt2,system_prompt=Answer what's asked,dtype=float16",
+            ]
+        )
+        assert args.model_args == {
+            "pretrained": "gpt2",
+            "system_prompt": "Answer what's asked",
+            "dtype": "float16",
+        }
+
     def test_run_command_metadata_invalid(self):
         """Test Run command exits cleanly on metadata missing an `=`."""
         parser = argparse.ArgumentParser()
