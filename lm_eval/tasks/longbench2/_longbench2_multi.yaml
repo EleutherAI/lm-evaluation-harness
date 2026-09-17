@@ -5,6 +5,7 @@ task:
   - longbench2_academic_multi
   - longbench2_fin_multi
   - longbench2_news_multi
+  - longbench2_legal_multi
 aggregate_metric_list:
   - metric: acc
     weight_by_size: True
