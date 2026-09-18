@@ -184,6 +184,7 @@ def main() -> None:
     for path, task_type in zip(
         ["multiple_choice", "generate_until"],
         ["multiple_choice_template_yaml", "generate_until_template_yaml"],
+        strict=True,
     ):
         os.makedirs(path, exist_ok=True)
         for task in all_subtasks:
@@ -195,15 +196,25 @@ def main() -> None:
                     if task in skip_tasks:
                         continue
                     data = datasets.load_dataset("hails/bigbench", task + "_zero_shot")
-                    multiple_choice_targets = data["default"][0][
-                        "multiple_choice_targets"
-                    ]
-                    if len(multiple_choice_targets) == 0:
+                    # Some subtasks mix multiple-choice and free-form examples in
+                    # one split, so row 0 does not decide for the rest. Pick the
+                    # first row that has choices: utils.filter_multiple_choice
+                    # drops the free-form rows at run time, and a subtask is only
+                    # skipped here when no row has any.
+                    example = next(
+                        (
+                            row
+                            for row in data["default"]
+                            if len(row["multiple_choice_targets"]) > 0
+                        ),
+                        None,
+                    )
+                    if example is None:
                         continue
                     else:
                         template_file = "multiple_choice_template_b_yaml"
-                        if set(data["default"][0]["targets"]) < set(
-                            multiple_choice_targets
+                        if set(example["targets"]) < set(
+                            example["multiple_choice_targets"]
                         ):
                             template_file = "multiple_choice_template_a_yaml"
 
