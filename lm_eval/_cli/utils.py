@@ -151,6 +151,9 @@ def key_val_to_dict(args: str) -> dict[str, Any]:
         if "=" not in item:
             raise ValueError(f"expected `key=value`, got {item!r}")
         k, v = item.split("=", 1)
+        k = k.strip()
+        if not k:
+            raise ValueError(f"empty key in {item!r}")
         v = handle_cli_value_string(v)
         if k in res:
             eval_logger.warning("Overwriting key '%s': %r -> %r", k, res[k], v)
