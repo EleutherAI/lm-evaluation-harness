@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 def process_bucket(
     bucket_file_path, processed_directory, move_dir, tqdm_func, global_tqdm
 ):
-    bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))  # noqa: W605
+    bucket_id = re.sub(r"\D", "", os.path.basename(bucket_file_path))
     done_file = os.path.join(
         processed_directory, f"ngram_bucket_processing_{bucket_id}.done"
     )
