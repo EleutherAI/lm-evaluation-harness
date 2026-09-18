@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -854,6 +855,12 @@ def truncate_tokens(
     side: Literal["left", "middle", "right"] = "left",
 ) -> list[int]:
     """Truncate a token list to max_length using the given strategy (left, right, or middle)."""
+    # A non-positive budget leaves no room for context. Returning early is not
+    # only an optimisation: -0 == 0 in a slice, so tokens[-max_length:] with
+    # max_length 0 is the whole list, and a negative max_length makes "middle"
+    # duplicate the overlap between its two slices.
+    if max_length <= 0:
+        return []
     # fmt: off
     match side:
         case "left": return tokens[-max_length:]

@@ -31,9 +31,33 @@ class TestTruncateTokens:
             truncate_tokens([1, 2, 3], 2, side="unknown")  # type: ignore
         assert "Unknown truncation side" in str(execinfo.value)
 
+    @pytest.mark.parametrize("side", ["left", "right", "middle"])
+    def test_zero_budget_returns_nothing(self, side):
+        """-0 == 0 in a slice, so tokens[-max_length:] with max_length 0 is the
+        whole list rather than none of it.
+        """
+        assert truncate_tokens([1, 2, 3, 4, 5], 0, side=side) == []
+
+    @pytest.mark.parametrize("side", ["left", "right", "middle"])
+    def test_negative_budget_returns_nothing(self, side):
+        """A negative budget made "middle" duplicate the overlap between its two
+        slices and return more tokens than it was given.
+        """
+        assert truncate_tokens([1, 2, 3, 4, 5], -3, side=side) == []
+
 
 class TestMaybeTruncate:
     """Tests for maybe_truncate with different truncation strategies."""
+
+    def test_context_plus_generation_fits_when_budget_is_exactly_zero(self):
+        """The whole point of this function is that the two fit together. With
+        max_gen_toks equal to max_model_len the context budget is 0, and the
+        context came back untouched.
+        """
+        tokens, gen = maybe_truncate(
+            list(range(100)), max_gen_toks=4096, max_model_len=4096, verbose=False
+        )
+        assert len(tokens) + gen <= 4096
 
     # Case 1: Everything fits
     def test_case1_no_truncation(self):
