@@ -257,6 +257,17 @@ def hash_args(attr: str, args: Iterable[Any]) -> str:
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
+def _should_cache_request(attr: str, args: Iterable[Any]) -> bool:
+    if attr != "generate_until":
+        return True
+
+    args = tuple(args)
+    if len(args) < 2 or not isinstance(args[1], dict):
+        return True
+
+    return not args[1].get("do_sample", False)
+
+
 class CacheHook:
     def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
         if cachinglm is None:
@@ -267,6 +278,8 @@ class CacheHook:
 
     def add_partial(self, attr: str, req: Iterable[Any], res: Any) -> None:
         if self.dbdict is None:
+            return
+        if not _should_cache_request(attr, req):
             return
         hsh = hash_args(attr, req)
         self.dbdict[hsh] = res
@@ -307,7 +320,7 @@ class CachingLM:
             )
             for req in tqdm(requests, desc="Checking cached requests"):
                 hsh = hash_args(attr, req.args)
-                if attr == "generate_until" and req.args[1].get("do_sample", False):
+                if not _should_cache_request(attr, req.args):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
                     if not warned:
@@ -341,8 +354,9 @@ class CachingLM:
                 res[resptr] = r
 
                 # caching
-                hsh = hash_args(attr, req.args)
-                self.dbdict[hsh] = r
+                if _should_cache_request(attr, req.args):
+                    hsh = hash_args(attr, req.args)
+                    self.dbdict[hsh] = r
             self.dbdict.commit()
 
             return res
