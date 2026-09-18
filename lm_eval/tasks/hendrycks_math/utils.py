@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 import datasets
@@ -26,10 +27,17 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
 
-    results = {
+    answer_flexible = extract_final_answer(results[0])
+
+    is_correct_flexible = is_equiv(
+        answer_flexible, remove_boxed(last_boxed_only_string(doc["solution"]))
+    )
+    retval_flexible = 1 if is_correct_flexible else 0
+
+    return {
         "exact_match": retval,
+        "exact_match_flexible": retval_flexible,
     }
-    return results
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
@@ -92,6 +100,36 @@ def last_boxed_only_string(string):
         retval = string[idx : right_brace_idx + 1]
 
     return retval
+
+
+def extract_final_answer(text):
+    start = text.find(r"\boxed{")
+    if start != -1:
+        i = start + len(r"\boxed{")
+        count = 1
+        content = ""
+        while i < len(text) and count > 0:
+            if text[i] == "{":
+                count += 1
+            elif text[i] == "}":
+                count -= 1
+
+            if count > 0:
+                content += text[i]
+            i += 1
+
+        if content:
+            return content
+
+    frac = re.findall(r"\\d?frac{[^{}]+}{[^{}]+}", text)
+    if frac:
+        return frac[-1]
+
+    numbers = re.findall(r"[-+]?\d*\.?\d+", text)
+    if numbers:
+        return numbers[-1]
+
+    return text
 
 
 def fix_fracs(string):
