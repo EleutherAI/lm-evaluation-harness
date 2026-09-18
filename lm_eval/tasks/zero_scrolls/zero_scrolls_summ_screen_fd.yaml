@@ -1,0 +1,21 @@
+tag: zero_scrolls
+task: zero_scrolls_summ_screen_fd
+dataset_path: tau/zero_scrolls
+dataset_name: summ_screen_fd
+dataset_kwargs:
+  trust_remote_code: true
+validation_split: validation
+process_docs: !function utils.process_docs
+output_type: generate_until
+doc_to_text: "{{context}}\n\nQuestion: What is a summary of the preceding TV episode transcript?\nAnswer:"
+doc_to_target: "{{output}}"
+process_results: !function utils.process_rouge
+generation_kwargs:
+  max_gen_toks: 1024
+  until: []
+metric_list:
+  - metric: rouge_geomean
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
