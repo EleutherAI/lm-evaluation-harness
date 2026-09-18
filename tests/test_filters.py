@@ -2,7 +2,9 @@ import importlib.util
 from pathlib import Path
 
 import pytest
+import yaml
 
+from lm_eval.api.registry import get_filter
 from lm_eval.filters.extraction import MultiChoiceRegexFilter
 from lm_eval.filters.transformation import SPANFilter
 
@@ -27,6 +29,24 @@ def test_multi_choice_regex_all_empty_capture_groups_falls_back_to_bare_letter()
     docs = [{"choices": ["alpha", "beta"]}]
 
     assert filt.apply(resps, docs) == [["(B)"]]
+
+
+@pytest.mark.parametrize(
+    "response",
+    ["B", "B. 4", "Answer: B", "The answer is B"],
+)
+def test_mmlu_generative_filter_extracts_answer_letters(response):
+    config_path = (
+        Path(__file__).parent.parent
+        / "lm_eval/tasks/mmlu/generative/_default_template_yaml"
+    )
+    config = yaml.safe_load(config_path.read_text())
+    filter_config = config["filter_list"][0]["filter"][0]
+    filter_args = {key: value for key, value in filter_config.items() if key != "function"}
+
+    filt = get_filter(filter_config["function"])(**filter_args)
+
+    assert filt.apply([[response]], [{"choices": ["one", "two", "three", "four"]}]) == [["B"]]
 
 
 def test_format_span_normalizes_label_only():
