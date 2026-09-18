@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 import datasets
@@ -15,13 +16,53 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
+def _extract_answer(text: str) -> str:
+    """Extract mathematical content from various LaTeX delimiters.
+
+    Supports (in priority order):
+    - \\[...\\] (display math)
+    - $$...$$ (display math)
+    - \\(...\\) (inline math)
+    - $...$ (inline math)
+
+    Falls back to returning the full text if no delimiters are found.
+    """
+    # Try \[...\] (display math)
+    match = re.search(r"\\\[([\s\S]*?)\\\]", text)
+    if match:
+        return match.group(1).strip()
+
+    # Try $$...$$ (display math)
+    match = re.search(r"\$\$([\s\S]*?)\$\$", text)
+    if match:
+        return match.group(1).strip()
+
+    # Try \(...\) (inline math)
+    match = re.search(r"\\\(([\s\S]*?)\\\)", text)
+    if match:
+        return match.group(1).strip()
+
+    # Try $...$ (inline math) - original behavior
+    indices = [pos for pos, char in enumerate(text) if char == "$"]
+    if len(indices) > 1:
+        return text[indices[0] + 1 : indices[-1]]
+
+    return text
+
+
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    answer = _extract_answer(results[0])
+
+    # Try to extract \boxed{...} from the model's answer, matching how
+    # the solution answer is extracted. This handles cases where the model
+    # wraps its answer in \boxed, e.g. \[ \boxed{42} \] or $42$.
+    boxed = last_boxed_only_string(answer)
+    if boxed is not None:
+        try:
+            answer = remove_boxed(boxed)
+        except AssertionError:
+            pass  # keep original answer if boxed extraction fails
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
@@ -67,7 +108,12 @@ def remove_boxed(s):
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
-        return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
+        boxed_tail = string.split("\\boxed ")[-1]
+        # Split on any math delimiter to isolate the boxed content
+        for delim in ("$", "\\]", "\\)", "\\\\["):
+            if delim in boxed_tail:
+                boxed_tail = boxed_tail.split(delim)[0]
+        return "\\boxed " + boxed_tail
     if idx < 0:
         idx = string.rfind("\\fbox")
         if idx < 0:
