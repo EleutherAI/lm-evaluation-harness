@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 import datasets
@@ -17,19 +18,152 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
+    response = results[0]
+
+    # Try to extract \boxed{} from the response (matches aime task behavior)
+    boxed = last_boxed_only_string(response)
+    if boxed is not None:
+        try:
+            answer = remove_boxed(boxed)
+        except AssertionError:
+            answer = None
     else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+        answer = None
+
+    # Fall back to $...$ extraction
+    if answer is None:
+        indices = [pos for pos, char in enumerate(response) if char == "$"]
+        if len(indices) <= 1:
+            answer = response
+        else:
+            answer = response[indices[0] + 1 : indices[-1]]
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
 
-    results = {
+    return {
         "exact_match": retval,
+        **process_results_flex(doc, results),
     }
-    return results
+
+
+def process_results_flex(doc: dict, results: List[str]) -> Dict[str, int]:
+    """Improved exact match with answer normalization to reduce false negatives."""
+    retval = 0
+    response = results[0]
+
+    # Try to extract \boxed{} from the response
+    # Work on the last line containing \boxed to avoid picking up intermediate steps
+    last_idx = response.rfind("\\boxed")
+    if last_idx >= 0:
+        line_start = response.rfind("\n", 0, last_idx) + 1
+        last_line = response[line_start:]
+        all_boxed = all_boxed_strings(last_line)
+        if len(all_boxed) > 1:
+            # Multiple boxed values on the same line (e.g., \boxed{3}, \boxed{5}, \boxed{7})
+            answer = ", ".join(remove_boxed(b) for b in all_boxed)
+        else:
+            boxed = last_boxed_only_string(last_line)
+            try:
+                answer = remove_boxed(boxed)
+            except (AssertionError, TypeError):
+                answer = None
+    else:
+        answer = None
+
+    # Fall back to $...$ extraction
+    if answer is None:
+        indices = [pos for pos, char in enumerate(response) if char == "$"]
+        if len(indices) <= 1:
+            answer = response
+        else:
+            answer = response[indices[0] + 1 : indices[-1]]
+
+    target = remove_boxed(last_boxed_only_string(doc["solution"]))
+    original_target = target
+
+    if answer is not None:
+        # Strip ordinal suffix ^{\text{...}} before \text{} stripping (e.g., doc_id=379: 12^{\text{th}} → 12)
+        answer = re.sub(r"\^\{\\text\{[^}]*\}\}$", "", answer)
+    # Strip \text{...} from both target and answer
+    target = re.sub(r"\\text\{([^}]*)\}", r"\1", target)
+    if answer is not None:
+        answer = re.sub(r"\\text\{([^}]*)\}", r"\1", answer)
+    # Strip base subscripts from numeric answers (e.g., 4210_{5} → 4210, 2516_8 → 2516)
+    # Only strip when the main part is a pure integer, to avoid corrupting symbolic answers like x_2
+    target = re.sub(r"^(\d+)_\{?\d+\}?$", r"\1", target)
+    if answer is not None:
+        answer = re.sub(r"^(\d+)_\{?\d+\}?$", r"\1", answer)
+
+    # Build accepted_targets: the original target plus normalized variants
+    accepted_targets = [target]
+
+    # Use target \text{...} with `\text` content fully removed as an accepted variant
+    # e.g., doc_id=301: "5.4 \text{ cents}" → "5.4"
+    target_text_stripped = re.sub(r"\\text\{[^}]*\}", "", original_target).strip()
+    if target_text_stripped and target_text_stripped != target:
+        accepted_targets.append(target_text_stripped)
+
+    # doc_id=97: lowercase (e.g., "East" → "east")
+    if target.lower() != target:
+        accepted_targets.append(target.lower())
+
+    # doc_id=227/255/296: single-letter multiple choice — accept with or without surrounding parens
+    # e.g., "(C)" accepted as "C", or "C" accepted as "(C)"
+    if re.match(r"^\([A-Za-z]\)$", target.strip()):
+        accepted_targets.append(target.strip()[1:-1])  # strip parens: (C) → C
+    elif re.match(r"^[A-Za-z]$", target.strip()):
+        accepted_targets.append(f"({target.strip()})")  # add parens: C → (C)
+
+    # doc_id=343/198/217: thousands separators and LaTeX thin-spaces (\!) in numeric targets
+    # Normalize to plain integer and also accept thousands-comma form, so both directions work:
+    # e.g., target "58,500" → also accept "58500"; target "7452714" → also accept "7,452,714"
+    # doc_id=217: "11,\! 111,\! 111,\! 100" (spaces after \!) → also accept "11111111100"
+    # doc_id=242: "\$32,\!348" (currency prefix \$) → also accept "32348"
+    t_numeric = re.sub(r"[,\s\\!$]", "", target)
+    if re.match(r"^\d+$", t_numeric):
+        t_formatted = f"{int(t_numeric):,}"
+        if t_numeric != target:
+            accepted_targets.append(t_numeric)        # plain: 58500
+        if t_formatted != target:
+            accepted_targets.append(t_formatted)      # formatted: 58,500
+
+    # doc_id=383: "z \in [-2,7]" — also accept just the interval, for any single-letter variable
+    t_interval = re.sub(r"^[A-Za-z]\s*\\in\s*", "", target.strip())
+    if t_interval != target.strip():
+        accepted_targets.append(t_interval)
+
+    # doc_id=467/257: \mbox{ cm}^2 or \mbox{ inches}^2 units — also accept bare number
+    # e.g., "864 \mbox{ inches}^2" → "864", "15\mbox{ cm}^2" → "15"
+    t_no_units = re.sub(r"\s*\\mbox\{[^}]*\}(\^\{?[^}\s]*\}?)?", "", target).strip()
+    if t_no_units != target:
+        accepted_targets.append(t_no_units)
+
+    # Build candidate_answers: the extracted answer plus normalized variants
+    candidate_answers = [answer] if answer is not None else []
+    # doc_id=97: lowercase (e.g., answer "East" → also try "east")
+    if answer is not None and answer.lower() != answer:
+        candidate_answers.append(answer.lower())
+
+    # doc_id=25/36: for bare comma-separated lists, add sorted form to both accepted_targets and candidate_answers
+    # so order doesn't matter (e.g., "-2, 1" vs "1,-2").
+    # Excludes ordered tuples/pairs wrapped in parens/brackets where order matters,
+    # and excludes pure-integer targets whose commas are thousands separators (e.g., "58,500").
+    if "," in target and not re.search(r"^[\(\[\{\\]", target.strip()) and not re.match(r"^\d+$", t_numeric):
+        sorted_target = ", ".join(sorted(p.strip() for p in target.split(",")))
+        if sorted_target != target:
+            accepted_targets.append(sorted_target)
+        if answer is not None and "," in answer and not re.search(r"^[\(\[\{\\]", answer.strip()):
+            sorted_answer = ", ".join(sorted(p.strip() for p in answer.split(",")))
+            if sorted_answer != answer:
+                candidate_answers.append(sorted_answer)
+
+    if any(is_equiv(a, t) for a in candidate_answers for t in accepted_targets):
+        retval = 1
+
+    return {
+        "flexible_match": retval,
+    }
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
@@ -62,6 +196,29 @@ def remove_boxed(s):
     assert s[-1] == "}"
 
     return s[len(left) : -1]
+
+
+def all_boxed_strings(string):
+    """Return all \\boxed{...} substrings in order, with proper brace matching."""
+    results = []
+    idx = 0
+    while True:
+        start = string.find("\\boxed{", idx)
+        if start < 0:
+            break
+        depth = 0
+        for j in range(start, len(string)):
+            if string[j] == "{":
+                depth += 1
+            elif string[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    results.append(string[start : j + 1])
+                    idx = j + 1
+                    break
+        else:
+            break
+    return results
 
 
 def last_boxed_only_string(string):

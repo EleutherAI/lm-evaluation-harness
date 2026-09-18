@@ -53,3 +53,7 @@ If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+## Versions
+
+- 2.0: Added `flexible_match` to solve various pattern matching and prompt issues (https://github.com/EleutherAI/lm-evaluation-harness/issues/3652). `exact_match` is also impacted by the more precise prompt, and supports filtering the `\boxed` from answers.
