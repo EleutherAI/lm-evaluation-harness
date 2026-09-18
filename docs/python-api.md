@@ -193,27 +193,26 @@ The `evaluate()` function provides lower-level control, accepting pre-built task
 
 ```python
 import lm_eval
-from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.models.huggingface import HFLM
+from lm_eval.tasks import TaskManager
 
 # Initialize model
 lm = HFLM(pretrained="gpt2", batch_size=16)
 
 # Build task dictionary
 task_manager = TaskManager(include_path="/path/to/custom/tasks")
-task_dict = get_task_dict(
-    ["hellaswag", "my_custom_task"],
-    task_manager
-)
+task_dict = task_manager.load(["hellaswag", "my_custom_task"])
 
 # Run evaluation
 results = lm_eval.evaluate(
     lm=lm,
     task_dict=task_dict,
-    num_fewshot=5,
     limit=100,
 )
 ```
+
+`evaluate()` expects task objects to be configured before it is called. To set
+one `num_fewshot` value across tasks at runtime, use `simple_evaluate()` instead.
 
 ### Mixed Task Sources
 
