@@ -32,10 +32,17 @@ def test_multi_choice_regex_all_empty_capture_groups_falls_back_to_bare_letter()
 
 
 @pytest.mark.parametrize(
-    "response",
-    ["B", "B. 4", "Answer: B", "The answer is B"],
+    ("response", "expected"),
+    [
+        ("B", "B"),
+        ("B. 4", "B"),
+        ("Answer: B", "B"),
+        ("The answer is B", "B"),
+        ("d", "d"),
+        ("b. 4", "b"),
+    ],
 )
-def test_mmlu_generative_filter_extracts_answer_letters(response):
+def test_mmlu_generative_filter_extracts_answer_letters(response, expected):
     config_path = (
         Path(__file__).parent.parent
         / "lm_eval/tasks/mmlu/generative/_default_template_yaml"
@@ -46,7 +53,7 @@ def test_mmlu_generative_filter_extracts_answer_letters(response):
 
     filt = get_filter(filter_config["function"])(**filter_args)
 
-    assert filt.apply([[response]], [{"choices": ["one", "two", "three", "four"]}]) == [["B"]]
+    assert filt.apply([[response]], [{"choices": ["one", "two", "three", "four"]}]) == [[expected]]
 
 
 def test_format_span_normalizes_label_only():
