@@ -372,7 +372,7 @@ class Task(abc.ABC):
 
         self._instances = flattened_instances
 
-        if len(self._instances) == 0:
+        if len(self._instances) == 0 and rank == 0:
             raise ValueError("task.build_requests() did not find any docs!")
 
         if cache_requests and (not cached_instances or rewrite_requests_cache):
