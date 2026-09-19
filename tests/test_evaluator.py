@@ -17,6 +17,27 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 @pytest.mark.parametrize(
+    "num_fewshot,expected",
+    [
+        (5, {"arc_easy": 5, "hellaswag": 5}),
+        ([0, 5], {"arc_easy": 0, "hellaswag": 5}),
+        (None, {"arc_easy": None, "hellaswag": None}),
+    ],
+)
+def test_normalize_num_fewshot(num_fewshot, expected):
+    tasks = {"arc_easy": object(), "hellaswag": object()}
+
+    assert evaluator._normalize_num_fewshot(num_fewshot, tasks) == expected
+
+
+def test_normalize_num_fewshot_requires_one_value_per_task():
+    tasks = {"arc_easy": object(), "hellaswag": object()}
+
+    with pytest.raises(ValueError, match="one value per task"):
+        evaluator._normalize_num_fewshot([5], tasks)
+
+
+@pytest.mark.parametrize(
     "task_name,limit,model,model_args,bootstrap_iters",
     [
         (

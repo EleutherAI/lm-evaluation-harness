@@ -56,7 +56,7 @@ def simple_evaluate(
     model: str | LM,
     model_args: str | dict[str, str | int | float] | None = None,
     tasks: list[str | dict[str, Any] | Task] | None = None,
-    num_fewshot: int | None = None,
+    num_fewshot: int | list[int] | None = None,
     batch_size: int | str | None = None,
     max_batch_size: int | None = None,
     device: str | None = None,
@@ -96,7 +96,8 @@ def simple_evaluate(
         tasks (list[str | dict | Task]): List of task names or Task objects.
             Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined
             and type(task).__name__ otherwise.
-        num_fewshot (int): Number of examples in few-shot context.
+        num_fewshot (int | list[int]): Number of examples in few-shot context. A
+            list provides one value per task.
         batch_size (int | str | None): Batch size for model.
         max_batch_size (int | None): Maximal batch size to try with automatic
             batch size detection.
@@ -305,6 +306,7 @@ def simple_evaluate(
     _log_selected_tasks(loaded["tasks"], loaded["groups"], task_manager)
 
     # Apply config overrides to tasks
+    task_num_fewshot = _normalize_num_fewshot(num_fewshot, loaded["tasks"])
     for task_name, task_obj in loaded["tasks"].items():
         if task_obj.get_config("output_type") == "generate_until":
             if gen_kwargs is not None:
@@ -325,7 +327,8 @@ def simple_evaluate(
 
         # override tasks' fewshot values to the provided num_fewshot arg value
         # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
-        if num_fewshot is not None:
+        current_num_fewshot = task_num_fewshot[task_name]
+        if current_num_fewshot is not None:
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
                 eval_logger.info(
                     "num_fewshot has been set to 0 for %s in its config. Manual configuration will be ignored.",
@@ -336,9 +339,9 @@ def simple_evaluate(
                     "Overwriting default num_fewshot of %s from %s to %s",
                     task_name,
                     default_num_fewshot,
-                    num_fewshot,
+                    current_num_fewshot,
                 )
-                task_obj.set_config(key="num_fewshot", value=num_fewshot)
+                task_obj.set_config(key="num_fewshot", value=current_num_fewshot)
         else:
             # if num_fewshot not provided, and the task does not define a default one, default to 0
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
@@ -423,6 +426,32 @@ def simple_evaluate(
         return results
     else:
         return None
+
+
+def _normalize_num_fewshot(
+    num_fewshot: int | list[int] | None, tasks: dict[str, Any]
+) -> dict[str, int | None]:
+    """Return one few-shot value for each loaded task.
+
+    A scalar keeps the existing behavior and applies to every task. A list is
+    matched to the insertion order of the loaded task dictionary, which is the
+    order returned by ``TaskManager.load`` for the requested tasks.
+    """
+    if num_fewshot is None:
+        values = [None] * len(tasks)
+    elif isinstance(num_fewshot, int):
+        values = [num_fewshot] * len(tasks)
+    elif isinstance(num_fewshot, list):
+        if len(num_fewshot) != len(tasks):
+            raise ValueError(
+                "When num_fewshot is a list, it must contain one value per task "
+                f"({len(tasks)} expected, got {len(num_fewshot)})."
+            )
+        values = num_fewshot
+    else:
+        raise TypeError("num_fewshot must be an int, list[int], or None")
+
+    return dict(zip(tasks, values, strict=True))
 
 
 @positional_deprecated

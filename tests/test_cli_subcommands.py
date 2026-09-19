@@ -191,6 +191,15 @@ class TestRunCommand:
         args = parser.parse_args(["run", "--model", "hf"])
         assert args.tasks is None
 
+    def test_run_command_num_fewshot(self):
+        """Test scalar and per-task few-shot argument parsing."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        args = parser.parse_args(["run", "--num_fewshot", "0", "5"])
+        assert args.num_fewshot == [0, 5]
+
     def test_run_command_model_args(self):
         """Test Run command model arguments parsing with MergeDictAction."""
         parser = argparse.ArgumentParser()
@@ -669,6 +678,23 @@ class TestEvaluatorConfigFromCLI:
         assert cfg.batch_size == 16
         assert cfg.device == "cuda:1"
         assert cfg.num_fewshot == 5
+
+    def test_cli_args_accept_per_task_num_fewshot(self, tmp_path):
+        """Test that a list of few-shot values survives config construction."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        ns = Namespace(
+            tasks=["arc_easy", "hellaswag"],
+            num_fewshot=[0, 5],
+            output_path=str(tmp_path),
+            log_samples=True,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        assert cfg.num_fewshot == [0, 5]
 
     def test_model_args_dict_passed_through(self, tmp_path):
         """Test that model_args dict is passed through correctly."""

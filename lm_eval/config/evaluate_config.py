@@ -76,8 +76,11 @@ class EvaluatorConfig:
     )
 
     # Few-shot and batching
-    num_fewshot: int | None = field(
-        default=None, metadata={"help": "Number of examples in few-shot context"}
+    num_fewshot: int | list[int] | None = field(
+        default=None,
+        metadata={
+            "help": "Number of examples in few-shot context, or one value per task"
+        },
     )
     batch_size: int = field(default=1, metadata={"help": "Batch size for evaluation"})
     max_batch_size: int | None = field(

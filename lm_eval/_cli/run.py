@@ -123,9 +123,10 @@ class Run(SubCommand):
             "--num_fewshot",
             "-f",
             type=int,
+            nargs="+",
             default=None,
             metavar="<n>",
-            help="Number of examples in few-shot context",
+            help="Number of examples in few-shot context, or one value per task",
         )
         eval_group.add_argument(
             "--batch_size",
