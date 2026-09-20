@@ -1,0 +1,4 @@
+task: lica_bench_typography_1
+include: _template_yaml
+task_alias: typography-1
+custom_dataset: !function utils.build_typography_1

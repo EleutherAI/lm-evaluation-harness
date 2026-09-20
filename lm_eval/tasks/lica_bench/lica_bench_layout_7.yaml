@@ -1,0 +1,4 @@
+task: lica_bench_layout_7
+include: _template_yaml
+task_alias: layout-7
+custom_dataset: !function utils.build_layout_7

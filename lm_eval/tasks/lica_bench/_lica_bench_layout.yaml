@@ -1,0 +1,16 @@
+group: lica_bench_layout
+task:
+  - lica_bench_layout_1
+  - lica_bench_layout_2
+  - lica_bench_layout_3
+  - lica_bench_layout_4
+  - lica_bench_layout_5
+  - lica_bench_layout_6
+  - lica_bench_layout_7
+  - lica_bench_layout_8
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.1
