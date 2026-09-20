@@ -1,0 +1,16 @@
+"dataset_name": "machine_learning"
+"description": "The following are multiple choice questions (with answers) about machine_learning.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nالإجابة:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_ar_xy_stem"
+"task": "openai_mmmlu_default_ar_xy_machine_learning"
+"task_alias": "ar_xy machine learning"
+"test_split": "AR_XY"
