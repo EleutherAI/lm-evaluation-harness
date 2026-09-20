@@ -1,0 +1,5 @@
+"dataset_name": "sat_Olck"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_sat_Olck"
+"test_split": "test"

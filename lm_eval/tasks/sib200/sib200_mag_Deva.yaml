@@ -1,0 +1,5 @@
+"dataset_name": "mag_Deva"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_mag_Deva"
+"test_split": "test"

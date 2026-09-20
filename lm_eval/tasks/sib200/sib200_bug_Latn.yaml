@@ -1,0 +1,5 @@
+"dataset_name": "bug_Latn"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_bug_Latn"
+"test_split": "test"
