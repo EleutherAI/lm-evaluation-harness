@@ -80,6 +80,22 @@ Our filters, after completing a pipeline, must return a `List[<expected return t
 
 A full list of supported filter operations can be found in `lm_eval/filters/__init__.py`. Contributions of new filter types are welcome!
 
+The `regex` filter strips leading and trailing whitespace from matches by default.
+For whitespace-sensitive outputs, such as indented Python completions, set `strip: false`
+to preserve exactly the text selected by the regex:
+
+```yaml
+filter_list:
+  - name: code
+    filter:
+      - function: regex
+        regex_pattern: '(?s)<code>(.*?)</code>'
+        strip: false
+      - function: take_first
+```
+
+You can also add `remove_whitespace` after `regex` to trim the extracted text explicitly.
+
 ### Multiple Filter Pipelines
 
 Tasks need not be limited to a single filter pipeline. We enable users to run multiple, distinct, filter pipelines on *the same model outputs* generated in one run on a task.
