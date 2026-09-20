@@ -1,0 +1,3 @@
+group: wmt-generalmt-doc-en-it
+task:
+  - wmt-generalmt-doc-newstest2009-en-it

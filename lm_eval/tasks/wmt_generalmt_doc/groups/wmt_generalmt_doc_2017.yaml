@@ -1,0 +1,17 @@
+group: wmt-generalmt-doc-2017
+task:
+  - wmt-generalmt-doc-newstest2017-cs-en
+  - wmt-generalmt-doc-newstest2017-de-en
+  - wmt-generalmt-doc-newstest2017-en-cs
+  - wmt-generalmt-doc-newstest2017-en-de
+  - wmt-generalmt-doc-newstest2017-en-fi
+  - wmt-generalmt-doc-newstest2017-en-lv
+  - wmt-generalmt-doc-newstest2017-en-ru
+  - wmt-generalmt-doc-newstest2017-en-tr
+  - wmt-generalmt-doc-newstest2017-en-zh
+  - wmt-generalmt-doc-newstest2017-fi-en
+  - wmt-generalmt-doc-newstest2017-lv-en
+  - wmt-generalmt-doc-newstest2017-ru-en
+  - wmt-generalmt-doc-newstest2017-tr-en
+  - wmt-generalmt-doc-newstest2017-zh-en
+  - wmt-generalmt-doc-newstestB2017-fi-en

@@ -1,0 +1,13 @@
+include: ../wmt24pp_doc_common.yaml
+
+task: wmt24pp_doc_he_IL-en
+
+tag:
+  - translation
+  - wmt24pp_doc
+  - reverse_derived
+
+metadata:
+  version: 1.0
+  src_lang: "he_IL"
+  tgt_lang: "en"

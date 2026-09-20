@@ -1,0 +1,12 @@
+include: ../wmt24pp_doc_common.yaml
+
+task: wmt24pp_doc_en-sr_RS
+
+tag:
+  - translation
+  - wmt24pp_doc
+
+metadata:
+  version: 1.0
+  src_lang: "en"
+  tgt_lang: "sr_RS"

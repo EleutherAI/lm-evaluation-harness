@@ -1,0 +1,14 @@
+group: wmt-generalmt-doc-ru-en
+task:
+  - wmt-generalmt-doc-newstest2012-ru-en
+  - wmt-generalmt-doc-newstest2013-ru-en
+  - wmt-generalmt-doc-newstest2014-ru-en
+  - wmt-generalmt-doc-newstest2015-ru-en
+  - wmt-generalmt-doc-newstest2016-ru-en
+  - wmt-generalmt-doc-newstest2017-ru-en
+  - wmt-generalmt-doc-newstest2018-ru-en
+  - wmt-generalmt-doc-newstest2019-ru-en
+  - wmt-generalmt-doc-newstest2020-ru-en
+  - wmt-generalmt-doc-newstest2021-ru-en
+  - wmt-generalmt-doc-wmttest2022-ru-en
+  - wmt-generalmt-doc-wmttest2023-ru-en

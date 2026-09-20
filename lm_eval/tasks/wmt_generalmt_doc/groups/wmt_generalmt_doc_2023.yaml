@@ -1,0 +1,16 @@
+group: wmt-generalmt-doc-2023
+task:
+  - wmt-generalmt-doc-wmttest2023-cs-uk
+  - wmt-generalmt-doc-wmttest2023-de-en
+  - wmt-generalmt-doc-wmttest2023-en-cs
+  - wmt-generalmt-doc-wmttest2023-en-de
+  - wmt-generalmt-doc-wmttest2023-en-he
+  - wmt-generalmt-doc-wmttest2023-en-ja
+  - wmt-generalmt-doc-wmttest2023-en-ru
+  - wmt-generalmt-doc-wmttest2023-en-uk
+  - wmt-generalmt-doc-wmttest2023-en-zh
+  - wmt-generalmt-doc-wmttest2023-he-en
+  - wmt-generalmt-doc-wmttest2023-ja-en
+  - wmt-generalmt-doc-wmttest2023-ru-en
+  - wmt-generalmt-doc-wmttest2023-uk-en
+  - wmt-generalmt-doc-wmttest2023-zh-en

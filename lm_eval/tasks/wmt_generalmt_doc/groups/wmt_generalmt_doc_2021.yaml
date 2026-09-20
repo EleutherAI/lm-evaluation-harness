@@ -1,0 +1,18 @@
+group: wmt-generalmt-doc-2021
+task:
+  - wmt-generalmt-doc-newstest2021-cs-en
+  - wmt-generalmt-doc-newstest2021-de-en
+  - wmt-generalmt-doc-newstest2021-de-fr
+  - wmt-generalmt-doc-newstest2021-en-cs
+  - wmt-generalmt-doc-newstest2021-en-de
+  - wmt-generalmt-doc-newstest2021-en-ha
+  - wmt-generalmt-doc-newstest2021-en-is
+  - wmt-generalmt-doc-newstest2021-en-ja
+  - wmt-generalmt-doc-newstest2021-en-ru
+  - wmt-generalmt-doc-newstest2021-en-zh
+  - wmt-generalmt-doc-newstest2021-fr-de
+  - wmt-generalmt-doc-newstest2021-ha-en
+  - wmt-generalmt-doc-newstest2021-is-en
+  - wmt-generalmt-doc-newstest2021-ja-en
+  - wmt-generalmt-doc-newstest2021-ru-en
+  - wmt-generalmt-doc-newstest2021-zh-en

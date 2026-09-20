@@ -1,0 +1,13 @@
+include: ../ntrex_doc_common.yaml
+
+task: ntrex-doc-wol-eng
+
+tag:
+  - translation
+  - ntrex_doc
+  - reverse_derived
+
+metadata:
+  version: 1.0
+  src_lang: "wol"
+  tgt_lang: "eng"

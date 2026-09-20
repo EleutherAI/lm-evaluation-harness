@@ -1,0 +1,12 @@
+include: ../bouquet_doc_common.yaml
+
+task: bouquet-doc-en-sat_Olck
+
+tag:
+  - translation
+  - bouquet_doc
+
+metadata:
+  version: 1.0
+  src_lang: "eng_Latn"
+  tgt_lang: "sat_Olck"

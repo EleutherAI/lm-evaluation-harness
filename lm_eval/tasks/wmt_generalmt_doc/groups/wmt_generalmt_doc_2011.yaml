@@ -1,0 +1,10 @@
+group: wmt-generalmt-doc-2011
+task:
+  - wmt-generalmt-doc-newstest2011-cs-en
+  - wmt-generalmt-doc-newstest2011-de-en
+  - wmt-generalmt-doc-newstest2011-en-cs
+  - wmt-generalmt-doc-newstest2011-en-de
+  - wmt-generalmt-doc-newstest2011-en-es
+  - wmt-generalmt-doc-newstest2011-en-fr
+  - wmt-generalmt-doc-newstest2011-es-en
+  - wmt-generalmt-doc-newstest2011-fr-en
