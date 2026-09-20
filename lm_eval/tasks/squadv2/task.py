@@ -44,13 +44,13 @@ def _squad_metric(predictions, references):
 
 
 def _squad_agg(key, items):
-    predictions, references = zip(*items)
+    predictions, references = zip(*items, strict=True)
 
     return _squad_metric(predictions=predictions, references=references).get(key, 0)
 
 
 class SQuAD2(ConfigurableTask):
-    VERSION = 3
+    VERSION = 4
     DATASET_PATH = "lighteval/squad_v2"
     DATASET_NAME = None
 
@@ -150,6 +150,13 @@ class SQuAD2(ConfigurableTask):
         continuation, (logprob_unanswerable, _) = results
 
         no_answer_probability = exp(logprob_unanswerable)
+
+        # doc_to_target teaches the model to generate the literal string
+        # "unanswerable" for no-answer documents, but the squad_v2 metric only
+        # credits an empty prediction against a no-answer reference, so map
+        # such generations to an empty string.
+        if continuation.strip().lower() == "unanswerable":
+            continuation = ""
 
         predictions = {
             "id": doc["id"],
