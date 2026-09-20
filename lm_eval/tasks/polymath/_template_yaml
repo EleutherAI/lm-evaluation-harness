@@ -1,0 +1,19 @@
+tag:
+  - math_word_problems
+dataset_path: Qwen/PolyMath
+training_split: null
+validation_split: null
+output_type: generate_until
+process_docs: !function utils.process_docs
+process_results: !function utils.process_results
+doc_to_text: "Problem: {{question}}\nPlease reason step-by-step and put your final answer within \\boxed{}.\nReasoning:"
+doc_to_target: "{{answer}}"
+generation_kwargs:
+  until:
+    - "Problem:"
+  do_sample: false
+  temperature: 0
+metric_list:
+  - metric: math_verify
+    aggregation: mean
+    higher_is_better: true

@@ -1,0 +1,4 @@
+include: _template_yaml
+task: polymath_vi_low
+dataset_name: vi
+test_split: low
