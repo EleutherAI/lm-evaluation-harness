@@ -1,0 +1,36 @@
+tag:
+  - chemistry
+  - moleculariq
+task: moleculariq_inline
+dataset_path: ml-jku/moleculariq-v0.0
+dataset_name: default
+process_docs: !function task_processor.process_docs
+output_type: generate_until
+test_split: test
+doc_to_text: !function task_processor.doc_to_text_inline
+doc_to_target: target
+process_results: !function task_processor.process_results_pass_at_k
+repeats: 3
+generation_kwargs:
+  max_gen_toks: 32768
+  until: []
+  do_sample: true
+
+filter_list:
+  - name: "all"
+    filter: []
+metric_list:
+  - metric: pass_at_1
+    aggregation: mean
+    higher_is_better: true
+  - metric: pass_at_3
+    aggregation: mean
+    higher_is_better: true
+  - metric: avg_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: extracted_answers
+    aggregation: bypass
+    higher_is_better: true
+metadata:
+  version: 1.0
