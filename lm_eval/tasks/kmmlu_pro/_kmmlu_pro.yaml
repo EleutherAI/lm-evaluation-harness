@@ -1,0 +1,3 @@
+kmmlu_pro:
+  - kmmlu_pro_multiple_choice
+  - kmmlu_pro_generate_until
