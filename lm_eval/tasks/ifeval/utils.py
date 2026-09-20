@@ -2,6 +2,7 @@ import dataclasses
 from typing import Dict, Optional, Union
 
 from lm_eval.tasks.ifeval import instructions_registry
+from lm_eval.tasks.ifeval.parse_thinking import parse_thinking
 
 
 @dataclasses.dataclass
@@ -116,6 +117,9 @@ def process_results(doc, results):
         kwargs=doc["kwargs"],
     )
     response = results[0]
+    
+    # Important for evaluating thinking models correctly
+    response = parse_thinking(response)
 
     out_strict = test_instruction_following_strict(inp, response)
     out_loose = test_instruction_following_loose(inp, response)
