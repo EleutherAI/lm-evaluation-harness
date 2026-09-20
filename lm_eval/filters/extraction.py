@@ -26,15 +26,19 @@ class RegexFilter(Filter):
         regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
         group_select: int = 0,
         fallback: str = "[invalid]",
+        strip: bool = True,
     ) -> None:
         """Compile `regex_pattern` and set the fallback for non-matches.
 
         `fallback` defines the output returned if no matches for the regex are located.
+        Set `strip=False` to preserve leading and trailing whitespace in matches,
+        for example indentation in code completions.
         """
         self.regex_pattern = regex_pattern
         self.regex = re.compile(regex_pattern)
         self.group_select = group_select
         self.fallback = fallback
+        self.strip = strip
 
     def apply(
         self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
@@ -53,7 +57,8 @@ class RegexFilter(Filter):
                             match = match[0]
                         else:
                             match = self.fallback
-                    match = match.strip()
+                    if self.strip:
+                        match = match.strip()
                 else:
                     match = self.fallback
                 filtered.append(match)
