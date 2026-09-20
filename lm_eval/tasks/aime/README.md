@@ -26,6 +26,14 @@
   publisher = {Huggingface},
   url = {https://huggingface.co/datasets/math-ai/aime25}
 }
+
+@dataset{aime_2026,
+  author = {math-ai},
+  title = {AIME Problem Set 2026},
+  year = {2026},
+  publisher = {Huggingface},
+  url = {https://huggingface.co/datasets/math-ai/aime26}
+}
 ```
 
 ### Groups, Tags, and Tasks
@@ -39,6 +47,7 @@
 * `aime`: `AIME 1983-2024 problems`
 * `aime24`: `AIME 2024 problems`
 * `aime25`: `AIME 2025 problems`
+* `aime26`: `AIME 2026 problems`
 
 ### Checklist
 
