@@ -1,0 +1,9 @@
+group: libra_mini
+group_alias: libra_mini
+task:
+  - ru_babilong_qa3
+  - ru_sci_passage_count
+  - librusec_mhqa
+  - long_context_multiq
+  - ru_2wikimultihopqa
+  - matreshka_names

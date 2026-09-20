@@ -1,7 +1,8 @@
 import re
-from collections import Counter, defaultdict
+import unicodedata
+from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict, List
 
 import datasets
 
@@ -19,21 +20,26 @@ except ImportError:
 @dataclass
 class PredictionResult:
     pred_answer: str
-    answers: List[str]
+    answers: list[str]
     length: str
 
 
-def filter_dataset_by_page_lengths(*args, **kwargs) -> Dict[str, datasets.Dataset]:
-    """Filter dataset by page lengths for Libra task.
-
-    in CLI metadata --metadata '{"valid_pages": ["8p", "32p"], "dataset_repo_name": "ai-forever/LIBRA"}'
-    """
+def filter_dataset_by_lengths(*args, **kwargs) -> dict[str, datasets.Dataset]:
+    """Filter dataset by lengths for Libra task."""
     valid_pages = kwargs.get("valid_pages", [])
 
-    dataset_repo_name = kwargs.get("dataset_repo_name", "ai-forever/LIBRA")
-    dataset_name = kwargs.get("dataset_name", None)
+    # Используем dataset_repo_name из kwargs (передается через dataset_kwargs из конфига)
+    # Если не передан, используем дефолт LIBRA-V3
+    dataset_repo_name = kwargs.get("dataset_repo_name", "ai-forever/LIBRA-V3")
+    dataset_name = kwargs.get("dataset_name")
     filter_colname = kwargs.get("filter_colname", "length")
-    token = kwargs.get("token", None)
+    token = kwargs.get("token")
+
+    # Если токен не передан, пытаемся получить из переменной окружения
+    if token is None:
+        import os
+
+        token = os.environ.get("HF_TOKEN")
 
     dataset_columns = list(
         datasets.load_dataset(dataset_repo_name, dataset_name, token=token)[
@@ -69,16 +75,25 @@ def normalize_answer(sentence: str) -> str:
     >>> normalize_answer("Hello, world! This is a test sentence.")
     'hello world this is a test sentence'
     """
-    sentence = str(sentence)
+    """Нормализация: пробелы, ё→е, буквы/цифры, леммы pymorphy3."""
+    sentence = unicodedata.normalize("NFKC", str(sentence))
+    sentence = sentence.replace("\u00a0", " ").replace("\u2009", " ")
+    sentence = sentence.replace("ё", "е").replace("Ё", "е")
+    sentence = re.sub(r"\s+", " ", sentence.strip()).lower()
+
     new_sentence = []
     for word in sentence.split():
-        token = re.sub(r"[^a-zа-яй0-9_]+", "", word.lower())
-        token = normalizer.parse(token)[0].normal_form.lower()
-        new_sentence.append(token)
+        token = re.sub(r"[^a-zа-яй0-9_]+", "", word)
+        if not token:
+            continue
+        if token.isdigit():
+            new_sentence.append(token)
+            continue
+        new_sentence.append(normalizer.parse(token)[0].normal_form.lower())
     return " ".join(new_sentence)
 
 
-def process_results(doc: List, results: List[str]) -> Dict:
+def process_results(doc: list, results: list[str]) -> dict:
     """Processes evaluation results by extracting prediction and relevant metadata.
 
     :param doc: A single instance from the evaluation dataset, containing reference answers and metadata.
@@ -104,17 +119,6 @@ def exact_match_score(prediction: str, ground_truth: str) -> float:
     return result
 
 
-def f1_score(prediction: str, ground_truth: str) -> float:
-    common = Counter(prediction) & Counter(ground_truth)
-    num_same = sum(common.values())
-    if num_same == 0:
-        return 0
-    precision = 1.0 * num_same / len(prediction)
-    recall = 1.0 * num_same / len(ground_truth)
-    f1 = (2 * precision * recall) / (precision + recall)
-    return f1
-
-
 def count_score(prediction: str, ground_truth: str) -> float:
     numbers = re.findall(r"\d+", prediction)
     right_num = 0
@@ -126,8 +130,8 @@ def count_score(prediction: str, ground_truth: str) -> float:
 
 
 def aggregate_results(
-    results: List[PredictionResult], scoring_function: Callable
-) -> Dict[str, float]:
+    results: list[PredictionResult], scoring_function: Callable
+) -> dict[str, float]:
     """Aggregates score by 'length' by scoring_function.
 
     :param results: List of dictionaries containing 'pred_answer', 'answers', and 'length'.
@@ -135,19 +139,19 @@ def aggregate_results(
 
     :example:
     >>> results = [
-    ...     {"pred_answer": "1", "answers": ["1", "one"], "length": "8p"},
-    ...     {"pred_answer": "0", "answers": ["zero", "none"], "length": "8p"},
-    ...     {"pred_answer": "one", "answers": ["1", "one"], "length": "16p"}
+    ...     {"pred_answer": "1", "answers": ["1", "one"], "length": "8k"},
+    ...     {"pred_answer": "0", "answers": ["zero", "none"], "length": "8k"},
+    ...     {"pred_answer": "one", "answers": ["1", "one"], "length": "16k"}
     ... ]
     >>> aggregate_results(results=results)
-    {'8p': 0.5, '16p': 1.0}
+    {'8k': 0.5, '16k': 1.0}
     """
     scores = defaultdict(lambda: [0, 0])
 
     for result in results:
         length = result["length"]
         pred_answer = normalize_answer(result["pred_answer"])
-        answers = set([normalize_answer(text) for text in result["answers"]])
+        answers = {normalize_answer(text) for text in result["answers"]}
 
         scores[length][1] += 1
         for answer in answers:
@@ -158,13 +162,39 @@ def aggregate_results(
     return {key: correct / total for key, (correct, total) in scores.items()}
 
 
-def aggregate_results_em(results: List[PredictionResult]) -> Dict[str, float]:
+def aggregate_results_em(results: list[PredictionResult]) -> dict[str, float]:
     return aggregate_results(results, exact_match_score)
 
 
-def aggregate_results_f1(results: List[PredictionResult]) -> Dict[str, float]:
-    return aggregate_results(results, f1_score)
+# def aggregate_results_f1(results: List[PredictionResult]) -> Dict[str, float]:
+#    return aggregate_results(results, f1_score)
 
 
-def aggregate_results_count_score(results: List[PredictionResult]) -> Dict[str, float]:
+def aggregate_results_count_score(results: list[PredictionResult]) -> dict[str, float]:
     return aggregate_results(results, count_score)
+
+
+def count_score_fixed(prediction: str, ground_truth: str) -> float:
+    """Improved count_score that extracts numbers from both prediction and ground_truth."""
+    # Extract numbers from prediction
+    pred_numbers = re.findall(r"\d+", prediction)
+
+    # Extract numbers from ground_truth (in case it contains text)
+    gt_numbers = re.findall(r"\d+", ground_truth)
+
+    if len(pred_numbers) == 0:
+        return 0.0
+
+    # Check if any number from prediction matches any number from ground_truth
+    for pred_num in pred_numbers:
+        for gt_num in gt_numbers:
+            if pred_num == gt_num:
+                return 1.0
+
+    return 0.0
+
+
+def aggregate_results_count_score_fixed(
+    results: list[PredictionResult],
+) -> dict[str, float]:
+    return aggregate_results(results, count_score_fixed)
