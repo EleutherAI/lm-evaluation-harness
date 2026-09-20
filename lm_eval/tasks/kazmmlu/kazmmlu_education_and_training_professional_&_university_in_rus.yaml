@@ -1,0 +1,5 @@
+"dataset_name": "Education and Training (Professional & University in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_social_science"
+"task": "kazmmlu_education_and_training_(professional_&_university_in_rus)"
+"task_alias": "Education and Training (Professional & University in rus)"
