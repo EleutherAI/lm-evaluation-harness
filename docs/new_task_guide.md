@@ -94,18 +94,27 @@ fewshot_config:
 
 All fields are optional. If not specified, they inherit from the parent `TaskConfig`. This allows you to format fewshot examples differently from the evaluation examples — useful when your fewshot source has different field names or requires different formatting.
 
-You can also hardcode fewshot examples by adding the function `list_fewshot_samples` in the associated utils.py file:
+You can also hardcode fewshot examples in the associated `utils.py` file:
 
 ```python
 def list_fewshot_samples() -> list[dict]:
   return [{<sample 1>}, {<sample 2>}]
 ```
 
-See `lm_eval/tasks/minerva_math/minerva_math_algebra.yaml` for an example of the latter, and `lm_eval/tasks/gsm8k/gsm8k-cot.yaml` for an example of the former.
+The function is not discovered automatically. Reference it from the task YAML through
+`fewshot_config.samples`:
+
+```yaml
+fewshot_config:
+  samples: !function utils.list_fewshot_samples
+```
+
+See `lm_eval/tasks/minerva_math/minerva_math_algebra.yaml` for a function-backed
+example and `lm_eval/tasks/gsm8k/gsm8k-cot.yaml` for an inline YAML example.
 
 In this case, each sample must contain the same fields as the samples in the above sets--for example, if `doc_to_text` expects an `input` field when rendering input prompts, these provided samples must include an `input` key.
 
-If neither above options are not set, we will default to train/validation/test sets, in that order.
+If neither option is set, we will default to train/validation/test sets, in that order.
 
 Finally, our dataset may not be already in the exact format we want. Maybe we have to strip whitespace and special characters via a regex from our dataset's "question" field! Or maybe we just want to rename its columns to match a convention we'll be using for our prompts.
 
