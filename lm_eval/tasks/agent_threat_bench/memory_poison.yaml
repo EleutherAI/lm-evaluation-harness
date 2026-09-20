@@ -1,0 +1,29 @@
+task: agent_threat_bench_memory_poison
+
+custom_dataset: !function utils.load_dataset
+dataset_kwargs:
+  task_name: memory_poison
+
+output_type: generate_until
+test_split: train
+
+doc_to_text: !function utils.doc_to_text_memory_poison
+process_results: !function utils.process_results_memory_poison
+
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+
+metric_list:
+  - metric: utility
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: security
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
