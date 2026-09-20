@@ -17,13 +17,9 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
-
-    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
+    string_in_last_boxed = last_boxed_only_string(results[0])
+    answer = remove_boxed(string_in_last_boxed)
+    if is_equiv(answer, doc["answer"]):
         retval = 1
 
     results = {
@@ -51,6 +47,9 @@ def is_equiv(str1, str2, verbose=False):
 
 
 def remove_boxed(s):
+    if s is None:
+        return None
+
     if "\\boxed " in s:
         left = "\\boxed "
         assert s[: len(left)] == left
@@ -86,10 +85,7 @@ def last_boxed_only_string(string):
                 break
         i += 1
 
-    if right_brace_idx is None:
-        retval = None
-    else:
-        retval = string[idx : right_brace_idx + 1]
+    retval = None if right_brace_idx is None else string[idx : right_brace_idx + 1]
 
     return retval
 
@@ -106,7 +102,7 @@ def fix_fracs(string):
             else:
                 try:
                     assert len(substr) >= 2
-                except AssertionError:
+                except Exception:
                     return string
                 a = substr[0]
                 b = substr[1]
@@ -137,7 +133,7 @@ def fix_a_slash_b(string):
         assert string == "{}/{}".format(a, b)
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
-    except AssertionError:
+    except Exception:
         return string
 
 
@@ -167,6 +163,9 @@ def fix_sqrt(string):
 
 
 def strip_string(string):
+    if string is None:
+        return None
+
     # linebreaks
     string = string.replace("\n", "")
 
@@ -195,8 +194,8 @@ def strip_string(string):
     string = remove_right_units(string)
 
     # remove percentage
+    string = string.replace("\\\\%", "")
     string = string.replace("\\%", "")
-    string = string.replace("\%", "")  # noqa: W605
 
     # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
     string = string.replace(" .", " 0.")
@@ -208,9 +207,8 @@ def strip_string(string):
         string = "0" + string
 
     # to consider: get rid of e.g. "k = " or "q = " at beginning
-    if len(string.split("=")) == 2:
-        if len(string.split("=")[0]) <= 2:
-            string = string.split("=")[1]
+    if len(string.split("=")) == 2 and len(string.split("=")[0]) <= 2:
+        string = string.split("=")[1]
 
     # fix sqrt3 --> sqrt{3}
     string = fix_sqrt(string)
@@ -218,7 +216,8 @@ def strip_string(string):
     # remove spaces
     string = string.replace(" ", "")
 
-    # \frac1b or \frac12 --> \frac{1}{b} and \frac{1}{2}, etc. Even works with \frac1{72} (but not \frac{72}1). Also does a/b --> \\frac{a}{b}
+    # \frac1b or \frac12 --> \frac{1}{b} and \frac{1}{2}, etc. Even works with \frac1{72} (but not \frac{72}1).
+    # Also does a/b --> \\frac{a}{b}
     string = fix_fracs(string)
 
     # manually change 0.5 --> \frac{1}{2}
