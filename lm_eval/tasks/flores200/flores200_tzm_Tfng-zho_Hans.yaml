@@ -1,0 +1,7 @@
+"dataset_name": "tzm_Tfng-zho_Hans"
+"doc_to_target": "{{sentence_zho_Hans}}"
+"doc_to_text": "{{sentence_tzm_Tfng}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tzm_Tfng-zho_Hans"
+"test_split": "dev"

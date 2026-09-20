@@ -1,0 +1,7 @@
+"dataset_name": "nus_Latn-nya_Latn"
+"doc_to_target": "{{sentence_nya_Latn}}"
+"doc_to_text": "{{sentence_nus_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_nus_Latn-nya_Latn"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "dzo_Tibt-ukr_Cyrl"
+"doc_to_target": "{{sentence_ukr_Cyrl}}"
+"doc_to_text": "{{sentence_dzo_Tibt}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_dzo_Tibt-ukr_Cyrl"
+"test_split": "dev"

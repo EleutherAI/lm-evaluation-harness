@@ -1,0 +1,7 @@
+"dataset_name": "tam_Taml-mya_Mymr"
+"doc_to_target": "{{sentence_mya_Mymr}}"
+"doc_to_text": "{{sentence_tam_Taml}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tam_Taml-mya_Mymr"
+"test_split": "dev"

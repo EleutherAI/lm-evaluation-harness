@@ -1,0 +1,7 @@
+"dataset_name": "aeb_Arab-bel_Cyrl"
+"doc_to_target": "{{sentence_bel_Cyrl}}"
+"doc_to_text": "{{sentence_aeb_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_aeb_Arab-bel_Cyrl"
+"test_split": "dev"

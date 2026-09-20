@@ -1,0 +1,7 @@
+"dataset_name": "sna_Latn-mlt_Latn"
+"doc_to_target": "{{sentence_mlt_Latn}}"
+"doc_to_text": "{{sentence_sna_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_sna_Latn-mlt_Latn"
+"test_split": "dev"

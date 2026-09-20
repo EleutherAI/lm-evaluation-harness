@@ -1,0 +1,7 @@
+"dataset_name": "uzn_Latn-sna_Latn"
+"doc_to_target": "{{sentence_sna_Latn}}"
+"doc_to_text": "{{sentence_uzn_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_uzn_Latn-sna_Latn"
+"test_split": "dev"

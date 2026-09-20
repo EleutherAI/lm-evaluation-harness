@@ -1,0 +1,7 @@
+"dataset_name": "urd_Arab-guj_Gujr"
+"doc_to_target": "{{sentence_guj_Gujr}}"
+"doc_to_text": "{{sentence_urd_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_urd_Arab-guj_Gujr"
+"test_split": "dev"

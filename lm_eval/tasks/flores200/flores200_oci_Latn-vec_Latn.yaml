@@ -1,0 +1,7 @@
+"dataset_name": "oci_Latn-vec_Latn"
+"doc_to_target": "{{sentence_vec_Latn}}"
+"doc_to_text": "{{sentence_oci_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_oci_Latn-vec_Latn"
+"test_split": "dev"

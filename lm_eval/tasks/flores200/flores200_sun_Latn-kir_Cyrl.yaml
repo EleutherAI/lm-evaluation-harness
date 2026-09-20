@@ -1,0 +1,7 @@
+"dataset_name": "sun_Latn-kir_Cyrl"
+"doc_to_target": "{{sentence_kir_Cyrl}}"
+"doc_to_text": "{{sentence_sun_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_sun_Latn-kir_Cyrl"
+"test_split": "dev"
