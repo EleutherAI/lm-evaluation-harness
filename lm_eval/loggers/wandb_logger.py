@@ -1,7 +1,6 @@
 import copy
 import json
-import logging
-from typing import Any, Dict, List, Literal, Tuple
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -10,7 +9,7 @@ from packaging.version import Version
 from lm_eval.loggers.utils import _handle_non_serializable, remove_none_pattern
 
 
-logger = logging.getLogger(__name__)
+_MIN_WANDB_VERSION = Version("0.16.3")
 
 
 def get_wandb_printer() -> Literal["Printer"]:
@@ -36,19 +35,22 @@ class WandbLogger:
         """
         try:
             import wandb
+        except ImportError as e:
+            raise ImportError(
+                "W&B logging requires the optional `wandb` dependency. "
+                "Install it with `pip install 'lm_eval[wandb]'`."
+            ) from e
 
-            assert Version(wandb.__version__) >= Version("0.13.6")
-            if Version(wandb.__version__) < Version("0.13.6"):
-                wandb.require("report-editing:v0")
-        except Exception as e:
-            logger.warning(
-                "To use the wandb reporting functionality please install wandb>=0.13.6.\n"
-                "To install the latest version of wandb run `pip install wandb --upgrade`\n"
-                f"{e}"
+        wandb_version = Version(wandb.__version__)
+        if wandb_version < _MIN_WANDB_VERSION:
+            raise ImportError(
+                f"W&B logging requires wandb>={_MIN_WANDB_VERSION}, but found "
+                f"wandb=={wandb_version}. Install a supported version with "
+                "`pip install 'lm_eval[wandb]'`."
             )
 
-        self.wandb_args: Dict[str, Any] = init_args or {}
-        self.wandb_config_args: Dict[str, Any] = config_args or {}
+        self.wandb_args: dict[str, Any] = init_args or {}
+        self.wandb_config_args: dict[str, Any] = config_args or {}
 
         # pop the step key from the args to save for all logging calls
         self.step = self.wandb_args.pop("step", None)
@@ -63,12 +65,12 @@ class WandbLogger:
 
         self.printer = get_wandb_printer()
 
-    def post_init(self, results: Dict[str, Any]) -> None:
-        self.results: Dict[str, Any] = copy.deepcopy(results)
-        self.task_names: List[str] = list(results.get("results", {}).keys())
-        self.group_names: List[str] = list(results.get("groups", {}).keys())
+    def post_init(self, results: dict[str, Any]) -> None:
+        self.results: dict[str, Any] = copy.deepcopy(results)
+        self.task_names: list[str] = list(results.get("results", {}).keys())
+        self.group_names: list[str] = list(results.get("groups", {}).keys())
 
-    def _get_config(self) -> Dict[str, Any]:
+    def _get_config(self) -> dict[str, Any]:
         """Get configuration parameters."""
         self.task_configs = self.results.get("configs", {})
         cli_configs = self.results.get("config", {})
@@ -79,14 +81,14 @@ class WandbLogger:
 
         return configs
 
-    def _sanitize_results_dict(self) -> Tuple[Dict[str, str], Dict[str, Any]]:
+    def _sanitize_results_dict(self) -> tuple[dict[str, str], dict[str, Any]]:
         """Sanitize the results dictionary."""
-        _results = copy.deepcopy(self.results.get("results", dict()))
+        _results = copy.deepcopy(self.results.get("results", {}))
 
         # Remove None from the metric string name
         tmp_results = copy.deepcopy(_results)
         for task_name in self.task_names:
-            task_result = tmp_results.get(task_name, dict())
+            task_result = tmp_results.get(task_name, {})
             for metric_name, metric_value in task_result.items():
                 _metric_name, removed = remove_none_pattern(metric_name)
                 if removed:
@@ -96,12 +98,12 @@ class WandbLogger:
         # remove string valued keys from the results dict
         wandb_summary = {}
         for task in self.task_names:
-            task_result = _results.get(task, dict())
+            task_result = _results.get(task, {})
             for metric_name, metric_value in task_result.items():
                 if isinstance(metric_value, str):
                     wandb_summary[f"{task}/{metric_name}"] = metric_value
 
-        for summary_metric, summary_value in wandb_summary.items():
+        for summary_metric in wandb_summary:
             _task, _summary_metric = summary_metric.split("/")
             _results[_task].pop(_summary_metric)
 
@@ -126,7 +128,7 @@ class WandbLogger:
             "Stderr",
         ]
 
-        def make_table(columns: List[str], key: str = "results"):
+        def make_table(columns: list[str], key: str = "results"):
             import wandb
 
             table = wandb.Table(columns=columns)
@@ -135,7 +137,7 @@ class WandbLogger:
             n_shot = results.get("n-shot", {})
 
             for k, dic in results.get(key).items():
-                if k in self.group_names and not key == "groups":
+                if k in self.group_names and key != "groups":
                     continue
                 version = versions.get(k)
                 if version == "N/A":
@@ -152,7 +154,7 @@ class WandbLogger:
                     if m + "_stderr" + "," + f in dic:
                         se = dic[m + "_stderr" + "," + f]
                         if se != "N/A":
-                            se = "%.4f" % se
+                            se = f"{se:.4f}"
                         table.add_data(*[k, version, f, n, m, str(v), str(se)])
                     else:
                         table.add_data(*[k, version, f, n, m, str(v), ""])
@@ -196,7 +198,7 @@ class WandbLogger:
         self._log_results_as_artifact()
 
     def _generate_dataset(
-        self, data: List[Dict[str, Any]], config: Dict[str, Any]
+        self, data: list[dict[str, Any]], config: dict[str, Any]
     ) -> pd.DataFrame:
         """Generate a dataset from evaluation data.
 
@@ -256,11 +258,10 @@ class WandbLogger:
             filtered_resps = [
                 np.argmax([n[0] for n in x["filtered_resps"]]) for x in data
             ]
-        elif config["output_type"] == "loglikelihood_rolling":
-            instance = [x["arguments"][0][0] for x in data]
-            resps = [x["resps"][0][0] for x in data]
-            filtered_resps = [x["filtered_resps"][0] for x in data]
-        elif config["output_type"] == "generate_until":
+        elif (
+            config["output_type"] == "loglikelihood_rolling"
+            or config["output_type"] == "generate_until"
+        ):
             instance = [x["arguments"][0][0] for x in data]
             resps = [x["resps"][0][0] for x in data]
             filtered_resps = [x["filtered_resps"][0] for x in data]
@@ -287,7 +288,7 @@ class WandbLogger:
         return pd.DataFrame(df_data)
 
     def _log_samples_as_artifact(
-        self, data: List[Dict[str, Any]], task_name: str
+        self, data: list[dict[str, Any]], task_name: str
     ) -> None:
         import wandb
 
@@ -306,13 +307,13 @@ class WandbLogger:
         self.run.log_artifact(artifact)
         # artifact.wait()
 
-    def log_eval_samples(self, samples: Dict[str, List[Dict[str, Any]]]) -> None:
+    def log_eval_samples(self, samples: dict[str, list[dict[str, Any]]]) -> None:
         """Log evaluation samples to W&B.
 
         Args:
             samples (Dict[str, List[Dict[str, Any]]]): Evaluation samples for each task.
         """
-        task_names: List[str] = [
+        task_names: list[str] = [
             x for x in self.task_names if x not in self.group_names
         ]
 
