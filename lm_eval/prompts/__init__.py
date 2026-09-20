@@ -29,6 +29,15 @@ def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None
         dataset_full_name = f"{dataset_name}-{subset_name}"
     eval_logger.info(f"Loading prompt from {category_name} for {dataset_full_name}")
     if category_name == "promptsource":
+        if any(ch in prompt_name for ch in "*?[]"):
+            raise ValueError(
+                f"Wildcard prompt names such as `{prompt_id}` are not supported: "
+                "`use_prompt` selects a single Promptsource template. Name one "
+                "explicit template, and to evaluate several templates at once create "
+                "one task config per template (using `include` to share settings and "
+                "a common `tag` to run them together). See "
+                "docs/new_task_guide.md#importing-a-prompt-from-promptsource."
+            )
         try:
             from promptsource.templates import DatasetTemplates
         except ModuleNotFoundError as exception:
