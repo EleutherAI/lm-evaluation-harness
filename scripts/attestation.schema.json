@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "lm-evaluation-harness attestation bundle",
+  "type": "object",
+  "required": [
+    "harness_attestation_version",
+    "model_id",
+    "tasks",
+    "results",
+    "results_sha256",
+    "outputs_sha256",
+    "meta"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "harness_attestation_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tasks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "metric", "filter", "value", "stderr"],
+        "additionalProperties": false,
+        "properties": {
+          "task_id": { "type": "string" },
+          "metric": { "type": "string" },
+          "filter": { "type": "string" },
+          "value": {
+            "type": "string",
+            "pattern": "^-?(0\\.0|[1-9][0-9]*\\.[0-9]+|[0-9]+(\\.[0-9]+)?e-?[0-9]+)$"
+          },
+          "stderr": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "string",
+                "pattern": "^-?(0\\.0|[1-9][0-9]*\\.[0-9]+|[0-9]+(\\.[0-9]+)?e-?[0-9]+)$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "results_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "outputs_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      ]
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "git_hash": { "type": ["string", "null"] },
+        "versions": { "type": "object" },
+        "n_shot": { "type": "object" },
+        "date": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
