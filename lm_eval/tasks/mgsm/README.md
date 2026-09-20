@@ -49,9 +49,11 @@ Homepage: https://github.com/google-research/url-nlp/tree/main/mgsm
 }
 ```
 
-### Groups and Tasks
+### Tags and Tasks
 
-#### Groups
+#### Tags
+
+Use a tag to select a variant, or use an individual task name below.
 
 * `mgsm_direct`: Direct question
   * `mgsm_direct_bn`: Bengali
@@ -65,18 +67,30 @@ Homepage: https://github.com/google-research/url-nlp/tree/main/mgsm
   * `mgsm_direct_te`: Telugu
   * `mgsm_direct_th`: Thai
   * `mgsm_direct_zh`: Chinese
+* `mgsm_cot_en`: Question in the dataset language with an English CoT answer prompt.
+  * `mgsm_en_cot_bn`: Bengali
+  * `mgsm_en_cot_de`: German
+  * `mgsm_en_cot_en`: English
+  * `mgsm_en_cot_es`: Spanish
+  * `mgsm_en_cot_fr`: French
+  * `mgsm_en_cot_ja`: Japanese
+  * `mgsm_en_cot_ru`: Russian
+  * `mgsm_en_cot_sw`: Swahili
+  * `mgsm_en_cot_te`: Telugu
+  * `mgsm_en_cot_th`: Thai
+  * `mgsm_en_cot_zh`: Chinese
 * `mgsm_cot_native`: Question with Answer followed by CoT prompt in the same language as the dataset.
-  * `mgsm_cot_native_bn`: Bengali
-  * `mgsm_cot_native_de`: German
-  * `mgsm_cot_native_en`: English
-  * `mgsm_cot_native_es`: Spanish
-  * `mgsm_cot_native_fr`: French
-  * `mgsm_cot_native_ja`: Japanese
-  * `mgsm_cot_native_ru`: Russian
-  * `mgsm_cot_native_sw`: Swahili
-  * `mgsm_cot_native_te`: Telugu
-  * `mgsm_cot_native_th`: Thai
-  * `mgsm_cot_native_zh`: Chinese
+  * `mgsm_native_cot_bn`: Bengali
+  * `mgsm_native_cot_de`: German
+  * `mgsm_native_cot_en`: English
+  * `mgsm_native_cot_es`: Spanish
+  * `mgsm_native_cot_fr`: French
+  * `mgsm_native_cot_ja`: Japanese
+  * `mgsm_native_cot_ru`: Russian
+  * `mgsm_native_cot_sw`: Swahili
+  * `mgsm_native_cot_te`: Telugu
+  * `mgsm_native_cot_th`: Thai
+  * `mgsm_native_cot_zh`: Chinese
 
 Examplar Samples: https://github.com/google-research/url-nlp/blob/main/mgsm/exemplars.py
 
@@ -94,6 +108,8 @@ If other tasks on this dataset are already supported:
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 # changelog
+- (en_cot) ver 4: issue #2614
+  - Use `mgsm_cot_en` for English CoT tasks; `mgsm_cot_native` now selects only native CoT tasks. Individual task names are unchanged.
 - (en_cot, direct) ver 3; (native_cot) ver 4: issue #2578; PR #2587
   - fix fewshot format: Changed inconsistent usage of ':' (ASCII) and '：' (Chinese) to use '：' consistently.
 - direct ver 4
