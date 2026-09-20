@@ -1,0 +1,33 @@
+task: math500
+dataset_path: HuggingFaceH4/MATH-500
+process_docs: !function utils.process_docs
+output_type: generate_until
+test_split: test
+doc_to_text: "Solve the following math problem efficiently and clearly:\n\n- For simple problems (2 steps or fewer):\nProvide a concise solution with minimal explanation.\n\n- For complex problems (3 steps or more):\nUse this step-by-step format:\n\n## Step 1: [Concise description]\n[Brief explanation and calculations]\n\n## Step 2: [Concise description]\n[Brief explanation and calculations]\n\n...\n\nRegardless of the approach, always conclude with:\n\nTherefore, the final answer is: $\\\\boxed{answer}$. I hope it is correct.\n\nWhere [answer] is just the final number or expression that solves the problem.\n\nProblem: {{ problem }}"
+#process_results: !function utils.process_results
+doc_to_target: "{{answer if few_shot is undefined else solution}}"
+process_results: !function utils.process_results
+repeats: 64
+generation_kwargs:
+  until: []
+  max_gen_toks: 32768
+  do_sample: true
+  top_p: 0.95
+  temperature: 0.6
+filter_list:
+  - name: "pass@1"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.filter_final_answer
+      - function: "custom"
+        filter_fn: !function utils.get_metric
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+num_fewshot: 0
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true
+
