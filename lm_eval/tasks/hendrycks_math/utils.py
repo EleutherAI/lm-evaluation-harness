@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import datasets
 
 
@@ -15,13 +13,50 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
+    response = results[0]
+
+    # Try to extract \boxed{} from the response (matches aime task behavior)
+    # First check for multiple \boxed{} (e.g. \boxed{3}, \boxed{5}, \boxed{7})
+    all_boxed = find_all_boxed_strings(response)
+    # Deduplicate while preserving order (models often repeat the final answer)
+    seen = set()
+    unique_boxed = []
+    for b in all_boxed:
+        if b not in seen:
+            seen.add(b)
+            unique_boxed.append(b)
+    if len(unique_boxed) > 1:
+        try:
+            answer = ", ".join(remove_boxed(b) for b in unique_boxed)
+        except AssertionError:
+            answer = None
+    elif len(unique_boxed) == 1:
+        try:
+            answer = remove_boxed(unique_boxed[0])
+        except AssertionError:
+            answer = None
     else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+        answer = None
+
+    # Fall back to legacy single-boxed extraction (handles \boxed space-form
+    # that find_all_boxed_strings skips, plus \fbox).
+    if answer is None:
+        legacy = last_boxed_only_string(response)
+        if legacy is not None:
+            try:
+                answer = remove_boxed(legacy)
+            except (AssertionError, IndexError):
+                answer = None
+
+    # Fall back to $...$ extraction
+    if answer is None:
+        indices = [pos for pos, char in enumerate(response) if char == "$"]
+        if len(indices) <= 1:
+            answer = response
+        else:
+            answer = response[indices[0] + 1 : indices[-1]]
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
@@ -46,7 +81,7 @@ def is_equiv(str1, str2, verbose=False):
         if verbose:
             print(ss1, ss2)
         return ss1 == ss2
-    except Exception:
+    except Exception:  # noqa: BLE001 - normalization is best-effort; fall back to raw compare
         return str1 == str2
 
 
@@ -94,6 +129,40 @@ def last_boxed_only_string(string):
     return retval
 
 
+def find_all_boxed_strings(string):
+    r"""Find all \boxed{} occurrences in a string, handling nested braces."""
+    results = []
+    search_start = 0
+    while True:
+        idx = string.find("\\boxed", search_start)
+        if idx < 0:
+            break
+        # Skip if this is \boxed (space-separated, not brace)
+        after = idx + len("\\boxed")
+        if after >= len(string) or string[after] != "{":
+            search_start = after
+            continue
+        # Find matching closing brace
+        i = after
+        num_left_braces_open = 0
+        right_brace_idx = None
+        while i < len(string):
+            if string[i] == "{":
+                num_left_braces_open += 1
+            if string[i] == "}":
+                num_left_braces_open -= 1
+                if num_left_braces_open == 0:
+                    right_brace_idx = i
+                    break
+            i += 1
+        if right_brace_idx is not None:
+            results.append(string[idx : right_brace_idx + 1])
+            search_start = right_brace_idx + 1
+        else:
+            search_start = after
+    return results
+
+
 def fix_fracs(string):
     substrs = string.split("\\frac")
     new_str = substrs[0]
@@ -134,7 +203,7 @@ def fix_a_slash_b(string):
     try:
         a = int(a)
         b = int(b)
-        assert string == "{}/{}".format(a, b)
+        assert string == f"{a}/{b}"
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
     except AssertionError:
@@ -208,9 +277,8 @@ def strip_string(string):
         string = "0" + string
 
     # to consider: get rid of e.g. "k = " or "q = " at beginning
-    if len(string.split("=")) == 2:
-        if len(string.split("=")[0]) <= 2:
-            string = string.split("=")[1]
+    if len(string.split("=")) == 2 and len(string.split("=")[0]) <= 2:
+        string = string.split("=")[1]
 
     # fix sqrt3 --> sqrt{3}
     string = fix_sqrt(string)
