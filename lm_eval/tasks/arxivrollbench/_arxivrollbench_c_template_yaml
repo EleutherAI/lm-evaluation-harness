@@ -1,0 +1,27 @@
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: train
+doc_to_text: "## Instruction:\n Given a **masked paragraph** with three masked sentences marked as '<|MaskedSentence|>' and candidate sentences labeled A, B, and C, your task is to fill in the correct sentences to the masked positions by selecting the appropriate answers from four provided selections. Avoid providing any additional information (such as explanations of your choice) or restating the sentences in your answer. Simply provide your selection: Selection 1, Selection 2, Selection 3, or Selection 4.\n## Masked paragraph:\n{{text_with_holes}}\n## Candidate sentences:\n{{text_candidates}}\n## Choice:\n**Selection 1** {{A}}\n**Selection 2** {{B}}\n**Selection 3** {{C}}\n**Selection 4** {{D}}\nAnswer:"
+doc_to_target: label
+should_decontaminate: false
+generation_kwargs:
+  until:
+    - "."
+    - ","
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50
+filter_list:
+  - name: score-first
+    filter:
+      - function: regex
+        regex_pattern: "(Selection [1-4])"
+      - function: take_first
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,0 +1,122 @@
+group: arxivrollbench2024b
+task:
+  - group: arxivrollbench2024b_s
+    task:
+      - arxivrollbench2024b_cs_s
+      - arxivrollbench2024b_q_fin_s
+      - arxivrollbench2024b_math_s
+      - arxivrollbench2024b_physics_s
+      - arxivrollbench2024b_stat_s
+      - arxivrollbench2024b_q_bio_s
+      - arxivrollbench2024b_econ_s
+      - arxivrollbench2024b_eess_s
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_c
+    task:
+      - arxivrollbench2024b_cs_c
+      - arxivrollbench2024b_q_fin_c
+      - arxivrollbench2024b_math_c
+      - arxivrollbench2024b_physics_c
+      - arxivrollbench2024b_stat_c
+      - arxivrollbench2024b_q_bio_c
+      - arxivrollbench2024b_econ_c
+      - arxivrollbench2024b_eess_c
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_p
+    task:
+      - arxivrollbench2024b_cs_p
+      - arxivrollbench2024b_q_fin_p
+      - arxivrollbench2024b_math_p
+      - arxivrollbench2024b_physics_p
+      - arxivrollbench2024b_stat_p
+      - arxivrollbench2024b_q_bio_p
+      - arxivrollbench2024b_econ_p
+      - arxivrollbench2024b_eess_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_cs
+    task:
+      - arxivrollbench2024b_cs_s
+      - arxivrollbench2024b_cs_c
+      - arxivrollbench2024b_cs_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_q_fin
+    task:
+      - arxivrollbench2024b_q_fin_s
+      - arxivrollbench2024b_q_fin_c
+      - arxivrollbench2024b_q_fin_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_math
+    task:
+      - arxivrollbench2024b_math_s
+      - arxivrollbench2024b_math_c
+      - arxivrollbench2024b_math_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_physics
+    task:
+      - arxivrollbench2024b_physics_s
+      - arxivrollbench2024b_physics_c
+      - arxivrollbench2024b_physics_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_stat
+    task:
+      - arxivrollbench2024b_stat_s
+      - arxivrollbench2024b_stat_c
+      - arxivrollbench2024b_stat_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_q_bio
+    task:
+      - arxivrollbench2024b_q_bio_s
+      - arxivrollbench2024b_q_bio_c
+      - arxivrollbench2024b_q_bio_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_econ
+    task:
+      - arxivrollbench2024b_econ_s
+      - arxivrollbench2024b_econ_c
+      - arxivrollbench2024b_econ_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+  - group: arxivrollbench2024b_eess
+    task:
+      - arxivrollbench2024b_eess_s
+      - arxivrollbench2024b_eess_c
+      - arxivrollbench2024b_eess_p
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        weight_by_size: true
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

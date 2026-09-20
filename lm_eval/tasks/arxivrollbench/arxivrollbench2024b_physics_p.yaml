@@ -1,0 +1,4 @@
+include: _arxivrollbench_p_template_yaml
+task: arxivrollbench2024b_physics_p
+dataset_path: liangzid/robench2024b_all_setphysicsSCP-p-50
+dataset_name: null
