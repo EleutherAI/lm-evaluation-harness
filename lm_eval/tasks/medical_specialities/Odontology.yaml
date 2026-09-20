@@ -1,0 +1,3 @@
+dataset_name: Odontology
+include: _default_template_yaml
+task: Odontology
