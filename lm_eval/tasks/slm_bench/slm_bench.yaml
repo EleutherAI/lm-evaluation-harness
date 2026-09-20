@@ -1,0 +1,13 @@
+group: slm_bench
+task:
+  - slm_bench_arithmetic
+  - slm_bench_pattern
+  - slm_bench_grammar
+  - slm_bench_vocabulary
+  - slm_bench_logic
+  - slm_bench_word_analogy
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true
+metadata:
+  version: 1.0
