@@ -1,0 +1,13 @@
+group: indicqa
+task:
+  - indicqa_bn
+  - indicqa_gu
+  - indicqa_hi
+  - indicqa_kn
+  - indicqa_ml
+  - indicqa_mr
+  - indicqa_or
+  - indicqa_pa
+  - indicqa_ta
+  - indicqa_te
+  - indicqa_ur
