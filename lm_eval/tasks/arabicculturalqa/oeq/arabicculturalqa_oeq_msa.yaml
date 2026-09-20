@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: arabicculturalqa_oeq_msa
+process_docs: !function utils.process_docs_msa
+doc_to_text: "السؤال: {{open_question}}\nالإجابة:"
