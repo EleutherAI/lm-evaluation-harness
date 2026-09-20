@@ -1,0 +1,5 @@
+description: "The following are multiple choice questions (with answers) about other.\n"
+include: "_mmlu_pro_chat_yaml"
+task: "mmlu_pro_chat_other"
+task_alias: "other"
+process_docs: !function utils.process_other
