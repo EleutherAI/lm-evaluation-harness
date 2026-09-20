@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "professional_accounting_NL"
+"task": "ogx_mmlux_nl-professional_accounting"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAntwoord:"
+"description": "Hieronder staan meerkeuzevragen (met antwoorden) over professioneel\
+  \ boekhouden."

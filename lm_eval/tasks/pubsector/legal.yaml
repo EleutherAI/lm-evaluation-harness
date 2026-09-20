@@ -1,0 +1,54 @@
+tag:
+  - legal
+task: legal_ce_bgh
+dataset_path: json
+dataset_name: null
+output_type: generate_until
+dataset_kwargs:
+  data_files: /rwthfs/cluster.rz.rwth-aachen.de/hpcwork/rwth1961/gov_teuken/data/evaluation/data/finetuning_datasets/ce_bgh_de_synthetic_top_10_percent.jsonl
+validation_split: train
+doc_to_text: "\
+  {% set prompt_qa = '\
+  Question: Kann ein Mietvertrag auch mündlich geschlossen werden?\n\
+  Context: Ein Vermieter und ein Mieter einigen sich mündlich darauf, dass der Mieter ab dem 1. April in eine Wohnung einzieht und monatlich 800 Euro Miete zahlt. Beide Parteien einigen sich über die wichtigsten Vertragsbedingungen, aber nichts wird schriftlich festgehalten. Nach sechs Monaten bestreitet der Vermieter plötzlich, dass überhaupt ein wirksamer Vertrag bestehe, weil kein schriftlicher Vertrag existiere.\n\
+  Answer: Ja, ein Mietvertrag kann grundsätzlich auch mündlich geschlossen werden (§ 535 BGB). Für Mietverhältnisse über Wohnraum, die länger als ein Jahr dauern, gilt allerdings die Schriftform nach §550 BGB; ohne Schriftform gilt der Vertrag dann als auf unbestimmte Zeit geschlossen. In dem geschilderten Fall ist also ein wirksamer Mietvertrag entstanden.\n\n\
+
+  Question: Was bedeutet der Grundsatz „in dubio pro reo“ im deutschen Strafrecht?\n\
+  Context: Ein Angeklagter wird verdächtigt, eine Sachbeschädigung begangen zu haben. Nach der Beweisaufnahme bleibt unklar, ob er tatsächlich der Täter war. Die Zeugenaussagen widersprechen sich, und es gibt keine eindeutigen Spuren. Das Gericht ist sich unsicher, ob die Schuld des Angeklagten zweifelsfrei bewiesen ist.\n\
+  Answer: Der Grundsatz „in dubio pro reo“ bedeutet „im Zweifel für den Angeklagten“. Wenn nach der Beweisaufnahme Zweifel an der Schuld bestehen, muss das Gericht zugunsten des Angeklagten entscheiden. Dieser Grundsatz folgt aus dem Rechtsstaatsprinzip und findet sich in Art.103 Abs.2 GG sowie in §261 StPO.\n\n\
+
+  Question: Wann beginnt die Verjährungsfrist für einen Anspruch auf Schadensersatz nach deutschem Recht zu laufen?\n\
+  Context: Ein Handwerker repariert im Jahr 2019 das Dach eines Hauses. Im Jahr 2020 bemerkt der Hauseigentümer, dass durch einen Montagefehler Wasser eingedrungen ist. Er möchte im Jahr 2024 Schadenersatz verlangen und fragt sich, ob sein Anspruch verjährt ist.\n\
+  Answer: Die regelmäßige Verjährungsfrist (§ 195 BGB) beträgt drei Jahre. Sie beginnt mit dem Schluss des Jahres, in dem der Anspruch entstanden ist und der Gläubiger sowohl vom Schaden als auch von der Person des Ersatzpflichtigen Kenntnis erlangt oder ohne grobe Fahrlässigkeit erlangen müsste (§ 199 Abs. 1 BGB). Im Beispiel beginnt die Frist also Ende 2020 und endet mit Ablauf des Jahres 2023.\n\n\
+
+  Question: Welche Bedeutung hat die Allgemeine Handlungsfreiheit nach Art. 2 Abs. 1 GG?\n\
+  Context: Ein Bürger beschwert sich, weil ihm eine Stadtverwaltung ohne gesetzlichen Grund das Tragen eines politischen T-Shirts auf einer öffentlichen Veranstaltung untersagen will. Die Behörde beruft sich auf „öffentliche Ordnung“, ohne eine Rechtsgrundlage zu nennen. Der Bürger verweist auf den Schutz seiner allgemeinen Handlungsfreiheit.\n\
+  Answer: Die Allgemeine Handlungsfreiheit nach Art.2Abs.1GG schützt jedes menschliche Verhalten, also die Freiheit, zu tun und zu lassen, was man möchte. Sie dient als Auffanggrundrecht, soweit kein spezielles Freiheitsrecht greift. Eingriffe sind nur zulässig, wenn sie auf einer verfassungsmäßigen Ordnung beruhen und die Rechte anderer oder das Sittengesetz nicht verletzen.\n\n\
+
+  Question: Wann liegt eine Körperverletzung nach §223 StGB vor?\n\
+  Context: Eine Person stößt eine andere absichtlich heftig gegen eine Wand. Das Opfer erleidet eine Prellung am Arm. Der Täter meint, das sei keine Körperverletzung, weil die Verletzung geringfügig sei.\n\
+  Answer: Nach §223 Abs. 1 StGB liegt eine Körperverletzung vor, wenn jemand eine andere Person körperlich misshandelt oder an der Gesundheit schädigt. Eine körperliche Misshandlung ist jede üble und unangemessene Behandlung, die das körperliche Wohlbefinden beeinträchtigt. Eine Gesundheitsschädigung liegt vor, wenn ein krankhafter Zustand hervorgerufen oder gesteigert wird. Im Beispiel ist daher eine Körperverletzung gegeben.\n\n\
+  '%}\
+  {{prompt_qa + '\n\nQuestion: ' + question + '\nContext: ' + context + '\nAnswer:'}}"
+
+doc_to_target: "{{answer}}"
+process_docs: !function utils.process_docs_gen
+process_results: !function utils.process_results_gen
+should_decontaminate: True
+doc_to_decontamination_query: question
+metric_list:
+  - metric: bleu
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge1
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge2
+    aggregation: mean
+    higher_is_better: true
+  - metric: rougeL
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+

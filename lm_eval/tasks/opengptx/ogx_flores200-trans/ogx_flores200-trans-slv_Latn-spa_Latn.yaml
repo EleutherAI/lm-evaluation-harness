@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-slv_Latn-spa_Latn"
+"dataset_name": "slv_Latn-spa_Latn"
+"doc_to_text": "Slovenian phrase: {{sentence_slv_Latn}}\nSpanish phrase:"
+"doc_to_decontamination_query": "{{sentence_slv_Latn}}"
+"doc_to_target": "{{sentence_spa_Latn}}"

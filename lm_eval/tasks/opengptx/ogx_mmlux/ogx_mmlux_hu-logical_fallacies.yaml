@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "logical_fallacies_HU"
+"task": "ogx_mmlux_hu-logical_fallacies"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVálasz:"
+"description": "Az alábbiakban a logikai tévedésekkel kapcsolatos feleletválasztós\
+  \ kérdések (válaszokkal) találhatók."

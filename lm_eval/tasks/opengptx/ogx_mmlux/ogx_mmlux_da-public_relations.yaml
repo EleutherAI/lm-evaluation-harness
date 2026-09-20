@@ -1,0 +1,8 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "public_relations_DA"
+"task": "ogx_mmlux_da-public_relations"
+"group": "ogx_mmlux_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nSvar:"
+"description": "Følgende er multiple choice-spørgsmål (med svar) om public relations."

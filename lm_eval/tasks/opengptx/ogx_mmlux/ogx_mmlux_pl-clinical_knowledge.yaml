@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "clinical_knowledge_PL"
+"task": "ogx_mmlux_pl-clinical_knowledge"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdpowiedź:"
+"description": "Poniżej znajdują się pytania wielokrotnego wyboru (wraz z odpowiedziami)\
+  \ dotyczące wiedzy klinicznej."

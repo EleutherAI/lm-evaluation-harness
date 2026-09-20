@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-ita_Latn-lit_Latn"
+"dataset_name": "ita_Latn-lit_Latn"
+"doc_to_text": "Italian phrase: {{sentence_ita_Latn}}\nLithuanian phrase:"
+"doc_to_decontamination_query": "{{sentence_ita_Latn}}"
+"doc_to_target": "{{sentence_lit_Latn}}"

@@ -1,0 +1,8 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "professional_medicine_SK"
+"task": "ogx_mmlux_sk-professional_medicine"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdpoveď:"
+"description": "Nasledujúce otázky (s odpoveďami) sa týkajú profesionálnej medicíny."

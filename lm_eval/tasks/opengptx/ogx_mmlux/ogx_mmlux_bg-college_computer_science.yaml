@@ -1,0 +1,8 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "college_computer_science_BG"
+"task": "ogx_mmlux_bg-college_computer_science"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['А', 'Б', 'В', 'Г']"
+"doc_to_text": "{{question.strip()}}\nА. {{choices[0]}}\nБ. {{choices[1]}}\nВ. {{choices[2]}}\n\
+  Г. {{choices[3]}}\nОтговор:"
+"description": "Следват въпроси с избираем отговор (с отговори) по информатика в колежа."

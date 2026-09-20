@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "us_foreign_policy_NL"
+"task": "ogx_mmlux_nl-us_foreign_policy"
+"group": "ogx_mmlux_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAntwoord:"
+"description": "Hieronder volgen meerkeuzevragen (met antwoorden) over het buitenlands\
+  \ beleid van de Verenigde Staten."

@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "college_mathematics_SK"
+"task": "ogx_mmlux_sk-college_mathematics"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdpoveď:"
+"description": "Nasledujú otázky s výberom odpovede (s odpoveďami) o vysokoškolskej\
+  \ matematike."

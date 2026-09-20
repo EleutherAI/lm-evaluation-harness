@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_ron_Latn"
+"test_split": "ron_Latn"
+"fewshot_split": "ron_Latn"
+"doc_to_text": "Pasaj: {{flores_passage}}\nÎntrebare: {{question}}\nRăspuns:"

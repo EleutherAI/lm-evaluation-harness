@@ -1,0 +1,3 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-nll-ell_Grek"
+"dataset_name": "ell_Grek"

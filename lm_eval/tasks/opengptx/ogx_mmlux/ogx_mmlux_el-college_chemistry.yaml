@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "college_chemistry_EL"
+"task": "ogx_mmlux_el-college_chemistry"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['Α', 'Β', 'Γ', 'Δ']"
+"doc_to_text": "{{question.strip()}}\nΑ. {{choices[0]}}\nΒ. {{choices[1]}}\nΓ. {{choices[2]}}\n\
+  Δ. {{choices[3]}}\nΑπάντηση:"
+"description": "Ακολουθούν ερωτήσεις πολλαπλής επιλογής (με απαντήσεις) σχετικά με\
+  \ τη χημεία του πανεπιστημίου."

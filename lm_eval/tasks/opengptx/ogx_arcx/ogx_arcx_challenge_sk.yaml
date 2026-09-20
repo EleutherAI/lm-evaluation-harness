@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_challenge_sk"
+"dataset_name": "challenge_SK"
+"doc_to_text": "Otázka: {{question}}\nOdpoveď:"
+"doc_to_decontamination_query": "Otázka: {{question}}\nOdpoveď:"

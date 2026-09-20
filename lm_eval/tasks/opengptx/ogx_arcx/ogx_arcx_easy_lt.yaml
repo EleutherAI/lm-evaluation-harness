@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_easy_lt"
+"dataset_name": "easy_LT"
+"doc_to_text": "Klausimas: {{question}}\nAtsakymas:"
+"doc_to_decontamination_query": "Klausimas: {{question}}\nAtsakymas:"
