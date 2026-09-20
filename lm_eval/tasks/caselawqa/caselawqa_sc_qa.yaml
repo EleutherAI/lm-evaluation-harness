@@ -1,0 +1,3 @@
+include: _default_template_qa
+dataset_name: sc
+task: caselawqa_sc_qa

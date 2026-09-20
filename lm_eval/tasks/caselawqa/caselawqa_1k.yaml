@@ -1,0 +1,3 @@
+include: _default_template_cot
+dataset_name: 1k
+task: caselawqa_1k
