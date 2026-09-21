@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Any
 
 from typing_extensions import TypedDict
 
+import os
+
 from lm_eval.api.metrics import (
     mean,
     stderr_for_metric,
@@ -538,3 +540,42 @@ def _handle_back_comp(
                 tasks[key] = value
 
     return groups, tasks
+
+
+def validate_task_safety(
+    eval_tasks: dict, confirm_run_unsafe_code: bool
+) -> None:
+    """Fail fast on unsafe-code tasks, before any generation runs.
+
+    Two independent gates guard tasks marked ``UNSAFE_CODE`` (e.g.
+    ``humaneval``, whose ``code_eval`` metric executes untrusted
+    model-generated code):
+
+    1. ``confirm_run_unsafe_code=True`` must be passed (Python API) or
+       ``--confirm_run_unsafe_code`` given (CLI).
+    2. The environment variable ``HF_ALLOW_CODE_EVAL="1"`` must be set.
+       This gate is enforced inside the ``code_eval`` metric itself, at
+       metric-compute time -- i.e. after every request has already been
+       generated. Checking it here turns a late, expensive failure into
+       an immediate one.
+
+    Raises:
+        ValueError: naming the gate to set and how to set it.
+    """
+    for task_name, task in eval_tasks.items():
+        if not getattr(task, "UNSAFE_CODE", False):
+            continue
+        if not confirm_run_unsafe_code:
+            raise ValueError(
+                f"Attempted to run task: {task_name} which is marked as unsafe. "
+                "Set confirm_run_unsafe_code=True to run this task."
+            )
+        if os.environ.get("HF_ALLOW_CODE_EVAL", "0") != "1":
+            raise ValueError(
+                f"Task {task_name} executes untrusted model-generated code. "
+                "Its metric (code_eval) additionally requires the environment "
+                'variable HF_ALLOW_CODE_EVAL="1", and enforces this only at '
+                "metric-compute time, after all generation has finished. Set "
+                "os.environ['HF_ALLOW_CODE_EVAL'] = '1' before running to fail "
+                "here instead of after generating every sample."
+            )
