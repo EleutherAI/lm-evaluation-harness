@@ -16,6 +16,7 @@ import lm_eval.api.registry
 from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
+    validate_task_safety,
     ResultAcc,
     _handle_back_comp,
     _log_selected_tasks,
@@ -518,12 +519,9 @@ def evaluate(
     # 1.are we running code that is marked as unsafe.
     # 2.are we running multimodal task <-> non-multimodal model class, or vice-versa.
     incompatible_tasks = []
-    for task_name, task in eval_tasks.items():
-        if getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
-            raise ValueError(
-                f"Attempted to run task: {task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
-            )
+    validate_task_safety(eval_tasks, confirm_run_unsafe_code)
 
+    for task_name, task in eval_tasks.items():
         if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
             incompatible_tasks.append(task_name)
     if len(incompatible_tasks) > 0 and not getattr(lm, "MULTIMODAL", False):
