@@ -59,6 +59,20 @@ eval_logger = logging.getLogger(__name__)
 
 
 @register_model("hf-auto", "hf", "huggingface")
+
+def _batch_size_hint_needed(batch_size_per_gpu: int, device: str) -> bool:
+    """Whether to log the batch-size throughput hint.
+
+    The default ``batch_size=1`` runs generation one request at a time;
+    on accelerator devices a larger batch typically yields a multiple of
+    the throughput. CPU-only runs are excluded: batching pays off far
+    less there and 1 is often the deliberate choice.
+    """
+    return batch_size_per_gpu == 1 and device.startswith(
+        ("cuda", "xpu", "hpu", "npu", "mps")
+    )
+
+
 class HFLM(TemplateLM):
     """An abstracted Huggingface model class. Enables usage with both models of
     `transformers.AutoModelForCausalLM` and `transformers.AutoModelForSeq2SeqLM` classes.
@@ -438,6 +452,13 @@ class HFLM(TemplateLM):
             self.batch_schedule = float(batch_size[1]) if len(batch_size) > 1 else 1
         else:
             self.batch_size_per_gpu = int(batch_size)
+
+        if _batch_size_hint_needed(self.batch_size_per_gpu, str(self.device)):
+            eval_logger.info(
+                "batch_size=1 with an accelerator device detected; for "
+                "generation-heavy tasks a larger batch_size (or "
+                "batch_size='auto') often roughly doubles throughput."
+            )
 
         if isinstance(pretrained, str):
             if (gpus >= 1 or str(self.device) == "mps") and not (
