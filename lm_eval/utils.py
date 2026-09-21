@@ -408,7 +408,7 @@ class Reorderer:
         arr = group(arr, lambda x: fn(x[1]))
         # arr = [([y[0] for y in x], x[0][1]) for x in arr]
         # TODO: overhaul reorderer. It currently grouped requests by content but we don't want this
-        arr = [([y[0]], x[0][1]) for x in arr for y in x]
+        arr = [([y[0]], y[1]) for x in arr for y in x]
         arr.sort(key=lambda x: fn(x[1]))
 
         self.arr = arr
