@@ -6,6 +6,7 @@ task:
   - infinitebench_code_run
   - infinitebench_code_debug
   - infinitebench_math_find
+  - infinitebench_math_calc
   - infinitebench_longdialogue_qa_en
   - infinitebench_longbook_qa_en
   - infinitebench_longbook_sum_en

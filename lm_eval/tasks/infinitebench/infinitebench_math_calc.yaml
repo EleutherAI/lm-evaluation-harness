@@ -1,0 +1,11 @@
+include: _infinitebench_common_yaml
+task: infinitebench_math_calc
+test_split: math_calc
+process_results: !function utils.process_results_math_calc
+description: 'You are a calculator that does nothing but calculate intermediate results in long arithmetic expressions with +, -, and numbers. Given an expression, output the intermediate result after each operation as a list of numbers (e.g., "[1, 3, -1, -11]") and nothing else.\n\n1 + 2 - 4 - 10\n[1, 3, -1, -11]\n\n'
+doc_to_text: "{{context}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 30000
+  until: []

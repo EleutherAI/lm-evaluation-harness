@@ -327,6 +327,40 @@ def process_results_math(doc: dict, results: list[str]) -> dict[str, float]:
     return {"score": 0.0}
 
 
+def process_results_math_calc(doc: dict, results: list[str]) -> dict[str, float]:
+    """Result processing for the math_calc task.
+
+    The model must reproduce the running total after every operation of a
+    long +/- chain. Scoring follows the official InfiniteBench
+    implementation (compute_scores.py get_score_one_math_calc): the
+    prediction is split on non-digit characters so "[1, 3, 5]" and
+    "1 3 5" are equivalent lists of numbers, then the score is the length
+    of the correctly matched prefix divided by the total number of steps.
+    Like the official scorer, negative numbers never match (the sign is
+    dropped during the digit split).
+    """
+    label = doc.get("answer", [])
+    if not label:
+        return {"score": 0.0}
+
+    if isinstance(label[0], list):
+        label = label[0]
+
+    prediction = postprocess_prediction(results[0])
+    pred_nums = [int(x) for x in re.split(r"[^0-9]", prediction) if x != ""]
+
+    cnt = 0
+    for i in range(len(label)):
+        if i >= len(pred_nums):
+            break
+        if int(label[i]) == pred_nums[i]:
+            cnt += 1
+        else:
+            break
+
+    return {"score": cnt / len(label)}
+
+
 def _answer_to_letter(doc: dict) -> str:
     """Derive the letter (A/B/C/D) from the answer text by looking up its
     position in the options list.
