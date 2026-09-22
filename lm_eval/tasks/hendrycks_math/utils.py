@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 import datasets
@@ -16,20 +17,70 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+    exact = 0
+    flexible = 0
+    gold = remove_boxed(last_boxed_only_string(doc["solution"]))
+    if is_equiv(_extract_strict_answer(results[0]), gold):
+        exact = 1
+    if is_equiv(_extract_flexible_answer(results[0]), gold):
+        flexible = 1
 
-    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
-        retval = 1
-
-    results = {
-        "exact_match": retval,
+    return {
+        "exact_match": exact,
+        "flexible_match": flexible,
     }
-    return results
+
+
+def _extract_strict_answer(text: str) -> str:
+    """Extract the model's answer with the original strict logic.
+
+    Only the content enclosed between the first and last ``$`` delimiters is
+    considered; any other format falls back to the full generation. This
+    mirrors the historical behavior of hendrycks_math exactly.
+    """
+    indices = [pos for pos, char in enumerate(text) if char == "$"]
+    if len(indices) <= 1:
+        return text
+    return text[indices[0] + 1 : indices[-1]]
+
+
+def _extract_flexible_answer(text: str) -> str:
+    """Extract the model's answer leniently, in order of preference:
+
+    1. the content of the last ``\\boxed{...}`` (or ``\\fbox{...}``) block,
+       wherever it appears in the generation (inline math, display math or
+       no math delimiters at all);
+    2. the content between the first and last ``$`` delimiters;
+    3. the last number-like token in the generation;
+    4. the full generation as a last resort.
+    """
+    if "\\boxed" in text or "\\fbox" in text:
+        try:
+            boxed = last_boxed_only_string(text)
+        except AssertionError:
+            boxed = None
+        if boxed:
+            if boxed.startswith("\\fbox"):
+                return boxed[6:-1].strip()
+            return remove_boxed(boxed)
+    if "$" in text:
+        indices = [pos for pos, char in enumerate(text) if char == "$"]
+        if len(indices) > 1:
+            return text[indices[0] + 1 : indices[-1]]
+    match = re.findall(r"(-?[$0-9.,]{2,})|(-?[0-9]+)", text)
+    if match:
+        groups = [
+            group
+            for group_tuple in reversed(match)
+            for group in reversed(group_tuple)
+            if group
+        ]
+        if groups:
+            number = groups[0]
+            if number.endswith(".") and number[:-1].lstrip("-").replace(",", "").isdigit():
+                number = number[:-1]
+            return number
+    return text
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
