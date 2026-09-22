@@ -25,7 +25,7 @@ Homepage: https://github.com/OpenBMB/InfiniteBench
 
 #### Groups
 
-- `infinitebench`: All 11 InfiniteBench tasks (math_calc excluded due to evaluation complexity)
+- `infinitebench`: All 12 InfiniteBench tasks
 
 #### Tasks
 
@@ -37,6 +37,7 @@ Homepage: https://github.com/OpenBMB/InfiniteBench
 | `infinitebench_code_run` | code_run | Code | Determine output of Python function chain | Last-word match |
 | `infinitebench_code_debug` | code_debug | Code | Identify which function has a bug | Last-letter match |
 | `infinitebench_math_find` | math_find | Math | Find specific information in math text | First-number match |
+| `infinitebench_math_calc` | math_calc | Math | Reproduce every intermediate result of a long arithmetic chain | Prefix-match |
 | `infinitebench_longdialogue_qa_en` | longdialogue_qa_en | Dialogue | Answer questions about a long dialogue | Substring match |
 | `infinitebench_longbook_qa_en` | longbook_qa_en | Novel (EN) | Answer questions about a book | Token F1 |
 | `infinitebench_longbook_sum_en` | longbook_sum_en | Novel (EN) | Summarize a book | ROUGE-Lsum |
@@ -61,6 +62,6 @@ lm_eval --model vllm \
 ### Notes
 
 - **Context length**: Most tasks have contexts exceeding 100K tokens. Ensure your model supports sufficient context length.
-- **math_calc** is excluded from this implementation as it requires complex multi-step calculation verification.
+- **math_calc** requires the model to reproduce every running total of a long +/- expression; it is scored with the official prefix-match rule (standard in evaluation).
 - **Dataset**: Loaded from `xinrongzhang2022/InfiniteBench` on HuggingFace Hub.
 - **Evaluation methods** match the official InfiniteBench implementation. Each task uses the scoring method from the original paper: first-int extraction for retrieval, token-level F1 for QA, ROUGE-Lsum for summarization, and last-letter extraction for multiple-choice.
