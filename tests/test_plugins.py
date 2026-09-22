@@ -115,6 +115,26 @@ def test_load_plugins_is_once_per_group(monkeypatch):
     assert load_plugins("lm_eval.things", reg) == []
 
 
+def test_load_plugins_retries_after_discovery_error(monkeypatch):
+    reg = Registry("thing")
+    entry_point = _make_ep("fake", object())
+    attempts = 0
+
+    def flaky_entry_points(*, group):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise RuntimeError("temporary metadata failure")
+        return [entry_point]
+
+    monkeypatch.setattr(registry_mod.md, "entry_points", flaky_entry_points)
+
+    assert load_plugins("lm_eval.things", reg) == []
+    assert load_plugins("lm_eval.things", reg) == ["fake"]
+    assert "fake" in reg
+    assert attempts == 2
+
+
 def test_load_plugins_does_not_override_builtin(monkeypatch):
     reg = Registry("thing")
     builtin = object()

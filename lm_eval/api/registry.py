@@ -209,7 +209,6 @@ def load_plugins(group: str, registry: Registry) -> list[str]:
     """
     if group in _loaded_plugin_groups:
         return []
-    _loaded_plugin_groups.add(group)
 
     discovered: list[str] = []
     try:
@@ -220,6 +219,7 @@ def load_plugins(group: str, registry: Registry) -> list[str]:
         )
         return discovered
 
+    _loaded_plugin_groups.add(group)
     for ep in entry_points:
         if ep.name in registry:
             eval_logger.debug(
