@@ -264,7 +264,7 @@ def pattern_match(patterns, source_list):
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
-    return sorted(list(task_names))
+    return sorted(task_names)
 
 
 def softmax(x) -> np.ndarray:
@@ -508,7 +508,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         group_subtasks, set(result_dict[column].keys())
     )
 
-    if sort_results:  # noqa: SIM108
+    if sort_results:
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
@@ -745,12 +745,13 @@ class RemoteTokenizer:
 
     def _request_with_retries(self, method, url, **kwargs):
         last_exc = None
+        timeout = kwargs.pop("timeout", self.timeout)
         for _ in range(self.max_retries):
             try:
                 resp = self.session.request(
                     method,
                     url,
-                    timeout=kwargs.pop("timeout", self.timeout),
+                    timeout=timeout,
                     verify=self.cert_config,
                     **kwargs,
                 )
@@ -813,7 +814,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         tokens = resp.json().get("tokens")
         if not isinstance(tokens, list):
-            raise RuntimeError("Malformed response from /tokenize endpoint.")
+            raise RuntimeError("Malformed response from /tokenize endpoint.")  # noqa: TRY004
         return tokens
 
     def decode(self, tokens: list[int]) -> str:
@@ -822,7 +823,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         prompt = resp.json().get("prompt")
         if not isinstance(prompt, str):
-            raise RuntimeError("Malformed response from /detokenize endpoint.")
+            raise RuntimeError("Malformed response from /detokenize endpoint.")  # noqa: TRY004
         return prompt
 
     def batch_decode(self, tokens_list: list[list[int]]) -> list[str]:
