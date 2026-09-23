@@ -124,8 +124,10 @@ class NumberParseRegexFilter(ExtendedRegexFilter):
         from word2number import w2n
 
         # https://www.reddit.com/r/regex/comments/11a38uk/parsing_numbers_written_out_as_english_words
+        # six|seven|nine are listed bare because making (?|teen|ty) optional would
+        # also match the word "for".
         english_number_regex = regex.compile(
-            "((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))"
+            "\\b((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|six|seven|nine|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|six|seven|nine|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))\\b"
         )
 
         for r in resps:
@@ -135,7 +137,11 @@ class NumberParseRegexFilter(ExtendedRegexFilter):
                 if not match:
                     match = self.find_match(english_number_regex, resp.lower())
                     if match:
-                        match = str(w2n.word_to_num(match))
+                        # word2number raises IndexError on e.g. "a thousand and one".
+                        try:
+                            match = str(w2n.word_to_num(match))
+                        except (ValueError, IndexError):
+                            match = self.fallback
                 if not match:
                     match = self.fallback
                 filtered.append(match)
