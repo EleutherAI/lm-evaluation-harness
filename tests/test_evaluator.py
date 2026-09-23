@@ -268,3 +268,48 @@ def test_make_table_regression_sorted_results_is_alphabetical(fake_pytablewriter
         ["Parent", "    N/A", "none", " ", "acc", "", "0.9000", "", ""],
         ["Standalone", "    N/A", "none", " ", "acc", "", "0.7000", "", ""],
     ]
+
+
+def test_make_table_regression_no_duplicate_rows_for_shared_subtasks(
+    fake_pytablewriter,
+):
+    """A subtask reachable from two groups must be printed once.
+
+    `group_subtasks` describes a DAG, not a tree. `flan_held_out` reaches
+    `stem` through both `mmlu` and `mmlu_flan_cot_zeroshot`, so a naive
+    tree-walk appends `stem` (and every task under it) once per path.
+    """
+    result_dict = {
+        "results": {
+            n: {"alias": n, "acc,none": 0.5}
+            for n in [
+                "flan_held_out",
+                "mmlu",
+                "mmlu_flan_cot_zeroshot",
+                "stem",
+                "mmlu_anatomy",
+            ]
+        },
+        "versions": {},
+        "n-shot": {},
+        "higher_is_better": {},
+        "group_subtasks": {
+            "flan_held_out": ["mmlu", "mmlu_flan_cot_zeroshot"],
+            "mmlu": ["stem"],
+            "mmlu_flan_cot_zeroshot": ["stem"],
+            "stem": ["mmlu_anatomy"],
+        },
+    }
+
+    make_table(result_dict)
+
+    rows = [row[0] for row in _FakeMarkdownTableWriter.instances[0].value_matrix]
+    assert len(rows) == len(set(rows)), f"duplicate rows: {sorted(rows)}"
+    # The first path to reach each node wins, so the tree keeps its shape.
+    assert rows == [
+        "flan_held_out",
+        " - mmlu",
+        "  - stem",
+        "   - mmlu_anatomy",
+        " - mmlu_flan_cot_zeroshot",
+    ]
