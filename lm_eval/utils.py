@@ -448,15 +448,25 @@ def _build_hierarchy_info(
 ) -> tuple[dict[str, int], list[str]]:
     """Build depth map and hierarchical key ordering from group_subtasks.
 
-    Uses a tree-walk approach over group_subtasks for ordering.
+    Walks group_subtasks as a hierarchy for ordering. It is a DAG rather than a
+    tree — a subtask can be reachable from more than one group — so each key is
+    placed on the first path that reaches it and later paths skip it, keeping
+    every key in the output exactly once.
 
     Returns:
         (depth_map, ordered_keys) — depths for indentation, keys in display order
     """
     depth_map: dict[str, int] = {}
     ordered: list[str] = []
+    # `group_subtasks` is a DAG, not a tree: a subtask reachable from several
+    # groups (e.g. `stem` sits under both `mmlu` and `mmlu_flan_cot_zeroshot`)
+    # would otherwise be appended once per path and get a duplicate row.
+    placed: set[str] = set()
 
     def visit(name: str, depth: int):
+        if name in placed:
+            return
+        placed.add(name)
         depth_map[name] = depth
         if name in available_keys:
             ordered.append(name)
