@@ -57,3 +57,5 @@ None.
 - `bbh_cot_fewshot` v.4.0; 2025-07-14:
   - PR #3140. Removed duplicate "Let's think step by step" from the fewshots.
   - set target_delimiter to "" as the fewshot samples end with a newline character.
+- `bbh_fewshot` tasks v3.0 and `bbh_cot_fewshot` tasks v5.0; groups `bbh_fewshot`, `bbh_cot_fewshot` and `bbh` v4.0; 2026-09-23:
+  - The stop sequence `Q` is now `Q:`, as in `bbh_zeroshot` and `bbh_cot_zeroshot`. The bare `Q` cut each generation at its first capital Q, so the 7 `reasoning_about_colored_objects` questions whose answer is option `(Q)` could never be scored correct, and chains of thought that mention a word starting with Q before the answer were cut short.

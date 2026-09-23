@@ -13,7 +13,7 @@ generation_kwargs:
   max_gen_toks: 1024
   until:
     - "</s>"
-    - "Q"
+    - "Q:"
     - "\n\n"
   do_sample: false
   temperature: 0.0
@@ -25,4 +25,4 @@ filter_list:
       - function: "take_first"
 num_fewshot: 3
 metadata:
-  version: 4.0
+  version: 5.0

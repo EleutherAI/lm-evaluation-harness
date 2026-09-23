@@ -11,10 +11,10 @@ metric_list:
 generation_kwargs:
   until:
     - "</s>"
-    - "Q"
+    - "Q:"
     - "\n\n"
   do_sample: false
   temperature: 0.0
 num_fewshot: 3
 metadata:
-  version: 2.0
+  version: 3.0
