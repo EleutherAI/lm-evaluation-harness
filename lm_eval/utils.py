@@ -147,10 +147,10 @@ def escaped_split(text, sep_char, maxsplit=-1):
     )
 
     if maxsplit == 0:
-        return text
+        return [text]
     maxsplit = max(0, maxsplit)
 
-    return re.split(r"(?<!\\)" + sep_char, text, maxsplit=maxsplit)
+    return re.split(r"(?<!\\)" + re.escape(sep_char), text, maxsplit=maxsplit)
 
 
 def handle_arg_string(arg):
