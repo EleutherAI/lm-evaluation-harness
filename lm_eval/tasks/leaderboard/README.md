@@ -168,6 +168,10 @@ two widely available LLMs on the market.
 
 - `leaderboard_ifeval`
 
+Version 4.0 fixes nondeterministic language checks in the shared
+[IFEval scorer](../ifeval/README.md#scoring-changes). Scores on ambiguous
+responses can differ from earlier versions.
+
 ## MATH-hard
 
 This is the 4 shots variant of minerva math but only keeping the level 5 questions.

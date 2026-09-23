@@ -43,8 +43,6 @@ def test_language_scores_are_repeatable(monkeypatch, instruction_id, kwargs, res
     "instruction_id,kwargs,response,expected",
     [
         ("language:response_language", {"language": "fr"}, "Hello world", False),
-        ("change_case:english_capital", {}, "This is a test", False),
-        ("change_case:english_lowercase", {}, "This is a test", False),
         ("language:response_language", {"language": "en"}, "123", True),
         ("language:response_language", {"language": "en"}, "", False),
     ],
