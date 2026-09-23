@@ -547,6 +547,74 @@ def _bootstrap_internal_no_mp(
     return res
 
 
+def _binary_confusion_counts(xs: Sequence[T]) -> np.ndarray | None:
+    """
+    Count `(gold, pred)` pairs into `[tn, fp, fn, tp]`.
+
+    Returns None unless every item is a pair whose two labels are 0 or 1, so
+    any other input stays on the row-resampling path.
+    """
+    counts = [0, 0, 0, 0]
+    for item in xs:
+        try:
+            gold, pred = item
+            if gold not in (0, 1) or pred not in (0, 1):
+                return None
+        except (TypeError, ValueError):
+            return None
+        counts[2 * int(gold) + int(pred)] += 1
+    if not any(counts):
+        return None
+    return np.array(counts, dtype=np.int64)
+
+
+def _binary_scores_from_counts(
+    f: Callable[[Sequence[T]], float], counts: np.ndarray
+) -> np.ndarray:
+    """
+    Binary `f1_score` or `matthews_corrcoef` for each `[tn, fp, fn, tp]` row.
+
+    Where the score is undefined it is 0.0, as the sklearn-backed aggregations
+    return.
+    """
+    tn, fp, fn, tp = counts.astype(np.float64).T
+    if f is f1_score:
+        num, den = 2 * tp, 2 * tp + fp + fn
+    else:
+        num = tp * tn - fp * fn
+        den = np.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
+    return np.divide(num, den, out=np.zeros_like(num), where=den != 0)
+
+
+def _binary_count_bootstrap(
+    f: Callable[[Sequence[T]], float], xs: Sequence[T], iters: int
+) -> np.ndarray | None:
+    """
+    Bootstrap replicates of binary `f1_score` or `matthews_corrcoef` from counts.
+
+    Resampling n rows with replacement makes the four confusion counts
+    Multinomial(n, observed proportions), and both metrics depend on those
+    counts only, so drawing the counts directly gives the same bootstrap
+    distribution as resampling rows, without an sklearn call per replicate.
+    Draws as many replicates as the row path. Returns None for any other
+    metric or labels, which then take the row path unchanged.
+    """
+    if (f is not f1_score and f is not matthews_corrcoef) or iters < 1:
+        return None
+    counts = _binary_confusion_counts(xs)
+    if counts is None:
+        return None
+    chunk_size = min(1000, iters)
+    n_draws = (iters // chunk_size) * chunk_size
+    n = int(counts.sum())
+    rng = np.random.default_rng(0)
+    replicates = []
+    for start in range(0, n_draws, 100_000):
+        draws = rng.multinomial(n, counts / n, size=min(100_000, n_draws - start))
+        replicates.append(_binary_scores_from_counts(f, draws))
+    return np.concatenate(replicates)
+
+
 def bootstrap_stderr(
     f: Callable[[Sequence[T]], float], xs: Sequence[T], iters: int
 ) -> float:
@@ -555,7 +623,13 @@ def bootstrap_stderr(
     using up to `iters` resamples, chunked (≤ 1000 draws)
 
     Executes in parallel unless the env-var `DISABLE_MULTIPROC` is set;
+    binary `f1_score` and `matthews_corrcoef` draw confusion counts instead
+    (see `_binary_count_bootstrap`) and start no processes.
     """
+    replicates = _binary_count_bootstrap(f, xs, iters)
+    if replicates is not None:
+        return sample_stddev(replicates.tolist())
+
     if not os.getenv("DISABLE_MULTIPROC"):
         import multiprocessing as mp
 
