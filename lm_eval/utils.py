@@ -744,13 +744,18 @@ class RemoteTokenizer:
         self._validate_server()
 
     def _request_with_retries(self, method, url, **kwargs):
+        # Resolve the timeout once, before the retry loop: popping it inside the
+        # loop drops a caller-supplied override after the first attempt, so
+        # later retries of the same logical request would silently fall back to
+        # the tokenizer default.
+        timeout = kwargs.pop("timeout", self.timeout)
         last_exc = None
         for _ in range(self.max_retries):
             try:
                 resp = self.session.request(
                     method,
                     url,
-                    timeout=kwargs.pop("timeout", self.timeout),
+                    timeout=timeout,
                     verify=self.cert_config,
                     **kwargs,
                 )

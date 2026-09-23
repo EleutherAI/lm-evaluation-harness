@@ -479,6 +479,56 @@ def test_remote_tokenizer_http_url(monkeypatch):
     assert tokenizer.tokenizer_info["name_or_path"] == "mock"
 
 
+def _retrying_tokenizer(timeout=30, max_retries=3, fail_times=1):
+    """A RemoteTokenizer whose session fails `fail_times` times, recording timeouts."""
+    import requests
+
+    attempts = {"count": 0, "timeouts": []}
+
+    class Recorder:
+        def request(self, method, url, **kwargs):
+            attempts["timeouts"].append(kwargs["timeout"])
+            attempts["count"] += 1
+            if attempts["count"] <= fail_times:
+                raise requests.ConnectionError("transient failure")
+
+            class DummyResponse:
+                status_code = 200
+
+                def raise_for_status(self):
+                    pass
+
+            return DummyResponse()
+
+    tokenizer = object.__new__(RemoteTokenizer)
+    tokenizer.session = Recorder()
+    tokenizer.timeout = timeout
+    tokenizer.cert_config = True
+    tokenizer.max_retries = max_retries
+    return tokenizer, attempts
+
+
+def test_remote_tokenizer_keeps_explicit_timeout_across_retries():
+    # A per-request override must survive retries of the same logical request;
+    # it used to be popped on the first attempt, so retries fell back to the
+    # tokenizer default instead.
+    tokenizer, attempts = _retrying_tokenizer(timeout=30, max_retries=3, fail_times=2)
+
+    tokenizer._request_with_retries(
+        "GET", "https://mock-server/tokenizer_info", timeout=7
+    )
+
+    assert attempts["timeouts"] == [7, 7, 7]
+
+
+def test_remote_tokenizer_uses_default_timeout_across_retries():
+    tokenizer, attempts = _retrying_tokenizer(timeout=30, max_retries=3, fail_times=2)
+
+    tokenizer._request_with_retries("GET", "https://mock-server/tokenizer_info")
+
+    assert attempts["timeouts"] == [30, 30, 30]
+
+
 def test_check_remote_tokenizer_support(monkeypatch):
     class DummyResponse:
         status_code = 200
