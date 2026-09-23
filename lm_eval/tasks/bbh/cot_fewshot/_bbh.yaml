@@ -33,4 +33,4 @@ aggregate_metric_list:
     weight_by_size: true
     filter_list: get-answer
 metadata:
-  version: 3.0
+  version: 4.0
