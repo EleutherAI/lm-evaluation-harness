@@ -33,6 +33,10 @@ The following tasks evaluate subjects in the TMMLU+ dataset using loglikelihood-
 
 * `tmmluplus_{subject_english}`
 
+### Changelog
+
+- 2026-Sep-23, no version change: pinned `ikala/tmmluplus` to the `v1.0` tag (commit `02a54a3`), the data this task version was built against. The dataset's `main` branch moved to v1.1 on 2026-09-07 (fewer test questions, some answers changed, and several subjects now have fewer than 5 `train` examples, so `--num_fewshot 5` fails).
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
