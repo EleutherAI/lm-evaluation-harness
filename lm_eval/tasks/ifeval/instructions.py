@@ -26,6 +26,7 @@ upstream Google import (see TODOs in `instructions_registry.py`):
 """
 
 import collections
+import functools
 import json
 import logging
 import random
@@ -34,6 +35,7 @@ import string
 from collections.abc import Sequence
 
 import langdetect
+from langdetect.detector_factory import PROFILES_DIRECTORY
 
 from lm_eval.tasks.ifeval import instructions_util
 
@@ -118,6 +120,21 @@ _NUM_WORDS_LOWER_LIMIT = 100
 _NUM_WORDS_UPPER_LIMIT = 500
 
 
+@functools.lru_cache(maxsize=1)
+def _get_language_detector_factory():
+    # Keep IFEval repeatable without changing other users of langdetect.
+    factory = langdetect.DetectorFactory()
+    factory.load_profile(PROFILES_DIRECTORY)
+    factory.set_seed(0)
+    return factory
+
+
+def _detect_language(value):
+    detector = _get_language_detector_factory().create()
+    detector.append(value)
+    return detector.detect()
+
+
 class Instruction:
     """An instruction template."""
 
@@ -183,7 +200,7 @@ class ResponseLanguageChecker(Instruction):
         assert isinstance(value, str)
 
         try:
-            return langdetect.detect(value) == self._language
+            return _detect_language(value) == self._language
         except langdetect.LangDetectException as e:
             # Count as instruction is followed.
             logger.error(
@@ -1466,7 +1483,7 @@ class CapitalLettersEnglishChecker(Instruction):
         assert isinstance(value, str)
 
         try:
-            return value.isupper() and langdetect.detect(value) == "en"
+            return value.isupper() and _detect_language(value) == "en"
         except langdetect.LangDetectException as e:
             # Count as instruction is followed.
             logger.error(
@@ -1498,7 +1515,7 @@ class LowercaseLettersEnglishChecker(Instruction):
         assert isinstance(value, str)
 
         try:
-            return value.islower() and langdetect.detect(value) == "en"
+            return value.islower() and _detect_language(value) == "en"
         except langdetect.LangDetectException as e:
             # Count as instruction is followed.
             logger.error(
