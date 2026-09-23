@@ -31,6 +31,17 @@ Homepage: https://github.com/google-research/google-research/tree/master/instruc
 
 * `ifeval`
 
+### Scoring changes
+
+* 2026-09-23: `ifeval` 5.0 and `leaderboard_ifeval` 4.0 use a task-local
+  langdetect factory with seed 0 for the response-language and English case
+  checkers. Ambiguous responses may score differently from earlier unseeded
+  runs. This follows the language-seeding proposal in
+  [Google PR #3428](https://github.com/google-research/google-research/pull/3428)
+  (not yet merged), without its separate letter-frequency changes. See
+  [Harness issue #4213](https://github.com/EleutherAI/lm-evaluation-harness/issues/4213)
+  for the reproduction and the [junekihong.com benchmark author's report](https://junekihong.com/benchmarks/).
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
