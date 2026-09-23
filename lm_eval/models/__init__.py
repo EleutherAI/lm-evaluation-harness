@@ -34,6 +34,7 @@ MODEL_MAPPING = {
     "hf-auto": "lm_eval.models.huggingface:HFLM",
     "hf-mistral3": "lm_eval.models.mistral3:Mistral3LM",
     "hf-multimodal": "lm_eval.models.hf_vlms:HFMultimodalLM",
+    "hf-mxfp4": "lm_eval.models.hf_mxfp4:HFMXFP4",
     "huggingface": "lm_eval.models.huggingface:HFLM",
     "ipex": "lm_eval.models.optimum_ipex:IPEXForCausalLM",
     "litellm": "lm_eval.models.litellm_llms:LiteLLMChatCompletion",
