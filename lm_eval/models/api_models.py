@@ -424,9 +424,14 @@ class TemplateAPI(TemplateLM):
             return encoding
         elif self.tokenizer_backend == "remote":
             if isinstance(string, str):
-                encoding = self.tokenizer.encode(string)
+                encoding = self.tokenizer.encode(
+                    string, add_special_tokens=add_special_tokens
+                )
             else:
-                encoding = [self.tokenizer.encode(s) for s in string]
+                encoding = [
+                    self.tokenizer.encode(s, add_special_tokens=add_special_tokens)
+                    for s in string
+                ]
 
             if left_truncate_len:
                 if isinstance(string, str):
