@@ -254,7 +254,6 @@ class SteeredModel(HFLM):
         if head_index is not None:
             x = acts[:, :, head_index, :]
             proj = (x * direction).sum(dim=-1, keepdim=True)
-            assert proj == acts @ direction
 
             clamped = acts.clone()
             clamped[:, :, head_index, :] = x + direction * (value - proj)
