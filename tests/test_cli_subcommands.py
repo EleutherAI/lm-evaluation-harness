@@ -1265,3 +1265,19 @@ seed: 0
             EvaluatorConfig(
                 tasks=["arc_easy"], seed=[0, "abc", 1234, 1234]
             )._configure()
+
+    @pytest.mark.parametrize(
+        "seed",
+        [
+            1.9,
+            True,
+            [0, 2.5, 1234, 1234],
+            [0, False, 1234, 1234],
+        ],
+    )
+    def test_lossy_seed_types_raise_clear_error(self, seed):
+        """Floats and booleans must not be silently converted to integers."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        with pytest.raises(TypeError, match="seed values must be integers or None"):
+            EvaluatorConfig(tasks=["arc_easy"], seed=seed)._configure()

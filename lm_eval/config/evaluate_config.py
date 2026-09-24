@@ -323,6 +323,8 @@ class EvaluatorConfig:
             if value is None:
                 parsed.append(None)
                 continue
+            if isinstance(value, bool) or not isinstance(value, (int, str)):
+                raise TypeError(f"seed values must be integers or None, got {value!r}")
             try:
                 parsed.append(int(value))
             except (TypeError, ValueError):
