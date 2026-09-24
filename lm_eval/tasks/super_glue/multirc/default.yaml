@@ -8,8 +8,8 @@ training_split: train
 validation_split: validation
 doc_to_text: "{{paragraph}}\nQuestion: {{question}}\nAnswer:"
 doc_to_target: label
-doc_to_choice: "['''{{answer}}\\nIs the answer correct? yes''', '''{{answer}}\\nIs the answer correct? no''']"
+doc_to_choice: "['''{{answer}}\\nIs the answer correct? no''', '''{{answer}}\\nIs the answer correct? yes''']"
 metric_list:
   - metric: acc
 metadata:
-  version: 2.0
+  version: 3.0
