@@ -193,6 +193,15 @@ lm_eval --model gguf \
 - `loglikelihood` is implemented via exact teacher forcing: llama.cpp ignores `echo` and never returns prompt logprobs, so the continuation is tokenized with the server's `/tokenize` endpoint (context and continuation encoded separately, matching the HF backend), and each continuation token is scored with its natural prefix as a token-id prompt plus a `logit_bias` that forces the server to sample it. llama.cpp reports the forced token's *pre-sampling* logprob and an unbiased `top_logprobs`, yielding loglikelihoods that match the HF backend to within quantization noise. (A naive alternative — forcing the continuation with a GBNF grammar — does *not* work: grammar-constrained decoding can pick a fragmented tokenization whose logprobs are not the natural-tokenization loglikelihoods, which systematically deflates scores.)
 - `loglikelihood_rolling` (perplexity tasks such as wikitext) is not implemented for this model type.
 
+#### MXFP4 Fake Quantization
+
+Use `--model hf-mxfp4` to evaluate floating Hugging Face checkpoints with MXFP4
+weight/activation fake quantization, independently of veRL or native FP4 kernels.
+The backend supports BF16, W4A16, and W4A4 accuracy comparisons on standard tasks.
+See [the MXFP4 guide](docs/mxfp4.md) for supported models, numerical semantics,
+exclusions, and usage. Fake quantization retains floating-point storage and
+matrix multiplication; it does not provide native FP4 inference speedups.
+
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
 We support three main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
