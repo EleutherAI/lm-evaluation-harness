@@ -210,9 +210,10 @@ task_dict = get_task_dict(
 results = lm_eval.evaluate(
     lm=lm,
     task_dict=task_dict,
-    num_fewshot=5,
     limit=100,
 )
+
+> **Note:** `evaluate()` is the low-level evaluation API and does not accept a `num_fewshot` argument. Configure few-shot behavior on the task objects before calling `evaluate()`, or use `simple_evaluate()` if you want a global `num_fewshot` override.
 ```
 
 ### Mixed Task Sources
