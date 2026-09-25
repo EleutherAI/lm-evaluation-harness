@@ -403,7 +403,9 @@ def doc_to_targets(doc):
     choices = [doc["ans0"], doc["ans1"], doc["ans2"]]
     target_word = choices[label]
     if target_word in UNKNOWN_RESPONSES:
-        targets = list(range(2, 2 + len(UNKNOWN_RESPONSES) + 1))
+        # Put this doc's own phrasing first so doc_to_target matches the gold label.
+        own = doc_to_choice(doc).index(target_word)
+        targets = [own] + [i for i in range(2, 2 + len(UNKNOWN_RESPONSES)) if i != own]
     else:
         targets = [doc_to_choice(doc).index(target_word)]
     return targets
