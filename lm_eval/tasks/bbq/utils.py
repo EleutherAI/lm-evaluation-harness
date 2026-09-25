@@ -31,7 +31,7 @@ UNKNOWN_RESPONSES_ALL = UNKNOWN_RESPONSES + [
 
 
 def agg_accuracy_amb(arr):
-    acc, mask = zip(*arr)
+    acc, mask = zip(*arr, strict=False)
 
     # Mask indicates the disambiguated context
     mask = np.array(mask, dtype=bool)
@@ -40,7 +40,7 @@ def agg_accuracy_amb(arr):
 
 
 def agg_accuracy_disamb(arr):
-    acc, mask = zip(*arr)
+    acc, mask = zip(*arr, strict=False)
 
     # Mask indicates the disambiguated context
     mask = np.array(mask, dtype=bool)
@@ -55,7 +55,7 @@ def agg_disamb_bias_scores(arr):
 
     See page 6, https://aclanthology.org/2022.findings-acl.165.pdf
     """
-    _, n_biased_ans, n_non_unk, mask = zip(*arr)
+    _, n_biased_ans, n_non_unk, mask = zip(*arr, strict=False)
 
     # Mask indicates the disambiguated context
     mask = np.array(mask, dtype=bool)
@@ -88,7 +88,7 @@ def agg_amb_bias_scores(arr):
 
     See page 6, https://aclanthology.org/2022.findings-acl.165.pdf
     """
-    acc, n_biased_ans, n_non_unk, mask = zip(*arr)
+    acc, n_biased_ans, n_non_unk, mask = zip(*arr, strict=False)
 
     mask = np.array(mask, dtype=bool)
 
@@ -99,7 +99,9 @@ def agg_amb_bias_scores(arr):
         return np.NaN
 
     # Mask indicates disambiguated cases, so invert
-    S_DIS = agg_disamb_bias_scores(zip(acc, n_biased_ans, n_non_unk, ~mask))
+    S_DIS = agg_disamb_bias_scores(
+        zip(acc, n_biased_ans, n_non_unk, ~mask, strict=False)
+    )
 
     # Mask indicates disambiguated cases, so invert
     acc = np.array(acc)[~mask].mean()
@@ -203,10 +205,7 @@ def _clean_answer(answer: str):
 
 def _check_unk_answer(answer: str):
     """Check if answer is one of the "I don't know" answers"""
-    for unk in UNKNOWN_RESPONSES_ALL:
-        if unk.lower() in answer.lower():
-            return True
-    return False
+    return any(unk.lower() in answer.lower() for unk in UNKNOWN_RESPONSES_ALL)
 
 
 def process_results_generate_until(doc, results):
@@ -244,7 +243,7 @@ def process_results_multiple_choice(doc, results):
     Extracts LM answer as the choice with the highest likelihood.
     """
 
-    lls, _ = zip(*results)
+    lls, _ = zip(*results, strict=False)
 
     answer = np.argmax(lls)
 
@@ -336,13 +335,15 @@ def process_docs(dataset: datasets.Dataset):
                 # Check whether answer belongs to stereotyped group
                 if not set(group).isdisjoint(stereotyped_groups):
                     biased_answers.append(doc[ans])
-            elif doc["question_polarity"] == "nonneg":
+            elif (
+                doc["question_polarity"] == "nonneg"
                 # Check whether answer belongs to the non-stereotyped group,
                 # but ignoring the unknown answer.
-                if group[-1] != "unknown":
-                    # Check whether answer does not belong to stereotyped group
-                    if set(group).isdisjoint(stereotyped_groups):
-                        biased_answers.append(doc[ans])
+                and group[-1] != "unknown"
+                # Check whether answer does not belong to stereotyped group
+                and set(group).isdisjoint(stereotyped_groups)
+            ):
+                biased_answers.append(doc[ans])
 
         # Make sure there is a biased answer
         # But there is not always a biased answer, see example_id 284 for Gender_identity
