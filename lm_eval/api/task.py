@@ -979,10 +979,30 @@ class ConfigurableTask(Task):
             messages.append(Message("system", system_prompt))
 
         if num_fewshot > 0:
+            effective_fewshot_split = self.fewshot_cfg.split
+            if effective_fewshot_split is None and self.fewshot_cfg.samples is None:
+                effective_fewshot_split = next(
+                    (
+                        split
+                        for split in (
+                            self.config.training_split,
+                            self.config.validation_split,
+                            self.config.test_split,
+                        )
+                        if split is not None
+                    ),
+                    None,
+                )
+            eval_split = (
+                self.config.test_split
+                if self.config.test_split is not None
+                else self.config.validation_split
+            )
             for fs_doc in self.sampler.sample(
                 n=num_fewshot,
                 eval_doc=doc
-                if self.fewshot_cfg.split == self.config.test_split
+                if effective_fewshot_split is not None
+                and effective_fewshot_split == eval_split
                 else None,
             ):
                 q, c, a = (

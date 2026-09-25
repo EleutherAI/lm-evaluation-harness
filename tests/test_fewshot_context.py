@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import Mock
 
+import datasets
 import pytest
 
 from lm_eval.api.task import ConfigurableTask
@@ -689,11 +690,51 @@ class TestFewshotContext:
             n=1, eval_doc=eval_doc
         )
 
-    def test_sampler_no_exclusion_when_different_split(self, mock_configurable_task):
-        """When fewshot_split != test_split, eval_doc is not passed to sampler."""
-        mock_configurable_task.config.fewshot_split = "train"
+    @pytest.mark.parametrize(
+        ("validation_split", "test_split"),
+        [(None, "test"), ("validation", None)],
+    )
+    def test_sampler_excludes_eval_doc_when_fallback_uses_eval_split(
+        self, mock_configurable_task, validation_split, test_split
+    ):
+        """Fallback pools that resolve to the evaluation split exclude its doc."""
+        mock_configurable_task.config.training_split = None
+        mock_configurable_task.config.validation_split = validation_split
+        mock_configurable_task.config.test_split = test_split
+        mock_configurable_task.fewshot_cfg.split = None
+        mock_configurable_task.fewshot_cfg.samples = None
+        mock_configurable_task.doc_to_text = Mock(return_value="Q")
+        mock_configurable_task.doc_to_target = Mock(return_value="A")
+
+        eval_doc = {"id": 123}
+        ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc=eval_doc, num_fewshot=1
+        )
+
+        mock_configurable_task.sampler.sample.assert_called_once_with(
+            n=1, eval_doc=eval_doc
+        )
+
+    @pytest.mark.parametrize(
+        ("fewshot_split", "samples", "training_split"),
+        [
+            ("train", None, None),
+            (None, None, "train"),
+            (None, [{"id": 1}], None),
+        ],
+    )
+    def test_sampler_no_exclusion_for_separate_fewshot_pool(
+        self,
+        mock_configurable_task,
+        fewshot_split,
+        samples,
+        training_split,
+    ):
+        """Separate configured, fallback, and explicit pools remain unchanged."""
+        mock_configurable_task.config.training_split = training_split
         mock_configurable_task.config.test_split = "test"
-        mock_configurable_task.fewshot_cfg.split = "train"
+        mock_configurable_task.fewshot_cfg.split = fewshot_split
+        mock_configurable_task.fewshot_cfg.samples = samples
         mock_configurable_task.doc_to_text = Mock(return_value="Q")
         mock_configurable_task.doc_to_target = Mock(return_value="A")
 
@@ -706,6 +747,38 @@ class TestFewshotContext:
         mock_configurable_task.sampler.sample.assert_called_once_with(
             n=1, eval_doc=None
         )
+
+    def test_test_split_fallback_never_samples_the_evaluation_doc(self):
+        """A test-only task must not reveal an item's answer in its own prompt."""
+
+        def make_dataset(**kwargs):
+            return {
+                "test": datasets.Dataset.from_list(
+                    [
+                        {"question": f"question-{i}", "answer": f"answer-{i}"}
+                        for i in range(3)
+                    ]
+                )
+            }
+
+        task = ConfigurableTask(
+            config={
+                "task": "test_only_fewshot",
+                "custom_dataset": make_dataset,
+                "test_split": "test",
+                "num_fewshot": 2,
+                "output_type": "generate_until",
+                "doc_to_text": "{{ question }}",
+                "doc_to_target": "{{ answer }}",
+                "generation_kwargs": {"until": ["\n"]},
+            }
+        )
+        task.set_fewshot_seed(1234)
+
+        for doc in task.eval_docs:
+            context = task.fewshot_context(doc, num_fewshot=2)
+            assert context.count(doc["question"]) == 1
+            assert f"{doc['question']} {doc['answer']}" not in context
 
     def test_chat_template_multiturn(self, mock_configurable_task):
         """Chat template with fewshot_as_multiturn=True keeps messages separate."""
