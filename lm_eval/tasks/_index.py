@@ -60,7 +60,11 @@ class TaskIndex:
                         recursive=resolve_includes,
                     )
                     TaskIndex.process_cfg(cfg, yaml_path, path_index)
-                except Exception as err:
+                # A task file can fail in many ways (YAML syntax, a bad
+                # !function path, an unresolvable include:), and each one means
+                # the file is not in the index. The split below decides how
+                # loudly to say so rather than which failures to catch.
+                except Exception as err:  # noqa: BLE001
                     if isinstance(err, ValueError) and str(err).startswith(
                         "Unknown config shape"
                     ):
