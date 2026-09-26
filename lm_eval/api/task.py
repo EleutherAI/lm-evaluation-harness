@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import copy
 import ast
 import logging
 import random
@@ -115,7 +116,16 @@ class Task(abc.ABC):
         self._fewshot_docs: list | None = None
         self._instances: list[Instance] | None = None
 
-        self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
+        if config:
+            if isinstance(config, TaskConfig):
+                # preserve dataclass fields: a dict unpack ({**config}) drops
+                # any field not stored as a dict item, silently resetting it
+                # to its default (e.g. TaskConfig.repeats -> 1, issue #3339)
+                self._config: TaskConfig = copy.copy(config)
+            else:
+                self._config = TaskConfig(**dict(config))
+        else:
+            self._config = TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
         self.fewshot_rnd: random.Random | None = (
@@ -632,11 +642,22 @@ class ConfigurableTask(Task):
 
         # Use new configurations if there was no preconfiguration
         if self.config is None:
-            self._config = TaskConfig(**config)
+            if isinstance(config, TaskConfig):
+                # a TaskConfig carries its fields as dataclass attributes:
+                # unpacking it as **kwargs reads only its dict items and
+                # silently resets every field to its default (issue #3339)
+                self._config = copy.copy(config)
+            else:
+                self._config = TaskConfig(**config)
         # Overwrite configs
         else:
             if config is not None:
-                self._config.__dict__.update(config)
+                if isinstance(config, TaskConfig):
+                    self._config.__dict__.update(
+                        {f: getattr(config, f) for f in config.__dataclass_fields__}
+                    )
+                else:
+                    self._config.__dict__.update(config)
 
         if self.config is None:
             raise ValueError(
@@ -770,9 +791,21 @@ class ConfigurableTask(Task):
         else:
             # TODO: handle repeats in a more general way rather than just discarding
             if self.OUTPUT_TYPE == "generate_until":
-                eval_logger.debug(
-                    "No custom filters defined. Using default 'take_first' filter for handling repeats."
-                )
+                if (getattr(self.config, "repeats", 1) or 1) > 1:
+                    eval_logger.warning(
+                        "Task %s: repeats=%s but no custom `filter_pipeline` is defined. "
+                        "The default 'take_first' filter discards all but the first of the %s "
+                        "sampled responses. For self-consency evaluation, define a "
+                        "`filter_pipeline` combining an extraction filter with "
+                        "'majority_vote', and/or use 'take_first_k' with a 'pass_at_k' metric.",
+                        self.config.task,
+                        self.config.repeats,
+                        self.config.repeats,
+                    )
+                else:
+                    eval_logger.debug(
+                        "No custom filters defined. Using default 'take_first' filter for handling repeats."
+                    )
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:

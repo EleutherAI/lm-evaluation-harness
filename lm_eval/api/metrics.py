@@ -270,6 +270,31 @@ def exact_match_hf_evaluate(
 
 
 @register_metric(
+    metric="pass_at_k",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="mean",
+)
+def pass_at_k_fn(items):
+    """Fraction of documents where ANY of the k sampled responses equals
+    the gold target exactly.
+
+    Intended for sampling-based evaluation with ``TaskConfig.repeats = k > 1``
+    and ``do_sample: True`` generation, paired with the ``take_first_k``
+    selection filter (which retains all k responses per request). With the
+    default ``take_first`` filter this degrades to exact match on the first
+    response.
+    """
+
+    def any_correct(item):
+        response, gold = item
+        responses = [response] if isinstance(response, str) else list(response)
+        return float(any(str(r) == str(gold) for r in responses))
+
+    return [any_correct(item) for item in items]
+
+
+@register_metric(
     metric="exact_match",
     higher_is_better=True,
     output_type="generate_until",

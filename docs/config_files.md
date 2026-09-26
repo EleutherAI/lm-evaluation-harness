@@ -119,3 +119,48 @@ lm-eval validate --tasks my_task --include_path /path/to/tasks
 3. **Separate concerns**: Create different configs for different model families or task sets
 4. **Version control**: Commit config files alongside results for reproducibility
 5. **Use comments**: YAML supports `#` comments to document your choices
+
+## Self-consency (sampling-based) evaluation
+
+For sampling-based evaluation with `repeats` > 1, set `do_sample: true` in
+`generation_kwargs` and combine the `repeats` config field with a filter
+pipeline so the sampled responses are actually aggregated. With the default
+`take_first` filter, all but the first of the sampled responses are
+discarded (a warning is emitted in this case).
+
+Majority voting (chain an extraction filter with `majority_vote`):
+
+```yaml
+task: my_task_sc
+output_type: generate_until
+generation_kwargs:
+  do_sample: true
+  temperature: 0.7
+repeats: 8
+filter_list:
+  - name: "sc"
+    filter:
+      - function: "regex"
+        regex_pattern: "#### (-?[0-9.,]+)"
+      - function: "majority_vote"
+metric_list:
+  - metric: exact_match
+```
+
+Pass@k (retain all k responses with `take_first_k`, then score any-correct):
+
+```yaml
+filter_list:
+  - name: "sc"
+    filter:
+      - function: "regex"
+        regex_pattern: "#### (-?[0-9.,]+)"
+      - function: "take_first_k"
+        k: 8
+metric_list:
+  - metric: pass_at_k
+```
+
+Both `repeats` and the filter pipeline can also be set from the Python API:
+`simple_evaluate(..., repeats=8, gen_kwargs="do_sample=True,temperature=0.7")`
+together with a task config that defines the `filter_list` above.
