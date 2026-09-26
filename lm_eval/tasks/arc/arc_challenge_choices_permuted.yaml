@@ -1,0 +1,28 @@
+task: arc_challenge_choices_permuted
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Challenge
+output_type: multiple_choice
+validation_split: validation
+test_split: test
+process_docs: !function choices_permuted.process_docs
+doc_to_text: !function choices_permuted.doc_to_text
+doc_to_choice: "{{choices.text}}"
+doc_to_target: gold
+target_delimiter: "\n"
+num_fewshot: 0
+process_results: !function choices_permuted.process_results
+metric_list:
+  - metric: acc
+    aggregation: !function choices_permuted.mean_accuracy
+    higher_is_better: true
+  - metric: acc_adv
+    aggregation: !function choices_permuted.worst_accuracy
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: !function choices_permuted.mean_accuracy
+    higher_is_better: true
+  - metric: acc_norm_adv
+    aggregation: !function choices_permuted.worst_accuracy
+    higher_is_better: true
+metadata:
+  version: 1.0
