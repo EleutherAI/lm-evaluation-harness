@@ -27,6 +27,13 @@ filter_list:
       # function to ignore right white spaces or line breaks
       - function: "regex"
         regex_pattern: "^(.*?)\\s*$"
+      # Extract the choice letter from common answer formats: a bare
+      # letter, with decoration ("A.", "(A)", "a)"), or after an
+      # "Answer:"/"answer is"/"option" lead-in. Lines without an
+      # isolated A-D letter (continuations, elaborations) yield the
+      # fallback and score 0, as before.
+      - function: "regex"
+        regex_pattern: "(?i)(?:^\\W*|answer\\s*(?:is)?\\s*[:\\-]?\\s*|option\\s*[:\\-]?\\s*)\\(?([A-D])\\)?\\W*$"
       - function: take_first
 metadata:
   version: 3.0
