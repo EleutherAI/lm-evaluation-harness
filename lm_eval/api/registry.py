@@ -622,9 +622,10 @@ def get_model(model_name: str):
     Raises:
         ValueError: If model name is not found
     """
-    # Auto-import models module if registry is empty (lazy initialization)
-    if len(model_registry) == 0:
-        import lm_eval.models  # noqa: F401
+    # Register built-ins before resolving plugins. A custom component may have
+    # populated the registry first, so registry emptiness is not a reliable
+    # initialization signal.
+    import lm_eval.models  # noqa: F401
 
     # Discover external backends advertised via entry points (once).
     load_plugins("lm_eval.models", model_registry)
@@ -686,6 +687,9 @@ def get_filter(filter_name: str | Callable) -> Callable:
     """
     if callable(filter_name):
         return filter_name
+    # Importing a custom filter first must not suppress built-in registration.
+    import lm_eval.filters  # noqa: F401
+
     # Discover external filters advertised via entry points (once).
     load_plugins("lm_eval.filters", filter_registry)
     try:
@@ -748,9 +752,8 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
     Returns:
         The metric compute function, or None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(metric_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
+    # Register built-ins even when a custom metric populated the registry first.
+    import lm_eval.api.metrics  # noqa: F401
 
     # Discover external metrics advertised via entry points (once).
     load_plugins("lm_eval.metrics", metric_registry)
@@ -803,9 +806,8 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
     Returns:
         The aggregation function, or None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(aggregation_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
+    # Register built-ins even when a custom aggregation populated the registry first.
+    import lm_eval.api.metrics  # noqa: F401
 
     # Discover external aggregations advertised via entry points (once).
     load_plugins("lm_eval.aggregations", aggregation_registry)
@@ -827,10 +829,9 @@ def _materialise_metric_side_effects(name: str) -> None:
     may be called for such a metric, so trigger discovery + materialization here.
     """
     # Built-ins must be registered *before* discovery so that a plugin advertising
-    # an existing name is skipped rather than shadowing core. The callers guard on
-    # a different registry, so repeat the lazy import here.
-    if len(metric_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
+    # an existing name is skipped rather than shadowing core. Import unconditionally:
+    # a custom metric may already have made the registry non-empty.
+    import lm_eval.api.metrics  # noqa: F401
 
     load_plugins("lm_eval.metrics", metric_registry)
     if name in metric_registry:
@@ -847,9 +848,7 @@ def get_metric_aggregation(name: str) -> Callable[..., float] | None:
     Returns:
         The aggregation function for that metric, or None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(metric_agg_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
+    import lm_eval.api.metrics  # noqa: F401
 
     _materialise_metric_side_effects(name)
 
@@ -869,9 +868,7 @@ def is_higher_better(metric_name: str) -> bool | None:
     Returns:
         True if higher is better, False otherwise, None if not found
     """
-    # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(higher_is_better_registry) == 0:
-        import lm_eval.api.metrics  # noqa: F401
+    import lm_eval.api.metrics  # noqa: F401
 
     _materialise_metric_side_effects(metric_name)
 

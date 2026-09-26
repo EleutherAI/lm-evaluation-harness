@@ -1,5 +1,7 @@
 """Tests for the registry system."""
 
+import subprocess
+import sys
 import threading
 
 import pytest
@@ -305,6 +307,61 @@ class TestModelRegistry:
             get_model("nonexistent_model_xyz")
 
         assert "no model for this name found" in str(exc_info.value)
+
+    def test_custom_entries_do_not_suppress_builtin_initialization(self):
+        """Built-ins remain available when custom entries register first."""
+        script = """
+from lm_eval.api.registry import (
+    filter_registry,
+    get_aggregation,
+    get_filter,
+    get_metric,
+    get_metric_aggregation,
+    get_model,
+    is_higher_better,
+    model_registry,
+    register_aggregation,
+    register_metric,
+)
+
+custom_model = object()
+custom_filter = object()
+model_registry.register("custom-model", target=custom_model)
+filter_registry.register("custom-filter", target=custom_filter)
+
+
+@register_aggregation("custom-aggregation")
+def custom_aggregation(items):
+    return items
+
+
+@register_metric(
+    metric="custom-metric",
+    higher_is_better=False,
+    aggregation="custom-aggregation",
+)
+def custom_metric(items):
+    return items
+
+
+assert get_model("dummy").__name__ == "DummyLM"
+assert get_filter("take_first").__name__ == "TakeFirstFilter"
+assert get_aggregation("mean").__name__ == "mean"
+assert get_metric("acc").__name__ == "acc_fn"
+assert get_metric_aggregation("acc").__name__ == "mean"
+assert is_higher_better("acc") is True
+assert get_model("custom-model") is custom_model
+assert get_filter("custom-filter") is custom_filter
+assert get_metric("custom-metric") is custom_metric
+"""
+        result = subprocess.run(  # noqa: S603 - fixed interpreter and inline test code
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        assert result.returncode == 0, result.stderr
 
 
 class TestFilterRegistry:
