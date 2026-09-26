@@ -1,6 +1,12 @@
+import math
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
+from lm_eval.api.metrics import (
+    _bootstrap_internal_no_mp,
+    mean,
+    nanmean,
+    stderr_for_metric,
+)
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
@@ -251,6 +257,40 @@ def test_chrfpp_perfect_match():
 
     items = [("the cat sat on the mat", "the cat sat on the mat")]
     assert chrfpp(items) == 100.0
+
+
+def test_bootstrap_stderr_drops_replicates_the_statistic_could_not_evaluate(
+    monkeypatch,
+):
+    """A resample holding no usable value makes nanmean report NaN.
+
+    Those resamples say nothing about the spread of the statistic, and a
+    single one of them used to make the whole standard error NaN, losing the
+    stderr for a run whose point estimate is a perfectly good number.
+    """
+
+    monkeypatch.setenv("DISABLE_MULTIPROC", "1")
+
+    # 18 of the 20 samples are NaN, so resamples of that size run into
+    # all-NaN draws often enough to matter at 100 iterations.
+    xs = [float("nan")] * 18 + [1.0, 2.0]
+
+    assert nanmean(xs) == 1.5
+    assert not math.isnan(stderr_for_metric(nanmean, 100)(xs))
+
+
+def test_bootstrap_stderr_stays_nan_when_no_replicate_is_usable(monkeypatch):
+    """A statistic that does not ignore NaN is left reporting NaN.
+
+    Only nanmean gets the resampling treatment, so `mean` still reports NaN
+    here even though some of its replicates happen to be computable.
+    """
+
+    monkeypatch.setenv("DISABLE_MULTIPROC", "1")
+
+    xs = [1.0, float("nan"), 3.0]
+
+    assert math.isnan(stderr_for_metric(mean, 100)(xs))
 
 
 if __name__ == "__main__":

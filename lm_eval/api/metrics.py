@@ -615,6 +615,17 @@ def stderr_for_metric(
     ]
 
     if metric in bootstrappable:
+        if metric is nanmean:
+            # nanmean ignores NaN, but resampling the raw values can draw a
+            # replicate that holds no usable value at all, and nanmean then
+            # reports NaN for that replicate. One such replicate is enough to
+            # make the whole standard error NaN, which loses the stderr for a
+            # run whose point estimate is a perfectly good number. Resample
+            # the usable values instead; when there are none, nanmean([]) is
+            # NaN and the standard error stays NaN as before.
+            return lambda x: bootstrap_stderr(
+                nanmean, [v for v in x if not math.isnan(v)], iters=bootstrap_iters
+            )
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
