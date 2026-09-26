@@ -57,6 +57,7 @@ def simple_evaluate(
     model_args: str | dict[str, str | int | float] | None = None,
     tasks: list[str | dict[str, Any] | Task] | None = None,
     num_fewshot: int | None = None,
+    repeats: int | None = None,
     batch_size: int | str | None = None,
     max_batch_size: int | None = None,
     device: str | None = None,
@@ -97,6 +98,11 @@ def simple_evaluate(
             Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined
             and type(task).__name__ otherwise.
         num_fewshot (int): Number of examples in few-shot context.
+        repeats (int): Number of times each request is sampled. Requires
+            `do_sample: True` generation; pair with a `filter_pipeline`
+            (e.g. extraction + `majority_vote`) and/or the `take_first_k`
+            filter with a `pass_at_k` metric — otherwise all but the first
+            of the sampled responses is discarded by the default filter.
         batch_size (int | str | None): Batch size for model.
         max_batch_size (int | None): Maximal batch size to try with automatic
             batch size detection.
@@ -343,6 +349,19 @@ def simple_evaluate(
             # if num_fewshot not provided, and the task does not define a default one, default to 0
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
                 task_obj.set_config(key="num_fewshot", value=0)
+
+        # override tasks' repeats values to the provided repeats arg value
+        # (sampling-based evaluation: self-consency / pass@k)
+        if repeats is not None:
+            default_repeats = task_obj.get_config("repeats")
+            if default_repeats != repeats:
+                eval_logger.info(
+                    "Overwriting default repeats of %s from %s to %s",
+                    task_name,
+                    default_repeats,
+                    repeats,
+                )
+                task_obj.set_config(key="repeats", value=repeats)
         # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
         task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
