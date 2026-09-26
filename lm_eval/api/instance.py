@@ -17,6 +17,9 @@ class Instance:
         default_factory=lambda: (None, None, None)
     )
     resps: list = field(default_factory=list)
+    # raw generations before backend post-processing (e.g. think-trace
+    # stripping); populated by backends that modify generated text
+    raw_resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
     # initialized after init

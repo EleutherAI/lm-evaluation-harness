@@ -119,3 +119,12 @@ lm-eval validate --tasks my_task --include_path /path/to/tasks
 3. **Separate concerns**: Create different configs for different model families or task sets
 4. **Version control**: Commit config files alongside results for reproducibility
 5. **Use comments**: YAML supports `#` comments to document your choices
+
+## Preserving raw generations in logged samples
+
+Backends that post-process generated text — the vLLM and TRT-LLM
+backends stripping `<think>` traces via `think_end_token` — record the
+unmodified generation in each logged sample's `raw_resps` field. With
+`--log_samples`, every sample then carries both the stripped response
+(`resps`) and the full original generation, so reasoning traces remain
+available for analysis without affecting scoring.
