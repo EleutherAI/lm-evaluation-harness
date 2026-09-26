@@ -197,6 +197,9 @@ class SampleResult(TypedDict, extra_items=float):
     Multiple-choice: ``list[list[list[str]]]`` — requests × repeats × ``[log_prob, is_greedy]``."""
 
     filtered_resps: list[str] | list[list[str]]
+    # raw generations before backend post-processing; present when a
+    # backend modified the text (e.g. think-trace stripping)
+    raw_resps: list[str] | list[list[str]] | None = None
     """Responses after filter application.  Per-request.
     Generation: ``list[str]``.
     Multiple-choice: ``list[list[str]]`` — per-choice ``[log_prob, is_greedy]``."""

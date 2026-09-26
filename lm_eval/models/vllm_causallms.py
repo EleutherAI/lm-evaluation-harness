@@ -549,6 +549,7 @@ class VLLM(TemplateLM):
     ) -> list[str]:
         assert self.tokenizer
         res = []
+        raw_res = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests), strict=True)
@@ -644,6 +645,9 @@ class VLLM(TemplateLM):
                 cont, context, _cache_gen_kwargs, strict=True
             ):
                 generated_text: str = output.outputs[0].text
+                # preserve the unmodified generation for log_samples (the
+                # raw trace is otherwise unrecoverable after stripping)
+                raw_res.append(generated_text)
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
                     generated_text, _gen_kwargs.get("until"), self.think_end_token
@@ -656,7 +660,12 @@ class VLLM(TemplateLM):
 
         pbar.close()
         # reorder all group of results back to original unsorted form
-        return re_ords.get_original(res)
+        res = re_ords.get_original(res)
+        raw_ordered = re_ords.get_original(raw_res)
+        for req, raw in zip(requests, raw_ordered, strict=True):
+            if raw is not None:
+                req.raw_resps.append(raw)
+        return res
 
     def _loglikelihood_tokens(
         self,
