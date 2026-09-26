@@ -61,7 +61,17 @@ class TaskIndex:
                     )
                     TaskIndex.process_cfg(cfg, yaml_path, path_index)
                 except Exception as err:
-                    log.debug("Skip %s (%s)", yaml_path, err)
+                    if isinstance(err, ValueError) and str(err).startswith(
+                        "Unknown config shape"
+                    ):
+                        # A partial config reached through `include:` has no task
+                        # or group of its own, so being handed one is expected.
+                        log.debug("Skip %s (%s)", yaml_path, err)
+                    else:
+                        # Anything else is a file the user wrote or pointed at.
+                        # The index is how a tag or a group learns its members,
+                        # so dropping one here quietly shrinks the group.
+                        log.warning("Skip %s (%s)", yaml_path, err)
                     continue
 
             # Merge: later paths overwrite earlier, with warning
