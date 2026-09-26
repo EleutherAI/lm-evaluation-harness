@@ -1535,6 +1535,15 @@ class ConfigurableTask(Task):
                     f"Label index was not in within range of available choices,"
                     f"Sample:\n\n{doc}\n\n"
                 )
+                # The label names none of the choices, so there is nothing to
+                # compare a prediction against. Scoring it anyway records a
+                # wrong answer for a document this task cannot score, which is
+                # indistinguishable from a real miss once the metrics are
+                # aggregated, and it feeds the -100 sentinel to metrics that
+                # index by label. Contributing no metrics leaves the document
+                # out of every aggregate instead; the sample itself is still
+                # logged, with an empty "metrics" list.
+                return {}
 
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
