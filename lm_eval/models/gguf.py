@@ -153,11 +153,12 @@ class GGUFLM(LM):
         stop=None,
         max_tokens=None,
         id_slot=None,
+        temperature=None,
         **kwargs,
     ):
         request = {
             "prompt": context,
-            "temperature": self.temperature,
+            "temperature": self.temperature if temperature is None else temperature,
         }
         if self.model is not None:
             request["model"] = self.model
@@ -269,14 +270,15 @@ class GGUFLM(LM):
     def _generate_one(self, args):
         inp, request_args = args
         until = request_args.get("until", ["</s>"])
-        max_gen_toks = normalize_gen_kwargs(request_args, self.max_gen_toks)[
-            "max_gen_toks"
-        ]
+        kwargs = normalize_gen_kwargs(request_args, self.max_gen_toks)
         # no id_slot pinning here: generation lengths vary widely, so the
         # server's dynamic idle-slot assignment load-balances better than a
         # static assignment (measured ~30% slower with pinning on gsm8k)
         response = self.gguf_completion(
-            context=inp, stop=until, max_tokens=max_gen_toks
+            context=inp,
+            stop=until,
+            max_tokens=kwargs["max_gen_toks"],
+            temperature=kwargs.get("temperature"),
         )
         if response and "choices" in response and response["choices"]:
             choice = response["choices"][0]
