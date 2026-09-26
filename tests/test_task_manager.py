@@ -284,6 +284,35 @@ output_type: generate_until
         # Warning should be logged
         assert "Duplicate task name" in caplog.text
 
+    def test_unparsable_task_is_reported(self, tmp_path, caplog):
+        """A task YAML that cannot be loaded must be reported, not skipped quietly.
+
+        The index is how a tag or a group learns which members it has, so a
+        silently dropped file makes the group score fewer subtasks while still
+        looking like a normal run.
+        """
+        (tmp_path / "broken.yaml").write_text("task: broken\nbad: : :\n")
+
+        index = TaskIndex()
+        with caplog.at_level(logging.WARNING):
+            result = index.build([tmp_path])
+
+        assert "broken" not in result
+        assert "broken.yaml" in caplog.text
+
+    def test_include_fragment_is_still_skipped_quietly(self, tmp_path, caplog):
+        """A partial config pulled in by `include:` has no task or group of its
+        own, and reaching it is expected, so it must not add log noise.
+        """
+        (tmp_path / "_base.yaml").write_text("output_type: generate_until\n")
+
+        index = TaskIndex()
+        with caplog.at_level(logging.WARNING):
+            index.build([tmp_path])
+
+        assert "WARNING" not in caplog.text
+        assert "_base.yaml" not in caplog.text
+
     def test_duplicate_group_detection(self, tmp_path, caplog):
         """Verify debug message logged for duplicate group names"""
         dir1 = tmp_path / "dir1"
@@ -417,7 +446,8 @@ class TestTaskManagerIntegration:
         """Regression: afrobench afrisenti/mafand groups list ``*_prompt_2`` tags
         that must be registered. Previously the prompt_2 templates declared the
         wrong tag (``afrisent_prompt_2`` typo; ``mafand_afr-eng_prompt_3``
-        duplicating prompt_3), so loading those groups raised a not-found error."""
+        duplicating prompt_3), so loading those groups raised a not-found error.
+        """
         tags = set(shared_task_manager.all_tags)
         assert "afrisenti_prompt_2" in tags
         assert "mafand_afr-eng_prompt_2" in tags

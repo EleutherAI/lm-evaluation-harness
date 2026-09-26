@@ -60,8 +60,22 @@ class TaskIndex:
                         recursive=resolve_includes,
                     )
                     TaskIndex.process_cfg(cfg, yaml_path, path_index)
-                except Exception as err:
-                    log.debug("Skip %s (%s)", yaml_path, err)
+                # A task file can fail in many ways (YAML syntax, a bad
+                # !function path, an unresolvable include:), and each one means
+                # the file is not in the index. The split below decides how
+                # loudly to say so rather than which failures to catch.
+                except Exception as err:  # noqa: BLE001
+                    if isinstance(err, ValueError) and str(err).startswith(
+                        "Unknown config shape"
+                    ):
+                        # A partial config reached through `include:` has no task
+                        # or group of its own, so being handed one is expected.
+                        log.debug("Skip %s (%s)", yaml_path, err)
+                    else:
+                        # Anything else is a file the user wrote or pointed at.
+                        # The index is how a tag or a group learns its members,
+                        # so dropping one here quietly shrinks the group.
+                        log.warning("Skip %s (%s)", yaml_path, err)
                     continue
 
             # Merge: later paths overwrite earlier, with warning
