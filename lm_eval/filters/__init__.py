@@ -5,7 +5,7 @@ from functools import partial
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.registry import filter_registry, get_filter
 
-from . import custom, extraction, selection, transformation
+from . import custom, extraction, selection, think, transformation
 
 
 def build_filter_ensemble(
@@ -28,6 +28,7 @@ __all__ = [
     "custom",
     "extraction",
     "selection",
+    "think",
     "transformation",
     "build_filter_ensemble",
 ]
