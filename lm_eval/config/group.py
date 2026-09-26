@@ -21,9 +21,11 @@ class AggMetricConfig:
             If None, filters are auto-discovered from child task results.
             A bare string is normalized to a single-element list.
         aggregation: Aggregation function. Currently only "mean" is supported
-            as a built-in; a custom callable may also be passed.
+            as a built-in. A custom callable receives the list of subtask metric
+            values and defines its own aggregation semantics.
         weight_by_size: If True, weight each subtask's contribution by its
-            sample count when aggregating. Defaults to True.
+            sample count for the built-in mean. Custom callables control their
+            own weighting. Defaults to True.
     """
 
     metric: str

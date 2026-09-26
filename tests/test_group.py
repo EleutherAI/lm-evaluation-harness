@@ -486,6 +486,46 @@ class TestGroupWeightedAggregation:
         # Unweighted average: (0.60 + 0.90) / 2 = 0.75
         assert result_unweighted["acc,none"] == pytest.approx(0.75)
 
+    def test_custom_aggregation_callable_is_used(self):
+        """A callable controls aggregation without receiving a mean stderr."""
+        received_values = []
+
+        def custom_max(values):
+            received_values.append(values)
+            return max(values)
+
+        metrics = {
+            "task_a": {
+                "sample_len": 1,
+                "acc,none": 0.20,
+                "acc_stderr,none": 0.01,
+            },
+            "task_b": {
+                "sample_len": 2,
+                "acc,none": 0.80,
+                "acc_stderr,none": 0.02,
+            },
+        }
+        group = Group(
+            name="custom",
+            aggregate_metric_list=[
+                AggMetricConfig(
+                    metric="acc",
+                    aggregation=custom_max,
+                    weight_by_size=False,
+                )
+            ],
+        )
+        group.add(MockTask("task_a"))
+        group.add(MockTask("task_b"))
+
+        result = group.aggregate(metrics)
+
+        assert received_values == [[0.20, 0.80]]
+        assert result["acc,none"] == 0.80
+        assert result["acc_stderr,none"] == "N/A"
+        assert result["sample_count"]["acc,none"] == 3
+
     def test_unweighted_aggregation_stderr_matches_unweighted_mean(self):
         """weight_by_size=False must report the stderr of the *unweighted* mean.
 

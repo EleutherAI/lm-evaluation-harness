@@ -178,7 +178,7 @@ class Group:
                     filter_name = key[len(prefix) :]  # Extract filter part
                     discovered_filters.add(filter_name)
 
-        return sorted(list(discovered_filters))  # Sort for deterministic ordering
+        return sorted(discovered_filters)  # Sort for deterministic ordering
 
     def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
         """
@@ -269,12 +269,19 @@ class Group:
                     )
 
                 if values:
-                    group_metrics[metric_key] = aggregate_subtask_metrics(
-                        values, sizes, agg_config.weight_by_size
-                    )
+                    if callable(agg_config.aggregation):
+                        group_metrics[metric_key] = agg_config.aggregation(values)
+                    else:
+                        group_metrics[metric_key] = aggregate_subtask_metrics(
+                            values, sizes, agg_config.weight_by_size
+                        )
                     sample_count[metric_key] = sum(sizes)
 
-                    if len(stderrs) == len(values) and "N/A" not in stderrs:
+                    if callable(agg_config.aggregation):
+                        # The existing formulas describe means and are not valid
+                        # for an arbitrary custom aggregation function.
+                        group_metrics[stderr_key] = "N/A"
+                    elif len(stderrs) == len(values) and "N/A" not in stderrs:
                         # The stderr must match the point estimate: pooled (size-weighted)
                         # stderr for the size-weighted mean, but the stderr of the simple
                         # unweighted mean when weight_by_size=False (otherwise the reported
