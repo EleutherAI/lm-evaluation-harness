@@ -88,6 +88,8 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
     try:
         original = process_result_v1(doc, candidates)
+    except ImportError:
+        raise
     except:  # noqa: E722
         original = 0
 

@@ -169,3 +169,20 @@ def test_is_equiv_indexed_roots_through_pipeline(pred, gold):
 
 def test_is_equiv_shorthand_still_works():
     assert is_equiv(normalize("\\sqrt8"), normalize("2\\sqrt{2}"))
+
+
+def test_leaderboard_process_results_propagates_import_error(monkeypatch):
+    # `is_equiv` re-raises ImportError when sympy's LaTeX parser can't load
+    # (wrong antlr4 version). `process_results` used to swallow it with a
+    # bare except and score the item as 0, so the run finished with
+    # silently deflated `exact_match_original`.
+    from lm_eval.tasks.leaderboard.math import utils as leaderboard_utils
+
+    def raise_import_error(x1, x2):
+        raise ImportError("LaTeX parsing requires antlr4-python3-runtime 4.11")
+
+    monkeypatch.setattr(leaderboard_utils, "is_equiv", raise_import_error)
+    doc = {"answer": "\\frac{1}{2}", "solution": "so \\boxed{\\frac{1}{2}}"}
+    gen = "Final Answer: The final answer is $0.5$. I hope it is correct."
+    with pytest.raises(ImportError):
+        leaderboard_utils.process_results(doc, [gen])
