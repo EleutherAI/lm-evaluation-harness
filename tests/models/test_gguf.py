@@ -199,6 +199,45 @@ class GGUFLMTest(unittest.TestCase):
         # backend default (256) when the task specifies nothing
         self.assertEqual(max_tokens, [512, 8, 256])
 
+    def test_results_written_to_cache_hook_as_computed(self):
+        # each result is handed to the cache hook as soon as it is computed,
+        # so an interrupted run keeps what it already paid for (#2901)
+        fake_post, _ = make_fake_server()
+        partials = []
+
+        class RecordingHook:
+            def add_partial(self, attr, req, res):
+                partials.append((attr, req, res))
+
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            lm.set_cache_hook(RecordingHook())
+            lm.loglikelihood(llm_instances([("x ", "ab"), ("x", "")]))
+            gen_kwargs = {"until": ["stop"]}
+            lm.generate_until(
+                [
+                    Instance(
+                        request_type="generate_until",
+                        doc={},
+                        arguments=("input", gen_kwargs),
+                        idx=0,
+                    )
+                ]
+            )
+        # keyed by the original request args, as CachingLM looks them up
+        self.assertEqual(
+            partials,
+            [
+                ("loglikelihood", ("x ", "ab"), (-3.0, True)),
+                ("loglikelihood", ("x", ""), (0.0, True)),
+                (
+                    "generate_until",
+                    ("input", gen_kwargs),
+                    "generated text until ['stop']",
+                ),
+            ],
+        )
+
     def test_parallel_mapping_preserves_order(self):
         lm = GGUFLM(base_url, parallel=3)
         items = list(range(20))
