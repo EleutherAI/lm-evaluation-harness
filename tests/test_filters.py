@@ -40,6 +40,20 @@ def test_format_span_normalizes_label_only():
     ]
 
 
+@pytest.mark.parametrize(
+    ("response", "expected"),
+    [
+        ("LOC: kenya,", "loc: kenya"),
+        ("LOC: , kenya, , uganda,", "loc: kenya $ loc: uganda"),
+        ("PER:   $ LOC: kenya", "loc: kenya"),
+        ("PER: , , $ ORG: none", ""),
+        ("PER: None, Alice, $ DATE: 2024", "per: alice $ date: 2024"),
+    ],
+)
+def test_format_span_omits_empty_entities(response, expected):
+    assert SPANFilter().apply([[response]], [{}]) == [[expected]]
+
+
 def test_multi_choice_regex_prefix_choice_does_not_shadow_longer_choice():
     # When one choice's text is a prefix of another, naming the longer choice in the
     # response must map to the longer choice's letter. Regression: the fallback regex
