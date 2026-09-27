@@ -38,7 +38,14 @@ def mean(arr):
 
 @register_aggregation("median")
 def median(arr):
-    return sorted(arr)[len(arr) // 2]
+    ordered = sorted(arr)
+    midpoint = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[midpoint]
+    # Even length: the median is the mean of the two middle values. Indexing
+    # `len // 2` returned the upper of the pair instead, which biased every
+    # even-length result upwards.
+    return (ordered[midpoint - 1] + ordered[midpoint]) / 2
 
 
 # Certain metrics must be calculated across all documents in a benchmark.
