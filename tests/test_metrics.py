@@ -1,5 +1,5 @@
 import math
-import unittest.mock as mock
+from unittest import mock
 
 from lm_eval.api.metrics import (
     _bootstrap_internal_no_mp,
@@ -186,7 +186,8 @@ def test_bootstrap_internal_no_mp():
 
 def test_dict_metric_uses_custom_aggregation():
     """Regression test for #3314: dict-valued metrics must use the custom
-    aggregation function, not silently fall back to mean()."""
+    aggregation function, not silently fall back to mean().
+    """
     from collections import defaultdict
 
     from lm_eval.evaluator_utils import _compute_task_aggregations
@@ -221,7 +222,7 @@ def test_dict_metric_uses_custom_aggregation():
 
 
 def test_chrf_uses_zero_word_order():
-    """chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
+    """Chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
     import sacrebleu as sb
 
     from lm_eval.api.metrics import chrf
