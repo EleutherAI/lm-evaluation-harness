@@ -166,11 +166,21 @@ class TaskFactory:
                             registry=registry,
                         )
                         children.append(cast("Group", child_obj))
-                    else:
+                    elif "task" in item:
                         # True inline group (not in registry)
                         name = f"{group_name}::{name}"
                         children.append(
                             self._build_group(name, item, overrides, registry)
+                        )
+                    else:
+                        # Neither a registered group nor an inline definition,
+                        # so there is nothing to build. Building it anyway
+                        # yields an empty subgroup, and the parent's aggregate
+                        # then covers fewer subtasks than its config lists.
+                        raise KeyError(
+                            f"Group '{group_name}' references unknown group "
+                            f"'{name}'. A group member must either name a "
+                            "registered group or carry an inline 'task' list."
                         )
                     continue
 
@@ -187,6 +197,17 @@ class TaskFactory:
 
             # Handle inline task (not in registry)
             if base_name not in registry:
+                if not _defines_task(item):
+                    # A member that only carries a name is a reference, and an
+                    # unresolvable one is a configuration error. Building an
+                    # empty task for it hid the bad name until dataset loading
+                    # failed with an unrelated error.
+                    raise KeyError(
+                        f"Group '{group_name}' references unknown task "
+                        f"'{base_name}'. A group member must either name a "
+                        "registered task, group or tag, or define a task "
+                        "inline by giving it a 'dataset_path' or 'class'."
+                    )
                 namespaced = f"{group_name}::{base_name}"
                 task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
@@ -283,3 +304,15 @@ class TaskFactory:
 def _ctor_accepts_config(cls) -> bool:
     init = getattr(cls, "__init__", None)
     return bool(init and "config" in inspect.signature(init).parameters)
+
+
+def _defines_task(item: str | dict[str, Any]) -> bool:
+    """Whether a group member carries its own task definition.
+
+    A member that only names a task is a reference to the index; a member that
+    also says where its data comes from is an inline definition and is built
+    even though the name is not registered.
+    """
+    if not isinstance(item, dict):
+        return False
+    return any(key in item for key in ("dataset_path", "dataset_name", "class"))

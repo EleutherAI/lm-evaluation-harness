@@ -417,7 +417,8 @@ class TestTaskManagerIntegration:
         """Regression: afrobench afrisenti/mafand groups list ``*_prompt_2`` tags
         that must be registered. Previously the prompt_2 templates declared the
         wrong tag (``afrisent_prompt_2`` typo; ``mafand_afr-eng_prompt_3``
-        duplicating prompt_3), so loading those groups raised a not-found error."""
+        duplicating prompt_3), so loading those groups raised a not-found error.
+        """
         tags = set(shared_task_manager.all_tags)
         assert "afrisenti_prompt_2" in tags
         assert "mafand_afr-eng_prompt_2" in tags
@@ -1038,6 +1039,27 @@ class TestGroupBuilding:
         assert len(inline.get_all_tasks(recursive=False)) == 1
         assert inline.aggregate_metric_list is not None
         assert inline.aggregate_metric_list[0].metric == "acc"
+
+    # ---- dangling member references ----
+
+    def test_dangling_task_member_raises(self, tm):
+        """A bare name in a group's task list must resolve to a registered entry.
+
+        An unresolved name used to be turned into an empty inline task named
+        "<group>::<name>", so the missing task only surfaced much later as an
+        opaque error from datasets.load_dataset.
+        """
+        with pytest.raises(KeyError, match="simple_task_typo"):
+            tm.load(["dangling_member_group"])
+
+    def test_dangling_group_member_without_task_list_raises(self, tm):
+        """A {group: name} member with no inline task list is a dangling reference.
+
+        Building it produced an empty subgroup, so the parent group silently
+        reported an aggregate over fewer subtasks than its config lists.
+        """
+        with pytest.raises(KeyError, match="no_such_subgroup"):
+            tm.load(["dangling_group_member_group"])
 
     # ---- empty group ----
 
