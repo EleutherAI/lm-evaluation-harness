@@ -11,10 +11,11 @@ Tests the full path through:
 import logging
 from typing import Any
 
+import numpy as np
 import pytest
 
 from lm_eval.api.group import AggMetricConfig, Group
-from lm_eval.api.metrics import mean
+from lm_eval.api.metrics import mean, median
 from lm_eval.api.task import Task
 from lm_eval.evaluator_utils import (
     ResultAcc,
@@ -444,3 +445,35 @@ class TestGroupAggregationWarnings:
             and "missing" in r.message.lower()
         ]
         assert len(group_warnings) == 0
+
+
+class TestMedianAggregation:
+    """`median` is registered as a task aggregation, so it is what a task with
+    `aggregation: median` reports. Indexing `sorted(arr)[len(arr) // 2]` returns
+    the upper of the two middle values for an even-length list, which is not
+    the median by any definition and biased every such result upwards.
+    """
+
+    def test_odd_length_is_the_middle_value(self):
+        assert median([0.3, 0.1, 0.2]) == 0.2
+        assert median([5.0]) == 5.0
+
+    def test_even_length_averages_the_two_middle_values(self):
+        assert median([0.0, 1.0]) == 0.5
+        assert median([0.1, 0.2, 0.3, 0.4]) == 0.25
+        assert median([3.0, 1.0, 2.0, 4.0]) == 2.5
+
+    def test_unsorted_input_is_ordered_first(self):
+        assert median([4.0, 1.0, 3.0, 2.0]) == 2.5
+
+    @pytest.mark.parametrize(
+        "values",
+        [
+            [0.0, 1.0],
+            [0.1, 0.2, 0.3, 0.4],
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            [-3.0, -1.0, 0.0, 2.0],
+        ],
+    )
+    def test_agrees_with_numpy_median(self, values):
+        assert median(values) == pytest.approx(np.median(values))
