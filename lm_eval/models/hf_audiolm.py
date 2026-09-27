@@ -257,8 +257,7 @@ class HFAUDIOLMQWEN(HFLM):
 
             if "max_length" not in kwargs:
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
-            inputs["input_ids"] = inputs["input_ids"].to("cuda")
-            inputs.input_ids = inputs.input_ids.to("cuda")
+            inputs["input_ids"] = inputs["input_ids"].to(self.device)
             cont = self._model_multimodal_generate(inputs, stop=until, **kwargs)
 
             del inputs
