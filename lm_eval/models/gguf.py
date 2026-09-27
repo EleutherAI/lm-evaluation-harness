@@ -223,8 +223,7 @@ class GGUFLM(LM):
         whole_ids = self._tokenize(context + continuation, add_special=True)
         context_ids = self._tokenize(context, add_special=True)
         continuation_ids = whole_ids[len(context_ids) :]
-        if not continuation_ids:
-            return (0.0, True)
+        # an empty continuation scores (0.0, True) without any requests
         total = 0.0
         is_greedy = True
         for j, target_id in enumerate(continuation_ids):
@@ -233,6 +232,7 @@ class GGUFLM(LM):
             )
             total += logprob
             is_greedy = is_greedy and greedy
+        self.cache_hook.add_partial("loglikelihood", args, (total, is_greedy))
         return (total, is_greedy)
 
     @staticmethod
@@ -281,7 +281,9 @@ class GGUFLM(LM):
         if response and "choices" in response and response["choices"]:
             choice = response["choices"][0]
             if "text" in choice:
-                return choice["text"].strip()
+                text = choice["text"].strip()
+                self.cache_hook.add_partial("generate_until", args, text)
+                return text
             else:
                 logger.error(
                     "Invalid response for greedy_until. Response: %s", response
