@@ -1,0 +1,6 @@
+# Group whose member list names a task that is not registered: "simple_task_typo"
+# is either a typo or a task whose YAML never made it into the index.
+group: dangling_member_group
+task:
+  - simple_task
+  - simple_task_typo

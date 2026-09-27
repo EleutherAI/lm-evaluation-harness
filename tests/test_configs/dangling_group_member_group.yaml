@@ -1,0 +1,6 @@
+# Group whose member list references a group by name that is not registered and
+# carries no inline task list, so it cannot be built into anything meaningful.
+group: dangling_group_member_group
+task:
+  - simple_task
+  - group: no_such_subgroup
