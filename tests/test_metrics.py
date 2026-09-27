@@ -1,4 +1,4 @@
-import unittest.mock as mock
+from unittest import mock
 
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
 from lm_eval.api.task import ConfigurableTask
@@ -180,7 +180,8 @@ def test_bootstrap_internal_no_mp():
 
 def test_dict_metric_uses_custom_aggregation():
     """Regression test for #3314: dict-valued metrics must use the custom
-    aggregation function, not silently fall back to mean()."""
+    aggregation function, not silently fall back to mean().
+    """
     from collections import defaultdict
 
     from lm_eval.evaluator_utils import _compute_task_aggregations
@@ -215,7 +216,7 @@ def test_dict_metric_uses_custom_aggregation():
 
 
 def test_chrf_uses_zero_word_order():
-    """chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
+    """Chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
     import sacrebleu as sb
 
     from lm_eval.api.metrics import chrf
@@ -251,6 +252,82 @@ def test_chrfpp_perfect_match():
 
     items = [("the cat sat on the mat", "the cat sat on the mat")]
     assert chrfpp(items) == 100.0
+
+
+class OutOfRangeLabelTask(MockConfigurableTask):
+    """Task whose label does not name any of the choices."""
+
+    def doc_to_target(self, doc):
+        return 7  # there are only three choices
+
+
+def test_out_of_range_label_is_not_scored_as_a_wrong_answer():
+    """A label outside the choices cannot be compared to a prediction.
+
+    Reporting 0.0 for it is indistinguishable from a real miss: the aggregate
+    and the per-sample log both claim the model got the document wrong. The
+    document has to be left out of the metric instead.
+    """
+
+    task = OutOfRangeLabelTask()
+    task._metric_fn_list = {"acc": None, "exact_match": None}
+    task._metric_fn_kwargs = {"acc": {}, "exact_match": {}}
+
+    # Three choices, the second one is the most likely.
+    results = [(-2.0, False), (-1.0, True), (-3.0, False)]
+
+    result_dict = task.process_results({}, results)
+
+    assert result_dict == {}
+
+
+def test_out_of_range_label_in_a_multiple_target_document_is_not_scored():
+    """The same holds when the document declares several acceptable labels."""
+
+    task = OutOfRangeLabelTask()
+    task.multiple_target = 1
+    task._metric_fn_list = {"acc": None}
+    task._metric_fn_kwargs = {"acc": {}}
+
+    results = [(-2.0, False), (-1.0, True), (-3.0, False)]
+
+    result_dict = task.process_results({}, results)
+
+    assert result_dict == {}
+
+
+def test_out_of_range_label_never_reaches_the_brier_score_aggregation():
+    """brier_score turns the sentinel into an IndexError, so it must not escape.
+
+    The aggregation builds a one-hot matrix indexed by label, and -100 is out
+    of bounds for it, so a task that reports brier_score dies at the end of the
+    run instead of finishing.
+    """
+
+    task = OutOfRangeLabelTask()
+    task._metric_fn_list = {"brier_score": None}
+    task._metric_fn_kwargs = {"brier_score": {}}
+
+    results = [(-2.0, False), (-1.0, True), (-3.0, False)]
+
+    result_dict = task.process_results({}, results)
+
+    assert result_dict == {}
+
+
+def test_in_range_label_is_still_scored():
+    """The guard only applies to labels that name no choice."""
+
+    task = MockConfigurableTask()
+    task._metric_fn_list = {"acc": None, "exact_match": None}
+    task._metric_fn_kwargs = {"acc": {}, "exact_match": {}}
+
+    results = [(-2.0, False), (-1.0, True), (-3.0, False)]
+
+    result_dict = task.process_results({}, results)
+
+    assert result_dict["acc"] == 1.0
+    assert result_dict["exact_match"] == 1
 
 
 if __name__ == "__main__":
