@@ -107,9 +107,9 @@ class SPANFilter(Filter):
                 # Split multiple entities separated by commas and strip whitespace
                 entities = [value.strip() for value in values.split(",")]
 
-                # Exclude 'none' entities
+                # Exclude empty and 'none' entities
                 for entity in entities:
-                    if entity.lower() != "none":
+                    if entity and entity.lower() != "none":
                         formatted_entities.append(f"{label.lower()}: {entity}")
 
             # Join entities with the desired separator
