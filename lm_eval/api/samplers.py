@@ -54,11 +54,19 @@ class ContextSampler:
             self.df = df
 
         assert self.df, "Error: no documents available for sampling."
+        pool = self.fewshot_docs()
         res = (
-            self.rnd.sample(self.fewshot_docs(), n)
+            self.rnd.sample(pool, n)
             if not eval_doc
             else self.rm_eval_doc(
-                eval_doc, self.rnd.sample(self.fewshot_docs(), n + 1), n
+                # Sample n + 1 to leave headroom for removing an eval_doc
+                # copy, capped at the pool size: a pool of exactly n docs
+                # that does not contain eval_doc satisfies the request
+                # as-is, while drawing n + 1 from it crashes inside
+                # random.sample.
+                eval_doc,
+                self.rnd.sample(pool, min(n + 1, len(pool))),
+                n,
             )
         )
         if len(res) < n:
