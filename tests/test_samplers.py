@@ -130,6 +130,37 @@ class TestContextSampler:
         assert len(result) == 2
         assert eval_doc not in result
 
+    def test_sample_exact_pool_without_eval_doc(self):
+        """An n-doc request against a pool of exactly n docs must succeed.
+
+        The eval_doc path used to draw n + 1 docs unconditionally to leave
+        headroom for removing eval_doc. When the pool holds exactly n docs
+        and none of them is eval_doc, that draw exceeds the population and
+        crashed inside random.sample even though the pool fully satisfies
+        the request; this is reachable whenever fewshot_split == test_split
+        and the fewshot pool size equals num_fewshot.
+        """
+        pool = [{"id": i, "text": f"doc_{i}"} for i in range(5)]
+        sampler = ContextSampler(pool, rnd=42)
+
+        result = sampler.sample(n=5, eval_doc={"id": 999})
+
+        assert len(result) == 5
+        assert all(doc["id"] != 999 for doc in result)
+
+    def test_sample_exact_pool_containing_eval_doc_errors(self):
+        """Pool of exactly n docs where one is eval_doc is unsatisfiable.
+
+        After excluding eval_doc only n - 1 docs remain, so the request
+        cannot be met and the sampler must keep raising ValueError.
+        """
+        pool = [{"id": i, "text": f"doc_{i}"} for i in range(4)]
+        pool.append({"id": 999, "text": "eval"})
+        sampler = ContextSampler(pool, rnd=42)
+
+        with pytest.raises(ValueError):
+            sampler.sample(n=5, eval_doc={"id": 999, "text": "eval"})
+
     def test_fewshot_indices_filters_documents(self, sample_docs):
         """fewshot_indices parameter limits which docs are available."""
         indices = [0, 2, 4]  # Only use docs at positions 0, 2, 4
