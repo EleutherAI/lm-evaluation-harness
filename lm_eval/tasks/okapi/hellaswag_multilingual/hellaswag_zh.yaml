@@ -1,0 +1,9 @@
+include: _hellaswag_yaml
+task: hellaswag_zh
+dataset_path: text
+dataset_name: zh
+dataset_kwargs:
+  data_files:
+    val: hf://datasets/alexandrainst/m_hellaswag@9d31dc982bd6285e081e3e3136332a38b9c1d7b7/data/zh/val.jsonl
+validation_split: val
+process_docs: !function utils.process_docs_zh
