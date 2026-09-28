@@ -6,6 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from lm_eval.api.samplers import ContextSampler
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.utils import Message, maybe_delimit, multiturn_to_singleturn
 
@@ -706,6 +707,63 @@ class TestFewshotContext:
         mock_configurable_task.sampler.sample.assert_called_once_with(
             n=1, eval_doc=None
         )
+
+    def test_sampler_excludes_eval_doc_when_pool_falls_back_to_test(
+        self, mock_configurable_task
+    ):
+        """When fewshot_split is unset the pool is the evaluated split.
+
+        ConfigurableTask.fewshot_docs() falls back to test_docs() when no
+        fewshot split is configured (see the base Task.fewshot_docs), so the
+        pool *is* the split under evaluation even though fewshot_cfg.split is
+        None. Task.fewshot_context excludes the evaluated doc for exactly this
+        situation, so the sampler must be told about it here too.
+        """
+        mock_configurable_task.config.fewshot_split = None
+        mock_configurable_task.config.test_split = "test"
+        mock_configurable_task.fewshot_cfg.split = None
+        mock_configurable_task.doc_to_text = Mock(return_value="Q")
+        mock_configurable_task.doc_to_target = Mock(return_value="A")
+
+        eval_doc = {"id": 123}
+        ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc=eval_doc, num_fewshot=1
+        )
+
+        mock_configurable_task.sampler.sample.assert_called_once_with(
+            n=1, eval_doc=eval_doc
+        )
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_evaluated_doc_is_never_its_own_fewshot_example(
+        self, mock_configurable_task, seed
+    ):
+        """The evaluated document must never be rendered as its own example.
+
+        Same setup as above, but with a real ContextSampler over a pool that
+        is the evaluated split, so the leak shows up in the rendered context
+        rather than in how the sampler was called.
+        """
+        mock_configurable_task.config.fewshot_split = None
+        mock_configurable_task.config.test_split = "test"
+        mock_configurable_task.fewshot_cfg.split = None
+        mock_configurable_task.doc_to_text = Mock(
+            side_effect=lambda d, *args: f"Q{d['id']}"
+        )
+        mock_configurable_task.doc_to_target = Mock(
+            side_effect=lambda d, *args: f"A{d['id']}"
+        )
+
+        eval_doc = {"id": 0}
+        pool = [{"id": i} for i in range(4)]
+        mock_configurable_task.sampler = ContextSampler(pool, rnd=seed)
+
+        context = ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc=eval_doc, num_fewshot=3
+        )
+
+        assert "Q0" not in context
+        assert "A0" not in context
 
     def test_chat_template_multiturn(self, mock_configurable_task):
         """Chat template with fewshot_as_multiturn=True keeps messages separate."""
