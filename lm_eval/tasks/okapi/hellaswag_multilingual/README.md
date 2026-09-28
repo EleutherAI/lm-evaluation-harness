@@ -31,7 +31,29 @@ Homepage: `https://github.com/nlp-uoregon/Okapi`
 
 #### Tasks
 
-- `hellaswag_{ar,bn,ca,da,de,es,eu,fr,gu,hi,hr,hu,hy,id,it,kn,ml,mr,ne,nl,pt,ro,ru,sk,sr,sv,ta,te,uk,vi}`
+- `hellaswag_{ar,bn,ca,da,de,es,eu,fr,gu,hi,hr,hu,hy,id,it,kn,ml,mr,ne,nl,pt,ro,ru,sk,sr,sv,ta,te,uk,vi,zh}`
+
+The Chinese task, `hellaswag_zh`, evaluates all **9,266** examples in the
+`val` split of `alexandrainst/m_hellaswag`, pinned to revision
+`9d31dc982bd6285e081e3e3136332a38b9c1d7b7`. One example,
+`hellaswag/validation/8881`, has four bilingual objects instead of string endings.
+The built-in `text` loader reads the JSONL, then preprocessing extracts the existing
+`zh` strings before Arrow infers the parsed columns, including with older `datasets`
+versions. All examples, fields, labels, and choice order are retained; only these
+four endings are normalized. The task then uses the same preprocessing, prompting,
+and `acc` / `acc_norm` scoring as the other languages.
+Selecting the `hellaswag_multilingual` tag also runs `hellaswag_zh`.
+For offline runs, set `dataset_kwargs.data_files.val` to a local copy of the
+pinned JSONL file.
+
+To check the evaluation pipeline without downloading a model:
+
+```bash
+lm-eval run --model dummy --tasks hellaswag_zh --num_fewshot 0 --limit 8
+```
+
+The dummy backend uses random scores and only checks the pipeline. Remove
+`--limit` to evaluate all 9,266 examples with your chosen model backend.
 
 
 ### Checklist
