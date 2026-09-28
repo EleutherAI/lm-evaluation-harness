@@ -978,7 +978,13 @@ class HFLM(TemplateLM):
                 model_name, **kwargs
             )
 
-    def _detect_batch_size(self, requests: Sequence | None = None, pos: int = 0):
+    def _detect_batch_size(
+        self,
+        requests: Sequence | None = None,
+        pos: int = 0,
+        *,
+        max_length: int | None = None,
+    ):
         if requests:
             _, context_enc, continuation_enc = requests[pos]
             max_length = len(
@@ -987,7 +993,7 @@ class HFLM(TemplateLM):
             max_context_enc = len(context_enc[-(self.max_length + 1) :])
             max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
         else:
-            max_length = self.max_length
+            max_length = self.max_length if max_length is None else max_length
             max_context_enc = max_length
             max_cont_enc = max_length
 
@@ -1036,6 +1042,73 @@ class HFLM(TemplateLM):
 
         clear_torch_cache()
         return batch_size
+
+    def _get_generation_probe_length(self, requests: list[Instance]) -> int | None:
+        """Bound the forward probe for ordinary single-process causal generation."""
+        if (
+            not requests
+            or self.backend != "causal"
+            or self.device.type == "hpu"
+            or self.world_size != 1
+            or torch.distributed.is_initialized()
+            or not getattr(getattr(self.model, "config", None), "use_cache", False)
+        ):
+            return None
+
+        config = getattr(self.model, "generation_config", None)
+        if (
+            getattr(config, "max_new_tokens", None) is not None
+            or getattr(config, "guidance_scale", None) not in (None, 1)
+            or getattr(config, "token_healing", False)
+            or getattr(config, "dola_layers", None) is not None
+            or getattr(config, "num_beams", 1) not in (None, 1)
+            or getattr(config, "num_return_sequences", 1) not in (None, 1)
+            or getattr(config, "penalty_alpha", None) is not None
+            or getattr(config, "prompt_lookup_num_tokens", None) is not None
+            or getattr(config, "cache_implementation", None) not in (None, "dynamic")
+            or any(
+                getattr(config, name, False)
+                for name in (
+                    "output_scores",
+                    "output_logits",
+                    "output_attentions",
+                    "output_hidden_states",
+                )
+            )
+        ):
+            return None
+
+        # Batch tokenization chooses the BOS policy from the first context.
+        bos = getattr(self.tokenizer, "bos_token", None)
+        if bos and len({has_bos_prefix(req.args[0], bos) for req in requests}) > 1:
+            return None
+
+        max_length = 0
+        for request in requests:
+            context, gen_kwargs = request.args
+            kwargs = normalize_gen_kwargs(gen_kwargs, self.max_gen_toks)
+            # Other decoding options retain the existing conservative detector.
+            if kwargs["do_sample"] or kwargs.keys() - {
+                "until",
+                "max_gen_toks",
+                "do_sample",
+                "temperature",
+            }:
+                return None
+            max_gen_toks = kwargs["max_gen_toks"]
+            if not 0 < max_gen_toks < self.max_length:
+                return None
+            # Match actual generation tokenization, including BOS and truncation.
+            context_enc, _ = self.tok_batch_encode(
+                [context],
+                left_truncate_len=self.max_length - max_gen_toks,
+                truncation=self.truncation,
+            )
+            # Probe the full cache horizon, not just the prompt. The existing
+            # full-sequence logits/softmax probe remains conservative for greedy
+            # decoding when the model's forward pass also enables KV caching.
+            max_length = max(max_length, context_enc.shape[1] + max_gen_toks)
+        return max_length
 
     def tok_encode(
         self,
@@ -1594,9 +1667,13 @@ class HFLM(TemplateLM):
         )
         adaptive_batch_size = None
         if self.batch_size == "auto":
-            # using rolling window with maximum context
             print("Passed argument batch_size = auto. Detecting largest batch size")
-            batch_size = self._detect_batch_size()
+            probe_length = self._get_generation_probe_length(requests)
+            batch_size = (
+                self._detect_batch_size(max_length=probe_length)
+                if probe_length is not None
+                else self._detect_batch_size()
+            )
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
         # for each different set of kwargs, we execute all requests, by batch.
