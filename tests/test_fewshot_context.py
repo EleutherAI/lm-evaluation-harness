@@ -9,6 +9,7 @@ import pytest
 from lm_eval.api.samplers import ContextSampler
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.utils import Message, maybe_delimit, multiturn_to_singleturn
+from lm_eval.config.task import TaskConfig
 
 
 # =============================================================================
@@ -677,6 +678,7 @@ class TestFewshotContext:
         mock_configurable_task.config.fewshot_split = "test"
         mock_configurable_task.config.test_split = "test"
         mock_configurable_task.fewshot_cfg.split = "test"
+        mock_configurable_task._fewshot_pool_split = "test"
         mock_configurable_task.doc_to_text = Mock(return_value="Q")
         mock_configurable_task.doc_to_target = Mock(return_value="A")
 
@@ -695,6 +697,7 @@ class TestFewshotContext:
         mock_configurable_task.config.fewshot_split = "train"
         mock_configurable_task.config.test_split = "test"
         mock_configurable_task.fewshot_cfg.split = "train"
+        mock_configurable_task._fewshot_pool_split = "train"
         mock_configurable_task.doc_to_text = Mock(return_value="Q")
         mock_configurable_task.doc_to_target = Mock(return_value="A")
 
@@ -707,63 +710,6 @@ class TestFewshotContext:
         mock_configurable_task.sampler.sample.assert_called_once_with(
             n=1, eval_doc=None
         )
-
-    def test_sampler_excludes_eval_doc_when_pool_falls_back_to_test(
-        self, mock_configurable_task
-    ):
-        """When fewshot_split is unset the pool is the evaluated split.
-
-        ConfigurableTask.fewshot_docs() falls back to test_docs() when no
-        fewshot split is configured (see the base Task.fewshot_docs), so the
-        pool *is* the split under evaluation even though fewshot_cfg.split is
-        None. Task.fewshot_context excludes the evaluated doc for exactly this
-        situation, so the sampler must be told about it here too.
-        """
-        mock_configurable_task.config.fewshot_split = None
-        mock_configurable_task.config.test_split = "test"
-        mock_configurable_task.fewshot_cfg.split = None
-        mock_configurable_task.doc_to_text = Mock(return_value="Q")
-        mock_configurable_task.doc_to_target = Mock(return_value="A")
-
-        eval_doc = {"id": 123}
-        ConfigurableTask.fewshot_context(
-            mock_configurable_task, doc=eval_doc, num_fewshot=1
-        )
-
-        mock_configurable_task.sampler.sample.assert_called_once_with(
-            n=1, eval_doc=eval_doc
-        )
-
-    @pytest.mark.parametrize("seed", range(5))
-    def test_evaluated_doc_is_never_its_own_fewshot_example(
-        self, mock_configurable_task, seed
-    ):
-        """The evaluated document must never be rendered as its own example.
-
-        Same setup as above, but with a real ContextSampler over a pool that
-        is the evaluated split, so the leak shows up in the rendered context
-        rather than in how the sampler was called.
-        """
-        mock_configurable_task.config.fewshot_split = None
-        mock_configurable_task.config.test_split = "test"
-        mock_configurable_task.fewshot_cfg.split = None
-        mock_configurable_task.doc_to_text = Mock(
-            side_effect=lambda d, *args: f"Q{d['id']}"
-        )
-        mock_configurable_task.doc_to_target = Mock(
-            side_effect=lambda d, *args: f"A{d['id']}"
-        )
-
-        eval_doc = {"id": 0}
-        pool = [{"id": i} for i in range(4)]
-        mock_configurable_task.sampler = ContextSampler(pool, rnd=seed)
-
-        context = ConfigurableTask.fewshot_context(
-            mock_configurable_task, doc=eval_doc, num_fewshot=3
-        )
-
-        assert "Q0" not in context
-        assert "A0" not in context
 
     def test_chat_template_multiturn(self, mock_configurable_task):
         """Chat template with fewshot_as_multiturn=True keeps messages separate."""
@@ -912,3 +858,71 @@ def test_fewshot_config_split_precedence():
         fewshot_config={"process_docs": None},
     )
     assert cfg_inherit.fewshot_config.split == "validation"
+
+
+class _FewshotPoolTask(ConfigurableTask):
+    """A task with no training or validation split, so few-shot examples come
+    from the split being evaluated. Stands in for the 221 shipped task configs
+    that declare no ``training_split``/``validation_split``/``fewshot_split``.
+    """
+
+    def __init__(self, docs, num_fewshot=2, fewshot_config=None):
+        self._config = TaskConfig(
+            task="fewshot_pool",
+            dataset_path="json",
+            test_split="test",
+            doc_to_text="q",
+            doc_to_target="a",
+            num_fewshot=num_fewshot,
+            fewshot_config=fewshot_config,
+        )
+        self.fewshot_cfg = self.config.fewshot_config
+        self.prompt = None
+        self.features = list(docs[0].keys())
+        self._docs = docs
+        self.multiple_input = 0
+        self.OUTPUT_TYPE = "generate_until"
+        # Mirror __init__: resolve the pool, record where it came from, and
+        # build the sampler from it.
+        self.sampler = ContextSampler(list(self.fewshot_docs()), rnd=0)
+
+    def download(self, **kwargs):
+        pass
+
+    def has_training_docs(self):
+        return False
+
+    def has_validation_docs(self):
+        return False
+
+    def has_test_docs(self):
+        return True
+
+    def test_docs(self):
+        return self._docs
+
+
+def test_fewshot_pool_falls_back_to_eval_split():
+    """The evaluated document must not become its own few-shot example.
+
+    With no ``fewshot_split`` configured, ``fewshot_docs()`` resolves the pool
+    to the split under evaluation, and ``fewshot_context`` has to exclude the
+    document it is scoring from it - which is what the base ``Task`` does for
+    the same situation.
+    """
+    docs = [{"q": f"Q{i}", "a": f"A{i}"} for i in range(4)]
+    task = _FewshotPoolTask(docs)
+
+    for doc in docs:
+        context = task.fewshot_context(doc=doc, num_fewshot=2)
+        assert f"{doc['q']} {doc['a']}" not in context
+
+
+def test_explicit_fewshot_samples_are_not_treated_as_eval_split():
+    """``fewshot_config.samples`` is a list, not a split, so nothing is excluded."""
+    docs = [{"q": f"Q{i}", "a": f"A{i}"} for i in range(4)]
+    samples = [{"q": "S0", "a": "A0"}, {"q": "S1", "a": "A1"}]
+    task = _FewshotPoolTask(docs, num_fewshot=2, fewshot_config={"samples": samples})
+
+    context = task.fewshot_context(doc=docs[0], num_fewshot=2)
+    assert "S0 A0" in context

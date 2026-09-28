@@ -620,6 +620,11 @@ class ConfigurableTask(Task):
     OUTPUT_TYPE = None
     CONFIG = None
 
+    # The split the few-shot pool was drawn from, recorded by fewshot_docs().
+    # None means the pool is not a split (an explicit fewshot_config.samples
+    # list) or a split other than the one being evaluated.
+    _fewshot_pool_split: str | None = None
+
     def __init__(
         self,
         data_dir=None,
@@ -905,6 +910,7 @@ class ConfigurableTask(Task):
 
     def fewshot_docs(self):
         if (split := self.fewshot_cfg.split) is not None:
+            self._fewshot_pool_split = split
             if (process_docs := self.fewshot_cfg.process_docs) is not None:
                 return process_docs(self.dataset[split])
             return self.dataset[split]
@@ -912,6 +918,9 @@ class ConfigurableTask(Task):
             self.config.fewshot_config is not None
             and (samples := self.fewshot_cfg.samples) is not None
         ):
+            # An explicit sample list is not a split, so the evaluated document
+            # must not be excluded from it.
+            self._fewshot_pool_split = None
             # fmt: off
             match samples:
                 case list(): return samples
@@ -927,6 +936,15 @@ class ConfigurableTask(Task):
                     f"num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
+            # The base class draws few-shot examples from the training or
+            # validation split when the task has one, and otherwise from the
+            # split being evaluated. Record which of those it resolved to, so
+            # the evaluated document can be excluded from the pool below.
+            self._fewshot_pool_split = (
+                None
+                if self.has_training_docs() or self.has_validation_docs()
+                else self.config.test_split
+            )
             return super().fewshot_docs()
 
     @utils.positional_deprecated
@@ -982,7 +1000,7 @@ class ConfigurableTask(Task):
             for fs_doc in self.sampler.sample(
                 n=num_fewshot,
                 eval_doc=doc
-                if self.fewshot_cfg.split == self.config.test_split
+                if self._fewshot_pool_split == self.config.test_split
                 else None,
             ):
                 q, c, a = (
