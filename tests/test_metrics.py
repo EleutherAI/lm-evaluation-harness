@@ -260,3 +260,31 @@ if __name__ == "__main__":
     test_bootstrap_internal_no_mp()
     test_dict_metric_uses_custom_aggregation()
     print("All tests passed!")
+
+
+def test_acc_all_stderr_groups_like_acc_all():
+    """acc_all_stderr must group on (paragraph, question) like acc_all.
+
+    Grouping by question id alone merges answers from different paragraphs
+    that share a question id: with para 0 all-correct and para 1 all-wrong,
+    each merged group holds a mix and the SE used to collapse to 0.0 even
+    though acc_all itself is 0.5 over four question groups.
+    """
+    from lm_eval.api.metrics import acc_all, acc_all_stderr
+
+    items = []
+    for pid, qid, pred in [
+        (0, 0, 1),
+        (0, 0, 1),
+        (0, 1, 1),
+        (0, 1, 1),
+        (1, 0, 0),
+        (1, 0, 0),
+        (1, 1, 0),
+        (1, 1, 0),
+    ]:
+        items.append((pred, {"idx": {"paragraph": pid, "question": qid}, "label": 1}))
+
+    assert acc_all(items) == 0.5
+    # four question groups scoring [1, 1, 0, 0]
+    assert abs(acc_all_stderr(items) - 0.2886751345948129) < 1e-12
