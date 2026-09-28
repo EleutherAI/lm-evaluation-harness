@@ -445,7 +445,11 @@ def acc_all_stderr(items):
     docs = list(zip(*items))[1]
 
     for doc, pred in zip(docs, preds):
-        question_id = doc["idx"]["question"]
+        # Group on the same (paragraph, question) key as acc_all so the SE is
+        # taken over the same per-question scores the accuracy is computed
+        # over; grouping by question id alone merges answers from different
+        # paragraphs that share a question id.
+        question_id = (doc["idx"]["paragraph"], doc["idx"]["question"])
         if question_id not in question_scoring_dict:
             question_scoring_dict[question_id] = []
 
