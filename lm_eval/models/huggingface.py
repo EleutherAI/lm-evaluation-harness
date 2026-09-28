@@ -1170,6 +1170,9 @@ class HFLM(TemplateLM):
 
         if do_sample is False and temp == 0.0:
             generation_kwargs.pop("temperature", None)
+        # Do not let a checkpoint default override the request-derived max_length.
+        # Preserve an explicit max_new_tokens passed directly to this method.
+        generation_kwargs.setdefault("max_new_tokens", None)
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
