@@ -117,6 +117,7 @@ class LiteLLMChatCompletion(LocalChatCompletion):
             generate=generate,
             gen_kwargs=gen_kwargs,
             seed=self._seed,
+            eos=self.eos_string,
             **kwargs,
         )
         cache_method = "generate_until" if generate else "loglikelihood"
