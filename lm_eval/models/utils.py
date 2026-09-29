@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -665,7 +666,7 @@ def normalize_gen_kwargs(
     Args:
         gen_kwargs: Raw generation kwargs from the request. Expected keys include:
             - do_sample: Whether to use sampling (vs greedy decoding) - Required
-            - until (str | list[str]): Stop sequence(s) for generation.
+            - until (str | list[str] | None): Stop sequence(s) for generation.
             - max_gen_toks | max_new_tokens | max_tokens | max_completion_tokens: Maximum tokens to generate
             - temperature: Sampling temperature
             - Other backend-specific kwargs
@@ -693,8 +694,10 @@ def normalize_gen_kwargs(
 
     kwargs = copy.deepcopy(gen_kwargs)
 
-    until = kwargs.get("until", [])
-    if not isinstance(until, list):
+    until = kwargs.get("until")
+    if until is None:
+        until = []
+    elif not isinstance(until, list):
         until = [until]
 
     # Extract max_gen_toks from various aliases (priority order: max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens)

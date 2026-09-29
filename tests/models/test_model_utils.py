@@ -197,6 +197,10 @@ class TestNormalizeGenKwargs:
         result = normalize_gen_kwargs({})
         assert result["until"] == []
 
+    def test_until_none_converted_to_empty_list(self):
+        result = normalize_gen_kwargs({"until": None})
+        assert result["until"] == []
+
     # --- max token aliases ---
 
     def test_max_gen_toks_used_directly(self):
