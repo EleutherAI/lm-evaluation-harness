@@ -27,9 +27,7 @@ OPENAI_CHAT_RESPONSE = {
 
 def _chat_messages(content="Hi"):
     """Wrap chat messages as JsonChatStr — the format generate_until uses."""
-    return (
-        JsonChatStr(json.dumps([{"role": "user", "content": content}])),
-    )
+    return (JsonChatStr(json.dumps([{"role": "user", "content": content}])),)
 
 
 @pytest.fixture
@@ -121,7 +119,7 @@ def test_model_call_error_propagates(litellm_model):
 
 
 def test_amodel_call():
-    model = LiteLLMChatCompletion(model="gpt-4o-mini")
+    model = LiteLLMChatCompletion(model="gpt-4o-mini", eos_string="<EOS>")
 
     mock_response = MagicMock()
     mock_response.model_dump.return_value = OPENAI_CHAT_RESPONSE
@@ -143,6 +141,7 @@ def test_amodel_call():
     result = asyncio.run(run())
 
     model._litellm.acompletion.assert_called_once()
+    assert model._litellm.acompletion.call_args.kwargs["stop"] == ["<EOS>"]
     assert result == ["Hello there!"]
 
 
