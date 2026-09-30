@@ -1,0 +1,16 @@
+include: canine_geroscience.yaml
+task: canine_geroscience_numeric
+process_docs: !function utils.process_docs_numeric
+process_results: !function utils.process_results_numeric
+metric_list:
+  - metric: numeric_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: numeric_acc_all
+    aggregation: mean
+    higher_is_better: true
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
