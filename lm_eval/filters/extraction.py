@@ -54,6 +54,11 @@ class RegexFilter(Filter):
                         else:
                             match = self.fallback
                     match = match.strip()
+                    if not match:
+                        # A capture that holds only whitespace carries no answer,
+                        # so it is a non-match like any other. Checked after the
+                        # strip: a whitespace-only group is truthy going in.
+                        match = self.fallback
                 else:
                     match = self.fallback
                 filtered.append(match)

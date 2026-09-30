@@ -3,8 +3,55 @@ from pathlib import Path
 
 import pytest
 
-from lm_eval.filters.extraction import MultiChoiceRegexFilter
+from lm_eval.filters.extraction import MultiChoiceRegexFilter, RegexFilter
 from lm_eval.filters.transformation import SPANFilter
+
+
+# The `strict-match` filter of every flan-cot / bbh cot_zeroshot task, e.g.
+# lm_eval/tasks/mmlu/flan_cot_zeroshot/_mmlu_flan_cot_zeroshot_template_yaml.
+FLAN_STRICT_MATCH = (
+    r"((?<=The answer is )(.*)(?=.)|(?<=answer is )(.*)(?=.)"
+    r"|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+)
+
+
+def test_regex_whitespace_only_capture_uses_the_fallback():
+    # The cue is present but nothing follows it, so the capture holds only
+    # whitespace. That is not an answer, and the filter must return the
+    # configured fallback for it rather than a bare empty string. Regression:
+    # `if match:` tested truthiness before `.strip()`, so "   " passed and the
+    # strip then reduced it to "", silently ignoring `fallback`.
+    filt = RegexFilter(regex_pattern=FLAN_STRICT_MATCH)
+
+    resps = [["The answer is   \n"]]
+    docs = [{"choices": ["(A)", "(B)"]}]
+
+    assert filt.apply(resps, docs) == [["[invalid]"]]
+
+
+@pytest.mark.parametrize("response", ["The answer is \t ", "The answer is  \t"])
+def test_regex_whitespace_only_capture_uses_a_custom_fallback(response):
+    # The same response with a non-default fallback, to show the configured
+    # value is what gets returned.
+    filt = RegexFilter(regex_pattern=FLAN_STRICT_MATCH, fallback="NO_ANSWER")
+
+    assert filt.apply([[response]], [{"choices": ["(A)", "(B)"]}]) == [["NO_ANSWER"]]
+
+
+def test_regex_keeps_matching_a_response_whose_cue_is_followed_by_an_answer():
+    # Only a capture that is empty *after* stripping falls back. A real answer
+    # is still returned, and the strip keeps trimming the surrounding padding.
+    filt = RegexFilter(regex_pattern=FLAN_STRICT_MATCH)
+
+    assert filt.apply([["The answer is (A)."]], [{"choices": ["(A)"]}]) == [["(A)"]]
+    assert filt.apply([["The answer is  (A). "]], [{"choices": ["(A)"]}]) == [["(A)."]]
+
+
+def test_regex_missing_cue_still_uses_the_fallback():
+    # The unchanged non-match path, as a control for the case above.
+    filt = RegexFilter(regex_pattern=FLAN_STRICT_MATCH)
+
+    assert filt.apply([["I am not sure"]], [{"choices": ["(A)"]}]) == [["[invalid]"]]
 
 
 def test_multi_choice_regex_all_empty_capture_groups_falls_back_to_choice_text():
