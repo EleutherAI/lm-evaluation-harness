@@ -687,6 +687,12 @@ lm_eval --model hf \
     --device cuda:0
 ```
 
+Use `revision` to select the base model checkpoint and `peft_revision` to select
+the adapter checkpoint independently. For example,
+`--model_args pretrained=BASE_MODEL,revision=BASE_REVISION,peft=ADAPTER,peft_revision=ADAPTER_REVISION`.
+If `peft_revision` is omitted, the adapter uses `revision`, preserving the
+existing behavior. Evaluation metadata records the adapter revision and SHA.
+
 Models provided as delta weights can be easily loaded using the Hugging Face transformers library. Within --model_args, set the delta argument to specify the delta weights, and use the pretrained argument to designate the relative base model to which they will be applied:
 
 ```bash

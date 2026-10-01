@@ -112,6 +112,7 @@ class HFLM(TemplateLM):
         think_end_token: str | int | None = None,
         enable_thinking: bool | None = None,
         chat_template_args: dict[str, Any] | None = None,
+        peft_revision: str | None = None,
         **kwargs,
     ) -> None:
         """Initialize an HFLM instance for evaluating HuggingFace models.
@@ -192,6 +193,8 @@ class HFLM(TemplateLM):
                 processes (``--nproc-per-node``) determines the TP degree.
             peft: Path or HuggingFace Hub ID of a PEFT (LoRA, etc.) adapter to
                 load on top of the base model.
+            peft_revision: Adapter revision to load independently of the base
+                model. Defaults to ``revision`` when omitted.
             delta: Path or HuggingFace Hub ID of delta weights to apply to the
                 base model (added to the pretrained weights).
             autogptq: Whether to load the model using AutoGPTQ quantization.
@@ -243,7 +246,7 @@ class HFLM(TemplateLM):
                 # TP mode: skip Accelerator entirely, let transformers handle
                 # distribution via torchrun + device_mesh.
                 device_type = torch._C._get_accelerator().type
-                local_rank = int(os.environ.get("LOCAL_RANK", 0))
+                local_rank = int(os.environ.get("LOCAL_RANK", "0"))
                 self._device = torch.device(f"{device_type}:{local_rank}")
                 gpus = 0  # prevent later model.to(device) calls
 
@@ -377,6 +380,7 @@ class HFLM(TemplateLM):
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,
                 peft=peft,
+                peft_revision=peft_revision,
                 delta=delta,
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
@@ -402,7 +406,7 @@ class HFLM(TemplateLM):
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
         self.chat_template_args = (
-            (chat_template_args or {}) | dict(enable_thinking=enable_thinking)
+            (chat_template_args or {}) | {"enable_thinking": enable_thinking}
             if enable_thinking is not None
             else (chat_template_args or {})
         )
@@ -419,6 +423,7 @@ class HFLM(TemplateLM):
         self.pretrained = pretrained
         self.delta = delta
         self.peft = peft
+        self.peft_revision = revision if peft_revision is None else peft_revision
         self.revision = revision
         self.batch_schedule = 1
         self.batch_sizes = {}
@@ -513,8 +518,8 @@ class HFLM(TemplateLM):
         gpus: int | None = None,
     ) -> dict:
         """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
-        num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
-        num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
+        num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", "1"))
+        num_machines = int(os.environ.get("WORLD_SIZE", "0")) // num_local_processes
         if (
             num_machines == 0
             and hasattr(self, "accelerator")
@@ -766,6 +771,7 @@ class HFLM(TemplateLM):
         gguf_file: str | None = None,
         quantization_config: AutoQuantizationConfig | None = None,
         subfolder: str = "",
+        peft_revision: str | None = None,
         **kwargs,
     ) -> None:
         """Initializes an HF or HF-compatible PreTrainedModel from scratch
@@ -884,7 +890,9 @@ class HFLM(TemplateLM):
                 )
                 self._model.resize_token_embeddings(len(self.tokenizer))
             self._model = PeftModel.from_pretrained(
-                self._model, peft, revision=revision
+                self._model,
+                peft,
+                revision=revision if peft_revision is None else peft_revision,
             )
         elif delta:
             if autogptq:
@@ -1763,7 +1771,7 @@ class HFLM(TemplateLM):
             try:
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - optional Hub metadata
                 eval_logger.debug(
                     f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
                 )
@@ -1776,7 +1784,8 @@ class HFLM(TemplateLM):
             "model_sha": get_model_sha(self.pretrained, self.revision),
         }
         if self.peft:
-            model_info["peft_sha"] = get_model_sha(self.peft, self.revision)
+            model_info["peft_revision"] = self.peft_revision
+            model_info["peft_sha"] = get_model_sha(self.peft, self.peft_revision)
         if self.delta:
             model_info["delta_sha"] = get_model_sha(self.delta, self.revision)
         return model_info
