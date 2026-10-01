@@ -145,19 +145,34 @@ def remove_boxed(s: str) -> str:
 
 
 class timeout:
+    """Raise TimeoutError if the block runs longer than `seconds`.
+
+    SIGALRM only exists on POSIX and can only be set from the main thread.
+    Elsewhere (Windows, worker threads) the block runs without a time limit:
+    raising instead would reach the catch-all in `is_equiv` and score every
+    comparison that needs sympy as wrong.
+    """
+
     def __init__(self, seconds=1, error_message="Timeout"):
         self.seconds = seconds
         self.error_message = error_message
+        self.armed = False
 
     def handle_timeout(self, signum, frame):
         raise TimeoutError(self.error_message)
 
     def __enter__(self):
-        signal.signal(signal.SIGALRM, self.handle_timeout)
+        try:
+            signal.signal(signal.SIGALRM, self.handle_timeout)
+        except (AttributeError, ValueError):
+            # AttributeError: no SIGALRM (Windows); ValueError: not main thread
+            return
+        self.armed = True
         signal.alarm(self.seconds)
 
     def __exit__(self, exc_type, value, traceback):
-        signal.alarm(0)
+        if self.armed:
+            signal.alarm(0)
 
 
 def is_equiv(x1: str, x2: str) -> bool:

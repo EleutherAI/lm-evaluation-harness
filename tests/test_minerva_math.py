@@ -1,3 +1,7 @@
+import signal
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 
 
@@ -14,7 +18,10 @@ from lm_eval.tasks.leaderboard.math.utils import (
     normalize_final_answer as norm_leaderboard,
 )
 from lm_eval.tasks.minerva_math.utils import normalize_final_answer as norm
-from lm_eval.tasks.putnam_axiom.utils import normalize_final_answer as norm_putnam
+from lm_eval.tasks.putnam_axiom.utils import (
+    is_equiv as putnam_is_equiv,
+    normalize_final_answer as norm_putnam,
+)
 
 
 is_equiv = minerva_utils.is_equiv
@@ -78,6 +85,36 @@ def test_two_empty_answers_are_not_a_match():
 def test_mathematically_equal_answers_still_compare_equal():
     """The sympy path is still reached for strings that are not identical."""
     assert is_equiv("\\frac{1}{2}", "0.5")
+
+
+# `is_equiv` guards sympy with a SIGALRM timeout. Setting it up raises
+# AttributeError on Windows (no SIGALRM) and ValueError off the main thread;
+# the catch-all in `is_equiv` turned that into False for every answer that
+# needed sympy, so `\frac{1}{2}` vs `0.5` scored 0 there.
+EQUIVS = (
+    pytest.param(is_equiv, id="minerva_math"),
+    pytest.param(putnam_is_equiv, id="putnam_axiom"),
+)
+
+
+@pytest.mark.parametrize("equiv", EQUIVS)
+def test_sympy_path_works_without_sigalrm(equiv, monkeypatch):
+    monkeypatch.delattr(signal, "SIGALRM", raising=False)
+    assert equiv("\\frac{1}{2}", "0.5")
+    assert not equiv("\\frac{1}{2}", "0.6")
+
+
+@pytest.mark.parametrize("equiv", EQUIVS)
+def test_sympy_path_works_off_the_main_thread(equiv):
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        assert pool.submit(equiv, "\\frac{1}{2}", "0.5").result()
+        assert not pool.submit(equiv, "\\frac{1}{2}", "0.6").result()
+
+
+@pytest.mark.skipif(not hasattr(signal, "SIGALRM"), reason="needs SIGALRM")
+def test_timeout_still_fires_where_sigalrm_is_available():
+    with pytest.raises(TimeoutError), minerva_utils.timeout(seconds=1):
+        time.sleep(3)
 
 
 """The thousands-separator comma strip must not fuse bare digit tuples.
