@@ -1,6 +1,15 @@
+import itertools
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
+import numpy as np
+import pytest
+
+from lm_eval.api.metrics import (
+    _bootstrap_internal_no_mp,
+    mean,
+    unweighted_mean_stderr,
+    weighted_mean_stderr,
+)
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
@@ -251,6 +260,42 @@ def test_chrfpp_perfect_match():
 
     items = [("the cat sat on the mat", "the cat sat on the mat")]
     assert chrfpp(items) == 100.0
+
+
+@pytest.mark.parametrize(
+    "samples",
+    [([0.0, 1.0], [0.0, 0.0, 2.0]), ([1.0, 2.0], [3.0, 3.0])],
+)
+def test_weighted_mean_stderr_matches_exact_stratified_bootstrap(samples):
+    """Enumerating every independent resample avoids a noisy Monte Carlo oracle."""
+    bootstrap_means = [
+        [mean(resample) for resample in itertools.product(sample, repeat=len(sample))]
+        for sample in samples
+    ]
+    sizes = [len(sample) for sample in samples]
+    stderrs = [np.std(means, ddof=0) for means in bootstrap_means]
+    group_means = [
+        sum(size * value for size, value in zip(sizes, means, strict=True)) / sum(sizes)
+        for means in itertools.product(*bootstrap_means)
+    ]
+
+    assert weighted_mean_stderr(stderrs, sizes) == pytest.approx(
+        np.std(group_means, ddof=0)
+    )
+
+
+@pytest.mark.parametrize("sizes", [[10, 10], [1, 1]])
+def test_weighted_mean_stderr_equal_sizes_matches_unweighted(sizes):
+    """Equal coefficients produce the same uncertainty in either averaging mode."""
+    stderrs = [0.02, 0.10]
+    assert weighted_mean_stderr(stderrs, sizes) == pytest.approx(
+        unweighted_mean_stderr(stderrs)
+    )
+
+
+def test_weighted_mean_stderr_single_task():
+    """A single subtask retains its standard error, including a singleton size."""
+    assert weighted_mean_stderr([0.25], [1]) == pytest.approx(0.25)
 
 
 if __name__ == "__main__":

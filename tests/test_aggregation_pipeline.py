@@ -9,6 +9,7 @@ Tests the full path through:
 """
 
 import logging
+import math
 from typing import Any
 
 import pytest
@@ -173,6 +174,28 @@ class TestTaskToGroupPipeline:
 
         # Unweighted: (1.0 + 0.25) / 2 = 0.625
         assert result.metrics["g"]["acc,none"] == pytest.approx(0.625)
+
+    def test_weighted_group_uncertainty_with_heterogeneous_subtasks(self):
+        """Propagate independently estimated task variances through the pipeline."""
+        small = MockTask("small", agg={"acc": mean}, n_eval_docs=2)
+        large = MockTask("large", agg={"acc": mean}, n_eval_docs=100)
+        group = Group(
+            name="g",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", weight_by_size=True)],
+        )
+        group.add(small)
+        group.add(large)
+        acc = {
+            "small": _make_acc(small, {("acc", "none"): [0.0, 1.0]}),
+            "large": _make_acc(large, {("acc", "none"): [0.0] * 100}),
+        }
+
+        result = _process_results(acc, groups={"g": group}, bootstrap_iters=100)
+        small_stderr = result.metrics["small"]["acc_stderr,none"]
+        large_stderr = result.metrics["large"]["acc_stderr,none"]
+        expected = math.sqrt((2 * small_stderr) ** 2 + (100 * large_stderr) ** 2) / 102
+        assert result.metrics["g"]["acc,none"] == pytest.approx(1 / 102)
+        assert result.metrics["g"]["acc_stderr,none"] == pytest.approx(expected)
 
     def test_sample_len_is_total_not_per_filter(self):
         """Group sample_len is total across all leaf tasks, not filter-dependent."""
