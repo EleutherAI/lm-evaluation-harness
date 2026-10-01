@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import random
 from typing import cast
 
 import numpy as np
@@ -49,7 +48,7 @@ def main():
     task_manager = TaskManager(include_path=args.include_path)
 
     if args.tasks == "all_tasks":
-        _task_names = task_manager.all_tasks
+        _task_names = task_manager.all_subtasks
     else:
         _task_names = cast("list[str]", args.tasks.split(","))
     _res = task_manager.load(_task_names)
@@ -58,8 +57,7 @@ def main():
     os.makedirs(args.output_base_path, exist_ok=True)
     for task in task_dicts:
         task_name = task.config.task
-        rnd = random.Random()
-        rnd.seed(args.seed)
+        task.set_fewshot_seed(args.seed)
 
         iters = []
 
