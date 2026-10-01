@@ -1,0 +1,5 @@
+include: ../arc/arc_easy.yaml
+task: arc_challenge_greek
+tag: []  # detach inherited ai2_arc tag so this Greek task doesn't join the English tag-group
+dataset_path: ilsp/arc_greek
+dataset_name: ARC-Challenge

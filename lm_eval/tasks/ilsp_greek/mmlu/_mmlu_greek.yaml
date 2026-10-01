@@ -1,0 +1,11 @@
+group: mmlu_greek
+task:
+- mmlu_greek_stem
+- mmlu_greek_other
+- mmlu_greek_social_sciences
+- mmlu_greek_humanities
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 2

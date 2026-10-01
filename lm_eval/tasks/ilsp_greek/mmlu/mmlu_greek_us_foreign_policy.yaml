@@ -1,0 +1,7 @@
+"dataset_name": "us_foreign_policy"
+"description": "The following are multiple choice questions (with answers) about us\
+  \ foreign policy.\n\n"
+"include": "_default_template_yaml"
+"tag": "mmlu_greek_social_sciences_tasks"
+"task": "mmlu_greek_us_foreign_policy"
+"task_alias": "us foreign policy"

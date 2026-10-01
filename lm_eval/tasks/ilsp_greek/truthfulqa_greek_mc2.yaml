@@ -1,0 +1,7 @@
+include: ../truthfulqa/truthfulqa_mc2.yaml
+task: truthfulqa_greek_mc2
+tag: []  # detach inherited truthfulqa tag so this Greek task doesn't join the English tag-group
+dataset_path: ilsp/truthful_qa_greek
+# ILSP ships only a `train` split for the multiple_choice config (no validation/test).
+validation_split: train
+fewshot_split: train

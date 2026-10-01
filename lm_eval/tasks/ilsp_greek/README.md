@@ -1,0 +1,172 @@
+# ILSP Greek benchmark suite
+
+### Paper / source
+
+Greek versions of several widely used English LLM benchmarks, published by the
+**Institute for Language and Speech Processing (ILSP), Athena Research Center**. The datasets are
+machine-translated (WinoGrande and MGSM manually curated) and are the ones used in ILSP's evaluation
+of their Greek foundation models
+[Meltemi](https://huggingface.co/ilsp/Meltemi-7B-v1) and
+[Llama-Krikri](https://huggingface.co/ilsp/Llama-Krikri-8B-Base)
+(Voukoutis et al., *Krikri: Advancing Open Large Language Models for Greek*,
+[arXiv:2505.13772](https://arxiv.org/abs/2505.13772)).
+
+Each dataset preserves the field schema of its English original, so these tasks reuse the upstream
+English task logic and only override the dataset path (plus per-dataset fixes noted below). The
+prompt scaffolding is intentionally kept in English (translate the data, not the template), matching
+ILSP's Open-LLM-Leaderboard-style setup and the existing `arc_challenge_mt_el` task — this keeps
+scores comparable to ILSP's published numbers. The scored content (questions and answer choices) is
+Greek and comes from the datasets themselves.
+
+| Task | Category | Source dataset |
+|:---|:---|:---|
+| `arc_challenge_greek` | Science QA / Reasoning | https://huggingface.co/datasets/ilsp/arc_greek |
+| `hellaswag_greek` | Commonsense NLI | https://huggingface.co/datasets/ilsp/hellaswag_greek |
+| `truthfulqa_greek_mc1` | Truthfulness | https://huggingface.co/datasets/ilsp/truthful_qa_greek |
+| `truthfulqa_greek_mc2` | Truthfulness | https://huggingface.co/datasets/ilsp/truthful_qa_greek |
+| `mgsm_direct_greek` | Grade-school math | https://huggingface.co/datasets/ilsp/mgsm_greek |
+| `winogrande_greek` | Commonsense coreference | https://huggingface.co/datasets/ilsp/winogrande_greek |
+| `mmlu_greek` | Multitask knowledge (57 subjects) | https://huggingface.co/datasets/ilsp/mmlu_greek |
+| `medical_mcqa_greek` | Medical MCQA (ILSP official suite) | https://huggingface.co/datasets/ilsp/medical_mcqa_greek |
+| `mcqa_greek_asep` | Greek civil-service (ASEP) exam MCQA | https://huggingface.co/datasets/ilsp/mcqa_greek_asep |
+
+> **License:** the ILSP datasets are released under **CC-BY-NC-SA-4.0** (non-commercial). Evaluate
+> accordingly.
+
+### Recommended few-shot settings
+
+lm-eval-harness applies `num_fewshot` at run time. To match the Open-LLM-Leaderboard / ILSP setup:
+
+| Task | num_fewshot | Reported metric |
+|:---|:---:|:---|
+| `arc_challenge_greek` | 25 | `acc_norm` |
+| `hellaswag_greek` | 10 | `acc_norm` |
+| `truthfulqa_greek_mc1` / `mc2` | 0 (fixed in config; a 6-shot primer is baked into the prompt) | `acc` |
+| `mgsm_direct_greek` | 8 | `exact_match` |
+| `winogrande_greek` | 5 | `acc` |
+| `mmlu_greek` (57 subjects) | 5 | `acc` (size-weighted across subjects) |
+| `medical_mcqa_greek` | 0 (few-shot available from `train`) | `acc` / `acc_norm` |
+| `mcqa_greek_asep` | 0 (single split) | `acc` / `acc_norm` |
+
+### Notes on individual variants
+
+- **`mgsm_direct_greek`** — `ilsp/mgsm_greek` ships empty `answer` / `equation_solution` fields, so the
+  target is taken from `answer_number`; the `question` field has no prefix, so `Question:` is
+  prepended. Uses the standard MGSM `direct` generate-until setup with `exact_match` + flexible-extract
+  filter.
+- **`truthfulqa_greek_mc1` / `mc2`** — `ilsp/truthful_qa_greek` (`multiple_choice` config) exposes only
+  a `train` split (817 items), which is used for evaluation. mc1 scores `mc1_targets.choices` (gold
+  index 0); mc2 uses the upstream `process_results_mc2` over `mc2_targets`.
+- **`winogrande_greek`** — the ILSP dataset keeps `sentence`/`option1`/`option2` in **English** and
+  puts the Greek text only in `multiple_choice_targets` (the two full candidate sentences), with the
+  correct one flagged by `multiple_choice_scores`/`answer`. This task therefore does **not** reuse the
+  English fill-the-blank template; it scores the two Greek sentences directly and picks the more
+  likely one (a full-sentence plausibility formulation of WinoGrande). Numbers are therefore not
+  directly comparable to the English `winogrande` task.
+- **`mmlu_greek`** — `ilsp/mmlu_greek` preserves the exact MMLU schema (`question`, `choices` list of
+  4, `answer` as a 0-indexed int) and the original English config names (`abstract_algebra`, …), so the
+  57 per-subject tasks inherit the base MMLU template (`../../mmlu/default/_default_template_yaml`
+  logic) unchanged and only swap the dataset path. They mirror the standard MMLU layout: 57 subjects →
+  4 category groups (`mmlu_greek_stem` / `_humanities` / `_social_sciences` / `_other`) →
+  `mmlu_greek`, with size-weighted `acc`, 5-shot from each subject's own `dev` split. The per-subject
+  topic hint (`The following are multiple choice questions … about <subject>.`) is kept in English to
+  match the base MMLU task and the rest of this suite. The configs are (re)generated by
+  `mmlu/_generate_configs.py`.
+- **`medical_mcqa_greek`** — `ilsp/medical_mcqa_greek` uses the BIG-bench MCQA schema: `inputs` is the
+  Greek question stem, `multiple_choice_targets` holds the full Greek options (each already `Α.`/`Β.`/…
+  prefixed) and `multiple_choice_scores` flags the correct one with `1.0`. The task scores the Greek
+  options directly and takes the gold as the index of that `1.0` (same idiom as
+  `bigbench/multiple_choice_template_b_yaml` and `winogrande_greek`). It evaluates on the `validation`
+  split (few-shot available from `train`). This is the "Medical MCQA" task from ILSP's official
+  Meltemi/Krikri model-card suite.
+- **`mcqa_greek_asep`** — `ilsp/mcqa_greek_asep` is **Greek-native** (Greek civil-service / ASEP exam
+  questions), not a translation of an English benchmark. Standard MCQA schema (`question`, `choices`
+  with `α.`/`β.`/… prefixes, gold as the integer index in `answer`). It ships a single `default`
+  split, so it is run 0-shot by default.
+- **WinoGrande and MGSM** are not part of ILSP's official Meltemi/Krikri model-card evaluation suite
+  (which covers ARC, HellaSwag, TruthfulQA, MMLU, Belebele and Medical MCQA); they are included here
+  because ILSP publishes the datasets and they are commonly used.
+
+### Groups and Tasks
+
+#### Groups
+
+- `ilsp_greek`: the full ILSP Greek suite (the eight single tasks below **plus** all of `mmlu_greek`).
+  Note it now also includes one Greek-native task (`mcqa_greek_asep`) alongside the translated ones.
+- `mmlu_greek`: Greek MMLU over all 57 subjects (size-weighted `acc`).
+- `mmlu_greek_stem`, `mmlu_greek_humanities`, `mmlu_greek_social_sciences`, `mmlu_greek_other`:
+  the four MMLU category sub-groups.
+
+#### Tasks
+
+- `arc_challenge_greek`
+- `hellaswag_greek`
+- `truthfulqa_greek_mc1`
+- `truthfulqa_greek_mc2`
+- `mgsm_direct_greek`
+- `winogrande_greek`
+- `medical_mcqa_greek`
+- `mcqa_greek_asep`
+- `mmlu_greek_*` — 57 per-subject tasks, e.g. `mmlu_greek_abstract_algebra`,
+  `mmlu_greek_high_school_biology`, … (run `lm_eval --tasks list | grep mmlu_greek` for the full list).
+
+### Citation
+
+`medical_mcqa_greek` and `mcqa_greek_asep` have no separate upstream English paper; cite the ILSP
+[Greek Evaluation Suite collection](https://huggingface.co/collections/ilsp/ilsp-greek-evaluation-suite)
+and the Krikri paper (Voukoutis et al., [arXiv:2505.13772](https://arxiv.org/abs/2505.13772)) referenced above.
+
+Original benchmarks:
+
+```bibtex
+@inproceedings{zellers2019hellaswag,
+    title     = {HellaSwag: Can a Machine Really Finish Your Sentence?},
+    author    = {Zellers, Rowan and Holtzman, Ari and Bisk, Yonatan and Farhadi, Ali and Choi, Yejin},
+    booktitle = {Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics},
+    year      = {2019}
+}
+@article{clark2018arc,
+    title   = {Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge},
+    author  = {Clark, Peter and Cowhey, Isaac and Etzioni, Oren and Khot, Tushar and Sabharwal, Ashish and Schoenick, Carissa and Tafjord, Oyvind},
+    journal = {arXiv preprint arXiv:1803.05457},
+    year    = {2018}
+}
+@inproceedings{lin2022truthfulqa,
+    title     = {TruthfulQA: Measuring How Models Mimic Human Falsehoods},
+    author    = {Lin, Stephanie and Hilton, Jacob and Evans, Owain},
+    booktitle = {Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics},
+    year      = {2022}
+}
+@article{sakaguchi2021winogrande,
+    title   = {WinoGrande: An Adversarial Winograd Schema Challenge at Scale},
+    author  = {Sakaguchi, Keisuke and Le Bras, Ronan and Bhagavatula, Chandra and Choi, Yejin},
+    journal = {Communications of the ACM},
+    year    = {2021}
+}
+@article{shi2022mgsm,
+    title   = {Language Models are Multilingual Chain-of-Thought Reasoners},
+    author  = {Shi, Freda and Suzgun, Mirac and Freitag, Markus and Wang, Xuezhi and Srivats, Suraj and Vosoughi, Soroush and Chung, Hyung Won and Tay, Yi and Ruder, Sebastian and Zhou, Denny and Das, Dipanjan and Wei, Jason},
+    journal = {arXiv preprint arXiv:2210.03057},
+    year    = {2022}
+}
+@inproceedings{hendryckstest2021,
+    title     = {Measuring Massive Multitask Language Understanding},
+    author    = {Dan Hendrycks and Collin Burns and Steven Basart and Andy Zou and Mantas Mazeika and Dawn Song and Jacob Steinhardt},
+    booktitle = {International Conference on Learning Representations (ICLR)},
+    year      = {2021}
+}
+```
+
+### Checklist
+
+For adding novel benchmarks/datasets to the library:
+
+* [x] Is the task an existing benchmark in the literature?
+  * [x] Have you referenced the original paper that introduced the task?
+  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test? (These reuse the upstream English task logic in `lm_eval/tasks/{arc,hellaswag,truthfulqa,mgsm}`.)
+
+If other tasks on this dataset are already supported:
+
+* [x] Is the "Main" variant of this task clearly denoted? (Each task maps 1:1 to an ILSP dataset; the group `ilsp_greek` runs all.)
+* [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [x] Have you noted which, if any, published evaluation setups are matched by this variant? (ILSP Meltemi/Krikri, Open-LLM-Leaderboard few-shot settings.)
