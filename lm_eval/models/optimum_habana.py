@@ -51,7 +51,7 @@ class HabanaLM(HFLM):
     @property
     def max_length(self) -> int:
         # Better suits loglikelihood
-        return self._max_length if self._max_length else self.buckets[-1]
+        return self._max_length or self.buckets[-1]
 
     @max_length.setter
     def max_length(self, value: int) -> None:
@@ -128,11 +128,12 @@ class HabanaLM(HFLM):
         """
         Override to change only max_length property
         """
-        loglikelyhood_max_length = self.max_length
+        loglikelihood_max_length = self.max_length
         self.max_length = super().max_length
-        res = super().generate_until(requests, disable_tqdm)
-        self.max_length = loglikelyhood_max_length
-        return res
+        try:
+            return super().generate_until(requests, disable_tqdm)
+        finally:
+            self.max_length = loglikelihood_max_length
 
     def _model_generate(
         self,
