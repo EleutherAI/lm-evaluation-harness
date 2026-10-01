@@ -293,7 +293,7 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
 def _is_reasoning_model(model: str) -> bool:
     """OpenAI o-series and gpt-5 models reject `stop` and only accept temperature=1."""
     model = model.lower()
-    return any(name in model for name in ("o1", "o3", "o4", "gpt-5"))
+    return any(name in model for name in ("o1", "o3", "o4", "gpt-5", "gpt5"))
 
 
 @register_model("openai-chat-completions")

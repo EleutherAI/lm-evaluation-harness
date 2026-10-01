@@ -219,12 +219,14 @@ def test_chat_template_payload_does_not_add_top_level_type(model_cls):
         ("gpt-3.5-turbo", False),
         ("gpt-4o-2024-05-13", False),
         ("gpt-4.1-2025-04-14", False),
+        ("gpt-4.5-preview", False),
         ("o1-mini", True),
         ("o3", True),
         ("o4-mini", True),
         ("gpt-5", True),
         ("gpt-5-mini-2025-08-07", True),
         ("GPT-5", True),
+        ("gpt5-eval", True),
     ],
 )
 def test_openai_chat_reasoning_model_payload(model_name, is_reasoning):
