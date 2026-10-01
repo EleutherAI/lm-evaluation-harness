@@ -18,6 +18,16 @@ Homepage: `https://github.com/NVIDIA/RULER`
 > 3. To prevent truncation of longer sequences, we recommend setting the max_length parameter in model_args:
 >   `--model_args=pretrained=...,max_length=32768`
 
+### QA scoring
+
+The QA tasks accept a prediction when it contains any reference answer,
+case-insensitively, matching NVIDIA RULER's partial-match scorer. Scores use the
+harness's 0–1 scale. Other RULER tasks retain their existing all-reference scorer.
+
+Version 2 of `ruler_qa_squad` and `ruler_qa_hotpot` corrects the partial-match
+reduction: earlier versions averaged matches across alternative reference
+answers. Scores from version 1 and version 2 should not be compared directly.
+
 ### Citation
 
 ```

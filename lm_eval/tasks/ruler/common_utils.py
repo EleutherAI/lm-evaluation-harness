@@ -91,8 +91,8 @@ def string_match_all(preds: list[str], refs: list[list[str]]) -> float:
 
 
 def string_match_part(preds: list[str], refs: list[list[str]]) -> float:
-    score = max(
-        sum(1.0 if r.lower() in pred.lower() else 0.0 for r in ref) / len(ref)
+    score = sum(
+        max(1.0 if r.lower() in pred.lower() else 0.0 for r in ref)
         for pred, ref in zip(preds, refs, strict=False)
     ) / len(preds)
     return score
