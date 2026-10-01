@@ -1,9 +1,17 @@
 import torch
 
-import lm_eval.models.utils
 import lm_eval.models.utils_hf
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
+
+
+_MAMBA_INSTALL_ERROR = (
+    "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not "
+    "installed. Install the core package with "
+    "`pip install mamba-ssm --no-build-isolation`. See "
+    "https://github.com/state-spaces/mamba#installation for hardware-specific "
+    "options."
+)
 
 
 @register_model("mamba_ssm")
@@ -72,12 +80,9 @@ class MambaLMWrapper(HFLM):
             super()._get_config(pretrained, **kwargs)
         else:
             try:
-                from mamba_ssm.utils.hf import load_config_hf  # noqa: F811
+                from mamba_ssm.utils.hf import load_config_hf
             except ModuleNotFoundError as exception:
-                raise type(exception)(
-                    "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
-    please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
-                ) from exception
+                raise type(exception)(_MAMBA_INSTALL_ERROR) from exception
 
             self._config = load_config_hf(pretrained)
 
@@ -95,13 +100,10 @@ class MambaLMWrapper(HFLM):
         else:
             try:
                 from mamba_ssm.models.mixer_seq_simple import (
-                    MambaLMHeadModel,  # noqa: F811
+                    MambaLMHeadModel,
                 )
             except ModuleNotFoundError as exception:
-                raise type(exception)(
-                    "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
-    please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
-                ) from exception
+                raise type(exception)(_MAMBA_INSTALL_ERROR) from exception
 
             self._model = MambaLMHeadModel.from_pretrained(
                 pretrained,
