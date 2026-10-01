@@ -290,6 +290,12 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         return ""
 
 
+def _is_reasoning_model(model: str) -> bool:
+    """OpenAI o-series and gpt-5 models reject `stop` and only accept temperature=1."""
+    model = model.lower()
+    return any(name in model for name in ("o1", "o3", "o4", "gpt-5", "gpt5"))
+
+
 @register_model("openai-chat-completions")
 class OpenAIChatCompletion(LocalChatCompletion):
     def __init__(
@@ -299,9 +305,9 @@ class OpenAIChatCompletion(LocalChatCompletion):
         tokenized_requests=False,
         **kwargs,
     ):
-        if "o1" in kwargs.get("model", ""):
+        if _is_reasoning_model(kwargs.get("model") or ""):
             eval_logger.warning(
-                "o1 models do not support `stop` and only support temperature=1"
+                "o-series and gpt-5 models do not support `stop` and only support temperature=1"
             )
 
         super().__init__(
@@ -356,12 +362,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
             "seed": seed,
             **gen_kwargs,
         }
-        if (
-            "o1" in self.model
-            or "5" in self.model
-            or "o3" in self.model
-            or "o4" in self.model
-        ):
+        if _is_reasoning_model(self.model):
             output.pop("stop")
             output["temperature"] = 1
         return output

@@ -213,6 +213,40 @@ def test_chat_template_payload_does_not_add_top_level_type(model_cls):
     assert "type" not in payload["messages"][0]
 
 
+@pytest.mark.parametrize(
+    "model_name, is_reasoning",
+    [
+        ("gpt-3.5-turbo", False),
+        ("gpt-4o-2024-05-13", False),
+        ("gpt-4.1-2025-04-14", False),
+        ("gpt-4.5-preview", False),
+        ("o1-mini", True),
+        ("o3", True),
+        ("o4-mini", True),
+        ("gpt-5", True),
+        ("gpt-5-mini-2025-08-07", True),
+        ("GPT-5", True),
+        ("gpt5-eval", True),
+    ],
+)
+def test_openai_chat_reasoning_model_payload(model_name, is_reasoning):
+    from lm_eval.models.openai_completions import OpenAIChatCompletion
+
+    model = OpenAIChatCompletion(base_url="http://test-url.com", model=model_name)
+    payload = model._create_payload(
+        [{"role": "user", "content": "hi"}],
+        generate=True,
+        gen_kwargs={"until": ["END"], "temperature": 0},
+    )
+
+    if is_reasoning:
+        assert "stop" not in payload
+        assert payload["temperature"] == 1
+    else:
+        assert payload.get("stop") == ["END", "<|endoftext|>"]
+        assert payload["temperature"] == 0
+
+
 @pytest.mark.parametrize("include_legacy_type", [False, True])
 def test_create_image_prompt_uses_content_parts_without_top_level_type(
     include_legacy_type,
