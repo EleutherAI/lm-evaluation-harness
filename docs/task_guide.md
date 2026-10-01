@@ -30,6 +30,18 @@ Dataset configuration options:
 - **validation_split** (`str`, *optional*) — Split in the dataset to use as the validation split.
 - **test_split** (`str`, *optional*) — Split in the dataset to use as the test split.
 - **fewshot_split** (`str`, *optional*) — Split in the dataset to draw few-shot exemplars from. assert that this not None if num_fewshot > 0.
+
+The split fields also accept Hugging Face Datasets slicing expressions, such as
+`test_split: "test[:50%]"`, `validation_split: "train[-100:]"`, or
+`fewshot_split: "train[:10]"`. Multiple slices can be concatenated with `+`,
+for example `test[:10]+validation[:10]`. Selection happens before
+`process_docs` (or few-shot preprocessing), and the remaining rows keep their
+original order. Named splits keep their existing behavior. Slicing requires
+materialized datasets and is not supported with streaming datasets. The
+evaluation slice must contain at least one row, as with named evaluation splits.
+When choosing different demonstration and evaluation slices from the same split,
+use disjoint ranges.
+
 - **process_docs** (`Callable`, *optional*) — Optionally define a function to apply to each HF dataset split, to preprocess all documents before being fed into prompt template rendering or other evaluation steps. Can be used to rename dataset columns, or to process documents into a format closer to the expected format expected by a prompt template.
 
 Prompting / in-context formatting options:

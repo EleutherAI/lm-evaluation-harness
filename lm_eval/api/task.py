@@ -724,7 +724,7 @@ class ConfigurableTask(Task):
                     agg_name = metric_config["aggregation"]
                     if isinstance(agg_name, str):
                         self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
+                    elif callable(agg_name):
                         self._aggregation_list[metric_name] = metric_config[
                             "aggregation"
                         ]
@@ -881,33 +881,55 @@ class ConfigurableTask(Task):
     def has_test_docs(self) -> bool:
         return self.config.test_split is not None
 
+    def _get_split(self, split: str) -> datasets.Dataset:
+        """Resolve a named split or a Hugging Face split-slicing expression."""
+        if split in self.dataset or ("[" not in split and "+" not in split):
+            return self.dataset[split]
+
+        if any(
+            isinstance(data, datasets.IterableDataset) for data in self.dataset.values()
+        ):
+            raise ValueError(
+                "Split slicing requires materialized datasets, not streaming datasets."
+            )
+        instructions = datasets.ReadInstruction.from_spec(split).to_absolute(
+            {name: len(data) for name, data in self.dataset.items()}
+        )
+        parts = [
+            self.dataset[instruction.splitname].select(
+                range(instruction.from_, instruction.to)
+            )
+            for instruction in instructions
+        ]
+        return parts[0] if len(parts) == 1 else datasets.concatenate_datasets(parts)
+
     def training_docs(self) -> datasets.Dataset:
         if self.has_training_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
-                    self.dataset[self.config.training_split]
+                    self._get_split(self.config.training_split)
                 )
-            return self.dataset[self.config.training_split]
+            return self._get_split(self.config.training_split)
 
     def validation_docs(self) -> datasets.Dataset:
         if self.has_validation_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
-                    self.dataset[self.config.validation_split]
+                    self._get_split(self.config.validation_split)
                 )
-            return self.dataset[self.config.validation_split]
+            return self._get_split(self.config.validation_split)
 
     def test_docs(self) -> datasets.Dataset:
         if self.has_test_docs():
             if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.test_split])
-            return self.dataset[self.config.test_split]
+                return self.config.process_docs(self._get_split(self.config.test_split))
+            return self._get_split(self.config.test_split)
 
     def fewshot_docs(self):
         if (split := self.fewshot_cfg.split) is not None:
             if (process_docs := self.fewshot_cfg.process_docs) is not None:
-                return process_docs(self.dataset[split])
-            return self.dataset[split]
+                return process_docs(self._get_split(split))
+            return self._get_split(split)
         elif (
             self.config.fewshot_config is not None
             and (samples := self.fewshot_cfg.samples) is not None
@@ -1649,9 +1671,15 @@ class ConfigurableTask(Task):
                         # Without this, _compute_task_aggregations falls back to mean()
                         # because it looks up the aggregation by the result-dict key, not
                         # by the originating callable's __name__.
-                        if metric in self._aggregation_list and k not in self._aggregation_list:
+                        if (
+                            metric in self._aggregation_list
+                            and k not in self._aggregation_list
+                        ):
                             self._aggregation_list[k] = self._aggregation_list[metric]
-                        if metric in self._higher_is_better and k not in self._higher_is_better:
+                        if (
+                            metric in self._higher_is_better
+                            and k not in self._higher_is_better
+                        ):
                             self._higher_is_better[k] = self._higher_is_better[metric]
                 else:
                     result_dict[metric] = result_score
