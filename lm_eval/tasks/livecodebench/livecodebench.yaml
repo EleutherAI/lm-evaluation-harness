@@ -1,0 +1,35 @@
+task: livecodebench
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test:
+      - hf://datasets/livecodebench/code_generation_lite/test.jsonl
+      - hf://datasets/livecodebench/code_generation_lite/test2.jsonl
+      - hf://datasets/livecodebench/code_generation_lite/test3.jsonl
+      - hf://datasets/livecodebench/code_generation_lite/test4.jsonl
+      - hf://datasets/livecodebench/code_generation_lite/test5.jsonl
+      - hf://datasets/livecodebench/code_generation_lite/test6.jsonl
+unsafe_code: true
+output_type: generate_until
+test_split: test
+doc_to_text: !function utils.doc_to_text
+doc_to_target: ""
+target_delimiter: ""
+process_results: !function utils.process_results
+metric_list:
+  - metric: pass@1
+    aggregation: mean
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|im_end|>"
+  max_gen_toks: 2048
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+num_fewshot: 0
+metadata:
+  version: 1.0
