@@ -55,6 +55,24 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
+# Metrics the default `ConfigurableTask.process_results` can emit for each output
+# type. `generate_until` is absent because it calls every metric in `metric_list`.
+DEFAULT_EMITTED_METRICS = {
+    "loglikelihood": ["perplexity", "acc"],
+    "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
+    "multiple_choice": [
+        "acc",
+        "f1",
+        "mcc",
+        "acc_norm",
+        "acc_bytes",
+        "exact_match",
+        "brier_score",
+        "likelihood",
+        "acc_mutual_info",
+    ],
+}
+
 eval_logger = logging.getLogger(__name__)
 
 
@@ -750,6 +768,8 @@ class ConfigurableTask(Task):
                     )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
+        self._warn_on_unemitted_metrics()
+
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
@@ -851,6 +871,28 @@ class ConfigurableTask(Task):
                     eval_logger.debug(
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
+
+    def _warn_on_unemitted_metrics(self) -> None:
+        """Warn about metrics in `metric_list` that `process_results` never emits.
+
+        The loglikelihood, loglikelihood_rolling and multiple_choice branches of
+        `process_results` only emit the metrics they know about, so any other name
+        in `metric_list` is dropped and the results get no column for it.
+        """
+        emitted = DEFAULT_EMITTED_METRICS.get(self.OUTPUT_TYPE)
+        if emitted is None or callable(self.config.process_results):
+            return
+
+        unemitted = [m for m in self._metric_fn_list if m not in emitted]
+        if not unemitted:
+            return
+
+        eval_logger.warning(
+            f"[Task: {self.config.task}] metric_list asks for {unemitted}, which "
+            f"output_type={self.OUTPUT_TYPE} does not compute, so these will never be "
+            f"reported. Supported metrics: {emitted}. Use a custom process_results "
+            f"to report anything else."
+        )
 
     def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
         from packaging.version import parse as vparse
