@@ -1,0 +1,7 @@
+include: livecodebench.yaml
+task: livecodebench_v2
+dataset_kwargs:
+  data_files:
+    test:
+      - hf://datasets/livecodebench/code_generation_lite/test.jsonl
+      - hf://datasets/livecodebench/code_generation_lite/test2.jsonl
