@@ -1,4 +1,6 @@
-import unittest.mock as mock
+from unittest import mock
+
+import pytest
 
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
 from lm_eval.api.task import ConfigurableTask
@@ -158,13 +160,13 @@ def test_bootstrap_internal_no_mp():
 
     data = [1, 2, 3, 4, 5]
 
-    # Mock tqdm to avoid progress bar output during testing
-    with mock.patch("tqdm.tqdm") as mock_tqdm:
-        mock_tqdm.return_value = range(1)  # Single chunk
-
-        # Mock print to avoid output during testing
-        with mock.patch("builtins.print"):
-            result = _bootstrap_internal_no_mp(mean, data, 100)
+    # Mock tqdm to avoid progress bar output during testing; the real
+    # iterable must still be yielded so all chunk sizes are consumed.
+    with (
+        mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it),
+        mock.patch("builtins.print"),
+    ):
+        result = _bootstrap_internal_no_mp(mean, data, 100)
 
     # Should return 100 bootstrap replicates
     assert len(result) == 100
@@ -178,9 +180,51 @@ def test_bootstrap_internal_no_mp():
     assert abs(bootstrap_mean - original_mean) < 0.5  # Should be reasonably close
 
 
+@pytest.mark.parametrize(
+    ("iters", "expected_sizes"),
+    [
+        (500, [500]),
+        (1000, [1000]),
+        (1500, [1000, 500]),
+        (2000, [1000, 1000]),
+        (2500, [1000, 1000, 500]),
+    ],
+)
+def test_bootstrap_chunk_sizes(iters, expected_sizes):
+    """#4288: chunk sizes must sum to iters, not drop the remainder."""
+    from lm_eval.api.metrics import _bootstrap_chunk_sizes
+
+    sizes = _bootstrap_chunk_sizes(iters, 1000)
+    assert sizes == expected_sizes
+    assert sum(sizes) == iters
+
+
+def test_bootstrap_internal_no_mp_full_iters():
+    """#4288: iters=1500 must produce 1500 replicates, not 1000."""
+    data = [1, 2, 3, 4, 5]
+
+    with (
+        mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it),
+        mock.patch("builtins.print"),
+    ):
+        result = _bootstrap_internal_no_mp(mean, data, 1500)
+
+    assert len(result) == 1500
+
+
+def test_bootstrap_internal_worker_chunk_sizes():
+    """#4288: pool worker must produce exactly n replicates per chunk."""
+    from lm_eval.api.metrics import _bootstrap_internal
+
+    worker = _bootstrap_internal(mean)
+    assert len(worker((0, [1, 2, 3], 500))) == 500
+    assert len(worker((1, [1, 2, 3], 250))) == 250
+
+
 def test_dict_metric_uses_custom_aggregation():
     """Regression test for #3314: dict-valued metrics must use the custom
-    aggregation function, not silently fall back to mean()."""
+    aggregation function, not silently fall back to mean().
+    """
     from collections import defaultdict
 
     from lm_eval.evaluator_utils import _compute_task_aggregations
@@ -215,7 +259,7 @@ def test_dict_metric_uses_custom_aggregation():
 
 
 def test_chrf_uses_zero_word_order():
-    """chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
+    """Chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
     import sacrebleu as sb
 
     from lm_eval.api.metrics import chrf
