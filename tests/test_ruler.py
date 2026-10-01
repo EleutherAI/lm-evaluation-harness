@@ -1,6 +1,6 @@
 """Tests for the RULER synthetic tasks.
 
-Two independent things are covered here.
+The samplers, tokenizer resolution, and result scorers are covered here.
 
 **The samplers.** Every sampler sizes its prompts by shrinking the context
 until it fits `max_seq_length`. When the smallest context a sample can have
@@ -12,17 +12,63 @@ the parsed `--model_args` and have to find a model name in it. Nothing in that
 half downloads a dataset or loads a tokenizer: every case is one where
 resolution fails, which is exactly the path that used to crash.
 
+**The scorers.** Partial matching accepts any alternative reference answer and
+averages across predictions. These checks require no model or dataset downloads.
+
 `cwe_utils` needs `wonderwords` from the `ruler` extra, which the unit-test
 workflow does not install; that builder is skipped rather than the whole
 module, so the rest still run in CI.
 """
 
 import importlib
+from pathlib import Path
 
 import pytest
 
-from lm_eval.tasks.ruler.common_utils import get_tokenizer, resolve_tokenizer_name
+from lm_eval.tasks._yaml_loader import load_yaml
+from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_SEQ_LENGTHS,
+    get_tokenizer,
+    process_results,
+    process_results_part,
+    resolve_tokenizer_name,
+    string_match_all,
+    string_match_part,
+)
 from lm_eval.tasks.ruler.qa_utils import generate_samples
+
+
+@pytest.mark.parametrize(
+    "preds,refs,partial,all_references",
+    [
+        (["Broncos"], [["Denver Broncos", "Denver Broncos", "Broncos"]], 1, 1 / 3),
+        (["Denver Broncos"], [["Denver Broncos", "Broncos"]], 1, 1),
+        (["Santa Clara"], [["Denver Broncos", "Broncos"]], 0, 0),
+        (["BRONCOS"], [["Denver Broncos", "broncos"]], 1, 0.5),
+        (["alpha", "beta"], [["alpha"], ["beta"]], 1, 1),
+        (["alpha", "wrong"], [["alpha", "alternative"], ["beta"]], 0.5, 0.25),
+    ],
+)
+def test_string_match_reductions(preds, refs, partial, all_references):
+    assert string_match_part(preds, refs) == pytest.approx(partial)
+    assert string_match_all(preds, refs) == pytest.approx(all_references)
+
+
+def test_qa_partial_match_accepts_alternative_answer():
+    length = DEFAULT_SEQ_LENGTHS[0]
+    doc = {
+        "max_length": length,
+        "outputs": ["Denver Broncos", "Denver Broncos", "Broncos"],
+    }
+    assert process_results_part(doc, ["  BRONCOS\n"])[str(length)] == 1
+    assert process_results(doc, ["  BRONCOS\n"])[str(length)] == pytest.approx(1 / 3)
+
+
+@pytest.mark.parametrize("name", ["qa_squad", "qa_hotpot"])
+def test_qa_partial_match_task_version(name):
+    path = Path(__file__).parents[1] / "lm_eval" / "tasks" / "ruler" / f"{name}.yaml"
+    config = load_yaml(path, resolve_func=False)
+    assert config["metadata"]["version"] == 2.0
 
 
 class RunawayLoop(BaseException):

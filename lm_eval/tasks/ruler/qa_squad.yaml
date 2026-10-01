@@ -8,3 +8,5 @@ generation_kwargs:
   temperature: 0.0
   max_gen_toks: 32
   until: []
+metadata:
+  version: 2.0
