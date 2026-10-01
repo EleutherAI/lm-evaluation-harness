@@ -124,6 +124,7 @@ def stop_sequences_criteria(
                     sequence, tokenizer, initial_decoder_input_length, batch_size
                 )
                 for sequence in stop_sequences
+                if sequence  # "" matches every string -> would stop after 1 token
             ],
         ]
     )
