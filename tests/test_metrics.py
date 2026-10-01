@@ -1,7 +1,10 @@
+import logging
 import unittest.mock as mock
 
+import pytest
+
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import DEFAULT_EMITTED_METRICS, ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
 
@@ -251,6 +254,100 @@ def test_chrfpp_perfect_match():
 
     items = [("the cat sat on the mat", "the cat sat on the mat")]
     assert chrfpp(items) == 100.0
+
+
+def _unemitted_metric_warnings(caplog):
+    return [
+        r.message
+        for r in caplog.records
+        if r.levelname == "WARNING" and "never be reported" in r.message
+    ]
+
+
+def test_warns_when_metric_list_names_a_metric_the_output_type_never_emits(caplog):
+    """A multiple_choice task that asks for acc_all gets no acc_all column, so
+    the task author should be told.
+    """
+    task = MockConfigurableTask()
+    task._metric_fn_list = {"acc": None, "acc_all": None}
+
+    with caplog.at_level(logging.WARNING):
+        task._warn_on_unemitted_metrics()
+
+    warnings = _unemitted_metric_warnings(caplog)
+    assert len(warnings) == 1
+    assert "test_acc_mutual_info" in warnings[0]
+    assert "acc_all" in warnings[0]
+    assert "multiple_choice" in warnings[0]
+
+
+def test_no_unemitted_metric_warning_when_every_metric_is_emitted(caplog):
+    task = MockConfigurableTask()
+
+    with caplog.at_level(logging.WARNING):
+        task._warn_on_unemitted_metrics()
+
+    assert _unemitted_metric_warnings(caplog) == []
+
+
+def test_no_unemitted_metric_warning_for_generate_until(caplog):
+    """generate_until calls every declared metric function, and a dict-valued
+    metric reports under other keys (pass_at_k -> pass@1), so nothing is dropped.
+    """
+    task = MockConfigurableTask()
+    task.OUTPUT_TYPE = "generate_until"
+    task._metric_fn_list = {"pass_at_k": lambda references, predictions: {}}
+
+    with caplog.at_level(logging.WARNING):
+        task._warn_on_unemitted_metrics()
+
+    assert _unemitted_metric_warnings(caplog) == []
+
+
+def test_no_unemitted_metric_warning_with_custom_process_results(caplog):
+    """A custom process_results decides its own keys."""
+    task = MockConfigurableTask()
+    task._config = TaskConfig(
+        task="test_custom_process_results",
+        output_type="multiple_choice",
+        metric_list=[{"metric": "acc_all"}],
+        process_results=lambda doc, results: {"acc_all": 1.0},
+    )
+    task._metric_fn_list = {"acc_all": None}
+
+    with caplog.at_level(logging.WARNING):
+        task._warn_on_unemitted_metrics()
+
+    assert _unemitted_metric_warnings(caplog) == []
+
+
+@pytest.mark.parametrize(
+    ("output_type", "results"),
+    [
+        ("loglikelihood", [(-1.0, True)]),
+        ("loglikelihood_rolling", [-1.0]),
+        (
+            "multiple_choice",
+            # 3 conditional loglikelihoods, then 3 unconditional for acc_mutual_info
+            [(-2.0, False), (-1.0, True), (-3.0, False)] * 2,
+        ),
+    ],
+)
+def test_default_emitted_metrics_matches_process_results(output_type, results):
+    """DEFAULT_EMITTED_METRICS has to list exactly what process_results emits,
+    otherwise the warning goes stale when a metric is added to one of them.
+    """
+    declared = DEFAULT_EMITTED_METRICS[output_type]
+    task = MockConfigurableTask()
+    task.OUTPUT_TYPE = output_type
+    # ask for one metric that no branch emits, to prove the lists are exact
+    task._metric_fn_list = dict.fromkeys([*declared, "acc_all"])
+    if output_type != "multiple_choice":
+        task.doc_to_target = lambda doc: "two words"
+
+    result_dict = task.process_results({}, results)
+
+    assert set(result_dict) == set(declared)
 
 
 if __name__ == "__main__":
