@@ -38,6 +38,8 @@ def test_multi_choice_regex_all_empty_capture_groups_falls_back_to_bare_letter()
         ("B. 4", "B"),
         ("Answer: B", "B"),
         ("The answer is B", "B"),
+        ("The answer is B because a car moves.", "B"),
+        ("I would pick B — a safe choice.", "B"),
         ("C. This is a common answer in a longer explanation.", "C"),
     ],
 )
