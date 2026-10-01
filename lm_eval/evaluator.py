@@ -78,10 +78,10 @@ def simple_evaluate(
     task_manager: TaskManager | None = None,
     verbosity=None,
     predict_only: bool = False,
-    random_seed: int = DEFAULT_RANDOM_SEED,
-    numpy_random_seed: int = DEFAULT_OTHER_SEED,
-    torch_random_seed: int = DEFAULT_OTHER_SEED,
-    fewshot_random_seed: int = DEFAULT_OTHER_SEED,
+    random_seed: int | None = DEFAULT_RANDOM_SEED,
+    numpy_random_seed: int | None = DEFAULT_OTHER_SEED,
+    torch_random_seed: int | None = DEFAULT_OTHER_SEED,
+    fewshot_random_seed: int | None = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
     metadata: dict[str, Any] | None = None,
 ) -> EvalResults | None:
@@ -142,13 +142,13 @@ def simple_evaluate(
         verbosity (str | None): Verbosity level for logging.
         predict_only (bool): If True, only model outputs will be generated and
             returned. Metrics will not be evaluated.
-        random_seed (int): Random seed for python's random module. If set to None,
+        random_seed (int | None): Random seed for python's random module. If set to None,
             the seed will not be set.
-        numpy_random_seed (int): Random seed for numpy. If set to None, the seed
+        numpy_random_seed (int | None): Random seed for numpy. If set to None, the seed
             will not be set.
-        torch_random_seed (int): Random seed for torch. If set to None, the seed
+        torch_random_seed (int | None): Random seed for torch. If set to None, the seed
             will not be set.
-        fewshot_random_seed (int): Random seed for fewshot sampler random generator.
+        fewshot_random_seed (int | None): Random seed for fewshot sampler random generator.
             If set to None, the seed of generator will be set to None.
         confirm_run_unsafe_code (bool): Whether to confirm running tasks marked
             as unsafe (e.g. code execution tasks).
