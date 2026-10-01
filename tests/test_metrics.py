@@ -260,3 +260,33 @@ if __name__ == "__main__":
     test_bootstrap_internal_no_mp()
     test_dict_metric_uses_custom_aggregation()
     print("All tests passed!")
+
+
+import math
+
+from lm_eval.api.metrics import acc_all, acc_all_stderr
+
+
+def _multirc_item(paragraph, question, label, pred):
+    """Build one (pred, doc) item in the MultiRC shape acc_all expects."""
+    doc = {"idx": {"paragraph": paragraph, "question": question}, "label": label}
+    return (pred, doc)
+
+
+def test_acc_all_and_stderr_group_by_paragraph_and_question():
+    items = [
+        _multirc_item(0, 0, 1, True),
+        _multirc_item(0, 0, 0, False),
+        _multirc_item(1, 0, 1, True),
+        _multirc_item(1, 0, 1, False),
+    ]
+    assert acc_all(items) == 0.5
+    assert math.isclose(acc_all_stderr(items), 0.5, rel_tol=1e-9)
+
+
+def test_acc_all_stderr_does_not_merge_repeated_question_ids():
+    items = [
+        _multirc_item(0, 0, 1, True),
+        _multirc_item(1, 0, 1, False),
+    ]
+    assert acc_all_stderr(items) > 0.0
