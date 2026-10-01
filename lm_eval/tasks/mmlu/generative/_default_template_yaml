@@ -20,7 +20,7 @@ filter_list:
   - name: get_response
     filter:
       - function: "multi_choice_regex"
-        regex_pattern: "(?i)\\b([A-D])\\b"
+        regex_pattern: "\\b([A-D])\\b"
         group_select: -1
         ignore_case: true
       - function: take_first
