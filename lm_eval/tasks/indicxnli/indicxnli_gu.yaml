@@ -1,0 +1,21 @@
+task: indicxnli_gu
+dataset_path: Divyanshu/indicxnli
+dataset_kwargs:
+  revision: refs/convert/parquet
+  data_files:
+    train: gu/train/0000.parquet
+    validation: gu/validation/0000.parquet
+    test: gu/test/0000.parquet
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: ''
+doc_to_target: label
+doc_to_choice: '{{[premise+", સાચું? હા, "+hypothesis,premise+", સાચું? તેથી, "+hypothesis,premise+", સાચું? ના, "+hypothesis]}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

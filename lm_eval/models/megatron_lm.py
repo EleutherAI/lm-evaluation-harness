@@ -1,5 +1,4 @@
-r"""
-Megatron-LM backend for lm-evaluation-harness.
+r"""Megatron-LM backend for lm-evaluation-harness.
 
 This module provides support for evaluating Megatron-LM models, including
 both standard checkpoints and distributed checkpoints (.distcp format).
@@ -53,26 +52,32 @@ Usage Examples:
         --tasks arc_easy --batch_size 8
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import sys
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import torch
 from tqdm import tqdm
 
-from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator
 from lm_eval.utils import get_rolling_token_windows, make_disjoint_window
 
 
+if TYPE_CHECKING:
+    from lm_eval.api.instance import Instance
+
+
 eval_logger = logging.getLogger(__name__)
 
 
 def _add_megatron_to_path():
-    """Add Megatron-LM to Python path.
+    """Add Megatron-LM to the Python path.
 
     The MEGATRON_PATH environment variable must be set to the Megatron-LM installation directory.
     """
@@ -103,8 +108,7 @@ def _check_dist_ckpt(load_path: str) -> bool:
 
 
 def _parse_extra_args(extra_args: str | None) -> list[str]:
-    """
-    Parse extra_args string into a list of command line arguments.
+    """Parse the extra_args string into a list of command line arguments.
 
     Uses space-separated arguments with shell-style quote handling.
 
@@ -121,15 +125,14 @@ def _parse_extra_args(extra_args: str | None) -> list[str]:
         return shlex.split(extra_args)
     except ValueError as e:
         eval_logger.warning(
-            f"Failed to parse extra_args with shlex: {e}, falling back to simple split"
+            "Failed to parse extra_args with shlex: %s, falling back to simple split", e
         )
         return extra_args.split()
 
 
 @register_model("megatron_lm")
 class MegatronLMEval(LM):
-    """
-    Megatron-LM model adapter for lm-evaluation-harness.
+    """Megatron-LM model adapter for lm-evaluation-harness.
 
     See module docstring for parallelism modes and usage examples.
 
@@ -204,14 +207,14 @@ class MegatronLMEval(LM):
             # Check iteration directories
             iter_dirs = [d for d in os.listdir(load) if d.startswith("iter_")]
             if iter_dirs:
-                latest_iter = sorted(iter_dirs)[-1]
+                latest_iter = max(iter_dirs)
                 iter_path = os.path.join(load, latest_iter)
                 use_dist_ckpt = _check_dist_ckpt(iter_path)
             else:
                 use_dist_ckpt = _check_dist_ckpt(load)
 
         self._use_dist_ckpt = use_dist_ckpt
-        eval_logger.info(f"Using distributed checkpoint: {use_dist_ckpt}")
+        eval_logger.info("Using distributed checkpoint: %s", use_dist_ckpt)
 
         # Initialize Megatron and load model
         self._initialize_megatron(
@@ -236,20 +239,23 @@ class MegatronLMEval(LM):
             num_query_groups=num_query_groups,
         )
 
-        eval_logger.info(f"Megatron-LM model loaded from {load}")
-        eval_logger.info(f"Max sequence length: {self._max_length}")
-        eval_logger.info(f"Batch size: {self._batch_size}")
-        eval_logger.info(f"Parallelism mode: {self._parallelism_mode}")
+        eval_logger.info("Megatron-LM model loaded from %s", load)
+        eval_logger.info("Max sequence length: %s", self._max_length)
+        eval_logger.info("Batch size: %s", self._batch_size)
+        eval_logger.info("Parallelism mode: %s", self._parallelism_mode)
         eval_logger.info(
-            f"Devices: {self._devices}, TP: {self._tp_size}, PP: {self._pp_size}, EP: {self._ep_size}"
+            "Devices: %s, TP: %s, PP: %s, EP: %s",
+            self._devices,
+            self._tp_size,
+            self._pp_size,
+            self._ep_size,
         )
 
     def _validate_parallelism_config(self, devices: int, tp: int, pp: int, ep: int):
-        """
-        Validate parallelism configuration (NeMo-style).
+        """Validate parallelism configuration (NeMo-style).
 
         Supported modes:
-        1. Data Parallelism: tp=1, pp=1, devices>1 (with optional EP)
+        1. Data Parallelism: tp=1, pp=1, devices> 1 (with optional EP)
         2. Tensor Parallelism: tp == devices, pp=1
         3. Single GPU: devices=1
 
@@ -290,15 +296,17 @@ class MegatronLMEval(LM):
                 self._parallelism_mode = "data_parallel"
                 if ep > 1:
                     eval_logger.info(
-                        f"Parallelism mode: Data Parallel with EP={ep} (devices={devices})"
+                        "Parallelism mode: Data Parallel with EP=%s (devices=%s)",
+                        ep,
+                        devices,
                     )
                 else:
                     eval_logger.info(
-                        f"Parallelism mode: Data Parallel with {devices} replicas"
+                        "Parallelism mode: Data Parallel with %s replicas", devices
                     )
         elif tp == devices:
             self._parallelism_mode = "tensor_parallel"
-            eval_logger.info(f"Parallelism mode: Tensor Parallel (TP={tp})")
+            eval_logger.info("Parallelism mode: Tensor Parallel (TP=%s)", tp)
         else:
             raise ValueError(
                 f"Invalid parallelism configuration: devices={devices}, TP={tp}. "
@@ -321,6 +329,14 @@ class MegatronLMEval(LM):
         )
         from megatron.training.arguments import core_transformer_config_from_args
         from megatron.training.checkpointing import load_checkpoint
+
+        # Megatron moved argument parsing out of initialize_megatron() in
+        # core_v0.18. Detecting by import, not by version, because the refactor
+        # is not split by version number (commits both report version 0.18.0).
+        try:
+            from megatron.training.arguments import parse_and_validate_args
+        except ImportError:
+            parse_and_validate_args = None
 
         devices = kwargs["devices"]
         tp_size = kwargs["tensor_model_parallel_size"]
@@ -391,20 +407,31 @@ class MegatronLMEval(LM):
         extra_args_list = _parse_extra_args(kwargs.get("extra_args"))
         if extra_args_list:
             argv.extend(extra_args_list)
-            eval_logger.info(f"Extra MCore args: {extra_args_list}")
+            eval_logger.info("Extra MCore args: %s", extra_args_list)
 
         # Save original argv and replace
         original_argv = sys.argv
         sys.argv = argv
 
-        eval_logger.info(f"Initializing Megatron with args: {' '.join(argv[1:])}")
+        eval_logger.info("Initializing Megatron with args: %s", " ".join(argv[1:]))
 
         try:
             # Initialize Megatron
-            initialize_megatron(
-                extra_args_provider=None,
-                args_defaults={"tokenizer_type": kwargs["tokenizer_type"]},
-            )
+            # parse_and_validate_args() must run first as it populates the global
+            # args, including --use-checkpoint-args, that initialize_megatron()
+            # then reads using get_args(). Previous Megatron parses args inside
+            # the initialize call instead.
+            if parse_and_validate_args is not None:
+                parse_and_validate_args(
+                    extra_args_provider=None,
+                    args_defaults={"tokenizer_type": kwargs["tokenizer_type"]},
+                )
+                initialize_megatron()
+            else:
+                initialize_megatron(
+                    extra_args_provider=None,
+                    args_defaults={"tokenizer_type": kwargs["tokenizer_type"]},
+                )
 
             args = get_args()
             self._args = args
@@ -441,8 +468,12 @@ class MegatronLMEval(LM):
                 self._world_size = 1
 
             eval_logger.info(
-                f"Parallel state - TP rank: {self._tp_rank}, PP rank: {self._pp_rank}, "
-                f"DP rank: {self._dp_rank}, is_last_stage: {self._is_pipeline_last_stage}"
+                "Parallel state - TP rank: %s, PP rank: %s, "
+                "DP rank: %s, is_last_stage: %s",
+                self._tp_rank,
+                self._pp_rank,
+                self._dp_rank,
+                self._is_pipeline_last_stage,
             )
 
             # Get tokenizer
@@ -663,8 +694,7 @@ class MegatronLMEval(LM):
         self.accelerator.wait_for_everyone()
 
     class _Accelerator:
-        """
-        Internal accelerator class for distributed operations.
+        """Internal accelerator class for distributed operations.
 
         Provides NeMo-style interface for synchronization and result gathering.
         """
@@ -747,8 +777,7 @@ class MegatronLMEval(LM):
         position_ids: torch.Tensor | None = None,
         attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """
-        Model forward pass with Pipeline Parallelism support.
+        """Model forward pass with Pipeline Parallelism support.
 
         Barriers are placed before and after the forward pass to ensure all ranks
         are synchronized during model computation.
@@ -821,8 +850,7 @@ class MegatronLMEval(LM):
         return output
 
     def _distribute_requests(self, requests: list) -> tuple[list, list[int]]:
-        """
-        Distribute requests across ranks for Data Parallelism.
+        """Distribute requests across ranks for Data Parallelism.
 
         NOTE: When world_size > 1, lm_eval's evaluator already distributes
         requests to each rank based on lm.rank and lm.world_size.
@@ -838,8 +866,7 @@ class MegatronLMEval(LM):
         return requests, [len(requests)]
 
     def _gather_results(self, local_results: list, sizes: list[int]) -> list:
-        """
-        Gather results from all ranks for Data Parallelism.
+        """Gather results from all ranks for Data Parallelism.
 
         NOTE: When world_size > 1, lm_eval's evaluator already handles
         result gathering (via gather_object in evaluator.py line ~692).
@@ -893,8 +920,7 @@ class MegatronLMEval(LM):
         requests: list[tuple],
         disable_tqdm: bool = False,
     ) -> list[tuple[float, bool]]:
-        """
-        Compute log-likelihood based on tokens.
+        """Compute log-likelihood based on tokens.
 
         With Data Parallelism:
         - Requests are distributed across ranks by lm_eval's evaluator
@@ -1057,8 +1083,7 @@ class MegatronLMEval(LM):
         requests: list[Instance],
         disable_tqdm: bool = False,
     ) -> list[str]:
-        """
-        Generate text until stop condition with Data Parallelism support.
+        """Generate text until stop condition with Data Parallelism support.
 
         Supports batched generation for improved throughput.
         With PP > 1, generation requires coordination between pipeline stages.

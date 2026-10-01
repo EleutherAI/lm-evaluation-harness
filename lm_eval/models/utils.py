@@ -28,6 +28,12 @@ if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase
     from transformers.configuration_utils import PretrainedConfig
 
+# Sentinel value HF tokenizers report for ``model_max_length`` when the tokenizer
+# config specifies no limit (``int(1e30)``).
+TOKENIZER_INFINITY = 1000000000000000019884624838656
+# Default model maximum context length, when the config or tokenizer do not specify.
+DEFAULT_MAX_LENGTH = 2048
+
 
 class GenKwargs(TypedDict, total=False):
     do_sample: bool
@@ -540,6 +546,50 @@ def configure_pad_token(
             tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
     return tokenizer
+
+
+def resolve_max_length(
+    config: PretrainedConfig | None,
+    tokenizer: PreTrainedTokenizerBase | None = None,
+    *,
+    default: int = DEFAULT_MAX_LENGTH,
+) -> int:
+    """Resolve a model's maximum context length from its config and tokenizer.
+
+    Sources are consulted in order: the nested ``text_config``, the top-level
+    config, the tokenizer's ``model_max_length``, then ``default``.
+
+    ``text_config`` is checked first because composite configs may expose a
+    modality encoder's positional limit at the top level, which is not the text
+    model's context length (e.g. ``MusicFlamingoConfig`` reports 1200 there while
+    its text model handles 32768).
+
+    Args:
+        config: The model config. Composite configs that nest the text model
+            under ``text_config`` (Gemma3, Qwen2-VL, Mistral3, ...) are handled;
+            text-only configs resolve from the top level.
+        tokenizer: Tokenizer to consult when the config specifies no length.
+            ``TOKENIZER_INFINITY`` means "unset" and is ignored in favor of
+            ``default``.
+        default: Value returned when no source specifies a length.
+
+    Returns:
+        The maximum context length in tokens.
+    """
+    # Config attributes that carry a context length, in the order they are checked.
+    SEQLEN_CONFIG_ATTRS = ("n_positions", "max_position_embeddings", "n_ctx")
+
+    cfg = getattr(config, "text_config", None) or config
+
+    for attr in SEQLEN_CONFIG_ATTRS:
+        value = getattr(cfg, attr, None)
+        if value is not None:
+            return int(value)
+
+    model_max_length = getattr(tokenizer, "model_max_length", None)
+    if model_max_length is not None and model_max_length != TOKENIZER_INFINITY:
+        return int(model_max_length)
+    return default
 
 
 def replace_placeholders(

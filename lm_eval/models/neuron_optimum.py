@@ -164,8 +164,15 @@ class NEURON_HF(TemplateLM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, (int, str))
 
-        self.batch_size_per_gpu = int(batch_size)
-        batch_size = int(batch_size)
+        if isinstance(batch_size, str) and batch_size.startswith("auto"):
+            logger.warning(
+                "neuronx requires a static batch size compiled into the model graph; "
+                "'auto' batch size is not supported. Defaulting to batch_size=1."
+            )
+            batch_size = 1
+        else:
+            batch_size = int(batch_size)
+        self.batch_size_per_gpu = batch_size
 
         self._config = transformers.AutoConfig.from_pretrained(
             pretrained,

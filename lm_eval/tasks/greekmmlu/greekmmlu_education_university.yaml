@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_social_sciences_tasks
+task: greekmmlu_education_university
+task_alias: Education_University
+dataset_name: Education_University

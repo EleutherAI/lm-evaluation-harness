@@ -21,7 +21,7 @@ jobs:
     name: Scan for changed tasks
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
 
@@ -51,9 +51,10 @@ jobs:
 
       - name: Install uv
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v10.0.1
         with:
-          enable-cache: true
+          enable-cache: "auto"
+          prune-cache: true
           python-version: "3.10"
           activate-environment: true
       - name: Install dependencies
@@ -63,10 +64,13 @@ jobs:
       - name: Test with pytest
         # if new tasks are added, run tests on them
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: pytest -x -s -vv tests/test_tasks.py
         # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
           API: true
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         if: steps.changed-tasks.outputs.api_any_modified == 'true'
         run: pytest -x -s -vv -n=auto tests/test_tasks.py

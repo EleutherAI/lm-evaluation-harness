@@ -1,0 +1,11 @@
+group: longproc_path_traversal
+task:
+  - longproc_path_traversal_0.5k
+  - longproc_path_traversal_2k
+  - longproc_path_traversal_8k
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

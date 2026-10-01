@@ -68,6 +68,16 @@ def run_model_for_task_caching(tasks: list[str], cache_requests: str):
     return eval_data
 
 
+def request_caching_arg_to_dict(cache_requests: str) -> dict:
+    request_caching_args = {
+        "cache_requests": cache_requests in {"true", "refresh"},
+        "rewrite_requests_cache": cache_requests == "refresh",
+        "delete_requests_cache": cache_requests == "delete",
+    }
+
+    return request_caching_args
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -89,15 +99,5 @@ if __name__ == "__main__":
     tasks = args.tasks.split(",")
 
     eval_data = run_model_for_task_caching(
-        tasks=tasks, model=MODEL, device=DEVICE, cache_requests=args.cache_requests
+        tasks=tasks, cache_requests=args.cache_requests
     )
-
-
-def request_caching_arg_to_dict(cache_requests: str) -> dict:
-    request_caching_args = {
-        "cache_requests": cache_requests in {"true", "refresh"},
-        "rewrite_requests_cache": cache_requests == "refresh",
-        "delete_requests_cache": cache_requests == "delete",
-    }
-
-    return request_caching_args

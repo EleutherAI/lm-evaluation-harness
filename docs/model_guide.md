@@ -102,6 +102,27 @@ Using this decorator results in the class being added to an accounting of the us
 
 **Tip: be sure to import your model in `lm_eval/models/__init__.py!`**
 
+### Registering a backend from an external package (plugins)
+
+If your backend lives in your **own** package rather than in the `lm-eval` source
+tree, you do not need to fork or edit `lm-eval`. Declare an `lm_eval.models` entry
+point and `lm-eval --model <name>` resolves it at runtime:
+
+# in your_project/pyproject.toml
+
+```toml
+[project.entry-points."lm_eval.models"]
+my-backend = "my_pkg.models:MyBackendLM"
+```
+
+```bash
+lm-eval run --model my-backend --tasks hellaswag
+```
+
+For unpublished modules, `--plugins my_pkg.models` imports them so their
+`@register_model` decorator runs. Filters, metrics and aggregations work the same
+way — see the [Plugin Guide](./plugins.md) for the full picture.
+
 ## Testing
 
 We also recommend that new model contributions be accompanied by short tests of their 3 core functionalities, at minimum. To see an example of such tests, look at https://github.com/EleutherAI/lm-evaluation-harness/blob/35bdecd379c0cefad6897e67db892f4a6026a128/tests/test_ggml.py .
@@ -186,6 +207,8 @@ If not implemented for a given model type, the flags `--apply_chat_template` , `
 ## Other
 
 **Pro tip**: In order to make the Evaluation Harness overestimate total runtimes rather than underestimate it, HuggingFace models come in-built with the ability to provide responses on data points in *descending order by total input length* via `lm_eval.utils.Reorderer`. Take a look at `lm_eval.models.hf_causal.HFLM` to see how this is done, and see if you can implement it in your own model!
+
+**Subclassing an existing backend**: If your backend shares most of its logic with an existing one and differs only in a narrow concern (e.g. how the underlying model is created or which device it targets), prefer subclassing over duplication. For example, `lm_eval.models.optimum_lm.OptimumLM` subclasses `HFLM` and overrides only `_create_model`.
 
 ## Conclusion
 

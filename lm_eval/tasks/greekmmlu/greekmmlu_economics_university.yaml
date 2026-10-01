@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_social_sciences_tasks
+task: greekmmlu_economics_university
+task_alias: Economics_University
+dataset_name: Economics_University

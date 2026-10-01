@@ -94,36 +94,3 @@ class Mistral3LM(HFLM):
         ):
             # Mistral3 models work like causal LMs for text-only input
             return self.model(inps).logits
-
-    @property
-    def max_length(self) -> int:
-        """Get the maximum sequence length for the model."""
-        if self._max_length:
-            return self._max_length
-
-        seqlen_config_attrs = (
-            "max_position_embeddings",
-            "n_positions",
-            "n_ctx",
-        )
-
-        # First check text_config if it exists (for VLM-style models like Mistral3)
-        if hasattr(self.model.config, "text_config"):
-            text_config = self.model.config.text_config
-            for attr in seqlen_config_attrs:
-                if hasattr(text_config, attr):
-                    return getattr(text_config, attr)
-
-        # Fall back to main config
-        for attr in seqlen_config_attrs:
-            if hasattr(self.model.config, attr):
-                return getattr(self.model.config, attr)
-
-        # Check tokenizer
-        if (
-            hasattr(self.tokenizer, "model_max_length")
-            and self.tokenizer.model_max_length < 1000000000
-        ):
-            return self.tokenizer.model_max_length
-
-        return self._DEFAULT_MAX_LENGTH

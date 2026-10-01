@@ -1,0 +1,4 @@
+include: _default_indicparam_template_yaml
+task: indicparam_oriya
+task_alias: Oriya
+process_docs: !function utils.process_docs_oriya

@@ -12,7 +12,7 @@ class FunctionTag:
 def prompt_func(mode, lang):
     prompt_map = {
         "prompt_1": "Please identify whether the premise entails or contradicts the hypothesis in the following premise "
-        "and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {premise}\nHypothesis: {hypothesis}\n\n"
+        "and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\n"
         "Is it entailment, contradiction, or neutral?",
         "prompt_3": f"Given the following premise and hypothesis in {lang}, identify if the premise entails, contradicts, "
         f"or is neutral towards the hypothesis. Please respond with exact 'entailment', 'contradiction', or 'neutral'. \n\n"
