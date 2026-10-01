@@ -505,22 +505,30 @@ def _sacreformat(refs, preds):
 # stderr stuff
 
 
+def _bootstrap_chunk_sizes(iters: int, chunk_size: int) -> list[int]:
+    """
+    Split `iters` draws into chunks of at most `chunk_size`,
+    assigning the remainder to the final chunk.
+    """
+    n_full, rem = divmod(iters, chunk_size)
+    return [chunk_size] * n_full + ([rem] if rem else [])
+
+
 class _bootstrap_internal:
     """
-    Pool worker: `(i, xs)` → `n` bootstrap replicates
+    Pool worker: `(i, xs, n)` → `n` bootstrap replicates
     of `f(xs)`using a RNG seeded with `i`.
     """
 
-    def __init__(self, f: Callable[[Sequence[T]], float], n: int) -> None:
+    def __init__(self, f: Callable[[Sequence[T]], float]) -> None:
         self.f = f
-        self.n = n
 
-    def __call__(self, v: tuple[int, Sequence[T]]) -> list[float]:
-        i, xs = v
+    def __call__(self, v: tuple[int, Sequence[T], int]) -> list[float]:
+        i, xs, n = v
         rnd = random.Random()
         rnd.seed(i)
         res = []
-        for _ in range(self.n):
+        for _ in range(n):
             res.append(self.f(rnd.choices(xs, k=len(xs))))
         return res
 
@@ -539,9 +547,10 @@ def _bootstrap_internal_no_mp(
     print(f"bootstrapping for stddev: {f.__name__}")
 
     # A single loop replaces the multiprocessing pool.
-    for i in tqdm(range(iters // chunk_size)):
+    sizes = _bootstrap_chunk_sizes(iters, chunk_size)
+    for i, n in tqdm(enumerate(sizes), total=len(sizes)):
         rnd = random.Random(i)
-        for _ in range(chunk_size):
+        for _ in range(n):
             res.append(f(rnd.choices(xs, k=len(xs))))
 
     return res
@@ -570,13 +579,14 @@ def bootstrap_stderr(
         from tqdm import tqdm
 
         print("bootstrapping for stddev:", f.__name__)
+        sizes = _bootstrap_chunk_sizes(iters, chunk_size)
         with mp.Pool(mp.cpu_count()) as pool:
             for bootstrap in tqdm(
                 pool.imap(
-                    _bootstrap_internal(f, chunk_size),
-                    [(i, xs) for i in range(iters // chunk_size)],
+                    _bootstrap_internal(f),
+                    [(i, xs, n) for i, n in enumerate(sizes)],
                 ),
-                total=iters // chunk_size,
+                total=len(sizes),
             ):
                 # sample w replacement
                 res.extend(bootstrap)
