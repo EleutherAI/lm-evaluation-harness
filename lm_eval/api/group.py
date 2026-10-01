@@ -195,8 +195,8 @@ class Group:
         """
         from lm_eval.api.metrics import (
             aggregate_subtask_metrics,
-            pooled_sample_stderr,
             unweighted_mean_stderr,
+            weighted_mean_stderr,
         )
 
         group_metrics: dict[str, Any] = {
@@ -275,12 +275,11 @@ class Group:
                     sample_count[metric_key] = sum(sizes)
 
                     if len(stderrs) == len(values) and "N/A" not in stderrs:
-                        # The stderr must match the point estimate: pooled (size-weighted)
-                        # stderr for the size-weighted mean, but the stderr of the simple
-                        # unweighted mean when weight_by_size=False (otherwise the reported
-                        # error bar is overconfident).
+                        # Propagate independent subtask variances using the same
+                        # weights as the point estimate, without assuming a common
+                        # sample variance across heterogeneous subtasks.
                         if agg_config.weight_by_size:
-                            group_metrics[stderr_key] = pooled_sample_stderr(
+                            group_metrics[stderr_key] = weighted_mean_stderr(
                                 stderrs, sizes
                             )
                         else:

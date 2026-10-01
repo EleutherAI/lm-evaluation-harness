@@ -3,6 +3,7 @@
 Tests for Group class and filter auto-discovery functionality.
 """
 
+import math
 from typing import TYPE_CHECKING
 
 import pytest
@@ -521,10 +522,8 @@ class TestGroupWeightedAggregation:
         pooled = pooled_sample_stderr([0.02, 0.10], [1000, 10])
         assert result["acc_stderr,none"] != pytest.approx(pooled)
 
-    def test_weighted_aggregation_stderr_uses_pooled(self):
-        """weight_by_size=True must keep using the pooled (size-weighted) stderr."""
-        from lm_eval.api.metrics import pooled_sample_stderr
-
+    def test_weighted_aggregation_stderr_uses_point_estimate_weights(self):
+        """weight_by_size=True propagates uncertainty with size weights."""
         task_a = MockTask("task_a")
         task_b = MockTask("task_b")
         metrics = {
@@ -541,8 +540,36 @@ class TestGroupWeightedAggregation:
         result = group.aggregate(metrics)
 
         assert result["acc_stderr,none"] == pytest.approx(
-            pooled_sample_stderr([0.02, 0.10], [1000, 10])
+            math.sqrt((1000 * 0.02) ** 2 + (10 * 0.10) ** 2) / 1010
         )
+
+    @pytest.mark.parametrize(
+        ("sizes", "stderrs"),
+        [([100, 2], [0.0, 0.5]), ([2, 100], [0.5, 0.0]), ([10, 10], [0.02, 0.10])],
+    )
+    def test_weighted_stderr_propagates_independent_subtasks(self, sizes, stderrs):
+        """A weighted mean propagates the variance of each subtask separately."""
+        group = Group(
+            name="heterogeneous",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", weight_by_size=True)],
+        )
+        metrics = {}
+        for index, (size, stderr) in enumerate(zip(sizes, stderrs, strict=True)):
+            name = f"task_{index}"
+            group.add(MockTask(name))
+            metrics[name] = {
+                "sample_len": size,
+                "acc,none": 0.5,
+                "acc_stderr,none": stderr,
+            }
+
+        result = group.aggregate(metrics)
+        expected = math.sqrt(
+            sum(
+                size**2 * stderr**2 for size, stderr in zip(sizes, stderrs, strict=True)
+            )
+        ) / sum(sizes)
+        assert result["acc_stderr,none"] == pytest.approx(expected)
 
 
 class TestGroupEdgeCases:
