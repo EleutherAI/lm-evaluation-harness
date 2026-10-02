@@ -845,6 +845,9 @@ class TemplateAPI(TemplateLM):
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[float]:
+        from lm_eval.utils import reject_rolling_options
+
+        reject_rolling_options(requests, "TemplateAPI")
         loglikelihoods = []
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):

@@ -117,6 +117,7 @@ class TaskConfig(dict):
     # scoring options
     metric_list: list | None = None
     output_type: OutputType = "generate_until"
+    request_kwargs: dict | None = None
     generation_kwargs: dict | None = None
     repeats: int = 1
     filter_list: str | list | None = None
@@ -128,29 +129,50 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
-        if self.generation_kwargs is not None:
-            if self.output_type != "generate_until":
+        # An explicitly empty canonical mapping takes precedence over the alias.
+        if self.request_kwargs is None and self.output_type == "generate_until":
+            self.request_kwargs = self.generation_kwargs
+        elif (
+            self.output_type != "generate_until" and self.generation_kwargs is not None
+        ):
+            # Only the exact rolling-option shape is an alias on scoring tasks.
+            # Shared YAML templates historically supplied unused generation settings.
+            if (
+                self.output_type == "loglikelihood_rolling"
+                and isinstance(self.generation_kwargs, dict)
+                and set(self.generation_kwargs) == {"context_len"}
+            ):
+                if self.request_kwargs is None:
+                    self.request_kwargs = dict(self.generation_kwargs)
+            else:
                 eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
+                    "Ignoring generation_kwargs for output_type=%s",
+                    self.output_type,
                 )
+        if self.request_kwargs is not None and not isinstance(
+            self.request_kwargs, dict
+        ):
+            raise TypeError("request_kwargs must be a dictionary")
+        if self.output_type == "generate_until":
+            if self.request_kwargs is None:
+                self.request_kwargs = default_gen_kwargs(self.fewshot_delimiter)
+            else:
+                self.request_kwargs = dict(self.request_kwargs)
+                if "temperature" in self.request_kwargs:
+                    self.request_kwargs["temperature"] = float(
+                        self.request_kwargs["temperature"]
+                    )
+                self.request_kwargs.setdefault("until", [self.fewshot_delimiter])
+            # Keep public generation overrides updating the canonical mapping.
+            self.generation_kwargs = self.request_kwargs
+        elif self.output_type == "loglikelihood_rolling":
+            from lm_eval.utils import rolling_context_len
 
-            if "temperature" in self.generation_kwargs:
-                self.generation_kwargs["temperature"] = float(
-                    self.generation_kwargs["temperature"]
-                )
-
-            if "until" not in self.generation_kwargs:
-                eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
-                )
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
-        else:
-            if self.output_type == "generate_until":
-                # ensure that we greedily generate in absence of explicit arguments otherwise
-                self.generation_kwargs = default_gen_kwargs(self.fewshot_delimiter)
-                eval_logger.warning(
-                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
-                )
+            rolling_context_len(self.request_kwargs)
+        elif self.request_kwargs:
+            raise ValueError(
+                "request_kwargs is only supported for generate_until and loglikelihood_rolling"
+            )
         self.fewshot_config = (
             FewshotConfig.from_dict(
                 self.fewshot_config or {},

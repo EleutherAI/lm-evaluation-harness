@@ -1,0 +1,17 @@
+# Standalone task example; run with a causal HFLM and max_length >= 256.
+task: wikitext_rolling_context256
+dataset_path: EleutherAI/wikitext_document_level
+dataset_name: wikitext-2-raw-v1
+output_type: loglikelihood_rolling
+test_split: test
+doc_to_text: ""
+doc_to_target: "{{page}}"
+request_kwargs:
+  context_len: 256
+metric_list:
+  - metric: word_perplexity
+  - metric: byte_perplexity
+  - metric: bits_per_byte
+metadata:
+  version: 1.0
+  description: Raw page scoring (without the standard wikitext task detokenizer).
