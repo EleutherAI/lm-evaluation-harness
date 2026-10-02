@@ -2,12 +2,11 @@ import os
 import re
 import sys
 import types
+from typing import ClassVar
 
 import pytest
 
-import lm_eval.api as api
-import lm_eval.evaluator as evaluator
-from lm_eval import tasks
+from lm_eval import api, evaluator, tasks
 from lm_eval.utils import make_table
 
 
@@ -98,9 +97,7 @@ def test_evaluator(
 
     assert all(
         x == y
-        for x, y in zip(
-            [y for _, y in r(e1).items()], [y for _, y in r(e2).items()], strict=True
-        )
+        for x, y in zip(r(e1).values(), r(e2).values(), strict=True)
     )
 
 
@@ -189,7 +186,7 @@ def test_printed_results(
 
 
 class _FakeMarkdownTableWriter:
-    instances = []
+    instances: ClassVar[list] = []
 
     def __init__(self):
         self.headers = []
