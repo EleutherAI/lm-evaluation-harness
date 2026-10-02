@@ -234,7 +234,10 @@ class EvaluatorConfig:
         # argparse uses nargs="+" for --num_fewshot, so a single CLI value
         # arrives as [n]. Collapse that case to preserve the historical
         # scalar behavior of broadcasting one value to every loaded task.
-        if isinstance(cli_args.get("num_fewshot"), list) and len(cli_args["num_fewshot"]) == 1:
+        if (
+            isinstance(cli_args.get("num_fewshot"), list)
+            and len(cli_args["num_fewshot"]) == 1
+        ):
             cli_args["num_fewshot"] = cli_args["num_fewshot"][0]
         config.update(cli_args)
 
