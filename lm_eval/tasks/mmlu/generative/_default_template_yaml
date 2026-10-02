@@ -20,7 +20,11 @@ filter_list:
   - name: get_response
     filter:
       - function: "multi_choice_regex"
-        regex_pattern: "\\b([A-D])\\b"
+        # Match uppercase answer letters throughout explanations, but accept a
+        # lowercase answer only when it is the whole response (optionally with
+        # a short answer suffix). This avoids treating prose such as "a car" as
+        # another answer candidate.
+        regex_pattern: "\\b([A-D])\\b|^\\s*([a-d])(?:[.)]\\s*\\S.*)?\\s*$"
         group_select: -1
         ignore_case: true
       - function: take_first
