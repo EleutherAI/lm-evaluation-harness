@@ -52,11 +52,15 @@ def test_mmlu_generative_filter_extracts_answer_letters(response, expected):
     )
     config = yaml.safe_load(config_path.read_text())
     filter_config = config["filter_list"][0]["filter"][0]
-    filter_args = {key: value for key, value in filter_config.items() if key != "function"}
+    filter_args = {
+        key: value for key, value in filter_config.items() if key != "function"
+    }
 
     filt = get_filter(filter_config["function"])(**filter_args)
 
-    assert filt.apply([[response]], [{"choices": ["one", "two", "three", "four"]}]) == [[expected]]
+    assert filt.apply([[response]], [{"choices": ["one", "two", "three", "four"]}]) == [
+        [expected]
+    ]
 
 
 def test_format_span_normalizes_label_only():
