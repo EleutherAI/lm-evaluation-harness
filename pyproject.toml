@@ -84,7 +84,7 @@ dev = ["pytest>=9.0", "pytest-cov", "pytest-xdist", "requests", "aiohttp", "tena
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
-libra = ["pymorphy2"]
+libra = ["pymorphy3"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 ruler = ["nltk", "wonderwords", "scipy"]
