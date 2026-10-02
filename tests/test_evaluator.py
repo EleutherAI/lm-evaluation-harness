@@ -95,10 +95,7 @@ def test_evaluator(
         else:
             return x["results"]["mmlu_abstract_algebra"]
 
-    assert all(
-        x == y
-        for x, y in zip(r(e1).values(), r(e2).values(), strict=True)
-    )
+    assert all(x == y for x, y in zip(r(e1).values(), r(e2).values(), strict=True))
 
 
 @pytest.mark.parametrize(
