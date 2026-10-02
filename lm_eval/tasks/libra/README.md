@@ -80,3 +80,7 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+- October 2, 2026: `ru_qasper` and `ru_sci_passage_count` version 0.0 → 1.0. Match the reference evaluator by computing token F1 and choosing the maximum score across reference answers.
