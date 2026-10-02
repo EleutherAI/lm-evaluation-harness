@@ -478,6 +478,9 @@ class VLLM(TemplateLM):
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[float]:
+        from lm_eval.utils import reject_rolling_options
+
+        reject_rolling_options(requests, "vLLM")
         adaptive_batch_size = None
         if self.batch_size == "auto":
             adaptive_batch_size = len(requests)

@@ -332,6 +332,40 @@ def get_sample_results_filenames(filenames: list[str]) -> list[str]:
     return [f for f in filenames if "/samples_" in f and ".json" in f]
 
 
+def rolling_context_len(options: dict | None, max_seq_len: int | None = None) -> int:
+    """Validate rolling options; subsequent windows score M - context_len + 1 tokens.
+
+    The first window still scores M tokens using the prefix token. A short final
+    window retains additional context. Only context_len is accepted (no stride).
+    """
+    if options is None:
+        return 1
+    if not isinstance(options, dict):
+        raise TypeError("rolling request_kwargs must be a dictionary")
+    unknown = options.keys() - {"context_len"}
+    if unknown:
+        raise ValueError(
+            f"Unknown rolling request_kwargs: {list(unknown)}; use context_len"
+        )
+    value = options.get("context_len", 1)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("rolling context_len must be an integer (not bool)")
+    if value < 1 or (max_seq_len is not None and value > max_seq_len):
+        raise ValueError(
+            f"rolling context_len must be in [1, {max_seq_len or 'model max_length'}]"
+        )
+    return value
+
+
+def reject_rolling_options(requests, backend: str) -> None:
+    """Fail before scoring any requests on backends without rolling options."""
+    if any(len(request.args) != 1 for request in requests):
+        raise ValueError(
+            f"{backend} does not support rolling request_kwargs; "
+            "use HFLM with backend=causal, or omit options for legacy rolling scoring"
+        )
+
+
 def get_rolling_token_windows(
     token_list: list[int], prefix_token: int, max_seq_len: int, context_len: int
 ) -> Generator[tuple[list[int], list[int]], None, None]:

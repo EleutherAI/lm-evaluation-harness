@@ -124,6 +124,9 @@ class SGLangLM(TemplateLM):
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
+        from lm_eval.utils import reject_rolling_options
+
+        reject_rolling_options(requests, "SGLang")
         adaptive_batch_size = None
         if self.batch_size == "auto":
             adaptive_batch_size = len(requests)

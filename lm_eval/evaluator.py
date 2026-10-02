@@ -597,6 +597,12 @@ def evaluate(
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
+        if reqtype == "loglikelihood_rolling" and not getattr(
+            lm, "supports_rolling_request_kwargs", False
+        ):
+            from lm_eval.utils import reject_rolling_options
+
+            reject_rolling_options(cloned_reqs, type(lm).__name__)
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.

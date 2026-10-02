@@ -29,6 +29,8 @@ class LM(abc.ABC):
     Inputs and outputs should be tokenization-agnostic.
     """
 
+    supports_rolling_request_kwargs = False
+
     def __init__(self) -> None:
         # set rank and world size to a single process, by default.
         self._rank = 0
@@ -87,7 +89,9 @@ class LM(abc.ABC):
 
         Args:
             requests: List of ``Instance`` objects. Each ``Instance.args`` is a ``(string,)`` tuple containing
-                the text whose overall log-likelihood is computed.
+                the text whose overall log-likelihood is computed. Supporting backends
+                also accept ``(string, {"context_len": int})``. Non-default options
+                currently require causal HFLM; other backends must reject them.
 
         Returns:
             A list of ``(logprob,)`` tuples — the log-probability of the string

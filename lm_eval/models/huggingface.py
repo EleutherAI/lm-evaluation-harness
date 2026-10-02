@@ -66,6 +66,10 @@ class HFLM(TemplateLM):
     Supports data-parallel multi-GPU with HF Accelerate.
     """
 
+    @property
+    def supports_rolling_request_kwargs(self) -> bool:
+        return self.backend == "causal"
+
     AUTO_MODEL_CLASS = None
     _DEFAULT_MAX_LENGTH = DEFAULT_MAX_LENGTH
 
@@ -1226,6 +1230,18 @@ class HFLM(TemplateLM):
     def loglikelihood_rolling(
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[float]:
+        if self.backend != "causal":
+            utils.reject_rolling_options(requests, "HFLM seq2seq")
+        if any(len(req.args) not in (1, 2) for req in requests):
+            raise ValueError(
+                "rolling requests must be (string,) or (string, request_kwargs)"
+            )
+        contexts = [
+            utils.rolling_context_len(
+                req.args[1] if len(req.args) == 2 else None, self.max_length
+            )
+            for req in requests
+        ]
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -1238,7 +1254,7 @@ class HFLM(TemplateLM):
         all_windows = []  # List of (request_idx, window) tuples
         request_window_counts = []  # Track number of windows per request
 
-        for req_idx, (string,) in enumerate(
+        for req_idx, args in enumerate(
             tqdm(
                 [req.args for req in requests],
                 disable=(disable_tqdm or (self.rank != 0)),
@@ -1248,10 +1264,10 @@ class HFLM(TemplateLM):
                 map(
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
-                        token_list=self.tok_encode(string),
+                        token_list=self.tok_encode(args[0]),
                         prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
-                        context_len=1,
+                        context_len=contexts[req_idx],
                     ),
                 )
             )
@@ -1302,9 +1318,9 @@ class HFLM(TemplateLM):
             loglikelihoods.append(request_total)
             current_idx += window_count
 
-            string = requests[len(loglikelihoods) - 1].args[0]
+            original_args = requests[len(loglikelihoods) - 1].args
             self.cache_hook.add_partial(
-                "loglikelihood_rolling", (string,), request_total
+                "loglikelihood_rolling", original_args, request_total
             )
 
         return loglikelihoods

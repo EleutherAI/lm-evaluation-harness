@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import json
 import logging
 import random
 import re
@@ -295,6 +296,12 @@ class Task(abc.ABC):
         )
         cache_key += f"-tokenizer{tokenizer_name}"
 
+        rolling_kwargs = self._rolling_request_kwargs()
+        if rolling_kwargs:
+            cache_key += "-rolling" + utils.hash_string(
+                json.dumps(rolling_kwargs, sort_keys=True)
+            )
+
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
         if cache_requests and cached_instances and not rewrite_requests_cache:
@@ -517,6 +524,21 @@ class Task(abc.ABC):
         # (num_fewshot)
         return self.config.to_dict()
 
+    def _rolling_request_kwargs(self) -> dict | None:
+        """Return validated options only from an explicitly rolling configuration.
+
+        Legacy Task subclasses inherit a generation TaskConfig by default; those
+        defaults are not rolling options. Custom rolling constructors must forward
+        these options in their request arguments (or reject nondefault values).
+        """
+        if (
+            self.OUTPUT_TYPE != "loglikelihood_rolling"
+            or self.config.output_type != "loglikelihood_rolling"
+        ):
+            return None
+        utils.rolling_context_len(self.config.request_kwargs)
+        return self.config.request_kwargs
+
     def set_config(self, key: str, value: Any, update: bool = False) -> None:
         """Set or update the configuration for a given key."""
         if key is None:
@@ -531,6 +553,12 @@ class Task(abc.ABC):
             current_value.update(value)
         else:
             setattr(self._config, key, value)
+        if self.config.output_type == "generate_until" and key in {
+            "request_kwargs",
+            "generation_kwargs",
+        }:
+            other = "generation_kwargs" if key == "request_kwargs" else "request_kwargs"
+            setattr(self._config, other, getattr(self._config, key))
 
     def override_metric(self, metric_name: str) -> None:
         """
@@ -628,7 +656,7 @@ class ConfigurableTask(Task):
         config: dict | None = None,
     ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
-        self._config = self.CONFIG
+        self._config = deepcopy(self.CONFIG)
 
         # Use new configurations if there was no preconfiguration
         if self.config is None:
@@ -636,7 +664,16 @@ class ConfigurableTask(Task):
         # Overwrite configs
         else:
             if config is not None:
-                self._config.__dict__.update(config)
+                overrides = deepcopy(config)
+                # Resolve aliases within this layer, before inherited canonical
+                # values can mask a legacy override. An explicit {} still wins.
+                if (
+                    "generation_kwargs" in overrides
+                    and "request_kwargs" not in overrides
+                ):
+                    overrides["request_kwargs"] = None
+                self._config.__dict__.update(overrides)
+                self._config.__post_init__()
 
         if self.config is None:
             raise ValueError(
@@ -1371,6 +1408,9 @@ class ConfigurableTask(Task):
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             arguments = (self.doc_to_target(doc),)
+            rolling_kwargs = self._rolling_request_kwargs()
+            if utils.rolling_context_len(rolling_kwargs) != 1:
+                arguments += (deepcopy(rolling_kwargs),)
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
@@ -1405,7 +1445,7 @@ class ConfigurableTask(Task):
                 arguments.extend(aux_arguments)
 
         elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, deepcopy(self.config.generation_kwargs))
+            arguments = (ctx, deepcopy(self.config.request_kwargs))
 
         multimodal_arg = {}
         if (
@@ -1649,9 +1689,15 @@ class ConfigurableTask(Task):
                         # Without this, _compute_task_aggregations falls back to mean()
                         # because it looks up the aggregation by the result-dict key, not
                         # by the originating callable's __name__.
-                        if metric in self._aggregation_list and k not in self._aggregation_list:
+                        if (
+                            metric in self._aggregation_list
+                            and k not in self._aggregation_list
+                        ):
                             self._aggregation_list[k] = self._aggregation_list[metric]
-                        if metric in self._higher_is_better and k not in self._higher_is_better:
+                        if (
+                            metric in self._higher_is_better
+                            and k not in self._higher_is_better
+                        ):
                             self._higher_is_better[k] = self._higher_is_better[metric]
                 else:
                     result_dict[metric] = result_score
@@ -1773,10 +1819,14 @@ class PerplexityTask(Task):
         if bool(ctx):
             raise ValueError
 
+        arguments = (self.doc_to_target(doc),)
+        rolling_kwargs = self._rolling_request_kwargs()
+        if utils.rolling_context_len(rolling_kwargs) != 1:
+            arguments += (deepcopy(rolling_kwargs),)
         return Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
-            arguments=(self.doc_to_target(doc),),
+            arguments=arguments,
             idx=0,
             **kwargs,
         )

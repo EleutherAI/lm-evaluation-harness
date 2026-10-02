@@ -52,7 +52,8 @@ Scoring details:
 
 - **metric_list** (`str`, *optional*, defaults to None) — A list of metrics to use for evaluation. See docs for expected format.
 - **output_type** (`str`, *optional*, defaults to "generate_until") — Selects the type of model output for the given task. Options are `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
-- **generation_kwargs** (`dict`, *optional*) — Auxiliary arguments for the `generate` function from HF transformers library. Advanced keyword arguments may not be supported for non-HF LM classes.
+- **request_kwargs** (`dict`, *optional*) — Options for `generate_until` or `loglikelihood_rolling`. For generation, these are generation arguments; support depends on the backend. For rolling scoring, see [configurable rolling perplexity](#configurable-rolling-perplexity).
+- **generation_kwargs** (`dict`, *optional*) — Legacy alias for generation options. On nongeneration tasks, legacy generation settings are warned about and ignored, as before. Rolling tasks additionally accept the exact alias shape `generation_kwargs: {context_len: N}`. If both are supplied, `request_kwargs` wins, including an explicit `{}`. Public `--gen_kwargs` overrides still update generation options after YAML configuration; they do not affect rolling tasks.
 - **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs through model for each sample. Can be used for cases such as self-consistency.
 - **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. See below for further detail on the filter API.
 - **should_decontaminate** (`bool`, *optional*, defaults to False) - Whether to decontaminate or not.
@@ -333,3 +334,44 @@ Groups are configured via the `GroupConfig` object. Below, we describe all field
   - `weight_by_size: bool = True` whether to perform micro- averaging (`True`) or macro- (`False`) averaging of subtasks' accuracy scores when reporting the group's metric. MMLU, for example, averages over per-document accuracies (the *micro average*), resulting in the same accuracy as if one simply concatenated all 57 subjects into a single dataset and evaluated accuracy on that dataset.
   - `filter_list: Union[str, List[str]] = "none"` - what filter keys one should match on to aggregate results. For example, if trying to aggregate over the `exact_match` metric using `strict-match` filter for `bbh_cot_zeroshot`, then set this to be `filter_list: "strict-match"`.  
 - **metadata** (`dict`, *optional*) - As with TaskConfigs, a field where extra config metadata can be passed. set the `num_fewshot` key within this to override the printed n_shot value in a results table for your group, for example.
+
+
+### Configurable rolling perplexity
+
+For `output_type: loglikelihood_rolling`, causal HFLM accepts:
+
+```yaml
+request_kwargs:
+  context_len: 256
+```
+
+`context_len` is an integer from 1 to the model's `max_length` (M), inclusive;
+booleans, floats, unknown keys, and `stride` are rejected. Subsequent full
+windows score M - context_len + 1 new tokens. The first window always scores
+up to M tokens conditioned on the existing prefix token. A short final window
+uses extra preceding context to retain a full input window. Every target token
+is scored exactly once; documents are scored separately. Empty documents score
+zero. Tokenization and the configured prefix token are unchanged.
+
+Omitting options, using `{}`, or setting `context_len: 1` preserves the legacy
+windows and `(string,)` request format. Other values produce
+`(string, request_kwargs)` requests and require causal HFLM. TemplateAPI, vLLM,
+SGLang, and HFLM seq2seq reject option-bearing requests; the evaluator rejects
+non-default options for other backends unless they advertise support.
+
+Effective options are saved in the task configuration in evaluation results.
+The built-in `PerplexityTask` also forwards nondefault options when assigned a
+`TaskConfig(output_type="loglikelihood_rolling", request_kwargs=...)`.
+Custom `Task` subclasses must use an explicitly rolling configuration and forward
+its validated options in `construct_requests`, or reject unsupported nondefault
+values. Setting configuration alone does not alter a custom constructor. The
+base `Task`'s inherited generation defaults are not effective rolling options
+and do not affect rolling request-cache keys.
+Request-construction caches distinguish explicit rolling configurations, and
+HFLM response caches use the original complete request arguments. For
+reproducibility, retain the task configuration, model/tokenizer revisions,
+`max_length`, prefix-token settings, and harness version. Increasing context
+reduces tokens scored per subsequent window and can increase runtime.
+
+See [the example configuration](../examples/rolling_perplexity.yaml). Its
+`context_len: 256` requires a causal HFLM with `max_length >= 256`.
