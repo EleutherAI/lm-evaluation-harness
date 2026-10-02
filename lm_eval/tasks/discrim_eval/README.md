@@ -20,6 +20,10 @@ between groups in the mean logit scores.
 
 Homepage: https://huggingface.co/datasets/Anthropic/discrim-eval
 
+### Changelog
+
+- October 2, 2026: Version 1.0 → 2.0 computes log-odds directly in log space to avoid underflow and normalized-probability rounding to one.
+
 ### Citation
 
 ```

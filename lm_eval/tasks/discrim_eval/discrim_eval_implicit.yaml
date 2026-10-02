@@ -35,4 +35,4 @@ metric_list:
     aggregation: !function utils.agg_demographic_bias_regression
     higher_is_better: false
 metadata:
-  version: 1.0
+  version: 2.0
