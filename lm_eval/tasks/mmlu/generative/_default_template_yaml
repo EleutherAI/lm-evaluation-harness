@@ -24,7 +24,7 @@ filter_list:
         # lowercase answer only when it is the whole response (optionally with
         # a short answer suffix). This avoids treating prose such as "a car" as
         # another answer candidate.
-        regex_pattern: "\\b([A-D])\\b|^\\s*([a-d])(?:[.)]\\s*\\S.*)?\\s*$"
+        regex_pattern: "(?:(?<!\\w)([A-D])(?!\\w)|^\\s*(?:[Aa]nswer:\\s*)?([a-d])(?:\\.\\s*\\d+)?\\s*$)"
         group_select: -1
         ignore_case: true
       - function: take_first
