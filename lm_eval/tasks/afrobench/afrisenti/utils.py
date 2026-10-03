@@ -44,6 +44,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "amh": "Amharic",
         "arq": "Algerian Arabic",
         "ary": "Moroccan Arabic",
+        "eng": "English",
         "hau": "Hausa",
         "ibo": "Igbo",
         "kin": "Kinyarwanda",
@@ -56,7 +57,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "twi": "Twi",
         "yor": "Yoruba",
     }
-    for lang in languages.keys():
+    for lang, lang_name in languages.items():
         try:
             file_name = f"afrisenti_{lang}.yaml"
             task_name = f"afrisenti_{lang}_{mode}"
@@ -66,7 +67,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                     "include": yaml_template,
                     "task": task_name,
                     "dataset_name": lang,
-                    "doc_to_text": prompt_func(mode, languages[lang]),
+                    "doc_to_text": prompt_func(mode, lang_name),
                 }
             else:
                 yaml_details = {
