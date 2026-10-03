@@ -278,18 +278,14 @@ class GGUFLM(LM):
         response = self.gguf_completion(
             context=inp, stop=until, max_tokens=max_gen_toks
         )
-        if response and "choices" in response and response["choices"]:
-            choice = response["choices"][0]
-            if "text" in choice:
-                return choice["text"].strip()
-            else:
-                logger.error(
-                    "Invalid response for greedy_until. Response: %s", response
-                )
-                return None  # Add default value in case of error
-        else:
-            logger.error("Invalid response for greedy_until. Response: %s", response)
-            return None  # Add default value in case of error
+        if not (response and response.get("choices")):
+            raise RuntimeError(f"Invalid generation response: {response}")
+
+        choice = response["choices"][0]
+        if "text" not in choice:
+            raise RuntimeError(f"Missing text in generation response: {response}")
+
+        return choice["text"].strip()
 
     def generate_until(self, requests, disable_tqdm: bool = False):
         if not requests:

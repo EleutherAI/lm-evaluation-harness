@@ -174,6 +174,20 @@ class GGUFLMTest(unittest.TestCase):
             res, ["generated text until stop1", "generated text until stop2"]
         )
 
+    def test_generate_until_rejects_malformed_responses(self):
+        lm = GGUFLM(base_url, parallel=1)
+        requests = llm_instances([("input", {})], request_type="generate_until")
+
+        for response in ({"choices": []}, {"choices": [{}]}):
+            with self.subTest(response=response):
+                with (
+                    patch.object(lm, "gguf_completion", return_value=response),
+                    self.assertRaises(RuntimeError) as error,
+                ):
+                    lm.generate_until(requests)
+
+                self.assertIn(str(response), str(error.exception))
+
     def test_generate_until_max_token_aliases(self):
         fake_post, calls = make_fake_server()
         with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
