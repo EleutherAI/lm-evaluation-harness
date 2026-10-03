@@ -174,6 +174,16 @@ class GGUFLMTest(unittest.TestCase):
             res, ["generated text until stop1", "generated text until stop2"]
         )
 
+    def test_generate_until_preserves_whitespace(self):
+        lm = GGUFLM(base_url, parallel=1)
+        response = {"choices": [{"text": "  generated text\n"}]}
+        with patch.object(lm, "gguf_completion", return_value=response):
+            res = lm.generate_until(
+                llm_instances([("input", {})], request_type="generate_until")
+            )
+
+        self.assertEqual(res, ["  generated text\n"])
+
     def test_generate_until_max_token_aliases(self):
         fake_post, calls = make_fake_server()
         with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
