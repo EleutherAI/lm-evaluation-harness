@@ -58,8 +58,8 @@ registered.
 
 with `language_code` one of `amh`, `eng`, `ewe`, `fra`, `hau`, `ibo`, `kin`,
 `lin`, `lug`, `orm`, `sna`, `sot`, `swa`, `twi`, `vai`, `wol`, `xho`, `yor`,
-`zul` (the translate-test variants have no `eng`, and `afrimgsm_translate` has
-no `vai`).
+`zul` (the translate-test variants have no `eng` or `vai`, since
+`masakhane/afrimgsm-translate-test` has neither).
 
 ### Checklist
 

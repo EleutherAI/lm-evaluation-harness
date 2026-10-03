@@ -49,7 +49,10 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "vai": "Vai",
     }
 
-    for lang in languages.keys():
+    for lang, lang_name in languages.items():
+        # masakhane/afrimgsm-translate-test has no eng or vai config
+        if "translate" in output_dir.split("/")[-1] and lang in ("eng", "vai"):
+            continue
         try:
             file_name = f"afrimgsm_cot_{lang}.yaml"
             task_name = f"afrimgsm_cot_{lang}_{mode}"
@@ -63,7 +66,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                     "include": yaml_template,
                     "task": task_name,
                     "dataset_name": lang,
-                    "doc_to_text": prompt_func(mode, languages[lang]),
+                    "doc_to_text": prompt_func(mode, lang_name),
                 }
             else:
                 yaml_details = {
