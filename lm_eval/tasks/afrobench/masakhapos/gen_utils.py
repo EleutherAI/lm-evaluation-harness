@@ -14,13 +14,13 @@ def prompt_func(mode, lang):
         "prompt_1": "Please provide the POS tags for each word in the input sentence. The input will be a list of "
         "words in the sentence. The output format should be a list of tuples, where each tuple consists of "
         "a word from the input text and its corresponding POS tag label from the tag label set: ['ADJ', "
-        "'ADP', 'ADV', 'AUX', 'CCONJ, 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN', 'PUNCT', "
+        "'ADP', 'ADV', 'AUX', 'CCONJ', 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN', 'PUNCT', "
         "'SCONJ', 'SYM', 'VERB', 'X']. \nYour response should include only a list of tuples, in the order "
         "that the words appear in the input sentence, including punctuations, with each tuple containing the corresponding POS tag "
         "label for a word. \n\nSentence: {{tokens}} \nOutput: ",
         "prompt_2": f"You are an expert in tagging words and sentences in {lang} with the right POS tag. "
         f"\n\nPlease provide the POS tags for each word in the {lang} sentence. The input is a list of words in"
-        " the sentence. POS tag label set: ['ADJ', 'ADP', 'ADV', 'AUX', 'CCONJ, 'DET', 'INTJ', 'NOUN', "
+        " the sentence. POS tag label set: ['ADJ', 'ADP', 'ADV', 'AUX', 'CCONJ', 'DET', 'INTJ', 'NOUN', "
         "'NUM', 'PART', 'PRON', 'PROPN', 'PUNCT', 'SCONJ', 'SYM', 'VERB', 'X']. The output format should "
         "be a list of tuples, where each tuple consists of a word from the input text and its corresponding"
         " POS tag label from the POS tag label set provided\nYour response should include only a list of "
@@ -28,14 +28,14 @@ def prompt_func(mode, lang):
         "corresponding POS tag label for a word. \n\nSentence: {{tokens}} \nOutput: ",
         "prompt_3": f"Acting as a {lang} linguist and without making any corrections or changes to the text, perform a part of "
         "speech (POS) analysis of the sentences using the following POS tag label annotation ['ADJ', "
-        "'ADP', 'ADV', 'AUX', 'CCONJ, 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN', 'PUNCT', "
+        "'ADP', 'ADV', 'AUX', 'CCONJ', 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN', 'PUNCT', "
         "'SCONJ', 'SYM', 'VERB', 'X']. The input will be a list of words in the sentence. The output format should "
         "be a list of tuples, where each tuple consists of a word from the input text and its corresponding"
         " POS tag label from the POS tag label set provided\nYour response should include only a list of "
         "tuples, in the order that the words appear in the input sentence, including punctuations, with each tuple containing the "
         "corresponding POS tag label for a word. \n\nSentence: {{tokens}} \nOutput: ",
         "prompt_4": "Annotate each word in the provided sentence with the appropriate POS tag. The annotation "
-        "list is given as: ['ADJ', 'ADP', 'ADV', 'AUX', 'CCONJ, 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', "
+        "list is given as: ['ADJ', 'ADP', 'ADV', 'AUX', 'CCONJ', 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', "
         "'PRON', 'PROPN', 'PUNCT', 'SCONJ', 'SYM', 'VERB', 'X']. The input sentence will be a list of words"
         " in the sentence. The output format should "
         "be a list of tuples, where each tuple consists of a word from the input text and its corresponding"
@@ -89,7 +89,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "zul": "isiZulu",
     }
 
-    for lang in languages.keys():
+    for lang, lang_name in languages.items():
         try:
             file_name = f"masakhapos_{lang}.yaml"
             task_name = f"masakhapos_{lang}_{mode}"
@@ -98,7 +98,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 "include": yaml_template,
                 "task": task_name,
                 "dataset_name": lang,
-                "doc_to_text": prompt_func(mode, languages[lang]),
+                "doc_to_text": prompt_func(mode, lang_name),
             }
             os.makedirs(f"{output_dir}/{mode}", exist_ok=True)
             with open(

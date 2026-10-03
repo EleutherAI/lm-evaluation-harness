@@ -3,7 +3,7 @@ dataset_name: kin
 doc_to_text: "You are an expert in tagging words and sentences in Kinyarwanda with\
   \ the right POS tag. \n\nPlease provide the POS tags for each word in the Kinyarwanda\
   \ sentence. The input is a list of words in the sentence. POS tag label set: ['ADJ',\
-  \ 'ADP', 'ADV', 'AUX', 'CCONJ, 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN',\
+  \ 'ADP', 'ADV', 'AUX', 'CCONJ', 'DET', 'INTJ', 'NOUN', 'NUM', 'PART', 'PRON', 'PROPN',\
   \ 'PUNCT', 'SCONJ', 'SYM', 'VERB', 'X']. The output format should be a list of tuples,\
   \ where each tuple consists of a word from the input text and its corresponding\
   \ POS tag label from the POS tag label set provided\nYour response should include\
