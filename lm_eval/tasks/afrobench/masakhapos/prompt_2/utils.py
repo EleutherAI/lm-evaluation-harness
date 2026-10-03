@@ -53,3 +53,8 @@ def acc_score(items):
         sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0
     )
     return mean_accuracy
+
+
+def process_results(doc, results):
+    # pass (gold, pred) through to acc_score; the default multiple_target path returns a float
+    return {"acc": (doc_to_target(doc), results[0])}
