@@ -50,6 +50,9 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
     }
 
     for lang in languages.keys():
+        # masakhane/afrimgsm-translate-test has no eng or vai config
+        if "translate" in output_dir.split("/")[-1] and lang in ("eng", "vai"):
+            continue
         try:
             file_name = f"afrimgsm_cot_{lang}.yaml"
             task_name = f"afrimgsm_cot_{lang}_{mode}"
