@@ -281,7 +281,7 @@ class GGUFLM(LM):
         if response and "choices" in response and response["choices"]:
             choice = response["choices"][0]
             if "text" in choice:
-                return choice["text"].strip()
+                return choice["text"]
             else:
                 logger.error(
                     "Invalid response for greedy_until. Response: %s", response
