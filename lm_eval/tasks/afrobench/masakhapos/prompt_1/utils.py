@@ -2,8 +2,6 @@ from itertools import chain
 
 from sklearn.metrics import accuracy_score
 
-from lm_eval.utils import weighted_f1_score
-
 
 def doc_to_target(doc):
     pos_tag_map = {
@@ -30,7 +28,7 @@ def doc_to_target(doc):
 
 
 def acc_score(items):
-    unzipped_list = list(zip(*items))
+    unzipped_list = list(zip(*items, strict=True))
 
     golds, preds = unzipped_list[0], unzipped_list[1]
 
@@ -39,7 +37,7 @@ def acc_score(items):
 
     # Calculate the accuracy for each gold-pred pair
     accuracy_scores = []
-    for gold, pred in zip(golds, flattened_preds):
+    for gold, pred in zip(golds, flattened_preds, strict=True):
         # Ensure both lists are of the same length, otherwise truncate to match
         min_length = min(len(gold), len(pred))
         gold = gold[:min_length]
@@ -53,3 +51,8 @@ def acc_score(items):
         sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0
     )
     return mean_accuracy
+
+
+def process_results(doc, results):
+    # pass (gold, pred) through to acc_score; the default multiple_target path returns a float
+    return {"acc": (doc_to_target(doc), results[0])}
