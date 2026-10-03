@@ -44,6 +44,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "amh": "Amharic",
         "arq": "Algerian Arabic",
         "ary": "Moroccan Arabic",
+        "eng": "English",
         "hau": "Hausa",
         "ibo": "Igbo",
         "kin": "Kinyarwanda",
