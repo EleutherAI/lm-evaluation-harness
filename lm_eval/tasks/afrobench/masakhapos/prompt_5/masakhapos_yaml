@@ -29,4 +29,4 @@ metric_list:
     regexes_to_ignore:
       - ","
 metadata:
-  version: 1.0
+  version: 2.0
