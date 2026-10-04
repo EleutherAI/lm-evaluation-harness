@@ -4,8 +4,6 @@ import numpy as np
 import pytest
 import torch
 
-from lm_eval.utils import handle_arg_string, simple_parse_args_string
-
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
     mean,
@@ -17,8 +15,63 @@ from lm_eval.utils import (
     RemoteTokenizer,
     check_remote_tokenizer_support,
     get_rolling_token_windows,
+    handle_arg_string,
     make_disjoint_window,
+    positional_deprecated,
+    simple_parse_args_string,
 )
+
+
+def test_positional_deprecated_warns_for_positional_function_arguments(capsys):
+    @positional_deprecated
+    def example(value=None):
+        return value
+
+    assert example("positional") == "positional"
+    assert (
+        "using example with positional arguments is deprecated"
+        in capsys.readouterr().out
+    )
+
+
+def test_positional_deprecated_allows_keyword_function_arguments(capsys):
+    @positional_deprecated
+    def example(value=None):
+        return value
+
+    assert example(value="keyword") == "keyword"
+    assert capsys.readouterr().out == ""
+
+
+def test_positional_deprecated_accounts_for_instance_receiver(capsys):
+    class Example:
+        @positional_deprecated
+        def method(self, value=None):
+            return value
+
+        @classmethod
+        @positional_deprecated
+        def class_method(cls, value=None):
+            return value
+
+    example = Example()
+    assert example.method(value="keyword") == "keyword"
+    assert capsys.readouterr().out == ""
+
+    assert example.method("positional") == "positional"
+    assert (
+        "using method with positional arguments is deprecated"
+        in capsys.readouterr().out
+    )
+
+    assert Example.class_method(value="keyword") == "keyword"
+    assert capsys.readouterr().out == ""
+
+    assert Example.class_method("positional") == "positional"
+    assert (
+        "using class_method with positional arguments is deprecated"
+        in capsys.readouterr().out
+    )
 
 
 # noinspection DuplicatedCode
