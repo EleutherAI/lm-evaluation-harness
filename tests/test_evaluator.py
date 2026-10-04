@@ -83,6 +83,30 @@ def test_evaluator(
     )
 
 
+def test_sample_logging_keeps_document_ids_aligned_with_documents():
+    task_manager = tasks.TaskManager(include_path="tests/test_configs")
+    task_dict = task_manager.load(["simple_task"])
+    task = task_dict["tasks"]["simple_task"]
+    task.config.doc_to_choice = "{{choices}}"
+    task.config.num_fewshot = 0
+
+    results = evaluator.evaluate(
+        lm=api.registry.get_model("dummy").create_from_arg_string("", {}),
+        task_dict=task_dict,
+        samples={"simple_task": [4, 1]},
+        bootstrap_iters=0,
+        log_samples=True,
+    )
+
+    logged_samples = results["samples"]["simple_task"]
+    assert [
+        (sample["doc_id"], sample["doc"]["question"]) for sample in logged_samples
+    ] == [
+        (1, "What is 3+3?"),
+        (4, "What is 6+6?"),
+    ]
+
+
 @pytest.mark.parametrize(
     "task_name,limit,model,model_args",
     [

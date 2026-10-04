@@ -627,6 +627,7 @@ def evaluate(
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps:
             indices = samples.get(task_name, None) if samples is not None else None
+            sample_indices = sorted(set(indices)) if indices else None
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
@@ -634,7 +635,10 @@ def evaluate(
                 samples=indices,
             )
             for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
+                # doc_iterator yields selected documents in dataset order, so doc_id
+                # is their position in that ordered subset rather than their position
+                # in the user's --samples list.
+                doc_id_true = sample_indices[doc_id] if sample_indices else doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
