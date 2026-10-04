@@ -210,18 +210,17 @@ class _ONNXLMBase(TemplateLM, abc.ABC):
                 results.append((0.0, True))
                 continue
 
-            # Feed the full sequence; keep the last max_length tokens so the
-            # continuation is always scored, mirroring HFLM's left-truncation.
-            # At least one preceding position is required to score the first
-            # continuation token, so cap contlen to leave room for context.
-            full = (context_enc + continuation_enc)[-self.max_length :]
-            contlen = min(len(continuation_enc), len(full) - 1)
-            ctxlen = len(full) - contlen
+            # The final continuation token is a target, not a model input.
+            # Retain its preceding max_length tokens, mirroring HFLM's
+            # left-truncation, so a full rolling window scores every target.
+            inputs = (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
+            contlen = min(len(continuation_enc), len(inputs))
+            ctxlen = len(inputs) - contlen
 
-            logits = self._forward_logits(full)
-            # Logits at position i predict token i+1, so the continuation is
-            # scored by rows [ctxlen-1 : ctxlen-1+contlen].
-            cont_logits = logits[ctxlen - 1 : ctxlen - 1 + contlen]
+            logits = self._forward_logits(inputs)
+            # Each input position predicts its following token. The final
+            # contlen rows therefore predict the retained continuation.
+            cont_logits = logits[ctxlen : ctxlen + contlen]
             log_probs = _log_softmax(cont_logits)
 
             # Left-truncation may have dropped leading continuation tokens.
