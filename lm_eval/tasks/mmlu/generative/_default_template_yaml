@@ -19,14 +19,14 @@ metric_list:
 filter_list:
   - name: get_response
     filter:
-      # Filter everything after the first break line
-      - function: "regex"
-        regex_pattern: "^(.*?)(?=\\n|$)"
-      # Remove leading white spaces
-      - function: remove_whitespace
-      # function to ignore right white spaces or line breaks
-      - function: "regex"
-        regex_pattern: "^(.*?)\\s*$"
+      - function: "multi_choice_regex"
+        # Match uppercase answer letters throughout explanations, but accept a
+        # lowercase answer only when it is the whole response (optionally with
+        # a short answer suffix). This avoids treating prose such as "a car" as
+        # another answer candidate.
+        regex_pattern: "(?:(?<!\\w)([A-D])(?!\\w)|^\\s*(?:(?i:answer):\\s*)?([a-d])(?:\\.\\s*\\d+)?\\s*$)"
+        group_select: -1
+        ignore_case: true
       - function: take_first
 metadata:
   version: 3.0
