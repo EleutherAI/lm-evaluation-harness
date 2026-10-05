@@ -2,7 +2,6 @@
 # https://github.com/ruixiangcui/AGIEval/blob/main/src/
 # math_equivalence.py and post_process.py
 import re
-from typing import Dict, List
 
 import numpy as np
 
@@ -17,7 +16,7 @@ def parse_math_answer(raw_string):
             if "=" in answer:
                 answer = answer.split("=")[-1].lstrip(" ")
             return answer
-        except Exception:
+        except Exception:  # noqa: BLE001 - a box with no well-formed content has no answer
             return None
 
     def last_boxed_only_string(string):
@@ -63,7 +62,9 @@ def parse_math_answer(raw_string):
             if "\\n" in last_match:
                 last_match = last_match.split("\\n")[0]
         else:
-            pattern = "(?:\\$)?\\d+(?:\\.\\d+)?(?![\\w\\d])"
+            # The sign is part of the answer: without it a negative gold is
+            # reduced to its absolute value, so a wrong sign scores as correct.
+            pattern = "-?(?:\\$)?\\d+(?:\\.\\d+)?(?![\\w\\d])"
             matches = re.findall(pattern, s)
             if matches:
                 last_match = matches[-1]
@@ -91,7 +92,7 @@ def _fix_fracs(string):
             else:
                 try:
                     assert len(substr) >= 2
-                except Exception:
+                except Exception:  # noqa: BLE001 - a truncated \frac has no argument to brace
                     return string
                 a = substr[0]
                 b = substr[1]
@@ -119,10 +120,10 @@ def _fix_a_slash_b(string):
     try:
         a = int(a)
         b = int(b)
-        assert string == "{}/{}".format(a, b)
+        assert string == f"{a}/{b}"
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
-    except Exception:
+    except Exception:  # noqa: BLE001 - only a literal int/int pair is rewritten
         return string
 
 
@@ -198,9 +199,8 @@ def _strip_string(string):
         string = "0" + string
 
     # to consider: get rid of e.g. "k = " or "q = " at beginning
-    if len(string.split("=")) == 2:
-        if len(string.split("=")[0]) <= 2:
-            string = string.split("=")[1]
+    if len(string.split("=")) == 2 and len(string.split("=")[0]) <= 2:
+        string = string.split("=")[1]
 
     # fix sqrt3 --> sqrt{3}
     string = _fix_sqrt(string)
@@ -236,11 +236,11 @@ def is_equiv(str1, str2, verbose=False):
         if verbose:
             print(ss1, ss2)
         return ss1 == ss2
-    except Exception:
+    except Exception:  # noqa: BLE001 - normalization may raise on any malformed answer; fall back to the raw strings
         return str1 == str2
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidate = results[0]
 
     gold = doc["answer"]
