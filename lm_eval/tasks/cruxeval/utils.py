@@ -61,8 +61,16 @@ def time_limit(seconds):
     def signal_handler(signum, frame):
         raise TimeoutException("Timed out!")
 
-    signal.setitimer(signal.ITIMER_REAL, seconds)
-    signal.signal(signal.SIGALRM, signal_handler)
+    try:
+        signal.setitimer(signal.ITIMER_REAL, seconds)
+        signal.signal(signal.SIGALRM, signal_handler)
+    except (AttributeError, ValueError):
+        # signal.setitimer and SIGALRM are Unix-only, and signal.signal raises
+        # ValueError off the main thread. Run the call without a time limit
+        # rather than failing outright on those platforms.
+        yield
+        return
+
     try:
         yield
     finally:
