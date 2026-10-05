@@ -174,7 +174,7 @@ def _compute_task_aggregations(
     task: Task,
     raw_metrics: dict[tuple[str, str], list],
     bootstrap_iters: int | None = 100000,
-) -> tuple[dict[str, Any], int]:
+) -> tuple[dict[str, Any], int, dict[str, int]]:
     """
     Compute aggregated metrics from raw per-sample metrics.
 
@@ -184,11 +184,12 @@ def _compute_task_aggregations(
         bootstrap_iters: Number of bootstrap iterations for stderr
 
     Returns:
-        (agg_metrics dict, sample_count)
+        (agg_metrics dict, sample_count, per_metric_counts dict)
     """
     agg_metrics: dict[str, Any] = {}
     sample_len = 0
     metric_lens: dict[str, int] = {}
+    per_metric_counts: dict[str, int] = {}
 
     for (metric, filter_key), items in raw_metrics.items():
         try:
@@ -210,6 +211,22 @@ def _compute_task_aggregations(
         # count is a lower bound on the number of documents evaluated.
         metric_lens[metric_key] = len(items)
         sample_len = max(sample_len, len(items))
+
+        # Some aggregations exclude values inside the call (nanmean drops
+        # NaNs). The aggregate is then computed over fewer values than were
+        # produced, while len(items) still reports the larger population.
+        # Record the effective denominator so results carry it, and warn so
+        # it is visible during the run.
+        if getattr(agg_fn, "excludes_nan", False):
+            n_scored = sum(1 for v in items if not math.isnan(v))
+            per_metric_counts[metric_key] = n_scored
+            if n_scored < len(items):
+                eval_logger.warning(
+                    f"[{task.task_name}] {metric_key}: "
+                    f"{len(items) - n_scored} of {len(items)} produced "
+                    f"values were NaN and excluded by the aggregation; "
+                    f"the metric is averaged over {n_scored}."
+                )
 
         if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
             stderr_fn = stderr_for_metric(
@@ -242,7 +259,7 @@ def _compute_task_aggregations(
             f"than {sample_len} documents is over-weighted in the group score."
         )
 
-    return agg_metrics, sample_len
+    return agg_metrics, sample_len, per_metric_counts
 
 
 def _collect_results(
@@ -270,7 +287,7 @@ def _collect_results(
 
         # Compute aggregated metrics
         # TODO: note: currently assume all metrics are scalar-valued
-        agg_metrics, sample_len = _compute_task_aggregations(
+        agg_metrics, sample_len, per_metric_counts = _compute_task_aggregations(
             task, acc["raw_metrics"], bootstrap_iters
         )
 
@@ -283,6 +300,11 @@ def _collect_results(
             "sample_len": sample_len,
             **agg_metrics,
         }
+        if per_metric_counts:
+            # Present only for metrics whose aggregation drops values (e.g.
+            # nanmean), so readers can see the count the value was computed
+            # over when it is smaller than the number of produced values.
+            result.metrics[task_name]["sample_count"] = per_metric_counts
         result.configs[task_name] = task_config
         result.versions[task_name] = task.VERSION
         result.num_fewshot[task_name] = task_config.get("num_fewshot", 0)

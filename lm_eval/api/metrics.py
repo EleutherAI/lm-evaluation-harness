@@ -31,6 +31,12 @@ def nanmean(arr):
     return np.nanmean(arr)
 
 
+# Marks aggregations that drop values inside the call, so the result can be
+# reported with the count it was actually computed over rather than the
+# number of values produced for the metric.
+nanmean.excludes_nan = True
+
+
 @register_aggregation("mean")
 def mean(arr):
     return sum(arr) / len(arr)

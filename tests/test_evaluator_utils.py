@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 
 from lm_eval.api.group import AggMetricConfig, Group
-from lm_eval.api.metrics import mean
+from lm_eval.api.metrics import mean, nanmean
 from lm_eval.api.task import Task
 from lm_eval.evaluator_utils import (
     EvalAcc,
@@ -182,32 +182,32 @@ class TestComputeTaskAggregations:
     def test_single_metric_mean_aggregation(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0, 1.0, 0.0]}
-        metrics, count = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, count, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert metrics["acc,none"] == pytest.approx(0.5)
         assert count == 4
 
     def test_stderr_with_bootstrap_iters_zero(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, _, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert metrics["acc_stderr,none"] == "N/A"
 
     def test_stderr_with_bootstrap_iters_none(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=None)
+        metrics, _, _ = _compute_task_aggregations(task, raw, bootstrap_iters=None)
         assert metrics["acc_stderr,none"] == "N/A"
 
     def test_stderr_with_positive_bootstrap_iters(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0, 1.0, 0.0, 1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
+        metrics, _, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
         assert isinstance(metrics["acc_stderr,none"], float)
 
     def test_stderr_na_for_single_sample(self):
         task = self._task()
         raw = {("acc", "none"): [1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
+        metrics, _, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
         # len(items) <= 1 → "N/A"
         assert metrics["acc_stderr,none"] == "N/A"
 
@@ -219,10 +219,10 @@ class TestComputeTaskAggregations:
         acc_first = {("acc", "none"): [1.0, 0.0, 1.0], ("f1", "none"): [0.5]}
         f1_first = {("f1", "none"): [0.5], ("acc", "none"): [1.0, 0.0, 1.0]}
 
-        _, count_acc_first = _compute_task_aggregations(
+        _, count_acc_first, _ = _compute_task_aggregations(
             task, acc_first, bootstrap_iters=0
         )
-        _, count_f1_first = _compute_task_aggregations(
+        _, count_f1_first, _ = _compute_task_aggregations(
             task, f1_first, bootstrap_iters=0
         )
 
@@ -234,7 +234,7 @@ class TestComputeTaskAggregations:
         # that shared length, exactly as before.
         task = MockEvalTask("t", agg={"acc": mean, "f1": mean})
         raw = {("acc", "none"): [1.0, 0.0], ("f1", "none"): [0.5, 0.25]}
-        _, count = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        _, count, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert count == 2
 
     def test_warns_when_metric_counts_differ(self, caplog):
@@ -276,7 +276,7 @@ class TestComputeTaskAggregations:
         # Task has no aggregation for "custom_metric"
         task = MockEvalTask("t", agg={})
         raw = {("custom_metric", "none"): [2.0, 4.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, _, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert metrics["custom_metric,none"] == pytest.approx(3.0)
 
     def test_multiple_metrics_and_filters(self):
@@ -285,7 +285,7 @@ class TestComputeTaskAggregations:
             ("acc", "none"): [1.0, 0.0],
             ("f1", "exact"): [0.8, 0.6],
         }
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, _, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert "acc,none" in metrics
         assert "f1,exact" in metrics
         assert metrics["acc,none"] == pytest.approx(0.5)
@@ -295,8 +295,43 @@ class TestComputeTaskAggregations:
         task = MockEvalTask("t", agg={"bleu": mean})
         raw = {("bleu", "none"): [0.5, 0.6, 0.7]}
         # Should not raise; bootstrap_iters is capped to 100 internally
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=200)
+        metrics, _, _ = _compute_task_aggregations(task, raw, bootstrap_iters=200)
         assert "bleu,none" in metrics
+
+    def test_nanmean_reports_effective_denominator(self):
+        # nanmean drops NaN values inside the call, so len(items) overstates
+        # the population the average was computed over. The per-metric count
+        # must report the values that were actually averaged.
+        task = MockEvalTask("t", agg={"acc": nanmean})
+        raw = {("acc", "none"): [1.0, float("nan"), 0.0, 1.0]}
+
+        metrics, count, per_metric_counts = _compute_task_aggregations(
+            task, raw, bootstrap_iters=0
+        )
+
+        assert metrics["acc,none"] == pytest.approx(2.0 / 3.0)
+        # sample_len still counts produced values
+        assert count == 4
+        # while the per-metric count reports the averaged population
+        assert per_metric_counts["acc,none"] == 3
+
+    def test_per_metric_counts_absent_when_aggregation_uses_everything(self):
+        task = self._task()
+        raw = {("acc", "none"): [0.0, 1.0, 1.0]}
+        _, _, per_metric_counts = _compute_task_aggregations(
+            task, raw, bootstrap_iters=0
+        )
+        assert per_metric_counts == {}
+
+    def test_per_metric_counts_present_when_nanmean_sees_no_nans(self):
+        # The denominator is recorded even when it equals the produced
+        # count, so a reader can tell "no exclusions" from "not measured".
+        task = MockEvalTask("t", agg={"acc": nanmean})
+        raw = {("acc", "none"): [0.0, 1.0]}
+        _, _, per_metric_counts = _compute_task_aggregations(
+            task, raw, bootstrap_iters=0
+        )
+        assert per_metric_counts == {"acc,none": 2}
 
 
 # ---------------------------------------------------------------------------
@@ -328,6 +363,18 @@ class TestCollectResults:
         task, acc = self._simple_acc()
         result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert result.metrics["my_task"]["alias"] == "My Task"
+
+    def test_sample_count_surfaces_in_task_metrics(self):
+        task = MockEvalTask("my_task", agg={"acc": nanmean}, hib={"acc": True})
+        raw = {("acc", "none"): [1.0, float("nan"), 1.0]}
+        acc = make_result_acc(task, raw)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        assert result.metrics["my_task"]["sample_count"] == {"acc,none": 2}
+
+    def test_sample_count_absent_without_excluding_aggregation(self):
+        task, acc = self._simple_acc()
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
+        assert "sample_count" not in result.metrics["my_task"]
 
     def test_alias_defaults_to_task_name(self):
         task = MockEvalTask("fallback_task", agg={"acc": mean})

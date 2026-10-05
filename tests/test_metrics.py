@@ -206,7 +206,7 @@ def test_dict_metric_uses_custom_aggregation():
         for key, value in result_dict.items():
             raw_metrics[(key, "none")].append(value)
 
-    agg_metrics, _ = _compute_task_aggregations(task, raw_metrics, bootstrap_iters=0)
+    agg_metrics, _, _ = _compute_task_aggregations(task, raw_metrics, bootstrap_iters=0)
 
     # If fix works: sum([1.0, 1.0, 1.0]) = 3.0; if broken (mean fallback): 1.0
     assert agg_metrics["pass@1,none"] == 3.0
