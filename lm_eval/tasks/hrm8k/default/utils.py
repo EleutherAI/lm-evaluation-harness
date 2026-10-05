@@ -126,7 +126,9 @@ def parse_math_answer(raw_string):
             if "\\n" in last_match:
                 last_match = last_match.split("\\n")[0]
         else:
-            pattern = "(?:\\$)?\\d+(?:\\.\\d+)?(?![\\w\\d])"
+            # The sign is part of the answer: without it a negative gold is
+            # reduced to its absolute value, so a wrong sign scores as correct.
+            pattern = "-?(?:\\$)?\\d+(?:\\.\\d+)?(?![\\w\\d])"
             matches = re.findall(pattern, s)
             if matches:
                 last_match = matches[-1]
