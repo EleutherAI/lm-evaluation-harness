@@ -116,9 +116,10 @@ def test_sglang_generate_until_withholds_task_stops_for_reasoning_models():
     `<think>` blocks; passing them to SGLang truncates the reasoning trace
     before any answer is produced. They are applied post-hoc instead.
     """
+    think_end = "</think>"
     lm = _make_lm(
         ["let me think\n\nstill thinking</think>Answer: 4\n\nQuestion: next"],
-        think_end_token="</think>",
+        think_end_token=think_end,
     )
 
     assert lm.generate_until(
