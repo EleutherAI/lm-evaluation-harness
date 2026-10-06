@@ -169,3 +169,34 @@ def test_is_equiv_indexed_roots_through_pipeline(pred, gold):
 
 def test_is_equiv_shorthand_still_works():
     assert is_equiv(normalize("\\sqrt8"), normalize("2\\sqrt{2}"))
+
+
+# `leaderboard.math.utils.is_equiv` guards sympy with the same SIGALRM timeout
+# as minerva_math and putnam_axiom and has the same catch-all failure mode on
+# platforms without SIGALRM or off the main thread (#4286).
+def test_leaderboard_is_equiv_works_without_sigalrm(monkeypatch):
+    import signal
+
+    from lm_eval.tasks.leaderboard.math.utils import (
+        is_equiv as leaderboard_is_equiv,
+    )
+
+    monkeypatch.delattr(signal, "SIGALRM", raising=False)
+    assert leaderboard_is_equiv("\\frac{1}{2}", "0.5")
+    assert not leaderboard_is_equiv("\\frac{1}{2}", "0.6")
+
+
+def test_leaderboard_is_equiv_works_off_the_main_thread():
+    from concurrent.futures import ThreadPoolExecutor
+
+    from lm_eval.tasks.leaderboard.math.utils import (
+        is_equiv as leaderboard_is_equiv,
+    )
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        assert pool.submit(
+            leaderboard_is_equiv, "\\frac{1}{2}", "0.5"
+        ).result()
+        assert not pool.submit(
+            leaderboard_is_equiv, "\\frac{1}{2}", "0.6"
+        ).result()
