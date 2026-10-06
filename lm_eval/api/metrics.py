@@ -99,22 +99,39 @@ def bleu(items):
 
 
 @register_aggregation("chrf")
-def chrf(items):
+def chrf(items, char_order: int = 6, word_order: int = 0):
     """chrF is an evaluation metric for machine translation output based on
     character n-gram precision and recall.
 
-    Computed with sacrebleu's defaults: char_order=6, word_order=0, beta=2.
-    For chrF++ (word_order=2), use the ``chrf++`` metric instead.
+    The defaults mirror sacrebleu's, so a task that sets neither parameter
+    scores exactly as before. word_order=2 is the chrF++ variant; the
+    "chrf++" aggregation below is that preset.
 
     Source: https://github.com/m-popovic/chrF
     Paper: https://www.aclweb.org/anthology/W15-3049.pdf
+
+    :param char_order: character n-gram order (sacrebleu default: 6)
+    :param word_order: word n-gram order, 2 gives chrF++ (sacrebleu default: 0)
 
     Higher is better
     """
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_chrf(preds, refs).score
+    return sacrebleu.corpus_chrf(
+        preds, refs, char_order=char_order, word_order=word_order
+    ).score
+
+
+@register_aggregation("chrf++")
+def chrf_pp(items, char_order: int = 6, word_order: int = 2):
+    """chrF++ is chrF with word n-grams added on top of the character n-grams.
+
+    Select it from a task YAML with `aggregation: chrf++`.
+
+    Higher is better
+    """
+    return chrf(items, char_order=char_order, word_order=word_order)
 
 
 @register_aggregation("chrf++")
