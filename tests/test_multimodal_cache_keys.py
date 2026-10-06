@@ -50,6 +50,27 @@ def test_bytearray_matches_equivalent_bytes():
     )
 
 
+def test_mapping_order_does_not_change_key():
+    left = {
+        "temperature": 0.0,
+        "response_format": {"type": "json", "schema": {"b": 2, "a": 1}},
+    }
+    right = {
+        "response_format": {"schema": {"a": 1, "b": 2}, "type": "json"},
+        "temperature": 0.0,
+    }
+
+    assert hash_args("generate_until", ("prompt", left)) == hash_args(
+        "generate_until", ("prompt", right)
+    )
+
+
+def test_sequence_order_remains_significant():
+    assert hash_args("generate_until", ({"until": ["a", "b"]},)) != hash_args(
+        "generate_until", ({"until": ["b", "a"]},)
+    )
+
+
 def test_text_only_keys_remain_compatible():
     req = ("prompt", {"until": ["\n"]}, {})
     expected = hashlib.sha256(
