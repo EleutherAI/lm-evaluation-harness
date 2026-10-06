@@ -42,15 +42,13 @@ def print_writeout(task: Task) -> None:
                 f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
     \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
             )
-            eval_logger.info(f"Request: {str(inst)}")
+            eval_logger.info(f"Request: {inst!s}")
             break
 
 
-def get_sample_size(task, limit: int | float | None) -> int | None:
+def get_sample_size(task, limit: float | None) -> int | None:
     if limit is not None:
-        limit = (
-            int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
-        )
+        limit = math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
     return limit
 
 
@@ -226,22 +224,19 @@ def _compute_task_aggregations(
 
     # Differing counts mean some documents were dropped from some metrics, so the
     # single reported sample count does not describe every metric. Surface the
-    # per-metric counts, and the group-weighting consequence, rather than letting
-    # the discrepancy pass silently. Group.aggregate weights each subtask by this
-    # one task-level count (see lm_eval/api/group.py), so it has no way to give a
-    # metric the number of documents that metric was actually scored on.
-    # TODO: fix this: will need to return the per-metric counts and group.py to index them by metric_key
+    # discrepancy while retaining the per-metric counts for group aggregation.
     if len(set(metric_lens.values())) > 1:
         counts = ", ".join(f"{key}={n}" for key, n in sorted(metric_lens.items()))
         eval_logger.warning(
             f"[{task.task_name}] Metrics were not scored on the same number of "
             f"documents ({counts}). Each metric was aggregated over only the "
             f"documents that produced it; reporting {sample_len} as the evaluated "
-            f"sample count. Size-weighted group aggregation applies that single "
-            f"count to every metric of this task, so any metric scored on fewer "
-            f"than {sample_len} documents is over-weighted in the group score."
+            f"sample count. Per-metric sample counts are reported separately and "
+            f"used for size-weighted group aggregation so metrics are not "
+            f"over-weighted."
         )
 
+    agg_metrics["sample_count"] = metric_lens
     return agg_metrics, sample_len
 
 

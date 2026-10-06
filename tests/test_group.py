@@ -486,6 +486,33 @@ class TestGroupWeightedAggregation:
         # Unweighted average: (0.60 + 0.90) / 2 = 0.75
         assert result_unweighted["acc,none"] == pytest.approx(0.75)
 
+    def test_weighted_aggregation_uses_metric_specific_counts(self):
+        task_a = MockTask("task_a")
+        task_b = MockTask("task_b")
+        metrics = {
+            "task_a": {
+                "sample_len": 100,
+                "sample_count": {"acc,none": 1, "f1,none": 100},
+                "acc,none": 0.0,
+            },
+            "task_b": {
+                "sample_len": 1,
+                "sample_count": {"acc,none": 1},
+                "acc,none": 1.0,
+            },
+        }
+        group = Group(
+            name="test_metric_counts",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", weight_by_size=True)],
+        )
+        group.add(task_a)
+        group.add(task_b)
+
+        result = group.aggregate(metrics)
+
+        assert result["acc,none"] == pytest.approx(0.5)
+        assert result["sample_count"]["acc,none"] == 2
+
     def test_unweighted_aggregation_stderr_matches_unweighted_mean(self):
         """weight_by_size=False must report the stderr of the *unweighted* mean.
 

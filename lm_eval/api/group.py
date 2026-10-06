@@ -178,14 +178,15 @@ class Group:
                     filter_name = key[len(prefix) :]  # Extract filter part
                     discovered_filters.add(filter_name)
 
-        return sorted(list(discovered_filters))  # Sort for deterministic ordering
+        return sorted(discovered_filters)  # Sort for deterministic ordering
 
     def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
         """
         Aggregate metrics for this group from its leaf task results.
 
         Args:
-            task_metrics: {task_name: {metric_key: value, "sample_len": int, ...}}
+            task_metrics: {task_name: {metric_key: value, "sample_len": int,
+                "sample_count": {metric_key: int}, ...}}
                 The full flat metrics dict (all tasks). This group only reads
                 entries for its own leaf tasks (via ``get_all_tasks()``).
 
@@ -246,7 +247,12 @@ class Group:
                     task_result = task_metrics[task_name]
                     if metric_key in task_result:
                         values.append(task_result[metric_key])  # type:ignore[invalid-key]
-                        sizes.append(task_result.get("sample_len", 0))
+                        metric_counts = task_result.get("sample_count", {})
+                        sizes.append(
+                            metric_counts.get(
+                                metric_key, task_result.get("sample_len", 0)
+                            )
+                        )
                         tasks_with_metric.append(task_name)
                         stderr_val = task_result.get(stderr_key)
                         if stderr_val is not None:
