@@ -11,17 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+from __future__ import annotations
+
 import itertools
 import random
 import string
+from typing import TYPE_CHECKING
 
 import datasets
 import numpy as np
-import transformers
 from scipy.special import zeta
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_SEQ_LENGTHS,
+    get_tokenizer,
+    resolve_tokenizer_name,
+)
+
+
+if TYPE_CHECKING:
+    import transformers
 
 
 CONFIG = {
@@ -37,7 +47,7 @@ TEMPLATE = CONFIG["template"] + CONFIG["answer_prefix"]
 
 def generate_input_output(
     max_len: int,
-    tokenizer: "transformers.PreTrainedTokenizerFast",
+    tokenizer: transformers.PreTrainedTokenizerFast,
     num_words=-1,
     coded_wordlen=6,
     vocab_size=2000,
@@ -51,7 +61,7 @@ def generate_input_output(
     ]
     while len(set(vocab)) < vocab_size:
         vocab.append("".join(random.choices(string.ascii_lowercase, k=coded_wordlen)))
-    vocab = sorted(list(set(vocab)))
+    vocab = sorted(set(vocab))
     random.Random(SEED).shuffle(vocab)
     vocab[0] = "..."  # treat the top ranked as noise
 
@@ -61,7 +71,9 @@ def generate_input_output(
     def gen_text(num_words):
         k = np.arange(1, len(vocab) + 1)
         sampled_cnt = num_words * (k**-alpha) / zeta(alpha)
-        sampled_words = [[w] * zi for w, zi in zip(vocab, sampled_cnt.astype(int))]
+        sampled_words = [
+            [w] * zi for w, zi in zip(vocab, sampled_cnt.astype(int), strict=False)
+        ]
         sampled_words = [x for wlst in sampled_words for x in wlst]
         random.Random(SEED).shuffle(sampled_words)
         return template.format(context=" ".join(sampled_words), query=""), vocab[1:4]
@@ -83,7 +95,7 @@ def generate_input_output(
 
 
 def sys_kwext(
-    tokenizer: "transformers.PreTrainedTokenizerFast",
+    tokenizer: transformers.PreTrainedTokenizerFast,
     max_seq_length: int,
     num_samples: int = 500,
     vocab_size: int = -1,
@@ -142,8 +154,7 @@ def sys_kwext(
     return write_jsons
 
 
-def get_dataset(pretrained, max_seq_length=None, **kwargs):
-    tokenizer = get_tokenizer(pretrained)
+def get_dataset(tokenizer, max_seq_length=None, **kwargs):
     write_jsons = sys_kwext(
         tokenizer=tokenizer,
         max_seq_length=max_seq_length,
@@ -152,9 +163,9 @@ def get_dataset(pretrained, max_seq_length=None, **kwargs):
 
 
 def fwe_download(**kwargs):
-    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
+    tokenizer = get_tokenizer(resolve_tokenizer_name(kwargs))
     df = (
-        get_dataset(pretrained, max_seq_length=seq)
+        get_dataset(tokenizer, max_seq_length=seq)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

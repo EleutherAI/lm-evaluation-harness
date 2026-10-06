@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_social_sciences_tasks
+task: greekmmlu_education_professional
+task_alias: Education_Professional
+dataset_name: Education_Professional

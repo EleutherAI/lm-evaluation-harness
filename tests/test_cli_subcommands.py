@@ -207,6 +207,43 @@ class TestRunCommand:
         )
         assert args.model_args == {"pretrained": "gpt2", "device": "cuda"}
 
+    def test_run_command_metadata(self):
+        """Test Run command metadata parsing accepts key=value and JSON."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        # key=value format, with a bracketed value containing commas
+        args = parser.parse_args(
+            ["run", "--metadata", "tokenizer=gpt2,max_seq_lengths=[4096,8192]"]
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096, 8192]}
+
+        # space-separated key=value pairs
+        args = parser.parse_args(
+            ["run", "--metadata", "tokenizer=gpt2", "max_seq_lengths=[4096]"]
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096]}
+
+        # JSON object remains supported
+        args = parser.parse_args(
+            ["run", "--metadata", '{"tokenizer": "gpt2", "max_seq_lengths": [4096]}']
+        )
+        assert args.metadata == {"tokenizer": "gpt2", "max_seq_lengths": [4096]}
+
+        # unset stays None so config defaults apply
+        args = parser.parse_args(["run", "--tasks", "ruler"])
+        assert args.metadata is None
+
+    def test_run_command_metadata_invalid(self):
+        """Test Run command exits cleanly on metadata missing an `=`."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        with pytest.raises(SystemExit):
+            parser.parse_args(["run", "--metadata", "tokenizer"])
+
     def test_run_command_batch_size(self):
         """Test Run command batch size arguments."""
         parser = argparse.ArgumentParser()
@@ -795,6 +832,11 @@ class TestCLIUtils:
         result = try_parse_json("key=value,key2=value2")
         assert result == "key=value,key2=value2"
 
+    def test_try_parse_json_with_braces_in_plain_string(self):
+        """Test that braces within a key-value argument are not treated as JSON."""
+        value = "base_url=http://{yourip}:8000/v1/completions"
+        assert try_parse_json(value) == value
+
     def test_try_parse_json_with_invalid_json(self):
         """Test try_parse_json with invalid JSON."""
         with pytest.raises(ValueError) as exc_info:
@@ -923,6 +965,23 @@ class TestMergeDictAction:
 
         args = parser.parse_args(["--args", "key1=val1,key2=val2"])
         assert args.args == {"key1": "val1", "key2": "val2"}
+
+    def test_key_value_with_braces(self):
+        """Test the documented brace-containing local-server URL."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(
+            [
+                "--args",
+                "model=facebook/opt-125m,base_url=http://{yourip}:8000/v1/completions,num_concurrent=1",
+            ]
+        )
+        assert args.args == {
+            "model": "facebook/opt-125m",
+            "base_url": "http://{yourip}:8000/v1/completions",
+            "num_concurrent": 1,
+        }
 
     def test_space_separated_key_value(self):
         """Test parsing space-separated key=value pairs."""

@@ -1,8 +1,6 @@
 import html
 import re
 
-from datasets import load_metric
-
 
 def general_detokenize(string):
     string = re.sub(r"\s+([.,;:!?)])", r"\1", string)
@@ -60,7 +58,9 @@ def coref_doc_to_text(x):
 
 
 def micro_f1_score(items):
-    f1_metric = load_metric("f1")
+    import evaluate
+
+    f1_metric = evaluate.load("f1")
     golds, preds = list(zip(*items))
     f1_score = f1_metric.compute(references=golds, predictions=preds, average="micro")[
         "f1"
@@ -69,7 +69,9 @@ def micro_f1_score(items):
 
 
 def vaxx_f1_score(items):
-    f1_metric = load_metric("f1")
+    import evaluate
+
+    f1_metric = evaluate.load("f1")
     golds, preds = list(zip(*items))
     f1_class = f1_metric.compute(
         references=golds, predictions=preds, labels=[0, 2], average=None

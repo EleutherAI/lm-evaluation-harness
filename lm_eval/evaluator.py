@@ -64,7 +64,7 @@ def simple_evaluate(
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
-    limit: int | float | None = None,
+    limit: float | None = None,
     samples: dict[str, list[int]] | None = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,

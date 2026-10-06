@@ -134,6 +134,26 @@ def chrf_pp(items, char_order: int = 6, word_order: int = 2):
     return chrf(items, char_order=char_order, word_order=word_order)
 
 
+@register_aggregation("chrf++")
+def chrfpp(items):
+    """chrF++ is chrF extended with word n-grams, for automatic evaluation of
+    machine translation output.
+
+    Computed with word_order=2 and sacrebleu's remaining defaults:
+    char_order=6, beta=2. For plain chrF (word_order=0), use the ``chrf``
+    metric instead.
+
+    Source: https://github.com/m-popovic/chrF
+    Paper: https://aclanthology.org/W17-4770.pdf
+
+    Higher is better
+    """
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = _sacreformat(refs, preds)
+    return sacrebleu.corpus_chrf(preds, refs, word_order=2).score
+
+
 @register_aggregation("ter")
 def ter(items):
     """Translation Error Rate is an error metric for machine translation that
@@ -391,6 +411,16 @@ def chrf_fn(items):  # This is a passthrough function
 
 
 @register_metric(
+    metric="chrf++",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="chrf++",
+)
+def chrfpp_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
     metric="ter",
     higher_is_better=False,
     output_type="generate_until",
@@ -596,7 +626,7 @@ def stderr_for_metric(
         perplexity,
         bleu,
         chrf,
-        chrf_pp,
+        chrfpp,
         ter,
         nanmean,
     ]

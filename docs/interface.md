@@ -119,6 +119,7 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | Argument | Description |
 |----------|-------------|
 | `--include_path` | Additional directory containing external task YAML files. |
+| `--plugins` | Modules to import before evaluation so their `@register_*` decorators run (models, filters, metrics, aggregations). See the [Plugin Guide](./plugins.md). |
 
 ### Logging and Tracking
 

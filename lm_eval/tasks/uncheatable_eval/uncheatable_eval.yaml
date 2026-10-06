@@ -1,0 +1,30 @@
+group: uncheatable_eval
+group_alias: Uncheatable Eval
+task:
+  - uncheatable_eval_wikipedia_english
+  - uncheatable_eval_wikipedia_nonenglish
+  - uncheatable_eval_github_python
+  - uncheatable_eval_github_cpp
+  - uncheatable_eval_github_javascript
+  - uncheatable_eval_github_markdown
+  - uncheatable_eval_github_other
+  - uncheatable_eval_bbc_news
+  - uncheatable_eval_arxiv_physics
+  - uncheatable_eval_arxiv_math
+  - uncheatable_eval_arxiv_cs
+  - uncheatable_eval_arxiv_other
+  - uncheatable_eval_biorxiv_all
+  - uncheatable_eval_ao3_english
+  - uncheatable_eval_ao3_nonenglish
+aggregate_metric_list:
+  - metric: word_perplexity
+    aggregation: mean
+    weight_by_size: true
+  - metric: byte_perplexity
+    aggregation: mean
+    weight_by_size: true
+  - metric: bits_per_byte
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

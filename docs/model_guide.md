@@ -102,6 +102,27 @@ Using this decorator results in the class being added to an accounting of the us
 
 **Tip: be sure to import your model in `lm_eval/models/__init__.py!`**
 
+### Registering a backend from an external package (plugins)
+
+If your backend lives in your **own** package rather than in the `lm-eval` source
+tree, you do not need to fork or edit `lm-eval`. Declare an `lm_eval.models` entry
+point and `lm-eval --model <name>` resolves it at runtime:
+
+# in your_project/pyproject.toml
+
+```toml
+[project.entry-points."lm_eval.models"]
+my-backend = "my_pkg.models:MyBackendLM"
+```
+
+```bash
+lm-eval run --model my-backend --tasks hellaswag
+```
+
+For unpublished modules, `--plugins my_pkg.models` imports them so their
+`@register_model` decorator runs. Filters, metrics and aggregations work the same
+way — see the [Plugin Guide](./plugins.md) for the full picture.
+
 ## Testing
 
 We also recommend that new model contributions be accompanied by short tests of their 3 core functionalities, at minimum. To see an example of such tests, look at https://github.com/EleutherAI/lm-evaluation-harness/blob/35bdecd379c0cefad6897e67db892f4a6026a128/tests/test_ggml.py .

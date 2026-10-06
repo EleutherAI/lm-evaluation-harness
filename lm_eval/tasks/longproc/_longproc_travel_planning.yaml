@@ -1,0 +1,10 @@
+group: longproc_travel_planning
+task:
+  - longproc_travel_planning_2k
+  - longproc_travel_planning_8k
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

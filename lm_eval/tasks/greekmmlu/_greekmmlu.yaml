@@ -1,0 +1,10 @@
+aggregate_metric_list:
+-   aggregation: mean
+    metric: acc
+    weight_by_size: true
+group: greekmmlu
+task:
+- greekmmlu_social_sciences
+- greekmmlu_stem
+- greekmmlu_other
+- greekmmlu_humanities

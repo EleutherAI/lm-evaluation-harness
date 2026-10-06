@@ -1,0 +1,8 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_arxiv_cs
+task_alias: UE_arxiv_cs
+process_docs: !function uncheatable_eval_utils.filter_arxiv_cs
+metadata:
+  description: >-
+    Rolling perplexity on arXiv computer science papers from the Uncheatable Eval
+    2026-07 snapshot.

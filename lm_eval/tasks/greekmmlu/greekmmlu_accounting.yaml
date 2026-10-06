@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_social_sciences_tasks
+task: greekmmlu_accounting
+task_alias: Accounting
+dataset_name: Accounting

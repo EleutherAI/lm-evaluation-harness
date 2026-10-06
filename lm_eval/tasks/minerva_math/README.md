@@ -91,3 +91,13 @@ If other tasks on this dataset are already supported:
 - version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For
   details [see](https://huggingface.co/blog/math_verify_leaderboard)
 - version 3.0 (21-Aug-2025); pass the full solution and model generation to `math_verify`'s `parse`
+- version 3.1 (28-Aug-2026); prompt and scoring fixes. Scores shift slightly relative to 3.0.
+  - corrected the hardcoded 4-shot prompt: restored the `\\` row separators in the two `align*` blocks (emitted
+    as a single `\` since #1895 split the prompt into Python string literals) and removed a stray trailing `}`.
+    The few-shot text now matches the source rows in `EleutherAI/hendrycks_math` (#4045)
+  - an answer identical to the gold now scores correct even when sympy cannot parse it — tuples, intervals and
+    matrices (#4034)
+  - commas are stripped only from true thousands separators, so bare tuples like `0,1` are no longer fused into
+    `01` (#4039)
+  - unit-word stripping no longer corrupts LaTeX command names (`\left` -> `\le`, `\infty` -> `\iny`), and
+    `\sqrt[n]{...}` survives the sqrt shorthand rule (#4037)
