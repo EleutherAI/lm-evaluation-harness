@@ -192,6 +192,10 @@ class Group:
         Returns:
             Aggregated metrics dict for this group:
             {"alias": str, "acc,none": float, "acc_stderr,none": float, "sample_len": int, ...}
+
+        A warning is logged for every declared aggregate metric that no leaf
+        task produced values for, whether its filters are given explicitly or
+        left to auto-discovery (``filter_list=None``).
         """
         from lm_eval.api.metrics import (
             aggregate_subtask_metrics,
@@ -225,6 +229,20 @@ class Group:
                 filters_to_aggregate = self._discover_filters_for_metric(
                     agg_config.metric, task_metrics
                 )
+                if not filters_to_aggregate:
+                    # No leaf task emitted this metric under any filter, so
+                    # there is nothing to aggregate. Warn instead of silently
+                    # returning a group result with no trace of the declared
+                    # metric: with auto-discovery there is no per-filter pass
+                    # below that could surface the mismatch. An explicit
+                    # filter_list=[] remains an intentional opt-out and does
+                    # not warn.
+                    eval_logger.warning(
+                        f"Group '{self.name}': no values found for metric "
+                        f"'{agg_config.metric}' across any tasks. Check that the "
+                        f"group's aggregate_metric_list matches the metrics its "
+                        f"tasks emit."
+                    )
             else:
                 filters_to_aggregate = agg_config.filter_list
 
