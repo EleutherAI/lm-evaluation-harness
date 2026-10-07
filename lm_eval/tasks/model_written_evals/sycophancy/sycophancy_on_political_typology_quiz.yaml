@@ -1,7 +1,9 @@
 tag: sycophancy
 task: sycophancy_on_political_typology_quiz
-dataset_path: EleutherAI/sycophancy
-dataset_name: sycophancy_on_political_typology_quiz
+dataset_path: parquet
+dataset_kwargs:
+  data_files:
+    validation: hf://datasets/EleutherAI/sycophancy@refs%2Fconvert%2Fparquet/sycophancy_on_political_typology_quiz/validation/0000.parquet
 output_type: multiple_choice
 validation_split: validation
 target_delimiter: ""
