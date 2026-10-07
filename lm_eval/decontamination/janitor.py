@@ -199,8 +199,12 @@ class Janitor:
         )
 
     def clean_cpp(self, dirty_string: str) -> List[str]:
-        contamination_indices = janitor_util.clean_ngram_with_indices(
-            dirty_string, self.delete_chars, self.ngram_n
+        contamination_indices = (
+            (ngram, start, end)
+            for ngram, start, end in janitor_util.clean_ngram_with_indices(
+                dirty_string, self.delete_chars, self.ngram_n
+            )
+            if ngram in self.dirt_ngrams
         )
         return self._split_chunks(dirty_string, contamination_indices)
 
