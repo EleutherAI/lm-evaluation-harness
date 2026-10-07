@@ -2,18 +2,38 @@ import os
 import re
 import sys
 import types
+from typing import ClassVar
 
 import pytest
 
-import lm_eval.api as api
-import lm_eval.evaluator as evaluator
-from lm_eval import tasks
+from lm_eval import api, evaluator, tasks
 from lm_eval.utils import make_table
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
+
+
+@pytest.mark.parametrize(
+    "num_fewshot,expected",
+    [
+        (5, {"arc_easy": 5, "hellaswag": 5}),
+        ([0, 5], {"arc_easy": 0, "hellaswag": 5}),
+        (None, {"arc_easy": None, "hellaswag": None}),
+    ],
+)
+def test_normalize_num_fewshot(num_fewshot, expected):
+    tasks = {"arc_easy": object(), "hellaswag": object()}
+
+    assert evaluator._normalize_num_fewshot(num_fewshot, tasks) == expected
+
+
+def test_normalize_num_fewshot_requires_one_value_per_task():
+    tasks = {"arc_easy": object(), "hellaswag": object()}
+
+    with pytest.raises(ValueError, match="one value per task"):
+        evaluator._normalize_num_fewshot([5], tasks)
 
 
 @pytest.mark.parametrize(
@@ -75,12 +95,7 @@ def test_evaluator(
         else:
             return x["results"]["mmlu_abstract_algebra"]
 
-    assert all(
-        x == y
-        for x, y in zip(
-            [y for _, y in r(e1).items()], [y for _, y in r(e2).items()], strict=True
-        )
-    )
+    assert all(x == y for x, y in zip(r(e1).values(), r(e2).values(), strict=True))
 
 
 @pytest.mark.parametrize(
@@ -168,7 +183,7 @@ def test_printed_results(
 
 
 class _FakeMarkdownTableWriter:
-    instances = []
+    instances: ClassVar[list] = []
 
     def __init__(self):
         self.headers = []
