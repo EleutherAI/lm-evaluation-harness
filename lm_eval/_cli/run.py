@@ -126,7 +126,10 @@ class Run(SubCommand):
             nargs="+",
             default=None,
             metavar="<n>",
-            help="Number of examples in few-shot context, or one value per task",
+            help=(
+                "Number of examples in few-shot context. Pass multiple values to "
+                "set one per loaded task, in task-loading order."
+            ),
         )
         eval_group.add_argument(
             "--batch_size",
