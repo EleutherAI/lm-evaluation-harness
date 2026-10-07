@@ -1,3 +1,20 @@
+def process_docs(dataset):
+    # Same cleanup as the former baber/logiqa2 loading script
+    def _process_doc(doc):
+        return {
+            "text": doc["text"].strip(),
+            "question": doc["question"].strip(),
+            "options": [option.strip() for option in doc["options"]],
+        }
+
+    return dataset.map(_process_doc)
+
+
+def process_docs_logieval(dataset):
+    # The prompt is the second message of each LogiEval conversation
+    return dataset.map(lambda doc: {"content": doc["input"][1]["content"]})
+
+
 # Copied from Master
 def doc_to_text(doc) -> str:
     """
@@ -12,7 +29,7 @@ def doc_to_text(doc) -> str:
     choices = ["a", "b", "c", "d"]
     prompt = "Passage: " + doc["text"] + "\n"
     prompt += "Question: " + doc["question"] + "\n"
-    for choice, option in zip(choices, doc["options"]):
+    for choice, option in zip(choices, doc["options"], strict=False):
         prompt += f"{choice.upper()}. {option}\n"
     prompt += "Answer:"
     return prompt
