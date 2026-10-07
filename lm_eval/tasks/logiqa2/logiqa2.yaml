@@ -1,10 +1,15 @@
 task: logiqa2
-dataset_path: baber/logiqa2
-dataset_name: logiqa2
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    train: https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/train.txt
+    validation: https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/dev.txt
+    test: https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/test.txt
 output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
+process_docs: !function utils_logiqa2.process_docs
 doc_to_choice: "{{options}}"
 doc_to_text: !function utils_logiqa2.doc_to_text
 doc_to_target: "{{answer}}"
