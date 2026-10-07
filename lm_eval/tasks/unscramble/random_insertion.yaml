@@ -1,8 +1,10 @@
 tag:
   - unscramble
 task: random_insertion
-dataset_path: EleutherAI/unscramble
-dataset_name: random_insertion_in_word
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    validation: https://raw.githubusercontent.com/openai/gpt-3/master/data/random_insertion_in_word.jsonl.gz
 output_type: generate_until
 test_split: validation
 doc_to_text: "{{context}}"
