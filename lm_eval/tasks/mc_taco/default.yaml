@@ -1,5 +1,12 @@
 task: mc_taco
-dataset_path: CogComp/mc_taco
+dataset_path: csv
+dataset_kwargs:
+  data_files:
+    validation: https://raw.githubusercontent.com/CogComp/MCTACO/master/dataset/dev_3783.tsv
+    test: https://raw.githubusercontent.com/CogComp/MCTACO/master/dataset/test_9442.tsv
+  delimiter: "\t"
+  column_names: [sentence, question, answer, label, category]
+  na_filter: false
 output_type: multiple_choice
 validation_split: validation
 test_split: test
