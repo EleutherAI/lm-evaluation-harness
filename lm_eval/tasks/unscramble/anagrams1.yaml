@@ -1,8 +1,10 @@
 tag:
   - unscramble
 task: anagrams1
-dataset_path: EleutherAI/unscramble
-dataset_name: mid_word_1_anagrams
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    validation: https://raw.githubusercontent.com/openai/gpt-3/master/data/mid_word_1_anagrams.jsonl.gz
 output_type: generate_until
 test_split: validation
 doc_to_text: "{{context}}"
