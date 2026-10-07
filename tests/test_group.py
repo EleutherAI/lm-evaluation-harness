@@ -868,3 +868,103 @@ class TestAggMetricConfigValidation:
     def test_callable_aggregation_allowed(self):
         config = AggMetricConfig(metric="acc", aggregation=max)
         assert config.aggregation is max
+
+
+class TestGroupMissingAggregateMetric:
+    """Warnings when a declared aggregate metric matches no leaf task values.
+
+    Regression coverage for configs like mmlu_flan_cot_zeroshot (issue #3986),
+    whose group declares a metric its tasks never emit. With an explicit
+    filter list the per-filter pass already warns; with auto-discovery
+    (filter_list=None, the default) the mismatch used to be fully silent.
+    """
+
+    def setup_method(self):
+        self.task_a = MockTask("task_a")
+        self.task_b = MockTask("task_b")
+        self.task_metrics: dict[str, _TaskMetrics] = {
+            "task_a": {
+                "sample_len": 100,
+                "exact_match,none": 0.5,
+                "exact_match_stderr,none": 0.05,
+            },
+            "task_b": {
+                "sample_len": 100,
+                "exact_match,none": 0.7,
+                "exact_match_stderr,none": 0.04,
+            },
+        }
+
+    def test_auto_discovery_missing_metric_warns(self, caplog):
+        import logging
+
+        group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
+        group.add(self.task_a)
+        group.add(self.task_b)
+
+        with caplog.at_level(logging.WARNING):
+            result = group.aggregate(self.task_metrics)
+
+        # Nothing to aggregate, but sample_len still reflects the leaf tasks
+        assert not any(k.startswith("acc") for k in result)
+        assert result["sample_len"] == 200
+
+        warnings = [r.message for r in caplog.records if r.levelname == "WARNING"]
+        assert len(warnings) == 1
+        assert "no values found" in warnings[0]
+        assert "'acc'" in warnings[0]
+
+    def test_auto_discovery_missing_metric_warns_alongside_present_metric(self, caplog):
+        import logging
+
+        group = Group(
+            name="g",
+            aggregate_metric_list=[
+                AggMetricConfig(metric="acc"),  # missing in all tasks
+                AggMetricConfig(metric="exact_match"),  # present
+            ],
+        )
+        group.add(self.task_a)
+        group.add(self.task_b)
+
+        with caplog.at_level(logging.WARNING):
+            result = group.aggregate(self.task_metrics)
+
+        assert result["exact_match,none"] == pytest.approx(0.6)
+        warnings = [r.message for r in caplog.records if r.levelname == "WARNING"]
+        assert len(warnings) == 1
+        assert "'acc'" in warnings[0]
+
+    def test_explicit_empty_filter_list_stays_silent(self, caplog):
+        import logging
+
+        group = Group(
+            name="g",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", filter_list=[])],
+        )
+        group.add(self.task_a)
+
+        with caplog.at_level(logging.WARNING):
+            result = group.aggregate(self.task_metrics)
+
+        assert not any(k.startswith("acc") for k in result)
+        assert caplog.records == []
+
+    def test_explicit_filter_missing_metric_warns(self, caplog):
+        import logging
+
+        group = Group(
+            name="g",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", filter_list=["none"])],
+        )
+        group.add(self.task_a)
+        group.add(self.task_b)
+
+        with caplog.at_level(logging.WARNING):
+            result = group.aggregate(self.task_metrics)
+
+        assert not any(k.startswith("acc") for k in result)
+        warnings = [r.message for r in caplog.records if r.levelname == "WARNING"]
+        assert len(warnings) == 1
+        assert "no values found" in warnings[0]
+        assert "acc,none" in warnings[0]
