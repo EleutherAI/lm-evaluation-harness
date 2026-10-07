@@ -1,10 +1,16 @@
 task: logiqa
-dataset_path: EleutherAI/logiqa
-dataset_name: logiqa
+dataset_path: text
+dataset_kwargs:
+  data_files:
+    train: https://raw.githubusercontent.com/lgw863/LogiQA-dataset/master/Train.txt
+    validation: https://raw.githubusercontent.com/lgw863/LogiQA-dataset/master/Eval.txt
+    test: https://raw.githubusercontent.com/lgw863/LogiQA-dataset/master/Test.txt
+  sample_by: document
 output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
+process_docs: !function utils_logiqa.process_docs
 doc_to_choice: "{{options}}"
 doc_to_text: !function utils_logiqa.doc_to_text
 doc_to_target: !function utils_logiqa.doc_to_target
