@@ -16,7 +16,9 @@ filter_list:
   - name: "get-choice"
     filter:
       - function: "regex"
-        regex_pattern: "([A-E])"
+        # last standalone letter: CoT output names options before concluding
+        regex_pattern: "\\b([A-E])\\b"
+        group_select: -1
       - function: "take_first"
 generation_kwargs:
   until:
@@ -31,4 +33,4 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 0.0
+  version: 1.0
