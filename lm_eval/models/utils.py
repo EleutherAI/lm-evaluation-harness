@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -651,6 +652,11 @@ def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> lis
 
     if eos is not None and eos not in until:
         until.append(eos)
+    # An empty stop sequence matches every string, so `MultiTokenEOSCriteria`
+    # reports "done" after the first generated token, and backends that reject
+    # an empty entry (vLLM's SamplingParams) raise. postprocess_generated_text
+    # already skips it; drop it here so both halves agree.
+    until = [seq for seq in until if len(seq) > 0]
     return until
 
 

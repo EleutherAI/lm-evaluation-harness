@@ -1,6 +1,12 @@
 import pytest
 
-from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
+from lm_eval.models.utils import (
+    handle_stop_sequences,
+    maybe_truncate,
+    normalize_gen_kwargs,
+    postprocess_generated_text,
+    truncate_tokens,
+)
 
 
 class TestTruncateTokens:
@@ -299,3 +305,57 @@ class TestNormalizeGenKwargs:
         original_copy = original.copy()
         normalize_gen_kwargs(original)
         assert original == original_copy
+
+
+class TestHandleStopSequences:
+    """Tests for handle_stop_sequences utility function."""
+
+    # --- empty entries ---
+
+    @pytest.mark.parametrize(
+        "until,eos,expected",
+        [
+            ([""], "</s>", ["</s>"]),
+            (["\n\n", ""], "</s>", ["\n\n", "</s>"]),
+            (["", "a", "", "b", ""], "</s>", ["a", "b", "</s>"]),
+            ([""], None, []),
+            (["\n\n", ""], None, ["\n\n"]),
+            # An empty eos is the OpenAIChatCompletion default, and it is dropped too:
+            # otherwise the entry would be filtered and then appended right back.
+            ([""], "", []),
+            (["hi"], "", ["hi"]),
+            ([], "", []),
+        ],
+    )
+    def test_empty_entries_dropped(self, until, eos, expected):
+        assert handle_stop_sequences(until, eos) == expected
+
+    def test_no_empty_entry_reaches_the_vllm_sampling_params(self):
+        # vLLM's SamplingParams raises "stop cannot contain an empty string."
+        kwargs = normalize_gen_kwargs({"until": ["\n\n", ""], "max_gen_toks": 16})
+        stop = handle_stop_sequences(kwargs.pop("until"), eos="</s>")
+        assert "" not in stop
+        assert stop == ["\n\n", "</s>"]
+
+    def test_postprocessing_is_unaffected(self):
+        # postprocess_generated_text already skipped "", so dropping it upstream
+        # cannot change the text a caller sees.
+        gen = "Question: the answer\n\ntrailing text"
+        assert postprocess_generated_text(
+            gen, ["\n\n", ""], None
+        ) == postprocess_generated_text(gen, ["\n\n"], None)
+
+    # --- non-empty entries ---
+
+    def test_string_converted_to_list(self):
+        assert handle_stop_sequences("stop", "</s>") == ["stop", "</s>"]
+
+    def test_none_becomes_eos_only(self):
+        assert handle_stop_sequences(None, "</s>") == ["</s>"]
+
+    def test_eos_not_duplicated(self):
+        assert handle_stop_sequences(["stop", "</s>"], "</s>") == ["stop", "</s>"]
+
+    def test_wrong_type_raises(self):
+        with pytest.raises(ValueError):
+            handle_stop_sequences(("a", "b"), "</s>")
