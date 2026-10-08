@@ -19,7 +19,7 @@ filter_list:
   - name: default
     filter:
       - function: regex
-        regex_pattern: "([ABCD])"
+        regex_pattern: "\\b([ABCD])\\b"
       - function: take_first
 metadata:
-  version: 3.0
+  version: 4.0

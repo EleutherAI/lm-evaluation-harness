@@ -23,10 +23,10 @@ metric_list:
 filter_list:
   - name: default
     filter:
-      # This captures the first single capital letter A/B/C/D
+      # First standalone letter A/B/C/D, so the A in "Answer: C" is not taken
       - function: regex
-        regex_pattern: "([ABCD])"
+        regex_pattern: "\\b([ABCD])\\b"
       - function: take_first
 
 metadata:
-  version: 4.0
+  version: 5.0
