@@ -79,7 +79,7 @@ def get_watsonx_credentials() -> dict[str, str | None]:
                         keys such as `apikey` or `token`, `url`, and `project_id`.
 
     Raises:
-        AssertionError: If the credentials format is invalid or any of the necessary credentials are missing.
+        ValueError: If the credentials format is invalid or any of the necessary credentials are missing.
     """
 
     try:
@@ -102,6 +102,7 @@ def get_watsonx_credentials() -> dict[str, str | None]:
         "project_id": os.getenv("WATSONX_PROJECT_ID", None),
         "space_id": os.getenv("WATSONX_SPACE_ID", None),
     }
+    _verify_credentials(credentials)
     if "cloud.ibm.com" not in credentials["url"]:
         credentials["instance_id"] = "openshift"
 
@@ -112,7 +113,6 @@ def get_watsonx_credentials() -> dict[str, str | None]:
             "can be found in the docs: https://ibm.github.io/watsonx-ai-python-sdk/setup_cpd.html",
             stacklevel=2,
         )
-    _verify_credentials(credentials)
     return credentials
 
 
@@ -335,9 +335,9 @@ class WatsonxLLM(LM):
                     response = response["choices"][0]["message"]["content"]
                 else:
                     response = self.model.generate_text(context, self.generate_params)
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while generating text.")
-                raise exp
+                raise
 
             results.append(response)
             self.cache_hook.add_partial(
@@ -384,9 +384,9 @@ class WatsonxLLM(LM):
                 tokenized_context = self.model.tokenize(
                     prompt=context, return_tokens=True
                 )["result"]["tokens"]
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while model tokenize.")
-                raise exp
+                raise
 
             input_prompt = context + continuation
 
@@ -394,9 +394,9 @@ class WatsonxLLM(LM):
                 response = self.model.generate_text(
                     prompt=input_prompt, params=generate_params, raw_response=True
                 )
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while model generate text.")
-                raise exp
+                raise
 
             log_likelihood_response = self._get_log_likelihood(
                 response["results"][0]["input_tokens"], tokenized_context
@@ -450,9 +450,9 @@ class WatsonxLLM(LM):
                 response = self.model.generate_text(
                     prompt=context, params=generate_params, raw_response=True
                 )
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while model generate text.")
-                raise exp
+                raise
 
             log_likelihood_response = self._get_log_likelihood(
                 response["results"][0]["input_tokens"], []
