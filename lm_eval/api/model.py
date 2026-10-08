@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 from tqdm import tqdm
+from typing_extensions import Self
 
 from lm_eval import utils
 
@@ -52,7 +53,6 @@ class LM(abc.ABC):
             A list of ``(logprob, is_greedy)`` tuples — the log-probability of
             the continuation and whether it would be produced by greedy decoding.
         """
-        pass
 
     @abc.abstractmethod
     def loglikelihood_rolling(self, requests: list["Instance"]) -> list[float]:
@@ -93,7 +93,6 @@ class LM(abc.ABC):
             A list of ``(logprob,)`` tuples — the log-probability of the string
             conditioned on the BOS/EOS token (or ``prefix_token_id``).
         """
-        pass
 
     # TODO: Add an optional max length
     @abc.abstractmethod
@@ -108,7 +107,6 @@ class LM(abc.ABC):
         Returns:
             A list of generated continuation strings, one per request.
         """
-        pass
 
     def apply_chat_template(
         self, chat_history: list[dict[str, str]], add_generation_prompt=True
@@ -129,8 +127,8 @@ class LM(abc.ABC):
 
     @classmethod
     def create_from_arg_string(
-        cls: type[T], arg_string: str, additional_config: dict | None = None
-    ) -> T:
+        cls: type[Self], arg_string: str, additional_config: dict | None = None
+    ) -> Self:
         """Create an LM instance from a comma-separated argument string.
 
         Args:
@@ -147,10 +145,10 @@ class LM(abc.ABC):
 
     @classmethod
     def create_from_arg_obj(
-        cls: type[T],
+        cls: type[Self],
         arg_dict: dict[str, Any],
         additional_config: dict[str, Any] | None = None,
-    ) -> T:
+    ) -> Self:
         """Create an LM instance from a dictionary of arguments.
 
         Args:
@@ -382,7 +380,6 @@ class TemplateLM(LM):
         Must handle strings that already contain the BOS token when
         ``add_special_tokens`` is None. Otherwise, uses the flag as given.
         """
-        pass
 
     @abc.abstractmethod
     def _loglikelihood_tokens(
@@ -457,14 +454,26 @@ class TemplateLM(LM):
                     continuation, add_special_tokens=False
                 )
                 # BOS or EOS as context: handle when context is empty -> (context + continuation) -> (BOS + continuation
-                context_enc, continuation_enc = (
-                    ([self.prefix_token_id], continuation_enc)
-                    if self.prefix_token_id != continuation_enc[0]
-                    else (continuation_enc[:1], continuation_enc[1:])
-                )
+                if (
+                    len(continuation_enc) > 0
+                    and continuation_enc[0] == self.prefix_token_id
+                ):
+                    # Continuation already has BOS, move it to context
+                    context_enc = continuation_enc[:1]
+                    continuation_enc = continuation_enc[1:]
+                else:
+                    # Use prefix_token_id (BOS/EOS) as context
+                    context_enc = [self.prefix_token_id]
                 # BOS or EOS as context
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
+                if not context_enc:
+                    # A context made up entirely of whitespace is emptied by the
+                    # trailing-space migration in _encode_pair and then encodes to
+                    # no tokens at all, which the scoring backends reject on
+                    # `assert len(context_enc) > 0`. Condition on the prefix token
+                    # instead, as the empty-context branch above does.
+                    context_enc = [self.prefix_token_id]
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
