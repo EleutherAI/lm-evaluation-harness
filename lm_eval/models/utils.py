@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -726,6 +727,10 @@ def normalize_gen_kwargs(
     match do_sample:
         case None:
             kwargs["do_sample"] = True if temperature > 0.0 else False  # noqa: SIM210
+            # write temperature explicitly: backends that drop `do_sample`
+            # (e.g. vLLM) would otherwise fall back to their own default (1.0)
+            if not kwargs["do_sample"]:
+                kwargs["temperature"] = 0.0
         # do_sample=False -> temperature=0.0
         case False:
             if temperature and temperature != 0.0:
