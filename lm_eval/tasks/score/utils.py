@@ -18,11 +18,10 @@ import logging
 import re
 import string
 import sys
-from functools import partial
+from collections.abc import Callable
 from itertools import combinations
-from typing import Any, Dict, List
+from typing import Any
 
-import numpy as np
 from datasets import Dataset
 
 
@@ -44,7 +43,7 @@ def process_docs_add_prompts(
     doc: Dataset,
     templates_key: str,
     template_file_path: str,
-    dataset_specific_preprocess: callable = None,
+    dataset_specific_preprocess: Callable | None = None,
 ) -> Dataset:
     try:
         with open(template_file_path) as f:
@@ -76,7 +75,7 @@ def option_order_robustness_process_docs(
     template_file_path: str,
     templates_key: str,
     labels: list,
-    dataset_specific_preprocess: callable = None,
+    dataset_specific_preprocess: Callable | None = None,
 ) -> Dataset:
     try:
         with open(template_file_path) as f:
@@ -136,7 +135,7 @@ def non_greedy_robustness_process_docs(
     doc: Dataset,
     templates_key: str,
     template_file_path: str,
-    dataset_specific_preprocess: callable = None,
+    dataset_specific_preprocess: Callable | None = None,
 ) -> Dataset:
     try:
         with open(template_file_path) as f:
@@ -217,7 +216,7 @@ def translate_model_answer_to_labels(answer, labels, option_format=None):
     return answer
 
 
-def calculate_consistency_rate(responses: List[List[str]]) -> float:
+def calculate_consistency_rate(responses: list[list[str]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -240,7 +239,7 @@ def calculate_consistency_rate(responses: List[List[str]]) -> float:
     return total_similarity / total_combinations if total_combinations > 0 else 0.0
 
 
-def prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
+def prompt_consistency_rate(results: list[dict[str, Any]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -253,7 +252,7 @@ def prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
     question_answers_dict = {}
 
     for result in results:
-        question_id, prompt_id, final_answer, gt = result
+        question_id, _prompt_id, final_answer, _gt = result
         if question_id not in question_answers_dict:
             question_answers_dict[question_id] = []
         question_answers_dict[question_id].append(final_answer)
@@ -263,7 +262,7 @@ def prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
     return calculate_consistency_rate(question_answers_list)
 
 
-def options_consistency_rate(results: List[Dict[str, Any]], labels) -> float:
+def options_consistency_rate(results: list[dict[str, Any]], labels) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -280,11 +279,11 @@ def options_consistency_rate(results: List[Dict[str, Any]], labels) -> float:
             always_same_option,
             final_answer,
             original_answer_index,
-            answer_index,
+            _answer_index,
         ) = result
         if final_answer == labels[original_answer_index]:
             final_answer = always_same_option
-        if final_answer == always_same_option:
+        elif final_answer == always_same_option:
             final_answer = labels[original_answer_index]
         if question_id not in question_answers_dict:
             question_answers_dict[question_id] = []
