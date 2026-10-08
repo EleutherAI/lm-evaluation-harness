@@ -92,11 +92,8 @@ def doc_to_choice(doc):
     return doc["options"]["text"]
 
 
-## The target is the choice text
+## The target is the index of the correct choice, not its text: the choices
+## keep their leading space (target_delimiter is ""), so stripped text won't match.
 def doc_to_target(doc):
     answer_key = doc["answer_key"]["english_answer_key"]
-    answer_text = doc["options"]["text"][
-        doc["options"]["english_keys"].index(answer_key)
-    ]
-    answer_text = answer_text.strip()
-    return answer_text
+    return doc["options"]["english_keys"].index(answer_key)
