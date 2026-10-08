@@ -258,6 +258,11 @@ class TestNormalizeGenKwargs:
         result = normalize_gen_kwargs({"temperature": 0.0})
         assert result["do_sample"] is False
 
+    def test_do_sample_and_temperature_missing_defaults_to_greedy(self):
+        result = normalize_gen_kwargs({"until": ["\n"], "max_gen_toks": 48})
+        assert result["do_sample"] is False
+        assert result["temperature"] == 0.0
+
     def test_do_sample_none_temperature_positive_sets_do_sample_true(self):
         result = normalize_gen_kwargs({"temperature": 0.7})
         assert result["do_sample"] is True
