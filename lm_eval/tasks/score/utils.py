@@ -284,7 +284,7 @@ def options_consistency_rate(results: List[Dict[str, Any]], labels) -> float:
         ) = result
         if final_answer == labels[original_answer_index]:
             final_answer = always_same_option
-        if final_answer == always_same_option:
+        elif final_answer == always_same_option:
             final_answer = labels[original_answer_index]
         if question_id not in question_answers_dict:
             question_answers_dict[question_id] = []
