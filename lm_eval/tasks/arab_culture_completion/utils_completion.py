@@ -16,11 +16,11 @@ from lm_eval.tasks.arab_culture_completion.prompts import (
 
 
 ### Set this to one to add the country and region information to the prompt
-COUNTRY = True if os.getenv("COUNTRY", True) == "True" else False
+COUNTRY = os.getenv("COUNTRY") == "True"
 ### Set this to one to add the region information to the prompt
-REGION = True if os.getenv("REGION", True) == "True" else False
+REGION = os.getenv("REGION") == "True"
 ### Set this to change between Arabic and English for the answer keys and the choices keys
-ARABIC = True if os.getenv("ARABIC", True) == "True" else False
+ARABIC = os.getenv("ARABIC") == "True"
 ### Get the model name
 MODEL_NAME = os.getenv("MODEL_NAME")
 
