@@ -1,0 +1,20 @@
+task: llmsql_2
+dataset_path: llmsql-bench/llmsql-2.0
+dataset_name: null
+output_type: generate_until
+test_split: test
+num_fewshot: 0
+doc_to_text: prompt
+doc_to_target: sql
+process_results: !function utils.process_results
+metric_list:
+  - metric: exec_acc
+    aggregation: mean
+    higher_is_better: true
+generation_kwargs:
+  until: []
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 4096
+metadata:
+  version: 1.0
