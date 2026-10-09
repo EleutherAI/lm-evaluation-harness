@@ -1,0 +1,12 @@
+group: saraiki_bench
+task:
+  - saraiki_knowledge
+  - saraiki_knowledge_hard
+  - saraiki_commonsense
+  - saraiki_reading
+  - saraiki_math
+  - saraiki_truthfulqa
+  - saraiki_instruction
+  - saraiki_safety
+metadata:
+  version: 0

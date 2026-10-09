@@ -1,0 +1,3 @@
+include: _default_mcq.yaml
+task: saraiki_knowledge
+dataset_name: knowledge

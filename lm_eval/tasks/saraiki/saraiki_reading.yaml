@@ -1,0 +1,4 @@
+include: _default_mcq.yaml
+task: saraiki_reading
+dataset_name: reading_comprehension
+doc_to_text: "{{passage}}\n\n{{question}}\n{% for o in options %}{{ 'ABCDEFGHIJ'[loop.index0] }}. {{o}}\n{% endfor %}Answer:"

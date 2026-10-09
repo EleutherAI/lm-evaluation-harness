@@ -1,0 +1,6 @@
+include: _default_mcq.yaml
+task: saraiki_truthfulqa
+dataset_name: truthfulness_safety
+fewshot_split: null
+num_fewshot: 0
+process_docs: !function utils.process_truthful
