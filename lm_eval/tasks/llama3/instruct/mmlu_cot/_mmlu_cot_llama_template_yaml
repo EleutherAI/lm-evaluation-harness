@@ -1,7 +1,7 @@
 dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_train split
 test_split: test
 output_type: generate_until
-doc_to_text: "Given the following question and four candidate answers (A, B, C and D), choose the best answer.\n\nQuestion: {{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\n\n- For simple problems:\nDirectly provide the answer with minimal explanation.\n\n- For complex problems:\nUse this step-by-step format:\n## Step 1: [Concise description]\n[Brief explanation]\n## Step 2: [Concise description]\n[Brief explanation]\n\nRegardless of the approach, always conclude with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is one of A, B, C or D.\n\nLet's think step by step."
+doc_to_text: "Given the following question and four candidate answers (A, B, C and D), choose the best answer.\n\nQuestion: {{question}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\n\n- For simple problems:\nDirectly provide the answer with minimal explanation.\n\n- For complex problems:\nUse this step-by-step format:\n## Step 1: [Concise description]\n[Brief explanation]\n## Step 2: [Concise description]\n[Brief explanation]\n\nRegardless of the approach, always conclude with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is one of A, B, C or D.\n\nLet's think step by step."
 doc_to_target: "{{['A','B','C','D'][answer]}}"
 generation_kwargs:
   do_sample: false
@@ -22,5 +22,5 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 1.0
+  version: 2.0
 num_fewshot: 0

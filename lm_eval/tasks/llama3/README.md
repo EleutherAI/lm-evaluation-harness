@@ -48,6 +48,10 @@ BibTeX-formatted citation goes here
 - The original ARC-Challenge dataset contains 8 samples with less than 4 options. Meta filtered these samples out, and `arc_challenge_llama` does the same.
 - A small number of samples use 1, 2, 3, 4 as labels. These are replaced by A, B, C, D like the rest in the doc preprocessing.
 
+### Changelog
+
+- 2026-Oct-09 `mmlu_cot_llama` v2.0: Stop stripping whitespace from the question. Meta's prompts keep it, so 963 of 14042 prompts differed from the published Llama-3.1-8B-Instruct eval details.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
