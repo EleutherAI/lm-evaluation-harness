@@ -104,7 +104,7 @@ def _score_in_subprocess(doc, generation):
         f"sys.path.insert(0, {json.dumps(REPO_ROOT)})\n"
         "from lm_eval.tasks.livecodebench.utils import process_results\n"
         f"import json; doc = json.loads({json.dumps(json.dumps(doc))})\n"
-        f"print(process_results(doc, [[{json.dumps(generation)}]]))\n"
+        f"print(process_results(doc, [{json.dumps(generation)}]))\n"
     )
     out = subprocess.run(  # noqa: S603
         [sys.executable, "-c", script],

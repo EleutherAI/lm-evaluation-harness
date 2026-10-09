@@ -73,8 +73,14 @@ def _build_eval_sample(doc: dict) -> dict:
     }
 
 
-def process_results(doc: dict, results: list[list[str]]) -> dict:
-    code = extract_code(results[0][0])
+def process_results(doc: dict, results: list[str]) -> dict:
+    """Score the responses passed by the lm-eval task interface.
+
+    ``Task.process_results`` receives one response string per repetition, so
+    a single generated completion is represented as ``[completion]`` rather
+    than ``[[completion]]``.
+    """
+    code = extract_code(results[0])
     if not code:
         return {"pass@1": 0.0}
     sample = _build_eval_sample(doc)
