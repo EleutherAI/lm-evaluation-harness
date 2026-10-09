@@ -1,10 +1,9 @@
 import random
 
 import datasets
-import numpy as np
 
 
-def doc_to_text(doc):
+def doc_to_text(doc, choices):
     instruction = (
         "بناءً على السياق أدناه، اختر الإجابة الصحيحة للسؤال التالي من قائمة الاقتراحات"
     )
@@ -18,6 +17,9 @@ def doc_to_text(doc):
     الإجابات المحتملة:
 
     """
+    for i, choice in enumerate(choices):
+        query += f"{i}) {choice}\n"
+    query += "الإجابة:"
     return query
 
 
@@ -36,6 +38,10 @@ def process_docs(dataset: datasets.Dataset):
 
         answer_index = choices.index(correct_answer)
 
-        return {"query": doc_to_text(doc), "choices": choices, "gold": answer_index}
+        return {
+            "query": doc_to_text(doc, choices),
+            "choices": choices,
+            "gold": answer_index,
+        }
 
     return dataset.map(_process_doc)
