@@ -3,6 +3,7 @@ task:
   - arabic_leaderboard_acva
   - arabic_leaderboard_alghafa
   - arabic_leaderboard_arabic_exams
+  - arabic_leaderboard_arabic_mmlu
   - arabic_leaderboard_arabic_mt_arc_challenge
   - arabic_leaderboard_arabic_mt_arc_easy
   - arabic_leaderboard_arabic_mt_boolq
@@ -22,4 +23,4 @@ aggregate_metric_list:
     aggregation: mean
     weight_by_size: true
 metadata:
-  version: 1.0
+  version: 2.0
