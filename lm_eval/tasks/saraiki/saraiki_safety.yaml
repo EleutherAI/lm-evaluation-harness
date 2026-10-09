@@ -1,0 +1,23 @@
+task: saraiki_safety
+dataset_path: themohal/saraiki-llm-bench
+dataset_name: truthfulness_safety
+test_split: test
+num_fewshot: 0
+process_docs: !function utils.process_safety
+output_type: generate_until
+doc_to_text: question
+doc_to_target: expected_behavior
+generation_kwargs:
+  until: []
+  do_sample: false
+  max_gen_toks: 512
+process_results: !function utils.process_safety_results
+metric_list:
+  - metric: refusal_rate
+    aggregation: !function utils.agg_flat_mean
+    higher_is_better: true
+  - metric: over_refusal_rate
+    aggregation: !function utils.agg_flat_mean
+    higher_is_better: false
+metadata:
+  version: 0

@@ -1,0 +1,28 @@
+task: saraiki_instruction
+dataset_path: themohal/saraiki-llm-bench
+dataset_name: instruction_following
+test_split: test
+num_fewshot: 0
+output_type: generate_until
+doc_to_text: prompt
+doc_to_target: 0
+generation_kwargs:
+  until: []
+  do_sample: false
+  max_gen_toks: 1280
+process_results: !function utils.process_instruction
+metric_list:
+  - metric: prompt_level_strict_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: inst_level_strict_acc
+    aggregation: !function utils.agg_flat_mean
+    higher_is_better: true
+  - metric: prompt_level_loose_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: inst_level_loose_acc
+    aggregation: !function utils.agg_flat_mean
+    higher_is_better: true
+metadata:
+  version: 0
