@@ -9,8 +9,8 @@ Items are adapted from original English benchmarks (MMLU, Belebele, HellaSwag, G
 TruthfulQA, MMLU-Pro), plus a set of safety prompts.
 
 Homepage: https://huggingface.co/datasets/themohal/saraiki-llm-bench
-
-The dataset is gated: accept the access conditions on the dataset page and log in with
+The dataset is gated with automatic approval: accept the access conditions on the dataset page
+(access is granted instantly) and log in with `hf auth login` before running.
 `hf auth login` before running. `saraiki_instruction` also needs
 `pip install "git+https://github.com/allenai/IFBench.git"`.
 
