@@ -98,3 +98,5 @@ If other tasks on this dataset are already supported:
   - fix fewshot format: Changed inconsistent usage of ':' (ASCII) and '：' (Chinese) to use '：' consistently.
 - direct ver 4
   - Corrected `doc_to_target` field to return the numeric answer (`answer_number`) instead string slicing through `answer` field.
+- native_cot ver 5: issue #4350
+  - `strict-match` now matches the answer format of the native exemplars for bn (the regex was in English), ja (a counter or unit between the number and です) and de ("Die Antwort ist").

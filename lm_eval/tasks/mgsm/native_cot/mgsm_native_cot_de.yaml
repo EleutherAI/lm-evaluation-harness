@@ -5,7 +5,7 @@ doc_to_text: '{% if answer is not none %}{{question+"\nSchritt-für-Schritt-Antw
 filter_list:
 - filter:
   - function: regex
-    regex_pattern: Die Antwort lautet (\-?[0-9\.\,]+)
+    regex_pattern: Die Antwort (?:lautet|ist) (\-?[0-9\.\,]+)
   - function: take_first
   name: strict-match
 - filter:

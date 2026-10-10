@@ -10,14 +10,15 @@ LANGUAGES = {
         # "ANSWER": "ধাপে ধাপে উত্তর:",
         "ANSWER": "\u09a7\u09be\u09aa\u09c7 \u09a7\u09be\u09aa\u09c7 \u0989\u09a4\u09cd\u09a4\u09b0:",
         "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        # "REGEX": "উত্তর হল (\\-?[0-9\\.\\,]+)",
+        "REGEX": "\u0989\u09a4\u09cd\u09a4\u09b0 \u09b9\u09b2 (\\-?[0-9\\.\\,]+)",
     },
     "de": {  # German
         "QUESTION": "Frage:",
         # "ANSWER": "Schritt-für-Schritt-Antwort:",
         "ANSWER": "Schritt-f\u00fcr-Schritt-Antwort:",
         "DIRECT": "Antwort:",
-        "REGEX": "Die Antwort lautet (\\-?[0-9\\.\\,]+)",
+        "REGEX": "Die Antwort (?:lautet|ist) (\\-?[0-9\\.\\,]+)",
     },
     "en": {  # English
         "QUESTION": "Question:",
@@ -79,8 +80,8 @@ LANGUAGES = {
         # "ANSWER": "ステップごとの答え:",
         "ANSWER": "\u30b9\u30c6\u30c3\u30d7\u3054\u3068\u306e\u7b54\u3048:",
         "DIRECT": "Answer:",
-        # "REGEX": "答えは(\\-?[0-9\\.\\,]+)です。",
-        "REGEX": "\u7b54\u3048\u306f(\\-?[0-9\\.\\,]+)\u3067\u3059\u3002",
+        # "REGEX": "答えは(\\-?[0-9\\.\\,]+)",
+        "REGEX": "\u7b54\u3048\u306f(\\-?[0-9\\.\\,]+)",
     },
     "zh": {  # Chinese
         # "QUESTION": "问题:",
