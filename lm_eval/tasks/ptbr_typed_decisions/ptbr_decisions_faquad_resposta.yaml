@@ -1,0 +1,25 @@
+task: ptbr_decisions_faquad_resposta
+tag: ptbr_typed_decisions_tasks
+dataset_path: felhen-ai/ptbr-typed-decisions-bench
+dataset_kwargs:
+  data_files:
+    train: data/faquad_resposta/train.jsonl
+    validation: data/faquad_resposta/dev.jsonl
+    test: data/faquad_resposta/test.jsonl
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: balanced_acc
+    aggregation: !function utils.balanced_acc
+    higher_is_better: true
+metadata:
+  version: 1.0

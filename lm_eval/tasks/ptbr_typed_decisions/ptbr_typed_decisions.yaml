@@ -1,0 +1,12 @@
+group: ptbr_typed_decisions
+task:
+  - ptbr_typed_decisions_tasks
+aggregate_metric_list:
+  - metric: balanced_acc
+    aggregation: mean
+    weight_by_size: false
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
