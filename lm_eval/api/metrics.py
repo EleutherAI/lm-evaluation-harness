@@ -596,7 +596,7 @@ def _binary_count_bootstrap(
     Multinomial(n, observed proportions), and both metrics depend on those
     counts only, so drawing the counts directly gives the same bootstrap
     distribution as resampling rows, without an sklearn call per replicate.
-    Draws as many replicates as the row path. Returns None for any other
+    Draws exactly `iters` replicates. Returns None for any other
     metric or labels, which then take the row path unchanged.
     """
     if (f is not f1_score and f is not matthews_corrcoef) or iters < 1:
@@ -604,13 +604,11 @@ def _binary_count_bootstrap(
     counts = _binary_confusion_counts(xs)
     if counts is None:
         return None
-    chunk_size = min(1000, iters)
-    n_draws = (iters // chunk_size) * chunk_size
     n = int(counts.sum())
     rng = np.random.default_rng(0)
     replicates = []
-    for start in range(0, n_draws, 100_000):
-        draws = rng.multinomial(n, counts / n, size=min(100_000, n_draws - start))
+    for start in range(0, iters, 100_000):
+        draws = rng.multinomial(n, counts / n, size=min(100_000, iters - start))
         replicates.append(_binary_scores_from_counts(f, draws))
     return np.concatenate(replicates)
 

@@ -73,14 +73,14 @@ def test_count_draws_have_the_row_resampling_distribution(metric):
         assert math.isclose(prob, by_counts[score], abs_tol=1e-12), score
 
 
+@pytest.mark.parametrize("metric", METRICS)
 @pytest.mark.parametrize(
-    ("iters", "expected"), [(100_000, 100_000), (1500, 1000), (250, 250)]
+    "iters", [1, 250, 500, 999, 1000, 1001, 1500, 2500, 100_000, 100_001]
 )
-def test_draws_as_many_replicates_as_the_row_path(iters, expected):
-    with mock.patch("builtins.print"):
-        row_path = _bootstrap_internal_no_mp(median, [1, 2, 3], iters)
-    count_path = _binary_count_bootstrap(f1_score, _rows([30, 5, 7, 20]), iters)
-    assert len(count_path) == len(row_path) == expected
+def test_draws_exactly_the_requested_replicates(metric, iters):
+    """Honor the budget, including remainders of either batching boundary."""
+    count_path = _binary_count_bootstrap(metric, _rows([30, 5, 7, 20]), iters)
+    assert len(count_path) == iters
 
 
 @pytest.mark.parametrize(
