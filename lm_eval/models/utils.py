@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -184,13 +185,20 @@ def undistribute(iterable):
         >>> undistribute(children)
         [1, 2, 3]
 
+    Preserves legitimate ``None`` values in the components:
+
+        >>> undistribute([[1, None], [2, 3]])
+        [1, 2, None, 3]
+
     """
+    # private sentinel so padding from zip_longest can't be confused with real values
+    fill = object()
     return [
         x
         for x in itertools.chain.from_iterable(
-            itertools.zip_longest(*[list(x) for x in iterable])
+            itertools.zip_longest(*[list(x) for x in iterable], fillvalue=fill)
         )
-        if x is not None
+        if x is not fill
     ]
 
 

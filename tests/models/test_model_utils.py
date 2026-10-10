@@ -1,6 +1,12 @@
 import pytest
+from more_itertools import distribute
 
-from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
+from lm_eval.models.utils import (
+    maybe_truncate,
+    normalize_gen_kwargs,
+    truncate_tokens,
+    undistribute,
+)
 
 
 class TestTruncateTokens:
@@ -299,3 +305,30 @@ class TestNormalizeGenKwargs:
         original_copy = original.copy()
         normalize_gen_kwargs(original)
         assert original == original_copy
+
+
+class TestUndistribute:
+    """Tests for undistribute, the inverse of more_itertools.distribute."""
+
+    def test_even_lengths(self):
+        assert undistribute([[1, 3, 5], [2, 4, 6]]) == [1, 2, 3, 4, 5, 6]
+
+    def test_uneven_lengths(self):
+        assert undistribute([[1, 4, 7], [2, 5], [3, 6]]) == [1, 2, 3, 4, 5, 6, 7]
+
+    def test_empty_components(self):
+        assert undistribute([[1], [2], [3], [], []]) == [1, 2, 3]
+
+    def test_all_empty(self):
+        assert undistribute([[], []]) == []
+
+    def test_preserves_none_values(self):
+        assert undistribute([[1, None], [2, 3]]) == [1, 2, None, 3]
+
+    def test_preserves_none_values_uneven(self):
+        assert undistribute([[None, None], [None]]) == [None, None, None]
+
+    @pytest.mark.parametrize("n", [1, 2, 3, 5, 8])
+    def test_round_trip_with_distribute(self, n):
+        items = [0, None, "a", None, 4, None, 6]
+        assert undistribute([list(c) for c in distribute(n, items)]) == items
