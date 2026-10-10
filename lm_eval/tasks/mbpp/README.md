@@ -41,3 +41,7 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+- \[Oct 10, 2026\] (PR#4228) Version 1.0 -> 2.0: `mbpp_plus_instruct` now grades against the EvalPlus `test` suite instead of the single `test_list[0]` assertion shown in the prompt.
