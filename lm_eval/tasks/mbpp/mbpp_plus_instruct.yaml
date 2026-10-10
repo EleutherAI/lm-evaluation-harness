@@ -10,3 +10,5 @@ generation_kwargs:
   max_gen_toks: 1024
   until: []
   do_sample: false
+metadata:
+  version: 2.0
