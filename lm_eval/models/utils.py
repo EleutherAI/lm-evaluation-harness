@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -442,25 +443,27 @@ class Collator:
         Returns:
         Iterator: An iterable of grouped elements.
         """
+
+        def freeze(value):
+            """Make nested values hashable without discarding mapping values."""
+            if isinstance(value, collections.abc.Mapping):
+                return (
+                    collections.abc.Mapping,
+                    frozenset((key, freeze(item)) for key, item in value.items()),
+                )
+            if isinstance(value, collections.abc.Iterable) and not isinstance(
+                value, (str, bytes)
+            ):
+                return (collections.abc.Iterable, tuple(freeze(item) for item in value))
+            return value
+
         res = collections.defaultdict(list)
         for ob in arr:
             # where ob == [context + cont]
             if group_by == "contexts":
                 res[tuple(fn(ob))].append(ob)
             else:
-                try:
-                    hashable_dict = tuple(
-                        (
-                            key,
-                            tuple(value)
-                            if isinstance(value, collections.abc.Iterable)
-                            else value,
-                        )
-                        for key, value in sorted(fn(ob).items())
-                    )
-                    res[hashable_dict].append(ob)
-                except (TypeError, AttributeError):
-                    res[tuple(fn(ob))].append(ob)
+                res[freeze(fn(ob))].append(ob)
         return res
 
     @staticmethod
