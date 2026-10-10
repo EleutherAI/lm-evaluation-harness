@@ -5,7 +5,7 @@ doc_to_text: '{% if answer is not none %}{{question+"\nধাপে ধাপে
 filter_list:
 - filter:
   - function: regex
-    regex_pattern: The answer is (\-?[0-9\.\,]+)
+    regex_pattern: উত্তর হল (\-?[0-9\.\,]+)
   - function: take_first
   name: strict-match
 - filter:
