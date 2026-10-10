@@ -179,7 +179,8 @@ class TaskFactory:
                         f"Dict entry in group '{group_name}' must have 'task' or 'group' key, got: {list(item.keys())}"
                     )
                 base_name = item["task"]
-                item_overrides = {**overrides, **item} if overrides else item
+                member_overrides = {k: v for k, v in item.items() if k != "task"}
+                item_overrides = {**(overrides or {}), **member_overrides}
             else:
                 raise TypeError(
                     f"Unsupported sub-entry {item!r} in group '{group_name}'"
