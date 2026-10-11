@@ -1,3 +1,5 @@
+"dataset_kwargs":
+  "subject": "polysemy_resolution"
 "dataset_name": "polysemy_resolution"
 "description": "以下是关于古文单字多义的单项选择题，请直接给出正确答案的选项。\n\n"
 "include": "_default_template_yaml"
