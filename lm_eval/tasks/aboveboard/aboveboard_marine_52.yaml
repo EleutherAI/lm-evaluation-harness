@@ -1,0 +1,22 @@
+task: aboveboard_marine_52
+dataset_path: Coralfil/AboveBoard-Marine-52
+test_split: test
+output_type: generate_until
+training_split: null
+fewshot_split: null
+doc_to_text: "{{prompt}}"
+doc_to_target: "{{rubric}}"
+generation_kwargs:
+  until:
+    - "\n\n\n"
+    - "</s>"
+    - "<|im_end|>"
+    - "<|endoftext|>"
+  max_gen_toks: 512
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
