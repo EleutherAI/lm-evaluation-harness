@@ -46,9 +46,6 @@ if __name__ == "__main__":
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path, encoding="utf-8") as f:
-        base_yaml = yaml.full_load(f)
-
     if args.cot_prompt_path is not None:
         import json
 
@@ -69,6 +66,7 @@ if __name__ == "__main__":
             if args.task_prefix != ""
             else f"aclue_{subject_eng}",
             "dataset_name": subject_eng,
+            "dataset_kwargs": {"subject": subject_eng},
             "description": description,
         }
 

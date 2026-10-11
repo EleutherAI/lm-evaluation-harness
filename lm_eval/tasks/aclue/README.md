@@ -10,6 +10,24 @@ generated questions from classical Chinese language corpora. The range of questi
 
 Homepage: https://github.com/isen-zhang/ACLUE
 
+### Dataset loading
+
+These tasks use a local dataset helper to download and extract the original
+ACLUE v1.0.0 archive, then read each subject's `test/{subject}.csv` and
+`dev/{subject}.csv` with the built-in Hugging Face CSV loader and the original
+six string fields. The archive URL is pinned to dataset revision
+`f89544164a29a9eec66490bf6d0cd571ceab4358`. This avoids the dataset's remote
+loading script, which is unsupported by Datasets 4 and later.
+
+The subject names are retained as CSV configuration names. The test split,
+development split and its ordered first-n few-shot examples, prompt format,
+answer indices, and scoring metrics are unchanged.
+
+### Changelog
+
+- 2026-10-11: Version 1.0 -> 2.0. Read the original CSV files without a remote
+  dataset script, preserving the evaluation inputs and scoring definitions.
+
 ### Citation
 
 ```bibtex

@@ -1,3 +1,5 @@
+"dataset_kwargs":
+  "subject": "ancient_chinese_culture"
 "dataset_name": "ancient_chinese_culture"
 "description": "以下是关于国学常识的单项选择题，请直接给出正确答案的选项。\n\n"
 "include": "_default_template_yaml"
