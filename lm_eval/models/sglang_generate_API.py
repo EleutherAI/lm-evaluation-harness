@@ -1,5 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union
-
+# ruff: noqa: N999 -- Preserve the existing import path.
 from lm_eval.api.registry import register_model
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 from lm_eval.models.utils import handle_stop_sequences
@@ -19,18 +18,14 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
 
     def _create_payload(
         self,
-        messages: Union[List[List[int]], List[dict], List[str], str],
+        messages: list[list[int]] | list[dict] | list[str] | str,
         generate=False,
-        gen_kwargs: Optional[dict] = None,
+        gen_kwargs: dict | None = None,
         seed: int = 1234,
         eos=None,
         **kwargs,
     ) -> dict:
-        is_string = (
-            True
-            if (isinstance(messages, str) or isinstance(messages[0], str))
-            else False
-        )
+        is_string = isinstance(messages, str) or isinstance(messages[0], str)
         if generate:
             gen_kwargs.pop("do_sample", False)
             if "max_tokens" in gen_kwargs:
@@ -64,30 +59,31 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
 
     @staticmethod
     def parse_logprobs(
-        outputs: Union[Dict, List[Dict]],
-        tokens: List[List[int]] = None,
-        ctxlens: List[int] = None,
+        outputs: dict | list[dict],
+        tokens: list[list[int]] | None = None,
+        ctxlens: list[int] | None = None,
         **kwargs,
-    ) -> List[Tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
-        for choice, ctxlen in zip(outputs, ctxlens):
+        for choice, ctxlen in zip(outputs, ctxlens, strict=False):
             choice = choice["meta_info"]
             assert ctxlen > 0, "Context length must be greater than 0"
             logprobs = sum(x[0] for x in choice["input_token_logprobs"][ctxlen:])
             is_greedy = all(
-                x[1] != y[0][1]
+                x[1] == y[0][1]
                 for x, y in zip(
                     choice["input_token_logprobs"][ctxlen:],
                     choice["input_top_logprobs"][ctxlen:],
+                    strict=False,
                 )
             )
             res.append((logprobs, is_greedy))
         return res
 
     @staticmethod
-    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+    def parse_generations(outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
