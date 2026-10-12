@@ -5,7 +5,7 @@
 - **Dataset**: [Coralfil/AboveBoard-Marine-52](https://huggingface.co/datasets/Coralfil/AboveBoard-Marine-52)
 - **Paper / Standard**: CRF-FS-ABOVEBOARD-52
 - **License**: Apache-2.0
-- **Maintained by**: Coralfil Marine Intelligence Research Team (Victoria, BC, Canada)
+- **Maintained by**: Coralfil Research Team (Victoria, BC, Canada)
 
 ---
 
