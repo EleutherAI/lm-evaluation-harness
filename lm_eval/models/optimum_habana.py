@@ -51,7 +51,7 @@ class HabanaLM(HFLM):
     @property
     def max_length(self) -> int:
         # Better suits loglikelihood
-        return self._max_length if self._max_length else self.buckets[-1]
+        return self._max_length or self.buckets[-1]
 
     @max_length.setter
     def max_length(self, value: int) -> None:
@@ -144,8 +144,9 @@ class HabanaLM(HFLM):
         """
         Generate tokens using the model, handling static shape padding and HPU specifics.
         """
-        generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
         do_sample = generation_kwargs.get("do_sample")
+        if do_sample is not True:
+            generation_kwargs.setdefault("temperature", 0.0)
 
         if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
             generation_kwargs["do_sample"] = do_sample = False

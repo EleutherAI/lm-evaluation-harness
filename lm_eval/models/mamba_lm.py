@@ -1,6 +1,5 @@
 import torch
 
-import lm_eval.models.utils
 import lm_eval.models.utils_hf
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
@@ -72,7 +71,7 @@ class MambaLMWrapper(HFLM):
             super()._get_config(pretrained, **kwargs)
         else:
             try:
-                from mamba_ssm.utils.hf import load_config_hf  # noqa: F811
+                from mamba_ssm.utils.hf import load_config_hf
             except ModuleNotFoundError as exception:
                 raise type(exception)(
                     "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
@@ -95,7 +94,7 @@ class MambaLMWrapper(HFLM):
         else:
             try:
                 from mamba_ssm.models.mixer_seq_simple import (
-                    MambaLMHeadModel,  # noqa: F811
+                    MambaLMHeadModel,
                 )
             except ModuleNotFoundError as exception:
                 raise type(exception)(
@@ -145,8 +144,9 @@ class MambaLMWrapper(HFLM):
                 context.shape[0],
             )
 
-            generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
             do_sample = generation_kwargs.get("do_sample")
+            if do_sample is not True:
+                generation_kwargs.setdefault("temperature", 0.0)
 
             # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
             if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
