@@ -6,6 +6,7 @@ import pytest
 
 from lm_eval.models.api_models import create_image_prompt
 from lm_eval.models.openai_completions import LocalCompletionsAPI
+from lm_eval.models.sglang_generate_API import SGLANGGENERATEAPI
 
 
 TEST_AUTH_TOKEN = "secure-token"  # noqa: S105 - fixed test sentinel
@@ -396,3 +397,38 @@ def test_localchatcompletion_remote_tokenizer_unauthenticated(monkeypatch):
     assert captured["verify_certificate"] is False
     assert captured["ca_cert_path"] is None
     assert captured["auth_token"] is None
+
+
+@pytest.mark.parametrize(
+    "target_ids,top_ids,expected",
+    [
+        ([10], [10], True),
+        ([10], [20], False),
+        ([10, 11], [10, 11], True),
+        ([10, 11], [20, 21], False),
+        ([10, 11], [10, 21], False),
+        ([10, 11], [20, 11], False),
+    ],
+)
+@pytest.mark.parametrize("batched", [False, True])
+def test_sglang_greedy_matches_every_continuation_token(
+    target_ids, top_ids, expected, batched
+):
+    # A non-greedy context token must not affect continuation accuracy or likelihood.
+    output = {
+        "meta_info": {
+            "input_token_logprobs": [(None, 0, None), (-3.0, 1, "context")]
+            + [(-0.5, token, str(token)) for token in target_ids],
+            "input_top_logprobs": [None, [(-0.1, 2, "other")]]
+            + [
+                [(-0.5 if token == target else -0.1, token, str(token))]
+                for target, token in zip(target_ids, top_ids, strict=True)
+            ],
+        }
+    }
+    outputs = [output, output] if batched else output
+    ctxlens = [2, 2] if batched else [2]
+
+    assert SGLANGGENERATEAPI.parse_logprobs(outputs, ctxlens=ctxlens) == [
+        (-0.5 * len(target_ids), expected)
+    ] * len(ctxlens)
