@@ -290,6 +290,9 @@ external packages receive a private identity based on their resolved path, so
 identically named packages in different directories stay separate. The loader
 does not add task directories to `sys.path`: use package-relative imports for
 local helpers. Directories without `__init__.py` retain standalone-file behavior.
+If a local Python file has the same name as a directory package, YAML still
+selects the file; it receives a private module name to preserve the directory
+package's normal imports.
 
 Repeated function loads reuse the module unless that function's Python file has
 changed. Imported helpers and package initializers use Python's usual module
@@ -297,6 +300,9 @@ cache; restart the process to pick up changes to those dependencies. Failed
 package loads remove modules newly imported within that package and restore
 previous module bindings. They cannot undo arbitrary initialization side effects
 or imports outside the package.
+For modules already imported before their first YAML load, mtime tracking starts
+when the loader first adopts the cached module. It cannot detect earlier source
+changes retrospectively.
 
 ### Importing a Prompt from Promptsource
 

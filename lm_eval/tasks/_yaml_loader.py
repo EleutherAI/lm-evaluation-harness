@@ -5,8 +5,8 @@ import importlib
 import importlib.util
 import os
 import sys
+from importlib._bootstrap import _ModuleLockManager
 from pathlib import Path
-from threading import RLock
 from typing import Any
 
 import yaml
@@ -16,7 +16,7 @@ _Base = (
     yaml.CSafeLoader if getattr(yaml, "__with_libyaml__", False) else yaml.FullLoader
 )
 _IGNORE_DIRS = {"__pycache__", ".ipynb_checkpoints"}
-_MODULE_LOAD_LOCK = RLock()
+_MISSING = object()
 
 
 def _mk_function_ctor(base_dir: Path, resolve: bool):
@@ -47,30 +47,43 @@ def _exec_module(module_name: str, module_path: Path) -> Any:
         raise ImportError(f"Cannot load module from {module_path}") from None
     module = importlib.util.module_from_spec(spec)
     module.__mtime__ = module_path.stat().st_mtime_ns  # type: ignore
-    previous = sys.modules.get(module_name)
-    sys.modules[module_name] = module
-    try:
-        spec.loader.exec_module(module)
-    except BaseException:
-        if previous is None:
-            sys.modules.pop(module_name, None)
-        else:
-            sys.modules[module_name] = previous
-        raise
-    parent_name, _, child = module_name.rpartition(".")
-    if parent_name in sys.modules:
-        setattr(sys.modules[parent_name], child, module)
+    # Share Python's per-module lock and initialization flag with normal imports.
+    with _ModuleLockManager(module_name):
+        previous = sys.modules.get(module_name, _MISSING)
+        parent_name, _, child = module_name.rpartition(".")
+        parent = sys.modules.get(parent_name)
+        binding = getattr(parent, child, _MISSING)
+        spec._initializing = True
+        sys.modules[module_name] = module
+        if parent is not None:
+            setattr(parent, child, module)
+        try:
+            spec.loader.exec_module(module)
+        except BaseException:
+            if previous is _MISSING:
+                sys.modules.pop(module_name, None)
+            else:
+                sys.modules[module_name] = previous
+            if parent is not None:
+                if binding is _MISSING:
+                    vars(parent).pop(child, None)
+                else:
+                    setattr(parent, child, binding)
+            raise
+        finally:
+            spec._initializing = False
     return module
 
 
 def _cached_module(module_name: str, module_path: Path) -> Any:
     """Reuse imports made by package initializers; reload only this file on change."""
-    existing = sys.modules.get(module_name)
-    mtime = module_path.stat().st_mtime_ns
-    if existing is not None and getattr(existing, "__mtime__", mtime) == mtime:
-        existing.__mtime__ = mtime
-        return existing
-    return _exec_module(module_name, module_path)
+    with _ModuleLockManager(module_name):
+        existing = sys.modules.get(module_name)
+        mtime = module_path.stat().st_mtime_ns
+        if existing is not None and getattr(existing, "__mtime__", mtime) == mtime:
+            existing.__mtime__ = mtime
+            return existing
+        return _exec_module(module_name, module_path)
 
 
 def _module_parts(module_path: Path, root: Path) -> tuple[str, ...]:
@@ -108,6 +121,15 @@ def _package_name(root: Path) -> tuple[str, bool]:
 def _load_package_module(root: Path, module_path: Path) -> Any:
     """Load an explicit package without sys.path edits, rolling back failed imports."""
     package_name, importable = _package_name(root)
+    # Root imports can themselves load YAML; use their reentrant import lock,
+    # not an unrelated loader lock that could invert the acquisition order.
+    with _ModuleLockManager(package_name):
+        return _load_package_module_locked(root, module_path, package_name, importable)
+
+
+def _load_package_module_locked(
+    root: Path, module_path: Path, package_name: str, importable: bool
+) -> Any:
     prefix = package_name + "."
     before = {
         k: v
@@ -125,6 +147,18 @@ def _load_package_module(root: Path, module_path: Path) -> Any:
         if parts[-1] == "__init__":
             parts = parts[:-1]
         module_name = ".".join((package_name, *parts))
+        parent_name, _, _ = module_name.rpartition(".")
+        if parent_name:
+            importlib.import_module(parent_name)
+        if (
+            module_path.name != "__init__.py"
+            and (module_path.with_suffix("") / "__init__.py").is_file()
+        ):
+            # YAML chooses the file even when Python would choose a same-named
+            # directory package. Keep that package's normal identity intact.
+            identity = os.path.normcase(str(module_path))
+            alias = "_lm_eval_file_" + hashlib.sha256(identity.encode()).hexdigest()
+            return _cached_module(parent_name + "." + alias, module_path)
         if module_name not in sys.modules:
             # Normal imports initialize intermediate packages and bind children.
             module = importlib.import_module(module_name)
@@ -154,21 +188,20 @@ def _load_package_module(root: Path, module_path: Path) -> Any:
 def _load_module_with_cache(module_path: Path) -> Any:
     """Load local functions with main-file mtime reload and normal helper caching."""
     module_path = module_path.resolve()
-    with _MODULE_LOAD_LOCK:
-        tasks_dir = Path(__file__).resolve().parent
-        if module_path.is_relative_to(tasks_dir):
-            parts = _module_parts(module_path, tasks_dir)
-            return _cached_module(".".join(("lm_eval", "tasks", *parts)), module_path)
+    tasks_dir = Path(__file__).resolve().parent
+    if module_path.is_relative_to(tasks_dir):
+        parts = _module_parts(module_path, tasks_dir)
+        return _cached_module(".".join(("lm_eval", "tasks", *parts)), module_path)
 
-        root = module_path.parent
-        if (root / "__init__.py").is_file():
-            while root.parent != root and (root.parent / "__init__.py").is_file():
-                root = root.parent
-            return _load_package_module(root, module_path)
+    root = module_path.parent
+    if (root / "__init__.py").is_file():
+        while root.parent != root and (root.parent / "__init__.py").is_file():
+            root = root.parent
+        return _load_package_module(root, module_path)
 
-        return _cached_module(
-            os.path.normcase(str(module_path.with_suffix(""))), module_path
-        )
+    return _cached_module(
+        os.path.normcase(str(module_path.with_suffix(""))), module_path
+    )
 
 
 def _import_func_in_yml(qual: str, base_dir: Path):

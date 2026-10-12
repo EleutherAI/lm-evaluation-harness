@@ -3,7 +3,10 @@
 import importlib
 import json
 import os
+import subprocess
 import sys
+import threading
+import types
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -239,6 +242,197 @@ def test_main_reload_and_helper_cache(tmp_path, packaged):
     assert changed is not original
     assert changed({}) == 7
     assert load_function(tmp_path) is changed
+
+
+@pytest.mark.parametrize("installed", [False, True])
+def test_local_file_takes_precedence_over_same_named_package(
+    tmp_path, monkeypatch, installed
+):
+    """YAML local-file resolution must not switch to importlib's package priority."""
+    write_files(
+        tmp_path,
+        {
+            "__init__.py": "from . import utils\n",
+            "utils.py": "def render(doc):\n    return 'file'\n",
+            "utils/__init__.py": "def render(doc):\n    return 'package'\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    if installed:
+        monkeypatch.syspath_prepend(str(tmp_path.parent))
+        package = importlib.import_module(tmp_path.name)
+        original = package.utils
+    render = load_function(tmp_path)
+    assert render({}) == "file"
+    assert load_function(tmp_path) is render
+    parent = sys.modules[sys.modules[render.__module__].__package__]
+    assert parent.utils.render({}) == "package"
+    if installed:
+        assert package.utils is original
+        assert importlib.import_module(tmp_path.name + ".utils") is original
+
+
+def test_reload_publishes_new_parent_binding_before_helper_import(tmp_path):
+    """A newly imported helper must see the replacement module through its parent."""
+    write_files(
+        tmp_path,
+        {
+            "__init__.py": "",
+            "utils.py": "VALUE = 1\ndef render(doc):\n    return VALUE\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    assert load_function(tmp_path)({}) == 1
+    (tmp_path / "helper.py").write_text("from . import utils\nVALUE = utils.VALUE\n")
+    replace_source(
+        tmp_path / "utils.py",
+        "VALUE = 2\nfrom .helper import VALUE as RESULT\ndef render(doc):\n    return RESULT\n",
+    )
+    assert load_function(tmp_path)({}) == 2
+
+
+@pytest.mark.parametrize("standard_first", [True, False])
+def test_yaml_and_standard_import_wait_for_initialization(
+    tmp_path, monkeypatch, standard_first
+):
+    """Plugin imports and YAML loads must not expose one another's partial modules."""
+    root = tmp_path / "concurrent_task_package"
+    sync = types.ModuleType("yaml_loader_test_sync")
+    sync.started = threading.Event()
+    sync.release = threading.Event()
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    write_files(
+        root,
+        {
+            "__init__.py": "",
+            "utils.py": "from yaml_loader_test_sync import started, release\n"
+            "started.set()\nassert release.wait(10)\ndef render(doc):\n    return 23\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    importlib.import_module("concurrent_task_package")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        if standard_first:
+            first = pool.submit(
+                importlib.import_module, "concurrent_task_package.utils"
+            )
+        else:
+            first = pool.submit(load_function, root)
+        assert sync.started.wait(10)
+        if standard_first:
+            second = pool.submit(load_function, root)
+        else:
+            second = pool.submit(
+                importlib.import_module, "concurrent_task_package.utils"
+            )
+        timer = threading.Timer(0.2, sync.release.set)
+        timer.start()
+        try:
+            left, right = first.result(timeout=10), second.result(timeout=10)
+        finally:
+            sync.release.set()
+            timer.join()
+    render = right if standard_first else left
+    module = left if standard_first else right
+    assert render({}) == 23
+    assert render is module.render
+
+
+def test_package_initializer_can_load_yaml_during_another_request(tmp_path):
+    """A loader lock must not invert the standard root-import lock order."""
+    write_files(
+        tmp_path / "root_lock_package",
+        {
+            "__init__.py": "from root_lock_sync import entered, requested, load\n"
+            "entered.set()\nassert requested.wait(5)\nRESULT = load()({})\n",
+            "utils.py": "def render(doc):\n    return 37\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    # Isolate a potential deadlock so the pytest process never retains stuck threads.
+    script = """
+import importlib, sys, threading, types
+from pathlib import Path
+from lm_eval.tasks import _yaml_loader as loader
+root = Path(sys.argv[1]) / "root_lock_package"
+sys.path.insert(0, str(root.parent))
+sync = types.ModuleType("root_lock_sync")
+sync.entered = threading.Event()
+sync.requested = threading.Event()
+sync.load = lambda: loader.load_yaml(root / "task.yaml")["doc_to_text"]
+sys.modules[sync.__name__] = sync
+original = loader._package_name
+def observe(path):
+    if threading.current_thread().name == "yaml-request":
+        sync.requested.set()
+    return original(path)
+loader._package_name = observe
+results = []
+errors = []
+def call(action):
+    try:
+        results.append(action())
+    except BaseException as exc:
+        errors.append(repr(exc))
+standard = threading.Thread(target=lambda: call(lambda: importlib.import_module("root_lock_package").RESULT), daemon=True)
+request = threading.Thread(name="yaml-request", target=lambda: call(lambda: sync.load()({})), daemon=True)
+standard.start()
+assert sync.entered.wait(5)
+request.start()
+standard.join(6)
+request.join(6)
+assert not standard.is_alive() and not request.is_alive(), "import/loader lock inversion"
+assert not errors, errors
+assert results == [37, 37], results
+"""
+    result = subprocess.run(  # noqa: S603 - fixed interpreter and test script
+        [sys.executable, "-c", script, str(tmp_path)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_standard_import_waits_for_yaml_reload(tmp_path, monkeypatch):
+    """Normal imports must wait for file execution during mtime replacement too."""
+    root = tmp_path / "reload_import_package"
+    sync = types.ModuleType("yaml_reload_test_sync")
+    sync.started = threading.Event()
+    sync.release = threading.Event()
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    write_files(
+        root,
+        {
+            "__init__.py": "",
+            "utils.py": "def render(doc):\n    return 1\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    assert load_function(root)({}) == 1
+    replace_source(
+        root / "utils.py",
+        "from yaml_reload_test_sync import started, release\n"
+        "started.set()\nassert release.wait(10)\ndef render(doc):\n    return 27\n",
+    )
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        loaded = pool.submit(load_function, root)
+        assert sync.started.wait(10)
+        imported = pool.submit(
+            lambda: importlib.import_module("reload_import_package.utils").render({})
+        )
+        timer = threading.Timer(0.2, sync.release.set)
+        timer.start()
+        try:
+            render = loaded.result(timeout=10)
+            result = imported.result(timeout=10)
+        finally:
+            sync.release.set()
+            timer.join()
+    assert render({}) == result == 27
 
 
 def test_absolute_module_reference(tmp_path):
