@@ -82,7 +82,7 @@ def _exec_module(module_name: str, module_path: Path) -> Any:
         try:
             # A changed main file can import helpers created since the finder
             # last scanned the package, even within one timestamp interval.
-            importlib.invalidate_caches()
+            _invalidate_package_caches(module.__package__)
             spec.loader.exec_module(module)
             if parent is not None:
                 setattr(parent, child, module)
@@ -152,6 +152,23 @@ def _namespace_modules(package_name: str) -> dict[str, Any]:
         for k, v in sys.modules.copy().items()
         if k == package_name or k.startswith(prefix)
     }
+
+
+def _invalidate_package_caches(package_name: str) -> None:
+    """Refresh package directory listings without global finder-cache deletion."""
+    if not package_name:
+        return
+    root_name = package_name.partition(".")[0]
+    paths = {
+        path
+        for module in _namespace_modules(root_name).values()
+        for path in getattr(module, "__path__", ())
+    }
+    for path in paths:
+        finder = sys.path_importer_cache.get(path)
+        invalidate = getattr(finder, "invalidate_caches", None)
+        if invalidate is not None:
+            invalidate()
 
 
 def _snapshot_package(package_name: str) -> _PackageLoadState:
@@ -273,7 +290,7 @@ def _load_package_module(root: Path, module_path: Path) -> Any:
             return _cached_module(parent_name + "." + alias, module_path)
         if module_name not in sys.modules:
             # Normal imports initialize intermediate packages and bind children.
-            importlib.invalidate_caches()
+            _invalidate_package_caches(parent_name)
             module = importlib.import_module(module_name)
             module.__mtime__ = module_path.stat().st_mtime_ns
             return module

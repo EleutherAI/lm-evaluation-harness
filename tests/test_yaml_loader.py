@@ -318,6 +318,40 @@ def test_reload_discovers_new_helper_with_unchanged_directory_mtime(tmp_path):
     assert package.helper is helper
 
 
+def test_concurrent_reloads_do_not_mutate_global_finder_cache(tmp_path, monkeypatch):
+    """Two reloads must not race while removing shared relative finder entries."""
+    roots = [tmp_path / str(i) / "reload_package" for i in range(2)]
+    for root in roots:
+        write_files(
+            root,
+            {
+                "__init__.py": "",
+                "utils.py": "def render(doc):\n    return 1\n",
+                "task.yaml": "doc_to_text: !function utils.render\n",
+            },
+        )
+        assert load_function(root)({}) == 1
+        replace_source(root / "utils.py", "def render(doc):\n    return 2\n")
+
+    relative_key = "yaml_loader_relative_finder_probe"
+    deletion = threading.Barrier(2)
+
+    class ObservedCache(dict):
+        def __delitem__(self, key):
+            if key == relative_key:
+                # Observe real PathFinder cache deletion with deterministic overlap.
+                deletion.wait(timeout=10)
+            super().__delitem__(key)
+
+    cache = ObservedCache(sys.path_importer_cache)
+    cache[relative_key] = None
+    monkeypatch.setattr(sys, "path_importer_cache", cache)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        functions = list(pool.map(load_function, roots))
+    assert [fn({}) for fn in functions] == [2, 2]
+    assert relative_key in cache
+
+
 @pytest.mark.parametrize("standard_first", [True, False])
 def test_yaml_and_standard_import_wait_for_initialization(
     tmp_path, monkeypatch, standard_first
