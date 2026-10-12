@@ -5,8 +5,12 @@ import importlib
 import importlib.util
 import os
 import sys
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass
 from importlib._bootstrap import _ModuleLockManager
 from pathlib import Path
+from threading import RLock
 from typing import Any
 
 import yaml
@@ -17,6 +21,21 @@ _Base = (
 )
 _IGNORE_DIRS = {"__pycache__", ".ipynb_checkpoints"}
 _MISSING = object()
+
+
+@dataclass
+class _PackageLoadState:
+    modules: dict[str, Any]
+    bindings: dict[str, dict[str, Any]]
+    active: int = 0
+    succeeded: bool = False
+
+
+_PACKAGE_STATES: dict[str, _PackageLoadState] = {}
+_PACKAGE_STATE_LOCK = RLock()
+_PACKAGE_REQUESTS: ContextVar[tuple[str, ...]] = ContextVar(
+    "lm_eval_package_requests", default=()
+)
 
 
 def _mk_function_ctor(base_dir: Path, resolve: bool):
@@ -56,9 +75,13 @@ def _exec_module(module_name: str, module_path: Path) -> Any:
         spec._initializing = True
         sys.modules[module_name] = module
         if parent is not None:
-            setattr(parent, child, module)
+            # An absent parent binding routes from-list imports through Python's
+            # module lock; publishing it early would expose partial state.
+            vars(parent).pop(child, None)
         try:
             spec.loader.exec_module(module)
+            if parent is not None:
+                setattr(parent, child, module)
         except BaseException:
             if previous is _MISSING:
                 sys.modules.pop(module_name, None)
@@ -118,31 +141,84 @@ def _package_name(root: Path) -> tuple[str, bool]:
     return "_lm_eval_external_" + hashlib.sha256(identity.encode()).hexdigest(), False
 
 
-def _load_package_module(root: Path, module_path: Path) -> Any:
-    """Load an explicit package without sys.path edits, rolling back failed imports."""
-    package_name, importable = _package_name(root)
-    # Root imports can themselves load YAML; use their reentrant import lock,
-    # not an unrelated loader lock that could invert the acquisition order.
-    with _ModuleLockManager(package_name):
-        return _load_package_module_locked(root, module_path, package_name, importable)
-
-
-def _load_package_module_locked(
-    root: Path, module_path: Path, package_name: str, importable: bool
-) -> Any:
+def _namespace_modules(package_name: str) -> dict[str, Any]:
     prefix = package_name + "."
-    before = {
+    return {
         k: v
         for k, v in sys.modules.copy().items()
         if k == package_name or k.startswith(prefix)
     }
-    bindings = {k: vars(v).copy() for k, v in before.items() if v is not None}
-    try:
-        if package_name not in sys.modules:
-            if importable:
-                importlib.import_module(package_name)
+
+
+def _rollback_package(package_name: str, state: _PackageLoadState) -> None:
+    current = _namespace_modules(package_name)
+    # An unrelated standard import may still be executing in this namespace.
+    # Do not remove its parent or dependencies out from under it.
+    if any(
+        getattr(getattr(v, "__spec__", None), "_initializing", False)
+        for k, v in current.items()
+        if k not in state.modules
+    ):
+        return
+    for name, module in current.items():
+        parent_name, _, child = name.rpartition(".")
+        parent = state.modules.get(parent_name)
+        if parent is not None and vars(parent).get(child, _MISSING) is module:
+            if child in state.bindings[parent_name]:
+                setattr(parent, child, state.bindings[parent_name][child])
             else:
-                _exec_module(package_name, root / "__init__.py")
+                vars(parent).pop(child, None)
+        if name not in state.modules:
+            sys.modules.pop(name, None)
+    sys.modules.update(state.modules)
+
+
+@contextmanager
+def _package_transaction(package_name: str):
+    """Roll back failed loads without undoing overlapping successful requests."""
+    # Only bookkeeping holds this lock: never wait for imports or execute user
+    # code under it, since standard module initialization may call this loader.
+    with _PACKAGE_STATE_LOCK:
+        state = _PACKAGE_STATES.get(package_name)
+        if state is None:
+            before = _namespace_modules(package_name)
+            state = _PackageLoadState(
+                before, {k: vars(v).copy() for k, v in before.items() if v is not None}
+            )
+            _PACKAGE_STATES[package_name] = state
+        state.active += 1
+    requests = _PACKAGE_REQUESTS.get()
+    nested = package_name in requests
+    token = _PACKAGE_REQUESTS.set((*requests, package_name))
+    completed = False
+    try:
+        yield
+        completed = True
+    finally:
+        _PACKAGE_REQUESTS.reset(token)
+        with _PACKAGE_STATE_LOCK:
+            # Nested success belongs to its outer request: it cannot commit a
+            # package whose enclosing initializer subsequently fails.
+            state.succeeded |= completed and not nested
+            state.active -= 1
+            if not state.active:
+                del _PACKAGE_STATES[package_name]
+                if not state.succeeded:
+                    _rollback_package(package_name, state)
+
+
+def _load_package_module(root: Path, module_path: Path) -> Any:
+    """Load an explicit package without sys.path edits, rolling back failed imports."""
+    package_name, importable = _package_name(root)
+    with _package_transaction(package_name):
+        # Release the root lock before waiting for children: a child's standard
+        # initializer can load another YAML while already holding its own lock.
+        with _ModuleLockManager(package_name):
+            if package_name not in sys.modules:
+                if importable:
+                    importlib.import_module(package_name)
+                else:
+                    _exec_module(package_name, root / "__init__.py")
         parts = _module_parts(module_path, root)
         if parts[-1] == "__init__":
             parts = parts[:-1]
@@ -165,24 +241,6 @@ def _load_package_module_locked(
             module.__mtime__ = module_path.stat().st_mtime_ns
             return module
         return _cached_module(module_name, module_path)
-    except BaseException:
-        current = {
-            k: v
-            for k, v in sys.modules.copy().items()
-            if k == package_name or k.startswith(prefix)
-        }
-        for name, module in current.items():
-            parent_name, _, child = name.rpartition(".")
-            parent = before.get(parent_name)
-            if parent is not None and getattr(parent, child, None) is module:
-                if child in bindings[parent_name]:
-                    setattr(parent, child, bindings[parent_name][child])
-                else:
-                    delattr(parent, child)
-            if name not in before:
-                sys.modules.pop(name, None)
-        sys.modules.update(before)
-        raise
 
 
 def _load_module_with_cache(module_path: Path) -> Any:

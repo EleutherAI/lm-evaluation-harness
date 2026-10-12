@@ -303,6 +303,10 @@ or imports outside the package.
 For modules already imported before their first YAML load, mtime tracking starts
 when the loader first adopts the cached module. It cannot detect earlier source
 changes retrospectively.
+Overlapping YAML loads keep the initialized package cache if an independent
+request succeeds; if all requests fail, cleanup runs after the last one exits.
+Nested loads remain part of their enclosing request. This cleanup does not make
+unrelated standard imports into a process-wide transaction.
 
 ### Importing a Prompt from Promptsource
 

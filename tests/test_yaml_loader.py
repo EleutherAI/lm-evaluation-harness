@@ -435,6 +435,171 @@ def test_standard_import_waits_for_yaml_reload(tmp_path, monkeypatch):
     assert render({}) == result == 27
 
 
+def test_fromlist_waits_for_yaml_reload(tmp_path, monkeypatch):
+    """A parent attribute must not bypass synchronization for from-list imports."""
+    root = tmp_path / "fromlist_reload_package"
+    sync = types.ModuleType("fromlist_reload_sync")
+    sync.started = threading.Event()
+    sync.release = threading.Event()
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    write_files(
+        root,
+        {
+            "__init__.py": "",
+            "utils.py": "def render(doc):\n    return 1\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    assert load_function(root)({}) == 1
+    replace_source(
+        root / "utils.py",
+        "from fromlist_reload_sync import started, release\n"
+        "started.set()\nassert release.wait(10)\ndef render(doc):\n    return 29\n",
+    )
+
+    def fromlist():
+        from fromlist_reload_package import utils
+
+        return utils.render({})
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        loaded = pool.submit(load_function, root)
+        assert sync.started.wait(10)
+        imported = pool.submit(fromlist)
+        timer = threading.Timer(0.2, sync.release.set)
+        timer.start()
+        try:
+            render = loaded.result(timeout=10)
+            result = imported.result(timeout=10)
+        finally:
+            sync.release.set()
+            timer.join()
+    assert render({}) == result == 29
+
+
+def test_standard_child_initializer_can_load_another_yaml(tmp_path, monkeypatch):
+    """Waiting for utils must not lock its initialized root against YAML callbacks."""
+    from lm_eval.tasks import _yaml_loader as loader
+
+    root = tmp_path / "callback_import_package"
+    sync = types.ModuleType("child_callback_sync")
+    sync.started = threading.Event()
+    sync.requested = threading.Event()
+    sync.load = lambda: load_yaml(root / "helper.yaml")["doc_to_text"]({})
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    write_files(
+        root,
+        {
+            "__init__.py": "",
+            "utils.py": "from child_callback_sync import started, requested, load\n"
+            "started.set()\nassert requested.wait(10)\nRESULT = load()\n"
+            "def render(doc):\n    return RESULT\n",
+            "helper.py": "def render(doc):\n    return 41\n",
+            "helper.yaml": "doc_to_text: !function helper.render\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    importlib.import_module("callback_import_package")
+    original = loader._cached_module
+
+    def observe(name, path):
+        if name == "callback_import_package.utils":
+            sync.requested.set()
+        return original(name, path)
+
+    monkeypatch.setattr(loader, "_cached_module", observe)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        imported = pool.submit(
+            lambda: importlib.import_module("callback_import_package.utils").render({})
+        )
+        assert sync.started.wait(10)
+        loaded = pool.submit(load_function, root)
+        assert imported.result(timeout=10) == 41
+        assert loaded.result(timeout=10)({}) == 41
+
+
+@pytest.mark.parametrize("other_succeeds", [False, True])
+def test_overlapping_package_loads_preserve_success_or_rollback(
+    tmp_path, monkeypatch, other_succeeds
+):
+    """A failed request must not remove another request's still executing module."""
+    sync = types.ModuleType("overlap_load_sync")
+    sync.barrier = threading.Barrier(3)
+    sync.release = threading.Event()
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    write_files(
+        tmp_path,
+        {
+            "__init__.py": "",
+            "helper.py": "VALUE = 43\n",
+            "left.py": "from .helper import VALUE\nfrom overlap_load_sync import barrier\n"
+            "barrier.wait(10)\nraise RuntimeError('left failed')\n",
+            "right.py": "from .helper import VALUE\nfrom overlap_load_sync import barrier, release\n"
+            "barrier.wait(10)\nassert release.wait(10)\n"
+            + (
+                "def render(doc):\n    return VALUE\n"
+                if other_succeeds
+                else "raise RuntimeError('right failed')\n"
+            ),
+            "left.yaml": "doc_to_text: !function left.render\n",
+            "right.yaml": "doc_to_text: !function right.render\n",
+        },
+    )
+    before = set(sys.modules)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        left = pool.submit(load_yaml, tmp_path / "left.yaml")
+        right = pool.submit(load_yaml, tmp_path / "right.yaml")
+        try:
+            sync.barrier.wait(10)
+            with pytest.raises(RuntimeError, match="left failed"):
+                left.result(timeout=10)
+        finally:
+            sync.release.set()
+        if other_succeeds:
+            render = right.result(timeout=10)["doc_to_text"]
+            assert render({}) == 43
+            assert load_yaml(tmp_path / "right.yaml")["doc_to_text"] is render
+        else:
+            with pytest.raises(RuntimeError, match="right failed"):
+                right.result(timeout=10)
+    if not other_succeeds:
+        assert not [
+            name
+            for name in set(sys.modules) - before
+            if str(tmp_path) in str(getattr(sys.modules[name], "__file__", ""))
+        ]
+
+
+def test_initializer_failure_rolls_back_successful_nested_yaml_load(
+    tmp_path, monkeypatch
+):
+    """A nested YAML success does not commit a subsequently failing initializer."""
+    sync = types.ModuleType("nested_initializer_sync")
+    sync.load = lambda: load_yaml(tmp_path / "helper.yaml")["doc_to_text"]({})
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    write_files(
+        tmp_path,
+        {
+            "__init__.py": "from nested_initializer_sync import load\n"
+            "assert load() == 47\nraise RuntimeError('initializer failed')\n",
+            "helper.py": "def render(doc):\n    return 47\n",
+            "helper.yaml": "doc_to_text: !function helper.render\n",
+            "utils.py": "def render(doc):\n    return 48\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    before = set(sys.modules)
+    with pytest.raises(RuntimeError, match="initializer failed"):
+        load_function(tmp_path)
+    assert not [
+        name
+        for name in set(sys.modules) - before
+        if str(tmp_path) in str(getattr(sys.modules[name], "__file__", ""))
+    ]
+
+
 def test_absolute_module_reference(tmp_path):
     write_files(tmp_path, {"task.yaml": "doc_to_text: !function json.dumps\n"})
     assert load_function(tmp_path) is json.dumps
