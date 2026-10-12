@@ -7,7 +7,7 @@ training_split: train
 validation_split: valid
 test_split: test
 description: "Generate a JSON object that matches the following JSON schema."
-doc_to_text: 'JSON schema: {{json_schema}}\n\nJSON object: '
+doc_to_text: "JSON schema: {{json_schema}}\n\nJSON object: "
 doc_to_target: '{{json_object if json_object is defined else json_schema}}' # here we use the json_schema as the target at test time for evaluation
 output_type: generate_until
 metric_list:
@@ -18,7 +18,7 @@ metric_list:
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 0.1
+  version: 0.2
 fewshot_split: null
 num_fewshot: 2
 fewshot_config:
