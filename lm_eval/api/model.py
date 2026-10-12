@@ -135,7 +135,8 @@ class LM(abc.ABC):
 
         Args:
             arg_string: Arguments as ``"key1=value1,key2=value2"``.
-            additional_config: Extra configuration merged into the parsed args.
+            additional_config: Extra configuration merged into parsed args;
+                non-None values override matching arguments.
 
         Returns:
             An instance of this LM subclass.
@@ -143,7 +144,8 @@ class LM(abc.ABC):
         additional_config = {} if additional_config is None else additional_config
         args = utils.simple_parse_args_string(arg_string)
         args2 = {k: v for k, v in additional_config.items() if v is not None}
-        return cls(**args, **args2)
+        args = {**args, **args2}
+        return cls(**args)
 
     @classmethod
     def create_from_arg_obj(
@@ -155,7 +157,8 @@ class LM(abc.ABC):
 
         Args:
             arg_dict: Keyword arguments forwarded to the constructor.
-            additional_config: Extra configuration merged into ``arg_dict``.
+            additional_config: Extra configuration merged into ``arg_dict``;
+                non-None values override matching arguments.
 
         Returns:
             An instance of this LM subclass.
@@ -165,8 +168,8 @@ class LM(abc.ABC):
             if additional_config is None
             else {k: v for k, v in additional_config.items() if v is not None}
         )
-
-        return cls(**arg_dict, **additional_config)
+        args = {**arg_dict, **additional_config}
+        return cls(**args)
 
     # Distributed communication primitives, used by evaluate() to synchronize across ranks;
     # Override if relying on the evaluator() for data-parallel distribution of requests.

@@ -280,6 +280,54 @@ class TestRegistryThreadSafety:
 class TestModelRegistry:
     """Test model registry integration."""
 
+    @pytest.mark.parametrize("arg_format", ["dict", "string"])
+    def test_model_factories_merge_additional_config(self, arg_format):
+        from lm_eval.models.dummy import DummyLM
+
+        class RecordingDummyLM(DummyLM):
+            def __init__(self, *args, **kwargs):
+                self.received_args = args
+                self.received_kwargs = kwargs.copy()
+                super().__init__(*args, **kwargs)
+
+            @classmethod
+            def create_from_arg_string(cls, arg_string, additional_config=None):
+                from lm_eval.api.model import LM
+
+                return LM.create_from_arg_string.__func__(
+                    cls, arg_string, additional_config
+                )
+
+        model_args = (
+            {"write_out": False, "max_batch_size": 32}
+            if arg_format == "dict"
+            else "write_out=False,max_batch_size=32"
+        )
+        additional_config = {
+            "write_out": True,
+            "max_batch_size": None,
+            "device": "cpu",
+        }
+        original_model_args = (
+            model_args.copy() if isinstance(model_args, dict) else model_args
+        )
+        original_additional_config = additional_config.copy()
+
+        model = (
+            RecordingDummyLM.create_from_arg_obj(model_args, additional_config)
+            if arg_format == "dict"
+            else RecordingDummyLM.create_from_arg_string(model_args, additional_config)
+        )
+
+        assert model.received_args == ()
+        assert model.received_kwargs == {
+            "write_out": True,
+            "max_batch_size": 32,
+            "device": "cpu",
+        }
+        assert model_args == original_model_args
+        assert additional_config == original_additional_config
+
     def test_model_registry_exists(self):
         """Test that model_registry is properly initialized."""
         assert model_registry is not None
