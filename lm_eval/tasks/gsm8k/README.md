@@ -63,3 +63,4 @@ Homepage: https://github.com/openai/grade-school-math
 
 Change log:
 - [2026-01-27] `gsm8k_cot_llama` (v4.0): set 'target_delimiter' to empty as the prompt ends with newline.
+- [2026-10-12] `gsm8k_cot`, `gsm8k_cot_zeroshot` (v4.0): the strict-match pattern no longer drops the last digit of an answer that is not followed by a period.
