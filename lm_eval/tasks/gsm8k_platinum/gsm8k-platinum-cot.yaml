@@ -47,7 +47,7 @@ fewshot_config:
 filter_list:
 - filter:
   - function: regex
-    regex_pattern: The answer is (\-?[0-9\.\,]+).
+    regex_pattern: The answer is (\-?[0-9\.\,]*[0-9]+)
   - function: take_first
   name: strict-match
 - filter:
@@ -65,7 +65,7 @@ generation_kwargs:
 tag:
 - chain_of_thought
 metadata:
-  version: 3.0
+  version: 4.0
 metric_list:
 - aggregation: mean
   higher_is_better: true

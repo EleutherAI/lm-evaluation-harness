@@ -52,3 +52,6 @@ Homepage: http://platinum-bench.csail.mit.edu/
 - `gsm8k_platinum_cot_self_consistency`: GSM8K Platinum with Chain-of-Thought and Self-Consistency
 - `gsm8k_platinum_cot_llama`: GSM8K Platinum with prompt formatting modified to conform to the evaluation settings described by Meta here: https://huggingface.co/datasets/meta-llama/Meta-Llama-3.1-8B-Instruct-evals/viewer/Meta-Llama-3.1-8B-Instruct-evals__gsm8k__details?row=0
     - Use this task with --fewshot_as_multiturn and --apply_chat_template to replicate Meta's reported performance.
+
+Change log:
+- [2026-10-12] `gsm8k_platinum_cot`, `gsm8k_platinum_cot_zeroshot` (v4.0): the strict-match pattern no longer drops the last digit of an answer that is not followed by a period.
