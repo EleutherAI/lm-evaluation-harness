@@ -34,7 +34,7 @@ def steer(
     """
 
     def create_hook(hookpoint: str):
-        def hook_fn(module: nn.Module, input: Any, output: Tensor):  # noqa: A002
+        def hook_fn(module: nn.Module, input: Any, output: Tensor):
             # If output is a tuple (like in some transformer layers), take first element
             if isinstance(output, tuple):
                 output = (hook_to_steer[hookpoint](output[0]), *output[1:])  # type: ignore
@@ -98,7 +98,7 @@ class SteeredModel(HFLM):
         """
         super().__init__(pretrained=pretrained, device=device, **kwargs)
 
-        if steer_path.endswith(".pt") or steer_path.endswith(".pth"):
+        if steer_path.endswith((".pt", ".pth")):
             with open(steer_path, "rb") as f:
                 # steer_config: dict[str, dict[str, Any]] = torch.load(
                 #     f, weights_only=True
@@ -201,7 +201,7 @@ class SteeredModel(HFLM):
                 "action": action,
                 "steering_coefficient": steering_coefficient,
                 "steering_vector": steering_vector,
-                "bias": bias,
+                "bias": None if action == "add" else bias,
             }
 
         return steer_data
