@@ -243,7 +243,7 @@ class HFLM(TemplateLM):
                 # TP mode: skip Accelerator entirely, let transformers handle
                 # distribution via torchrun + device_mesh.
                 device_type = torch._C._get_accelerator().type
-                local_rank = int(os.environ.get("LOCAL_RANK", 0))
+                local_rank = int(os.environ.get("LOCAL_RANK", "0"))
                 self._device = torch.device(f"{device_type}:{local_rank}")
                 gpus = 0  # prevent later model.to(device) calls
 
@@ -402,7 +402,7 @@ class HFLM(TemplateLM):
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
         self.chat_template_args = (
-            (chat_template_args or {}) | dict(enable_thinking=enable_thinking)
+            (chat_template_args or {}) | {"enable_thinking": enable_thinking}
             if enable_thinking is not None
             else (chat_template_args or {})
         )
@@ -513,8 +513,8 @@ class HFLM(TemplateLM):
         gpus: int | None = None,
     ) -> dict:
         """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
-        num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
-        num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
+        num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", "1"))
+        num_machines = int(os.environ.get("WORLD_SIZE", "0")) // num_local_processes
         if (
             num_machines == 0
             and hasattr(self, "accelerator")
@@ -1157,12 +1157,10 @@ class HFLM(TemplateLM):
         stop: list[str],
         **generation_kwargs,
     ) -> torch.Tensor:
-        # temperature = 0.0 if not set
-        # if do_sample is false and temp==0.0:
-        # remove temperature, as do_sample=False takes care of this
-        # and we don't want a warning from HF
-        generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
         do_sample = generation_kwargs.get("do_sample")
+        # Let the model's sampling temperature apply when none is supplied.
+        if do_sample is not True:
+            generation_kwargs.setdefault("temperature", 0.0)
 
         # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
         if (temp := generation_kwargs.get("temperature")) == 0.0 and do_sample is None:
@@ -1763,7 +1761,7 @@ class HFLM(TemplateLM):
             try:
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - model metadata is best-effort
                 eval_logger.debug(
                     f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
                 )
