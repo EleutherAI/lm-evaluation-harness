@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import hashlib
+import importlib
 import importlib.util
+import os
 import sys
 from pathlib import Path
+from threading import RLock
 from typing import Any
 
 import yaml
@@ -12,6 +16,7 @@ _Base = (
     yaml.CSafeLoader if getattr(yaml, "__with_libyaml__", False) else yaml.FullLoader
 )
 _IGNORE_DIRS = {"__pycache__", ".ipynb_checkpoints"}
+_MODULE_LOAD_LOCK = RLock()
 
 
 def _mk_function_ctor(base_dir: Path, resolve: bool):
@@ -35,59 +40,135 @@ def _make_loader(base_dir: Path, *, resolve_funcs: bool) -> type[yaml.Loader]:
     return Loader
 
 
-def _load_module_with_cache(module_path: Path) -> Any:
-    """Load a module from a file path with caching and hot-reload support.
-
-    Args:
-        module_path: Path to the Python file to load
-
-    Returns:
-        The loaded module
-    """
-    # Determine module name based on location
-    path_str = str(module_path)
-
-    # Check if this is a built-in task module
-    if "/lm_eval/tasks/" in path_str:
-        # Find the position of lm_eval/tasks/ in the path
-        tasks_idx = path_str.find("/lm_eval/tasks/")
-        if tasks_idx != -1:
-            # Extract path starting from lm_eval/tasks/
-            # e.g., /path/to/lm_eval/tasks/hellaswag/utils.py → hellaswag/utils.py
-            relative_path = path_str[tasks_idx + len("/lm_eval/tasks/") :]
-            # Remove .py and convert to module name
-            # e.g., hellaswag/utils.py → lm_eval.tasks.hellaswag.utils
-            module_parts = relative_path.replace(".py", "").replace("/", ".")
-            module_name = f"lm_eval.tasks.{module_parts}"
-        else:
-            # Fallback to a full path if a pattern not found
-            module_name = str(module_path.with_suffix(""))
-    else:
-        # External module - use a full path without extension
-        module_name = str(module_path.with_suffix(""))
-
-    # Check if we need to reload the module
-    if module_name in sys.modules:
-        existing_module = sys.modules[module_name]
-        # Check if it was modified
-        current_mtime = module_path.stat().st_mtime_ns
-        if (
-            hasattr(existing_module, "__mtime__")
-            and existing_module.__mtime__ == current_mtime
-        ):
-            # Module hasn't changed, reuse it
-            return existing_module
-
-    # Load or reload the module
+def _exec_module(module_name: str, module_path: Path) -> Any:
+    """Execute a file, publishing it before execution for circular imports."""
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Cannot load module from {module_path}") from None
     module = importlib.util.module_from_spec(spec)
-    # Store mtime for future checks
     module.__mtime__ = module_path.stat().st_mtime_ns  # type: ignore
-    spec.loader.exec_module(module)  # type: ignore[arg-type]
+    previous = sys.modules.get(module_name)
     sys.modules[module_name] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        if previous is None:
+            sys.modules.pop(module_name, None)
+        else:
+            sys.modules[module_name] = previous
+        raise
+    parent_name, _, child = module_name.rpartition(".")
+    if parent_name in sys.modules:
+        setattr(sys.modules[parent_name], child, module)
     return module
+
+
+def _cached_module(module_name: str, module_path: Path) -> Any:
+    """Reuse imports made by package initializers; reload only this file on change."""
+    existing = sys.modules.get(module_name)
+    mtime = module_path.stat().st_mtime_ns
+    if existing is not None and getattr(existing, "__mtime__", mtime) == mtime:
+        existing.__mtime__ = mtime
+        return existing
+    return _exec_module(module_name, module_path)
+
+
+def _module_parts(module_path: Path, root: Path) -> tuple[str, ...]:
+    """Use filesystem spelling for Python names on case-insensitive Windows paths."""
+    relative = module_path.relative_to(root)
+    if os.name == "nt":
+        actual = root
+        for part in relative.parts:
+            actual = next(
+                child
+                for child in actual.iterdir()
+                if os.path.normcase(child.name) == os.path.normcase(part)
+            )
+        relative = actual.relative_to(root)
+    return relative.with_suffix("").parts
+
+
+def _package_name(root: Path) -> tuple[str, bool]:
+    """Use an importable package's identity only when it resolves to this root."""
+    root_name = root.name
+    if os.name == "nt":
+        root_name = next(child.name for child in root.parent.iterdir() if child == root)
+    if root_name.isidentifier():
+        try:
+            spec = importlib.util.find_spec(root_name)
+        except (ImportError, ValueError):
+            spec = None
+        if spec and spec.origin and Path(spec.origin).resolve() == root / "__init__.py":
+            return root_name, True
+    # The directory name need not be an identifier, and must not shadow a library.
+    identity = os.path.normcase(str(root))
+    return "_lm_eval_external_" + hashlib.sha256(identity.encode()).hexdigest(), False
+
+
+def _load_package_module(root: Path, module_path: Path) -> Any:
+    """Load an explicit package without sys.path edits, rolling back failed imports."""
+    package_name, importable = _package_name(root)
+    prefix = package_name + "."
+    before = {
+        k: v
+        for k, v in sys.modules.copy().items()
+        if k == package_name or k.startswith(prefix)
+    }
+    bindings = {k: vars(v).copy() for k, v in before.items() if v is not None}
+    try:
+        if package_name not in sys.modules:
+            if importable:
+                importlib.import_module(package_name)
+            else:
+                _exec_module(package_name, root / "__init__.py")
+        parts = _module_parts(module_path, root)
+        if parts[-1] == "__init__":
+            parts = parts[:-1]
+        module_name = ".".join((package_name, *parts))
+        if module_name not in sys.modules:
+            # Normal imports initialize intermediate packages and bind children.
+            module = importlib.import_module(module_name)
+            module.__mtime__ = module_path.stat().st_mtime_ns
+            return module
+        return _cached_module(module_name, module_path)
+    except BaseException:
+        current = {
+            k: v
+            for k, v in sys.modules.copy().items()
+            if k == package_name or k.startswith(prefix)
+        }
+        for name, module in current.items():
+            parent_name, _, child = name.rpartition(".")
+            parent = before.get(parent_name)
+            if parent is not None and getattr(parent, child, None) is module:
+                if child in bindings[parent_name]:
+                    setattr(parent, child, bindings[parent_name][child])
+                else:
+                    delattr(parent, child)
+            if name not in before:
+                sys.modules.pop(name, None)
+        sys.modules.update(before)
+        raise
+
+
+def _load_module_with_cache(module_path: Path) -> Any:
+    """Load local functions with main-file mtime reload and normal helper caching."""
+    module_path = module_path.resolve()
+    with _MODULE_LOAD_LOCK:
+        tasks_dir = Path(__file__).resolve().parent
+        if module_path.is_relative_to(tasks_dir):
+            parts = _module_parts(module_path, tasks_dir)
+            return _cached_module(".".join(("lm_eval", "tasks", *parts)), module_path)
+
+        root = module_path.parent
+        if (root / "__init__.py").is_file():
+            while root.parent != root and (root.parent / "__init__.py").is_file():
+                root = root.parent
+            return _load_package_module(root, module_path)
+
+        return _cached_module(
+            os.path.normcase(str(module_path.with_suffix(""))), module_path
+        )
 
 
 def _import_func_in_yml(qual: str, base_dir: Path):
@@ -185,7 +266,7 @@ def load_yaml(
         cfg = yaml.load(fh, Loader=loader_cls)  # noqa: S506
 
     if not isinstance(cfg, dict):
-        raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")
+        raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")  # noqa: TRY004 - preserve the YAML error contract
 
     if not recursive or "include" not in cfg:
         return cfg
