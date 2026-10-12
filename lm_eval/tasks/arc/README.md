@@ -59,4 +59,4 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 
-* `arc_challenge_chat` v2.0 (2026-10-07, PR #TBD): `doc_to_text` is now double-quoted, so the prompt contains real line breaks instead of literal `\n` characters.
+* `arc_challenge_chat` v2.0 (2026-10-07, PR #4371): `doc_to_text` is now double-quoted, so the prompt contains real line breaks instead of literal `\n` characters.
