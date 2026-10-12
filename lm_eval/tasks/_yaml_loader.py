@@ -277,6 +277,9 @@ def _load_package_module(root: Path, module_path: Path) -> Any:
             parts = parts[:-1]
         module_name = ".".join((package_name, *parts))
         parent_name, _, _ = module_name.rpartition(".")
+        if module_name not in sys.modules or parent_name not in sys.modules:
+            # A dotted YAML path may name a newly created intermediate package.
+            _invalidate_package_caches(package_name)
         if parent_name:
             importlib.import_module(parent_name)
         if (
@@ -290,7 +293,6 @@ def _load_package_module(root: Path, module_path: Path) -> Any:
             return _cached_module(parent_name + "." + alias, module_path)
         if module_name not in sys.modules:
             # Normal imports initialize intermediate packages and bind children.
-            _invalidate_package_caches(parent_name)
             module = importlib.import_module(module_name)
             module.__mtime__ = module_path.stat().st_mtime_ns
             return module

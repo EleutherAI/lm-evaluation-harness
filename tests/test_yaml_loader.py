@@ -318,6 +318,36 @@ def test_reload_discovers_new_helper_with_unchanged_directory_mtime(tmp_path):
     assert package.helper is helper
 
 
+def test_new_nested_yaml_module_refreshes_parent_directory_cache(tmp_path):
+    """A new dotted module path must refresh listings before importing its parent."""
+    write_files(
+        tmp_path,
+        {
+            "__init__.py": "",
+            "utils.py": "def render(doc):\n    return 1\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    original = load_function(tmp_path)
+    package_name = sys.modules[original.__module__].__package__
+    assert importlib.util.find_spec(package_name + ".not_present") is None
+    directory_mtime = tmp_path.stat().st_mtime_ns
+    write_files(
+        tmp_path,
+        {
+            "added/__init__.py": "from . import helper\n",
+            "added/helper.py": "VALUE = 67\n",
+            "added/utils.py": "from .helper import VALUE\ndef render(doc):\n    return VALUE\n",
+            "task.yaml": "doc_to_text: !function added.utils.render\n",
+        },
+    )
+    os.utime(tmp_path, ns=(directory_mtime, directory_mtime))
+    render = load_function(tmp_path)
+    assert render({}) == 67
+    assert load_function(tmp_path) is render
+    assert sys.modules[original.__module__].render is original
+
+
 def test_concurrent_reloads_do_not_mutate_global_finder_cache(tmp_path, monkeypatch):
     """Two reloads must not race while removing shared relative finder entries."""
     roots = [tmp_path / str(i) / "reload_package" for i in range(2)]
