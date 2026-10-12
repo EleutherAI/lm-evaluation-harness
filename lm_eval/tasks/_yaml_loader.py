@@ -27,6 +27,7 @@ _MISSING = object()
 class _PackageLoadState:
     modules: dict[str, Any]
     bindings: dict[str, dict[str, Any]]
+    initializing: frozenset[str]
     active: int = 0
     succeeded: bool = False
 
@@ -150,8 +151,28 @@ def _namespace_modules(package_name: str) -> dict[str, Any]:
     }
 
 
+def _snapshot_package(package_name: str) -> _PackageLoadState:
+    before = _namespace_modules(package_name)
+    return _PackageLoadState(
+        before,
+        {k: vars(v).copy() for k, v in before.items() if v is not None},
+        frozenset(
+            k
+            for k, v in before.items()
+            if getattr(getattr(v, "__spec__", None), "_initializing", False)
+        ),
+    )
+
+
 def _rollback_package(package_name: str, state: _PackageLoadState) -> None:
     current = _namespace_modules(package_name)
+    # A snapshot can observe a standard import before its initializer finishes.
+    # If it later failed and disappeared, never resurrect that partial object.
+    restore = {
+        k: v
+        for k, v in state.modules.items()
+        if k not in state.initializing or current.get(k, _MISSING) is v
+    }
     # An unrelated standard import may still be executing in this namespace.
     # Do not remove its parent or dependencies out from under it.
     if any(
@@ -162,15 +183,19 @@ def _rollback_package(package_name: str, state: _PackageLoadState) -> None:
         return
     for name, module in current.items():
         parent_name, _, child = name.rpartition(".")
-        parent = state.modules.get(parent_name)
+        parent = restore.get(parent_name)
+        if name in state.initializing and current.get(name) is restore.get(
+            name, _MISSING
+        ):
+            continue
         if parent is not None and vars(parent).get(child, _MISSING) is module:
             if child in state.bindings[parent_name]:
                 setattr(parent, child, state.bindings[parent_name][child])
             else:
                 vars(parent).pop(child, None)
-        if name not in state.modules:
+        if name not in restore:
             sys.modules.pop(name, None)
-    sys.modules.update(state.modules)
+    sys.modules.update(restore)
 
 
 @contextmanager
@@ -181,10 +206,7 @@ def _package_transaction(package_name: str):
     with _PACKAGE_STATE_LOCK:
         state = _PACKAGE_STATES.get(package_name)
         if state is None:
-            before = _namespace_modules(package_name)
-            state = _PackageLoadState(
-                before, {k: vars(v).copy() for k, v in before.items() if v is not None}
-            )
+            state = _snapshot_package(package_name)
             _PACKAGE_STATES[package_name] = state
         state.active += 1
     requests = _PACKAGE_REQUESTS.get()
@@ -192,7 +214,7 @@ def _package_transaction(package_name: str):
     token = _PACKAGE_REQUESTS.set((*requests, package_name))
     completed = False
     try:
-        yield
+        yield state
         completed = True
     finally:
         _PACKAGE_REQUESTS.reset(token)
@@ -210,10 +232,25 @@ def _package_transaction(package_name: str):
 def _load_package_module(root: Path, module_path: Path) -> Any:
     """Load an explicit package without sys.path edits, rolling back failed imports."""
     package_name, importable = _package_name(root)
-    with _package_transaction(package_name):
+    with _package_transaction(package_name) as state:
         # Release the root lock before waiting for children: a child's standard
         # initializer can load another YAML while already holding its own lock.
         with _ModuleLockManager(package_name):
+            with _PACKAGE_STATE_LOCK:
+                previous = state.modules.get(package_name)
+                if (
+                    package_name in state.initializing
+                    and sys.modules.get(package_name, _MISSING) is previous
+                    and not getattr(
+                        getattr(previous, "__spec__", None), "_initializing", False
+                    )
+                ):
+                    # Waiting for a successful standard root import makes its
+                    # completed dependencies preexisting, too.
+                    refreshed = _snapshot_package(package_name)
+                    state.modules = refreshed.modules
+                    state.bindings = refreshed.bindings
+                    state.initializing = refreshed.initializing
             if package_name not in sys.modules:
                 if importable:
                     importlib.import_module(package_name)

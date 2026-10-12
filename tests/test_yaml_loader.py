@@ -8,6 +8,7 @@ import sys
 import threading
 import types
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -598,6 +599,105 @@ def test_initializer_failure_rolls_back_successful_nested_yaml_load(
         for name in set(sys.modules) - before
         if str(tmp_path) in str(getattr(sys.modules[name], "__file__", ""))
     ]
+
+
+@pytest.mark.parametrize("failed_module", ["__init__.py", "utils.py"])
+def test_failed_standard_initialization_is_not_restored(
+    tmp_path, monkeypatch, failed_module
+):
+    """Rollback must not resurrect a standard import's failed partial snapshot."""
+    from lm_eval.tasks import _yaml_loader as loader
+
+    root = tmp_path / "failed_snapshot_package"
+    sync = types.ModuleType("failed_snapshot_sync")
+    sync.started = threading.Event()
+    sync.requested = threading.Event()
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    write_files(
+        root,
+        {
+            "__init__.py": "FLAG = 53\n",
+            "utils.py": "def render(doc):\n    return 1\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    (root / failed_module).write_text(
+        "from failed_snapshot_sync import started, requested\n"
+        "started.set()\nassert requested.wait(10)\nraise RuntimeError('failed initialization')\n"
+    )
+    name = "failed_snapshot_package"
+    if failed_module == "utils.py":
+        package = importlib.import_module(name)
+        name += ".utils"
+    original = loader._package_transaction
+
+    @contextmanager
+    def observe(package_name):
+        with original(package_name) as state:
+            sync.requested.set()
+            yield state
+
+    monkeypatch.setattr(loader, "_package_transaction", observe)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        imported = pool.submit(importlib.import_module, name)
+        assert sync.started.wait(10)
+        loaded = pool.submit(load_function, root)
+        with pytest.raises(RuntimeError, match="failed initialization"):
+            imported.result(timeout=10)
+        with pytest.raises(RuntimeError, match="failed initialization"):
+            loaded.result(timeout=10)
+    assert name not in sys.modules
+    with pytest.raises(RuntimeError, match="failed initialization"):
+        load_function(root)
+    if failed_module == "utils.py":
+        assert sys.modules["failed_snapshot_package"] is package
+        assert package.FLAG == 53
+
+
+def test_completed_standard_root_dependencies_survive_yaml_failure(
+    tmp_path, monkeypatch
+):
+    """After waiting for initialization, completed standard imports are preexisting."""
+    from lm_eval.tasks import _yaml_loader as loader
+
+    root = tmp_path / "completed_snapshot_package"
+    sync = types.ModuleType("completed_snapshot_sync")
+    sync.started = threading.Event()
+    sync.requested = threading.Event()
+    monkeypatch.setitem(sys.modules, sync.__name__, sync)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    write_files(
+        root,
+        {
+            "__init__.py": "from completed_snapshot_sync import started, requested\n"
+            "started.set()\nassert requested.wait(10)\nfrom . import helper\n",
+            "helper.py": "VALUE = 59\n",
+            "utils.py": "raise RuntimeError('utils failed')\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    original = loader._package_transaction
+
+    @contextmanager
+    def observe(package_name):
+        with original(package_name) as state:
+            sync.requested.set()
+            yield state
+
+    monkeypatch.setattr(loader, "_package_transaction", observe)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        imported = pool.submit(importlib.import_module, "completed_snapshot_package")
+        assert sync.started.wait(10)
+        loaded = pool.submit(load_function, root)
+        package = imported.result(timeout=10)
+        helper = package.helper
+        with pytest.raises(RuntimeError, match="utils failed"):
+            loaded.result(timeout=10)
+    assert sys.modules["completed_snapshot_package"] is package
+    assert sys.modules["completed_snapshot_package.helper"] is helper
+    assert package.helper is helper
+    assert helper.VALUE == 59
 
 
 def test_absolute_module_reference(tmp_path):
