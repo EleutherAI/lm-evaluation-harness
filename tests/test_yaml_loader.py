@@ -292,6 +292,32 @@ def test_reload_publishes_new_parent_binding_before_helper_import(tmp_path):
     assert load_function(tmp_path)({}) == 2
 
 
+def test_reload_discovers_new_helper_with_unchanged_directory_mtime(tmp_path):
+    """A finder cached before file creation must discover new reload dependencies."""
+    write_files(
+        tmp_path,
+        {
+            "__init__.py": "",
+            "helper.py": "VALUE = 5\n",
+            "utils.py": "from .helper import VALUE\ndef render(doc):\n    return VALUE\n",
+            "task.yaml": "doc_to_text: !function utils.render\n",
+        },
+    )
+    original = load_function(tmp_path)
+    package = sys.modules[sys.modules[original.__module__].__package__]
+    helper = package.helper
+    directory_mtime = tmp_path.stat().st_mtime_ns
+    (tmp_path / "newhelper.py").write_text("VALUE = 63\n")
+    replace_source(
+        tmp_path / "utils.py",
+        "from .newhelper import VALUE\ndef render(doc):\n    return VALUE\n",
+    )
+    # Reproduce files created within one directory timestamp resolution interval.
+    os.utime(tmp_path, ns=(directory_mtime, directory_mtime))
+    assert load_function(tmp_path)({}) == 63
+    assert package.helper is helper
+
+
 @pytest.mark.parametrize("standard_first", [True, False])
 def test_yaml_and_standard_import_wait_for_initialization(
     tmp_path, monkeypatch, standard_first
@@ -655,8 +681,9 @@ def test_failed_standard_initialization_is_not_restored(
         assert package.FLAG == 53
 
 
-def test_completed_standard_root_dependencies_survive_yaml_failure(
-    tmp_path, monkeypatch
+@pytest.mark.parametrize("initializing_child", [False, True])
+def test_completed_standard_dependencies_survive_yaml_failure(
+    tmp_path, monkeypatch, initializing_child
 ):
     """After waiting for initialization, completed standard imports are preexisting."""
     from lm_eval.tasks import _yaml_loader as loader
@@ -670,12 +697,26 @@ def test_completed_standard_root_dependencies_survive_yaml_failure(
     write_files(
         root,
         {
-            "__init__.py": "from completed_snapshot_sync import started, requested\n"
-            "started.set()\nassert requested.wait(10)\nfrom . import helper\n",
-            "helper.py": "VALUE = 59\n",
-            "utils.py": "raise RuntimeError('utils failed')\n",
+            "__init__.py": "",
+            "helper.py": "from . import dep\nINITIAL_DEP = dep\n"
+            "def check():\n    from . import dep\n    return dep is INITIAL_DEP\n",
+            "dep.py": "VALUE = 59\n",
+            "utils.py": "from .helper import check\nassert check()\n"
+            "raise RuntimeError('utils failed')\n",
             "task.yaml": "doc_to_text: !function utils.render\n",
         },
+    )
+    name = "completed_snapshot_package"
+    initializing_file = root / "__init__.py"
+    initialization = "from . import helper\n"
+    if initializing_child:
+        importlib.import_module(name)
+        name += ".helper"
+        initializing_file = root / "helper.py"
+        initialization = initializing_file.read_text()
+    initializing_file.write_text(
+        "from completed_snapshot_sync import started, requested\n"
+        "started.set()\nassert requested.wait(10)\n" + initialization
     )
     original = loader._package_transaction
 
@@ -687,17 +728,20 @@ def test_completed_standard_root_dependencies_survive_yaml_failure(
 
     monkeypatch.setattr(loader, "_package_transaction", observe)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        imported = pool.submit(importlib.import_module, "completed_snapshot_package")
+        imported = pool.submit(importlib.import_module, name)
         assert sync.started.wait(10)
         loaded = pool.submit(load_function, root)
-        package = imported.result(timeout=10)
+        imported.result(timeout=10)
+        package = sys.modules["completed_snapshot_package"]
         helper = package.helper
         with pytest.raises(RuntimeError, match="utils failed"):
             loaded.result(timeout=10)
     assert sys.modules["completed_snapshot_package"] is package
     assert sys.modules["completed_snapshot_package.helper"] is helper
     assert package.helper is helper
-    assert helper.VALUE == 59
+    assert sys.modules["completed_snapshot_package.dep"] is helper.INITIAL_DEP
+    assert package.dep is helper.INITIAL_DEP
+    assert helper.check()
 
 
 def test_absolute_module_reference(tmp_path):

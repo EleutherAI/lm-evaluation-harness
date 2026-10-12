@@ -80,6 +80,9 @@ def _exec_module(module_name: str, module_path: Path) -> Any:
             # module lock; publishing it early would expose partial state.
             vars(parent).pop(child, None)
         try:
+            # A changed main file can import helpers created since the finder
+            # last scanned the package, even within one timestamp interval.
+            importlib.invalidate_caches()
             spec.loader.exec_module(module)
             if parent is not None:
                 setattr(parent, child, module)
@@ -166,6 +169,17 @@ def _snapshot_package(package_name: str) -> _PackageLoadState:
 
 def _rollback_package(package_name: str, state: _PackageLoadState) -> None:
     current = _namespace_modules(package_name)
+    # A preexisting standard initializer may have completed while this request
+    # waited. Its successful dependency cache belongs to that import, not to
+    # this failing YAML request; do not split those module identities.
+    if any(
+        current.get(name, _MISSING) is state.modules[name]
+        and not getattr(
+            getattr(state.modules[name], "__spec__", None), "_initializing", False
+        )
+        for name in state.initializing
+    ):
+        return
     # A snapshot can observe a standard import before its initializer finishes.
     # If it later failed and disappeared, never resurrect that partial object.
     restore = {
@@ -178,7 +192,7 @@ def _rollback_package(package_name: str, state: _PackageLoadState) -> None:
     if any(
         getattr(getattr(v, "__spec__", None), "_initializing", False)
         for k, v in current.items()
-        if k not in state.modules
+        if state.modules.get(k, _MISSING) is not v
     ):
         return
     for name, module in current.items():
@@ -232,25 +246,10 @@ def _package_transaction(package_name: str):
 def _load_package_module(root: Path, module_path: Path) -> Any:
     """Load an explicit package without sys.path edits, rolling back failed imports."""
     package_name, importable = _package_name(root)
-    with _package_transaction(package_name) as state:
+    with _package_transaction(package_name):
         # Release the root lock before waiting for children: a child's standard
         # initializer can load another YAML while already holding its own lock.
         with _ModuleLockManager(package_name):
-            with _PACKAGE_STATE_LOCK:
-                previous = state.modules.get(package_name)
-                if (
-                    package_name in state.initializing
-                    and sys.modules.get(package_name, _MISSING) is previous
-                    and not getattr(
-                        getattr(previous, "__spec__", None), "_initializing", False
-                    )
-                ):
-                    # Waiting for a successful standard root import makes its
-                    # completed dependencies preexisting, too.
-                    refreshed = _snapshot_package(package_name)
-                    state.modules = refreshed.modules
-                    state.bindings = refreshed.bindings
-                    state.initializing = refreshed.initializing
             if package_name not in sys.modules:
                 if importable:
                     importlib.import_module(package_name)
@@ -274,6 +273,7 @@ def _load_package_module(root: Path, module_path: Path) -> Any:
             return _cached_module(parent_name + "." + alias, module_path)
         if module_name not in sys.modules:
             # Normal imports initialize intermediate packages and bind children.
+            importlib.invalidate_caches()
             module = importlib.import_module(module_name)
             module.__mtime__ = module_path.stat().st_mtime_ns
             return module

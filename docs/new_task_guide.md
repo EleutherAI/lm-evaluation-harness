@@ -307,6 +307,8 @@ Overlapping YAML loads keep the initialized package cache if an independent
 request succeeds; if all requests fail, cleanup runs after the last one exits.
 Nested loads remain part of their enclosing request. This cleanup does not make
 unrelated standard imports into a process-wide transaction.
+If a standard initializer already running when a YAML request begins completes
+successfully, its package cache is retained even when the YAML request fails.
 
 ### Importing a Prompt from Promptsource
 
