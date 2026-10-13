@@ -95,8 +95,11 @@ def test_same_named_packages_are_isolated(tmp_path, dirname):
         assert load_function(Path(str(roots[0]).upper())) is first
 
 
-@pytest.mark.parametrize("installed", [False, True])
-@pytest.mark.parametrize("preimport", [False, True])
+@pytest.mark.parametrize(
+    ("installed", "preimport"),
+    [(False, False), (True, False), (True, True)],
+    ids=["private-package", "importable-package", "preimported-plugin"],
+)
 def test_package_initialization_imports_requested_module_once(
     tmp_path, monkeypatch, installed, preimport
 ):
@@ -487,8 +490,9 @@ assert results == [37, 37], results
     assert result.returncode == 0, result.stderr
 
 
-def test_standard_import_waits_for_yaml_reload(tmp_path, monkeypatch):
-    """Normal imports must wait for file execution during mtime replacement too."""
+@pytest.mark.parametrize("import_style", ["module", "fromlist"])
+def test_standard_import_waits_for_yaml_reload(tmp_path, monkeypatch, import_style):
+    """Module and from-list imports must wait for the replacement to finish."""
     root = tmp_path / "reload_import_package"
     sync = types.ModuleType("yaml_reload_test_sync")
     sync.started = threading.Event()
@@ -509,12 +513,18 @@ def test_standard_import_waits_for_yaml_reload(tmp_path, monkeypatch):
         "from yaml_reload_test_sync import started, release\n"
         "started.set()\nassert release.wait(10)\ndef render(doc):\n    return 27\n",
     )
+
+    def standard_import():
+        if import_style == "module":
+            return importlib.import_module("reload_import_package.utils").render({})
+        from reload_import_package import utils
+
+        return utils.render({})
+
     with ThreadPoolExecutor(max_workers=2) as pool:
         loaded = pool.submit(load_function, root)
         assert sync.started.wait(10)
-        imported = pool.submit(
-            lambda: importlib.import_module("reload_import_package.utils").render({})
-        )
+        imported = pool.submit(standard_import)
         timer = threading.Timer(0.2, sync.release.set)
         timer.start()
         try:
@@ -524,49 +534,6 @@ def test_standard_import_waits_for_yaml_reload(tmp_path, monkeypatch):
             sync.release.set()
             timer.join()
     assert render({}) == result == 27
-
-
-def test_fromlist_waits_for_yaml_reload(tmp_path, monkeypatch):
-    """A parent attribute must not bypass synchronization for from-list imports."""
-    root = tmp_path / "fromlist_reload_package"
-    sync = types.ModuleType("fromlist_reload_sync")
-    sync.started = threading.Event()
-    sync.release = threading.Event()
-    monkeypatch.setitem(sys.modules, sync.__name__, sync)
-    monkeypatch.syspath_prepend(str(tmp_path))
-    write_files(
-        root,
-        {
-            "__init__.py": "",
-            "utils.py": "def render(doc):\n    return 1\n",
-            "task.yaml": "doc_to_text: !function utils.render\n",
-        },
-    )
-    assert load_function(root)({}) == 1
-    replace_source(
-        root / "utils.py",
-        "from fromlist_reload_sync import started, release\n"
-        "started.set()\nassert release.wait(10)\ndef render(doc):\n    return 29\n",
-    )
-
-    def fromlist():
-        from fromlist_reload_package import utils
-
-        return utils.render({})
-
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        loaded = pool.submit(load_function, root)
-        assert sync.started.wait(10)
-        imported = pool.submit(fromlist)
-        timer = threading.Timer(0.2, sync.release.set)
-        timer.start()
-        try:
-            render = loaded.result(timeout=10)
-            result = imported.result(timeout=10)
-        finally:
-            sync.release.set()
-            timer.join()
-    assert render({}) == result == 29
 
 
 def test_standard_child_initializer_can_load_another_yaml(tmp_path, monkeypatch):
