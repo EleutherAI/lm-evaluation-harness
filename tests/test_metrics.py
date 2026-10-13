@@ -178,6 +178,42 @@ def test_bootstrap_internal_no_mp():
     assert abs(bootstrap_mean - original_mean) < 0.5  # Should be reasonably close
 
 
+def test_bootstrap_internal_no_mp_exact_iters():
+    """Regression test for #4288: when `iters` is not a multiple of the
+    1000-draw chunk size, a trailing partial chunk must still run so the
+    total number of replicates equals `iters`."""
+
+    data = [1, 2, 3, 4, 5]
+    calls = 0
+
+    def counting(xs):
+        nonlocal calls
+        calls += 1
+        return sum(xs) / len(xs)
+
+    for iters in (500, 1500, 2500):
+        calls = 0
+        with mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it), mock.patch("builtins.print"):
+            result = _bootstrap_internal_no_mp(counting, data, iters)
+        assert len(result) == iters
+        assert calls == iters
+
+
+def test_bootstrap_internal_no_mp_reproducible_with_remainder():
+    """Runs with the same `iters` (including a partial chunk) must produce
+    identical replicate sets: chunks are seeded by index, the trailing
+    partial chunk is seeded right after the last full one."""
+
+    data = [1, 2, 3, 4, 5]
+
+    with mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it), mock.patch("builtins.print"):
+        first = _bootstrap_internal_no_mp(mean, data, 1500)
+        second = _bootstrap_internal_no_mp(mean, data, 1500)
+
+    assert first == second
+    assert len(first) == 1500
+
+
 def test_dict_metric_uses_custom_aggregation():
     """Regression test for #3314: dict-valued metrics must use the custom
     aggregation function, not silently fall back to mean()."""
