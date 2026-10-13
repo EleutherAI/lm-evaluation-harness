@@ -1274,14 +1274,19 @@ class HFLM(TemplateLM):
 
         all_nlls = []
         batch_size = adaptive_batch_size or self.batch_size
-        for i in range(0, len(all_windows), batch_size):
+        for i in tqdm(
+            range(0, len(all_windows), batch_size),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running loglikelihood rolling requests",
+            unit="batch",
+        ):
             batch = all_windows[i : i + batch_size]
             # Extract just the windows for processing, keeping track of request indices
             batch_indices, batch_windows = zip(*batch, strict=True)
 
             batch_nlls = self._loglikelihood_tokens(
                 requests=batch_windows,
-                disable_tqdm=False,
+                disable_tqdm=True,
                 override_bs=len(batch_windows),
             )
             # Store results with their request indices
