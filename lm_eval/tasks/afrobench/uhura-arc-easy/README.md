@@ -10,6 +10,14 @@ Paper Link: https://arxiv.org/abs/2412.00948
 
 HomePage: https://huggingface.co/datasets/masakhane/uhura-arc-easy
 
+### Changelog
+
+* (tasks) 2026-10-13 -- (version 1.0 --> version 1.1) PR #4381
+  * Set `target_delimiter: ""` on multiple-choice prompt bases whose `doc_to_text`
+    ends in whitespace, so choice continuations no longer get a doubled separator
+    (#4361). Scores for these configs may differ from version 1.0.
+
+
 ### Citation
 
 ```

@@ -4,4 +4,5 @@ doc_to_text: "Given the categories technology, business, politics, sports, healt
   \ entertainment, or religion; what category does the text: '{{headline}}' belong\
   \ to: \n\n"
 include: masakhanews
+target_delimiter: ""
 task: masakhanews_eng_prompt_1
