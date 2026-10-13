@@ -278,6 +278,38 @@ We can load this function in `doc_to_target` by using a `!function` operator aft
 doc_to_target: !function preprocess_wikitext.wikitext_detokenizer
 ```
 
+External task helpers can use relative imports when they belong to an explicit
+Python package. Add `__init__.py` to the task directory (and any parent package
+directories), then use imports such as `from . import instructions_registry` or
+`from .nested.helper import process_doc` in `utils.py`. The YAML reference remains
+`!function utils.process_doc`.
+
+Package initializers run before their child modules. Packages that are already
+importable from the same location reuse their normal module identity; other
+external packages receive a private identity based on their resolved path, so
+identically named packages in different directories stay separate. The loader
+does not add task directories to `sys.path`: use package-relative imports for
+local helpers. Directories without `__init__.py` retain standalone-file behavior.
+If a local Python file has the same name as a directory package, YAML still
+selects the file; it receives a private module name to preserve the directory
+package's normal imports.
+
+Repeated function loads reuse the module unless that function's Python file has
+changed. Imported helpers and package initializers use Python's usual module
+cache; restart the process to pick up changes to those dependencies. Failed
+package loads remove modules newly imported within that package and restore
+previous module bindings. They cannot undo arbitrary initialization side effects
+or imports outside the package.
+For modules already imported before their first YAML load, mtime tracking starts
+when the loader first adopts the cached module. It cannot detect earlier source
+changes retrospectively.
+Overlapping YAML loads keep the initialized package cache if an independent
+request succeeds; if all requests fail, cleanup runs after the last one exits.
+Nested loads remain part of their enclosing request. This cleanup does not make
+unrelated standard imports into a process-wide transaction.
+If a standard initializer already running when a YAML request begins completes
+successfully, its package cache is retained even when the YAML request fails.
+
 ### Importing a Prompt from Promptsource
 
 [Promptsource](https://github.com/bigscience-workshop/promptsource/tree/main/promptsource) is a great repository for crowdsourced prompts for many datasets. We can load these prompts easily by using the `use_prompt` argument and filling it with the format `"promptsource:<name of prompt template>"`. To use this, `doc_to_text` and `doc_to_target` should be left undefined. This will fetch the template of the dataset defined in the YAML file.
