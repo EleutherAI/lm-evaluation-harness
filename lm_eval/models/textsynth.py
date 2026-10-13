@@ -42,7 +42,8 @@ def textsynth_completion(**kwargs):
         on_exception_callback=_exception_callback,
     )
     def completion():
-        return _requests.post(**kwargs)
+        timeout = kwargs.pop("timeout", 30)
+        return _requests.post(timeout=timeout, **kwargs)
 
     return completion()
 
@@ -98,7 +99,9 @@ class TextSynthLM(LM):
 
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         res = []
-        for context, continuation in tqdm(requests, disable=disable_tqdm):
+        for context, continuation in tqdm(
+            [req.args for req in requests], disable=disable_tqdm
+        ):
             response = textsynth_completion(
                 url=self.api_url + "/v1/engines/" + self.engine + "/logprob",
                 headers={"Authorization": "Bearer " + self.api_key},
@@ -117,8 +120,8 @@ class TextSynthLM(LM):
                 logger.error(
                     f"The following response does not contain `logprobs`. Got:\n{resp}"
                 )
-                assert False
-        return res
+                raise AssertionError
+            return res
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         # TODO: The TextSynth API does not support tokenized inputs so we cannot
@@ -135,7 +138,7 @@ class TextSynthLM(LM):
             return []
 
         res = []
-        for request in tqdm(requests, disable=disable_tqdm):
+        for request in tqdm([req.args for req in requests], disable=disable_tqdm):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]
@@ -160,7 +163,7 @@ class TextSynthLM(LM):
                     "The following response does not contain generated `text`. "
                     "Got:\n{resp}"
                 )
-                assert False
+                raise AssertionError
         return res
 
     def _model_call(self, inps):
