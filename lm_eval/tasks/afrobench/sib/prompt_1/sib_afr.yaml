@@ -4,4 +4,5 @@ doc_to_text: "Given the categories science/technology, travel, politics, sports,
   \ entertainment, or geography; what category does the text: '{{text}}' belong to:\
   \ \n\n"
 include: sib
+target_delimiter: ""
 task: sib_afr_prompt_1

@@ -5,4 +5,5 @@ doc_to_text: "You are a virtual assistant that answers multiple-choice questions
   \ range(choices['text']|length) %}\t{{ 'ABCD'[i] }}: {{ choices['text'][i] }}\n\
   {% endfor %}\nAnswer: "
 include: uhura-arc-easy
+target_delimiter: ""
 task: uhura-arc-easy_en_prompt_1

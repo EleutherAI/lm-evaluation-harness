@@ -10,6 +10,14 @@ Paper Link: https://aclanthology.org/2023.emnlp-main.862/
 
 HomePage: https://github.com/afrisenti-semeval/afrisent-semeval-2023
 
+### Changelog
+
+* (tasks) 2026-10-13 -- (version 1.0 --> version 1.1)
+  * For prompt_4 and prompt_5 multiple-choice configs whose `doc_to_text` ends in
+    whitespace, set `target_delimiter: ""` so choice continuations no longer get a
+    doubled separator (#4361). Scores for these configs may differ from version 1.0.
+
+
 ### Citation
 
 ```

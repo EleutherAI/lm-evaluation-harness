@@ -4,6 +4,7 @@ tag:
 dataset_path: masakhane/uhura-arc-easy
 dataset_name: null
 output_type: multiple_choice
+target_delimiter: ""
 doc_to_target: "{{['A', 'B', 'C', 'D'].index(answerKey)}}"
 doc_to_choice:
   - A
@@ -35,4 +36,4 @@ metric_list:
       - ","
       - "\\$"
 metadata:
-  version: 1.0
+  version: 1.1
