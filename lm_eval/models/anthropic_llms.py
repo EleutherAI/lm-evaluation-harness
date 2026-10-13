@@ -273,6 +273,24 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         raise NotImplementedError("No support for logits.")
 
 
+# Claude models that reject sampling parameters with a 400: Opus 4.7 and later reject
+# `temperature` (and `top_p` / `top_k`) outright, and Sonnet 5 and Haiku 5.5 reject any
+# non-default value, which includes the greedy temperature of 0 that evals ask for.
+_NO_SAMPLING_PARAMS_PREFIXES = (
+    "claude-opus-4-7",
+    "claude-opus-4-8",
+    "claude-opus-5",
+    "claude-sonnet-5",
+    "claude-haiku-5",
+    "claude-fable-5",
+    "claude-mythos-5",
+)
+
+
+def _rejects_sampling_params(model: str) -> bool:
+    return model.startswith(_NO_SAMPLING_PARAMS_PREFIXES)
+
+
 @register_model("anthropic-chat", "anthropic-chat-completions")
 class AnthropicChat(LocalCompletionsAPI):
     def __init__(
@@ -292,6 +310,10 @@ class AnthropicChat(LocalCompletionsAPI):
         eval_logger.warning(
             f"Using Anthropic Version: {self.anthropic_version}. Confirm the current version here: https://docs.anthropic.com/en/api/versioning"
         )
+        if _rejects_sampling_params(self.model):
+            eval_logger.warning(
+                f"{self.model} does not accept temperature, top_p or top_k; they will not be sent."
+            )
 
     @cached_property
     def api_key(self):
@@ -355,6 +377,9 @@ class AnthropicChat(LocalCompletionsAPI):
             "stop_sequences": stop,
             **gen_kwargs,
         }
+        if _rejects_sampling_params(self.model):
+            for param in ("temperature", "top_p", "top_k"):
+                out.pop(param, None)
         if system:
             out["system"] = system
         return out
@@ -366,8 +391,15 @@ class AnthropicChat(LocalCompletionsAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
-            for choices in out["content"]:
-                res.append(choices["text"])
+            # One generation per response: join its text blocks and skip the others, such as
+            # the thinking blocks that come first when (adaptive) thinking is on.
+            res.append(
+                "".join(
+                    block["text"]
+                    for block in out.get("content", [])
+                    if block.get("type") == "text"
+                )
+            )
         return res
 
     def tok_encode(
