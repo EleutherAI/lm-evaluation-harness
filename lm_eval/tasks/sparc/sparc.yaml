@@ -1,0 +1,26 @@
+include: _default_template_yaml
+task: sparc
+process_docs: !function utils.process_docs
+process_results: !function utils.process_results_by_level
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_level_1
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_level_2
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_level_3
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_level_4
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_level_5
+    aggregation: mean
+    higher_is_better: true
+  - metric: invalid_path
+    aggregation: mean
+    higher_is_better: false
