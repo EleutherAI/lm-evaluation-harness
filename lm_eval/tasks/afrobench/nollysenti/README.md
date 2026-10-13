@@ -12,7 +12,7 @@ HomePage: https://github.com/IyanuSh/NollySenti
 
 ### Changelog
 
-* (tasks) 2026-10-13 -- (version 1.0 --> version 1.1)
+* (tasks) 2026-10-13 -- (version 1.0 --> version 1.1) PR #4381
   * For prompt_3, prompt_4, and prompt_5 multiple-choice configs whose `doc_to_text`
     ends in whitespace, set `target_delimiter: ""` so choice continuations no longer
     get a doubled separator (#4361). Scores for these configs may differ from
