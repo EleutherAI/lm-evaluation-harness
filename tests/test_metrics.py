@@ -193,7 +193,10 @@ def test_bootstrap_internal_no_mp_exact_iters():
 
     for iters in (500, 1500, 2500):
         calls = 0
-        with mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it), mock.patch("builtins.print"):
+        with (
+            mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it),
+            mock.patch("builtins.print"),
+        ):
             result = _bootstrap_internal_no_mp(counting, data, iters)
         assert len(result) == iters
         assert calls == iters
@@ -206,7 +209,10 @@ def test_bootstrap_internal_no_mp_reproducible_with_remainder():
 
     data = [1, 2, 3, 4, 5]
 
-    with mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it), mock.patch("builtins.print"):
+    with (
+        mock.patch("tqdm.tqdm", side_effect=lambda it, **kw: it),
+        mock.patch("builtins.print"),
+    ):
         first = _bootstrap_internal_no_mp(mean, data, 1500)
         second = _bootstrap_internal_no_mp(mean, data, 1500)
 
