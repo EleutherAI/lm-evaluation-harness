@@ -83,6 +83,72 @@ def test_evaluator(
     )
 
 
+@pytest.mark.parametrize("arg_format", ["dict", "string"])
+def test_simple_evaluate_model_args_allow_top_level_overrides(monkeypatch, arg_format):
+    from lm_eval.models.dummy import DummyLM
+
+    class RecordingDummyLM(DummyLM):
+        def __init__(self, *args, **kwargs):
+            self.received_kwargs = kwargs.copy()
+            super().__init__(*args, **kwargs)
+
+        @classmethod
+        def create_from_arg_string(cls, arg_string, additional_config=None):
+            from lm_eval.api.model import LM
+
+            return LM.create_from_arg_string.__func__(
+                cls, arg_string, additional_config
+            )
+
+    class EmptyTaskManager:
+        def __init__(self):
+            self.task_index = {}
+
+        def load(self, tasks):
+            assert tasks == ["test_task"]
+            return {"tasks": {}, "groups": {}}
+
+    captured = {}
+
+    def fake_evaluate(lm, **kwargs):
+        captured["lm"] = lm
+        return {"results": {}}
+
+    monkeypatch.setattr(
+        evaluator.lm_eval.api.registry, "get_model", lambda name: RecordingDummyLM
+    )
+    monkeypatch.setattr(evaluator, "evaluate", fake_evaluate)
+    monkeypatch.setattr(evaluator, "add_env_info", lambda results: None)
+    monkeypatch.setattr(evaluator, "add_tokenizer_info", lambda results, lm: None)
+
+    model_args = (
+        {"device": "cuda:1", "batch_size": 32}
+        if arg_format == "dict"
+        else "device=cuda:1,batch_size=32"
+    )
+    result = evaluator.simple_evaluate(
+        model="dummy",
+        model_args=model_args,
+        tasks=["test_task"],
+        batch_size=1,
+        device="cpu",
+        task_manager=EmptyTaskManager(),
+        random_seed=None,
+        numpy_random_seed=None,
+        torch_random_seed=None,
+        fewshot_random_seed=None,
+    )
+
+    assert result is not None
+    assert isinstance(captured["lm"], RecordingDummyLM)
+    assert captured["lm"].received_kwargs == {"device": "cpu", "batch_size": 1}
+    assert model_args == (
+        {"device": "cuda:1", "batch_size": 32}
+        if arg_format == "dict"
+        else "device=cuda:1,batch_size=32"
+    )
+
+
 @pytest.mark.parametrize(
     "task_name,limit,model,model_args",
     [
