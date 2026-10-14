@@ -308,7 +308,7 @@ class NEURON_HF(TemplateLM):
         self,
         strings: list[str],
         padding_side: str = "left",
-        left_truncate_len: int = None,
+        left_truncate_len: int | None = None,
         truncation: bool = False,
     ):
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
@@ -347,7 +347,7 @@ class NEURON_HF(TemplateLM):
             stopping_criteria = stop_sequences_criteria(
                 self.tokenizer,
                 stop + [self.tokenizer.decode([self.config.eos_token_id])],
-                1,
+                context.shape[1],
                 context.shape[0],
             )
 
@@ -619,7 +619,7 @@ class NEURON_HF(TemplateLM):
                                 f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
                             )
                 else:
-                    raise ValueError(
+                    raise ValueError(  # noqa: TRY004 - preserve the existing API exception
                         f"Expected `kwargs` to be of type `dict` but got {kwargs}"
                     )
                 # add EOS token to stop sequences
