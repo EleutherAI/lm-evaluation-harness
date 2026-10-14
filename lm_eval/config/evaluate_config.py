@@ -213,13 +213,16 @@ class EvaluatorConfig:
         """Build an EvaluationConfig by merging with a simple precedence.
 
         CLI args > YAML config > built-in defaults.
+        Explicit top-level model settings override model_args; implicit defaults do not.
         """
         # Start with built-in defaults
         config = asdict(cls())
 
         # Load and merge YAML config if provided
+        yaml_config = {}
         if used_config := getattr(namespace, "config", None):
-            config.update(cls.load_yaml_config(cast("str", used_config)))
+            yaml_config = cls.load_yaml_config(cast("str", used_config))
+            config.update(yaml_config)
 
         # Override with CLI args (only truthy values or 0, exclude non-config args)
         excluded_args = {"command", "func"}  # argparse internal args
@@ -233,6 +236,15 @@ class EvaluatorConfig:
         # Create an instance and validate
         instance = cls(**config)
         instance._configure()
+
+        # Defaults are fallbacks, not user-supplied model constructor overrides.
+        for key in ("batch_size", "max_batch_size", "device"):
+            if (
+                key in instance.model_args
+                and key not in cli_args
+                and key not in yaml_config
+            ):
+                setattr(instance, key, instance.model_args[key])
 
         if used_config:
             cli_args.pop("config", None)
