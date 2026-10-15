@@ -133,7 +133,9 @@ def _aggreg_ner(predictions):
     # The benchmark's macro F1 is defined over PER, LOC and ORG, not
     # the outside class. Explicit labels retain entity types when O is absent
     # and keep the macro denominator fixed for partial evaluation runs.
-    return f1_score(all_ref, all_pred, labels=[0, 1, 2], average="macro", zero_division=0)
+    return f1_score(
+        all_ref, all_pred, labels=[0, 1, 2], average="macro", zero_division=0
+    )
 
 
 def _aggreg_rel(predictions):
