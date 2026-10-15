@@ -131,7 +131,9 @@ def ls_process_results(doc, results):
 
     matching_res = []  # for debugging
 
-    for r in results:
+    # OOT guesses form a set: repeated text cannot cover annotator mass twice.
+    # Deduplicate after the existing ten-guess cutoff, preserving that budget.
+    for r in dict.fromkeys(results):
         if r in words:
             # get frequency of the synonyms from annotators
             idx = words.index(r.strip())
