@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import importlib.util
+import logging
 import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+eval_logger = logging.getLogger(__name__)
 
 
 _Base = (
@@ -85,6 +88,14 @@ def _load_module_with_cache(module_path: Path) -> Any:
     module = importlib.util.module_from_spec(spec)
     # Store mtime for future checks
     module.__mtime__ = module_path.stat().st_mtime_ns  # type: ignore
+    # Task YAMLs may execute arbitrary Python via !function. Built-in task code
+    # is covered by the repo's trust boundary; anything loaded from outside the
+    # package (include_path tasks, absolute includes) is worth a loud log line so
+    # a run's code-execution surface is auditable after the fact.
+    if module_name.startswith("lm_eval.tasks."):
+        eval_logger.debug("Loading built-in task code: %s", module_path)
+    else:
+        eval_logger.warning("Executing external task code: %s", module_path)
     spec.loader.exec_module(module)  # type: ignore[arg-type]
     sys.modules[module_name] = module
     return module
