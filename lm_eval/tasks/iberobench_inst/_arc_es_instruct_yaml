@@ -1,0 +1,35 @@
+dataset_path: BSC-LT/arc_es
+output_type: multiple_choice
+
+validation_split: validation
+
+description: |
+  Dada la siguiente pregunta y las opciones de respuesta, elige la respuesta correcta. Devuelve la respuesta final entre las etiquetas <answer> y </answer>.
+
+doc_to_text: |
+  Pregunta: {{question}}
+  Opciones:
+  {% for choice in choices.text -%}
+  {{choices.label[loop.index0]}}. {{choice}}
+  {% endfor -%}
+  Respuesta:
+
+gen_prefix: "<answer>"
+target_delimiter: " "
+
+doc_to_choice: "{{choices.label}}"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+
+should_decontaminate: true
+doc_to_decontamination_query: "{{question}}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0

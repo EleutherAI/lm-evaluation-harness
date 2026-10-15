@@ -1,0 +1,24 @@
+task: openbookqa_ca_instruct
+dataset_path: projecte-aina/openbookqa_ca
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+description: |
+  Donada la pregunta següent i les opcions de resposta, tria la resposta correcta. Retorna únicament la lletra de la resposta després de l'etiqueta <answer>.
+doc_to_text: "Pregunta: {{question_stem}}\nOpcions:\nA. {{choices.text[0]}}\nB. {{choices.text[1]}}\nC. {{choices.text[2]}}\nD. {{choices.text[3]}}\nResposta:"
+gen_prefix: "<answer>"
+target_delimiter: ""
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
+doc_to_choice: "{{choices.label}}"
+should_decontaminate: true
+doc_to_decontamination_query: question_stem
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

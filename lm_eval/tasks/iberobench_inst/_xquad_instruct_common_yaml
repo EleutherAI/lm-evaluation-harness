@@ -1,13 +1,13 @@
-task: xquad_ca_inst
-dataset_path: projecte-aina/xquad-ca
+tag: xquad_instruct
+task: null
+dataset_path: xquad
 dataset_name: null
 output_type: generate_until
-doc_to_text: "Context: {{context}}\n\nPregunta: {{question}}\n\nResposta:"
-doc_to_target: '{{answers[0]["text"]}}'
-validation_split: null
-test_split: test
+validation_split: validation
+doc_to_text: null
+doc_to_target: '{{answers["text"][0]}}'
+process_results: !function utils.process_results_xquad
 target_delimiter: ' '
-process_results: !function utils.process_results_xquad_ca
 generation_kwargs:
   until:
     - "\n\n"

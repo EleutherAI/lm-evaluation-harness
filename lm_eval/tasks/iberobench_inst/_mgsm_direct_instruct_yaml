@@ -1,0 +1,25 @@
+# This file is included in the generated Math-Verify language-specific task configs.
+# It intentionally remains separate from direct_yaml so existing MGSM direct
+# task names and scoring are unchanged.
+tag: mgsm_direct_instruct
+process_results: !function utils.process_results_mgsm
+dataset_path: juletxara/mgsm
+dataset_name: null  # Overridden by language-specific config.
+output_type: generate_until
+training_split: train
+test_split: test
+target_delimiter: ""
+generation_kwargs:
+  until: []
+  max_gen_toks: 8191
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: math_verify
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

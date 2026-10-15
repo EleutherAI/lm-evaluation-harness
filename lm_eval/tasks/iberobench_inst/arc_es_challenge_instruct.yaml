@@ -1,0 +1,3 @@
+task: arc_es_challenge_instruct
+dataset_name: ARC_Challenge_es
+include: _arc_es_instruct_yaml

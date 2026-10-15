@@ -1,0 +1,22 @@
+dataset_path: cais/mmlu
+dataset_name: all
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+description: |
+  Given the following question and answer choices, choose the correct answer. Return the final answer between the tags <answer> and </answer>.
+
+gen_prefix: "<answer>"
+doc_to_text: "Question: {{question.strip()}}\nChoices:\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+target_delimiter: " "
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+task: mmlu_en_instruct

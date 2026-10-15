@@ -1,15 +1,19 @@
-tag: cabreu_inst
-dataset_path: projecte-aina/caBreu
+task: xsum_instruct
+dataset_path: EdinburghNLP/xsum
 dataset_name: null
-output_type: generate_until
 test_split: test
 training_split: train
 validation_split: validation
-process_docs: !function utils.process_doc_cabreu
+output_type: generate_until
+fewshot_split: train
+process_docs: !function utils.process_xsum
+doc_to_text: 'Text: {{document}}
+
+  One-sentence summary:'
+doc_to_target: '{{summary}}'
 generation_kwargs:
-  do_sample: false
-  max_gen_toks: 8191
   until: []
+  max_gen_toks: 1024
 metric_list:
   - metric: bleu
     aggregation: bleu

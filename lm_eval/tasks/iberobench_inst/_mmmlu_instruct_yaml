@@ -1,0 +1,22 @@
+dataset_path: openai/MMMLU
+test_split: test
+fewshot_split: null
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+description: |
+  Dada la siguiente pregunta y las opciones de respuesta, elige la respuesta correcta. Devuelve la respuesta final entre las etiquetas <answer> y </answer>.
+
+gen_prefix: "<answer>"
+target_delimiter: ""
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: "{{['A', 'B', 'C', 'D'].index(Answer)}}"
+target_delimiter: " "
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true

@@ -1,4 +1,4 @@
-task: mgsm_direct_eu_inst
+task: mgsm_direct_eu_instruct
 dataset_path: HiTZ/MGSM-eu
 dataset_name: null
 doc_to_target: '{{answer_number|string}}'

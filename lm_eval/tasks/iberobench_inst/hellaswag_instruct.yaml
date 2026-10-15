@@ -1,0 +1,43 @@
+tag:
+  - multiple_choice
+
+task: hellaswag_instruct
+dataset_path: Rowan/hellaswag
+dataset_name: null
+
+output_type: multiple_choice
+
+training_split: train
+validation_split: validation
+test_split: null
+
+process_docs: !function utils.process_docs_hellaswag
+
+description: |
+    Given the following question and answer choices, choose the correct answer. Return the final answer between <answer> and </answer> tags.
+
+doc_to_text: |
+  Context: {{query}}
+  Choices:
+  A. {{choices[0]}}
+  B. {{choices[1]}}
+  C. {{choices[2]}}
+  D. {{choices[3]}}
+  Answer:
+
+gen_prefix: "<answer>"
+target_delimiter: " "
+
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: "{{label}}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0

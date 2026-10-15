@@ -1,0 +1,33 @@
+tag:
+  - ai2_arc_instruct
+task: arc_easy_instruct
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Easy
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+description: |
+  Given the following question and answer choices, choose the correct answer. Return the final answer between <answer> and </answer> tags.
+doc_to_text: |
+  Question: {{question}}
+  Choices:
+  {% for choice in choices.text -%}
+  {{choices.label[loop.index0]}}. {{choice}}
+  {% endfor -%}
+  Answer:
+gen_prefix: "<answer>"
+target_delimiter: ""
+doc_to_choice: "{{choices.label}}"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{question}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

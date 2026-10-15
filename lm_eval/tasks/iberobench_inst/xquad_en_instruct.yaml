@@ -1,4 +1,4 @@
-include: _xquad_inst_common_yaml
-task: xquad_en_inst
+include: _xquad_instruct_common_yaml
+task: xquad_en_instruct
 dataset_name: xquad.es
 doc_to_text: "Contexto: {{context}}\n\nPregunta: {{question}}\n\nRespuesta:"

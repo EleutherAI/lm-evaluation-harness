@@ -1,15 +1,14 @@
-task: xsum_inst
-dataset_path: EdinburghNLP/xsum
-dataset_name: null
+task: summarization_gl_instruct
+dataset_path: proxectonos/summarization_gl
+output_type: generate_until
 test_split: test
 training_split: train
 validation_split: validation
-output_type: generate_until
 fewshot_split: train
-process_docs: !function utils.process_xsum
-doc_to_text: 'Text: {{document}}
+process_docs: !function utils.process_summarization
+doc_to_text: 'Texto: {{text}}
 
-  One-sentence summary:'
+  Resumo:'
 doc_to_target: '{{summary}}'
 generation_kwargs:
   until: []

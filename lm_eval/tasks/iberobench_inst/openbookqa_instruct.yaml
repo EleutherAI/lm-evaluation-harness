@@ -1,0 +1,25 @@
+task: openbookqa_instruct
+dataset_path: allenai/openbookqa
+dataset_name: main
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+description: |
+  Given the following question and answer choices, choose the correct answer. Return the final answer between <answer> and </answer> tags.
+doc_to_text: "Question: {{question_stem}}\nChoices:\nA. {{choices.text[0]}}\nB. {{choices.text[1]}}\nC. {{choices.text[2]}}\nD. {{choices.text[3]}}\nAnswer:"
+gen_prefix: "<answer>"
+target_delimiter: ""
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
+doc_to_choice: "{{choices.label}}"
+should_decontaminate: true
+doc_to_decontamination_query: question_stem
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

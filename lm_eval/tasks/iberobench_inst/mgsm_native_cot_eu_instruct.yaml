@@ -1,4 +1,4 @@
-task: mgsm_native_cot_eu_inst
+task: mgsm_native_cot_eu_instruct
 dataset_path: HiTZ/MGSM-eu
 dataset_name: null
 doc_to_target: '{% if answer is not none %}{{answer[27:]}}{% else %}{{answer_number|string}}{%endif %}'

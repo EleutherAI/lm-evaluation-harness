@@ -1,0 +1,35 @@
+dataset_path: projecte-aina/arc_ca
+output_type: multiple_choice
+
+validation_split: validation
+
+description: |
+  Donada la pregunta següent i les opcions de resposta, tria la resposta correcta. Retorna la resposta final entre les etiquetes <answer> i </answer>.
+
+doc_to_text: |
+  Pregunta: {{question}}
+  Opcions:
+  {% for choice in choices.text -%}
+  {{choices.label[loop.index0]}}. {{choice}}
+  {% endfor -%}
+  Resposta:
+
+gen_prefix: "<answer>"
+target_delimiter: " "
+
+doc_to_choice: "{{choices.label}}"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+
+should_decontaminate: true
+doc_to_decontamination_query: "{{question}}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0

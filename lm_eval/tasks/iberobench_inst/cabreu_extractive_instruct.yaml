@@ -1,5 +1,5 @@
-include: _cabreu_inst_common_yaml
-task: cabreu_extractive_inst
+include: _cabreu_instruct_common_yaml
+task: cabreu_extractive_instruct
 description: "Examina el text següent i genera'n un resum extractiu, utilitzant les frases o oracions més rellevants del text original.\n"
 doc_to_text: >-
   Text: {{content}}

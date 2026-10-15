@@ -1,0 +1,24 @@
+task: openbookqa_es_instruct
+dataset_path: BSC-LT/openbookqa-es
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+description: |
+  Dada la siguiente pregunta y las opciones de respuesta, elige la respuesta correcta. Devuelve únicamente la letra de la respuesta después de la etiqueta <answer>.
+doc_to_text: "Pregunta: {{question_stem}}\nOpciones:\nA. {{choices.text[0]}}\nB. {{choices.text[1]}}\nC. {{choices.text[2]}}\nD. {{choices.text[3]}}\nRespuesta:"
+gen_prefix: "<answer>"
+target_delimiter: ""
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
+doc_to_choice: "{{choices.label}}"
+should_decontaminate: true
+doc_to_decontamination_query: question_stem
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

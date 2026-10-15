@@ -1,5 +1,5 @@
-include: _cabreu_inst_common_yaml
-task: cabreu_abstractive_inst
+include: _cabreu_instruct_common_yaml
+task: cabreu_abstractive_instruct
 description: "Examina el text següent i genera'n un resum abstractiu, expressant el significat del text original d'una manera més natural i concisa.\n"
 doc_to_text: >-
   Text: {{content}}

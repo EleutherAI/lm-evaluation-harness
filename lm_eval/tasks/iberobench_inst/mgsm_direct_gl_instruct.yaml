@@ -1,4 +1,4 @@
-task: mgsm_direct_gl_inst
+task: mgsm_direct_gl_instruct
 dataset_path: proxectonos/mgsm_gl
 doc_to_target: '{{answer_number|string}}'
 doc_to_text: '{% if answer != None %}{{question + "\nResposta: "}}{% else %}{{"Pregunta: " + question + "\nResposta: "}}{% endif %}'

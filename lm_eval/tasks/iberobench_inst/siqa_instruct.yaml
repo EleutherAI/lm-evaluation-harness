@@ -1,0 +1,26 @@
+task: social_iqa_instruct
+dataset_path: allenai/social_i_qa
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+description: |
+  Given the following context, question, and answer choices, choose the correct answer. Return only the letter of the answer after the <answer> tag.
+doc_to_text: |
+  Context: {{context}}
+  Question: {{question}}
+  Choices:
+  A. {{answerA}}
+  B. {{answerB}}
+  C. {{answerC}}
+  Answer:
+gen_prefix: "<answer>"
+target_delimiter: " "
+doc_to_choice: ["A", "B", "C"]
+doc_to_target: "{{ (label|int) - 1 }}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
