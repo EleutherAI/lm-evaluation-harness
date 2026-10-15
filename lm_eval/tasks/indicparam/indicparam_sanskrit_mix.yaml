@@ -1,0 +1,4 @@
+include: _default_indicparam_template_yaml
+task: indicparam_sanskrit_mix
+task_alias: "Sanskrit Mix"
+process_docs: !function utils.process_docs_sanskrit_mix

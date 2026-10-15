@@ -1,6 +1,8 @@
 task: prost
-dataset_path: corypaik/prost
-dataset_name: null
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: hf://datasets/corypaik/prost/data/default.jsonl
 output_type: multiple_choice
 test_split: test
 doc_to_text: "{{context}}\nQuestion: {{ex_question}}\nAnswer:"

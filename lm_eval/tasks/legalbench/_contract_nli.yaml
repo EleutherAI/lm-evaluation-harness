@@ -1,0 +1,22 @@
+group: legalbench_contract_nli
+task:
+  - legalbench_contract_nli_confidentiality_of_agreement
+  - legalbench_contract_nli_explicit_identification
+  - legalbench_contract_nli_inclusion_of_verbally_conveyed_information
+  - legalbench_contract_nli_limited_use
+  - legalbench_contract_nli_no_licensing
+  - legalbench_contract_nli_notice_on_compelled_disclosure
+  - legalbench_contract_nli_permissible_acquirement_of_similar_information
+  - legalbench_contract_nli_permissible_copy
+  - legalbench_contract_nli_permissible_development_of_similar_information
+  - legalbench_contract_nli_permissible_post-agreement_possession
+  - legalbench_contract_nli_return_of_confidential_information
+  - legalbench_contract_nli_sharing_with_employees
+  - legalbench_contract_nli_sharing_with_third-parties
+  - legalbench_contract_nli_survival_of_obligations
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

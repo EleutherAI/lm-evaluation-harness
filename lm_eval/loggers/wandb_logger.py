@@ -131,14 +131,16 @@ class WandbLogger:
 
             table = wandb.Table(columns=columns)
             results = copy.deepcopy(self.results)
+            versions = results.get("versions", {})
+            n_shot = results.get("n-shot", {})
 
             for k, dic in results.get(key).items():
                 if k in self.group_names and not key == "groups":
                     continue
-                version = results.get("versions").get(k)
+                version = versions.get(k)
                 if version == "N/A":
                     version = None
-                n = results.get("n-shot").get(k)
+                n = n_shot.get(k)
 
                 for (mf), v in dic.items():
                     m, _, f = mf.partition(",")

@@ -10,9 +10,13 @@ Homepage: https://hazyresearch.stanford.edu/legalbench/
 
 LegalBench is a collaboratively built benchmark of legal reasoning tasks. The
 full benchmark contains 162 tasks; this implementation covers the five-task
-subset used by HELM, selected to represent distinct legal reasoning patterns.
-Prompts (instructions, field ordering, and output nouns) follow the official
-`HazyResearch/legalbench` HELM prompt settings, and data is loaded from the
+subset used by HELM (aggregated by the `legalbench` group) plus the complete
+14-task Contract NLI suite (aggregated by the `legalbench_contract_nli` group),
+a coherent single-corpus family of Yes/No entailment questions over
+non-disclosure agreements. Prompts (instructions, field ordering, and output
+nouns) follow the official `HazyResearch/legalbench` prompt files — the HELM
+prompt settings for the HELM subset, and the authors' per-task `base_prompt.txt`
+instructions for Contract NLI — and data is loaded from the
 [`nguha/legalbench`](https://huggingface.co/datasets/nguha/legalbench) Hub
 dataset. Tasks are evaluated zero-/few-shot with `generate_until` and
 case-/punctuation-insensitive exact match; the `train` split provides the
@@ -35,6 +39,7 @@ few-shot examples.
 #### Groups
 
 * `legalbench`: The five-task HELM subset, aggregated by mean exact match.
+* `legalbench_contract_nli`: The 14-task Contract NLI suite, aggregated by mean exact match.
 
 #### Tasks
 
@@ -44,12 +49,33 @@ few-shot examples.
 * `legalbench_international_citizenship_questions`: Answer questions about international citizenship law (Yes / No).
 * `legalbench_proa`: Decide whether a statutory clause grants a private right of action (Yes / No).
 
+Contract NLI (each classifies whether an NDA clause satisfies the stated condition, Yes / No):
+
+* `legalbench_contract_nli_confidentiality_of_agreement`: the Receiving Party shall not disclose the fact that the Agreement was agreed or negotiated.
+* `legalbench_contract_nli_explicit_identification`: all Confidential Information shall be expressly identified by the Disclosing Party.
+* `legalbench_contract_nli_inclusion_of_verbally_conveyed_information`: Confidential Information may include verbally conveyed information.
+* `legalbench_contract_nli_limited_use`: the Receiving Party shall not use Confidential Information for any purpose other than those stated in the Agreement.
+* `legalbench_contract_nli_no_licensing`: the Agreement shall not grant the Receiving Party any right to the Confidential Information.
+* `legalbench_contract_nli_notice_on_compelled_disclosure`: the Receiving Party shall notify the Disclosing Party when compelled to disclose Confidential Information.
+* `legalbench_contract_nli_permissible_acquirement_of_similar_information`: the Receiving Party may acquire information similar to the Confidential Information from a third party.
+* `legalbench_contract_nli_permissible_copy`: the Receiving Party may copy some Confidential Information in some circumstances.
+* `legalbench_contract_nli_permissible_development_of_similar_information`: the Receiving Party may independently develop information similar to the Confidential Information.
+* `legalbench_contract_nli_permissible_post-agreement_possession`: the Receiving Party may retain some Confidential Information after the Agreement ends.
+* `legalbench_contract_nli_return_of_confidential_information`: the Receiving Party shall destroy or return Confidential Information upon request.
+* `legalbench_contract_nli_sharing_with_employees`: the Receiving Party may share Confidential Information with some of its employees.
+* `legalbench_contract_nli_sharing_with_third-parties`: the Receiving Party may share Confidential Information with some third parties.
+* `legalbench_contract_nli_survival_of_obligations`: some obligations may survive termination of the Agreement.
+
 ### Implementation notes
 
-This covers the HELM-lite subset, not all 162 LegalBench tasks. The official
-benchmark reports per-task balanced accuracy; here we report exact match
-(case- and punctuation-insensitive) over the `test` split, matching the HELM
-generation setup. The broader paper categories can be added later.
+This covers the HELM-lite subset and the Contract NLI suite, not all 162
+LegalBench tasks. The official benchmark reports per-task balanced accuracy;
+here we report exact match (case- and punctuation-insensitive) over the `test`
+split, matching the HELM generation setup. Contract NLI instructions are the
+authors' official `base_prompt.txt` text, reproduced verbatim (including the
+upstream typo "ome obligations" in `survival_of_obligations`) so scores stay
+comparable to published LegalBench prompts. The remaining paper categories can
+be added later.
 
 ### Checklist
 

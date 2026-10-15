@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_humanities_tasks
+task: greekmmlu_world_history
+task_alias: World History
+dataset_name: World_History

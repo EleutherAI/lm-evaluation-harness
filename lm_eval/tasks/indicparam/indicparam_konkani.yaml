@@ -1,0 +1,4 @@
+include: _default_indicparam_template_yaml
+task: indicparam_konkani
+task_alias: Konkani
+process_docs: !function utils.process_docs_konkani

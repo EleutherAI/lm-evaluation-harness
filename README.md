@@ -5,6 +5,7 @@
 ---
 
 ## Latest News 📣
+- [2026/09] **Plugins**: model backends, filters, metrics and aggregations can now be registered from your own package instead of forking — declare an `lm_eval.*` entry point for zero-config discovery, or point `--plugins` at a local module. See the [Plugin Guide](./docs/plugins.md).
 - [2025/12] **CLI refactored** with subcommands (`run`, `ls`, `validate`) and YAML config file support via `--config`. See the [CLI Reference](./docs/interface.md) and [Configuration Guide](./docs/config_files.md).
 - [2025/12] **Lighter install**: Base package no longer includes `transformers`/`torch`. Install model backends separately: `pip install lm_eval[hf]`, `lm_eval[vllm]`, etc.
 - [2025/07] Added `think_end_token` arg to `hf` (token/str), `vllm` and `sglang` (str) for stripping CoT reasoning traces from models that support it.
@@ -175,6 +176,22 @@ lm_eval --model hf \
 
 > [!Tip]
 > Ensure the tokenizer path points to a valid Hugging Face tokenizer directory (e.g., containing tokenizer_config.json, vocab.json, etc.).
+
+#### Evaluating GGUF Models Served by llama.cpp
+
+The `gguf` model type evaluates models hosted by a [llama.cpp](https://github.com/ggml-org/llama.cpp) server (`llama-server`) through its OpenAI-compatible `/v1/completions` endpoint:
+
+```bash
+lm_eval --model gguf \
+    --model_args base_url=http://127.0.0.1:8080 \
+    --tasks hellaswag
+```
+
+- Requires a llama.cpp release from December 2024 or newer, which returns logprobs in the modern OpenAI format (`logprobs.content`, see [llama.cpp#10783](https://github.com/ggml-org/llama.cpp/pull/10783)). The deprecated legacy format (`token_logprobs`) is not supported.
+- If the server runs in router mode (multiple models), pass the model name or alias: `--model_args base_url=http://127.0.0.1:8080,model=my-model-alias`.
+- Requests are issued concurrently. The default degree of parallelism is auto-detected from the server's slot count (`/props` → `total_slots`, i.e. llama-server's `--parallel` setting); override it with `parallel=<N>`. `loglikelihood` requests are additionally pinned to slots via llama.cpp's `id_slot` parameter, with consecutive requests sharing a context (e.g. the candidate continuations of one multiple-choice question) assigned to the same slot so they reuse its cached prompt prefix. `generate_until` requests are left unpinned, since the server's dynamic idle-slot assignment load-balances variable-length generations better.
+- `loglikelihood` is implemented via exact teacher forcing: llama.cpp ignores `echo` and never returns prompt logprobs, so the continuation is tokenized with the server's `/tokenize` endpoint (context and continuation encoded separately, matching the HF backend), and each continuation token is scored with its natural prefix as a token-id prompt plus a `logit_bias` that forces the server to sample it. llama.cpp reports the forced token's *pre-sampling* logprob and an unbiased `top_logprobs`, yielding loglikelihoods that match the HF backend to within quantization noise. (A naive alternative — forcing the continuation with a GBNF grammar — does *not* work: grammar-constrained decoding can pick a fragmented tokenization whose logprobs are not the natural-tokenization loglikelihoods, which systematically deflates scores.)
+- `loglikelihood_rolling` (perplexity tasks such as wikitext) is not implemented for this model type.
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
@@ -485,6 +502,62 @@ lm_eval --model sglang \
 > 2. Lower KV cache pool memory usage by adjusting `mem_fraction_static` - Add to your model arguments for example `--model_args pretrained=...,mem_fraction_static=0.7`.
 > 3. Increase tensor parallel size `tp_size` (if using multiple GPUs).
 
+### ONNX Runtime GenAI
+
+We support **ONNX Runtime GenAI** for cross-platform evaluation of ONNX LLMs produced by the [ONNX Runtime GenAI *Model Builder*](https://onnxruntime.ai/docs/genai/howto/build-model.html). Unlike the [Windows ML](#windows-ml) backend, this backend runs on Linux, macOS, and Windows and selects execution providers with the cross-platform `og.Config` API (CPU, CUDA, DirectML, WebGPU, and AMD NPU via VitisAI/RyzenAI).
+
+Install the backend along with the execution-provider wheel that matches your hardware:
+
+```bash
+# CPU
+pip install "lm_eval[onnxruntime-genai]"
+# CUDA / DirectML instead of the CPU wheel (mutually exclusive):
+#   pip install onnxruntime-genai-cuda
+#   pip install onnxruntime-genai-directml
+```
+
+Evaluate a Model Builder ONNX model on a chosen execution provider:
+
+```bash
+lm_eval --model onnxruntime-genai \
+    --model_args pretrained=/path/to/model_builder_output,execution_provider=cuda \
+    --tasks hellaswag \
+    --batch_size 1
+```
+
+The `pretrained` path is a Model Builder output directory (containing `genai_config.json`, the ONNX graph(s), and an HF tokenizer) or a `.onnx` file inside one. `execution_provider` defaults to `cpu` (which runs with no provider appended); pass `cuda`, `dml`, `VitisAI`, etc. for accelerators. Extra provider settings can be passed via `provider_options`.
+
+> [!Note]
+> Supported architectures are whatever the Model Builder supports (Llama, Phi, Qwen, Gemma, Mistral, Granite, ChatGLM, …). Inference is batch-size 1 and runs one execution provider per run.
+
+### ONNX Runtime
+
+We also support running the *same* Model Builder export through a raw `onnxruntime.InferenceSession` instead of the GenAI loop. Use this backend when you want scores to come from the exact runtime a deployment uses, or when you need an execution provider that `onnxruntime-genai` does not build — notably **ROCm** and **MIGraphX** for AMD GPUs.
+
+```bash
+# CPU
+pip install "lm_eval[onnxruntime]"
+# CUDA / ROCm instead of the CPU wheel (mutually exclusive):
+#   pip install onnxruntime-gpu
+#   pip install onnxruntime-rocm
+```
+
+```bash
+lm_eval --model onnxruntime \
+    --model_args pretrained=/path/to/model_builder_output,execution_provider=rocm \
+    --tasks hellaswag,arc_easy,wikitext \
+    --batch_size 1
+```
+
+`execution_provider` accepts short aliases (`cpu`, `cuda`, `rocm`, `migraphx`, `dml`, `openvino`, `tensorrt`, `vitisai`, `webgpu`, `qnn`) as well as full ONNX Runtime provider names. As with the `onnxruntime-genai` backend, leaving it unset honors the providers declared in the export's `genai_config.json`, so an export built for a specific device runs there without extra flags. Non-CPU providers keep `CPUExecutionProvider` as a per-node fallback, since Model Builder graphs use contrib ops that not every provider implements.
+
+Because both ONNX backends share one scoring implementation and end up in the same ORT kernels, they agree on the same model and provider; `tests/models/test_onnxruntime_parity.py` enforces that as a standing check.
+
+> [!Note]
+> This backend currently covers `loglikelihood`, `multiple_choice`, and `loglikelihood_rolling` (hellaswag, arc, mmlu, wikitext, …). For generative tasks such as gsm8k, use `--model onnxruntime-genai` with the same model directory.
+>
+> The installed `onnxruntime` must be new enough to load the contrib-op schemas your Model Builder version emitted. An older runtime can reject the graph outright — for example a 12-input `GroupQueryAttention` fails to load on ONNX Runtime 1.22.
+
 ### Windows ML
 
 We support **Windows ML** for hardware-accelerated inference on Windows platforms. This enables evaluation on CPU, GPU, and **NPU (Neural Processing Unit)** devices.
@@ -556,6 +629,8 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | NVIDIA NeMo                                                                                                               | :heavy_check_mark:                                                                                      | `nemo_lm`                                             | [All supported models](https://docs.nvidia.com/nemo-framework/user-guide/24.09/nemotoolkit/core/core.html#nemo-models)                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | NVIDIA Megatron-LM                                                                                                        | :heavy_check_mark:                                                                                      | `megatron_lm`                                         | [Megatron-LM GPT models](https://github.com/NVIDIA/Megatron-LM) (standard and distributed checkpoints)                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Watsonx.ai                                                                                                                | :heavy_check_mark:                                                                                      | `watsonx_llm`                                         | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                      | `generate_until` `loglikelihood`                                               |
+| ONNX Runtime GenAI                                                                                                        | :heavy_check_mark:                                                                                      | `onnxruntime-genai`                                   | [ONNX models in GenAI format](https://onnxruntime.ai/docs/genai/howto/build-model.html) (cross-platform: CPU/CUDA/DirectML/NPU)                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
+| ONNX Runtime                                                                                                              | :heavy_check_mark:                                                                                      | `onnxruntime`                                         | [ONNX models in GenAI format](https://onnxruntime.ai/docs/genai/howto/build-model.html) via a raw `InferenceSession` (adds ROCm/MIGraphX)                        | `loglikelihood`, `loglikelihood_rolling`                                       |
 | Windows ML                                                                                                                | :heavy_check_mark:                                                                                      | `winml`                                               | [ONNX models in GenAI format](https://code.visualstudio.com/docs/intelligentapps/modelconversion)                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | [Your local inference server!](docs/API_guide.md)                                                                         | :heavy_check_mark:                                                                                      | `local-completions` or `local-chat-completions`       | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                              | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 
@@ -801,6 +876,8 @@ These extras install dependencies required to run specific model backends:
 | habana         | Intel Gaudi backend                              |
 | optimum        | Intel OpenVINO models                            |
 | neuronx        | AWS Inferentia2 instances                        |
+| onnxruntime-genai | ONNX Runtime GenAI (cross-platform) - CPU/CUDA/DirectML/NPU |
+| onnxruntime    | ONNX Runtime raw session - adds ROCm/MIGraphX    |
 | winml          | Windows ML (ONNX Runtime GenAI) - CPU/GPU/NPU    |
 | sparsify       | Sparsify model steering                          |
 | sae_lens       | SAELens model steering                           |

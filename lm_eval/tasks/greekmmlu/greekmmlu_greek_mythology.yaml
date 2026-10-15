@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_humanities_tasks
+task: greekmmlu_greek_mythology
+task_alias: Greek Mythology
+dataset_name: Greek_Mythology

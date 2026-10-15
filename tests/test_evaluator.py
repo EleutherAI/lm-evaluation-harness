@@ -1,5 +1,7 @@
 import os
 import re
+import sys
+import types
 
 import pytest
 
@@ -163,3 +165,106 @@ def test_printed_results(
                 if t1_s or t2_s:
                     assert t1_s == t2_s
                 #     assert t1_s == t2_s
+
+
+class _FakeMarkdownTableWriter:
+    instances = []
+
+    def __init__(self):
+        self.headers = []
+        self.value_matrix = []
+        type(self).instances.append(self)
+
+    def dumps(self):
+        return repr(self.value_matrix)
+
+
+class _FakeLatexTableWriter(_FakeMarkdownTableWriter):
+    pass
+
+
+@pytest.fixture
+def fake_pytablewriter(monkeypatch):
+    _FakeMarkdownTableWriter.instances.clear()
+    _FakeLatexTableWriter.instances.clear()
+    monkeypatch.setitem(
+        sys.modules,
+        "pytablewriter",
+        types.SimpleNamespace(
+            MarkdownTableWriter=_FakeMarkdownTableWriter,
+            LatexTableWriter=_FakeLatexTableWriter,
+        ),
+    )
+
+
+def test_make_table_regression_preserves_hierarchy_and_metadata(fake_pytablewriter):
+    result_dict = {
+        "results": {
+            "parent": {
+                "alias": "Parent",
+                "name": "ignore-me",
+                "sample_len": 123,
+                "sample_count": {"acc,none": 123},
+                "acc,none": 0.9,
+                "acc_stderr,none": 0.01,
+            },
+            "child": {
+                "alias": "Child",
+                "sample_len": 50,
+                "acc,none": 0.8,
+            },
+            "standalone": {
+                "alias": "Standalone",
+                "loss,none": 0.2,
+            },
+        },
+        "versions": {"parent": 1, "child": 2, "standalone": 3},
+        "n-shot": {"parent": 5, "child": 0, "standalone": 2},
+        "higher_is_better": {
+            "parent": {"acc": True},
+            "child": {"acc": True},
+            "standalone": {"loss": False},
+        },
+        "group_subtasks": {"parent": ["child"]},
+    }
+
+    output = make_table(result_dict)
+
+    assert output == repr(
+        [
+            ["Parent", 1, "none", "5", "acc", "↑", "0.9000", "±", "0.0100"],
+            [" - Child", 2, "none", "0", "acc", "↑", "0.8000", "", ""],
+            ["Standalone", 3, "none", "2", "loss", "↓", "0.2000", "", ""],
+        ]
+    )
+    assert _FakeMarkdownTableWriter.instances[0].headers == [
+        "Tasks",
+        "Version",
+        "Filter",
+        "n-shot",
+        "Metric",
+        "",
+        "Value",
+        "",
+        "Stderr",
+    ]
+
+
+def test_make_table_regression_sorted_results_is_alphabetical(fake_pytablewriter):
+    result_dict = {
+        "results": {
+            "parent": {"alias": "Parent", "acc,none": 0.9},
+            "child": {"alias": "Child", "acc,none": 0.8},
+            "standalone": {"alias": "Standalone", "acc,none": 0.7},
+        },
+        "versions": {},
+        "group_subtasks": {"parent": ["child"]},
+    }
+
+    make_table(result_dict, sort_results=True)
+
+    assert _FakeMarkdownTableWriter.instances[0].value_matrix == [
+        [" - Child", "    N/A", "none", " ", "acc", "", "0.8000", "", ""],
+        ["Parent", "    N/A", "none", " ", "acc", "", "0.9000", "", ""],
+        ["Standalone", "    N/A", "none", " ", "acc", "", "0.7000", "", ""],
+    ]

@@ -1,6 +1,9 @@
 task: wnli_es
-dataset_path: PlanTL-GOB-ES/wnli-es
-dataset_name: null
+dataset_path: csv
+dataset_kwargs:
+  data_files:
+    train: hf://datasets/PlanTL-GOB-ES/wnli-es/wnli-train-es.csv
+    validation: hf://datasets/PlanTL-GOB-ES/wnli-es/wnli-dev-es.csv
 output_type: multiple_choice
 training_split: train
 validation_split: validation

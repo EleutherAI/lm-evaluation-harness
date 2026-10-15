@@ -241,6 +241,17 @@ class Run(SubCommand):
             metavar="<path>",
             help="Additional directory for external tasks",
         )
+        task_group.add_argument(
+            "--plugins",
+            default=None,
+            nargs="+",
+            action=SplitArgs,
+            metavar="<module>",
+            help="Comma-separated plugin modules to import before evaluation so their "
+            "@register_* decorators run (models, filters, metrics, aggregations). Use "
+            "for local or unpublished components; pip-installed packages that declare "
+            "an 'lm_eval.*' entry point are discovered automatically.",
+        )
 
         # Logging and Tracking
         logging_group = self._parser.add_argument_group("logging and tracking")
@@ -312,11 +323,12 @@ class Run(SubCommand):
             "--seed",
             type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
             default=None,
-            metavar="<seed>",
+            metavar="<python,numpy,torch,fewshot>",
             help=textwrap.dedent(f"""
-                Random seeds for python,numpy,torch,fewshot (default: {default_seed_string}).
-                Use single integer for all, or comma-separated list of 4 values.
-                Use 'None' to skip setting a seed. Example: --seed 42 or --seed 0,None,8,52
+                Random seeds, one per slot (default: {default_seed_string}).
+                Pass a single integer to use it for all four (e.g. --seed 42), or a
+                comma-separated list of 4 values, using 'None' to leave that seed
+                unset (e.g. --seed 0,None,8,52).
             """).strip(),
         )
         advanced_group.add_argument(
@@ -333,12 +345,15 @@ class Run(SubCommand):
         )
         advanced_group.add_argument(
             "--metadata",
-            type=json.loads,
             default=None,
-            metavar="<arg>",
+            nargs="+",
+            action=MergeDictAction,
+            metavar="<args>",
             help=textwrap.dedent(
-                """`key=val` `key2=val` args parsable by ast.literal_eval (merged with model_args),
-                required for some tasks such as RULER"""
+                """`key=val` `key2=val` args parsable by ast.literal_eval
+                (e.g. tokenizer=gpt2 max_seq_lengths=[4096,8192]), or a JSON object
+                (e.g. '{"tokenizer": "gpt2", "max_seq_lengths": [4096, 8192]}').
+                Merged with model_args; required for some tasks such as RULER"""
             ),
         )
 
@@ -353,6 +368,16 @@ class Run(SubCommand):
 
         # Create and validate config (most validation now occurs in EvaluationConfig)
         cfg = EvaluatorConfig.from_cli(args)
+
+        # Import explicit plugin modules (--plugins) so their @register_* decorators
+        # run before task discovery or any model/filter/metric name is resolved.
+        # Registration is process-global, so this belongs here rather than inside
+        # simple_evaluate. Installed entry-point plugins need no wiring: they are
+        # discovered lazily by the registry getters.
+        if cfg.plugins:
+            from lm_eval.api.registry import import_plugins
+
+            import_plugins(cfg.plugins)
 
         from lm_eval import simple_evaluate
         from lm_eval.loggers import EvaluationTracker, TrackioLogger, WandbLogger

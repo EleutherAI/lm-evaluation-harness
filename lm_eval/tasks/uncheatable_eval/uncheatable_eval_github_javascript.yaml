@@ -1,0 +1,8 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_github_javascript
+task_alias: UE_github_js
+process_docs: !function uncheatable_eval_utils.filter_github_javascript
+metadata:
+  description: >-
+    Rolling perplexity on GitHub JavaScript source files from the Uncheatable Eval
+    2026-07 snapshot.

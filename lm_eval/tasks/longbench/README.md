@@ -110,3 +110,7 @@ v2.: fix doc_to_target; add vcsum
 v3: properly use all answers for metric calculation; trim whitespace from resps; fix stop sequences not parsing correctly.
 
 v4: fixed special characters in prompts; use greedy decoding by default.
+
+v5: added `longbench_*` task groups and their `_e` counterparts; standardized the reported metric as `score` alongside each task's native metric.
+
+v6 (`lcc`, `lcc_e`, `repobench-p`, `repobench-p_e` only): `code_sim_score` now skips blank/whitespace-only lines when selecting the first line of the completion.

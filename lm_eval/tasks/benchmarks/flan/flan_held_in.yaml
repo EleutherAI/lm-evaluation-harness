@@ -304,6 +304,8 @@ task:
     aggregate_metric_list:
       - metric: acc
         weight_by_size: True
+    metadata:
+      version: 1.1
     task:
       - task: rte_prompt-0
         task_alias: prompt-0
@@ -315,7 +317,7 @@ task:
         include: _held_in_template_yaml
         doc_to_text: "{{sentence1}}\n\nBased on that paragraph can we conclude that the sentence below is true?\n{{sentence2}}\n\nOPTIONS:\n- yes\n- no"
         doc_to_target: "{{['yes', 'no'][label]}}"
-      - task: rte_prompt-1
+      - task: rte_prompt-2
         task_alias: prompt-2
         include: _held_in_template_yaml
         doc_to_text: "{{sentence1}}\n\nQ with options: Can we draw the following conclusion?\n{{sentence2}}\n\nOPTIONS:\n- yes\n- no"

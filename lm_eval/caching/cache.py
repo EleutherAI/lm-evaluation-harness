@@ -65,8 +65,7 @@ def load_from_cache(file_name: str, cache: bool = False):
 
 
 def save_to_cache(file_name, obj):
-    if not os.path.exists(PATH):
-        os.mkdir(PATH)
+    os.makedirs(PATH, exist_ok=True)
 
     file_path = _cache_file_path(file_name)
 
@@ -77,7 +76,11 @@ def save_to_cache(file_name, obj):
 
 # NOTE the "key" param is to allow for flexibility
 def delete_cache(key: str = ""):
-    files = os.listdir(PATH)
+    try:
+        files = os.listdir(PATH)
+    except FileNotFoundError:
+        # deleting an absent cache is a no-op; do not create filesystem state
+        return
 
     for file in files:
         if file.startswith(key) and file.endswith(FILE_SUFFIX):

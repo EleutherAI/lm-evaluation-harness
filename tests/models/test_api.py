@@ -8,6 +8,9 @@ from lm_eval.models.api_models import create_image_prompt
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 
 
+TEST_AUTH_TOKEN = "secure-token"  # noqa: S105 - fixed test sentinel
+
+
 @pytest.fixture
 def api():
     return LocalCompletionsAPI(
@@ -121,6 +124,24 @@ def test_model_generate_call_usage(
         assert "json" in kwargs
         assert kwargs["json"] == expected_payload
         assert result == {"result": "success"}
+
+
+def test_model_call_passes_configured_timeout():
+    api = LocalCompletionsAPI(
+        base_url="http://test-url.com",
+        tokenizer_backend=None,
+        model="gpt-3.5-turbo",
+        timeout=17,
+    )
+
+    with patch("requests.post") as mock_post:
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"result": "success"}
+        mock_post.return_value = mock_response
+
+        api.model_call(["Hello"], generate=True, gen_kwargs={})
+
+        assert mock_post.call_args.kwargs["timeout"] == 17
 
 
 @pytest.mark.parametrize(
@@ -296,12 +317,12 @@ def test_local_completionsapi_remote_tokenizer_authenticated(monkeypatch):
         tokenizer_backend="remote",
         verify_certificate=True,
         ca_cert_path="secure.crt",
-        auth_token="secure-token",
+        auth_token=TEST_AUTH_TOKEN,
     )
     assert captured["base_url"] == "https://secure-server"
     assert captured["verify_certificate"] is True
     assert captured["ca_cert_path"] == "secure.crt"
-    assert captured["auth_token"] == "secure-token"
+    assert captured["auth_token"] == TEST_AUTH_TOKEN
 
 
 def test_local_completionsapi_remote_tokenizer_unauthenticated(monkeypatch):
@@ -344,12 +365,12 @@ def test_localchatcompletion_remote_tokenizer_authenticated(monkeypatch):
         tokenizer_backend="remote",
         verify_certificate=True,
         ca_cert_path="secure.crt",
-        auth_token="secure-token",
+        auth_token=TEST_AUTH_TOKEN,
     )
     assert captured["base_url"] == "https://secure-server"
     assert captured["verify_certificate"] is True
     assert captured["ca_cert_path"] == "secure.crt"
-    assert captured["auth_token"] == "secure-token"
+    assert captured["auth_token"] == TEST_AUTH_TOKEN
 
 
 def test_localchatcompletion_remote_tokenizer_unauthenticated(monkeypatch):

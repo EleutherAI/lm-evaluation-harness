@@ -1,7 +1,7 @@
 tag:
   - freebase
 task: webqs
-dataset_path: web_questions
+dataset_path: stanfordnlp/web_questions
 dataset_name: null
 output_type: multiple_choice
 training_split: train

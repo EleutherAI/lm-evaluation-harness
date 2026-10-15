@@ -45,6 +45,8 @@ MODEL_MAPPING = {
     "megatron_lm": "lm_eval.models.megatron_lm:MegatronLMEval",
     "nemo_lm": "lm_eval.models.nemo_lm:NeMoLM",
     "neuronx": "lm_eval.models.neuron_optimum:NeuronModelForCausalLM",
+    "onnxruntime": "lm_eval.models.onnxruntime_ort:ONNXRuntimeLM",
+    "onnxruntime-genai": "lm_eval.models.onnxruntime_genai:ONNXRuntimeGenAILM",
     "openai-chat-completions": "lm_eval.models.openai_completions:OpenAIChatCompletion",
     "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
@@ -63,13 +65,16 @@ MODEL_MAPPING = {
 
 def _register_all_models():
     """Register all known models lazily in the registry."""
-    from lm_eval.api.registry import model_registry
+    from lm_eval.api.registry import load_plugins, model_registry
 
     for name, path in MODEL_MAPPING.items():
         # Only register if not already present (avoids conflicts when modules are imported)
         if name not in model_registry:
             # Register the lazy placeholder
             model_registry.register(name, target=path)
+
+    # Discover external backends advertised via entry points by installed packages.
+    load_plugins("lm_eval.models", model_registry)
 
 
 # Call registration on module import

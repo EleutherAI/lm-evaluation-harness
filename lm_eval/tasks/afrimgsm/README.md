@@ -1,4 +1,4 @@
-# MathQA
+# AfriMGSM
 
 ### Paper
 
@@ -26,17 +26,40 @@ mathematical reasoning (AfriMGSM), and multi-choice knowledge-based QA (AfriMMLU
 
 ### Groups and Tasks
 
+Every AfriMGSM task is evaluated with five different prompt templates (the
+updated IrokoBench/AfroBench prompts), so each per-language task name carries a
+`_prompt_{i}` suffix where `i` is the prompt id (1-5). The original
+`afrimgsm_direct_{language_code}`, `afrimgsm_en_cot_{language_code}` and
+`afrimgsm_translate_{language_code}` names without the suffix are no longer
+registered.
+
 #### Groups
 
-* `afrimgsm`: All afrimgsm tasks
-* `afrimgsm_direct`: afrimgsm_direct evaluates models performance on the curated dataset
-* `afrimgsm_en_cot`: afrimgsm_en_cot includes 5-shot of exemplars for chain-of-thought approach
-* `afrimgsm_translate`: afrimgsm_translate evaluates models in translate-test setting
+* `afrimgsm-irokobench`: evaluates all direct tasks over all five prompts and reports a size-weighted mean accuracy
+* `afrimgsm_cot-irokobench`: same as above with chain-of-thought prompting
+* `afrimgsm_tt-irokobench`: same as above in the translate-test setting
+* `afrimgsm_tt_cot-irokobench`: chain-of-thought in the translate-test setting
+
+#### Tags
+
+* `afrimgsm_tasks`: runs all direct tasks (all five prompts)
+* `afrimgsm_tasks_prompt_{i}`: runs all direct tasks for prompt `i` (1-5)
+* `afrimgsm_cot_tasks`: runs all chain-of-thought tasks (all five prompts)
+* `afrimgsm_cot_tasks_prompt_{i}`: runs all chain-of-thought tasks for prompt `i` (1-5)
+* `afrimgsm_tt_tasks`: runs all translate-test tasks
+* `afrimgsm_tt_cot_tasks`: runs all chain-of-thought translate-test tasks
 
 #### Tasks
-* `afrimgsm_direct_{language_code}`: each task evaluates for one language
-* `afrimgsm_en_cot_{language_code}`: each task evaluates for one language
-* `afrimgsm_translate_{language_code}`: each task evaluates for one language
+
+* `afrimgsm_{language_code}_prompt_{i}`: evaluates one language with prompt `i` (1-5) on the curated dataset, e.g. `afrimgsm_amh_prompt_1`
+* `afrimgsm_cot_{language_code}_prompt_{i}`: same as above with chain-of-thought prompting
+* `afrimgsm_translate_{language_code}_prompt_{i}`: same as above in the translate-test setting
+* `afrimgsm_cot_translate_{language_code}_prompt_{i}`: chain-of-thought in the translate-test setting
+
+with `language_code` one of `amh`, `eng`, `ewe`, `fra`, `hau`, `ibo`, `kin`,
+`lin`, `lug`, `orm`, `sna`, `sot`, `swa`, `twi`, `vai`, `wol`, `xho`, `yor`,
+`zul` (the translate-test variants have no `eng`, and `afrimgsm_translate` has
+no `vai`).
 
 ### Checklist
 

@@ -1,3 +1,10 @@
+# ruff: noqa
+
+# This file reproduces the Open LLM Leaderboard v2 MATH-hard scoring and must stay
+# frozen: changing normalization or equivalence here silently invalidates comparison
+# against the historical leaderboard numbers. Fixes to the shared Minerva-derived
+# helpers belong in lm_eval/tasks/minerva_math/utils.py, not here.
+
 import logging
 from typing import Dict, List
 

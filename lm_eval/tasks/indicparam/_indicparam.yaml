@@ -1,0 +1,19 @@
+group: indicparam
+task:
+  - indicparam_bodo
+  - indicparam_dogri
+  - indicparam_gujarati
+  - indicparam_konkani
+  - indicparam_maithili
+  - indicparam_marathi
+  - indicparam_nepali
+  - indicparam_oriya
+  - indicparam_rajasthani
+  - indicparam_sanskrit
+  - indicparam_sanskrit_mix
+  - indicparam_santali
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true
+metadata:
+  version: 1

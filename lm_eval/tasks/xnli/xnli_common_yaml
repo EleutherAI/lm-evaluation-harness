@@ -2,7 +2,7 @@
 # It doesn't have a yaml file extension as it is not meant to be imported directly
 # by the harness.
 task: null
-dataset_path: xnli
+dataset_path: facebook/xnli
 dataset_name: null
 output_type: multiple_choice
 training_split: train

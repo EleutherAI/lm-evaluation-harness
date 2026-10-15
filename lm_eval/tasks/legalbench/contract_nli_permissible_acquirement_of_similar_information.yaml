@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_contract_nli_permissible_acquirement_of_similar_information
+dataset_name: contract_nli_permissible_acquirement_of_similar_information
+num_fewshot: 8
+description: "Identify if the clause provides that the Receiving Party may acquire information similar to Confidential Information from a third party.\n\n"
+doc_to_text: "Clause: {{text}}\nLabel:"

@@ -992,7 +992,7 @@ class ConfigurableTask(Task):
                     else None,
                     self.doc_to_target(fs_doc, self.fewshot_cfg.doc_to_target),
                 )
-                _gen_prefix = self.resolve_field(doc, self.fewshot_cfg.gen_prefix)
+                _gen_prefix = self.resolve_field(fs_doc, self.fewshot_cfg.gen_prefix)
                 # for multiple inputs, q: int, c: list[str], target: str
                 # TODO: fix this hacky way of handling multiple inputs
                 if self.multiple_input:

@@ -119,6 +119,7 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | Argument | Description |
 |----------|-------------|
 | `--include_path` | Additional directory containing external task YAML files. |
+| `--plugins` | Modules to import before evaluation so their `@register_*` decorators run (models, filters, metrics, aggregations). See the [Plugin Guide](./plugins.md). |
 
 ### Logging and Tracking
 
@@ -162,6 +163,14 @@ With the `hf` backend, `think_end_token` can be either a **string** or a **token
 lm-eval run --model hf \
   --model_args pretrained=Qwen/Qwen3-32B,enable_thinking=True,think_end_token=200008 \
   --tasks gsm8k --apply_chat_template
+```
+
+OpenAI-compatible chat backends, including `local-chat-completions`, also accept a string `think_end_token`. The API server must include that delimiter in the returned message content:
+
+```bash
+lm-eval run --model local-chat-completions \
+  --model_args model=Qwen/Qwen3-32B,base_url=http://localhost:8000/v1/chat/completions,think_end_token="</think>" \
+  --tasks ifeval --apply_chat_template
 ```
 
 The correct `think_end_token` for a given model can be found in its `tokenizer_config.json` (look for the token closing the thinking block in the chat template). For example, see [Qwen3-32B's tokenizer_config.json](https://huggingface.co/Qwen/Qwen3-32B/blob/main/tokenizer_config.json#L206).

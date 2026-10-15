@@ -23,4 +23,4 @@ metric_list:
     aggregation: !function utils.span_f1_agg
     higher_is_better: true
 metadata:
-  version: 1.0
+  version: 1.1

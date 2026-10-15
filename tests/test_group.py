@@ -486,6 +486,64 @@ class TestGroupWeightedAggregation:
         # Unweighted average: (0.60 + 0.90) / 2 = 0.75
         assert result_unweighted["acc,none"] == pytest.approx(0.75)
 
+    def test_unweighted_aggregation_stderr_matches_unweighted_mean(self):
+        """weight_by_size=False must report the stderr of the *unweighted* mean.
+
+        Regression test for the inconsistency where the group point estimate is the
+        unweighted mean of subtask means but the stderr is the size-weighted (pooled)
+        value, yielding an overconfident error bar. For k independent subtask means the
+        unweighted-mean stderr is sqrt(sum(se_i**2)) / k.
+        """
+        import math
+
+        from lm_eval.api.metrics import pooled_sample_stderr
+
+        task_a = MockTask("task_a")
+        task_b = MockTask("task_b")
+        # Deliberately very unequal sizes so pooled != unweighted-mean stderr.
+        metrics = {
+            "task_a": {"sample_len": 1000, "acc,none": 0.60, "acc_stderr,none": 0.02},
+            "task_b": {"sample_len": 10, "acc,none": 0.80, "acc_stderr,none": 0.10},
+        }
+
+        group = Group(
+            name="test_unweighted_stderr",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", weight_by_size=False)],
+        )
+        group.add(task_a)
+        group.add(task_b)
+        result = group.aggregate(metrics)
+
+        # stderr of the unweighted mean (0.60, 0.80): sqrt(0.02**2 + 0.10**2) / 2
+        expected = math.sqrt(0.02**2 + 0.10**2) / 2
+        assert result["acc_stderr,none"] == pytest.approx(expected)
+        # And it must NOT be the size-weighted pooled stderr (the previous bug).
+        pooled = pooled_sample_stderr([0.02, 0.10], [1000, 10])
+        assert result["acc_stderr,none"] != pytest.approx(pooled)
+
+    def test_weighted_aggregation_stderr_uses_pooled(self):
+        """weight_by_size=True must keep using the pooled (size-weighted) stderr."""
+        from lm_eval.api.metrics import pooled_sample_stderr
+
+        task_a = MockTask("task_a")
+        task_b = MockTask("task_b")
+        metrics = {
+            "task_a": {"sample_len": 1000, "acc,none": 0.60, "acc_stderr,none": 0.02},
+            "task_b": {"sample_len": 10, "acc,none": 0.80, "acc_stderr,none": 0.10},
+        }
+
+        group = Group(
+            name="test_weighted_stderr",
+            aggregate_metric_list=[AggMetricConfig(metric="acc", weight_by_size=True)],
+        )
+        group.add(task_a)
+        group.add(task_b)
+        result = group.aggregate(metrics)
+
+        assert result["acc_stderr,none"] == pytest.approx(
+            pooled_sample_stderr([0.02, 0.10], [1000, 10])
+        )
+
 
 class TestGroupEdgeCases:
     """Test edge cases for Group aggregation."""

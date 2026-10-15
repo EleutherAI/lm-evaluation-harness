@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_contract_nli_explicit_identification
+dataset_name: contract_nli_explicit_identification
+num_fewshot: 8
+description: "Identify if the clause provides that all Confidential Information shall be expressly identified by the Disclosing Party.\n\n"
+doc_to_text: "Clause: {{text}}\nLabel:"

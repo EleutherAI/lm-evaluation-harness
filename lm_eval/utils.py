@@ -197,8 +197,12 @@ def handle_arg_string(arg):
 
 
 def handle_non_serializable(o):
-    if isinstance(o, (np.int64, np.int32)):
+    if isinstance(o, np.bool_):
+        return bool(o)
+    elif isinstance(o, np.integer):
         return int(o)
+    elif isinstance(o, np.floating):
+        return float(o)
     elif isinstance(o, set):
         return list(o)
     else:
@@ -499,6 +503,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
     # Build depth map and hierarchical key ordering from group_subtasks
     group_subtasks = result_dict.get("group_subtasks", {})
+    n_shot = result_dict.get("n-shot", {})
     depth_map, hierarchical_keys = _build_hierarchy_info(
         group_subtasks, set(result_dict[column].keys())
     )
@@ -513,7 +518,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
     for k in keys:
         dic = dict(result_dict[column][k])  # copy — don't mutate original
         version = result_dict["versions"].get(k, "    N/A")
-        n = str(result_dict.get("n-shot", " ").get(k, " "))
+        n = str(n_shot.get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         display_name = dic.pop("alias", k)

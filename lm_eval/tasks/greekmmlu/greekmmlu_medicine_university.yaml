@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_stem_tasks
+task: greekmmlu_medicine_university
+task_alias: Medicine_University
+dataset_name: Medicine_University

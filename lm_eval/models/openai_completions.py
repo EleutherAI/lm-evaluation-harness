@@ -2,11 +2,11 @@ import logging
 import os
 from functools import cached_property
 from operator import itemgetter
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
-from lm_eval.models.utils import handle_stop_sequences
+from lm_eval.models.utils import handle_stop_sequences, postprocess_generated_text
 
 
 eval_logger = logging.getLogger(__name__)
@@ -60,9 +60,9 @@ class LocalCompletionsAPI(TemplateAPI):
 
     def _create_payload(
         self,
-        messages: Union[List[List[int]], List[dict], List[str], str],
+        messages: list[list[int]] | list[dict] | list[str] | str,
         generate=False,
-        gen_kwargs: Optional[dict] = None,
+        gen_kwargs: dict | None = None,
         seed: int = 1234,
         eos=None,
         **kwargs,
@@ -97,24 +97,26 @@ class LocalCompletionsAPI(TemplateAPI):
 
     @staticmethod
     def parse_logprobs(
-        outputs: Union[Dict, List[Dict]],
-        tokens: List[List[int]] = None,
-        ctxlens: List[int] = None,
+        outputs: dict | list[dict],
+        tokens: list[list[int]] | None = None,
+        ctxlens: list[int] | None = None,
         **kwargs,
-    ) -> List[Tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
             for choice, ctxlen in zip(
-                sorted(out["choices"], key=itemgetter("index")), ctxlens
+                sorted(out["choices"], key=itemgetter("index")),
+                ctxlens,
+                strict=False,
             ):
                 assert ctxlen > 0, "Context length must be greater than 0"
                 logprobs = sum(choice["logprobs"]["token_logprobs"][ctxlen:-1])
                 tokens_logprobs = choice["logprobs"]["token_logprobs"][ctxlen:-1]
                 top_logprobs = choice["logprobs"]["top_logprobs"][ctxlen:-1]
                 is_greedy = True
-                for tok, top in zip(tokens_logprobs, top_logprobs):
+                for tok, top in zip(tokens_logprobs, top_logprobs, strict=False):
                     if tok != max(top.values()):
                         is_greedy = False
                         break
@@ -122,7 +124,7 @@ class LocalCompletionsAPI(TemplateAPI):
         return res
 
     @staticmethod
-    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+    def parse_generations(outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -152,6 +154,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         base_url=None,
         tokenizer_backend=None,
         tokenized_requests=None,
+        think_end_token: str | None = None,
         verify_certificate=True,
         ca_cert_path=None,
         auth_token=None,
@@ -166,6 +169,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
             auth_token=auth_token,
             **kwargs,
         )
+        self.think_end_token = think_end_token
         if self._batch_size > 1:
             eval_logger.warning(
                 "Chat completions does not support batching. Defaulting to batch size 1."
@@ -174,9 +178,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
 
     def _create_payload(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         generate=False,
-        gen_kwargs: dict = None,
+        gen_kwargs: dict | None = None,
         seed=1234,
         eos=None,
         **kwargs,
@@ -207,8 +211,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
             **gen_kwargs,
         }
 
-    @staticmethod
-    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+    def parse_generations(self, outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -216,8 +219,17 @@ class LocalChatCompletion(LocalCompletionsAPI):
             try:
                 tmp = [None] * len(out["choices"])
                 for choices in out["choices"]:
-                    tmp[choices["index"]] = choices["message"]["content"]
-            except Exception as e:
+                    content = choices["message"]["content"]
+                    tmp[choices["index"]] = (
+                        postprocess_generated_text(
+                            content,
+                            stop=None,
+                            think_end_token=self.think_end_token,
+                        )
+                        if content is not None
+                        else None
+                    )
+            except (IndexError, KeyError, TypeError) as e:
                 # account for cases that generation is blocked by content filter,
                 # which is common for Azure OpenAI Service,
                 # not sure if need to account for multiple choices
@@ -228,11 +240,11 @@ class LocalChatCompletion(LocalCompletionsAPI):
 
     def tok_encode(
         self,
-        string: Union[str, Any],
+        string: str | Any,
         left_truncate_len=None,
         add_special_tokens=None,
         **kwargs,
-    ) -> Union[List[str], List[int], Any]:
+    ) -> list[str] | list[int] | Any:
         return string
 
     def loglikelihood(self, requests, **kwargs):
@@ -274,7 +286,7 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         )
         return super().loglikelihood(requests, **kwargs)
 
-    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+    def chat_template(self, chat_template: bool | str = False) -> str | None:
         return ""
 
 
@@ -316,9 +328,9 @@ class OpenAIChatCompletion(LocalChatCompletion):
 
     def _create_payload(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         generate=False,
-        gen_kwargs: dict = None,
+        gen_kwargs: dict | None = None,
         seed=1234,
         eos="<|endoftext|>",
         **kwargs,
@@ -367,12 +379,12 @@ class AzureOpenaiChatCompletionsLM(OpenAIChatCompletion):
     ) -> None:
         super().__init__()
         try:
-            import openai  # noqa: E401
-        except ModuleNotFoundError:
-            raise Exception(
+            import openai
+        except ModuleNotFoundError as exc:
+            raise ModuleNotFoundError(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
-            )
+            ) from exc
         self.model = model
         self.base_url = f"{base_url}/openai/deployments/{model}/chat/completions?api-version={api_version}"
         self.truncate = truncate

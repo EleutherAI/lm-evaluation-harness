@@ -1,0 +1,8 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_wikipedia_english
+task_alias: UE_wiki_en
+process_docs: !function uncheatable_eval_utils.filter_wikipedia_english
+metadata:
+  description: >-
+    Rolling perplexity on English Wikipedia articles from the Uncheatable Eval 2026-07
+    snapshot.

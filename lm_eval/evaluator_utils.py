@@ -188,6 +188,7 @@ def _compute_task_aggregations(
     """
     agg_metrics: dict[str, Any] = {}
     sample_len = 0
+    metric_lens: dict[str, int] = {}
 
     for (metric, filter_key), items in raw_metrics.items():
         try:
@@ -201,13 +202,20 @@ def _compute_task_aggregations(
 
         metric_key = f"{metric},{filter_key}"
         agg_metrics[metric_key] = agg_fn(items)
-        sample_len = len(items)  # TODO: reflects only the last metric's count
+        # Metrics can hold different numbers of values: a document whose
+        # process_results omits a key contributes to some metrics and not others.
+        # Assigning here would report whichever metric came last, so the same run
+        # reports a different count depending on dict ordering. A document
+        # contributes at most one value to each metric, so the largest per-metric
+        # count is a lower bound on the number of documents evaluated.
+        metric_lens[metric_key] = len(items)
+        sample_len = max(sample_len, len(items))
 
         if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
             stderr_fn = stderr_for_metric(
                 metric=agg_fn,
                 bootstrap_iters=min(bootstrap_iters, 100)
-                if metric in ["bleu", "chrf", "ter"]
+                if metric in ["bleu", "chrf", "chrf++", "ter"]
                 else bootstrap_iters,
             )
             agg_metrics[f"{metric}_stderr,{filter_key}"] = (
@@ -215,6 +223,24 @@ def _compute_task_aggregations(
             )
         else:
             agg_metrics[f"{metric}_stderr,{filter_key}"] = "N/A"
+
+    # Differing counts mean some documents were dropped from some metrics, so the
+    # single reported sample count does not describe every metric. Surface the
+    # per-metric counts, and the group-weighting consequence, rather than letting
+    # the discrepancy pass silently. Group.aggregate weights each subtask by this
+    # one task-level count (see lm_eval/api/group.py), so it has no way to give a
+    # metric the number of documents that metric was actually scored on.
+    # TODO: fix this: will need to return the per-metric counts and group.py to index them by metric_key
+    if len(set(metric_lens.values())) > 1:
+        counts = ", ".join(f"{key}={n}" for key, n in sorted(metric_lens.items()))
+        eval_logger.warning(
+            f"[{task.task_name}] Metrics were not scored on the same number of "
+            f"documents ({counts}). Each metric was aggregated over only the "
+            f"documents that produced it; reporting {sample_len} as the evaluated "
+            f"sample count. Size-weighted group aggregation applies that single "
+            f"count to every metric of this task, so any metric scored on fewer "
+            f"than {sample_len} documents is over-weighted in the group score."
+        )
 
     return agg_metrics, sample_len
 
