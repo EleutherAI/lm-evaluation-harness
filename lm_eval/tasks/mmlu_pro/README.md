@@ -70,3 +70,5 @@ If other tasks on this dataset are already supported:
   * trimmed whitespace from options: [see](https://x.com/fujikanaeda/status/2011565035408277996)
 * (tasks, group) 2026-05-04 -- (version 3 --> version 3.1)
   * fix fewshot answers being rendered in user turns instead of assistant turns under `--apply_chat_template`. PR #3693.
+* (tasks) 2026-10-15 -- (version 3.1 --> version 4.1)
+  * Match the [reference implementation's extraction order](https://github.com/TIGER-AI-Lab/MMLU-Pro/blob/f418b116db00b065c2aea046518d8fcf74d39872/evaluate_from_local.py#L111-L135): preserve the first `answer is` match, then try `Answer:`, then the last standalone A–J. This changes scoring for responses that previously failed extraction; unmatched responses remain `[invalid]` without random guessing.

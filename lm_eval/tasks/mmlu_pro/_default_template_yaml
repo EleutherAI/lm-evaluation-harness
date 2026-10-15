@@ -11,9 +11,7 @@ doc_to_target: answer
 filter_list:
   - name: "custom-extract"
     filter:
-      - function: "regex"
-        regex_pattern: 'answer is \(?([ABCDEFGHIJ])\)?'
-        # regex_pattern: r".*[aA]nswer:\s*([A-J])",
+      - function: !function utils.ExtractAnswerFilter
       - function: "take_first"
 generation_kwargs:
   until:
@@ -29,4 +27,4 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 3.1
+  version: 4.1

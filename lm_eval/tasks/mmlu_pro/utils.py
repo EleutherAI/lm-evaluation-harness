@@ -1,7 +1,39 @@
+import re
 from functools import partial
+
+from lm_eval.api.filter import Filter
 
 
 choices = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+
+
+def extract_answer(response):
+    """Follow the reference's ordered extraction, retaining invalid responses.
+
+    Reference: https://github.com/TIGER-AI-Lab/MMLU-Pro/blob/f418b116db00b065c2aea046518d8fcf74d39872/evaluate_from_local.py#L111-L135
+    """
+    if not isinstance(response, str):
+        return "[invalid]"
+
+    match = re.search(r"answer is \(?([A-J])\)?", response)
+    if match:
+        return match.group(1)
+
+    match = re.search(r".*[aA]nswer:\s*([A-J])", response)
+    if match:
+        return match.group(1)
+
+    match = re.search(r"\b[A-J]\b(?!.*\b[A-J]\b)", response, re.DOTALL)
+    return match.group(0) if match else "[invalid]"
+
+
+class ExtractAnswerFilter(Filter):
+    """Extract an answer from each response before selecting the first repeat."""
+
+    def apply(self, resps, docs):
+        return [
+            [extract_answer(response) for response in responses] for responses in resps
+        ]
 
 
 def format_cot_example(example, including_answer=True):
