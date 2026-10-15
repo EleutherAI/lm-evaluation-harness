@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -71,3 +72,27 @@ def test_delete_cache_removes_only_own_suffix_files(tmp_path, monkeypatch):
 
     assert (tmp_path / "unrelated.txt").exists()
     assert os.listdir(tmp_path) == ["unrelated.txt"]
+
+
+def test_corrupt_cache_entry_warns_instead_of_silent_debug(tmp_path, monkeypatch, caplog):
+    monkeypatch.setattr(cache, "PATH", str(tmp_path))
+
+    cache_key = "requests-corrupt-probe"
+    Path(cache._cache_file_path(cache_key)).write_bytes(b"this is not a pickle")
+
+    with caplog.at_level("WARNING", logger="lm_eval.caching.cache"):
+        assert cache.load_from_cache(cache_key, cache=True) is None
+
+    warnings = [r for r in caplog.records if r.levelname == "WARNING"]
+    assert len(warnings) == 1
+    assert "cannot be loaded" in warnings[0].getMessage()
+
+
+def test_missing_cache_entry_stays_a_debug_miss(tmp_path, monkeypatch, caplog):
+    monkeypatch.setattr(cache, "PATH", str(tmp_path))
+
+    with caplog.at_level("DEBUG", logger="lm_eval.caching.cache"):
+        assert cache.load_from_cache("never-saved-key", cache=True) is None
+
+    warnings = [r for r in caplog.records if r.levelname == "WARNING"]
+    assert warnings == []

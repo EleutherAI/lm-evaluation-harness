@@ -60,8 +60,17 @@ def load_from_cache(file_name: str, cache: bool = False):
             cached_task_dict = dill.loads(file.read())  # noqa: S301
             return cached_task_dict
 
-    except Exception:  # noqa: BLE001
+    except FileNotFoundError:
         eval_logger.debug("%s is not cached, generating...", file_name)
+    except Exception as e:  # noqa: BLE001
+        # A present-but-unreadable entry (truncated write, corruption, poison) is
+        # silently regenerated and overwritten on the next save; surface it first
+        # so the evidence lands in the logs instead of vanishing with the file.
+        eval_logger.warning(
+            "Cache entry %s exists but cannot be loaded (%s); regenerating and overwriting",
+            _cache_file_path(file_name),
+            e,
+        )
 
 
 def save_to_cache(file_name, obj):
