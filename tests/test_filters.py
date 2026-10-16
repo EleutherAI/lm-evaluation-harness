@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from lm_eval.filters.extraction import MultiChoiceRegexFilter
+from lm_eval.filters.extraction import MultiChoiceRegexFilter, RegexFilter
 from lm_eval.filters.transformation import SPANFilter
 
 
@@ -70,6 +70,27 @@ def test_multi_choice_regex_prefix_fix_holds_under_task_config():
 
     assert filt.apply([["the answer is Guilty of Romance"]], docs) == [["(B)"]]
     assert filt.apply([["the answer is Guilty"]], docs) == [["(A)"]]
+
+
+@pytest.mark.parametrize(
+    "resp,expected",
+    [
+        # Issue #4375: trailing "$.", "$$", "..." must not shadow the real answer.
+        ("The answer is 42 $.", "42"),
+        ("The answer is 100 $$", "100"),
+        ("The answer is 3.5 ...", "3.5"),
+        ("The answer is $1,234.", "$1,234."),
+        ("The answer is -7 $.", "-7"),
+    ],
+)
+def test_flexible_extract_ignores_digitless_trailing_tokens(resp, expected):
+    # Mirrors the gsm8k flexible-extract filter config (group_select=-1).
+    filt = RegexFilter(
+        regex_pattern=r"(-?[$.,]*[0-9][$0-9.,]*)",
+        group_select=-1,
+    )
+
+    assert filt.apply([[resp]], [{}]) == [[expected]]
 
 
 @pytest.mark.parametrize("variant", ["zeroshot", "cot_zeroshot"])
