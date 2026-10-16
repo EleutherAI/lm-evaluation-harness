@@ -61,3 +61,60 @@ def test_corpus_partition_does_not_change_the_confusion_counts():
     assert _aggreg_ner(rows) == pytest.approx(
         confusion_count_macro(flat_pred, flat_ref)
     )
+
+
+@pytest.mark.parametrize(
+    "output, predictions, references",
+    [
+        ("Luigi$PER,Roma$LOC,Fiat$ORG", [3, 1, 2], [0, 1, 2]),
+        (
+            "Luigi$PER,Roma$LOC,Fiat$ORG,Milano$LOC",
+            [3, 1, 2, 2],
+            [0, 1, 2, 3],
+        ),
+        (
+            "Roma$LOC,Fiat$ORG,x$LOC,y$LOC",
+            [3, 1, 2, 2],
+            [0, 1, 2, 3],
+        ),
+        (
+            "Mario Rossi$PER,Fiat$ORG,x$LOC,y$LOC",
+            [0, 3, 2, 2],
+            [0, 1, 2, 3],
+        ),
+        (
+            "Mario Rossi$PER,Roma$LOC,x$LOC,y$LOC",
+            [0, 1, 3, 2],
+            [0, 1, 2, 3],
+        ),
+        (
+            "Mario Rossi$PER,Roma$LOC,Fiat$ORG,Milano$LOC",
+            [0, 1, 2, 2],
+            [0, 1, 2, 3],
+        ),
+    ],
+)
+def test_unmatched_gold_entities_remain_misses_with_extra_predictions(
+    output, predictions, references
+):
+    entities = [
+        {"entity_text": "Mario Rossi", "type": "PER"},
+        {"entity_text": "Roma", "type": "LOC"},
+        {"entity_text": "Fiat", "type": "ORG"},
+    ]
+    item = ner_process_results({"entities": entities}, [output])["f1"]
+    assert item == (predictions, references)
+    assert _aggreg_ner([item]) == pytest.approx(
+        confusion_count_macro(predictions, references)
+    )
+
+
+def test_unrelated_long_outputs_cannot_recover_missed_people_in_a_corpus():
+    rows = [
+        ner_process_results(
+            {"entities": [{"entity_text": name, "type": "PER"}]},
+            ["Roma$LOC,Fiat$ORG"],
+        )["f1"]
+        for name in ("Mario", "Luigi", "Giulia", "Anna")
+    ]
+    assert _aggreg_ner(rows) == 0.0

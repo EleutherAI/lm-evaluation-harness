@@ -201,7 +201,7 @@ def ner_process_results(doc, results):
     results = _ner_process_raw_output(raw_results)
 
     gold_labels = _ner_gold_to_target(gold)
-    res_labels = [0] * len(gold_labels)
+    res_labels = [NER_MAPPING["O"]] * len(gold_labels)
     matched_gold_idx = []
 
     if len(results) > len(gold):
