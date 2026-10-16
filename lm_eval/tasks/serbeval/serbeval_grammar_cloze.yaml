@@ -1,0 +1,3 @@
+include: _serbeval_cloze_yaml
+task: serbeval_grammar_cloze
+dataset_name: srb_grammar_cloze

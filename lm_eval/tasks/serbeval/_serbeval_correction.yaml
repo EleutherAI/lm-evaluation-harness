@@ -1,0 +1,11 @@
+group: serbeval_correction
+task:
+  - serbeval_correction_razmak_crtica
+  - serbeval_correction_c_c
+  - serbeval_correction_ispravno
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

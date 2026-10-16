@@ -1,0 +1,9 @@
+group: serbeval_cloze
+task:
+  - serbeval_grammar_cloze
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

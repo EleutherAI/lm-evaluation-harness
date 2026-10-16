@@ -1,0 +1,13 @@
+group: serbeval
+task:
+  - serbeval_mcq
+  - serbeval_cloze
+  - serbeval_pravopis
+  - serbeval_probe
+  - serbeval_correction
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

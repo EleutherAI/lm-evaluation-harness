@@ -1,0 +1,3 @@
+include: _serbeval_mcq_yaml
+task: serbeval_idioms
+dataset_name: srb_idioms

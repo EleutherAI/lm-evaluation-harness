@@ -1,0 +1,11 @@
+group: serbeval_mcq
+task:
+  - serbeval_grammar
+  - serbeval_idioms
+  - serbeval_cyrillic_agreement
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

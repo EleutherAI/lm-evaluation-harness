@@ -1,0 +1,3 @@
+include: _serbeval_mcq_yaml
+task: serbeval_grammar
+dataset_name: srb_grammar

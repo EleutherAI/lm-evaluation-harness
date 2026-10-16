@@ -1,0 +1,14 @@
+include: _serbeval_mcq_yaml
+task: serbeval_cyrillic_agreement
+dataset_name: srb_cyrillic_agreement
+process_results: !function utils.process_results_pair
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: unparsed
+    aggregation: mean
+    higher_is_better: false
+  - metric: pair_agreement
+    aggregation: !function utils.pair_agreement
+    higher_is_better: true
