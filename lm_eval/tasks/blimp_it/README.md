@@ -44,11 +44,11 @@ Abstract:
 
 ## Dataset Summary
 
-BLiMP-IT is a linguistically motivated benchmark for evaluating Italian language models through **minimal pairs**. 
-Each example consists of a grammatical sentence paired with a minimally different ungrammatical counterpart that isolates a single morphosyntactic contrast. 
+BLiMP-IT is a linguistically motivated benchmark for evaluating Italian language models through **minimal pairs**.
+Each example consists of a grammatical sentence paired with a minimally different ungrammatical counterpart that isolates a single morphosyntactic contrast.
 The benchmark is designed to evaluate whether language models assign higher probability to the grammatical sentence than to the ungrammatical one.
 
-The benchmark is inspired by the [English BLiMP](https://aclanthology.org/2020.tacl-1.25/) while extending and adapting it to Italian morphosyntax. 
+The benchmark is inspired by the [English BLiMP](https://aclanthology.org/2020.tacl-1.25/) while extending and adapting it to Italian morphosyntax.
 It combines phenomena from the original BLiMP with additional contrasts derived from Italian linguistic literature and the [COnVERSA psycholinguistic assessment battery](https://www.hogrefe.com/it/shop/comprensione-delle-opposizioni-morfosintattiche-verbali-attraverso-la-scrittura.html).
 
 Rather than measuring downstream task performance, BLiMP-IT measures the acquisition of abstract morphosyntactic generalizations.
@@ -346,5 +346,5 @@ For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-  
+
 ### Changelog
