@@ -130,14 +130,12 @@ def _aggreg_ner(predictions):
     all_ref = []
     for r in ref:
         all_ref.extend(r)
-    # compute the F1 score
-    f1 = f1_score(all_ref, all_pred, average=None)
-    if len(f1) > 1:
-        f1_sum = sum(f1[:-1]) / (len(f1) - 1)
-    else:
-        f1_sum = f1[0]
-
-    return f1_sum
+    # The benchmark's macro F1 is defined over PER, LOC and ORG, not
+    # the outside class. Explicit labels retain entity types when O is absent
+    # and keep the macro denominator fixed for partial evaluation runs.
+    return f1_score(
+        all_ref, all_pred, labels=[0, 1, 2], average="macro", zero_division=0
+    )
 
 
 def _aggreg_rel(predictions):
