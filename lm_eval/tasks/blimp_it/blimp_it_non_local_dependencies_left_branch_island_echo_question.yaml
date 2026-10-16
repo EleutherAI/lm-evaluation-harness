@@ -1,0 +1,4 @@
+dataset_name: blimp_it_non_local_dependencies_left_branch_island_echo_question
+dataset_path: NeTSlab/BLiMP-IT
+include: _template_yaml
+task: blimp_it_non_local_dependencies_left_branch_island_echo_question
