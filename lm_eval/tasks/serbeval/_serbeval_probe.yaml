@@ -1,0 +1,14 @@
+group: serbeval_probe
+task:
+  - serbeval_probe_jat
+  - serbeval_probe_aorist_imperfekat
+  - serbeval_probe_sibilarizacija
+  - serbeval_probe_broj_pridev_imenica
+  - serbeval_probe_sastavljeno_rastavljeno
+  - serbeval_probe_poluslozenice
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

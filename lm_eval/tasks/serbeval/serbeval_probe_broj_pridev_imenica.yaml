@@ -1,0 +1,3 @@
+include: _serbeval_cloze_yaml
+task: serbeval_probe_broj_pridev_imenica
+dataset_name: srb_probe_broj_pridev_imenica

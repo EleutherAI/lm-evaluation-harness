@@ -1,0 +1,3 @@
+include: _serbeval_cloze_yaml
+task: serbeval_pravopis_prefiksoidi
+dataset_name: srb_pravopis_prefiksoidi

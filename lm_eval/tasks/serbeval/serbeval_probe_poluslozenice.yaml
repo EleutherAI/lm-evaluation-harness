@@ -1,0 +1,3 @@
+include: _serbeval_cloze_yaml
+task: serbeval_probe_poluslozenice
+dataset_name: srb_probe_poluslozenice

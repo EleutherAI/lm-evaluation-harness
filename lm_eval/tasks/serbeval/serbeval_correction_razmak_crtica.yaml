@@ -1,0 +1,3 @@
+include: _serbeval_correction_yaml
+task: serbeval_correction_razmak_crtica
+dataset_name: srb_correction_razmak_crtica

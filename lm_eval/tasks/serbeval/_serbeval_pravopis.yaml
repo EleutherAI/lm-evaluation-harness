@@ -1,0 +1,12 @@
+group: serbeval_pravopis
+task:
+  - serbeval_pravopis_prefiksoidi
+  - serbeval_pravopis_poluslozenice
+  - serbeval_pravopis_slozeni_pridevi
+  - serbeval_pravopis_sastavljeno_rastavljeno
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
