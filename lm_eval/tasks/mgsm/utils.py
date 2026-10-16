@@ -116,7 +116,7 @@ def add_regex_pattern(regex_pattern):
                 "filter": [
                     {
                         "function": "regex",
-                        "regex_pattern": """(-?[$0-9.,]{2,})|(-?[0-9]+)""",
+                        "regex_pattern": """(-?[$.,]*[0-9][$0-9.,]*)""",
                         "group_select": -1,
                     },
                     {
