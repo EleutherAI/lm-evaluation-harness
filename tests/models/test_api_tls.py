@@ -13,7 +13,7 @@ import requests
 from urllib3.exceptions import InsecureRequestWarning
 
 from lm_eval.api.instance import Instance
-from lm_eval.models.openai_completions import LocalCompletionsAPI
+from lm_eval.models.openai_completions import LocalChatCompletion, LocalCompletionsAPI
 
 
 @pytest.fixture(scope="module")
@@ -51,11 +51,30 @@ def https_completions_server(tmp_path_factory):
         capture_output=True,
         timeout=10,
     )
+    ca_directory = directory / "ca-directory"
+    ca_directory.mkdir()
+    shutil.copyfile(certificate, ca_directory / "certificate.pem")
+    subprocess.run(  # noqa: S603 - resolved openssl executable, fixed arguments
+        [openssl, "rehash", str(ca_directory)],
+        check=True,
+        capture_output=True,
+        timeout=10,
+    )
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):
             self.rfile.read(int(self.headers["Content-Length"]))
-            body = json.dumps({"choices": [{"index": 0, "text": "answer"}]}).encode()
+            body = json.dumps(
+                {
+                    "choices": [
+                        {
+                            "index": 0,
+                            "text": "answer",
+                            "message": {"role": "assistant", "content": "answer"},
+                        }
+                    ]
+                }
+            ).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
@@ -75,6 +94,7 @@ def https_completions_server(tmp_path_factory):
             yield (
                 f"https://localhost:{server.server_port}/v1/completions",
                 str(certificate),
+                str(ca_directory),
             )
         finally:
             server.shutdown()
@@ -82,24 +102,35 @@ def https_completions_server(tmp_path_factory):
 
 
 @pytest.mark.parametrize("num_concurrent", [1, 2], ids=["sync", "async"])
+@pytest.mark.parametrize("api_class", [LocalCompletionsAPI, LocalChatCompletion])
 @pytest.mark.parametrize(
-    "verification", ["custom-ca", "default-ca", "wrong-host", "disabled"]
+    "verification",
+    [
+        "custom-ca",
+        "custom-ca-dir",
+        "default-ca",
+        "wrong-host",
+        "wrong-host-dir",
+        "disabled",
+    ],
 )
 def test_completions_certificate_verification(
-    https_completions_server, monkeypatch, num_concurrent, verification
+    https_completions_server, monkeypatch, num_concurrent, api_class, verification
 ):
-    base_url, certificate = https_completions_server
+    base_url, certificate, ca_directory = https_completions_server
     monkeypatch.setenv("NO_PROXY", "localhost,127.0.0.1")
     monkeypatch.delenv("REQUESTS_CA_BUNDLE", raising=False)
     monkeypatch.delenv("CURL_CA_BUNDLE", raising=False)
     ca_cert_path = None
     if verification in {"custom-ca", "wrong-host"}:
         ca_cert_path = certificate
+    elif verification in {"custom-ca-dir", "wrong-host-dir"}:
+        ca_cert_path = ca_directory
     elif verification == "disabled":
         ca_cert_path = "unused-missing-ca.pem"
-    if verification == "wrong-host":
+    if verification in {"wrong-host", "wrong-host-dir"}:
         base_url = base_url.replace("localhost", "127.0.0.1")
-    api = LocalCompletionsAPI(
+    api = api_class(
         base_url=base_url,
         model="test-model",
         tokenizer_backend=None,
@@ -109,11 +140,16 @@ def test_completions_certificate_verification(
         verify_certificate=verification != "disabled",
         ca_cert_path=ca_cert_path,
     )
+    prompt = (
+        [{"role": "user", "content": "Hello"}]
+        if api_class is LocalChatCompletion
+        else "Hello"
+    )
     request = Instance(
-        request_type="generate_until", doc={}, arguments=("Hello", {}), idx=0
+        request_type="generate_until", doc={}, arguments=(prompt, {}), idx=0
     )
 
-    if verification in {"default-ca", "wrong-host"}:
+    if verification in {"default-ca", "wrong-host", "wrong-host-dir"}:
         with pytest.raises(
             (requests.exceptions.SSLError, aiohttp.ClientConnectorCertificateError)
         ):

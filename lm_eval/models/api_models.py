@@ -600,11 +600,12 @@ class TemplateAPI(TemplateLM):
         **kwargs,
     ) -> list[list[str]] | list[list[tuple[float, bool]]]:
         ctxlens = ctxlens or [None] * len(requests)
-        ssl_config = (
-            ssl.create_default_context(cafile=self.ca_cert_path)
-            if self.verify_certificate and self.ca_cert_path
-            else self.verify_certificate
-        )
+        ssl_config: ssl.SSLContext | bool = self.verify_certificate
+        if self.verify_certificate and self.ca_cert_path:
+            if os.path.isdir(self.ca_cert_path):
+                ssl_config = ssl.create_default_context(capath=self.ca_cert_path)
+            else:
+                ssl_config = ssl.create_default_context(cafile=self.ca_cert_path)
         conn = TCPConnector(limit=self._concurrent, ssl=ssl_config)
         sem = asyncio.Semaphore(self._concurrent)
         async with ClientSession(

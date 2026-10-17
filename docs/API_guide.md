@@ -102,7 +102,8 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - Default is True.
 
 - `ca_cert_path` (str, optional):
-  - Path to a PEM CA bundle for HTTPS certificate verification, including custom or private certificate authorities.
+  - Path to a PEM CA bundle or an OpenSSL-hashed CA directory for HTTPS certificate verification, including custom or private certificate authorities.
+  - Prepare CA directories with `openssl rehash` (or `c_rehash`).
   - Used for both synchronous and concurrent requests when `verify_certificate` is True.
   - If omitted, uses the default trusted certificate authorities.
 
