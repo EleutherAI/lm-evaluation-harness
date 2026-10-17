@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
+from typing import Any
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.registry import filter_registry, get_filter
@@ -10,7 +11,7 @@ from . import custom, extraction, selection, transformation
 
 def build_filter_ensemble(
     filter_name: str,
-    components: list[tuple[str, dict[str, str | int | float] | None]],
+    components: list[tuple[str, dict[str, Any] | None]],
 ) -> FilterEnsemble:
     """
     Create a filtering pipeline.
