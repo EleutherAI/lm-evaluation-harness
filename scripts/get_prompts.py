@@ -21,9 +21,9 @@ def print_task_prompts(task_name, task, num_examples=3):
     )
     for doc in docs:
         print()
-        print("**Context**:", "\n```\n" + task.doc_to_text(doc) + "\n```\n")
+        print("**Context**:", f"\n```\n{task.doc_to_text(doc)}\n```\n")
         print()
-        print("**Target**:", "\n```\n" + task.doc_to_target(doc) + "\n```\n")
+        print("**Target**:", f"\n```\n{task.doc_to_target(doc)}\n```\n")
         print()
 
 

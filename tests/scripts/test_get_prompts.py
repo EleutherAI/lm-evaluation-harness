@@ -69,6 +69,39 @@ def test_num_examples_limits_output(local_tasks, capsys):
     assert out.count("**Target**") == 2
 
 
+@pytest.mark.parametrize(
+    ("target", "output_type"),
+    [(1, "multiple_choice"), (["first", "second"], "generate_until")],
+)
+def test_prints_non_string_targets(local_tasks, capsys, target, output_type):
+    config_path = local_tasks / "task.yaml"
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    data_path = local_tasks / "non_string_target.jsonl"
+    data_path.write_text(
+        json.dumps({"question": "Which answer?", "answer": target}) + "\n",
+        encoding="utf-8",
+    )
+    config.update(
+        dataset_kwargs={"data_files": {"validation": str(data_path)}},
+        doc_to_target="answer",
+        output_type=output_type,
+    )
+    if output_type == "multiple_choice":
+        config["doc_to_choice"] = ["first", "second"]
+        config["metric_list"] = [
+            {"metric": "acc", "aggregation": "mean", "higher_is_better": True}
+        ]
+    config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
+    task_manager = TaskManager(include_path=str(local_tasks), include_defaults=False)
+
+    get_prompts.main(["local_export"], task_manager=task_manager)
+
+    out = capsys.readouterr().out
+    assert f"\n```\n{target}\n```\n" in out
+    assert out.count("**Context**") == 1
+    assert out.count("**Target**") == 1
+
+
 def test_script_entrypoint_passes_include_path(local_tasks, capsys, monkeypatch):
     monkeypatch.setattr(
         sys,
