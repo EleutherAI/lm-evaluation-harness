@@ -5,6 +5,7 @@ import itertools
 import json
 import logging
 import os
+import ssl
 from collections.abc import Awaitable, Callable, Iterable
 from functools import cached_property
 from typing import (
@@ -472,7 +473,11 @@ class TemplateAPI(TemplateLM):
                     **kwargs,
                 ),
                 headers=self.header,
-                verify=self.verify_certificate,
+                verify=(
+                    self.ca_cert_path
+                    if self.verify_certificate and self.ca_cert_path
+                    else self.verify_certificate
+                ),
                 timeout=self.timeout,
             )
             if not response.ok:
@@ -595,7 +600,12 @@ class TemplateAPI(TemplateLM):
         **kwargs,
     ) -> list[list[str]] | list[list[tuple[float, bool]]]:
         ctxlens = ctxlens or [None] * len(requests)
-        conn = TCPConnector(limit=self._concurrent, ssl=self.verify_certificate)
+        ssl_config = (
+            ssl.create_default_context(cafile=self.ca_cert_path)
+            if self.verify_certificate and self.ca_cert_path
+            else self.verify_certificate
+        )
+        conn = TCPConnector(limit=self._concurrent, ssl=ssl_config)
         sem = asyncio.Semaphore(self._concurrent)
         async with ClientSession(
             connector=conn, timeout=ClientTimeout(total=self.timeout)
