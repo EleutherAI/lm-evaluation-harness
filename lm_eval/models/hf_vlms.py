@@ -126,7 +126,7 @@ class HFMultimodalLM(HFLM):
 
         if tokenizer:
             if isinstance(tokenizer, str):
-                return transformers.AutoProcessor.from_pretrained(
+                self.processor = transformers.AutoProcessor.from_pretrained(
                     tokenizer,
                     revision=revision,
                     trust_remote_code=trust_remote_code,
@@ -136,7 +136,9 @@ class HFMultimodalLM(HFLM):
                 assert isinstance(
                     tokenizer, transformers.ProcessorMixin
                 )  # TODO: check this condition
-                return tokenizer
+                self.processor = tokenizer
+            self.tokenizer = self.processor.tokenizer
+            return
 
         # Get tokenizer based on 'pretrained'
         if isinstance(pretrained, str):
@@ -289,7 +291,7 @@ class HFMultimodalLM(HFLM):
         strings: list[str],  # note that input signature of this fn is different
         images: list[list],  # TODO: images are pil.Image at the moment, update typehint
         padding_side: str = "left",
-        left_truncate_len: int = None,
+        left_truncate_len: int | None = None,
         truncation: bool = False,
     ) -> (
         BatchEncoding | dict[str, torch.Tensor]
@@ -442,7 +444,7 @@ class HFMultimodalLM(HFLM):
             tuple[tuple[None, str, str], list[int], list[int], list[int]]
         ],  # TODO: update typehint to be correct
         disable_tqdm: bool = False,
-        override_bs: int = None,
+        override_bs: int | None = None,
     ) -> list[tuple[float, bool]]:
         res = []
 
@@ -690,7 +692,7 @@ class HFMultimodalLM(HFLM):
                 # add EOS token to stop sequences
                 until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
-                raise ValueError(
+                raise ValueError(  # noqa: TRY004 - preserve the existing API exception
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             if "max_gen_toks" in kwargs.keys():
