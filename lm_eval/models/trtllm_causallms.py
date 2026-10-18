@@ -2,10 +2,11 @@
 
 import logging
 from importlib.util import find_spec
-from typing import List, Literal, Optional, Tuple, Union, Any
+from typing import Any, Literal
 
 from tqdm import tqdm
 
+from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
@@ -22,7 +23,7 @@ from lm_eval.utils import (
     get_rolling_token_windows,
     make_disjoint_window,
 )
-from lm_eval.api.instance import Instance
+
 
 try:
     from tensorrt_llm import LLM, SamplingParams
@@ -46,9 +47,9 @@ class TRTLLM(TemplateLM):
         model: str,
         dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
         trust_remote_code: bool = False,
-        tokenizer: Optional[str] = None,
+        tokenizer: str | None = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
-        add_bos_token: Optional[bool] = None,
+        add_bos_token: bool | None = None,
         prefix_token_id: int | None = None,
         max_batch_size: int = 32,
         max_input_len: int = 2048,
@@ -56,11 +57,11 @@ class TRTLLM(TemplateLM):
         max_beam_width: int = 1,
         tensor_parallel_size: int = 1,
         pipeline_parallel_size: int = 1,
-        batch_size: Union[str, int] = "auto",
+        batch_size: str | int = "auto",
         max_gen_toks: int = 256,
         seed: int = 1234,
         truncation_side: Literal["left", "right", "middle"] = "left",
-        chat_template_args: Optional[dict] = None,
+        chat_template_args: dict | None = None,
         # TRT-LLM: enable thinking tags in apply_chat_template.
         enable_thinking: bool = True,
         # End marker for thinking tags - splits to get response after this token (if provided).
@@ -106,7 +107,7 @@ class TRTLLM(TemplateLM):
         from transformers import AutoTokenizer
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            tokenizer if tokenizer else model,
+            tokenizer or model,
             trust_remote_code=trust_remote_code,
             use_fast=(tokenizer_mode == "auto"),
         )
@@ -122,10 +123,12 @@ class TRTLLM(TemplateLM):
                 test_tok = self.tok_encode("test", add_special_tokens=True)
                 test_tok_no_special = self.tok_encode("test", add_special_tokens=False)
                 self.add_bos_token = test_tok != test_tok_no_special
-            except Exception:
+            except Exception:  # noqa: BLE001 - retain fallback for tokenizer-specific failures
                 self.add_bos_token = False
 
-        eval_logger.info(f"BOS token will{' not' if not self.add_bos_token else ''} be added")
+        eval_logger.info(
+            f"BOS token will{' not' if not self.add_bos_token else ''} be added"
+        )
 
         if prefix_token_id is not None:
             eval_logger.info(
@@ -238,9 +241,9 @@ class TRTLLM(TemplateLM):
 
     def _loglikelihood_tokens(
         self,
-        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
-    ) -> List[Tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:
         res = []
 
         def _collate(x):
@@ -260,7 +263,7 @@ class TRTLLM(TemplateLM):
         for chunk in chunks:
             inputs = []
             ctxlens = []
-            for cache_key, context_enc, continuation_enc in chunk:
+            for _cache_key, context_enc, continuation_enc in chunk:
                 inp = (context_enc + continuation_enc)[-(self.max_length) :]
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length)
@@ -275,10 +278,10 @@ class TRTLLM(TemplateLM):
                     max_tokens=1,
                     temperature=0,
                     prompt_logprobs=1,
-                )
+                ),
             )
             for output, ctxlen, (cache_key, _, _), inp in zip(
-                outputs, ctxlens, chunk, inputs
+                outputs, ctxlens, chunk, inputs, strict=False
             ):
                 answer = self._parse_logprobs(
                     tokens=inp,
@@ -297,7 +300,7 @@ class TRTLLM(TemplateLM):
         return re_ord.get_original(res)
 
     @staticmethod
-    def _parse_logprobs(tokens: List, outputs, ctxlen: int) -> Tuple[float, bool]:
+    def _parse_logprobs(tokens: list, outputs, ctxlen: int) -> tuple[float, bool]:
         """Process logprobs and tokens.
 
         :param tokens: list
@@ -331,7 +334,9 @@ class TRTLLM(TemplateLM):
 
         continuation_logprobs_dicts = shifted_prompt_logprobs[ctxlen:]
         continuation_logprobs = 0.0
-        for token, logprob_dict in zip(tokens[ctxlen:], continuation_logprobs_dicts):
+        for token, logprob_dict in zip(
+            tokens[ctxlen:], continuation_logprobs_dicts, strict=False
+        ):
             if token in logprob_dict:
                 continuation_logprobs += logprob_dict[token].logprob
             else:
@@ -344,7 +349,9 @@ class TRTLLM(TemplateLM):
         # Determine is_greedy: the actual token must have rank=1 at every position.
         # The Logprob object has a .rank attribute (1 = highest probability).
         is_greedy = True
-        for token, logprob_dict in zip(tokens[ctxlen:], continuation_logprobs_dicts):
+        for token, logprob_dict in zip(
+            tokens[ctxlen:], continuation_logprobs_dicts, strict=False
+        ):
             if token in logprob_dict and logprob_dict[token].rank is not None:
                 if logprob_dict[token].rank != 1:
                     is_greedy = False
@@ -412,12 +419,13 @@ class TRTLLM(TemplateLM):
                     gen_kwargs, eos=eos, default_max_gen_toks=self.max_gen_toks
                 )
 
-                # set the max length in tokens of inputs ("context_enc")
-                # max len for inputs = max length, minus room to generate the max new tokens
+                # Respect both the engine's input cap and its total sequence cap.
+                # Unused output capacity cannot be borrowed by the prompt.
                 toks, max_gen_toks = maybe_truncate(
                     toks,
                     max_gen_toks=max_gen_toks,
-                    max_model_len=self.max_input_len + self.max_output_len,
+                    max_model_len=self.max_input_len
+                    + min(self.max_output_len, max_gen_toks),
                     side=self.truncation_side,
                     verbose=True,
                 )
@@ -460,8 +468,8 @@ class TRTLLM(TemplateLM):
         self,
         requests,
         disable_tqdm: bool = False,
-        override_bs: Optional[int] = None,
-    ) -> List[float]:
+        override_bs: int | None = None,
+    ) -> list[float]:
         """Compute perplexity using rolling windows.
 
         This method efficiently batches all rolling windows from all requests together
@@ -494,7 +502,7 @@ class TRTLLM(TemplateLM):
 
             # Create rolling windows using the utility function
             # This handles the windowing logic properly with context
-            rolling_token_windows: List[Tuple[List[int], List[int]]] = list(
+            rolling_token_windows: list[tuple[list[int], list[int]]] = list(
                 map(
                     make_disjoint_window,
                     get_rolling_token_windows(
@@ -523,7 +531,7 @@ class TRTLLM(TemplateLM):
         for i in range(0, len(all_windows), batch_size):
             batch = all_windows[i : i + batch_size]
             # Extract just the windows for processing, keeping track of request indices
-            batch_indices, batch_windows = zip(*batch)
+            batch_indices, batch_windows = zip(*batch, strict=False)
 
             # Process the batch using _loglikelihood_tokens
             batch_nlls = self._loglikelihood_tokens(
@@ -532,7 +540,7 @@ class TRTLLM(TemplateLM):
             )
 
             # Store results with their request indices
-            all_nlls.extend(zip(batch_indices, batch_nlls))
+            all_nlls.extend(zip(batch_indices, batch_nlls, strict=False))
 
         # Reconstruct per-request loglikelihoods
         loglikelihoods = []
@@ -587,7 +595,7 @@ class TRTLLM(TemplateLM):
 
     def __del__(self):
         """Cleanup TRT-LLM resources."""
-        if hasattr(self, 'llm'):
+        if hasattr(self, "llm"):
             del self.llm
 
     @staticmethod
