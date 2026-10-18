@@ -55,7 +55,7 @@ class HFAUDIOLMQWEN(HFLM):
 
         if tokenizer:
             if isinstance(tokenizer, str):
-                return transformers.AutoTokenizer.from_pretrained(
+                self.processor = transformers.AutoProcessor.from_pretrained(
                     tokenizer,
                     revision=revision,
                     trust_remote_code=trust_remote_code,
@@ -65,7 +65,9 @@ class HFAUDIOLMQWEN(HFLM):
                 assert isinstance(
                     tokenizer, transformers.ProcessorMixin
                 )  # TODO: check this condition
-                return tokenizer
+                self.processor = tokenizer
+            self.tokenizer = self.processor.tokenizer
+            return
 
         # Get tokenizer based on 'pretrained'
         if isinstance(pretrained, str):
@@ -126,7 +128,7 @@ class HFAUDIOLMQWEN(HFLM):
         strings: list[str],  # note that input signature of this fn is different
         audios: list[list],
         padding_side: str = "left",
-        left_truncate_len: int = None,
+        left_truncate_len: int | None = None,
         truncation: bool = False,
     ) -> (
         BatchEncoding | dict[str, torch.Tensor]
@@ -228,7 +230,7 @@ class HFAUDIOLMQWEN(HFLM):
                             f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
                         )
             else:
-                raise ValueError(
+                raise ValueError(  # noqa: TRY004 - preserve the existing API exception
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             # add EOS token to stop sequences
