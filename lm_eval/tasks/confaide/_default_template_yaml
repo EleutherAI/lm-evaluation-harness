@@ -1,0 +1,19 @@
+custom_dataset: !function utils.load_confaide
+output_type: generate_until
+test_split: test
+doc_to_text: "{{input}}"
+target_delimiter: ""
+repeats: 10
+generation_kwargs:
+  until: []
+  do_sample: true
+  temperature: 1.0
+  top_p: 1.0
+  max_gen_toks: 365
+filter_list:
+  - name: all_samples
+    filter:
+      - function: take_first_k
+        k: 10
+metadata:
+  version: 1.0

@@ -1,0 +1,10 @@
+include: _default_template_yaml
+task: confaide_tier2b
+dataset_kwargs:
+  tier: "2b"
+doc_to_target: "{{label}}"
+process_results: !function utils.process_results_tier2
+metric_list:
+  - metric: pearson
+    aggregation: !function utils.pearson
+    higher_is_better: true

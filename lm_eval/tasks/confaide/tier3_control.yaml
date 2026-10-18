@@ -1,0 +1,14 @@
+include: _default_template_yaml
+task: confaide_tier3_control
+dataset_kwargs:
+  tier: "3"
+  question_type: control
+doc_to_target: "no"
+process_results: !function utils.process_results_tier3_control
+metric_list:
+  - metric: error
+    aggregation: mean
+    higher_is_better: false
+  - metric: error_worst_case
+    aggregation: mean
+    higher_is_better: false
