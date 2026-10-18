@@ -581,7 +581,7 @@ class Task(abc.ABC):
         world_size: int = 1,
         samples: list[int] | None = None,
     ) -> Iterator[tuple[int, Any]]:
-        if samples:
+        if samples is not None:
             n = len(self.eval_docs)
             assert all(e < n for e in samples), (
                 f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
