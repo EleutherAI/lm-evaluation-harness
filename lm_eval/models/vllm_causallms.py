@@ -85,7 +85,7 @@ class VLLM(TemplateLM):
         enable_thinking: bool | None = None,
         chat_template_args: dict | None = None,
         # End marker for thinking tags - splits to get response after this token (if provided).
-        think_end_token: str | None = None,
+        think_end_token: str | int | None = None,
         max_lora_rank: int = 16,
         truncation_side: Literal["left", "right", "middle"] = "left",
         **kwargs,
@@ -111,7 +111,11 @@ class VLLM(TemplateLM):
                 "environment variable before running lm-eval."
             )
             kwargs.pop("device")
-        self.think_end_token = think_end_token
+        self.think_end_token = (
+            int(think_end_token)
+            if isinstance(think_end_token, str) and think_end_token.isdigit()
+            else think_end_token
+        )
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
         # truncation strategy for inputs exceeding max length
@@ -619,7 +623,7 @@ class VLLM(TemplateLM):
                 # before any response is produced.  Only EOS should be passed
                 # to vLLM; task stops are applied in postprocess_generated_text
                 # after thinking content is stripped.
-                if self.think_end_token:
+                if self.think_end_token or isinstance(self.think_end_token, int):
                     eos_only = [s for s in until if s == eos]
                     sampling_params.append(
                         SamplingParams(max_tokens=max_gen_toks, stop=eos_only, **kwargs)
@@ -644,9 +648,36 @@ class VLLM(TemplateLM):
                 cont, context, _cache_gen_kwargs, strict=True
             ):
                 generated_text: str = output.outputs[0].text
+                if isinstance(self.think_end_token, int):
+                    token_ids = output.outputs[0].token_ids
+                    think_token_indices = [
+                        i
+                        for i, token in enumerate(token_ids)
+                        if token == self.think_end_token
+                    ]
+                    if think_token_indices:
+                        decode_kwargs = {
+                            "skip_special_tokens": _gen_kwargs["skip_special_tokens"]
+                        }
+                        if hasattr(self.tokenizer, "name_or_path"):
+                            decode_kwargs.update(
+                                spaces_between_special_tokens=_gen_kwargs[
+                                    "spaces_between_special_tokens"
+                                ],
+                                clean_up_tokenization_spaces=False,
+                            )
+                        generated_text = self.tokenizer.decode(
+                            token_ids[think_token_indices[-1] + 1 :],
+                            **decode_kwargs,
+                        )
+                    generated_text = generated_text.lstrip()
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
-                    generated_text, _gen_kwargs.get("until"), self.think_end_token
+                    generated_text,
+                    _gen_kwargs.get("until"),
+                    self.think_end_token
+                    if isinstance(self.think_end_token, str)
+                    else None,
                 )
                 res.append(generated_text)
                 self.cache_hook.add_partial(

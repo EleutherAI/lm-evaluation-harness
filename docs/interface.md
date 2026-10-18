@@ -149,7 +149,7 @@ Models like Qwen3 or DeepSeek-R1 can produce a chain-of-thought reasoning trace 
 - `enable_thinking`: Activates thinking mode in the chat template (passed as a kwarg to `apply_chat_template`).
 - `think_end_token`: The delimiter marking the end of the thinking section. Everything up to and including the last occurrence of this token is discarded from the output. **This option is required when using `enable_thinking=True`.**
 
-With the `vllm` or `sglang` backends, `think_end_token` must be a **string** (e.g. `</think>`):
+The `vllm` and `sglang` backends accept a **string** delimiter (e.g. `</think>`):
 
 ```bash
 lm-eval run --model vllm \
@@ -157,7 +157,7 @@ lm-eval run --model vllm \
   --tasks gsm8k --apply_chat_template
 ```
 
-With the `hf` backend, `think_end_token` can be either a **string** or a **token ID** (integer). Using the token ID avoids edge cases where the token string appears in normal text:
+With the `hf` and `vllm` backends, `think_end_token` can also be a **token ID** (integer). Using the token ID avoids edge cases where the token string appears in normal text. The `sglang` backend only accepts strings:
 
 ```bash
 lm-eval run --model hf \
