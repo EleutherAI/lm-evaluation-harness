@@ -1,0 +1,14 @@
+include: _default_template_yaml
+task: confaide_tier3_free_response
+dataset_kwargs:
+  tier: "3"
+  question_type: free-response
+doc_to_target: "{{subject_agent}}"
+process_results: !function utils.process_results_tier3_free_response
+metric_list:
+  - metric: string_match
+    aggregation: mean
+    higher_is_better: false
+  - metric: string_match_worst_case
+    aggregation: mean
+    higher_is_better: false

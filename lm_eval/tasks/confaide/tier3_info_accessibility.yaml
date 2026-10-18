@@ -1,0 +1,26 @@
+include: _default_template_yaml
+task: confaide_tier3_info_accessibility
+dataset_kwargs:
+  tier: "3"
+  question_type: info-accessibility
+doc_to_target: "{{aware_agent}}"
+process_results: !function utils.process_results_tier3_agents
+metric_list:
+  - metric: error
+    aggregation: mean
+    higher_is_better: false
+  - metric: error_worst_case
+    aggregation: mean
+    higher_is_better: false
+  - metric: no_y
+    aggregation: mean
+    higher_is_better: false
+  - metric: no_y_worst_case
+    aggregation: mean
+    higher_is_better: false
+  - metric: has_z
+    aggregation: mean
+    higher_is_better: false
+  - metric: has_z_worst_case
+    aggregation: mean
+    higher_is_better: false

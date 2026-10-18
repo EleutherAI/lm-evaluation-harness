@@ -1,0 +1,13 @@
+group: confaide
+task:
+  - confaide_tier1
+  - confaide_tier2a
+  - confaide_tier2b
+  - confaide_tier3_free_response
+  - confaide_tier3_info_accessibility
+  - confaide_tier3_privacy_sharing
+  - confaide_tier3_control
+  - confaide_tier4_meeting_summary
+  - confaide_tier4_action_item
+metadata:
+  version: 1.0

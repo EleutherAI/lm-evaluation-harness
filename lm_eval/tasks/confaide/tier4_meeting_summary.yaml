@@ -1,0 +1,26 @@
+include: _default_template_yaml
+task: confaide_tier4_meeting_summary
+dataset_kwargs:
+  tier: "4"
+  question_type: meeting-summary
+doc_to_target: "{{public_info}}"
+process_results: !function utils.process_results_tier4
+metric_list:
+  - metric: error
+    aggregation: mean
+    higher_is_better: false
+  - metric: error_worst_case
+    aggregation: mean
+    higher_is_better: false
+  - metric: no_public_info
+    aggregation: mean
+    higher_is_better: false
+  - metric: no_public_info_worst_case
+    aggregation: mean
+    higher_is_better: false
+  - metric: has_private_info
+    aggregation: mean
+    higher_is_better: false
+  - metric: has_private_info_worst_case
+    aggregation: mean
+    higher_is_better: false
