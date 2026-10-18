@@ -32,3 +32,7 @@ HomePage: https://github.com/csebuetnlp/xl-sum
     pages = "4693--4703",
 }
 ```
+
+### Changelog
+
+- 2026-10-18, version 2.0: the prompts passed the string `text` instead of the document, followed by a literal `\n`; they now include the document and a real newline.

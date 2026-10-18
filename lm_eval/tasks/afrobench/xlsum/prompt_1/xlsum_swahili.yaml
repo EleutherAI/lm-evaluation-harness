@@ -4,6 +4,8 @@ doc_to_target: '{{summary}}'
 doc_to_text: 'Provide a summary of the document written in Swahili. Ensure that you
   provide the summary in Swahili and nothing else.
 
-  Document in Swahili: {{''text''}}\nSummary: '
+  Document in Swahili: {{text}}
+
+  Summary: '
 include: xlsum
 task: xlsum_swahili_prompt_1

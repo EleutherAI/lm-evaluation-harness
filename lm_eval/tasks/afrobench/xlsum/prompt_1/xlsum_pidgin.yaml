@@ -4,6 +4,8 @@ doc_to_target: '{{summary}}'
 doc_to_text: 'Provide a summary of the document written in Nigerian pidgin. Ensure
   that you provide the summary in Nigerian pidgin and nothing else.
 
-  Document in Nigerian pidgin: {{''text''}}\nSummary: '
+  Document in Nigerian pidgin: {{text}}
+
+  Summary: '
 include: xlsum
 task: xlsum_pidgin_prompt_1
