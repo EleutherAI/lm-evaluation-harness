@@ -4,6 +4,8 @@ doc_to_target: '{{summary}}'
 doc_to_text: 'Summarize the document below in triple backticks and return only the
   summary and nothing else.
 
-  ```{{''text''}}```\n'
+  ```{{text}}```
+
+  '
 include: xlsum
 task: xlsum_oromo_prompt_2

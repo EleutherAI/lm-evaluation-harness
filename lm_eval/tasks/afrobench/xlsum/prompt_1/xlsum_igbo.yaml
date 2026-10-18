@@ -4,6 +4,8 @@ doc_to_target: '{{summary}}'
 doc_to_text: 'Provide a summary of the document written in Igbo. Ensure that you provide
   the summary in Igbo and nothing else.
 
-  Document in Igbo: {{''text''}}\nSummary: '
+  Document in Igbo: {{text}}
+
+  Summary: '
 include: xlsum
 task: xlsum_igbo_prompt_1

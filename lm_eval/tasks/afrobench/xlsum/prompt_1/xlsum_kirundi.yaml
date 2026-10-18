@@ -4,6 +4,8 @@ doc_to_target: '{{summary}}'
 doc_to_text: 'Provide a summary of the document written in Kirundi. Ensure that you
   provide the summary in Kirundi and nothing else.
 
-  Document in Kirundi: {{''text''}}\nSummary: '
+  Document in Kirundi: {{text}}
+
+  Summary: '
 include: xlsum
 task: xlsum_kirundi_prompt_1

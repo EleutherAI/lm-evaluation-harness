@@ -4,6 +4,8 @@ doc_to_target: '{{summary}}'
 doc_to_text: 'Provide a summary of the document written in Yoruba. Ensure that you
   provide the summary in Yoruba and nothing else.
 
-  Document in Yoruba: {{''text''}}\nSummary: '
+  Document in Yoruba: {{text}}
+
+  Summary: '
 include: xlsum
 task: xlsum_yoruba_prompt_1

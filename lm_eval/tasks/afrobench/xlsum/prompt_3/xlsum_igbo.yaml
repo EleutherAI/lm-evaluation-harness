@@ -5,6 +5,8 @@ doc_to_text: 'You are an advanced Summarizer, a specialized assistant designed t
   summarize documents in Igbo. Your main goal is to ensure summaries are concise and
   informative. Ensure you return the summary only and nothing else.
 
-  Document: {{''text''}}\nSummary: '
+  Document: {{text}}
+
+  Summary: '
 include: xlsum
 task: xlsum_igbo_prompt_3

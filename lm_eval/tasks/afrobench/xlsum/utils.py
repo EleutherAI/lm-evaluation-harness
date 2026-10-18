@@ -10,18 +10,17 @@ def prompt_func(mode, lang):
 
     prompt_map = {
         "prompt_1": f"Provide a summary of the document written in {lang.capitalize()}. Ensure that you provide the summary in {lang.capitalize()} and nothing else.\n"
-        f"Document in {lang.capitalize()}: " + r"{{'text'}}\n"
+        f"Document in {lang.capitalize()}: " + "{{text}}\n"
         "Summary: ",
         "prompt_2": "Summarize the document below in triple backticks and return only the summary and nothing else.\n"
-        + r"```{{'text'}}```\n",
+        + "```{{text}}```\n",
         "prompt_3": f"You are an advanced Summarizer, a specialized assistant designed to summarize documents in {lang.capitalize()}. "
         f"Your main goal is to ensure summaries are concise and informative. Ensure you return the summary only and nothing else.\n"
-        f"Document: " + r"{{'text'}}\n"
+        f"Document: " + "{{text}}\n"
         "Summary: ",
-        "prompt_4": f"Summarize this {lang.capitalize()} document:\n" + r"{{'text'}}\n"
+        "prompt_4": f"Summarize this {lang.capitalize()} document:\n" + "{{text}}\n"
         "Summary: ",
-        "prompt_5": f"{lang.capitalize()} document: " + r"{{'text'}}\n"
-        "Summary: ",
+        "prompt_5": f"{lang.capitalize()} document: " + "{{text}}\nSummary: ",
     }
     return prompt_map[mode]
 
