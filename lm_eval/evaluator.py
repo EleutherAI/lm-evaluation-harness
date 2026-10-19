@@ -639,6 +639,13 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
+                unparsed = [
+                    req.filtered_unparsed[filter_key]
+                    for req in requests
+                    if filter_key in req.filtered_unparsed
+                ]
+                if unparsed:
+                    metrics.setdefault("unparsed_rate", sum(unparsed) / len(unparsed))
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Iterable, List, Union
 
 from lm_eval.api.instance import Instance
@@ -41,16 +41,39 @@ class FilterEnsemble:
 
     name: str
     filters: List[Callable[[], Filter]]
+    # Set by `apply` when a filter in the pipeline substitutes a fallback value
+    # (e.g. "[invalid]") for responses it could not parse.
+    has_fallback: bool = field(default=False, init=False)
 
     def apply(self, instances: List[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
         resps, docs = list(resps), list(docs)
 
+        fallbacks = []
         for f in self.filters:
             # apply filters in sequence
-            resps = f().apply(resps, docs)
+            filter_instance = f()
+            if hasattr(filter_instance, "fallback"):
+                fallbacks.append(filter_instance.fallback)
+            resps = filter_instance.apply(resps, docs)
+        self.has_fallback = bool(fallbacks)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
         for inst, resp in zip(instances, resps):
             inst.filtered_resps[self.name] = resp
+            if fallbacks:
+                inst.filtered_unparsed[self.name] = _unparsed_fraction(resp, fallbacks)
+
+
+def _unparsed_fraction(resp, fallbacks: list) -> float:
+    """Share of a filtered response that is a filter's fallback value.
+
+    `resp` is a single value after `take_first`, or a list of per-sample values
+    when the pipeline keeps all repeats.
+    """
+    if any(resp == fallback for fallback in fallbacks):
+        return 1.0
+    if isinstance(resp, (list, tuple)) and resp:
+        return sum(any(r == fb for fb in fallbacks) for r in resp) / len(resp)
+    return 0.0

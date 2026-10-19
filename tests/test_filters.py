@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pytest
 
+from lm_eval.api.instance import Instance
+from lm_eval.filters import build_filter_ensemble
 from lm_eval.filters.extraction import MultiChoiceRegexFilter
 from lm_eval.filters.transformation import SPANFilter
 
@@ -97,3 +99,64 @@ def test_bbh_multi_choice_regex_prefix_choice_does_not_shadow_longer_choice(vari
 
     assert filt.apply([["The answer is Batman Returns"]], docs) == [["(B)"]]
     assert filt.apply([["The answer is Batman"]], docs) == [["(A)"]]
+
+
+def _instances(*resps):
+    return [
+        Instance(
+            request_type="generate_until",
+            doc={},
+            arguments=("", {}),
+            idx=0,
+            resps=list(r),
+        )
+        for r in resps
+    ]
+
+
+def test_filter_ensemble_marks_fallback_responses_as_unparsed():
+    ensemble = build_filter_ensemble(
+        "strict-match",
+        [["regex", {"regex_pattern": r"#### (\-?[0-9\.\,]+)"}], ["take_first", None]],
+    )
+    instances = _instances(["#### 42"], ["I am not sure."])
+
+    ensemble.apply(instances)
+
+    assert ensemble.has_fallback
+    assert [i.filtered_resps["strict-match"] for i in instances] == ["42", "[invalid]"]
+    assert [i.filtered_unparsed["strict-match"] for i in instances] == [0.0, 1.0]
+
+
+def test_filter_ensemble_uses_the_filters_own_fallback_value():
+    ensemble = build_filter_ensemble(
+        "custom",
+        [
+            ["regex", {"regex_pattern": r"(\d+)", "fallback": "NO_ANSWER"}],
+            ["take_first", None],
+        ],
+    )
+    instances = _instances(["no digits here"])
+
+    ensemble.apply(instances)
+
+    assert instances[0].filtered_unparsed["custom"] == 1.0
+
+
+def test_filter_ensemble_reports_share_of_unparsed_repeats():
+    ensemble = build_filter_ensemble("all", [["regex", {"regex_pattern": r"(\d+)"}]])
+    instances = _instances(["1", "2", "none", "3"])
+
+    ensemble.apply(instances)
+
+    assert instances[0].filtered_unparsed["all"] == 0.25
+
+
+def test_filter_ensemble_without_fallback_adds_nothing():
+    ensemble = build_filter_ensemble("none", [["take_first", None]])
+    instances = _instances(["anything"])
+
+    ensemble.apply(instances)
+
+    assert not ensemble.has_fallback
+    assert instances[0].filtered_unparsed == {}
