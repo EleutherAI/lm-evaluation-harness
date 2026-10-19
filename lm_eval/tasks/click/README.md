@@ -47,6 +47,10 @@ Homepage: https://huggingface.co/datasets/EunsuKim/CLIcK
     * `click_cul_geography`
     * `click_cul_kpop`
 
+### Changelog
+
+* v2.0 (Oct 19, 2026, #4418): 5-option questions now show option E in the prompt, and the instruction lists A–E. Previously E was scored but never shown, so questions whose answer is E were effectively always wrong. Scores change for `click_cul_geography` and the `click_lang` tasks; 4-option prompts are unchanged.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
