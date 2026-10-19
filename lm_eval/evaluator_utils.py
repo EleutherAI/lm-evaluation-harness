@@ -145,8 +145,8 @@ class EvalAcc:
         """
         task_data, group_data = self.collect()
 
-        all_groups: list[Group] = list(self.groups.values())
-        subtask_list = {group.name: group.child_names for group in all_groups}
+        all_groups: list[Group] = _collect_groups_bottom_up(self.groups)
+        subtask_list = {g.name: g.child_names for g in self.groups.values()}
 
         higher_is_better = dict(self.higher_is_better)
         _propagate_higher_is_better(all_groups, higher_is_better)
