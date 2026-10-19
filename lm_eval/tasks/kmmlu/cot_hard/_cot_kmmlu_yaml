@@ -20,7 +20,6 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=정답은)(.*)(?=입니다.)"
         regex_pattern: "(?<=정답은)\\s*[(]?(A|B|C|D)[)]?.*(?=입니다.)"
       - function: "take_first"
 metadata:

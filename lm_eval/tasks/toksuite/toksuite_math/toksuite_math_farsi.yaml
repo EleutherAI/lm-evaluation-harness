@@ -6,4 +6,3 @@ metadata:
   task_pretty_name: Farsi
   num_samples: 21
   version: 1.0.2
-  canonical_task: toksuite_math_canonical

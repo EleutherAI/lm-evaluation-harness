@@ -10,7 +10,6 @@ output_type: multiple_choice
 doc_to_text: "{{input_formatted}}"
 doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: answer
-num_fewshot: 0
 metric_list:
   - metric: acc_norm
     aggregation: !function agg_functions.agg_gpirt_mmlu
