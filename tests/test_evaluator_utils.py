@@ -823,6 +823,30 @@ class TestToEvalResults:
         assert "grp" in d["higher_is_better"]
         assert d["higher_is_better"]["grp"]["acc"] is True
 
+    def test_propagation_reaches_group_of_groups(self):
+        task = MockEvalTask(
+            "t1",
+            config_dict={"num_fewshot": 3},
+            agg={"acc": mean},
+            hib={"acc": True},
+        )
+        child = Group(
+            name="child", aggregate_metric_list=[AggMetricConfig(metric="acc")]
+        )
+        child.add(task)
+        parent = Group(
+            name="parent", aggregate_metric_list=[AggMetricConfig(metric="acc")]
+        )
+        parent.add(child)
+        acc_input = {"t1": make_result_acc(task, {("acc", "none"): [1.0, 0.0]})}
+
+        d = _process_results(
+            acc_input, groups={"parent": parent, "child": child}, bootstrap_iters=0
+        )._to_eval_results()
+
+        assert d["n-shot"]["parent"] == 3
+        assert d["higher_is_better"]["parent"] == {"acc": True}
+
     def test_configs_sorted(self):
         er = self._make_eval_acc()
         d = er._to_eval_results()
