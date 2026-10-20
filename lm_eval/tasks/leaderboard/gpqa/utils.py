@@ -9,6 +9,15 @@ if TYPE_CHECKING:
     import datasets
 
 
+def _shuffled_choices(choices: list, rng_state: tuple, index: int) -> None:
+    rng = random.Random()
+    rng.setstate(rng_state)
+    scratch = list(range(len(choices)))
+    for _ in range(index):
+        rng.shuffle(scratch)
+    rng.shuffle(choices)
+
+
 def preprocess(text):
     if text is None:
         return " "
@@ -20,7 +29,9 @@ def preprocess(text):
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
-    def _process_doc(doc):
+    rng_state = random.getstate()
+
+    def _process_doc(doc, idx, rng_state):
         choices = [
             preprocess(doc["Incorrect Answer 1"]),
             preprocess(doc["Incorrect Answer 2"]),
@@ -28,7 +39,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             preprocess(doc["Correct Answer"]),
         ]
 
-        random.shuffle(choices)
+        _shuffled_choices(choices, rng_state, idx)
         correct_answer_index = choices.index(preprocess(doc["Correct Answer"]))
 
         out_doc = {
@@ -40,4 +51,6 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         }
         return out_doc
 
-    return dataset.map(_process_doc)
+    return dataset.map(
+        _process_doc, with_indices=True, fn_kwargs={"rng_state": rng_state}
+    )
