@@ -5,6 +5,7 @@ import random
 import re
 import string
 from collections.abc import Iterable
+from numbers import Integral
 from typing import Callable, List, Optional, Sequence, TypeVar
 
 import numpy as np
@@ -39,6 +40,49 @@ def mean(arr):
 @register_aggregation("median")
 def median(arr):
     return sorted(arr)[len(arr) // 2]
+
+
+def _bayes_at_n_moments(items) -> tuple[float, float]:
+    """Return binary Bayes@N moments with an independent uniform prior per document.
+
+    See Algorithm 1 of https://arxiv.org/abs/2510.04265.
+    """
+    try:
+        outcomes = np.asarray(items)
+    except ValueError as exc:
+        raise ValueError(
+            "Bayes@N requires a rectangular binary outcome matrix."
+        ) from exc
+    if (
+        outcomes.ndim != 2
+        or 0 in outcomes.shape
+        or outcomes.dtype.kind not in "biuf"
+        or not np.all((outcomes == 0) | (outcomes == 1))
+    ):
+        raise ValueError(
+            "Bayes@N requires a nonempty rectangular binary outcome matrix."
+        )
+    questions, trials = outcomes.shape
+    successes = outcomes.sum(axis=1, dtype=float)
+    alpha = successes + 1
+    beta = trials - successes + 1
+    total = trials + 2
+    row_variances = (alpha / total) * (beta / total) / (total + 1)
+    return float(np.mean(alpha / total)), float(
+        np.sqrt(row_variances.sum()) / questions
+    )
+
+
+@register_aggregation("bayes_at_n")
+def bayes_at_n_mean(items) -> float:
+    """Return the posterior mean of average per-document correctness."""
+    return _bayes_at_n_moments(items)[0]
+
+
+@register_aggregation("bayes_at_n_std")
+def bayes_at_n_std(items) -> float:
+    """Return the posterior standard deviation of average per-document correctness."""
+    return _bayes_at_n_moments(items)[1]
 
 
 # Certain metrics must be calculated across all documents in a benchmark.
@@ -277,6 +321,51 @@ def exact_match_hf_evaluate(
 )
 def exact_match_fn(**kwargs):
     return exact_match_hf_evaluate(**kwargs)
+
+
+@register_metric(
+    metric="bayes_at_n",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="bayes_at_n",
+)
+@register_metric(
+    metric="bayes_at_n_std",
+    higher_is_better=None,
+    output_type="generate_until",
+    aggregation="bayes_at_n_std",
+)
+def bayes_at_n_fn(predictions, references, n, **kwargs) -> tuple[int, ...]:
+    """Grade all n repeated responses against the document's accepted targets.
+
+    Exact-match normalization options are the same as for ``exact_match``.
+    Use a repeat-preserving filter, such as ``take_first_k`` with ``k: n``.
+    """
+    if isinstance(n, bool) or not isinstance(n, Integral) or n < 1:
+        raise ValueError("Bayes@N n must be a positive integer.")
+    if (
+        len(predictions) != 1
+        or not isinstance(predictions[0], (list, tuple))
+        or len(predictions[0]) != n
+        or not all(isinstance(response, str) for response in predictions[0])
+    ):
+        raise ValueError(
+            f"Bayes@N requires exactly {n} responses per document; "
+            "set repeats and use a repeat-preserving filter such as take_first_k."
+        )
+    if not references or not all(isinstance(target, str) for target in references):
+        raise ValueError("Bayes@N requires at least one string target per document.")
+    return tuple(
+        int(
+            any(
+                exact_match_hf_evaluate(
+                    predictions=[response], references=[target], **kwargs
+                )["exact_match"]
+                for target in references
+            )
+        )
+        for response in predictions[0]
+    )
 
 
 @register_metric(

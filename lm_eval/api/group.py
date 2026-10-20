@@ -220,6 +220,12 @@ class Group:
         sample_count: dict[str, int] = {}
 
         for agg_config in self.aggregate_metric_list:
+            if agg_config.metric in {"bayes_at_n", "bayes_at_n_std"}:
+                raise ValueError(
+                    "Bayes@N supports per-task corpus results only. Remove "
+                    f"'{agg_config.metric}' from the group's aggregate_metric_list; "
+                    "averaging task summaries does not preserve its posterior uncertainty."
+                )
             # Determine filters: auto-discover if None, else use explicit list
             if agg_config.filter_list is None:
                 filters_to_aggregate = self._discover_filters_for_metric(
