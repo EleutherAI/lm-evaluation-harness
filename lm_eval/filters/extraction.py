@@ -284,12 +284,12 @@ class AnchoredMultiChoiceRegexFilter(MultiChoiceRegexFilter):
             for tasks that *require* an explicit final answer.
     """
 
-    DEFAULT_SENTINELS: list[str] = [
+    DEFAULT_SENTINELS: tuple[str, ...] = (
         # "the/final/correct answer is (X)" / "answer: (X)"
         r"(?:the\s+)?(?:final|correct)?\s*answer\s*(?:is|:)\s*",
         # "therefore, ... (X)" as a common CoT conclusion
         r"therefore[,\s]+(?:the\s+answer\s+is\s*)?",
-    ]
+    )
 
     def __init__(
         self,
@@ -317,38 +317,49 @@ class AnchoredMultiChoiceRegexFilter(MultiChoiceRegexFilter):
         self.answer_sentinels = [re.compile(s, flags) for s in sentinels]
         self.fallback_to_positional = fallback_to_positional
 
-    def _extract_after_sentinel(self, resp: str, letter_regex: re.Pattern) -> str | None:
+    def _extract_after_sentinel(
+        self, resp: str, letter_regex: re.Pattern
+    ) -> str | None:
         """Return the parenthesized letter following the first matching sentinel.
 
         Returns ``None`` if no sentinel is present or no letter follows it.
         """
         for sentinel in self.answer_sentinels:
             for m in sentinel.finditer(resp):
-                tail = resp[m.end():]
+                tail = resp[m.end() :]
                 letter_match = letter_regex.search(tail)
                 if letter_match:
-                    # Normalize bare letter "A" -> "(A)" to match choice_to_alpha form.
-                    val = letter_match.group(1)
+                    # Two capture groups: group(1) = "(A)" form, group(2) = bare "A".
+                    val = letter_match.group(1) or letter_match.group(2)
+                    # Normalize to the "(X)" form the scorer expects.
                     return val if val.startswith("(") else f"({val})"
         return None
 
     def apply(
         self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]
     ) -> list[list[str]]:
-        # Letter regex tolerant of both "(A)" and bare "A" forms.
+        # Letter regex tolerant of both "(A)" and bare "A" forms. Crucially,
+        # the bare-letter form must be a *standalone token* (not the first
+        # letter of a longer word like "by"/"after"/"clearly"), otherwise the
+        # sentinel would be defeated by any prose word beginning with a letter.
+        # Two alternatives: a parenthesized letter, or an isolated single letter.
         letter_flags = re.IGNORECASE if self.ignore_case else 0
-        letter_regex = re.compile(r"\(?([A-Za-z])\)?", letter_flags)
+        letter_regex = re.compile(
+            r"\(([A-Za-z])\)|(?<![A-Za-z])([A-Za-z])(?![A-Za-z])",
+            letter_flags,
+        )
 
         # Delegate fallback / non-sentinel responses to the parent's full logic.
         # We only override the response when a sentinel commits to a letter.
         parent_filtered = super().apply(resps, docs)
 
         hardened = []
-        for resp_list, doc, parent_list in zip(resps, docs, parent_filtered, strict=True):
+        for resp_list, doc, parent_list in zip(
+            resps, docs, parent_filtered, strict=True
+        ):
             choices = doc["choices"]
             valid_letters = {
-                chr(ord("A") + i): f"({chr(ord('A') + i)})"
-                for i in range(len(choices))
+                chr(ord("A") + i): f"({chr(ord('A') + i)})" for i in range(len(choices))
             }
             row = []
             for resp, parent_val in zip(resp_list, parent_list, strict=True):
@@ -359,7 +370,10 @@ class AnchoredMultiChoiceRegexFilter(MultiChoiceRegexFilter):
                 if anchored is not None:
                     # Honor ignore_case / canonicalize to the "(X)" form within range.
                     canon = anchored.upper() if self.ignore_case else anchored
-                    if canon in valid_letters.values() or canon.strip("()") in valid_letters:
+                    if (
+                        canon in valid_letters.values()
+                        or canon.strip("()") in valid_letters
+                    ):
                         letter = canon.strip("()")
                         row.append(valid_letters.get(letter, parent_val))
                     else:
