@@ -1594,6 +1594,14 @@ class ConfigurableTask(Task):
                 gold = type(result)(gold)
 
             for metric in self._metric_fn_list.keys():
+                if metric in {"bayes_at_n", "bayes_at_n_std"}:
+                    targets = gold if self.multiple_target else [gold]
+                    result_dict[metric] = self._metric_fn_list[metric](
+                        references=[str(target) for target in targets],
+                        predictions=[results[0]],
+                        **self._metric_fn_kwargs[metric],
+                    )
+                    continue
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true

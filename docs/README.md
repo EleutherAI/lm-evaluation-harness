@@ -10,3 +10,4 @@ Welcome to the docs for the LM Evaluation Harness!
   * To ship a model, filter, metric or aggregation from your own package instead of the `lm-eval` source tree, see the [Plugin Guide](./plugins.md).
 * For a crash course on adding new tasks to the library, see our [New Task Guide](./new_task_guide.md).
 * To learn more about pushing the limits of task configuration that the Eval Harness supports, see the [Task Configuration Guide](./task_guide.md).
+* To report a posterior mean and standard deviation from repeated exact-match responses, see [Bayes@N](./bayes_at_n.md).
