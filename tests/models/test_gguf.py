@@ -19,22 +19,27 @@ class FakeResponse:
         pass
 
 
-def make_fake_server(token_logprobs=None, top_token_id=None):
+def make_fake_server(token_logprobs=None, top_token_id=None, add_bos=True):
     """Build a fake llama.cpp server.
 
     Tokenization is byte-level: each UTF-8 byte is a token id; a fake BOS
-    (id 1) is prepended when add_special is true. Scoring requests (prompt
-    given as a token-id array) return `token_logprobs[target_id]` as the
-    sampled logprob (default -1.0), and a top_logprobs list whose argmax is
-    `top_token_id` if given, else the target itself.
+    (id 1) is prepended when add_special is true, unless `add_bos` is false
+    (a model without BOS). With parse_special, the special tokens "<s>" and
+    "</s>" are token ids 7 and 8. Scoring requests (prompt given as a token-id array) return
+    `token_logprobs[target_id]` as the sampled logprob (default -1.0), and a
+    top_logprobs list whose argmax is `top_token_id` if given, else the
+    target itself.
     """
     calls = {"tokenize": [], "completions": []}
 
     def fake_post(url, json=None, timeout=None, **kwargs):
         if url.endswith("/tokenize"):
             calls["tokenize"].append(json)
+            special = {"<s>": 7, "</s>": 8}
+            if json.get("parse_special") and json["content"] in special:
+                return FakeResponse({"tokens": [special[json["content"]]]})
             ids = list(json["content"].encode("utf-8"))
-            if json.get("add_special"):
+            if json.get("add_special") and add_bos:
                 ids = [1] + ids
             return FakeResponse({"tokens": ids})
         elif url.endswith("/completions"):
@@ -145,6 +150,70 @@ class GGUFLMTest(unittest.TestCase):
             lm = GGUFLM(base_url, parallel=1)
             with self.assertRaises(RuntimeError):
                 lm.loglikelihood(llm_instances([("x", "a")]))
+
+    def test_loglikelihood_empty_context_without_bos_uses_prefix_token(self):
+        # A model without BOS tokenizes an empty context to nothing, and
+        # llama.cpp rejects an empty prompt; the first token is conditioned
+        # on the EOS reported by /props instead, like the HF backend (#3385).
+        fake_post, calls = make_fake_server(add_bos=False)
+        props = FakeResponse({"bos_token": "<s>", "eos_token": "</s>"})
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get", return_value=props),
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("", "ab")]))
+        self.assertEqual(res, [(-2.0, True)])
+        prompts = [c["prompt"] for c in calls["completions"]]
+        self.assertEqual(prompts, [[8], [8, ord("a")]])
+
+    def test_loglikelihood_empty_context_explicit_prefix_token_id(self):
+        fake_post, calls = make_fake_server(add_bos=False)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get") as get,
+        ):
+            lm = GGUFLM(base_url, parallel=1, prefix_token_id=42)
+            lm.loglikelihood(llm_instances([("", "a")]))
+        get.assert_not_called()
+        self.assertEqual(calls["completions"][0]["prompt"], [42])
+
+    def test_prefix_token_falls_back_to_bos(self):
+        # an EOS that does not tokenize to a single id is skipped for BOS
+        fake_post, _ = make_fake_server(add_bos=False)
+        props = FakeResponse({"bos_token": "<s>", "eos_token": "ab"})
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get", return_value=props),
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            self.assertEqual(lm.prefix_token_id, 7)
+
+    def test_prefix_token_unavailable_raises(self):
+        from requests.exceptions import RequestException
+
+        fake_post, _ = make_fake_server(add_bos=False)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch(
+                "lm_eval.models.gguf.requests.get",
+                side_effect=RequestException("no server"),
+            ),
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            with self.assertRaisesRegex(RuntimeError, "prefix_token_id"):
+                lm.loglikelihood(llm_instances([("", "a")]))
+
+    def test_loglikelihood_empty_context_with_bos_unchanged(self):
+        fake_post, calls = make_fake_server()
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get") as get,
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            lm.loglikelihood(llm_instances([("", "a")]))
+        get.assert_not_called()
+        self.assertEqual(calls["completions"][0]["prompt"], [1])
 
     def test_tokenize_cached(self):
         fake_post, calls = make_fake_server()
