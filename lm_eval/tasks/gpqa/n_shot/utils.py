@@ -18,9 +18,6 @@ def preprocess(text):
     return text
 
 
-rng = random.Random(42)
-
-
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc):
         choices = [
@@ -30,7 +27,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             preprocess(doc["Correct Answer"]),
         ]
 
-        rng.shuffle(choices)
+        random.Random(doc["Question"]).shuffle(choices)
         correct_answer_index = choices.index(preprocess(doc["Correct Answer"]))
 
         out_doc = {
