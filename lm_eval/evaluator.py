@@ -692,13 +692,12 @@ def evaluate(
         all_metrics = lm.gather_object(rank_metrics, dst=0)
         if RANK == 0:
             for task_name, acc in eval_results_acc.items():
-                for metric_key in acc["raw_metrics"]:
-                    acc["raw_metrics"][metric_key] = list(
-                        itertools.chain.from_iterable(
-                            rank_data[task_name][metric_key]
-                            for rank_data in all_metrics  # type: ignore
-                        )
-                    )
+                # A document can omit a metric, so keys can differ across ranks.
+                task_metrics = defaultdict(list)
+                for rank_data in all_metrics:  # type: ignore
+                    for metric_key, values in rank_data[task_name].items():
+                        task_metrics[metric_key].extend(values)
+                acc["raw_metrics"] = task_metrics
 
     if RANK == 0:
         res = _process_results(eval_results_acc, groups, bootstrap_iters)
