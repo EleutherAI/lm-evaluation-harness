@@ -568,17 +568,19 @@ def evaluate(
         if lm.world_size > 1:
             import torch
 
-            instances_rnk = torch.tensor(
-                len(task._instances) if task._instances else 0, device=lm.device
+            requests_rnk = torch.tensor(
+                sum(instance.repeats for instance in (task._instances or [])),
+                device=lm.device,
             )
-            gathered_item = lm.all_gather(instances_rnk).cpu().detach().numpy().tolist()
+            gathered_item = lm.all_gather(requests_rnk).cpu().detach().numpy().tolist()
             # "multiple_choice" task types dispatch (several) "loglikelihood" request types
             reqtype = (
                 "loglikelihood"
                 if task.OUTPUT_TYPE == "multiple_choice"
                 else task.OUTPUT_TYPE
             )
-            # compute number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
+            # Count expanded requests: different tasks can have different repeats.
+            # FSDP/DDP require even batches among ranks.
             numpad = max(gathered_item) - gathered_item[lm.rank]
             # todo: may not account for padding in cases like SquadV2 which has multiple req types
             padding_requests[reqtype] += numpad
@@ -593,8 +595,7 @@ def evaluate(
             cloned_reqs.extend([req] * req.repeats)
 
         if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
-            for _ in range(padding_requests[reqtype]):
-                cloned_reqs.extend([req] * req.repeats)
+            cloned_reqs.extend([req] * padding_requests[reqtype])
 
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
