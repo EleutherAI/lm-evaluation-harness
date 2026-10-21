@@ -43,6 +43,8 @@ Dataset: https://huggingface.co/datasets/lkaesberg/SPaRC
   `acc_level_1` … `acc_level_5` for each difficulty level (86 / 118 / 121 / 86 / 89 puzzles). Puzzles are
   ordered round-robin by difficulty level, so `--limit n` covers all levels evenly.
 * `sparc_hard`: Only the 89 level-5 puzzles, which the paper calls "hard".
+* `sparc_paper`: Like `sparc`, but with the paper's original prompt wording (see below). Use it to reproduce the
+  paper's numbers.
 
 #### Metrics
 
@@ -54,12 +56,17 @@ Dataset: https://huggingface.co/datasets/lkaesberg/SPaRC
 
 #### Prompt and scoring
 
-The prompt is the paper's single-shot prompt. It contains one worked example inside the prompt, so
-`num_fewshot` is 0. The system message is the task `description`. The model reasons step by step, then
+The prompt is the single-shot prompt from the SPaRC repository. It contains one worked example inside the
+prompt, so `num_fewshot` is 0. It states the star, polyshape and negative polyshape rules the way the puzzles
+were built. The paper's prompt words two of them differently: it lets a star pair only with a star or square
+(in the puzzles any symbol of the same color counts), and it says a negative polyshape cancels a polyshape of
+the exact same shape (in the puzzles it subtracts area). `sparc_paper` keeps the paper's wording, and differs
+from `sparc` only in those three rule lines. The system message is the task `description`. The model reasons step by step, then
 writes `####` followed by the coordinate list. The answer is extracted from the text after the last `####`.
-`utils.py` holds verbatim copies of the reference prompt builder
-([`sparc/prompts/single_shot.py`](https://github.com/lkaesberg/SPaRC/blob/9f2a3d6/sparc/prompts/single_shot.py))
-and validator ([`sparc/validation.py`](https://github.com/lkaesberg/SPaRC/blob/9f2a3d6/sparc/validation.py)).
+`utils.py` holds verbatim copies of the reference prompt builders
+([`sparc/prompts/single_shot.py`](https://github.com/lkaesberg/SPaRC/blob/6ecd5d9/sparc/prompts/single_shot.py)
+and [`sparc/prompts/single_shot_paper.py`](https://github.com/lkaesberg/SPaRC/blob/6ecd5d9/sparc/prompts/single_shot_paper.py))
+and validator ([`sparc/validation.py`](https://github.com/lkaesberg/SPaRC/blob/6ecd5d9/sparc/validation.py)).
 The copies were checked to produce identical prompts and scores on all 500 test puzzles.
 
 Generation is greedy (`temperature: 0.0`) with `max_gen_toks: 32768`, because reasoning models often
@@ -78,7 +85,7 @@ lm_eval --model local-chat-completions \
 
 ### Results
 
-Full test split (500 puzzles), run on 2026-10-13 with
+Full test split (500 puzzles), run on 2026-10-13 with the paper's prompt wording (now `sparc_paper`),
 `--model local-chat-completions` (OpenRouter, `google/gemma-3-27b-it`), `--apply_chat_template` and
 `--gen_kwargs max_gen_toks=8192`. The paper numbers are from Tables 6 and 7 of the SPaRC paper.
 
@@ -107,8 +114,9 @@ If other tasks on this dataset are already supported:
   `sparc` is the main variant; `sparc_hard` is its level-5 subset.
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
-  `sparc` matches the paper's main single-shot text setting (Table 6, including the per-level columns).
-  `sparc_hard` matches the paper's "hard" numbers.
+  `sparc_paper` matches the paper's main single-shot text setting (Table 6, including the per-level columns),
+  and its level-5 column matches the paper's "hard" numbers. `sparc` and `sparc_hard` use the corrected rule
+  wording, so their numbers are not directly comparable with the paper.
 
 ### Changelog
 
