@@ -40,6 +40,12 @@ class GGUFLM(LM):
     override it with `parallel=<N>`. Note that llama-server only processes
     as many requests simultaneously as it has slots, so values above the
     server's slot count mostly add queueing on the server side.
+
+    Loglikelihood requests with an empty context are conditioned on a
+    prefix token, as in the other backends. Models that add a BOS token
+    already have one; for models that don't, it defaults to the EOS token
+    (or BOS if there is none), read from the server's `/props`. Pass
+    `prefix_token_id=<id>` to override it.
     """
 
     def __init__(
@@ -51,6 +57,7 @@ class GGUFLM(LM):
         timeout=300,
         temperature=0.0,
         parallel=None,
+        prefix_token_id=None,
         **kwargs,
     ):
         super().__init__()
@@ -72,6 +79,9 @@ class GGUFLM(LM):
         self.timeout = timeout
         self.parallel = parallel
         self._resolved_parallel = None
+        self._prefix_token_id = (
+            int(prefix_token_id) if prefix_token_id is not None else None
+        )
         self._tok_cache = {}
         self._tok_lock = threading.Lock()
 
@@ -101,6 +111,48 @@ class GGUFLM(LM):
         with self._tok_lock:
             self._tok_cache[key] = ids
         return ids
+
+    @property
+    def prefix_token_id(self):
+        """Token to condition on when the context is empty.
+
+        Only used for models that don't add a BOS token, so EOS is tried
+        first: a BOS listed in the GGUF metadata of such a model is often
+        one the HF tokenizer doesn't define (e.g. Qwen2.5 reports
+        <|endoftext|>), and the HF backend falls back to EOS there.
+        """
+        if self._prefix_token_id is None:
+            props = {}
+            try:
+                params = {"model": self.model} if self.model is not None else None
+                response = requests.get(
+                    f"{self.server_url}/props", params=params, timeout=10
+                )
+                response.raise_for_status()
+                props = response.json()
+            except (RequestException, ValueError) as e:
+                logger.debug("Could not query /props for special tokens: %s", e)
+            for key in ("eos_token", "bos_token"):
+                token = props.get(key)
+                if not token:
+                    continue
+                payload = {
+                    "content": token,
+                    "add_special": False,
+                    "parse_special": True,
+                }
+                if self.model is not None:
+                    payload["model"] = self.model
+                ids = self._post_with_retries(self.tokenize_url, payload)["tokens"]
+                if len(ids) == 1:
+                    self._prefix_token_id = ids[0]
+                    break
+            else:
+                raise RuntimeError(
+                    "Could not determine a prefix token for an empty context "
+                    "from the server's /props; pass `prefix_token_id=<id>`."
+                )
+        return self._prefix_token_id
 
     def _detect_total_slots(self):
         """Query the server's /props endpoint for its slot count (llama-server's `--parallel` setting). Returns None if unavailable."""
@@ -225,6 +277,16 @@ class GGUFLM(LM):
         continuation_ids = whole_ids[len(context_ids) :]
         if not continuation_ids:
             return (0.0, True)
+        if not context_ids:
+            # Empty context on a model without BOS: there is nothing to
+            # condition the first token on, and llama.cpp rejects an empty
+            # prompt. Use the prefix token, as LM.loglikelihood does.
+            prefix_id = self.prefix_token_id
+            if continuation_ids[0] == prefix_id:
+                context_ids = continuation_ids[:1]
+                continuation_ids = continuation_ids[1:]
+            else:
+                context_ids = [prefix_id]
         total = 0.0
         is_greedy = True
         for j, target_id in enumerate(continuation_ids):
