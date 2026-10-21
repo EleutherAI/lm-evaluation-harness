@@ -126,7 +126,8 @@ def schema_compliance(references: list[str], predictions: list[str]) -> bool:
     json_schema = json.loads(reference.strip())
     try:
         json_obj = json.loads(prediction.strip().strip("```").strip("json"))
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError):
+        # Excessive nesting is an unprocessable answer, not a worker failure.
         return False
 
     try:
@@ -152,6 +153,7 @@ def json_validity(references: list[str], predictions: list[str]) -> bool:
     prediction = predictions[0]  # Since predictions is a list of lists
     try:
         json.loads(prediction.strip().strip("```").strip("json").strip())
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError):
+        # Excessive nesting is an unprocessable answer, not a worker failure.
         return False
     return True

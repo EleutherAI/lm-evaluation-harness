@@ -1,5 +1,8 @@
 task: social_iqa_instruct
 dataset_path: allenai/social_i_qa
+dataset_kwargs:
+  # The default branch is a legacy loading script; use the native parquet export.
+  revision: 537a2ec8ec565adc0b70b70752893e59e024df26
 dataset_name: null
 output_type: multiple_choice
 training_split: train
