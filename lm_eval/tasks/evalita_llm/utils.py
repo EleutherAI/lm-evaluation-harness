@@ -124,7 +124,7 @@ def ls_process_results(doc, results):
 
     # Remove non-alphabetic characters from the word at the end of the list
     if results:  # Check if results is not empty
-        results[-1] = "".join(char for char in results[-1] if char.isalpha())
+        results[-1] = results[-1].strip().rstrip(".;:!").strip()
 
     has_answ = 0 if len(results) == 0 else 1  # so we can compute |A|
     has_annotation = 0 if len(words) == 0 else 1  # so we can compute |T|
