@@ -1604,10 +1604,9 @@ class ConfigurableTask(Task):
                         # print(gold)
                         gold = [gold]
                     if metric == "exact_match":
-                        result = [result for _ in range(len(gold))]
                         scores = self._metric_fn_list[metric](
                             references=gold,
-                            predictions=result,
+                            predictions=[result] * len(gold),
                             **self._metric_fn_kwargs[metric],
                         )[metric]
                         result_score = 1.0 if scores > 0.0 else 0.0
