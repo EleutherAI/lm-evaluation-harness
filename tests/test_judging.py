@@ -179,6 +179,8 @@ def test_stage_smoke_resume_and_frozen_outputs(tmp_path, monkeypatch):
     monkeypatch.setenv("SLURM_JOB_ID", "test")
     calls = []
     def fake_process(command, log, timeout, env):
+        assert env["VISUAL_SDG_RUNTIME_ROOT"].startswith("/scratch/tmp/")
+        assert len((env["VISUAL_SDG_RUNTIME_ROOT"] + "/tmp/tmp12345678").encode()) < 107
         source = command[command.index("--input_file") + 1]
         target = command[command.index("--output_file") + 1]
         inputs = read_jsonl(source)

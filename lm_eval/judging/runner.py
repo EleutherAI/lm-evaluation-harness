@@ -172,7 +172,10 @@ def execute(config, stage_index, seconds=6300):
     env["PTIE_EXTRA_PYTHONPATH"] = os.pathsep.join(
         [config["inference_repo"], config["harness"], config["metadata"]])
     env["SGLANG_STATE_DIR"] = str(directory / "server-state")
-    env["VISUAL_SDG_RUNTIME_ROOT"] = str(directory / "runtime")
+    # ZeroMQ Unix sockets must fit sockaddr_un.sun_path (107 bytes).
+    # Keep transient engine state on short node-local scratch paths.
+    env["VISUAL_SDG_RUNTIME_ROOT"] = (
+        f"/scratch/tmp/mnr-{os.getuid()}-{os.environ['SLURM_JOB_ID']}")
     for key in ("WANDB_MODE", "HF_HUB_OFFLINE", "HF_DATASETS_OFFLINE", "TRANSFORMERS_OFFLINE"):
         value = "offline" if key == "WANDB_MODE" else "1"
         env[key] = value
@@ -193,7 +196,8 @@ def execute(config, stage_index, seconds=6300):
                                         part / "output.jsonl", judge=judge)
             atomic_json(part / "command.json", command)
             metrics = run_process(command, part / "inference.log", deadline - time.monotonic() - 30, env)
-        atomic_json(part / "execution.json", {**metrics, "job_id": os.environ["SLURM_JOB_ID"]})
+        atomic_json(part / "execution.json", {**metrics, "job_id": os.environ["SLURM_JOB_ID"],
+            "runtime_root": env["VISUAL_SDG_RUNTIME_ROOT"]})
         if metrics["returncode"] and not metrics["timed_out"]:
             raise RuntimeError(f"Inference failed; see {part / 'inference.log'}")
         current = raw_outputs(directory)
