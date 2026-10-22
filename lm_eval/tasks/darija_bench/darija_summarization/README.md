@@ -36,6 +36,9 @@ Homepage: [https://huggingface.co/datasets/MBZUAI-Paris/DarijaBench](https://hug
 
 * `darija_summarization_task`: evaluates Darija summarization task from [MArSum](https://github.com/KamelGaanoun/MoroccanSummarization) corpus.
 
+### Changelog
+
+* **v2.0** (2026-10-21): use Unicode word tokenization for ROUGE so Arabic text is retained. ROUGE scores are not comparable to v1.0.
 
 ### Checklist
 

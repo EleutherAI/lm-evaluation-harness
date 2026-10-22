@@ -1,4 +1,4 @@
-import unittest.mock as mock
+from unittest import mock
 
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
 from lm_eval.api.task import ConfigurableTask
@@ -180,7 +180,8 @@ def test_bootstrap_internal_no_mp():
 
 def test_dict_metric_uses_custom_aggregation():
     """Regression test for #3314: dict-valued metrics must use the custom
-    aggregation function, not silently fall back to mean()."""
+    aggregation function, not silently fall back to mean().
+    """
     from collections import defaultdict
 
     from lm_eval.evaluator_utils import _compute_task_aggregations
@@ -215,7 +216,7 @@ def test_dict_metric_uses_custom_aggregation():
 
 
 def test_chrf_uses_zero_word_order():
-    """chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
+    """Chrf aggregation should use word_order=0 (plain ChrF, not ChrF++)."""
     import sacrebleu as sb
 
     from lm_eval.api.metrics import chrf
@@ -251,6 +252,42 @@ def test_chrfpp_perfect_match():
 
     items = [("the cat sat on the mat", "the cat sat on the mat")]
     assert chrfpp(items) == 100.0
+
+
+def test_darija_rouge_preserves_arabic():
+    """Darija ROUGE must measure overlap between Arabic words."""
+    from types import SimpleNamespace
+
+    import pytest
+    from rouge_score import rouge_scorer
+
+    from lm_eval.tasks.darija_bench.darija_summarization import utils
+
+    def compute(predictions, references, tokenizer=None):
+        scorer = rouge_scorer.RougeScorer(
+            ["rouge1", "rouge2", "rougeL", "rougeLsum"],
+            tokenizer=SimpleNamespace(tokenize=tokenizer) if tokenizer else None,
+        )
+        return {
+            name: score.fmeasure
+            for name, score in scorer.score(references[0], predictions[0]).items()
+        }
+
+    prediction = "ربحات الأوروغواي منتخب روسيا"
+    reference = "خسرات الأوروغواي منتخب روسيا"
+    with mock.patch.object(
+        utils.evaluate, "load", return_value=SimpleNamespace(compute=compute)
+    ):
+        scores = [
+            aggregate([(prediction, reference)])
+            for aggregate in (
+                utils.agg_rouge1,
+                utils.agg_rouge2,
+                utils.agg_rougel,
+                utils.agg_rougelsum,
+            )
+        ]
+    assert scores == pytest.approx([0.75, 2 / 3, 0.75, 0.75])
 
 
 if __name__ == "__main__":
