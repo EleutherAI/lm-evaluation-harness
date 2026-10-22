@@ -1,5 +1,8 @@
 import unittest.mock as mock
 
+import pytest
+from datasets import Dataset, DatasetDict
+
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
@@ -212,6 +215,49 @@ def test_dict_metric_uses_custom_aggregation():
     assert agg_metrics["pass@1,none"] == 3.0
     # sum([0.5, 0.5, 0.5]) = 1.5; if broken: 0.5
     assert agg_metrics["pass@3,none"] == 1.5
+
+
+@pytest.mark.parametrize("exact_match_first", [True, False])
+@pytest.mark.parametrize(
+    ("prediction", "expected"), [("answer", 1.0), ("alias", 1.0), ("wrong", 0.0)]
+)
+def test_multiple_target_metrics_do_not_depend_on_order(
+    exact_match_first, prediction, expected
+):
+    """Exact match must not replace the prediction received by later metrics."""
+
+    def text_equal(references, predictions):
+        return float(predictions == references)
+
+    dataset = DatasetDict(
+        {
+            "test": Dataset.from_list(
+                [{"question": "Question", "answers": ["answer", "alias"]}]
+            )
+        }
+    )
+    metric_names = ["exact_match", text_equal]
+    if not exact_match_first:
+        metric_names.reverse()
+    task = ConfigurableTask(
+        config={
+            "task": "metric_order",
+            "custom_dataset": lambda **kwargs: dataset,
+            "test_split": "test",
+            "doc_to_text": "question",
+            "doc_to_target": "answers",
+            "output_type": "generate_until",
+            "metric_list": [
+                {"metric": metric, "aggregation": "mean", "higher_is_better": True}
+                for metric in metric_names
+            ],
+        }
+    )
+
+    assert task.process_results(dataset["test"][0], [prediction]) == {
+        "exact_match": expected,
+        "text_equal": expected,
+    }
 
 
 def test_chrf_uses_zero_word_order():
