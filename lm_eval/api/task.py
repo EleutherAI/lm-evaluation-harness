@@ -1162,6 +1162,9 @@ class ConfigurableTask(Task):
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances)
+                if f.has_fallback:
+                    self._aggregation_list.setdefault("unparsed_rate", mean)
+                    self._higher_is_better.setdefault("unparsed_rate", False)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
