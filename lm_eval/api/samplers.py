@@ -50,8 +50,8 @@ class ContextSampler:
         if n == 0:
             return []
 
-        if df:
-            self.df = df
+        if df is not None:
+            self.replace_df(df)
 
         assert self.df, "Error: no documents available for sampling."
         res = (

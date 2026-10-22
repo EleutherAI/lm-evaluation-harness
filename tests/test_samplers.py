@@ -199,6 +199,53 @@ class TestContextSampler:
         # After sampling, the df should be updated
         assert sampler.df == large_docs
 
+    def test_sample_reapplies_indices_to_each_df_override(self, sample_docs):
+        """Each replacement pool supplies the configured few-shot positions."""
+        sampler = ContextSampler(sample_docs, rnd=42, fewshot_indices=[1, 3])
+        assert {doc["id"] for doc in sampler.sample(n=2)} == {1, 3}
+
+        for offset in (100, 200):
+            replacement = [{"id": offset + i} for i in range(5)]
+            result = sampler.sample(n=2, df=replacement)
+
+            assert {doc["id"] for doc in result} == {offset + 1, offset + 3}
+            assert sampler.fewshot_docs() == [replacement[1], replacement[3]]
+            assert replacement == [{"id": offset + i} for i in range(5)]
+
+    @pytest.mark.parametrize("warm_up", [False, True])
+    def test_sample_empty_df_override_replaces_previous_pool(
+        self, sample_docs, warm_up
+    ):
+        """An explicitly empty pool cannot supply examples from an earlier pool."""
+        sampler = ContextSampler(sample_docs, rnd=42)
+        if warm_up:
+            sampler.sample(n=1)
+
+        with pytest.raises(AssertionError, match="no documents available"):
+            sampler.sample(n=1, df=[])
+
+        with pytest.raises(AssertionError, match="no documents available"):
+            sampler.sample(n=1)
+
+    def test_sample_none_df_override_keeps_indexed_pool(self, sample_docs):
+        """Omitting a replacement preserves the already selected few-shot pool."""
+        sampler = ContextSampler(sample_docs, rnd=42, fewshot_indices=[1, 3])
+        sampler.sample(n=2)
+
+        result = sampler.sample(n=2, df=None)
+
+        assert {doc["id"] for doc in result} == {1, 3}
+
+    def test_sample_df_override_still_excludes_eval_doc(self, sample_docs):
+        """Evaluation-document exclusion uses the replacement's indexed pool."""
+        sampler = ContextSampler(sample_docs, rnd=42, fewshot_indices=[1, 3, 4])
+        sampler.sample(n=1)
+        replacement = [{"id": 100 + i} for i in range(5)]
+
+        result = sampler.sample(n=2, df=replacement, eval_doc=replacement[1])
+
+        assert {doc["id"] for doc in result} == {103, 104}
+
 
 class TestRmEvalDoc:
     """Tests for the static rm_eval_doc method."""
