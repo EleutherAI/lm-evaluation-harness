@@ -1,4 +1,5 @@
-import datasets
+import unicodedata
+
 import evaluate
 
 
@@ -6,7 +7,7 @@ def strip(resps, docs):
     """
     Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
     """
-    return map(lambda r: r[0].strip(), resps)
+    return (r[0].strip() for r in resps)
 
 
 def doc_to_text(doc):
@@ -31,7 +32,7 @@ def Average(lst):
 def darijabert(items):
     bert_model = "SI2M-Lab/DarijaBERT"
     bert_score = evaluate.load("bertscore")
-    predictions, references = zip(*items)
+    predictions, references = zip(*items, strict=False)
     bert = bert_score.compute(
         predictions=predictions,
         references=references,
@@ -57,25 +58,40 @@ def rougeLsum(items):
     return items
 
 
+def _rouge_tokenize(text):
+    """Split Unicode words while retaining Arabic letters and combining marks."""
+    return "".join(
+        char if unicodedata.category(char)[0] in "LMN" else " " for char in text.lower()
+    ).split()
+
+
 def agg_rougelsum(items):
     rouge = evaluate.load("rouge")
-    predictions, references = zip(*items)
-    return rouge.compute(predictions=predictions, references=references)["rougeLsum"]
+    predictions, references = zip(*items, strict=False)
+    return rouge.compute(
+        predictions=predictions, references=references, tokenizer=_rouge_tokenize
+    )["rougeLsum"]
 
 
 def agg_rouge1(items):
     rouge = evaluate.load("rouge")
-    predictions, references = zip(*items)
-    return rouge.compute(predictions=predictions, references=references)["rouge1"]
+    predictions, references = zip(*items, strict=False)
+    return rouge.compute(
+        predictions=predictions, references=references, tokenizer=_rouge_tokenize
+    )["rouge1"]
 
 
 def agg_rouge2(items):
     rouge = evaluate.load("rouge")
-    predictions, references = zip(*items)
-    return rouge.compute(predictions=predictions, references=references)["rouge2"]
+    predictions, references = zip(*items, strict=False)
+    return rouge.compute(
+        predictions=predictions, references=references, tokenizer=_rouge_tokenize
+    )["rouge2"]
 
 
 def agg_rougel(items):
     rouge = evaluate.load("rouge")
-    predictions, references = zip(*items)
-    return rouge.compute(predictions=predictions, references=references)["rougeL"]
+    predictions, references = zip(*items, strict=False)
+    return rouge.compute(
+        predictions=predictions, references=references, tokenizer=_rouge_tokenize
+    )["rougeL"]
