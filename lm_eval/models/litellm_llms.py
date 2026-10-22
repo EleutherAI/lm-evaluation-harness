@@ -20,6 +20,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from lm_eval.api.registry import register_model
+from lm_eval.models.api_models import LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER
 from lm_eval.models.openai_completions import LocalChatCompletion
 
 
@@ -124,17 +125,28 @@ class LiteLLMChatCompletion(LocalChatCompletion):
         try:
             response = await self._litellm.acompletion(**payload)
             outputs = response.model_dump()
-            answers = (
+            tmp_answers = (
                 self.parse_generations(outputs=outputs)
                 if generate
                 else self.parse_logprobs(
                     outputs=outputs, tokens=messages, ctxlens=ctxlens
                 )
             )
+            answers = []
+            for answer in tmp_answers:
+                if answer is None:
+                    eval_logger.warning(
+                        "API returned null content. Content filled with "
+                        "`LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER = %s`. "
+                        "Check reasoning_content field or generation limits.",
+                        LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER,
+                    )
+                    answer = LMEVAL_MODEL_NONE_ANSWER_PLACEHOLDER
+                answers.append(answer)
+
             if cache_keys:
                 for res, cache in zip(answers, cache_keys, strict=True):
-                    if res is not None:
-                        self.cache_hook.add_partial(cache_method, cache, res)
+                    self.cache_hook.add_partial(cache_method, cache, res)
             return answers
         except BaseException as e:
             eval_logger.error("LiteLLM async completion failed: %r, retrying.", e)
