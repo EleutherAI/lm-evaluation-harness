@@ -52,10 +52,6 @@ def inference_command(config, spec, input_path, output_path, *, judge, dry_run=F
            "--instance", f"multinrc-{os.environ.get('SLURM_JOB_ID', 'dryrun')}"]
     if dry_run:
         cmd.append("--dry-run")
-    if spec["transport"] == "batch":
-        # The current batch worker orchestrator shares one output pathname.
-        # Use one TP group to avoid concurrent writers/pruning the resume file.
-        cmd += ["--replicas-per-node", "1"]
     cmd += ["--", "--input_file", str(input_path), "--output_file", str(output_path),
             "--thinking-level", spec["level"], "--temperature", str(spec.get("temperature", 0)),
             "--max-new-tokens", str(spec["max_new_tokens"]),
@@ -66,7 +62,7 @@ def inference_command(config, spec, input_path, output_path, *, judge, dry_run=F
     if spec["transport"] == "http":
         cmd += ["--chat-completions", "--max-inflight", "32", "--request-timeout-s", "1200"]
     else:
-        cmd += ["--orchestrate_workers", "1", "--worker_max_restarts", "0"]
+        cmd += ["--worker_max_restarts", "0"]
     if judge:
         cmd += ["--output-validator", "lm_eval.judging.core:parse_verdict",
                 "--max-output-retries", "2"]

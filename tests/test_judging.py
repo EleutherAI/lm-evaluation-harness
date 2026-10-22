@@ -110,7 +110,8 @@ def test_transport_commands_and_balanced_smoke(tmp_path):
     spec = {"model": "/weights", "profile": "gpt-oss", "level": "high",
             "max_new_tokens": 8192, "transport": "batch"}
     cmd = inference_command(config, spec, "in", "out", judge=True)
-    assert cmd[cmd.index("--replicas-per-node") + 1] == "1"
+    assert "--replicas-per-node" not in cmd
+    assert "--orchestrate_workers" not in cmd
     assert "--output-validator" in cmd and "--chat-completions" not in cmd
     cmd = inference_command(config, {**spec, "transport": "http"}, "in", "out", judge=False)
     assert "--chat-completions" in cmd and "--output-validator" not in cmd
