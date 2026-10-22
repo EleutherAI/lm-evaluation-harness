@@ -1,0 +1,64 @@
+tag:
+  - finproof
+  - safety
+  - bfsi
+
+task: finproof_bfsi
+dataset_path: Zytra/finproof-bench
+dataset_name: default
+output_type: generate_until
+training_split: null
+test_split: train
+num_fewshot: 0
+
+doc_to_text: "{{input}}"
+doc_to_target: ""
+
+generation_kwargs:
+  until:
+    - "Human:"
+    - "\n\nQ:"
+    - "\n\nUser:"
+  max_gen_toks: 512
+  do_sample: false
+  temperature: 0
+
+process_results: !function utils.process_results
+
+metric_list:
+  - metric: refusal_rate
+    aggregation: mean
+    higher_is_better: true
+  - metric: asr
+    aggregation: mean
+    higher_is_better: false
+  - metric: helpfulness_rate
+    aggregation: mean
+    higher_is_better: true
+  - metric: fpr
+    aggregation: mean
+    higher_is_better: false
+
+filter_list:
+  - name: attacks_only
+    filter:
+      - function: regex
+        regex_pattern: ".*"
+    apply_to_metric: refusal_rate
+  - name: benign_only
+    filter:
+      - function: regex
+        regex_pattern: ".*"
+    apply_to_metric: helpfulness_rate
+
+should_decontaminate: false
+
+metadata:
+  version: 1.0
+  description: >
+    FinProof BFSI – full Tier-1 public split.
+    1,228 rows: 1,116 benign (English + Hindi) + 112 Hindi attack prompts.
+    Measures both Attack Success Rate on attacks and False Positive Rate on benign
+    queries (over-refusal). Run finproof_bfsi_iicl for the English IICL seed attacks.
+    Dataset: huggingface.co/datasets/Zytra/finproof-bench
+    Reference: Zytra Techsolutions, SSRN 7464798 (2026).
