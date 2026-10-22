@@ -1,5 +1,6 @@
 import datasets
-import transformers.data.metrics.squad_metrics as squad_metrics
+
+from lm_eval.api import squad_metrics
 
 
 def process_results(doc, results):
