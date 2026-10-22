@@ -11,7 +11,7 @@ doc_to_text: "{{context}}\n\nQ: {{question}}\nA:"
 doc_to_target: !function utils.doc_to_target
 doc_to_choice: !function utils.doc_to_choice
 metadata:
-  version: 1.0
+  version: 1.1
 metric_list:
   - metric: acc
     aggregation: mean
