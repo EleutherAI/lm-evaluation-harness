@@ -35,7 +35,12 @@ def _cache_file_path(file_name: str) -> str:
     safe_file_name = re.sub(r"[/\\\\]+", "_", file_name)
     basename = f"{safe_file_name}{FILE_SUFFIX}"
 
-    if len(basename.encode("utf-8")) <= MAX_CACHE_FILENAME_BYTES:
+    # Sanitizing separators can make different keys share the same basename.
+    # Only keep the legacy short name when the original key is unchanged.
+    if (
+        safe_file_name == file_name
+        and len(basename.encode("utf-8")) <= MAX_CACHE_FILENAME_BYTES
+    ):
         return os.path.join(PATH, basename)
 
     file_name_hash = hashlib.sha256(file_name.encode("utf-8")).hexdigest()[
