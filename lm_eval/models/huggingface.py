@@ -243,7 +243,7 @@ class HFLM(TemplateLM):
                 # TP mode: skip Accelerator entirely, let transformers handle
                 # distribution via torchrun + device_mesh.
                 device_type = torch._C._get_accelerator().type
-                local_rank = int(os.environ.get("LOCAL_RANK", 0))
+                local_rank = int(os.environ.get("LOCAL_RANK", "0"))
                 self._device = torch.device(f"{device_type}:{local_rank}")
                 gpus = 0  # prevent later model.to(device) calls
 
@@ -402,7 +402,7 @@ class HFLM(TemplateLM):
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
         self.chat_template_args = (
-            (chat_template_args or {}) | dict(enable_thinking=enable_thinking)
+            (chat_template_args or {}) | {"enable_thinking": enable_thinking}
             if enable_thinking is not None
             else (chat_template_args or {})
         )
@@ -513,8 +513,8 @@ class HFLM(TemplateLM):
         gpus: int | None = None,
     ) -> dict:
         """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
-        num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
-        num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
+        num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", "1"))
+        num_machines = int(os.environ.get("WORLD_SIZE", "0")) // num_local_processes
         if (
             num_machines == 0
             and hasattr(self, "accelerator")
@@ -1074,8 +1074,13 @@ class HFLM(TemplateLM):
         self.tokenizer.padding_side = padding_side
 
         add_special_tokens = {}
+        bos_prefixes = []
         if self.backend == "causal":
-            if has_bos_prefix(strings[0], getattr(self.tokenizer, "bos_token", None)):
+            bos_prefixes = [
+                has_bos_prefix(text, getattr(self.tokenizer, "bos_token", None))
+                for text in strings
+            ]
+            if bos_prefixes[0]:
                 add_special_tokens = {"add_special_tokens": False}
             elif self.add_bos_token is not None:
                 add_special_tokens = {"add_special_tokens": self.add_bos_token}
@@ -1083,13 +1088,30 @@ class HFLM(TemplateLM):
                 add_special_tokens = {}
 
         assert self.tokenizer, "Tokenizer shoukd be initialized at this point"
-        encoding = self.tokenizer(
-            strings,
-            truncation=truncation,
-            padding="longest",
-            return_tensors="pt",
-            **add_special_tokens,
-        )
+        if any(bos_prefixes) and not all(bos_prefixes):
+            # Mixed batches need a separate special-token policy for each prompt.
+            encoding = self.tokenizer.pad(
+                [
+                    self.tokenizer(
+                        text,
+                        truncation=truncation,
+                        **_add_special_kwargs(
+                            False if prefixed else None, self.add_bos_token
+                        ),
+                    )
+                    for text, prefixed in zip(strings, bos_prefixes, strict=True)
+                ],
+                padding="longest",
+                return_tensors="pt",
+            )
+        else:
+            encoding = self.tokenizer(
+                strings,
+                truncation=truncation,
+                padding="longest",
+                return_tensors="pt",
+                **add_special_tokens,
+            )
         if left_truncate_len:
             original_lengths = encoding["input_ids"].size(1)
             if original_lengths > left_truncate_len:
@@ -1763,7 +1785,7 @@ class HFLM(TemplateLM):
             try:
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - optional metadata must not block evaluation
                 eval_logger.debug(
                     f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
                 )
