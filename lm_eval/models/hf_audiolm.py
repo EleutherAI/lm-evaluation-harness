@@ -10,6 +10,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import (
     Collator,
+    postprocess_generated_text,
     replace_placeholders,
 )
 from lm_eval.models.utils_hf import stop_sequences_criteria
@@ -126,7 +127,7 @@ class HFAUDIOLMQWEN(HFLM):
         strings: list[str],  # note that input signature of this fn is different
         audios: list[list],
         padding_side: str = "left",
-        left_truncate_len: int = None,
+        left_truncate_len: int | None = None,
         truncation: bool = False,
     ) -> (
         BatchEncoding | dict[str, torch.Tensor]
@@ -228,7 +229,7 @@ class HFAUDIOLMQWEN(HFLM):
                             f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
                         )
             else:
-                raise ValueError(
+                raise ValueError(  # noqa: TRY004 - preserve the existing API exception
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             # add EOS token to stop sequences
@@ -275,6 +276,7 @@ class HFAUDIOLMQWEN(HFLM):
                 cont_toks = cont_toks[context_enc.shape[1] :]
 
                 s = self.tok_decode(cont_toks)
+                s = postprocess_generated_text(s, until, think_end_token=None)
 
                 res.append(s)
                 self.cache_hook.add_partial(
