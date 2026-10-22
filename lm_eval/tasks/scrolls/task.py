@@ -7,8 +7,8 @@ import numpy as np
 from datasets import Dataset, load_dataset
 from evaluate import load
 from transformers import AutoTokenizer
-from transformers.data.metrics import squad_metrics
 
+from lm_eval.api import squad_metrics
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import ConfigurableTask

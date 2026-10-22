@@ -2,8 +2,8 @@ import re
 from itertools import product
 
 import evaluate
-import transformers.data.metrics.squad_metrics as squad_metrics
 
+from lm_eval.api import squad_metrics
 from lm_eval.utils import general_detokenize
 
 
@@ -41,7 +41,7 @@ def process_results_coqcat(doc, results):
     answers = [doc["answers"]["input_text"][turn_id - 1]]
     additional_answers_list = doc.get("additional_answers")
     if additional_answers_list:
-        for key, additional_answers in additional_answers_list.items():
+        for additional_answers in additional_answers_list.values():
             if additional_answers["input_text"][turn_id - 1].lower() not in map(
                 str.lower, answers
             ):
@@ -111,8 +111,9 @@ def process_docs_paraphrases(dataset):
             return doc
 
     return dataset.filter(
-        lambda doc: doc["sentence1"] not in [None, ""]
-        and doc["sentence2"] not in [None, ""]
+        lambda doc: (
+            doc["sentence1"] not in [None, ""] and doc["sentence2"] not in [None, ""]
+        )
     ).map(_process_doc)
 
 
@@ -136,7 +137,7 @@ def rouge1_agg(items):
     """
     Higher is better
     """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
+    refs = next(zip(*items, strict=False))
+    preds = list(zip(*items, strict=False))[1]
     rouge_scorer = evaluate.load("rouge")
     return rouge_scorer.compute(predictions=preds, references=refs)["rouge1"]

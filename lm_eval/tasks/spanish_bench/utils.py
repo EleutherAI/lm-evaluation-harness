@@ -1,8 +1,6 @@
 import re
-from itertools import product
 
 import evaluate
-import transformers.data.metrics.squad_metrics as squad_metrics
 
 from lm_eval.utils import general_detokenize
 
@@ -68,8 +66,9 @@ def process_docs_paraphrases(dataset):
             f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}"
         )
     return dataset.filter(
-        lambda doc: doc["sentence1"] not in [None, ""]
-        and doc["sentence2"] not in [None, ""]
+        lambda doc: (
+            doc["sentence1"] not in [None, ""] and doc["sentence2"] not in [None, ""]
+        )
     ).map(_process_doc)
 
 
@@ -93,8 +92,8 @@ def rouge1_agg(items):
     """
     Higher is better
     """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
+    refs = next(zip(*items, strict=False))
+    preds = list(zip(*items, strict=False))[1]
     rouge_scorer = evaluate.load("rouge")
     # import code; code.interact(local=dict(globals(), **locals()))
     return rouge_scorer.compute(predictions=preds, references=refs)["rouge1"]

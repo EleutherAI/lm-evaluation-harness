@@ -1,7 +1,7 @@
 import datasets
 import numpy as np
-import transformers.data.metrics.squad_metrics as squad_metrics
 
+from lm_eval.api import squad_metrics
 from lm_eval.api.metrics import metric_max_over_ground_truths
 
 
@@ -31,8 +31,8 @@ def process_docs(dataset: datasets.Dataset):
         return {
             "passage": doc["passage"],
             "query": doc["query"],
-            "entities": sorted(list(set(doc["entities"]))),
-            "answers": sorted(list(set(doc["answers"]))),
+            "entities": sorted(set(doc["entities"])),
+            "answers": sorted(set(doc["answers"])),
         }
 
     return dataset.map(_process_doc)

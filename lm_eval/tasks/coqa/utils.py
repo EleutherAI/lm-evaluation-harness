@@ -1,6 +1,6 @@
 from itertools import zip_longest
 
-import transformers.data.metrics.squad_metrics as squad_metrics
+from lm_eval.api import squad_metrics
 
 
 def doc_to_text(doc):
