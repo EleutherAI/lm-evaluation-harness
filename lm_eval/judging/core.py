@@ -105,8 +105,9 @@ def prepare(dataset_path, output, generation):
         rows.append(row)
         requests.append({"id": row["id"], "input_hash": row["input_hash"],
                          "messages": [{"role": "user", "content": row["prompt"]}],
-                         "sampling_params": {"temperature": generation["temperature"],
-                                             "seed": generation["seed"]}})
+                         "sampling_params": {key: generation[key] for key in (
+                             "temperature", "top_p", "top_k", "min_p", "presence_penalty",
+                             "repetition_penalty", "seed") if key in generation}})
     indexed(rows)
     write_jsonl(output / "dataset.jsonl", rows, immutable=True)
     write_jsonl(output / "generation-input.jsonl", requests, immutable=True)

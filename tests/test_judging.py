@@ -38,6 +38,10 @@ def test_prepare_offline_and_no_reference_leakage(tmp_path):
     assert prepare(source, out, {"temperature": 0, "seed": 1234}) == manifest
     with pytest.raises(ValueError):
         prepare(source, out, {"temperature": 1, "seed": 1234})
+    sampling = {"temperature": 1.0, "top_p": .95, "top_k": 20, "min_p": 0.0,
+                "presence_penalty": 1.5, "repetition_penalty": 1.0, "seed": 1234}
+    prepare(source, tmp_path / "sampled", sampling)
+    assert read_jsonl(tmp_path / "sampled/generation-input.jsonl")[0]["sampling_params"] == sampling
 
 
 def test_frozen_answer_and_judge_trace_isolation(run):
@@ -110,6 +114,9 @@ def test_transport_commands_and_balanced_smoke(tmp_path):
     assert "--output-validator" in cmd and "--chat-completions" not in cmd
     cmd = inference_command(config, {**spec, "transport": "http"}, "in", "out", judge=False)
     assert "--chat-completions" in cmd and "--output-validator" not in cmd
+    sampled = inference_command(config, {**spec, "transport": "http", "temperature": 1.0}, "in", "out", judge=False)
+    assert sampled[sampled.index("--temperature") + 1] == "1.0"
+    assert cmd[cmd.index("--temperature") + 1] == "0"
     docs = [{"id": str(i), "language": lang} for i, lang in enumerate(["French"] * 3 + ["Chinese"] * 3)]
     assert len(balanced_smoke(docs, docs)) == 4
 
@@ -195,3 +202,27 @@ def test_empty_truncated_answer_is_preserved_and_never_replaced_with_trace(run):
         "reasoning_content": "unfinished private reasoning", "inference_status": "discarded_max_length"}])
     assert rows[0]["empty_answer"]
     assert judge_inputs(run, {"model": "judge"})[0]["state"]["candidate_answer"] == ""
+
+
+def test_http_forwards_all_rollout_sampling_settings():
+    import asyncio
+    import httpx
+    from inference.common.http.jsonl_inferencer import VllmOpenAIJsonlInferencer
+    from inference.common.http.openai_client import VllmSamplingConfig
+
+    captured = {}
+    def respond(request):
+        captured.update(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "answer"},
+            "finish_reason": "stop"}], "usage": {"completion_tokens": 1}})
+    params = {"temperature": 1.0, "top_p": .95, "top_k": 20, "min_p": 0.0,
+              "presence_penalty": 1.5, "repetition_penalty": 1.0, "seed": 1234}
+    async def call():
+        inferencer = VllmOpenAIJsonlInferencer(base_url="http://test", model="test", model_path="/local",
+            sampling_cfg=VllmSamplingConfig(), stream=False, chat_completions=True)
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            inferencer._http_client = client
+            await inferencer.generate_output(prompt="", messages=[{"role": "user", "content": "Q"}],
+                                               sampling_params=params)
+    asyncio.run(call())
+    assert {key: captured[key] for key in params} == params

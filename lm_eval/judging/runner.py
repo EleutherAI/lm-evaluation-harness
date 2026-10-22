@@ -57,9 +57,12 @@ def inference_command(config, spec, input_path, output_path, *, judge, dry_run=F
         # Use one TP group to avoid concurrent writers/pruning the resume file.
         cmd += ["--replicas-per-node", "1"]
     cmd += ["--", "--input_file", str(input_path), "--output_file", str(output_path),
-            "--thinking-level", spec["level"], "--temperature", "0",
+            "--thinking-level", spec["level"], "--temperature", str(spec.get("temperature", 0)),
             "--max-new-tokens", str(spec["max_new_tokens"]),
             "--metrics-burn-completions", "0", "--metrics-start-completion", "1"]
+    for key in ("top_p", "top_k"):
+        if key in spec:
+            cmd += ["--" + key.replace("_", "-"), str(spec[key])]
     if spec["transport"] == "http":
         cmd += ["--chat-completions", "--max-inflight", "32", "--request-timeout-s", "1200"]
     else:
