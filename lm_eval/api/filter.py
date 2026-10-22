@@ -62,6 +62,9 @@ class FilterEnsemble:
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
         for inst, resp in zip(instances, resps):
             inst.filtered_resps[self.name] = resp
+            # Compared after the whole pipeline: a later filter that rewrites
+            # the fallback (a custom map, a case change) would hide it from
+            # this count. None of the built-in follow-up filters do.
             if fallbacks:
                 inst.filtered_unparsed[self.name] = _unparsed_fraction(resp, fallbacks)
 
