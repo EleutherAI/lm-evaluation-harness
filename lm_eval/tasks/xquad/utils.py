@@ -1,10 +1,4 @@
-import re
-from itertools import product
-
-import evaluate
-
 from lm_eval.api import squad_metrics
-from lm_eval.utils import general_detokenize
 
 
 def process_results_qa(doc, results):

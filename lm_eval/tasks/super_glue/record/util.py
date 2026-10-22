@@ -31,8 +31,8 @@ def process_docs(dataset: datasets.Dataset):
         return {
             "passage": doc["passage"],
             "query": doc["query"],
-            "entities": sorted(list(set(doc["entities"]))),
-            "answers": sorted(list(set(doc["answers"]))),
+            "entities": sorted(set(doc["entities"])),
+            "answers": sorted(set(doc["answers"])),
         }
 
     return dataset.map(_process_doc)

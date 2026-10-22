@@ -1,5 +1,4 @@
 import re
-from itertools import product
 
 import datasets
 import evaluate
@@ -47,8 +46,9 @@ def process_docs_paraphrases(dataset):
             f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}"
         )
     return dataset.filter(
-        lambda doc: doc["Frase"] not in [None, ""]
-        and doc["Paráfrase"] not in [None, ""]
+        lambda doc: (
+            doc["Frase"] not in [None, ""] and doc["Paráfrase"] not in [None, ""]
+        )
     ).map(_process_doc)
 
 
@@ -75,8 +75,9 @@ def process_docs_paws(dataset):
             f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}"
         )
     return dataset.filter(
-        lambda doc: doc["sentence1"] not in [None, ""]
-        and doc["sentence2"] not in [None, ""]
+        lambda doc: (
+            doc["sentence1"] not in [None, ""] and doc["sentence2"] not in [None, ""]
+        )
     ).map(_process_doc)
 
 
@@ -91,15 +92,15 @@ def rouge1_agg(items):
     """
     Higher is better
     """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
+    refs = next(zip(*items, strict=False))
+    preds = list(zip(*items, strict=False))[1]
     rouge_scorer = evaluate.load("rouge")
     # import code; code.interact(local=dict(globals(), **locals()))
     return rouge_scorer.compute(predictions=preds, references=refs)["rouge1"]
 
 
 def process_results_mc2(doc, results):
-    lls, is_greedy = zip(*results)
+    lls, _is_greedy = zip(*results, strict=False)
 
     # Split on the first `0` as everything before it is true (`1`).
     split_idx = list(doc["mc2_targets"]["labels"]).index(0)
@@ -278,7 +279,7 @@ def rouge(refs, preds):
 
     # Accumulate confidence intervals.
     aggregator = scoring.BootstrapAggregator()
-    for ref, pred in zip(refs, preds):
+    for ref, pred in zip(refs, preds, strict=False):
         ref = _prepare_summary(ref)
         pred = _prepare_summary(pred)
         aggregator.add_scores(scorer.score(ref, pred))
