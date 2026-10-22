@@ -19,12 +19,13 @@ class FakeResponse:
         pass
 
 
-def make_fake_server(token_logprobs=None, top_token_id=None):
+def make_fake_server(token_logprobs=None, top_token_id=None, tokenizations=None):
     """Build a fake llama.cpp server.
 
     Tokenization is byte-level: each UTF-8 byte is a token id; a fake BOS
-    (id 1) is prepended when add_special is true. Scoring requests (prompt
-    given as a token-id array) return `token_logprobs[target_id]` as the
+    (id 1) is prepended when add_special is true. `tokenizations` overrides
+    byte tokenization for selected strings to simulate BPE merges. Scoring
+    requests (prompt given as a token-id array) return `token_logprobs[target_id]` as the
     sampled logprob (default -1.0), and a top_logprobs list whose argmax is
     `top_token_id` if given, else the target itself.
     """
@@ -33,7 +34,9 @@ def make_fake_server(token_logprobs=None, top_token_id=None):
     def fake_post(url, json=None, timeout=None, **kwargs):
         if url.endswith("/tokenize"):
             calls["tokenize"].append(json)
-            ids = list(json["content"].encode("utf-8"))
+            ids = (tokenizations or {}).get(
+                json["content"], list(json["content"].encode("utf-8"))
+            )
             if json.get("add_special"):
                 ids = [1] + ids
             return FakeResponse({"tokens": ids})
@@ -112,6 +115,62 @@ class GGUFLMTest(unittest.TestCase):
         self.assertEqual(res, [(-3.0, True)])
         biases = [c["logit_bias"][0][0] for c in calls["completions"]]
         self.assertEqual(biases, [ord(" "), ord("a"), ord("b")])
+
+    def test_loglikelihood_scores_continuation_merged_with_context(self):
+        # A BPE merge across the boundary leaves no tokens after slicing
+        # the joint encoding at the separately encoded context length.
+        fake_post, calls = make_fake_server(
+            tokenizations={"Th": [2], "The": [3], "e": [4]},
+            token_logprobs={4: -2.0},
+            top_token_id=999,
+        )
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("Th", "e")]))
+        self.assertEqual(res, [(-2.0, False)])
+        self.assertEqual(calls["completions"][0]["prompt"], [1, 2])
+        self.assertEqual(calls["completions"][0]["logit_bias"], [[4, 100]])
+
+    def test_loglikelihood_joint_encoding_shorter_than_context(self):
+        fake_post, calls = make_fake_server(
+            tokenizations={"An": [2, 3], "Answer": [4], "swer": [5, 6]},
+            token_logprobs={5: -0.25, 6: -0.75},
+        )
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1, model="test-model")
+            res = lm.loglikelihood(llm_instances([("An", "swer")]))
+        self.assertEqual(res, [(-1.0, True)])
+        self.assertEqual(
+            [c["prompt"] for c in calls["completions"]],
+            [[1, 2, 3], [1, 2, 3, 5]],
+        )
+        self.assertEqual(
+            calls["tokenize"][-1],
+            {"content": "swer", "add_special": False, "model": "test-model"},
+        )
+
+    def test_loglikelihood_merged_boundary_after_whitespace_migration(self):
+        fake_post, calls = make_fake_server(
+            tokenizations={"Answer:": [2, 3], "Answer: C": [2, 4], " C": [5]},
+            token_logprobs={5: -0.5},
+        )
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("Answer: ", "C")]))
+        self.assertEqual(res, [(-0.5, True)])
+        self.assertEqual(calls["completions"][0]["prompt"], [1, 2, 3])
+        self.assertEqual(calls["tokenize"][-1], {"content": " C", "add_special": False})
+
+    def test_loglikelihood_merged_candidate_does_not_win_without_scoring(self):
+        fake_post, _ = make_fake_server(
+            tokenizations={"Th": [2], "The": [3], "e": [4], "Th!": [2, 5]},
+            token_logprobs={4: -2.0, 5: -0.5},
+        )
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("Th", "e"), ("Th", "!")]))
+        self.assertEqual(res, [(-2.0, True), (-0.5, True)])
+        self.assertGreater(res[1][0], res[0][0])
 
     def test_loglikelihood_empty_continuation(self):
         fake_post, calls = make_fake_server()

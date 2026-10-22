@@ -223,6 +223,11 @@ class GGUFLM(LM):
         whole_ids = self._tokenize(context + continuation, add_special=True)
         context_ids = self._tokenize(context, add_special=True)
         continuation_ids = whole_ids[len(context_ids) :]
+        if not continuation_ids and continuation:
+            # A token can span the context boundary and consume the entire
+            # continuation. Score its separate encoding instead of returning
+            # a perfect likelihood without querying the server.
+            continuation_ids = self._tokenize(continuation, add_special=False)
         if not continuation_ids:
             return (0.0, True)
         total = 0.0
