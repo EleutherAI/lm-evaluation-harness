@@ -37,7 +37,13 @@ https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_r
 
 #### Tasks
 
-* `drop`
+* `drop`: the original implementation, kept unchanged so scores stay comparable.
+  Its few-shot examples render every target as `number,date,spans,worker_id,hit_id`
+  (see [#2137](https://github.com/EleutherAI/lm-evaluation-harness/issues/2137)),
+  and it stops generation at `.`, which truncates decimal answers.
+* `drop_fixed`: same data and metrics, with few-shot targets taken from the first
+  gold answer (multi-span answers joined with `, `) and generation stopped at `\n`.
+  Prefer it for few-shot evaluation.
 
 ### Checklist
 

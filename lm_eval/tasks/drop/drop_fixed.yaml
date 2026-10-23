@@ -1,0 +1,13 @@
+include: default.yaml
+task: drop_fixed
+# `drop` renders few-shot targets from the raw `answer` dict, so every example shows
+# "number,date,spans,worker_id,hit_id"; it is kept unchanged for comparability.
+# Use the first parsed gold answer (multi-span answers joined) instead.
+doc_to_target: "{{ answers[0]|join(', ') }}"
+target_delimiter: " "
+generation_kwargs:
+  # "." would cut decimal answers such as "2.5"
+  until:
+    - "\n"
+metadata:
+  version: 1.0
