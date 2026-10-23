@@ -4,17 +4,16 @@ import os
 import re
 
 import dill
+from platformdirs import user_cache_dir
 
 
 eval_logger = logging.getLogger(__name__)
 
 
-MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
-
 OVERRIDE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 
 
-PATH = OVERRIDE_PATH or f"{MODULE_DIR}/.cache"
+PATH = OVERRIDE_PATH or user_cache_dir("lm_eval", appauthor=False)
 
 # This should be sufficient for uniqueness
 HASH_INPUT = "EleutherAI-lm-evaluation-harness"
