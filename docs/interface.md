@@ -104,7 +104,7 @@ lm-eval run --config my_config.yaml --tasks mmlu
 
 | Argument | Description |
 |----------|-------------|
-| `--cache_requests` | Cache preprocessed prompts: `true`, `refresh`, or `delete`. Cached files stored in `lm_eval/cache/.cache` or path set by `LM_HARNESS_CACHE_PATH` env var. |
+| `--cache_requests` | Cache preprocessed prompts: `true`, `refresh`, or `delete`. Cached files use the platform's user cache directory for `lm_eval`, or the path set by `LM_HARNESS_CACHE_PATH` (see [Environment Variables](#environment-variables)). |
 | `--check_integrity` | Run task test suite validation before evaluation. |
 
 ### Prompt Formatting
@@ -296,6 +296,10 @@ For programmatic usage, see the [Python API Guide](python-api.md).
 | Variable | Description |
 |----------|-------------|
 | `LMEVAL_LOG_LEVEL` | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
-| `LM_HARNESS_CACHE_PATH` | Path for cached requests (default: `lm_eval/cache/.cache`). |
+| `LM_HARNESS_CACHE_PATH` | Directory for cached requests. A nonempty value overrides the platform's user cache directory for `lm_eval`. |
 | `HF_TOKEN` | HuggingFace Hub token for private datasets/models. |
 | `TOKENIZERS_PARALLELISM` | Set to `false` to avoid tokenizer warnings (auto-set by CLI). |
+
+By default, request caches are stored in `$XDG_CACHE_HOME/lm_eval` (or `~/.cache/lm_eval`) on Linux, `~/Library/Caches/lm_eval` on macOS, and `%LOCALAPPDATA%\lm_eval\Cache` on Windows. An empty `LM_HARNESS_CACHE_PATH` uses this default.
+
+Existing request caches in the installed package's `lm_eval/caching/.cache` directory are not migrated or loaded automatically. To continue using that directory, set `LM_HARNESS_CACHE_PATH` to its path explicitly; it must be writable to save new requests.

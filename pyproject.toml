@@ -28,6 +28,7 @@ dependencies = [
     "scikit-learn>=0.24.1",
     "sqlitedict",
     "dill",
+    "platformdirs",
     "word2number",
     "more_itertools",
     "typing_extensions",
