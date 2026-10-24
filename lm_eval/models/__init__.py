@@ -26,6 +26,7 @@ MODEL_MAPPING = {
     "anthropic-chat": "lm_eval.models.anthropic_llms:AnthropicChat",
     "anthropic-chat-completions": "lm_eval.models.anthropic_llms:AnthropicChat",
     "anthropic-completions": "lm_eval.models.anthropic_llms:AnthropicLM",
+    "azure-openai-chat-completions": "lm_eval.models.openai_completions:AzureOpenaiChatCompletionsLM",
     "dummy": "lm_eval.models.dummy:DummyLM",
     "ggml": "lm_eval.models.gguf:GGUFLM",
     "gguf": "lm_eval.models.gguf:GGUFLM",
