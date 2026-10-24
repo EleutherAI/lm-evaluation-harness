@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch
 
+import requests
+
 from lm_eval.api.instance import Instance
 from lm_eval.models.gguf import GGUFLM
 
@@ -79,6 +81,91 @@ def llm_instances(args_list, request_type="loglikelihood"):
 
 
 class GGUFLMTest(unittest.TestCase):
+    def test_retry_backoff_is_exponential_and_capped(self):
+        lm = GGUFLM(base_url, retry_delay=2, retry_max_delay=5)
+        failures = [requests.ConnectionError("server restarting")] * 5
+        with (
+            patch.object(
+                lm, "_post_request", side_effect=[*failures, FakeResponse({"ok": True})]
+            ) as post,
+            patch("lm_eval.models.gguf.time.sleep") as sleep,
+        ):
+            self.assertEqual(
+                lm._post_with_retries(lm.completions_url, {}), {"ok": True}
+            )
+        self.assertEqual(post.call_count, 6)
+        self.assertEqual(
+            [call.args[0] for call in sleep.call_args_list], [2, 4, 5, 5, 5]
+        )
+
+    def test_exhausted_retries_preserve_cause_without_a_final_sleep(self):
+        lm = GGUFLM(base_url, max_retries=2)
+        error = requests.ConnectionError("server crashed")
+        with (
+            patch.object(lm, "_post_request", side_effect=error) as post,
+            patch("lm_eval.models.gguf.time.sleep") as sleep,
+            self.assertRaisesRegex(RuntimeError, "after 3 attempts") as raised,
+        ):
+            lm._post_with_retries(lm.completions_url, {})
+        self.assertIs(raised.exception.__cause__, error)
+        self.assertEqual(post.call_count, 3)
+        self.assertEqual(sleep.call_count, 2)
+
+    def test_client_errors_fail_immediately(self):
+        lm = GGUFLM(base_url)
+        for status in (400, 401, 403, 404, 422):
+            response = requests.Response()
+            response.status_code = status
+            with (
+                self.subTest(status=status),
+                patch.object(lm, "_post_request", return_value=response) as post,
+                patch("lm_eval.models.gguf.time.sleep") as sleep,
+                self.assertRaises(requests.HTTPError),
+            ):
+                lm._post_with_retries(lm.completions_url, {})
+            self.assertEqual(post.call_count, 1)
+            sleep.assert_not_called()
+
+    def test_transient_http_errors_honor_capped_retry_after(self):
+        for status in (408, 429, 500, 502, 503, 504):
+            lm = GGUFLM(base_url, retry_delay=1, retry_max_delay=10)
+            response = requests.Response()
+            response.status_code = status
+            response.headers["Retry-After"] = "120"
+            with (
+                self.subTest(status=status),
+                patch.object(
+                    lm,
+                    "_post_request",
+                    side_effect=[response, FakeResponse({"ok": True})],
+                ),
+                patch("lm_eval.models.gguf.time.sleep") as sleep,
+            ):
+                self.assertEqual(
+                    lm._post_with_retries(lm.completions_url, {}), {"ok": True}
+                )
+            sleep.assert_called_once_with(10)
+
+    def test_zero_retries_makes_one_attempt(self):
+        lm = GGUFLM(base_url, max_retries=0)
+        with (
+            patch.object(lm, "_post_request", side_effect=requests.Timeout()) as post,
+            patch("lm_eval.models.gguf.time.sleep") as sleep,
+            self.assertRaisesRegex(RuntimeError, "after 1 attempts"),
+        ):
+            lm._post_with_retries(lm.completions_url, {})
+        self.assertEqual(post.call_count, 1)
+        sleep.assert_not_called()
+
+    def test_invalid_retry_configuration_is_rejected(self):
+        for kwargs in (
+            {"max_retries": -1},
+            {"retry_delay": -1},
+            {"retry_max_delay": "nan"},
+        ):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                GGUFLM(base_url, **kwargs)
+
     def test_loglikelihood_scoring(self):
         fake_post, calls = make_fake_server(
             token_logprobs={97: -0.5, 98: -2.0}  # 'a', 'b'
@@ -205,6 +292,55 @@ class GGUFLMTest(unittest.TestCase):
         res = lm._map_requests(lambda x: x * 2, items, disable_tqdm=True)
         self.assertEqual(res, [x * 2 for x in items])
 
+    def test_generation_sampling_kwargs_and_greedy_override(self):
+        fake_post, calls = make_fake_server()
+        gen_kwargs = {
+            "until": ["STOP"],
+            "max_new_tokens": 17,
+            "do_sample": False,
+            "temperature": 0.8,
+            "presence_penalty": 0.0,
+            "frequency_penalty": 0.2,
+            "repetition_penalty": 1.1,
+            "top_p": 0.9,
+            "top_k": 30,
+            "min_p": 0.05,
+            "seed": 1234,
+        }
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1, temperature=0.7)
+            lm.generate_until(llm_instances([("x", gen_kwargs)], "generate_until"))
+        self.assertEqual(
+            calls["completions"][0],
+            {
+                "prompt": "x",
+                "stop": ["STOP"],
+                "max_tokens": 17,
+                "temperature": 0.0,
+                "presence_penalty": 0.0,
+                "frequency_penalty": 0.2,
+                "repeat_penalty": 1.1,
+                "top_p": 0.9,
+                "top_k": 30,
+                "min_p": 0.05,
+                "seed": 1234,
+            },
+        )
+        self.assertEqual(gen_kwargs["temperature"], 0.8)
+        self.assertIn("repetition_penalty", gen_kwargs)
+
+    def test_generation_task_temperature_overrides_model_default(self):
+        fake_post, calls = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1, temperature=0.7)
+            lm.generate_until(
+                llm_instances(
+                    [("x", {}), ("y", {"temperature": 0.3, "do_sample": True})],
+                    "generate_until",
+                )
+            )
+        self.assertEqual([c["temperature"] for c in calls["completions"]], [0.7, 0.3])
+
     def test_assign_slots_by_context(self):
         # consecutive same-context requests share a slot; groups round-robin
         args = [
@@ -249,6 +385,58 @@ class GGUFLMTest(unittest.TestCase):
             lm = GGUFLM(base, parallel=1)
             self.assertEqual(lm.completions_url, expected)
             self.assertEqual(lm.server_url, "http://localhost:8080")
+
+    def test_api_key_sent_on_every_post_request(self):
+        """api_key reaches /tokenize and /v1/completions as a Bearer header."""
+        fake_post, _ = make_fake_server(token_logprobs={97: -1.0})
+        with patch(
+            "lm_eval.models.gguf.requests.post", side_effect=fake_post
+        ) as mock_post:
+            lm = GGUFLM(base_url, api_key="sekret", parallel=1)
+            lm.loglikelihood(llm_instances([("x", "a")]))
+        expected = {"Authorization": "Bearer sekret"}
+        self.assertEqual(len(mock_post.call_args_list), 3)  # tokenize, tokenize, score
+        for call in mock_post.call_args_list:
+            self.assertEqual(call.kwargs["headers"], expected)
+
+    def test_api_key_sent_on_props(self):
+        """The /props slot probe carries the auth header too, or a keyed server makes
+        parallelism detection silently fall back to serial requests.
+        """
+        with patch("lm_eval.models.gguf.requests.get") as mock_get:
+            mock_get.return_value.json.return_value = {"total_slots": 2}
+            lm = GGUFLM(base_url, api_key="sekret")
+            self.assertEqual(lm._detect_total_slots(), 2)
+        self.assertEqual(
+            mock_get.call_args.kwargs["headers"],
+            {"Authorization": "Bearer sekret"},
+        )
+
+    def test_no_api_key_sends_no_auth_header(self):
+        fake_post, _ = make_fake_server()
+        with patch(
+            "lm_eval.models.gguf.requests.post", side_effect=fake_post
+        ) as mock_post:
+            lm = GGUFLM(base_url, parallel=1)
+            lm._tokenize("x", add_special=True)
+        self.assertIsNone(mock_post.call_args.kwargs["headers"])
+
+    def test_header_replaces_bearer_default(self):
+        """Same semantics as TemplateAPI: an explicit `header` dict replaces the
+        Bearer default rather than merging with it.
+        """
+        fake_post, _ = make_fake_server()
+        with patch(
+            "lm_eval.models.gguf.requests.post", side_effect=fake_post
+        ) as mock_post:
+            lm = GGUFLM(
+                base_url,
+                api_key="sekret",
+                header={"X-Api-Key": "custom"},
+                parallel=1,
+            )
+            lm._tokenize("x", add_special=True)
+        self.assertEqual(mock_post.call_args.kwargs["headers"], {"X-Api-Key": "custom"})
 
 
 if __name__ == "__main__":

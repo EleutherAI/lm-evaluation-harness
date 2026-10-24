@@ -179,7 +179,12 @@ lm_eval --model hf \
 
 #### Evaluating GGUF Models Served by llama.cpp
 
-The `gguf` model type evaluates models hosted by a [llama.cpp](https://github.com/ggml-org/llama.cpp) server (`llama-server`) through its OpenAI-compatible `/v1/completions` endpoint:
+The `gguf` backend evaluates models served by [llama.cpp](https://github.com/ggml-org/llama.cpp).
+Start `llama-server` with your GGUF model, then point the harness at its address:
+
+```bash
+llama-server -m /path/to/model.gguf --port 8080
+```
 
 ```bash
 lm_eval --model gguf \
@@ -187,11 +192,27 @@ lm_eval --model gguf \
     --tasks hellaswag
 ```
 
-- Requires a llama.cpp release from December 2024 or newer, which returns logprobs in the modern OpenAI format (`logprobs.content`, see [llama.cpp#10783](https://github.com/ggml-org/llama.cpp/pull/10783)). The deprecated legacy format (`token_logprobs`) is not supported.
-- If the server runs in router mode (multiple models), pass the model name or alias: `--model_args base_url=http://127.0.0.1:8080,model=my-model-alias`.
-- Requests are issued concurrently. The default degree of parallelism is auto-detected from the server's slot count (`/props` → `total_slots`, i.e. llama-server's `--parallel` setting); override it with `parallel=<N>`. `loglikelihood` requests are additionally pinned to slots via llama.cpp's `id_slot` parameter, with consecutive requests sharing a context (e.g. the candidate continuations of one multiple-choice question) assigned to the same slot so they reuse its cached prompt prefix. `generate_until` requests are left unpinned, since the server's dynamic idle-slot assignment load-balances variable-length generations better.
-- `loglikelihood` is implemented via exact teacher forcing: llama.cpp ignores `echo` and never returns prompt logprobs, so the continuation is tokenized with the server's `/tokenize` endpoint (context and continuation encoded separately, matching the HF backend), and each continuation token is scored with its natural prefix as a token-id prompt plus a `logit_bias` that forces the server to sample it. llama.cpp reports the forced token's *pre-sampling* logprob and an unbiased `top_logprobs`, yielding loglikelihoods that match the HF backend to within quantization noise. (A naive alternative — forcing the continuation with a GBNF grammar — does *not* work: grammar-constrained decoding can pick a fragmented tokenization whose logprobs are not the natural-tokenization loglikelihoods, which systematically deflates scores.)
-- `loglikelihood_rolling` (perplexity tasks such as wikitext) is not implemented for this model type.
+Requires a llama.cpp release from December 2024 or newer. Generation and
+loglikelihood tasks are supported; rolling loglikelihood (perplexity) is not.
+
+Optional `--model_args` settings:
+
+- `model=my-model-alias`: select a model when the server hosts multiple models.
+- `api_key=your-key`: authenticate to a server started with `--api-key`.
+- `parallel=4`: override concurrency, which defaults to the server's slot count.
+- `max_gen_toks=2048`: change the default generation limit of 256 tokens.
+- `max_retries=5,retry_delay=5,retry_max_delay=60`: configure retries for transient
+  failures, with capped exponential backoff. Set `max_retries=0` to disable them.
+
+Pass sampling settings through `--gen_kwargs`. Omitted penalties use the server's
+defaults, so set them explicitly when comparing backends:
+
+```bash
+lm_eval --model gguf \
+    --model_args base_url=http://127.0.0.1:8080,max_gen_toks=2048 \
+    --tasks gsm8k \
+    --gen_kwargs temperature=0,presence_penalty=0,frequency_penalty=0,repetition_penalty=1
+```
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
