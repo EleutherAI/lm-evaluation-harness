@@ -73,6 +73,16 @@ class LiteLLMChatCompletion(LocalChatCompletion):
         # Drop provider-unsupported params (e.g. seed on Azure AI) instead of erroring
         self._litellm.drop_params = True
 
+    def _create_payload(self, *args, **kwargs) -> dict:
+        payload = super()._create_payload(*args, **kwargs)
+        if (
+            self.base_url is not None
+            and "base_url" not in payload
+            and "api_base" not in payload
+        ):
+            payload["base_url"] = self.base_url
+        return payload
+
     def model_call(
         self,
         messages,
