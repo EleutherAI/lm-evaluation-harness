@@ -253,7 +253,13 @@ def _multimodal_cache_default(obj: Any) -> Any:
 
 
 def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args), default=_multimodal_cache_default)
+    # `sort_keys` makes the digest depend on the *content* of the request rather
+    # than on the insertion order of its mappings: two semantically identical
+    # request dicts built in a different order must share one cache entry.
+    # Sequence order stays significant, since `json.dumps` sorts mappings only.
+    dat = json.dumps(
+        [attr] + list(args), default=_multimodal_cache_default, sort_keys=True
+    )
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
