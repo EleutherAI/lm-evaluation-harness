@@ -1,4 +1,4 @@
-dataset_path: Hennara/aexams
+dataset_path: json
 test_split: test
 fewshot_split: dev
 fewshot_config:
