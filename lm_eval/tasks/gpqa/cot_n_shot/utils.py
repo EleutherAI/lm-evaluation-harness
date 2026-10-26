@@ -11,11 +11,7 @@ if TYPE_CHECKING:
 def preprocess(text):
     if text is None:
         return " "
-    text = text.strip()
-    text = text.replace(" [title]", ". ")
-
-    text = text.replace("  ", " ")
-    return text
+    return text.strip()
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:

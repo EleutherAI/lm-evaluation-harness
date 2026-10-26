@@ -45,6 +45,8 @@ None
 
 ### Changelog
 
+* **v3.0** (PR #3407): the description now states the expected final answer format (`"The answer is (X)."`, where `X` is the correct letter choice) and the few-shot completions are rendered in that format through `fewshot_config.doc_to_target`, instead of being bare letters. The prompt changed, so scores are not comparable with earlier versions and result caches are invalidated.
+* **v2.3**: preserved answer-choice text aside from surrounding whitespace, and clarified the final-answer format in the generative prompts. The CoT zero-shot task also allows longer generations without a task-level stop string.
 * **v2.2** (PR #3691): removed the answer-preprocessing bracket regex entirely. The narrowed `\[\w+\]` from v2.1 still stripped IUPAC fusion locants (e.g. `cyclopenta[c]pyridine` → `cyclopentapyridine`) and astrophysics notation like `[NeV]`. GPQA contains no `[title]` markers, so the regex has no legitimate purpose.
 * **v2.1** (PR #3735): narrowed the answer-preprocessing regex from `\[.*?\]` to `\[\w+\]`. The previous pattern stripped any bracketed content, which destroyed mathematical expressions like `[ (T_1 - T_2) / (T1*T2)]` in answer choices (e.g. GPQA-Diamond Q171). PR #3735
 
