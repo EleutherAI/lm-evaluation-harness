@@ -264,7 +264,7 @@ def pattern_match(patterns, source_list):
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
-    return sorted(list(task_names))
+    return sorted(task_names)
 
 
 def softmax(x) -> np.ndarray:
@@ -476,11 +476,56 @@ def _build_hierarchy_info(
     return depth_map, ordered
 
 
+def _aggregate_diagnostic_stats(
+    task_stats: dict[str, dict], group_subtasks: dict[str, list[str]]
+) -> dict[str, dict]:
+    """Sum diagnostic counts over each group's distinct leaf tasks."""
+    result = dict(task_stats)
+
+    def leaves(name: str, seen: set[str]) -> set[str]:
+        if name in seen:
+            return set()
+        children = group_subtasks.get(name)
+        if not children:
+            return {name}
+        return set().union(*(leaves(child, seen | {name}) for child in children))
+
+    for group_name in group_subtasks:
+        if group_name in result:
+            continue
+        group_stats = [
+            task_stats[name] for name in leaves(group_name, set()) if name in task_stats
+        ]
+        if not group_stats:
+            continue
+        result[group_name] = {
+            "total": sum(stats["total"] for stats in group_stats),
+            "answer_not_found": sum(stats["answer_not_found"] for stats in group_stats),
+            "filter_total": {
+                key: sum(stats["filter_total"].get(key, 0) for stats in group_stats)
+                for stats in group_stats
+                for key in stats["filter_total"]
+            },
+            "invalid_filter": {
+                key: sum(stats["invalid_filter"].get(key, 0) for stats in group_stats)
+                for stats in group_stats
+                for key in stats["invalid_filter"]
+            },
+        }
+    return result
+
+
 def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
     column_name = "Groups" if column == "groups" else "Tasks"
+    group_subtasks = result_dict.get("group_subtasks", {})
+    raw_diagnostic_stats = result_dict.get("diagnostic_stats", {})
+    diagnostic_stats = _aggregate_diagnostic_stats(raw_diagnostic_stats, group_subtasks)
+    # The columns describe generative tasks; show them whenever there are results
+    # and render N/A for the tasks they do not apply to.
+    show_diagnostics = bool(result_dict.get(column))
 
     all_headers = [
         column_name,
@@ -493,22 +538,31 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         "",
         "Stderr",
     ]
+    if show_diagnostics:
+        all_headers.extend(["answer-not-found", "invalid-filter"])
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
     md_writer.headers = all_headers
     latex_writer.headers = all_headers
+    if show_diagnostics:
+        from pytablewriter.style import Style
+        from typepy import String
+
+        # Keep trailing zeros in ratios while aligning them as numeric columns.
+        md_writer.type_hints = [None] * 9 + [String, String]
+        md_writer.set_style(9, Style(align="right"))
+        md_writer.set_style(10, Style(align="right"))
 
     values = []
 
     # Build depth map and hierarchical key ordering from group_subtasks
-    group_subtasks = result_dict.get("group_subtasks", {})
     n_shot = result_dict.get("n-shot", {})
     depth_map, hierarchical_keys = _build_hierarchy_info(
         group_subtasks, set(result_dict[column].keys())
     )
 
-    if sort_results:  # noqa: SIM108
+    if sort_results:
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
@@ -520,6 +574,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         version = result_dict["versions"].get(k, "    N/A")
         n = str(n_shot.get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
+        task_diagnostics = diagnostic_stats.get(k, {})
 
         display_name = dic.pop("alias", k)
         ## alias takes care of name, and we don't print sample_len
@@ -546,12 +601,30 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
             v = f"{v:.4f}" if isinstance(v, float) else v
 
+            row = [k, version, f, n, m, hib, v]
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
                 se = "   N/A" if se == "N/A" else f"{se:.4f}"
-                values.append([k, version, f, n, m, hib, v, "±", se])
+                row.extend(["±", se])
             else:
-                values.append([k, version, f, n, m, hib, v, "", ""])
+                row.extend(["", ""])
+            if show_diagnostics:
+                total = task_diagnostics.get("total", 0)
+                filter_total = task_diagnostics.get("filter_total", {}).get(f, 0)
+                # A task that does not generate (`loglikelihood`, multiple-choice)
+                # produces no answers to be missing or unparsable.
+                applicable = bool(task_diagnostics)
+                row.extend(
+                    [
+                        f"{task_diagnostics['answer_not_found'] / total:.4f}"
+                        if applicable and total
+                        else "N/A",
+                        f"{task_diagnostics['invalid_filter'].get(f, 0) / filter_total:.4f}"
+                        if applicable and filter_total
+                        else "N/A",
+                    ]
+                )
+            values.append(row)
             k = ""
             version = ""
     md_writer.value_matrix = values
@@ -813,7 +886,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         tokens = resp.json().get("tokens")
         if not isinstance(tokens, list):
-            raise RuntimeError("Malformed response from /tokenize endpoint.")
+            raise TypeError("Malformed response from /tokenize endpoint.")
         return tokens
 
     def decode(self, tokens: list[int]) -> str:
@@ -822,7 +895,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         prompt = resp.json().get("prompt")
         if not isinstance(prompt, str):
-            raise RuntimeError("Malformed response from /detokenize endpoint.")
+            raise TypeError("Malformed response from /detokenize endpoint.")
         return prompt
 
     def batch_decode(self, tokens_list: list[list[int]]) -> list[str]:

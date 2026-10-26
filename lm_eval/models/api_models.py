@@ -335,7 +335,7 @@ class TemplateAPI(TemplateLM):
         self, chat_history: list[dict[str, str]], add_generation_prompt: bool = True
     ) -> str | JsonChatStr | list[dict]:
         """Applies a chat template to a list of chat history between user and model."""
-        if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
+        if self.tokenizer_backend == "huggingface":
             return self.tokenizer.apply_chat_template(
                 chat_history,
                 tokenize=False,
@@ -501,6 +501,7 @@ class TemplateAPI(TemplateLM):
     ) -> list[str] | list[tuple[float, bool]] | None:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
+        task_stop = gen_kwargs.get("until") if gen_kwargs else None
         payload = self._create_payload(
             self.create_message(messages),
             generate=generate,
@@ -528,6 +529,8 @@ class TemplateAPI(TemplateLM):
             tmp_answers = (
                 self.parse_generations(
                     outputs=outputs,
+                    stop=task_stop,
+                    max_tokens=payload.get("max_tokens"),
                 )
                 if generate
                 else self.parse_logprobs(
@@ -785,6 +788,11 @@ class TemplateAPI(TemplateLM):
                     self.parse_generations(
                         outputs=outputs,
                         contexts=contexts,
+                        stop=all_gen_kwargs[0].get("until"),
+                        max_tokens=all_gen_kwargs[0].get(
+                            "max_tokens",
+                            all_gen_kwargs[0].get("max_gen_toks", self._max_gen_toks),
+                        ),
                     ),
                     contexts,
                     strict=False,

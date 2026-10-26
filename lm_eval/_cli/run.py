@@ -15,6 +15,21 @@ from lm_eval._cli.utils import (
 )
 
 
+def _save_diagnostic_samples(tracker, diagnostic_samples) -> None:
+    for task_name, task_samples in diagnostic_samples.items():
+        if task_samples["not_found"]:
+            tracker.save_results_samples(
+                task_name=f"not_found_{task_name}",
+                samples=task_samples["not_found"],
+            )
+        for filter_key, invalid_samples in task_samples["invalid"].items():
+            if invalid_samples:
+                tracker.save_results_samples(
+                    task_name=f"invalid_{task_name}_{filter_key}",
+                    samples=invalid_samples,
+                )
+
+
 class Run(SubCommand):
     """Command for running language model evaluation."""
 
@@ -454,6 +469,7 @@ class Run(SubCommand):
         if results is not None:
             if cfg.log_samples:
                 samples = results.pop("samples")
+            diagnostic_samples = results.pop("diagnostic_samples", {})
 
             dumped = json.dumps(
                 results, indent=2, default=handle_non_serializable, ensure_ascii=False
@@ -493,6 +509,8 @@ class Run(SubCommand):
                     evaluation_tracker.save_results_samples(
                         task_name=task_name, samples=samples[task_name]
                     )
+
+                _save_diagnostic_samples(evaluation_tracker, diagnostic_samples)
 
             if (
                 evaluation_tracker.push_results_to_hub

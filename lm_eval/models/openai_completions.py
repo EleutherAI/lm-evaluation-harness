@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from functools import cached_property
@@ -5,11 +6,34 @@ from operator import itemgetter
 from typing import Any
 
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateAPI
+from lm_eval.models.api_models import JsonChatStr, TemplateAPI
 from lm_eval.models.utils import handle_stop_sequences, postprocess_generated_text
 
 
 eval_logger = logging.getLogger(__name__)
+
+
+class CompletionText(str):
+    """Generated text with API completion metadata for sample logging."""
+
+    def __new__(
+        cls,
+        text: str,
+        answer_found: bool,
+        stop_reason: str | None = None,
+        full_resp: str | None = None,
+    ):
+        result = super().__new__(cls, text)
+        result.answer_found = answer_found
+        result.stop_reason = stop_reason
+        result.full_resp = full_resp if full_resp is not None else text
+        return result
+
+    def __reduce__(self):
+        return (
+            self.__class__,
+            (str(self), self.answer_found, self.stop_reason, self.full_resp),
+        )
 
 
 @register_model("local-completions")
@@ -21,6 +45,7 @@ class LocalCompletionsAPI(TemplateAPI):
         verify_certificate=True,
         ca_cert_path=None,
         auth_token=None,
+        think_end_token: str | None = None,
         **kwargs,
     ):
         # Auto-detect tokenizer backend
@@ -57,6 +82,7 @@ class LocalCompletionsAPI(TemplateAPI):
             auth_token=auth_token,
             **kwargs,
         )
+        self.think_end_token = think_end_token
 
     def _create_payload(
         self,
@@ -74,7 +100,12 @@ class LocalCompletionsAPI(TemplateAPI):
             else:
                 max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
-            stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
+            task_until = gen_kwargs.pop("until", None)
+            stop = handle_stop_sequences(task_until, eos)
+            if self.think_end_token:
+                # Task stops may occur in the reasoning trace. Apply them to
+                # the answer after removing the trace instead.
+                stop = [sequence for sequence in stop if sequence == eos]
             return {
                 "prompt": messages,
                 "model": self.model,
@@ -123,15 +154,97 @@ class LocalCompletionsAPI(TemplateAPI):
                 res.append((logprobs, is_greedy))
         return res
 
-    @staticmethod
-    def parse_generations(outputs: dict | list[dict], **kwargs) -> list[str]:
+    def _to_completion_text(
+        self,
+        text: str,
+        choice: dict,
+        stop: str | list[str] | None = None,
+    ) -> CompletionText:
+        """Attach the metadata that ends up in `samples_*.jsonl`.
+
+        Shared by the completions and chat clients so both log the same
+        `stop_reasons` / `found_answers` / `full_resps` fields. `text` is the raw
+        generation, thinking content included; the returned string is the answer
+        after stop-sequence and thinking-trace post-processing, while `full_resp`
+        keeps the untrimmed generation.
+        """
+        finish_reason = choice.get("finish_reason")
+        api_stop_reason = choice.get("stop_reason")
+        stop_sequences = [stop] if isinstance(stop, str) else (stop or [])
+        matched_stop = next(
+            (
+                sequence
+                for sequence in stop_sequences
+                if sequence and text.endswith(sequence)
+            ),
+            None,
+        )
+        inferred_eos = (
+            finish_reason == "stop"
+            and api_stop_reason is None
+            and matched_stop is None
+            and self.eos_string is not None
+        )
+        if finish_reason == "length":
+            stop_reason = "max_gen_toks"
+        elif isinstance(api_stop_reason, str):
+            stop_reason = f"stop_sequence:{api_stop_reason}"
+        elif isinstance(api_stop_reason, int):
+            stop_text = (
+                self.tokenizer.decode([api_stop_reason])
+                if self.tokenizer is not None
+                else str(api_stop_reason)
+            )
+            stop_reason = f"stop_sequence:{stop_text}"
+        elif matched_stop is not None:
+            stop_reason = f"stop_sequence:{matched_stop}"
+        elif inferred_eos:
+            stop_reason = f"stop_sequence:{self.eos_string}"
+        elif finish_reason == "stop":
+            stop_reason = "natural"
+        else:
+            stop_reason = finish_reason
+        answer = postprocess_generated_text(
+            text,
+            stop=stop if self.think_end_token else None,
+            think_end_token=self.think_end_token,
+        )
+        return CompletionText(
+            answer,
+            not self.think_end_token or self.think_end_token in text,
+            stop_reason,
+            text,
+        )
+
+    def parse_generations(
+        self,
+        outputs: dict | list[dict],
+        stop: str | list[str] | None = None,
+        max_tokens: int | None = None,
+        **kwargs,
+    ) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
+            completion_tokens = (out.get("usage") or {}).get("completion_tokens")
+            if max_tokens is not None and completion_tokens is not None:
+                # OpenAI-compatible completion usage counts all choices in the
+                # response; each choice has its own max_tokens limit.
+                limit = max_tokens * len(out["choices"])
+                assert len(out["choices"]) == 1
+                assert completion_tokens <= limit, (
+                    f"Completion API generated {completion_tokens} tokens across "
+                    f"{len(out['choices'])} choices, exceeding the requested "
+                    f"max_tokens={max_tokens} per choice."
+                )
             tmp = [None] * len(out["choices"])
-            for choices in out["choices"]:
-                tmp[choices["index"]] = choices["text"]
+            for choice in out["choices"]:
+                text = choice["text"]
+                if text is None:
+                    continue
+                completion_text = self._to_completion_text(text, choice, stop)
+                tmp[choice["index"]] = completion_text
             res = res + tmp
         return res
 
@@ -176,6 +289,13 @@ class LocalChatCompletion(LocalCompletionsAPI):
             )
             self._batch_size = 1
 
+    def apply_chat_template(
+        self, chat_history: list[dict[str, str]], add_generation_prompt: bool = True
+    ) -> JsonChatStr:
+        # Chat completions accepts messages directly, including when a tokenizer
+        # is loaded for other purposes.
+        return JsonChatStr(json.dumps(chat_history, ensure_ascii=False))
+
     def _create_payload(
         self,
         messages: list[dict],
@@ -211,23 +331,28 @@ class LocalChatCompletion(LocalCompletionsAPI):
             **gen_kwargs,
         }
 
-    def parse_generations(self, outputs: dict | list[dict], **kwargs) -> list[str]:
+    def parse_generations(
+        self,
+        outputs: dict | list[dict],
+        stop: str | list[str] | None = None,
+        max_tokens: int | None = None,
+        **kwargs,
+    ) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
             try:
                 tmp = [None] * len(out["choices"])
-                for choices in out["choices"]:
-                    content = choices["message"]["content"]
-                    tmp[choices["index"]] = (
-                        postprocess_generated_text(
-                            content,
-                            stop=None,
-                            think_end_token=self.think_end_token,
-                        )
-                        if content is not None
-                        else None
+                for choice in out["choices"]:
+                    content = choice["message"]["content"]
+                    if content is None:
+                        continue
+                    # Same metadata as the completions client, so the sample
+                    # logs carry identical fields; `full_resp` keeps the raw
+                    # generation, thinking trace included.
+                    tmp[choice["index"]] = self._to_completion_text(
+                        content, choice, stop
                     )
             except (IndexError, KeyError, TypeError) as e:
                 # account for cases that generation is blocked by content filter,
