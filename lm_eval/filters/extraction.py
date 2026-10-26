@@ -230,6 +230,9 @@ class MultiChoiceRegexFilter(RegexFilter):
 
             filtered = []
             for resp in r:
+                if not isinstance(resp, str):
+                    filtered.append(self.fallback)
+                    continue
                 match = find_match(self.regex, resp)
                 if not match:
                     match = find_match(
