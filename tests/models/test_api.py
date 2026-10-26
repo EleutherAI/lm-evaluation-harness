@@ -396,3 +396,15 @@ def test_localchatcompletion_remote_tokenizer_unauthenticated(monkeypatch):
     assert captured["verify_certificate"] is False
     assert captured["ca_cert_path"] is None
     assert captured["auth_token"] is None
+
+
+def test_completion_token_limit_uses_server_usage(api):
+    """The parser trusts the server's own token accounting for the sanity check."""
+    response = {
+        "choices": [{"index": 0, "text": "The answer is 42."}],
+        "usage": {"completion_tokens": 5},
+    }
+
+    assert api.parse_generations(response, max_tokens=5) == ["The answer is 42."]
+    with pytest.raises(AssertionError, match="exceeding the requested max_tokens=4"):
+        api.parse_generations(response, max_tokens=4)
