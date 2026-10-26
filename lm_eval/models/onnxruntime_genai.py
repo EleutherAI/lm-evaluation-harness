@@ -26,6 +26,7 @@ import numpy as np
 
 from lm_eval.api.registry import register_model
 from lm_eval.models._onnx_base import _log_softmax, _ONNXLMBase
+from lm_eval.models.utils import normalize_gen_kwargs
 
 
 eval_logger = logging.getLogger(__name__)
@@ -119,7 +120,10 @@ class ONNXRuntimeGenAILM(_ONNXLMBase):
         return logits
 
     def _generate(self, tokens: list[int], gen_kwargs: dict[str, Any]) -> list[int]:
-        max_gen_toks = int(gen_kwargs.get("max_gen_toks", self.max_gen_toks))
+        # Resolve shared token-limit aliases while retaining GenAI's sampling handling.
+        max_gen_toks = normalize_gen_kwargs(gen_kwargs, self.max_gen_toks)[
+            "max_gen_toks"
+        ]
         temperature = float(gen_kwargs.get("temperature", 0.0))
         top_p = float(gen_kwargs.get("top_p", 1.0))
         top_k = int(gen_kwargs.get("top_k", 50))
