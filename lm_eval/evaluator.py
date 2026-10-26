@@ -65,6 +65,7 @@ def simple_evaluate(
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
     limit: float | None = None,
+    generation_length: bool = False,
     samples: dict[str, list[int]] | None = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
@@ -373,6 +374,7 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
+        generation_length=generation_length,
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
@@ -426,6 +428,138 @@ def simple_evaluate(
 
 
 @positional_deprecated
+def _percentile(sorted_values: list[int], q: float) -> float:
+    """Linear-interpolated percentile of an already sorted list."""
+    if not sorted_values:
+        raise ValueError("cannot take a percentile of an empty list")
+    if len(sorted_values) == 1:
+        return float(sorted_values[0])
+    position = (len(sorted_values) - 1) * q / 100.0
+    lower = int(position)
+    upper = min(lower + 1, len(sorted_values) - 1)
+    weight = position - lower
+    return sorted_values[lower] * (1 - weight) + sorted_values[upper] * weight
+
+
+def _iter_generations(sample: dict):
+    """Yield the generated texts of one logged sample.
+
+    `full_resps` (the untrimmed generation, reasoning trace included) is used
+    when the backend logs it, otherwise the filtered responses are. Both a flat
+    list and the requests x repeats shape are accepted.
+    """
+    for key in ("full_resps", "resps"):
+        values = sample.get(key)
+        if not isinstance(values, list) or not values:
+            continue
+        if all(isinstance(item, str) for item in values):
+            yield from values
+        elif all(
+            isinstance(group, list) and all(isinstance(item, str) for item in group)
+            for group in values
+        ):
+            for group in values:
+                yield from group
+        else:
+            raise ValueError(
+                f"unexpected {key} shape in sample doc_id={sample.get('doc_id')}"
+            )
+        return
+
+
+def _generation_length_stats(
+    lm, eval_results_acc
+) -> dict[str, dict[str, float | None]]:
+    """Token length statistics of the generated text, per task.
+
+    Tasks that do not generate (`loglikelihood` / multiple-choice) get a row with
+    `count: 0` so the table can render them as "N/A" instead of hiding them.
+
+    Restricted to the OpenAI-compatible clients: they return the generation per
+    sample and carry the tokenizer used to count it. Any other backend, or a
+    client without a local tokenizer, is an error rather than a wrong number.
+    """
+    from lm_eval.models.openai_completions import LocalCompletionsAPI
+
+    if not isinstance(lm, LocalCompletionsAPI):
+        # Not a usage error: the native backends do not log the untrimmed
+        # generation yet, so there is nothing to measure for them.
+        raise NotImplementedError(
+            "--generation-length is not implemented for "
+            f"{type(lm).__name__}: only the OpenAI-compatible clients "
+            "(local-completions, local-chat-completions, openai-*) log the "
+            "untrimmed generation (full_resps) it measures"
+        )
+    if getattr(lm, "tokenizer", None) is None:
+        raise ValueError(
+            "--generation-length requires a local tokenizer: pass "
+            "tokenizer=<path-or-hub-id> and tokenizer_backend=huggingface in "
+            f"--model_args (backend is {getattr(lm, 'tokenizer_backend', None)!r})"
+        )
+    if not eval_results_acc:
+        raise ValueError("--generation-length requires --log_samples")
+
+    stats: dict[str, dict[str, float | None]] = {}
+    for task_name, acc in eval_results_acc.items():
+        empty = {
+            "count": 0,
+            "mean": None,
+            "p25": None,
+            "median": None,
+            "p75": None,
+            "p90": None,
+        }
+        if getattr(acc.get("task"), "OUTPUT_TYPE", None) != "generate_until":
+            stats[task_name] = dict(empty)
+            continue
+
+        task_samples = acc.get("logged_samples") or []
+        # The sample log holds one record per filter for the same generation;
+        # keep the first record per document so nothing is counted twice.
+        seen_docs: set = set()
+        deduped = []
+        for sample in task_samples:
+            doc_key = sample.get("doc_id", id(sample))
+            if doc_key in seen_docs:
+                continue
+            seen_docs.add(doc_key)
+            deduped.append(sample)
+
+        lengths = [
+            len(
+                lm.tokenizer.encode(
+                    response, add_special_tokens=False, truncation=False
+                )
+            )
+            for sample in deduped
+            for response in _iter_generations(sample)
+        ]
+        if not lengths:
+            stats[task_name] = dict(empty)
+            continue
+        ordered = sorted(lengths)
+        stats[task_name] = {
+            "count": len(lengths),
+            "mean": sum(lengths) / len(lengths),
+            "p25": _percentile(ordered, 25),
+            "median": _percentile(ordered, 50),
+            "p75": _percentile(ordered, 75),
+            "p90": _percentile(ordered, 90),
+        }
+        eval_logger.info(
+            "[%s] generation length: n=%d mean=%.2f p25=%.2f median=%.2f p75=%.2f "
+            "p90=%.2f tokens",
+            task_name,
+            stats[task_name]["count"],
+            stats[task_name]["mean"],
+            stats[task_name]["p25"],
+            stats[task_name]["median"],
+            stats[task_name]["p75"],
+            stats[task_name]["p90"],
+        )
+    return stats
+
+
 def evaluate(
     lm: LM,
     task_dict: TaskDict | _NestedDict,
@@ -441,6 +575,7 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
+    generation_length: bool = False,
 ) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -663,6 +798,18 @@ def evaluate(
                         "prompt_hash": hash_string(requests[0].arguments[0]),
                         "target_hash": hash_string(str(target)),
                     }
+                    # Keep the untrimmed generation (reasoning trace included)
+                    # when the backend provides it; used by --generation-length.
+                    full_resps = [
+                        [getattr(response, "full_resp", None) for response in req.resps]
+                        for req in requests
+                    ]
+                    if any(
+                        response is not None
+                        for group in full_resps
+                        for response in group
+                    ):
+                        example["full_resps"] = full_resps
                     example.update(metrics)
                     acc["logged_samples"].append(example)
                 for metric, value in metrics.items():
@@ -709,6 +856,11 @@ def evaluate(
             if LMEVAL_HASHMM and hasattr(lm, "MULTIMODAL"):
                 samples = hash_dict_images(samples)
 
-        return res._to_eval_results(samples=samples)
+        eval_results = res._to_eval_results(samples=samples)
+        if generation_length:
+            eval_results["generation_length_stats"] = _generation_length_stats(
+                lm, eval_results_acc
+            )
+        return eval_results
     else:
         return None

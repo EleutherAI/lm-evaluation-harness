@@ -264,7 +264,7 @@ def pattern_match(patterns, source_list):
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
-    return sorted(list(task_names))
+    return sorted(task_names)
 
 
 def softmax(x) -> np.ndarray:
@@ -476,6 +476,44 @@ def _build_hierarchy_info(
     return depth_map, ordered
 
 
+def make_generation_length_table(stats) -> str:
+    """Markdown table of generation length statistics, one row per task.
+
+    Tasks without generations (loglikelihood / multiple-choice) render as
+    "N/A", since there is nothing to measure.
+    """
+    headers = ["Tasks", "n", "p25", "mean", "median", "p75", "p90"]
+    rows = []
+    for task, entry in stats.items():
+        if not entry.get("count"):
+            rows.append([task, "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"])
+            continue
+        rows.append(
+            [
+                task,
+                str(int(entry["count"])),
+                f"{entry['p25']:.2f}",
+                f"{entry['mean']:.2f}",
+                f"{entry['median']:.2f}",
+                f"{entry['p75']:.2f}",
+                f"{entry['p90']:.2f}",
+            ]
+        )
+    widths = [
+        max(len(headers[i]), *(len(row[i]) for row in rows))
+        for i in range(len(headers))
+    ]
+
+    def line(cells):
+        joined = "|".join(
+            cell.ljust(width) for cell, width in zip(cells, widths, strict=True)
+        )
+        return f"|{joined}|"
+
+    separator = "|" + "|".join("-" * width for width in widths) + "|"
+    return "\n".join([line(headers), separator, *(line(row) for row in rows)])
+
+
 def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
@@ -508,7 +546,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         group_subtasks, set(result_dict[column].keys())
     )
 
-    if sort_results:  # noqa: SIM108
+    if sort_results:
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
@@ -813,7 +851,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         tokens = resp.json().get("tokens")
         if not isinstance(tokens, list):
-            raise RuntimeError("Malformed response from /tokenize endpoint.")
+            raise TypeError("Malformed response from /tokenize endpoint.")
         return tokens
 
     def decode(self, tokens: list[int]) -> str:
@@ -822,7 +860,7 @@ class RemoteTokenizer:
         resp = self._request_with_retries("POST", url, json=payload)
         prompt = resp.json().get("prompt")
         if not isinstance(prompt, str):
-            raise RuntimeError("Malformed response from /detokenize endpoint.")
+            raise TypeError("Malformed response from /detokenize endpoint.")
         return prompt
 
     def batch_decode(self, tokens_list: list[list[int]]) -> list[str]:

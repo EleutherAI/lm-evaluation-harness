@@ -90,6 +90,16 @@ class EvaluatorConfig:
     )
 
     # Data sampling and limiting
+    generation_length: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Report generation length statistics (token percentiles) for "
+                "generate_until tasks. Requires an OpenAI-compatible model backend "
+                "with a tokenizer configured, and --log_samples."
+            )
+        },
+    )
     limit: float | None = field(
         default=None, metadata={"help": "Limit number of examples per task"}
     )

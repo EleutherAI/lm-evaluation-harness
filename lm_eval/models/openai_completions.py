@@ -12,6 +12,24 @@ from lm_eval.models.utils import handle_stop_sequences, postprocess_generated_te
 eval_logger = logging.getLogger(__name__)
 
 
+class CompletionText(str):
+    """Generated text that also carries the untrimmed generation.
+
+    The string value is what the harness scores (post-processing and any
+    reasoning-trace stripping applied); `full_resp` is what the server returned,
+    trace included, so generation-length statistics can measure the whole
+    generation. A `str` subclass keeps every existing consumer working.
+    """
+
+    def __new__(cls, text: str, full_resp: str | None = None):
+        result = super().__new__(cls, text)
+        result.full_resp = text if full_resp is None else full_resp
+        return result
+
+    def __reduce__(self):
+        return (self.__class__, (str(self), self.full_resp))
+
+
 @register_model("local-completions")
 class LocalCompletionsAPI(TemplateAPI):
     def __init__(
@@ -131,7 +149,7 @@ class LocalCompletionsAPI(TemplateAPI):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                tmp[choices["index"]] = choices["text"]
+                tmp[choices["index"]] = CompletionText(choices["text"])
             res = res + tmp
         return res
 
@@ -221,10 +239,13 @@ class LocalChatCompletion(LocalCompletionsAPI):
                 for choices in out["choices"]:
                     content = choices["message"]["content"]
                     tmp[choices["index"]] = (
-                        postprocess_generated_text(
-                            content,
-                            stop=None,
-                            think_end_token=self.think_end_token,
+                        CompletionText(
+                            postprocess_generated_text(
+                                content,
+                                stop=None,
+                                think_end_token=self.think_end_token,
+                            ),
+                            full_resp=content,
                         )
                         if content is not None
                         else None
