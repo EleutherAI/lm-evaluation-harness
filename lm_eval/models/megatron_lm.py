@@ -265,6 +265,9 @@ class MegatronLMEval(LM):
 
         Note: Pipeline Parallelism (PP > 1) is NOT currently supported.
         """
+        if min(devices, tp, pp, ep) <= 0:
+            raise ValueError("devices, TP, PP, and EP must all be positive.")
+
         # Validate PP configuration - PP > 1 is not supported
         assert pp == 1, (
             f"Pipeline Parallelism (PP={pp}) is not currently supported. "
