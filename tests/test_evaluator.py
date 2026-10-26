@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import sys
@@ -5,9 +6,16 @@ import types
 
 import pytest
 
-import lm_eval.api as api
-import lm_eval.evaluator as evaluator
+import lm_eval.api as api  # noqa
+import lm_eval.evaluator as evaluator  # noqa
 from lm_eval import tasks
+from lm_eval._cli.run import _save_repeat_runs
+from lm_eval.api.filter import FilterEnsemble
+from lm_eval.api.instance import Instance
+from lm_eval.api.metrics import mean
+from lm_eval.filters.selection import MajorityVoteFilter, TakeFirstFilter, TakeKFilter
+from lm_eval.loggers import EvaluationTracker
+from lm_eval.models.openai_completions import LocalCompletionsAPI
 from lm_eval.utils import make_table
 
 
@@ -78,7 +86,9 @@ def test_evaluator(
     assert all(
         x == y
         for x, y in zip(
-            [y for _, y in r(e1).items()], [y for _, y in r(e2).items()], strict=True
+            list(r(e1).values()),
+            list(r(e2).values()),
+            strict=True,
         )
     )
 
@@ -168,7 +178,7 @@ def test_printed_results(
 
 
 class _FakeMarkdownTableWriter:
-    instances = []
+    instances = []  # noqa
 
     def __init__(self):
         self.headers = []
@@ -268,3 +278,186 @@ def test_make_table_regression_sorted_results_is_alphabetical(fake_pytablewriter
         ["Parent", "    N/A", "none", " ", "acc", "", "0.9000", "", ""],
         ["Standalone", "    N/A", "none", " ", "acc", "", "0.7000", "", ""],
     ]
+
+
+@pytest.mark.parametrize("repeats", [1, 3])
+def test_repeat_statistics_are_implied_by_repeats(
+    repeats, caplog, monkeypatch, tmp_path
+):
+    monkeypatch.setenv("LMEVAL_LOG_LEVEL", "DEBUG" if repeats > 1 else "INFO")
+
+    class RepeatTask:
+        task_name = "repeat_task"
+        OUTPUT_TYPE = "generate_until"
+        VERSION = 1
+        eval_docs = [{"answer": "yes"}, {"answer": "no"}]  # noqa
+        _metric_fn_list = {"accuracy": None}  # noqa
+
+        def __init__(self):
+            self._config = types.SimpleNamespace(repeats=repeats)
+            # the filters that need several responses per document only make
+            # sense when there is more than one repeat
+            self._filters = [FilterEnsemble("first", [TakeFirstFilter])]
+            if repeats > 1:
+                self._filters += [
+                    FilterEnsemble("majority", [MajorityVoteFilter, TakeFirstFilter]),
+                    FilterEnsemble(
+                        "first-two",
+                        [lambda: TakeKFilter(k=2), MajorityVoteFilter, TakeFirstFilter],
+                    ),
+                ]
+            self.instances = [
+                Instance(
+                    "generate_until", doc, ("prompt", {}), 0, (self.task_name, idx, 1)
+                )
+                for idx, doc in enumerate(self.eval_docs)
+            ]
+
+        def build_all_requests(self, **kwargs):
+            pass
+
+        def apply_filters(self):
+            for ensemble in self._filters:
+                ensemble.apply(self.instances)
+
+        def doc_iterator(self, **kwargs):
+            return enumerate(self.eval_docs)
+
+        def process_results(self, doc, responses):
+            return {"accuracy": float(responses[0] == doc["answer"])}
+
+        def doc_to_target(self, doc):
+            return doc["answer"]
+
+        def aggregation(self):
+            return {"accuracy": mean}
+
+        def higher_is_better(self):
+            return {"accuracy": True}
+
+        def dump_config(self):
+            return {"task": self.task_name, "repeats": repeats}
+
+        def get_config(self, key):
+            return getattr(self._config, key, None)
+
+    class RepeatLM(LocalCompletionsAPI):
+        # repeat reporting requires an OpenAI-compatible client; skip
+        # TemplateAPI.__init__ so no endpoint is needed
+        rank = 0
+        world_size = 1
+
+        def __init__(self):
+            self.tokenizer = None
+            self.think_end_token = None
+
+        def generate_until(self, requests):
+            pattern = ["yes", "", "yes", "no", "no", "[invalid]"]
+            return [pattern[i % len(pattern)] for i in range(len(requests))]
+
+    with caplog.at_level("WARNING"):
+        result = evaluator.evaluate(
+            lm=RepeatLM(),
+            task_dict={"tasks": {"repeat_task": RepeatTask()}, "groups": {}},
+            bootstrap_iters=100 if repeats > 1 else 0,
+            log_samples=repeats > 1,
+        )
+    scores = result["results"]["repeat_task"]
+    if repeats == 1:
+        # a single response per document: no repeat reporting at all
+        assert scores["accuracy,first"] == 0.5
+        assert "accuracy_mean_repeats,first" not in scores
+        assert "repeat_results" not in result
+    else:
+        assert scores["accuracy,first"] == 1.0
+        assert scores["accuracy,majority"] == 1.0
+        assert scores["accuracy,first-two"] == 1.0
+        assert scores["accuracy_min_repeats,first"] == 0.5
+        assert scores["accuracy_mean_repeats,first"] == pytest.approx(2 / 3)
+        assert scores["accuracy_median_repeats,first"] == 0.5
+        assert scores["accuracy_max_repeats,first"] == 1.0
+        assert "accuracy_mean_repeats,first-two" not in scores
+        assert "Skipping repeat statistics for filter first-two" in caplog.text
+        repeat_results = result["repeat_results"]
+        assert len(repeat_results) == 3
+        assert repeat_results[0]["results"]["repeat_task"]["accuracy,first"] == 1.0
+        assert repeat_results[1]["results"]["repeat_task"]["accuracy,first"] == 0.5
+        assert isinstance(
+            repeat_results[1]["results"]["repeat_task"]["accuracy_stderr,first"],
+            float,
+        )
+        make_table(repeat_results[1])
+        repeat_samples = result["repeat_samples"]["repeat_task"]
+        assert len(repeat_samples) == 3
+        assert len(repeat_samples[0]) == 4  # two docs, two compatible filters
+        assert all(
+            sample["resps"] == [["yes"]]
+            for sample in repeat_samples[0]
+            if sample["doc_id"] == 0
+        )
+        assert all(
+            sample["resps"] == [[""]]
+            for sample in repeat_samples[1]
+            if sample["doc_id"] == 0
+        )
+        assert all(
+            sample["accuracy"] == 0.0
+            for sample in repeat_samples[1]
+            if sample["doc_id"] == 0
+        )
+
+        tracker = EvaluationTracker(output_path=str(tmp_path))
+        tracker.general_config_tracker.log_experiment_args(
+            model_source="test",
+            model_args={"model": "test_model"},
+            system_instruction=None,
+            chat_template=None,
+            fewshot_as_multiturn=False,
+        )
+        base_result = {
+            key: value
+            for key, value in result.items()
+            if key not in ("samples", "repeat_results", "repeat_samples")
+        }
+        tracker.save_results_aggregated(results=base_result, samples=result["samples"])
+        tracker.save_results_samples(
+            task_name="repeat_task", samples=result["samples"]["repeat_task"]
+        )
+        _save_repeat_runs(
+            tracker, base_result, repeat_results, result["repeat_samples"]
+        )
+
+        repeat_dirs = sorted(tmp_path.glob("*_repeat*"))
+        assert len(repeat_dirs) == 3
+        assert (tmp_path / "test_model").is_dir()  # combined run remains
+        second_model_dir = repeat_dirs[1] / "test_model"
+        result_files = list(second_model_dir.glob("results_*.json"))
+        files = list(second_model_dir.glob("samples_repeat_task_*.jsonl"))
+        assert len(result_files) == len(files) == 1
+        second_result = json.loads(result_files[0].read_text())
+        assert second_result["repeat_index"] == 2
+        assert second_result["results"]["repeat_task"]["accuracy,first"] == 0.5
+        second_repeat = [json.loads(line) for line in files[0].read_text().splitlines()]
+        assert len(second_repeat) == 4
+        assert all(
+            sample["resps"] == [[""]]
+            for sample in second_repeat
+            if sample["doc_id"] == 0
+        )
+        assert repeat_samples[1][0]["arguments"] == [("prompt", {})]
+
+
+def test_repeat_reporting_requires_an_api_backend():
+    task = types.SimpleNamespace(
+        OUTPUT_TYPE="generate_until",
+        get_config=lambda key: 3 if key == "repeats" else None,
+    )
+    native_lm = types.SimpleNamespace(rank=0, world_size=1)
+    del native_lm  # only the type check matters
+    with pytest.raises(NotImplementedError, match="repeat reporting"):
+        evaluator.evaluate(
+            lm=object(),
+            task_dict={"tasks": {"repeat_task": task}, "groups": {}},
+            bootstrap_iters=0,
+            log_samples=False,
+        )

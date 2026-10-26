@@ -102,6 +102,9 @@ EvalResults = TypedDict(
         "task_hashes": dict[str, str],
         # Wall-clock evaluation time in seconds (stored as string).
         "total_evaluation_time_seconds": str,
+        # Per-repeat scores and samples for opted-in tasks. CLI prints tables at DEBUG.
+        "repeat_results": list[dict[str, Any]],
+        "repeat_samples": "dict[str, list[list[SampleResult]]]",
     },
     total=False,
 )
@@ -195,6 +198,15 @@ class SampleResult(TypedDict, extra_items=float):
     """Raw model responses.  Outer list is per-request (one per ``gen_args_N``).
     Generation: ``list[list[str]]`` — requests × repeats × generated text.
     Multiple-choice: ``list[list[list[str]]]`` — requests × repeats × ``[log_prob, is_greedy]``."""
+
+    stop_reasons: NotRequired[list[list[str | None]]]
+    """Server finish reason for each generation, grouped by request and repeat."""
+
+    found_answers: NotRequired[list[list[bool]]]
+    """Whether each generation contained the configured thinking end marker."""
+
+    full_resps: NotRequired[list[list[str]]]
+    """Unprocessed generation text, including any thinking content."""
 
     filtered_resps: list[str] | list[list[str]]
     """Responses after filter application.  Per-request.

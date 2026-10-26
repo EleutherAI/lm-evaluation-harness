@@ -79,6 +79,9 @@ class EvaluatorConfig:
     num_fewshot: int | None = field(
         default=None, metadata={"help": "Number of examples in few-shot context"}
     )
+    repeats: int | None = field(
+        default=None, metadata={"help": "Override task response repeats"}
+    )
     batch_size: int = field(default=1, metadata={"help": "Batch size for evaluation"})
     max_batch_size: int | None = field(
         default=None, metadata={"help": "Maximum batch size for auto batching"}
@@ -339,6 +342,8 @@ class EvaluatorConfig:
         # tasks are required
         if self.tasks is None:
             raise ValueError("Need to specify task to evaluate.")
+        if self.repeats is not None and self.repeats < 1:
+            raise ValueError("--repeats must be a positive integer")
 
         if self.limit:
             eval_logger.warning(

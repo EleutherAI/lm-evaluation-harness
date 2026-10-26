@@ -266,8 +266,8 @@ class EvaluationTracker:
                     ensure_ascii=False,
                 )
 
-                path = Path(self.output_path if self.output_path else Path.cwd())
-                self.date_id = datetime.now().isoformat().replace(":", "-")
+                path = Path(self.output_path or Path.cwd())
+                self.date_id = datetime.now().isoformat().replace(":", "-")  # noqa
                 if path.suffix == ".json":
                     path.parent.mkdir(parents=True, exist_ok=True)
                     file_results_aggregated = path.with_name(
@@ -309,7 +309,7 @@ class EvaluationTracker:
                         f"You can find them at: {repo_id}"
                     )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 eval_logger.warning("Could not save results aggregated")
                 eval_logger.info(repr(e))
         else:
@@ -334,7 +334,7 @@ class EvaluationTracker:
             try:
                 eval_logger.debug(f"Saving per-sample results for: {task_name}")
 
-                path = Path(self.output_path if self.output_path else Path.cwd())
+                path = Path(self.output_path or Path.cwd())
                 if path.suffix == ".json":
                     path = path.parent
                 else:
@@ -350,22 +350,23 @@ class EvaluationTracker:
                         # we first need to sanitize arguments and resps
                         # otherwise we won't be able to load the dataset
                         # using the datasets library
+                        sample_out = dict(sample)
                         arguments = {}
                         for i, arg in enumerate(sample["arguments"]):
                             arguments[f"gen_args_{i}"] = {}
                             for j, tmp in enumerate(arg):
                                 arguments[f"gen_args_{i}"][f"arg_{j}"] = tmp
 
-                        sample["resps"] = sanitize_list(sample["resps"])
-                        sample["filtered_resps"] = sanitize_list(
+                        sample_out["resps"] = sanitize_list(sample["resps"])
+                        sample_out["filtered_resps"] = sanitize_list(
                             sample["filtered_resps"]
                         )
-                        sample["arguments"] = arguments
-                        sample["target"] = str(sample["target"])
+                        sample_out["arguments"] = arguments
+                        sample_out["target"] = str(sample["target"])
 
                         sample_dump = (
                             json.dumps(
-                                sample,
+                                sample_out,
                                 default=handle_non_serializable,
                                 ensure_ascii=False,
                             )
@@ -400,7 +401,7 @@ class EvaluationTracker:
                                 json={"gated": "auto"},
                             )
                             hf_raise_for_status(r)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         eval_logger.warning("Could not gate the repository")
                         eval_logger.info(repr(e))
                     self.api.upload_folder(
@@ -415,7 +416,7 @@ class EvaluationTracker:
                         f"You can find them at: {repo_id}"
                     )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 eval_logger.warning("Could not save sample results")
                 eval_logger.info(repr(e))
         else:
@@ -448,7 +449,9 @@ class EvaluationTracker:
         #     "org__model_name__ifeval": "2021-09-01T12:00:00",
         #     "org__model_name__results": "2021-09-01T12:00:00"
         # }
-        latest_task_results_datetime = defaultdict(lambda: datetime.min.isoformat())
+        latest_task_results_datetime = defaultdict(
+            lambda: datetime.min.isoformat()  # noqa: DTZ901
+        )
 
         for file_path in sample_files:
             file_path = Path(file_path)
@@ -531,9 +534,9 @@ class EvaluationTracker:
         latest_model_name = max(
             latest_task_results_datetime, key=lambda k: latest_task_results_datetime[k]
         )
-        last_results_file = [
+        last_results_file = next(
             f for f in results_files if latest_datetime.replace(":", "-") in f
-        ][0]
+        )
         last_results_file_path = hf_hub_url(
             repo_id=repo_id, filename=last_results_file, repo_type="dataset"
         )

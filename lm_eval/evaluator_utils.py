@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import math
 import pathlib
+import statistics
 import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -31,7 +32,9 @@ class ResultAcc(TypedDict):
 
     task: Task
     raw_metrics: dict[tuple[str, str], list[Any]]
+    raw_metrics_by_repeat: list[dict[tuple[str, str], list[Any]]]
     logged_samples: list[Any]
+    logged_samples_by_repeat: list[list[Any]]
 
 
 def print_writeout(task: Task) -> None:
@@ -42,15 +45,13 @@ def print_writeout(task: Task) -> None:
                 f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
     \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
             )
-            eval_logger.info(f"Request: {str(inst)}")
+            eval_logger.info(f"Request: {inst!s}")
             break
 
 
-def get_sample_size(task, limit: int | float | None) -> int | None:
+def get_sample_size(task, limit: float | None) -> int | None:
     if limit is not None:
-        limit = (
-            int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
-        )
+        limit = math.ceil(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
     return limit
 
 
@@ -174,6 +175,7 @@ def _compute_task_aggregations(
     task: Task,
     raw_metrics: dict[tuple[str, str], list],
     bootstrap_iters: int | None = 100000,
+    raw_metrics_by_repeat: list[dict[tuple[str, str], list[Any]]] | None = None,
 ) -> tuple[dict[str, Any], int]:
     """
     Compute aggregated metrics from raw per-sample metrics.
@@ -242,6 +244,38 @@ def _compute_task_aggregations(
             f"than {sample_len} documents is over-weighted in the group score."
         )
 
+    if raw_metrics_by_repeat and len(raw_metrics_by_repeat) > 1:
+        for metric, filter_key in raw_metrics:
+            # Metrics that already pool the repeat samples of a document (`maj@k`)
+            # have a per-repeat value equal to that sample's own correctness, so
+            # min/mean/median/max over repeats would merely duplicate the
+            # per-repeat accuracy statistics under another name.
+            if metric.startswith("maj@"):
+                continue
+            key = (metric, filter_key)
+            if not all(repeat.get(key) for repeat in raw_metrics_by_repeat):
+                if (
+                    metric.startswith("pass@")
+                    and metric[5:].isdigit()
+                    and int(metric[5:]) > 1
+                ):
+                    eval_logger.warning(
+                        "[%s] Skipping repeat statistics for %s: pass@k with "
+                        "k > 1 requires multiple responses per document.",
+                        task.task_name,
+                        metric,
+                    )
+                continue
+            agg_fn = task.aggregation().get(metric, mean)
+            scores = [agg_fn(repeat[key]) for repeat in raw_metrics_by_repeat]
+            for stat, value in (
+                ("min", min(scores)),
+                ("mean", statistics.mean(scores)),
+                ("median", statistics.median(scores)),
+                ("max", max(scores)),
+            ):
+                agg_metrics[f"{metric}_{stat}_repeats,{filter_key}"] = value
+
     return agg_metrics, sample_len
 
 
@@ -271,7 +305,10 @@ def _collect_results(
         # Compute aggregated metrics
         # TODO: note: currently assume all metrics are scalar-valued
         agg_metrics, sample_len = _compute_task_aggregations(
-            task, acc["raw_metrics"], bootstrap_iters
+            task,
+            acc["raw_metrics"],
+            bootstrap_iters,
+            raw_metrics_by_repeat=acc.get("raw_metrics_by_repeat"),
         )
 
         # Get task config
@@ -287,6 +324,17 @@ def _collect_results(
         result.versions[task_name] = task.VERSION
         result.num_fewshot[task_name] = task_config.get("num_fewshot", 0)
         result.higher_is_better[task_name] = task.higher_is_better()
+        if acc.get("raw_metrics_by_repeat"):
+            for metric, filter_key in acc["raw_metrics"]:
+                for stat in ("min", "mean", "median", "max"):
+                    repeat_metric = f"{metric}_{stat}_repeats"
+                    if (
+                        f"{repeat_metric},{filter_key}" in agg_metrics
+                        and metric in result.higher_is_better[task_name]
+                    ):
+                        result.higher_is_better[task_name][repeat_metric] = (
+                            result.higher_is_better[task_name][metric]
+                        )
         result.samples[task_name] = acc["logged_samples"]
 
         # Compute n_samples: effective comes from sample_len (actual evaluated count)
