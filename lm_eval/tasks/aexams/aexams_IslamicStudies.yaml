@@ -1,4 +1,7 @@
-"dataset_name": "IslamicStudies"
+"dataset_kwargs":
+  "data_files":
+    "test": "zip://test/IslamicStudies.jsonl::hf://datasets/Hennara/aexams@a96eaf5ae37477875bc9ec7981f910844d9c6cde/aexams_v0.zip"
+    "dev": "zip://dev/IslamicStudies.jsonl::hf://datasets/Hennara/aexams@a96eaf5ae37477875bc9ec7981f910844d9c6cde/aexams_v0.zip"
 "description": "قم بالإجابة على مايلي في مجال العلوم الإسلامية \n\n"
 "include": "_default_template_yaml"
 "task": "aexams_IslamicStudies"
