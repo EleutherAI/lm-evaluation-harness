@@ -7,10 +7,10 @@ doc_to_target: ""
 process_results: !function metric.toxicity_perspective_api
 metric_list:
   - metric: score
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: false
   - metric: perspective_api_toxicity_score
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: false
 generation_kwargs:
   until:
@@ -18,4 +18,4 @@ generation_kwargs:
   do_sample: false
   temperature: 0.0
 metadata:
-  version: 0.0
+  version: 1.0
