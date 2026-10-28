@@ -16,7 +16,10 @@ task:
 #  - uhura_arc_easy_tasks
 #  - xlsum_tasks
 aggregate_metric_list:
-  - metric: acc
+  - metric: bleu
+    aggregation: mean
+    weight_by_size: true
+  - metric: chrf
     aggregation: mean
     weight_by_size: true
 metadata:
