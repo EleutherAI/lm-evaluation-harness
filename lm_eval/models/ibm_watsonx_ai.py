@@ -141,7 +141,8 @@ class WatsonxLLM(LM):
             ) from None
 
         args = simple_parse_args_string(arg_string)
-        args.update(additional_config)
+        if additional_config is not None:
+            args.update(additional_config)
 
         model_id = args.pop("model_id", None)
         deployment_id = args.pop("deployment_id", None)
@@ -335,9 +336,9 @@ class WatsonxLLM(LM):
                     response = response["choices"][0]["message"]["content"]
                 else:
                     response = self.model.generate_text(context, self.generate_params)
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while generating text.")
-                raise exp
+                raise
 
             results.append(response)
             self.cache_hook.add_partial(
@@ -384,9 +385,9 @@ class WatsonxLLM(LM):
                 tokenized_context = self.model.tokenize(
                     prompt=context, return_tokens=True
                 )["result"]["tokens"]
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while model tokenize.")
-                raise exp
+                raise
 
             input_prompt = context + continuation
 
@@ -394,9 +395,9 @@ class WatsonxLLM(LM):
                 response = self.model.generate_text(
                     prompt=input_prompt, params=generate_params, raw_response=True
                 )
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while model generate text.")
-                raise exp
+                raise
 
             log_likelihood_response = self._get_log_likelihood(
                 response["results"][0]["input_tokens"], tokenized_context
@@ -450,9 +451,9 @@ class WatsonxLLM(LM):
                 response = self.model.generate_text(
                     prompt=context, params=generate_params, raw_response=True
                 )
-            except Exception as exp:
+            except Exception:
                 eval_logger.error("Error while model generate text.")
-                raise exp
+                raise
 
             log_likelihood_response = self._get_log_likelihood(
                 response["results"][0]["input_tokens"], []
