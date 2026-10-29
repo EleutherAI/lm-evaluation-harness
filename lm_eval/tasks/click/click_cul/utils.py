@@ -7,10 +7,14 @@ def get_context(doc) -> str:
     ctx = doc["paragraph"]
     q = doc["question"]
     opt = doc["choices"]
+    letters = ["A", "B", "C", "D", "E", "F"][: len(opt)]
+    parts = [f"{letters[0]}:{opt[0]}"] + [f"{letter}: {choice}" for letter, choice in zip(letters[1:], opt[1:])]
+    choices = ", ".join(parts)
+    letter_list = ", ".join(letters)
     if ctx:
-        res = f"주어진 맥락을 천천히 읽고, 질문에 대한 적절한 정답을 A, B, C, D 중에 골라 알파벳 하나로 답하시오.\n\n맥락: {ctx}\n질문: {q}\n보기:\nA:{opt[0]}, B: {opt[1]}, C: {opt[2]}, D: {opt[3]}\n정답:"
+        res = f"주어진 맥락을 천천히 읽고, 질문에 대한 적절한 정답을 {letter_list} 중에 골라 알파벳 하나로 답하시오.\n\n맥락: {ctx}\n질문: {q}\n보기:\n{choices}\n정답:"
     else:
-        res = f"주어진 질문을 천천히 읽고, 적절한 정답을 A, B, C, D 중에 골라 알파벳 하나로 답하시오.\n\n질문: {q}\n보기:\nA:{opt[0]}, B: {opt[1]}, C: {opt[2]}, D: {opt[3]}\n정답:"
+        res = f"주어진 질문을 천천히 읽고, 적절한 정답을 {letter_list} 중에 골라 알파벳 하나로 답하시오.\n\n질문: {q}\n보기:\n{choices}\n정답:"
 
     return res
 
