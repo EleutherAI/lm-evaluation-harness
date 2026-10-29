@@ -297,11 +297,32 @@ def get_file_datetime(filename: str) -> str:
     return filename[filename.rfind("_") + 1 :].replace(".jsonl", "")
 
 
-def sanitize_model_name(model_name: str) -> str:
+# Most filesystems cap a single path component at 255 bytes, and model names
+# are derived from user-supplied `--model_args` (e.g. a long local checkpoint
+# path). Keep this well below the limit so that adding a prefix/suffix when
+# building directories and filenames cannot push us over it.
+MAX_MODEL_NAME_LENGTH = 120
+
+
+def sanitize_model_name(
+    model_name: str, max_length: int = MAX_MODEL_NAME_LENGTH
+) -> str:
     """
     Given the model name, returns a sanitized version of it.
+
+    The result is safe to use as a single filesystem path component: illegal
+    characters are replaced and, if the sanitized name is still longer than
+    `max_length`, it is truncated and suffixed with a short hash of the full
+    name. The hash keeps the name stable (the same model name always maps to
+    the same directory, so runs remain resumable/reproducible) while still
+    distinguishing names that share a long prefix.
     """
-    return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
+    sanitized = re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
+    if len(sanitized) <= max_length:
+        return sanitized
+
+    digest = hash_string(sanitized)[:8]
+    return f"{sanitized[: max_length - len(digest) - 1]}_{digest}"
 
 
 def sanitize_task_name(task_name: str) -> str:
