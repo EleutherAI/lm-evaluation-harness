@@ -1,6 +1,7 @@
 import pytest
 
 from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
+from lm_eval.models.utils import postprocess_generated_text
 
 
 class TestTruncateTokens:
@@ -299,3 +300,12 @@ class TestNormalizeGenKwargs:
         original_copy = original.copy()
         normalize_gen_kwargs(original)
         assert original == original_copy
+
+
+def test_postprocess_keeps_leading_whitespace_without_think_token():
+    assert postprocess_generated_text("\n\n    return max(l)", None, "</think>") == "\n\n    return max(l)"
+
+
+def test_postprocess_strips_think_section_and_newlines_only():
+    assert postprocess_generated_text("<think>reason</think>\n\nAnswer", None, "</think>") == "Answer"
+    assert postprocess_generated_text("<think>reason</think>\n\n    indented", None, "</think>") == "    indented"
