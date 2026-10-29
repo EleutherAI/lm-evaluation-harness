@@ -90,6 +90,7 @@ class ONNXRuntimeLM(_ONNXLMBase):
 
         graph_path = self._resolve_graph_path()
         providers, provider_options = self._resolve_providers(ort)
+        self._preload_cuda_libraries()
 
         self.session = ort.InferenceSession(
             str(graph_path),
@@ -168,26 +169,6 @@ class ONNXRuntimeLM(_ONNXLMBase):
                 "Pass the .onnx path directly to choose another."
             )
         return candidates[0]
-
-    def _declared_providers(self) -> list[tuple[str, dict[str, Any]]]:
-        """Providers the export declares, as ``(name, options)`` pairs.
-
-        ``InferenceSession`` ignores ``genai_config.json``, so we read
-        ``model.decoder.session_options.provider_options`` ourselves to keep the
-        default behavior aligned with the ``onnxruntime-genai`` backend.
-        """
-        session_options = (
-            self._genai_config.get("model", {})
-            .get("decoder", {})
-            .get("session_options", {})
-        )
-        declared: list[tuple[str, dict[str, Any]]] = []
-        for entry in session_options.get("provider_options") or []:
-            if not isinstance(entry, dict):
-                continue
-            for name, options in entry.items():
-                declared.append((name, dict(options) if options else {}))
-        return declared
 
     def _resolve_providers(self, ort) -> tuple[list[str], list[dict[str, Any]]]:
         """Resolve the ORT provider chain, with CPU appended as fallback.

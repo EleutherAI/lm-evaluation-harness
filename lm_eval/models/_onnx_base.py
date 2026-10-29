@@ -39,6 +39,18 @@ if TYPE_CHECKING:
 
 eval_logger = logging.getLogger(__name__)
 
+# Execution providers (aliases and ONNX Runtime names, lower-cased) that need the CUDA
+# and cuDNN libraries.
+_CUDA_EPS = {
+    "cuda",
+    "cudaexecutionprovider",
+    "tensorrt",
+    "trt",
+    "tensorrtexecutionprovider",
+    "nvtensorrtrtx",
+    "nvtensorrtrtxexecutionprovider",
+}
+
 
 class _ONNXLMBase(TemplateLM, abc.ABC):
     """Engine-agnostic lm-eval implementation for Model Builder ONNX exports."""
@@ -144,6 +156,52 @@ class _ONNXLMBase(TemplateLM, abc.ABC):
             )
         if self._bos_token_id is None:
             self._bos_token_id = self.tokenizer.bos_token_id
+
+    # ------------------------------------------------------------------ #
+    # Execution providers
+    # ------------------------------------------------------------------ #
+    def _declared_providers(self) -> list[tuple[str, dict[str, Any]]]:
+        """Providers the export declares, as ``(name, options)`` pairs.
+
+        ``InferenceSession`` ignores ``genai_config.json``, so we read
+        ``model.decoder.session_options.provider_options`` ourselves to keep the
+        default behavior aligned with the ``onnxruntime-genai`` backend.
+        """
+        session_options = (
+            self._genai_config.get("model", {})
+            .get("decoder", {})
+            .get("session_options", {})
+        )
+        declared: list[tuple[str, dict[str, Any]]] = []
+        for entry in session_options.get("provider_options") or []:
+            if not isinstance(entry, dict):
+                continue
+            for name, options in entry.items():
+                declared.append((name, dict(options) if options else {}))
+        return declared
+
+    def _preload_cuda_libraries(self) -> None:
+        """Load the CUDA and cuDNN libraries pip installs, when a CUDA provider is used.
+
+        The ``nvidia-*`` wheels put them under ``site-packages/nvidia``, where
+        ``import torch`` finds them but ONNX Runtime and ONNX Runtime GenAI do not:
+        they only search the library path, so the CUDA provider fails to load and
+        ONNX Runtime silently falls back to CPU. ``onnxruntime.preload_dlls()``
+        (onnxruntime >= 1.21; onnxruntime-genai depends on onnxruntime) loads them
+        from there first.
+        """
+        if self.execution_provider is not None:
+            names = [self.execution_provider]
+        else:
+            names = [name for name, _ in self._declared_providers()]
+        if not any(name.lower() in _CUDA_EPS for name in names):
+            return
+        import onnxruntime as ort
+
+        ort.preload_dlls()
+        eval_logger.info(
+            "Preloaded the CUDA and cuDNN libraries for the CUDA provider."
+        )
 
     # ------------------------------------------------------------------ #
     # Engine hooks
