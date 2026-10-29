@@ -551,6 +551,8 @@ lm_eval --model onnxruntime \
 
 `execution_provider` accepts short aliases (`cpu`, `cuda`, `rocm`, `migraphx`, `dml`, `openvino`, `tensorrt`, `vitisai`, `webgpu`, `qnn`) as well as full ONNX Runtime provider names. As with the `onnxruntime-genai` backend, leaving it unset honors the providers declared in the export's `genai_config.json`, so an export built for a specific device runs there without extra flags. Non-CPU providers keep `CPUExecutionProvider` as a per-node fallback, since Model Builder graphs use contrib ops that not every provider implements.
 
+With a CUDA provider (`cuda`, `tensorrt`, `NvTensorRtRtx`), both ONNX backends call `onnxruntime.preload_dlls()` first, so CUDA and cuDNN libraries installed from pip (e.g. `pip install "onnxruntime-gpu[cuda,cudnn]"`, or next to a CUDA build of PyTorch) are found without setting `LD_LIBRARY_PATH`. Otherwise ONNX Runtime cannot load its CUDA provider and silently runs on CPU.
+
 Because both ONNX backends share one scoring implementation and end up in the same ORT kernels, they agree on the same model and provider; `tests/models/test_onnxruntime_parity.py` enforces that as a standing check.
 
 > [!Note]

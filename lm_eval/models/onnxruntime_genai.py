@@ -99,6 +99,7 @@ class ONNXRuntimeGenAILM(_ONNXLMBase):
         self.og = self._import_genai()
         config = self.og.Config(str(self.model_dir))
         self._select_ep(config)
+        self._preload_cuda_libraries()
         self.model = self.og.Model(config)
         eval_logger.info(f"Loaded onnxruntime-genai model from {self.model_dir}")
 
