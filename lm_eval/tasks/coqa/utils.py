@@ -1,6 +1,6 @@
 from itertools import zip_longest
 
-import transformers.data.metrics.squad_metrics as squad_metrics
+from transformers.data.metrics import squad_metrics
 
 
 def doc_to_text(doc):
@@ -18,7 +18,8 @@ def doc_to_text(doc):
 
 def doc_to_target(doc):
     turn_id = len(doc["questions"]["input_text"])
-    # Returns unique answers and valid alternatives (Some questions in CoQA have multiple valid answers).
+    # Keep one answer per annotator, including duplicates. The leave-one-out
+    # scorer relies on annotator agreement, not just the set of valid answers.
     answers = []
     answer_forturn = doc["answers"]["input_text"][turn_id - 1]
     answers.append(answer_forturn)
@@ -29,8 +30,7 @@ def doc_to_target(doc):
             additional_answer_for_turn = additional_answers[key]["input_text"][
                 turn_id - 1
             ]
-            if additional_answer_for_turn.lower() not in map(str.lower, answers):
-                answers.append(additional_answer_for_turn)
+            answers.append(additional_answer_for_turn)
     return answers
 
 
