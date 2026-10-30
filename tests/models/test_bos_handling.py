@@ -7,12 +7,14 @@ Expected BOS Logic:
 - BOS prefix detection: Check if string starts with BOS token before adding
 - Loglikelihood empty context: BOS goes in context=[BOS], not continuation
 - Loglikelihood with BOS in context: Don't duplicate, encode as-is
+- Loglikelihood rolling: the prefix token is the only BOS, never a target
 
 This test suite validates:
 1. Defaults to None (respects tokenizer behavior)
 2. No duplicate BOS (detects existing BOS prefix)
 3. Chat templates work correctly (no duplication when template adds BOS)
 4. Loglikelihood handles BOS correctly (reuses BOS, never duplicates)
+5. Loglikelihood rolling scores each document after exactly one BOS
 """
 
 import importlib.metadata
@@ -108,6 +110,18 @@ def olmo_tokenizer():
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
     return tokenizer
+
+
+@pytest.fixture(scope="module")
+def llama_tokenizer():
+    """
+    Load a Llama tokenizer for testing.
+
+    Properties:
+    - BOS token: '<s>' (ID: 1)
+    - DOES add BOS by default
+    """
+    return AutoTokenizer.from_pretrained("hf-internal-testing/llama-tokenizer")
 
 
 # =============================================================================
@@ -606,6 +620,78 @@ class TestLoglikelihoodBosHandling:
         assert continuation_enc[0] != tokenizer.bos_token_id, (
             "Continuation should not start with BOS"
         )
+
+
+# =============================================================================
+# Behavior 5: Loglikelihood Rolling BOS Handling
+# =============================================================================
+
+
+class TestLoglikelihoodRollingBosHandling:
+    """Test BOS handling in loglikelihood_rolling."""
+
+    @staticmethod
+    def _rolling_windows(mock, model_cls, text):
+        from lm_eval.api.instance import Instance
+
+        mock.batch_size = 1
+        mock.rank = 0
+        mock.world_size = 1
+        mock.max_length = 2048
+        captured_reqs = []
+        mock._loglikelihood_tokens = lambda requests, **kwargs: (
+            captured_reqs.extend(requests) or [(0.0, False) for _ in requests]
+        )
+        model_cls.loglikelihood_rolling.__get__(mock, model_cls)(
+            [
+                Instance(
+                    request_type="loglikelihood_rolling",
+                    doc={},
+                    arguments=(text,),
+                    idx=0,
+                )
+            ]
+        )
+        return captured_reqs
+
+    @pytest.mark.parametrize("model_type", ["hf", "vllm"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "llama_tokenizer"])
+    @pytest.mark.parametrize("add_bos_token", [None, True])
+    def test_prefix_is_the_only_bos(
+        self, model_type, tokenizer_name, add_bos_token, request
+    ):
+        """
+        The prefix token is the only BOS; the targets are the document tokens.
+
+        Expected: (context=[BOS], continuation=[document_tokens])
+        Not: (context=[BOS], continuation=[BOS, document_tokens])
+        """
+        from lm_eval.models.huggingface import HFLM
+        from lm_eval.models.vllm_causallms import VLLM
+
+        tokenizer = request.getfixturevalue(tokenizer_name)
+        if model_type == "hf":
+            mock, model_cls = create_hf_mock(tokenizer, add_bos_token), HFLM
+        else:
+            mock, model_cls = create_vllm_mock(tokenizer, add_bos_token), VLLM
+
+        text = "Hello world"
+        windows = self._rolling_windows(mock, model_cls, text)
+
+        assert len(windows) == 1
+        _, context_enc, continuation_enc = windows[0]
+        assert context_enc == [mock.prefix_token_id]
+        assert continuation_enc == tokenizer.encode(text, add_special_tokens=False)
+
+    def test_seq2seq_keeps_tokenizer_default(self, llama_tokenizer):
+        """HF seq2seq: the targets keep the tokenizer's special tokens."""
+        from lm_eval.models.huggingface import HFLM
+
+        mock = create_hf_mock(llama_tokenizer, add_bos_token=None, backend="seq2seq")
+
+        windows = self._rolling_windows(mock, HFLM, "Hello world")
+
+        assert windows[0][2] == llama_tokenizer.encode("Hello world")
 
 
 # =============================================================================
