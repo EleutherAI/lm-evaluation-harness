@@ -1248,7 +1248,12 @@ class HFLM(TemplateLM):
                 map(
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
-                        token_list=self.tok_encode(string),
+                        token_list=self.tok_encode(
+                            string,
+                            add_special_tokens=False
+                            if self.backend == "causal"
+                            else None,
+                        ),
                         prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
