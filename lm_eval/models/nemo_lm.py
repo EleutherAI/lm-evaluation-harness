@@ -28,7 +28,7 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator
+from lm_eval.models.utils import Collator, normalize_gen_kwargs
 from lm_eval.utils import (
     get_rolling_token_windows,
     make_disjoint_window,
@@ -515,7 +515,9 @@ class NeMoLM(LM):
             req_args = all_gen_kwargs[0]
             # unpack our keyword arguments.
             until = get_until(req_args)
-            max_gen_toks = req_args.get("max_gen_toks", self.max_gen_toks)
+            max_gen_toks = normalize_gen_kwargs(req_args, self.max_gen_toks)[
+                "max_gen_toks"
+            ]
 
             remaining_length = self.max_length - max_gen_toks
             contexts = []
