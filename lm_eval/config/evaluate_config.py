@@ -76,8 +76,14 @@ class EvaluatorConfig:
     )
 
     # Few-shot and batching
-    num_fewshot: int | None = field(
-        default=None, metadata={"help": "Number of examples in few-shot context"}
+    num_fewshot: int | list[int] | None = field(
+        default=None,
+        metadata={
+            "help": (
+                "Number of examples in few-shot context. A list sets one value "
+                "per loaded task, in task-loading order."
+            )
+        },
     )
     batch_size: int = field(default=1, metadata={"help": "Batch size for evaluation"})
     max_batch_size: int | None = field(
@@ -228,6 +234,14 @@ class EvaluatorConfig:
             for k, v in vars(namespace).items()
             if (v or v == 0) and k not in excluded_args
         }
+        # argparse uses nargs="+" for --num_fewshot, so a single CLI value
+        # arrives as [n]. Collapse that case to preserve the historical
+        # scalar behavior of broadcasting one value to every loaded task.
+        if (
+            isinstance(cli_args.get("num_fewshot"), list)
+            and len(cli_args["num_fewshot"]) == 1
+        ):
+            cli_args["num_fewshot"] = cli_args["num_fewshot"][0]
         config.update(cli_args)
 
         # Create an instance and validate
