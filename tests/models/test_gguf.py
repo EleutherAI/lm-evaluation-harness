@@ -377,6 +377,16 @@ class GGUFLMTest(unittest.TestCase):
             lm.loglikelihood(llm_instances([("y", "b")]))
         self.assertEqual(len(probe_calls(calls)), 5)
 
+    def test_logprob_check_retries_after_empty_batch(self):
+        fake_post, calls = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            # no answer tokens to probe, so the check is left for a later batch
+            lm.loglikelihood(llm_instances([("x", "")]))
+            self.assertEqual(len(probe_calls(calls)), 0)
+            lm.loglikelihood(llm_instances([("x", "a")]))
+        self.assertEqual(len(probe_calls(calls)), 5)
+
     def test_real_scoring_requests_unchanged(self):
         args = [("x", "ab"), ("y", "c")]
         fake_post_on, calls_on = make_fake_server()
@@ -455,8 +465,10 @@ class GGUFLMTest(unittest.TestCase):
         ):
             self.assertEqual(
                 lm.get_model_info(),
-                {"llama_server_build": "", "logprob_check": None},
+                {"llama_server_build": "", "logprob_check": {"mode": "warn"}},
             )
+            off = GGUFLM(base_url, logprob_check="off")
+            self.assertEqual(off.get_model_info()["logprob_check"], {"mode": "off"})
         # a failed /props read is not cached; a later call retries it
         with patch("lm_eval.models.gguf.requests.get") as mock_get:
             mock_get.return_value.json.return_value = {"build_info": "b1-abc"}
@@ -486,6 +498,21 @@ class GGUFLMTest(unittest.TestCase):
                 },
             },
         )
+
+    def test_props_router_mode_and_bad_reply(self):
+        # (a) router mode: /props is queried for the named model
+        lm = GGUFLM(base_url, model="my-alias")
+        with patch("lm_eval.models.gguf.requests.get") as mock_get:
+            mock_get.return_value.json.return_value = {"total_slots": 2}
+            lm._detect_total_slots()
+        self.assertEqual(mock_get.call_args.kwargs["params"], {"model": "my-alias"})
+
+        # (b) a /props reply that is not a JSON object is treated as unavailable
+        lm = GGUFLM(base_url)
+        with patch("lm_eval.models.gguf.requests.get") as mock_get:
+            mock_get.return_value.json.return_value = [1]
+            self.assertIsNone(lm._detect_total_slots())
+            self.assertEqual(lm._get_server_build(), "")
 
     def test_logprob_check_uses_first_non_empty_answer(self):
         fake_post, calls = make_fake_server()
