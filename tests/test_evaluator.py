@@ -37,6 +37,30 @@ def test_normalize_num_fewshot_requires_one_value_per_task():
 
 
 @pytest.mark.parametrize(
+    "counts",
+    [
+        [True, 0],
+        [1, "2"],
+        [1.0, 2],
+        [None, 2],
+    ],
+)
+def test_normalize_num_fewshot_rejects_non_integer_list_entries(counts):
+    tasks = {"arc_easy": object(), "hellaswag": object()}
+
+    with pytest.raises(TypeError, match="list entry must be an int"):
+        evaluator._normalize_num_fewshot(counts, tasks)
+
+
+@pytest.mark.parametrize("counts", [[-1, 2], [0, -3]])
+def test_normalize_num_fewshot_rejects_negative_list_entries(counts):
+    tasks = {"arc_easy": object(), "hellaswag": object()}
+
+    with pytest.raises(ValueError, match="must be non-negative"):
+        evaluator._normalize_num_fewshot(counts, tasks)
+
+
+@pytest.mark.parametrize(
     "task_name,limit,model,model_args,bootstrap_iters",
     [
         (

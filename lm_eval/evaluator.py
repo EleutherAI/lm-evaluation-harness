@@ -447,6 +447,12 @@ def _normalize_num_fewshot(
                 "When num_fewshot is a list, it must contain one value per task "
                 f"({len(tasks)} expected, got {len(num_fewshot)})."
             )
+        # Lists are a new public API: reject values that would silently
+        # become one-shot (bool) or fail only later when sampling examples.
+        if any(type(value) is not int for value in num_fewshot):
+            raise TypeError("Every num_fewshot list entry must be an int")
+        if any(value < 0 for value in num_fewshot):
+            raise ValueError("num_fewshot list entries must be non-negative")
         values = num_fewshot
     else:
         raise TypeError("num_fewshot must be an int, list[int], or None")
