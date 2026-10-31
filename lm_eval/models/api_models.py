@@ -32,7 +32,7 @@ from io import BytesIO
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
-from lm_eval.models.utils import Collator, chunks, configure_pad_token
+from lm_eval.models.utils import Collator, chunks, configure_pad_token, pop_max_gen_toks
 
 
 if TYPE_CHECKING:
@@ -460,6 +460,10 @@ class TemplateAPI(TemplateLM):
     ) -> dict | None:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
+        if generate and gen_kwargs is not None:
+            gen_kwargs["max_gen_toks"] = pop_max_gen_toks(
+                gen_kwargs, self._max_gen_toks
+            )
         try:
             response = requests.post(
                 self.base_url,
@@ -501,6 +505,10 @@ class TemplateAPI(TemplateLM):
     ) -> list[str] | list[tuple[float, bool]] | None:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
+        if generate and gen_kwargs is not None:
+            gen_kwargs["max_gen_toks"] = pop_max_gen_toks(
+                gen_kwargs, self._max_gen_toks
+            )
         payload = self._create_payload(
             self.create_message(messages),
             generate=generate,
@@ -757,8 +765,8 @@ class TemplateAPI(TemplateLM):
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk, strict=False)
                 if self.tokenized_requests:
-                    max_gen_toks = all_gen_kwargs[0].get(
-                        "max_gen_toks", self._max_gen_toks
+                    max_gen_toks = pop_max_gen_toks(
+                        dict(all_gen_kwargs[0]), self._max_gen_toks
                     )
                     max_context_len = self.max_length - max_gen_toks
 
@@ -812,8 +820,8 @@ class TemplateAPI(TemplateLM):
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk, strict=False)
                 if self.tokenized_requests:
-                    max_gen_toks = all_gen_kwargs[0].get(
-                        "max_gen_toks", self._max_gen_toks
+                    max_gen_toks = pop_max_gen_toks(
+                        dict(all_gen_kwargs[0]), self._max_gen_toks
                     )
                     max_context_len = self.max_length - max_gen_toks
 

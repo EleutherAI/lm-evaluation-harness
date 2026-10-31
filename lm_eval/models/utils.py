@@ -12,6 +12,7 @@ from typing import (
     Literal,
     TypeVar,
 )
+
 from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
@@ -654,6 +655,31 @@ def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> lis
     return until
 
 
+def pop_max_gen_toks(kwargs: dict, default_max_gen_toks: int = 256) -> int:
+    """Remove generation-length aliases and return their value in priority order."""
+    # Extract max_gen_toks from various aliases (priority order: max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens)
+    max_token_aliases = {
+        "max_gen_toks": kwargs.pop("max_gen_toks", None),
+        "max_new_tokens": kwargs.pop("max_new_tokens", None),  # used in HF
+        "max_tokens": kwargs.pop(
+            "max_tokens", None
+        ),  # used by vllm, OpenAI API's and others
+        "max_completion_tokens": kwargs.pop(
+            "max_completion_tokens", None
+        ),  # newer OpenAI API alias
+        # note: `max_length` is also used by HF but has different semantics (prompt + generation)
+    }
+    provided = {k: v for k, v in max_token_aliases.items() if v is not None}
+
+    if len(provided) > 1:
+        warning_once(
+            eval_logger,
+            f"Multiple max token args provided: {provided}. Using first by priority (max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens).",
+        )
+
+    return int(next(iter(provided.values()), default_max_gen_toks))
+
+
 def normalize_gen_kwargs(
     gen_kwargs: dict,
     default_max_gen_toks: int = 256,
@@ -697,27 +723,7 @@ def normalize_gen_kwargs(
     if not isinstance(until, list):
         until = [until]
 
-    # Extract max_gen_toks from various aliases (priority order: max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens)
-    max_token_aliases = {
-        "max_gen_toks": kwargs.pop("max_gen_toks", None),
-        "max_new_tokens": kwargs.pop("max_new_tokens", None),  # used in HF
-        "max_tokens": kwargs.pop(
-            "max_tokens", None
-        ),  # used by vllm, OpenAI API's and others
-        "max_completion_tokens": kwargs.pop(
-            "max_completion_tokens", None
-        ),  # newer OpenAI API alias
-        # note: `max_length` is also used by HF but has different semantics (prompt + generation)
-    }
-    provided = {k: v for k, v in max_token_aliases.items() if v is not None}
-
-    if len(provided) > 1:
-        warning_once(
-            eval_logger,
-            f"Multiple max token args provided: {provided}. Using first by priority (max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens).",
-        )
-
-    max_gen_toks = int(next(iter(provided.values()), default_max_gen_toks))
+    max_gen_toks = pop_max_gen_toks(kwargs, default_max_gen_toks)
 
     # Handle do_sample and temperature consistently
     do_sample: bool | None = kwargs.get("do_sample")

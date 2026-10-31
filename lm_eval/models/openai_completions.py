@@ -6,7 +6,11 @@ from typing import Any
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
-from lm_eval.models.utils import handle_stop_sequences, postprocess_generated_text
+from lm_eval.models.utils import (
+    handle_stop_sequences,
+    pop_max_gen_toks,
+    postprocess_generated_text,
+)
 
 
 eval_logger = logging.getLogger(__name__)
@@ -69,10 +73,7 @@ class LocalCompletionsAPI(TemplateAPI):
     ) -> dict:
         if generate:
             gen_kwargs.pop("do_sample", False)
-            if "max_tokens" in gen_kwargs:
-                max_tokens = gen_kwargs.pop("max_tokens")
-            else:
-                max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+            max_tokens = pop_max_gen_toks(gen_kwargs, self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
             stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
             return {
@@ -193,10 +194,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         )
         gen_kwargs = gen_kwargs or {}
         gen_kwargs.pop("do_sample", False)
-        if "max_tokens" in gen_kwargs:
-            max_tokens = gen_kwargs.pop("max_tokens")
-        else:
-            max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+        max_tokens = pop_max_gen_toks(gen_kwargs, self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
         if not isinstance(stop, (list, tuple)):
@@ -339,10 +337,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
             "chat-completions require the --apply_chat_template flag."
         )
         gen_kwargs.pop("do_sample", False)
-        if "max_tokens" in gen_kwargs:
-            max_tokens = gen_kwargs.pop("max_tokens")
-        else:
-            max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+        max_tokens = pop_max_gen_toks(gen_kwargs, self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = handle_stop_sequences(gen_kwargs.pop("until", ["<|endoftext|>"]), eos)
         if not isinstance(stop, (list, tuple)):
