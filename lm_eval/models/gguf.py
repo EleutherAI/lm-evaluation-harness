@@ -195,7 +195,6 @@ class GGUFLM(LM):
         """
         if self._logprob_checked or self.logprob_check == "off":
             return
-        self._logprob_checked = True
         for context, continuation in args_list:
             context_ids, continuation_ids = self._split_ids(context, continuation)
             if continuation_ids:
@@ -203,12 +202,16 @@ class GGUFLM(LM):
         else:
             logger.debug("Skipping logprob check: no request has continuation tokens.")
             return
-        logprobs = [
-            self._score_position(context_ids, continuation_ids[0], cache_prompt=False)[
-                0
-            ]
-            for _ in range(_LOGPROB_CHECK_REPEATS)
-        ]
+        logprobs = []
+        for _ in range(_LOGPROB_CHECK_REPEATS):
+            logprobs.append(
+                self._score_position(
+                    context_ids, continuation_ids[0], cache_prompt=False
+                )[0]
+            )
+        # mark done only once the probe has run, so a batch with no answer
+        # tokens or a failed probe request leaves the check for a later batch
+        self._logprob_checked = True
         spread = max(logprobs) - min(logprobs)
         within_tolerance = spread <= self.logprob_check_tol
         self._logprob_check_result = {
@@ -429,5 +432,5 @@ class GGUFLM(LM):
         """Server build and logprob check result, saved in the results file for reproducibility."""
         return {
             "llama_server_build": self._get_server_build(),
-            "logprob_check": self._logprob_check_result,
+            "logprob_check": self._logprob_check_result or {"mode": self.logprob_check},
         }
