@@ -210,9 +210,8 @@ class GGUFLM(LM):
         )
         return entry["logprob"], is_greedy
 
-    def _loglikelihood_one(self, item):
-        args, id_slot = item
-        context, continuation = args
+    def _split_ids(self, context, continuation):
+        """Tokenize a (context, continuation) pair the way scoring does; return (context_ids, continuation_ids)."""
         # Migrate trailing whitespace from context to continuation (match HF backend)
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
@@ -222,7 +221,11 @@ class GGUFLM(LM):
         # (BPE-correct: matches the HF backend's tok_encode approach)
         whole_ids = self._tokenize(context + continuation, add_special=True)
         context_ids = self._tokenize(context, add_special=True)
-        continuation_ids = whole_ids[len(context_ids) :]
+        return context_ids, whole_ids[len(context_ids) :]
+
+    def _loglikelihood_one(self, item):
+        args, id_slot = item
+        context_ids, continuation_ids = self._split_ids(*args)
         if not continuation_ids:
             return (0.0, True)
         total = 0.0
