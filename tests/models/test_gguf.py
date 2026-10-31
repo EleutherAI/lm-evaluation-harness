@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch
 
+from requests.exceptions import RequestException
+
 from lm_eval.api.instance import Instance
 from lm_eval.models.gguf import GGUFLM
 
@@ -66,6 +68,31 @@ def make_fake_server(token_logprobs=None, top_token_id=None):
     return fake_post, calls
 
 
+def make_probe_server(probe_logprobs):
+    """Build a fake llama.cpp server whose logprob-check requests drift.
+
+    Scoring requests sent with `cache_prompt: False` (the start-of-run
+    logprob check) return the next value of `probe_logprobs` as the sampled
+    logprob; all other requests behave as in `make_fake_server`.
+    """
+    fake_post, calls = make_fake_server()
+    values = iter(probe_logprobs)
+
+    def probe_post(url, json=None, timeout=None, **kwargs):
+        resp = fake_post(url, json, timeout)
+        if url.endswith("/completions") and json.get("cache_prompt") is False:
+            data = resp.json()
+            data["choices"][0]["logprobs"]["content"][0]["logprob"] = next(values)
+            return FakeResponse(data)
+        return resp
+
+    return probe_post, calls
+
+
+# logprobs returned by a drifting server for the 5 check requests (spread 2.0)
+WOBBLY = [-1.0, -1.5, -2.0, -2.5, -3.0]
+
+
 def llm_instances(args_list, request_type="loglikelihood"):
     return [
         Instance(
@@ -84,7 +111,7 @@ class GGUFLMTest(unittest.TestCase):
             token_logprobs={97: -0.5, 98: -2.0}  # 'a', 'b'
         )
         with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
-            lm = GGUFLM(base_url, parallel=1)
+            lm = GGUFLM(base_url, parallel=1, logprob_check="off")
             res = lm.loglikelihood(llm_instances([("x", "ab")]))
         self.assertEqual(res, [(-2.5, True)])
 
@@ -106,7 +133,7 @@ class GGUFLMTest(unittest.TestCase):
     def test_loglikelihood_migrates_trailing_whitespace(self):
         fake_post, calls = make_fake_server()
         with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
-            lm = GGUFLM(base_url, parallel=1)
+            lm = GGUFLM(base_url, parallel=1, logprob_check="off")
             res = lm.loglikelihood(llm_instances([("x ", "ab")]))
         # trailing space moved from context into the continuation
         self.assertEqual(res, [(-3.0, True)])
@@ -116,7 +143,7 @@ class GGUFLMTest(unittest.TestCase):
     def test_loglikelihood_empty_continuation(self):
         fake_post, calls = make_fake_server()
         with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
-            lm = GGUFLM(base_url, parallel=1)
+            lm = GGUFLM(base_url, parallel=1, logprob_check="off")
             res = lm.loglikelihood(llm_instances([("x", ""), ("x", "a")]))
         # empty continuation scores (0.0, True) with no scoring requests
         self.assertEqual(res[0], (0.0, True))
@@ -142,7 +169,7 @@ class GGUFLMTest(unittest.TestCase):
             return resp
 
         with patch("lm_eval.models.gguf.requests.post", side_effect=bad_post):
-            lm = GGUFLM(base_url, parallel=1)
+            lm = GGUFLM(base_url, parallel=1, logprob_check="off")
             with self.assertRaises(RuntimeError):
                 lm.loglikelihood(llm_instances([("x", "a")]))
 
@@ -249,6 +276,204 @@ class GGUFLMTest(unittest.TestCase):
             lm = GGUFLM(base, parallel=1)
             self.assertEqual(lm.completions_url, expected)
             self.assertEqual(lm.server_url, "http://localhost:8080")
+
+    def test_logprob_check_steady_server(self):
+        fake_post, calls = make_fake_server()
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get") as mock_get,
+            self.assertNoLogs("lm_eval.models.gguf", level="WARNING"),
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("x", "ab")]))
+        self.assertEqual(res, [(-2.0, True)])
+        # 5 identical check requests for the first answer token, with prompt
+        # caching off and no slot pinning, then the 2 real scoring requests
+        probe = {
+            "prompt": [1, ord("x")],
+            "temperature": 0,
+            "max_tokens": 1,
+            "logprobs": 2,
+            "logit_bias": [[ord("a"), 100]],
+            "cache_prompt": False,
+        }
+        self.assertEqual(calls["completions"][:5], [probe] * 5)
+        self.assertEqual(len(calls["completions"]), 7)
+        # /props is only read to build the failure message
+        mock_get.assert_not_called()
+
+    def test_logprob_check_wobbly_server_warns(self):
+        fake_post, _ = make_probe_server(WOBBLY)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get") as mock_get,
+            self.assertLogs("lm_eval.models.gguf", level="WARNING") as logs,
+        ):
+            mock_get.return_value.json.return_value = {"build_info": "b1-abc"}
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("x", "a")]))
+        self.assertEqual(len(logs.records), 1)
+        message = logs.records[0].getMessage()
+        self.assertIn("identical scoring requests", message)
+        self.assertIn("spread 2.0000", message)
+        self.assertIn("b1-abc", message)
+        # the run keeps going and real scoring is unaffected
+        self.assertEqual(res, [(-1.0, True)])
+
+    def test_logprob_check_error_mode_raises(self):
+        fake_post, calls = make_probe_server(WOBBLY)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch(
+                "lm_eval.models.gguf.requests.get",
+                side_effect=RequestException("no server"),
+            ),
+        ):
+            lm = GGUFLM(base_url, parallel=1, logprob_check="error")
+            with self.assertRaises(RuntimeError) as ctx:
+                lm.loglikelihood(llm_instances([("x", "a")]))
+        self.assertIn("identical scoring requests", str(ctx.exception))
+        self.assertIn("unknown", str(ctx.exception))
+        # stopped after the check, before any real scoring request
+        self.assertEqual(len(calls["completions"]), 5)
+
+    def test_logprob_check_tolerance(self):
+        cases = [
+            # (probe logprobs, tolerance kwargs, expect warning)
+            ([-1.0] * 4 + [-1.5], {"logprob_check_tol": 0.5}, False),
+            ([-1.0] * 4 + [-1.5], {"logprob_check_tol": 0.25}, True),
+            # spread 2**-7, just under the default tolerance of 0.01
+            ([-1.0] * 4 + [-1.0078125], {}, False),
+        ]
+        for probe_logprobs, tol_kwargs, expect_warning in cases:
+            fake_post, _ = make_probe_server(probe_logprobs)
+            logs = (
+                self.assertLogs("lm_eval.models.gguf", level="WARNING")
+                if expect_warning
+                else self.assertNoLogs("lm_eval.models.gguf", level="WARNING")
+            )
+            with (
+                patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+                patch("lm_eval.models.gguf.requests.get"),
+                logs,
+            ):
+                lm = GGUFLM(base_url, parallel=1, **tol_kwargs)
+                lm.loglikelihood(llm_instances([("x", "a")]))
+
+    def test_logprob_check_runs_once(self):
+        fake_post, calls = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post):
+            lm = GGUFLM(base_url, parallel=1)
+            lm.loglikelihood(llm_instances([("x", "a")]))
+            lm.loglikelihood(llm_instances([("y", "b")]))
+        probes = [c for c in calls["completions"] if c.get("cache_prompt") is False]
+        self.assertEqual(len(probes), 5)
+
+    def test_real_scoring_requests_unchanged(self):
+        args = [("x", "ab"), ("y", "c")]
+        fake_post_on, calls_on = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post_on):
+            GGUFLM(base_url, parallel=1).loglikelihood(llm_instances(args))
+        fake_post_off, calls_off = make_fake_server()
+        with patch("lm_eval.models.gguf.requests.post", side_effect=fake_post_off):
+            GGUFLM(base_url, parallel=1, logprob_check="off").loglikelihood(
+                llm_instances(args)
+            )
+        real_on = calls_on["completions"][5:]
+        self.assertEqual(real_on, calls_off["completions"])
+        for call in real_on + calls_off["completions"]:
+            self.assertNotIn("cache_prompt", call)
+
+    def test_logprob_check_off_sends_no_probe(self):
+        fake_post, calls = make_probe_server(WOBBLY)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            self.assertNoLogs("lm_eval.models.gguf", level="WARNING"),
+        ):
+            lm = GGUFLM(base_url, parallel=1, logprob_check="off")
+            lm.loglikelihood(llm_instances([("x", "a")]))
+        for call in calls["completions"]:
+            self.assertNotIn("cache_prompt", call)
+
+    def test_generate_until_skips_logprob_check(self):
+        fake_post, calls = make_probe_server(WOBBLY)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            self.assertNoLogs("lm_eval.models.gguf", level="WARNING"),
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            lm.generate_until(
+                [
+                    Instance(
+                        request_type="generate_until",
+                        doc={"input": "input1"},
+                        arguments=("input1", {"until": "stop1"}),
+                        idx=0,
+                    )
+                ]
+            )
+        # only the generation request; no token-id scoring requests
+        self.assertEqual(len(calls["completions"]), 1)
+        self.assertIsInstance(calls["completions"][0]["prompt"], str)
+
+    def test_logprob_check_skips_empty_answers(self):
+        fake_post, calls = make_fake_server()
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            self.assertNoLogs("lm_eval.models.gguf", level="WARNING"),
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("x", "")]))
+        self.assertEqual(res, [(0.0, True)])
+        self.assertEqual(len(calls["completions"]), 0)
+
+    def test_logprob_check_settings(self):
+        # no network access in __init__, so no patches needed
+        with self.assertRaises(ValueError):
+            GGUFLM(base_url, logprob_check="maybe")
+        for tol in (-1, float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                GGUFLM(base_url, logprob_check_tol=tol)
+        # --model_args turns "true"/"false" into booleans
+        self.assertEqual(GGUFLM(base_url, logprob_check=True).logprob_check, "warn")
+        self.assertEqual(GGUFLM(base_url, logprob_check=False).logprob_check, "off")
+
+    def test_get_model_info(self):
+        # (a) check never ran and /props is unreachable
+        lm = GGUFLM(base_url)
+        with patch(
+            "lm_eval.models.gguf.requests.get",
+            side_effect=RequestException("no server"),
+        ):
+            self.assertEqual(
+                lm.get_model_info(),
+                {"llama_server_build": "", "logprob_check": None},
+            )
+
+        # (b) after a run on a drifting server
+        fake_post, _ = make_probe_server(WOBBLY)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get") as mock_get,
+        ):
+            mock_get.return_value.json.return_value = {"build_info": "b1-abc"}
+            lm = GGUFLM(base_url, parallel=1)
+            with self.assertLogs("lm_eval.models.gguf", level="WARNING"):
+                lm.loglikelihood(llm_instances([("x", "a")]))
+            info = lm.get_model_info()
+        self.assertEqual(
+            info,
+            {
+                "llama_server_build": "b1-abc",
+                "logprob_check": {
+                    "mode": "warn",
+                    "repeats": 5,
+                    "spread": 2.0,
+                    "tolerance": 0.01,
+                    "within_tolerance": False,
+                },
+            },
+        )
 
 
 if __name__ == "__main__":
