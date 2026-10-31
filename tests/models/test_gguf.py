@@ -449,6 +449,10 @@ class GGUFLMTest(unittest.TestCase):
                 lm.get_model_info(),
                 {"llama_server_build": "", "logprob_check": None},
             )
+        # a failed /props read is not cached; a later call retries it
+        with patch("lm_eval.models.gguf.requests.get") as mock_get:
+            mock_get.return_value.json.return_value = {"build_info": "b1-abc"}
+            self.assertEqual(lm.get_model_info()["llama_server_build"], "b1-abc")
 
         # (b) after a run on a drifting server
         fake_post, _ = make_probe_server(WOBBLY)

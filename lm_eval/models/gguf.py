@@ -110,7 +110,7 @@ class GGUFLM(LM):
         self.logprob_check_tol = logprob_check_tol
         self._logprob_checked = False
         self._logprob_check_result = None
-        self._server_build = None
+        self._props = None
 
     def _post_with_retries(self, url, payload, retries=3, delay=5):
         for _ in range(retries):
@@ -139,37 +139,33 @@ class GGUFLM(LM):
             self._tok_cache[key] = ids
         return ids
 
-    def _detect_total_slots(self):
-        """Query the server's /props endpoint for its slot count (llama-server's `--parallel` setting). Returns None if unavailable."""
-        try:
-            params = {"model": self.model} if self.model is not None else None
-            response = requests.get(
-                f"{self.server_url}/props", params=params, timeout=10
-            )
-            response.raise_for_status()
-            total_slots = response.json().get("total_slots")
-            if isinstance(total_slots, int) and total_slots > 0:
-                return total_slots
-        except (RequestException, ValueError) as e:
-            logger.debug("Could not query /props for slot count: %s", e)
-        return None
-
-    def _get_server_build(self):
-        """Query the server's /props endpoint for its build string (`build_info`, cached). Returns "" if unavailable."""
-        if self._server_build is None:
-            self._server_build = ""
+    def _get_props(self):
+        """Query the server's /props endpoint; a successful reply is cached. Returns {} if unavailable."""
+        if self._props is None:
             try:
                 params = {"model": self.model} if self.model is not None else None
                 response = requests.get(
                     f"{self.server_url}/props", params=params, timeout=10
                 )
                 response.raise_for_status()
-                build_info = response.json().get("build_info")
-                if isinstance(build_info, str):
-                    self._server_build = build_info
+                props = response.json()
+                if isinstance(props, dict):
+                    self._props = props
             except (RequestException, ValueError) as e:
-                logger.debug("Could not query /props for build info: %s", e)
-        return self._server_build
+                logger.debug("Could not query /props: %s", e)
+        return self._props or {}
+
+    def _detect_total_slots(self):
+        """Query the server's /props endpoint for its slot count (llama-server's `--parallel` setting). Returns None if unavailable."""
+        total_slots = self._get_props().get("total_slots")
+        if isinstance(total_slots, int) and total_slots > 0:
+            return total_slots
+        return None
+
+    def _get_server_build(self):
+        """Query the server's /props endpoint for its build string (`build_info`). Returns "" if unavailable."""
+        build_info = self._get_props().get("build_info")
+        return build_info if isinstance(build_info, str) else ""
 
     def _resolve_parallel(self):
         if self._resolved_parallel is None:
