@@ -89,6 +89,11 @@ def make_probe_server(probe_logprobs):
     return probe_post, calls
 
 
+def probe_calls(calls):
+    """Return the logprob-check requests (sent with `cache_prompt: False`)."""
+    return [c for c in calls["completions"] if c.get("cache_prompt") is False]
+
+
 # logprobs returned by a drifting server for the 5 check requests (spread 2.0)
 WOBBLY = [-1.0, -1.5, -2.0, -2.5, -3.0]
 
@@ -332,10 +337,14 @@ class GGUFLMTest(unittest.TestCase):
             lm = GGUFLM(base_url, parallel=1, logprob_check="error")
             with self.assertRaises(RuntimeError) as ctx:
                 lm.loglikelihood(llm_instances([("x", "a")]))
-        self.assertIn("identical scoring requests", str(ctx.exception))
-        self.assertIn("unknown", str(ctx.exception))
-        # stopped after the check, before any real scoring request
-        self.assertEqual(len(calls["completions"]), 5)
+            self.assertIn("identical scoring requests", str(ctx.exception))
+            self.assertIn("unknown", str(ctx.exception))
+            # stopped after the check, before any real scoring request
+            self.assertEqual(len(calls["completions"]), 5)
+            # the check ran once already, so a second call scores normally
+            res = lm.loglikelihood(llm_instances([("x", "a")]))
+        self.assertEqual(res, [(-1.0, True)])
+        self.assertEqual(len(probe_calls(calls)), 5)
 
     def test_logprob_check_tolerance(self):
         cases = [
@@ -366,8 +375,7 @@ class GGUFLMTest(unittest.TestCase):
             lm = GGUFLM(base_url, parallel=1)
             lm.loglikelihood(llm_instances([("x", "a")]))
             lm.loglikelihood(llm_instances([("y", "b")]))
-        probes = [c for c in calls["completions"] if c.get("cache_prompt") is False]
-        self.assertEqual(len(probes), 5)
+        self.assertEqual(len(probe_calls(calls)), 5)
 
     def test_real_scoring_requests_unchanged(self):
         args = [("x", "ab"), ("y", "c")]
@@ -479,24 +487,6 @@ class GGUFLMTest(unittest.TestCase):
             },
         )
 
-    def test_logprob_check_not_repeated_after_error(self):
-        fake_post, calls = make_probe_server(WOBBLY)
-        with (
-            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
-            patch(
-                "lm_eval.models.gguf.requests.get",
-                side_effect=RequestException("no server"),
-            ),
-        ):
-            lm = GGUFLM(base_url, parallel=1, logprob_check="error")
-            with self.assertRaises(RuntimeError):
-                lm.loglikelihood(llm_instances([("x", "a")]))
-            # the check ran once already, so the second call scores normally
-            res = lm.loglikelihood(llm_instances([("x", "a")]))
-        self.assertEqual(res, [(-1.0, True)])
-        probes = [c for c in calls["completions"] if c.get("cache_prompt") is False]
-        self.assertEqual(len(probes), 5)
-
     def test_logprob_check_uses_first_non_empty_answer(self):
         fake_post, calls = make_fake_server()
         with (
@@ -507,7 +497,7 @@ class GGUFLMTest(unittest.TestCase):
             res = lm.loglikelihood(llm_instances([("x", ""), ("y", "b")]))
         self.assertEqual(res, [(0.0, True), (-1.0, True)])
         # the empty first answer is skipped; the probe uses the second request
-        probes = [c for c in calls["completions"] if c.get("cache_prompt") is False]
+        probes = probe_calls(calls)
         self.assertEqual(len(probes), 5)
         for probe in probes:
             self.assertEqual(probe["prompt"], [1, ord("y")])
