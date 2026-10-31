@@ -49,11 +49,11 @@ class GGUFLM(LM):
 
     Loglikelihood scores are only repeatable if the server returns the same
     logprobs for identical requests. Before the first loglikelihood batch,
-    the run's first scoring request is sent several times with prompt
-    caching off, and a warning is logged if the logprobs differ by more
-    than `logprob_check_tol` (default 0.01). Set `logprob_check=error` to
-    stop the run instead, or `logprob_check=off` to skip the check. This is
-    a start-of-run smoke test, not a guarantee.
+    the first scoring request with a non-empty answer is sent several times
+    with prompt caching off, and a warning is logged if the logprobs differ
+    by more than `logprob_check_tol` (default 0.01). Set
+    `logprob_check=error` to stop the run instead, or `logprob_check=off` to
+    skip the check. This is a start-of-run smoke test, not a guarantee.
     """
 
     def __init__(
@@ -183,7 +183,7 @@ class GGUFLM(LM):
         return self._resolved_parallel
 
     def _check_logprobs(self, args_list):
-        """Send the run's first scoring request several times and compare the logprobs.
+        """Send the first scoring request with a non-empty answer several times and compare the logprobs.
 
         Teacher forcing reads the server's reported logprob as the true score,
         which assumes identical requests get identical logprobs. Runs once,
