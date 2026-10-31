@@ -1,4 +1,4 @@
-group: xlum
+group: xlsum
 task:
   - xlsum_prompt_1
   - xlsum_prompt_2
