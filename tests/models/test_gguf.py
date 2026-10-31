@@ -475,6 +475,41 @@ class GGUFLMTest(unittest.TestCase):
             },
         )
 
+    def test_logprob_check_not_repeated_after_error(self):
+        fake_post, calls = make_probe_server(WOBBLY)
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch(
+                "lm_eval.models.gguf.requests.get",
+                side_effect=RequestException("no server"),
+            ),
+        ):
+            lm = GGUFLM(base_url, parallel=1, logprob_check="error")
+            with self.assertRaises(RuntimeError):
+                lm.loglikelihood(llm_instances([("x", "a")]))
+            # the check ran once already, so the second call scores normally
+            res = lm.loglikelihood(llm_instances([("x", "a")]))
+        self.assertEqual(res, [(-1.0, True)])
+        probes = [c for c in calls["completions"] if c.get("cache_prompt") is False]
+        self.assertEqual(len(probes), 5)
+
+    def test_logprob_check_uses_first_non_empty_answer(self):
+        fake_post, calls = make_fake_server()
+        with (
+            patch("lm_eval.models.gguf.requests.post", side_effect=fake_post),
+            patch("lm_eval.models.gguf.requests.get") as mock_get,
+        ):
+            lm = GGUFLM(base_url, parallel=1)
+            res = lm.loglikelihood(llm_instances([("x", ""), ("y", "b")]))
+        self.assertEqual(res, [(0.0, True), (-1.0, True)])
+        # the empty first answer is skipped; the probe uses the second request
+        probes = [c for c in calls["completions"] if c.get("cache_prompt") is False]
+        self.assertEqual(len(probes), 5)
+        for probe in probes:
+            self.assertEqual(probe["prompt"], [1, ord("y")])
+            self.assertEqual(probe["logit_bias"], [[ord("b"), 100]])
+        mock_get.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
