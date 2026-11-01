@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal, InvalidOperation
 from typing import Dict, List
 
 
@@ -27,10 +28,16 @@ def doc_to_target(doc):
 def postprocess(s):
     s = str(s).strip()
     try:
-        float_value = float(s)
-        return str(int(float_value)) if float_value.is_integer() else str(float_value)
-    except Exception:
+        value = Decimal(s)
+    except InvalidOperation:
         return s
+    if not value.is_finite():
+        return s
+    if value.is_zero():
+        return "0"
+    # Fixed-point formatting preserves every digit without Decimal context rounding.
+    normalized = format(value, "f")
+    return normalized.rstrip("0").rstrip(".") if "." in normalized else normalized
 
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:

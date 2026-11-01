@@ -55,4 +55,5 @@ If other tasks on this dataset are already supported:
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
+- 2026-10-31: v2.0: preserve exact integer and decimal values during answer normalization in both language variants. Distinct answers that previously rounded to the same float no longer receive exact-match credit. This can change scores relative to v1.1; no whole-dataset score impact has been measured.
 - 2025-07-22: v1.1: increased `max_gen_toks` to 2048
