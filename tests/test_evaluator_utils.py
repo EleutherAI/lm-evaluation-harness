@@ -16,6 +16,7 @@ from lm_eval.evaluator_utils import (
     _collect_groups_bottom_up,
     _collect_results,
     _get_root_groups,
+    _merge_rank_metrics,
     _process_results,
     _propagate_higher_is_better,
     aggregate_groups,
@@ -166,6 +167,52 @@ class TestGetSampleSize:
     def test_limit_float_exactly_one_is_integer(self):
         # 1.0 is not < 1.0 so treated as integer
         assert get_sample_size(self._task(), limit=1.0) == 1
+
+
+# ---------------------------------------------------------------------------
+# TestMergeRankMetrics
+# ---------------------------------------------------------------------------
+
+
+class TestMergeRankMetrics:
+    def test_same_keys_concatenate_in_rank_order(self):
+        rank0 = {("acc", "none"): [1.0, 0.0]}
+        rank1 = {("acc", "none"): [0.0, 1.0]}
+        merged = _merge_rank_metrics([rank0, rank1])
+        assert merged == {("acc", "none"): [1.0, 0.0, 0.0, 1.0]}
+
+    def test_key_missing_on_rank0_is_kept(self):
+        # rank 0 never saw a "hard" document; rank 1 did
+        rank0 = {("acc", "none"): [1.0, 1.0], ("acc_easy", "none"): [1.0, 1.0]}
+        rank1 = {
+            ("acc", "none"): [0.0, 1.0],
+            ("acc_hard", "none"): [0.0],
+            ("acc_easy", "none"): [1.0],
+        }
+        merged = _merge_rank_metrics([rank0, rank1])
+        assert merged[("acc_hard", "none")] == [0.0]
+        assert merged[("acc_easy", "none")] == [1.0, 1.0, 1.0]
+        assert merged[("acc", "none")] == [1.0, 1.0, 0.0, 1.0]
+
+    def test_key_missing_on_other_rank_does_not_raise(self):
+        # rank 1 never saw a "hard" document; previously raised KeyError
+        rank0 = {("acc", "none"): [0.0, 1.0], ("acc_hard", "none"): [0.0]}
+        rank1 = {("acc", "none"): [1.0, 1.0]}
+        merged = _merge_rank_metrics([rank0, rank1])
+        assert merged[("acc_hard", "none")] == [0.0]
+        assert merged[("acc", "none")] == [0.0, 1.0, 1.0, 1.0]
+
+    def test_rank_with_no_metrics(self):
+        merged = _merge_rank_metrics([{("acc", "none"): [1.0]}, {}])
+        assert merged == {("acc", "none"): [1.0]}
+
+    def test_key_order_is_first_seen(self):
+        rank0 = {("acc", "none"): [1.0]}
+        rank1 = {("acc_hard", "none"): [0.0], ("acc", "none"): [0.0]}
+        assert list(_merge_rank_metrics([rank0, rank1])) == [
+            ("acc", "none"),
+            ("acc_hard", "none"),
+        ]
 
 
 # ---------------------------------------------------------------------------

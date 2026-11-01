@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import logging
 import math
 import pathlib
@@ -168,6 +169,33 @@ class EvalAcc:
             results_dict["samples"] = dict(samples)
 
         return results_dict
+
+
+def _merge_rank_metrics(
+    rank_metrics: list[dict[tuple[str, str], list]],
+) -> dict[tuple[str, str], list]:
+    """
+    Concatenate per-sample metrics gathered from all ranks.
+
+    Ranks can produce different metric keys (e.g. a custom ``process_results``
+    that names metrics after a document's category), so merge over the union
+    of keys rather than only the keys seen on rank 0.
+
+    Args:
+        rank_metrics: One {(metric_name, filter_key): [values]} dict per rank
+
+    Returns:
+        {(metric_name, filter_key): [values from all ranks, in rank order]}
+    """
+    metric_keys = dict.fromkeys(key for metrics in rank_metrics for key in metrics)
+    return {
+        key: list(
+            itertools.chain.from_iterable(
+                metrics.get(key, []) for metrics in rank_metrics
+            )
+        )
+        for key in metric_keys
+    }
 
 
 def _compute_task_aggregations(
