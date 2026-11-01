@@ -30,7 +30,7 @@ MODEL_MAPPING = {
     "ggml": "lm_eval.models.gguf:GGUFLM",
     "gguf": "lm_eval.models.gguf:GGUFLM",
     "hf": "lm_eval.models.huggingface:HFLM",
-    "hf-audiolm-qwen": "lm_eval.models.hf_audiolm:HFAudioLM",
+    "hf-audiolm-qwen": "lm_eval.models.hf_audiolm:HFAUDIOLMQWEN",
     "hf-auto": "lm_eval.models.huggingface:HFLM",
     "hf-mistral3": "lm_eval.models.mistral3:Mistral3LM",
     "hf-multimodal": "lm_eval.models.hf_vlms:HFMultimodalLM",

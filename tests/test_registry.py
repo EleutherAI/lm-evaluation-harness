@@ -454,3 +454,13 @@ class TestRegistryClear:
 
         assert len(reg) == 0
         assert "a" not in reg
+
+
+class TestModelMappingPlaceholders:
+    """Lazy MODEL_MAPPING aliases must name the class their module registers."""
+
+    def test_hf_audiolm_qwen_alias_resolves_to_registered_class(self):
+        """The hf-audiolm-qwen alias must import HFAUDIOLMQWEN without a registry clash."""
+        model_cls = get_model("hf-audiolm-qwen")
+
+        assert model_cls.__name__ == "HFAUDIOLMQWEN"
