@@ -55,4 +55,5 @@ If other tasks on this dataset are already supported:
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
+- 2026-11-01: v3.0: extract answers only from generated text, preserving the full reference answer in both languages. Correct boxed fractions, symbolic expressions, and negative answers can gain credit; incorrect answers matching only the reference's last number lose credit. Unparseable predictions score zero. Scores are not directly comparable with earlier versions.
 - 2025-07-22: v1.1: increased `max_gen_toks` to 2048

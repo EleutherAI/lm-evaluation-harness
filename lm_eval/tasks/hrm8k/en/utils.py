@@ -58,7 +58,10 @@ def is_equiv(str1, str2, verbose=False):
     if str1 is None or str2 is None:
         return False
 
-    str1, str2 = parse_math_answer(str1), parse_math_answer(str2)
+    # References are already answers; extraction would discard signs and LaTeX.
+    str1 = parse_math_answer(str1)
+    if str1 is None:
+        return False
 
     try:
         ss1 = _strip_string(str1)
