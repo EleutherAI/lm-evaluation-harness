@@ -3,12 +3,14 @@
 Tests for Group class and filter auto-discovery functionality.
 """
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
 from lm_eval.api.group import AggMetricConfig, Group
 from lm_eval.api.task import Task
+from lm_eval.tasks._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
@@ -868,3 +870,34 @@ class TestAggMetricConfigValidation:
     def test_callable_aggregation_allowed(self):
         config = AggMetricConfig(metric="acc", aggregation=max)
         assert config.aggregation is max
+
+
+AFROBENCH_GROUP_CONFIGS = [
+    ("afrobench.yaml", ["bleu", "chrf"]),
+    ("flores/flores.yaml", ["bleu", "chrf"]),
+    ("ntrex/ntrex.yaml", ["bleu", "chrf"]),
+    ("mafand/mafand.yaml", ["bleu", "chrf"]),
+    ("salt/salt.yaml", ["bleu", "chrf"]),
+    ("adr/afridiacritics.yaml", ["bleu", "chrf"]),
+    ("afriqa/afriqa.yaml", ["exact_match", "f1"]),
+    ("xlsum/xlsum.yaml", ["rougeL"]),
+]
+
+
+@pytest.mark.parametrize("group_config,metrics", AFROBENCH_GROUP_CONFIGS)
+def test_afrobench_groups_aggregate_their_reported_metrics(group_config, metrics):
+    config_path = (
+        Path(__file__).parents[1] / "lm_eval" / "tasks" / "afrobench" / group_config
+    )
+    group = Group.from_config(load_yaml(config_path, resolve_func=False))
+    group.add(MockTask("mock_task"))
+
+    task_metrics = {
+        "mock_task": {
+            "sample_len": 2,
+            **{f"{metric},none": 0.5 for metric in metrics},
+        }
+    }
+
+    aggregated = group.aggregate(task_metrics)
+    assert all(f"{metric},none" in aggregated for metric in metrics)
