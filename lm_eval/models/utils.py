@@ -957,7 +957,7 @@ def postprocess_generated_text(
     """
     # Strip thinking content first so stop sequences apply to the response,
     # not to the reasoning trace (which often contains \n\n etc.)
-    if think_end_token:
+    if think_end_token and think_end_token in generation:
         generation = generation.split(think_end_token)[-1].lstrip()
     if stop:
         stop = [stop] if isinstance(stop, str) else stop

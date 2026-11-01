@@ -1,6 +1,11 @@
 import pytest
 
-from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
+from lm_eval.models.utils import (
+    maybe_truncate,
+    normalize_gen_kwargs,
+    postprocess_generated_text,
+    truncate_tokens,
+)
 
 
 class TestTruncateTokens:
@@ -299,3 +304,16 @@ class TestNormalizeGenKwargs:
         original_copy = original.copy()
         normalize_gen_kwargs(original)
         assert original == original_copy
+
+
+class TestPostprocessGeneratedText:
+    def test_preserves_generation_when_think_end_token_absent(self):
+        # lm-evaluation-harness#4458: the trailing lstrip ran on every
+        # generation, stripping the indentation a code-continuation task
+        # needs (HumanEval gen_prefix ends at the docstring).
+        generation = "\n\n    return max(l)"
+        assert postprocess_generated_text(generation, None, "</think>") == generation
+
+    def test_strips_reasoning_when_think_end_token_present(self):
+        generation = "<think>reasoning</think>\n\nanswer"
+        assert postprocess_generated_text(generation, None, "</think>") == "answer"

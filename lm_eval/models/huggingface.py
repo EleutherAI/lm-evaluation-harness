@@ -1689,11 +1689,16 @@ class HFLM(TemplateLM):
                     ]
                     if think_token_indices:
                         cont_toks = cont_toks[think_token_indices[-1] + 1 :]
+                else:
+                    think_token_indices = []
 
                 s = self.tok_decode(cont_toks)
 
-                # Strip leading whitespace if we removed thinking tokens
-                if isinstance(self.think_end_token, int):
+                # Strip leading whitespace only when a thinking trace was
+                # actually removed; otherwise the leading newline and
+                # indentation belong to the answer itself (a code-continuation
+                # task whose gen_prefix ends at the docstring).
+                if think_token_indices:
                     s = s.lstrip()
 
                 # Apply post-processing: remove stop sequences and string-based thinking tokens
