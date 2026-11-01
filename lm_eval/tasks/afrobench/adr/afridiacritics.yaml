@@ -6,7 +6,10 @@ task:
   - adr_prompt_4
   - adr_prompt_5
 aggregate_metric_list:
-  - metric: acc
+  - metric: bleu
+    aggregation: mean
+    weight_by_size: true
+  - metric: chrf
     aggregation: mean
     weight_by_size: true
 metadata:
