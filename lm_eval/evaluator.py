@@ -19,6 +19,7 @@ from lm_eval.evaluator_utils import (
     ResultAcc,
     _handle_back_comp,
     _log_selected_tasks,
+    _merge_rank_metrics,
     _process_results,
     get_sample_size,
     print_writeout,
@@ -692,13 +693,12 @@ def evaluate(
         all_metrics = lm.gather_object(rank_metrics, dst=0)
         if RANK == 0:
             for task_name, acc in eval_results_acc.items():
-                for metric_key in acc["raw_metrics"]:
-                    acc["raw_metrics"][metric_key] = list(
-                        itertools.chain.from_iterable(
-                            rank_data[task_name][metric_key]
-                            for rank_data in all_metrics  # type: ignore
-                        )
-                    )
+                acc["raw_metrics"] = defaultdict(
+                    list,
+                    _merge_rank_metrics(
+                        [rank_data[task_name] for rank_data in all_metrics]  # type: ignore
+                    ),
+                )
 
     if RANK == 0:
         res = _process_results(eval_results_acc, groups, bootstrap_iters)
