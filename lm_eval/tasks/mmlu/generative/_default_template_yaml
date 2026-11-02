@@ -19,14 +19,16 @@ metric_list:
 filter_list:
   - name: get_response
     filter:
-      # Filter everything after the first break line
-      - function: "regex"
-        regex_pattern: "^(.*?)(?=\\n|$)"
-      # Remove leading white spaces
-      - function: remove_whitespace
-      # function to ignore right white spaces or line breaks
-      - function: "regex"
-        regex_pattern: "^(.*?)\\s*$"
+      - function: "multi_choice_regex"
+        # Prefer an explicit last `Answer: B` / `the answer is B` marker over
+        # later option letters mentioned in the explanation. Otherwise keep
+        # the existing last-standalone-uppercase / whole-lowercase behavior.
+        # MultiChoiceRegexFilter.ignore_case affects its choice-text fallback,
+        # not this regex; the general standalone branch must stay uppercase-only
+        # so prose articles such as "a" cannot become answer A.
+        regex_pattern: "(?:(?s:^.*)(?i:\\banswer\\b(?:\\s+is)?\\s*:?\\s*)([A-Da-d])(?!\\w)(?s:.*$)|(?<!\\w)([A-D])(?!\\w)|^\\s*(?:(?i:answer):\\s*)?([a-d])(?:\\.\\s*\\d+)?\\s*$)"
+        group_select: -1
+        ignore_case: true
       - function: take_first
 metadata:
   version: 3.0
