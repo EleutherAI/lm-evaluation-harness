@@ -3,10 +3,12 @@
 from unittest.mock import Mock
 
 import pytest
+from jinja2.exceptions import TemplateError
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
 
 from lm_eval.models import trtllm_causallms
+
 
 UNK = "[UNK]"
 BOS = "[BOS]"
@@ -149,7 +151,9 @@ def test_chat_template_args_override_thinking_default(make_adapter, chat_tokeniz
     rendered = adapter.apply_chat_template([{"role": "user", "content": "hello"}])
 
     assert rendered == "user:hello|assistant:brief:False"
-    assert chat_tokenizer.apply_chat_template.call_args.kwargs["enable_thinking"] is False
+    assert (
+        chat_tokenizer.apply_chat_template.call_args.kwargs["enable_thinking"] is False
+    )
 
 
 def test_chat_template_retries_without_system_messages(
@@ -164,9 +168,7 @@ def test_chat_template_retries_without_system_messages(
         "{% endfor %}"
         "{% if add_generation_prompt %}assistant:{{ style }}:{{ enable_thinking }}{% endif %}"
     )
-    adapter = make_adapter(
-        enable_thinking=False, chat_template_args={"style": "brief"}
-    )
+    adapter = make_adapter(enable_thinking=False, chat_template_args={"style": "brief"})
     history = [
         {"role": "system", "content": "instructions"},
         {"role": "user", "content": "hello"},
@@ -182,6 +184,55 @@ def test_chat_template_retries_without_system_messages(
     assert history == original_history
     first_call, retry = chat_tokenizer.apply_chat_template.call_args_list
     assert first_call.args == (history,)
-    assert retry.args == ([message for message in history if message["role"] != "system"],)
+    assert retry.args == (
+        [message for message in history if message["role"] != "system"],
+    )
     assert retry.kwargs == first_call.kwargs
     assert "Removing the system role" in caplog.text
+
+
+def test_bos_probe_failure_disables_automatic_special_tokens(
+    make_adapter, tokenizer, monkeypatch
+):
+    with monkeypatch.context() as probe:
+        probe.setattr(
+            tokenizer, "decode", Mock(side_effect=ValueError("cannot decode"))
+        )
+        adapter = make_adapter()
+
+    assert adapter.add_bos_token is False
+    assert adapter.tok_encode("hello") == [3]
+
+
+def test_chat_template_does_not_retry_unrelated_errors(make_adapter, chat_tokenizer):
+    adapter = make_adapter()
+    error = ValueError("invalid tokenizer configuration")
+    chat_tokenizer.apply_chat_template.side_effect = error
+
+    with pytest.raises(ValueError, match="invalid tokenizer configuration") as caught:
+        adapter.apply_chat_template([{"role": "user", "content": "hello"}])
+
+    assert caught.value is error
+    assert chat_tokenizer.apply_chat_template.call_count == 1
+
+
+def test_chat_template_propagates_failure_of_the_system_free_retry(
+    make_adapter, chat_tokenizer
+):
+    adapter = make_adapter()
+    retry_error = TemplateError("user role is also unsupported")
+    chat_tokenizer.apply_chat_template.side_effect = [
+        TemplateError("system role is unsupported"),
+        retry_error,
+    ]
+
+    with pytest.raises(TemplateError, match="user role is also unsupported") as caught:
+        adapter.apply_chat_template(
+            [
+                {"role": "system", "content": "instructions"},
+                {"role": "user", "content": "hello"},
+            ]
+        )
+
+    assert caught.value is retry_error
+    assert chat_tokenizer.apply_chat_template.call_count == 2
