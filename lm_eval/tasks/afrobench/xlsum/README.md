@@ -32,3 +32,7 @@ HomePage: https://github.com/csebuetnlp/xl-sum
     pages = "4693--4703",
 }
 ```
+
+### Changelog
+
+- Version 1.0 -> 2.0 (`xlsum_prompt_{1,2,3}`): ROUGE-L now uses a Unicode-aware tokenizer. The default `rouge_score` tokenizer keeps only `[a-z0-9]`, so Amharic, Arabic, Telugu and Tigrinya scored 0 and words with diacritics or extra letters (e.g. Yoruba, Igbo, Hausa `ƙ`) were split into ASCII fragments. ASCII-only text is tokenized exactly as before.
