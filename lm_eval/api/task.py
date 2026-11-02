@@ -441,7 +441,7 @@ class Task(abc.ABC):
     @classmethod
     def count_words(cls, doc):
         """Downstream loglikelihood_rolling perplexity tasks with custom word boundaries should override this!"""
-        return len(re.split(r"\s+", doc))
+        return len([word for word in re.split(r"\s+", doc) if word])
 
     @utils.positional_deprecated
     def fewshot_context(self, doc, num_fewshot, rnd=None, description=None, **kwargs):
@@ -1805,4 +1805,4 @@ class PerplexityTask(Task):
     @classmethod
     def count_words(cls, doc) -> int:
         """Downstream tasks with custom word boundaries should override this!"""
-        return len(re.split(r"\s+", doc))
+        return len([word for word in re.split(r"\s+", doc) if word])
