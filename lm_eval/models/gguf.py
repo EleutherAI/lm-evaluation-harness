@@ -1,4 +1,5 @@
 import logging
+import math
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -16,8 +17,13 @@ logger = logging.getLogger(__name__)
 
 # logit bias used to force the server to sample a specific token. llama.cpp
 # still reports the token's *pre-sampling* logprob and an unbiased
-# top_logprobs list, so this yields exact teacher-forced loglikelihoods.
+# top_logprobs list, so this yields exact teacher-forced loglikelihoods,
+# provided the server returns the same logprobs for identical requests
+# (see GGUFLM._check_logprobs and issue #4476).
 _FORCE_TOKEN_BIAS = 100
+
+# number of identical scoring requests sent by the start-of-run logprob check
+_LOGPROB_CHECK_REPEATS = 5
 
 
 @register_model("gguf", "ggml")
@@ -40,6 +46,14 @@ class GGUFLM(LM):
     override it with `parallel=<N>`. Note that llama-server only processes
     as many requests simultaneously as it has slots, so values above the
     server's slot count mostly add queueing on the server side.
+
+    Loglikelihood scores are only repeatable if the server returns the same
+    logprobs for identical requests. Before the first loglikelihood batch,
+    the first scoring request with a non-empty answer is sent several times
+    with prompt caching off, and a warning is logged if the logprobs differ
+    by more than `logprob_check_tol` (default 0.01). Set
+    `logprob_check=error` to stop the run instead, or `logprob_check=off` to
+    skip the check. This is a start-of-run smoke test, not a guarantee.
     """
 
     def __init__(
@@ -51,6 +65,8 @@ class GGUFLM(LM):
         timeout=300,
         temperature=0.0,
         parallel=None,
+        logprob_check="warn",
+        logprob_check_tol=0.01,
         **kwargs,
     ):
         super().__init__()
@@ -74,6 +90,27 @@ class GGUFLM(LM):
         self._resolved_parallel = None
         self._tok_cache = {}
         self._tok_lock = threading.Lock()
+        # --model_args turns "true"/"false" into booleans
+        if logprob_check is True:
+            logprob_check = "warn"
+        elif logprob_check is False:
+            logprob_check = "off"
+        if logprob_check not in ("warn", "error", "off"):
+            raise ValueError(
+                "`logprob_check` must be 'warn', 'error' or 'off', "
+                f"got {logprob_check!r}"
+            )
+        logprob_check_tol = float(logprob_check_tol)
+        if not (math.isfinite(logprob_check_tol) and logprob_check_tol >= 0):
+            raise ValueError(
+                "`logprob_check_tol` must be a finite number >= 0, "
+                f"got {logprob_check_tol!r}"
+            )
+        self.logprob_check = logprob_check
+        self.logprob_check_tol = logprob_check_tol
+        self._logprob_checked = False
+        self._logprob_check_result = None
+        self._props = None
 
     def _post_with_retries(self, url, payload, retries=3, delay=5):
         for _ in range(retries):
@@ -102,20 +139,33 @@ class GGUFLM(LM):
             self._tok_cache[key] = ids
         return ids
 
+    def _get_props(self):
+        """Query the server's /props endpoint; a successful reply is cached. Returns {} if unavailable."""
+        if self._props is None:
+            try:
+                params = {"model": self.model} if self.model is not None else None
+                response = requests.get(
+                    f"{self.server_url}/props", params=params, timeout=10
+                )
+                response.raise_for_status()
+                props = response.json()
+                if isinstance(props, dict):
+                    self._props = props
+            except (RequestException, ValueError) as e:
+                logger.debug("Could not query /props: %s", e)
+        return self._props or {}
+
     def _detect_total_slots(self):
         """Query the server's /props endpoint for its slot count (llama-server's `--parallel` setting). Returns None if unavailable."""
-        try:
-            params = {"model": self.model} if self.model is not None else None
-            response = requests.get(
-                f"{self.server_url}/props", params=params, timeout=10
-            )
-            response.raise_for_status()
-            total_slots = response.json().get("total_slots")
-            if isinstance(total_slots, int) and total_slots > 0:
-                return total_slots
-        except (RequestException, ValueError) as e:
-            logger.debug("Could not query /props for slot count: %s", e)
+        total_slots = self._get_props().get("total_slots")
+        if isinstance(total_slots, int) and total_slots > 0:
+            return total_slots
         return None
+
+    def _get_server_build(self):
+        """Query the server's /props endpoint for its build string (`build_info`). Returns "" if unavailable."""
+        build_info = self._get_props().get("build_info")
+        return build_info if isinstance(build_info, str) else ""
 
     def _resolve_parallel(self):
         if self._resolved_parallel is None:
@@ -131,6 +181,72 @@ class GGUFLM(LM):
                         total_slots,
                     )
         return self._resolved_parallel
+
+    def _check_logprobs(self, args_list):
+        """Send the first scoring request with a non-empty answer several times and compare the logprobs.
+
+        Teacher forcing reads the server's reported logprob as the true score,
+        which assumes identical requests get identical logprobs. Runs once,
+        before the first loglikelihood batch, with prompt caching off so every
+        repeat does the same work. This is a smoke test: it sends one request
+        at the start of the run, so differences that depend on the prompt, on
+        other requests running at the same time, on prompt caching, or that
+        start later in the run are not caught.
+        """
+        if self._logprob_checked or self.logprob_check == "off":
+            return
+        for context, continuation in args_list:
+            context_ids, continuation_ids = self._split_ids(context, continuation)
+            if continuation_ids:
+                break
+        else:
+            logger.debug("Skipping logprob check: no request has continuation tokens.")
+            return
+        logprobs = []
+        for _ in range(_LOGPROB_CHECK_REPEATS):
+            logprobs.append(
+                self._score_position(
+                    context_ids, continuation_ids[0], cache_prompt=False
+                )[0]
+            )
+        # mark done only once the probe has run, so a batch with no answer
+        # tokens or a failed probe request leaves the check for a later batch
+        self._logprob_checked = True
+        spread = max(logprobs) - min(logprobs)
+        within_tolerance = spread <= self.logprob_check_tol
+        self._logprob_check_result = {
+            "mode": self.logprob_check,
+            "repeats": _LOGPROB_CHECK_REPEATS,
+            "spread": spread,
+            "tolerance": self.logprob_check_tol,
+            "within_tolerance": within_tolerance,
+        }
+        if within_tolerance:
+            logger.info(
+                "llama-server logprob check: %d identical scoring requests, spread %.3g (tolerance %g).",
+                _LOGPROB_CHECK_REPEATS,
+                spread,
+                self.logprob_check_tol,
+            )
+            return
+        message = (
+            f"llama-server returned different logprobs for {_LOGPROB_CHECK_REPEATS} "
+            f"identical scoring requests at the start of the run (spread "
+            f"{spread:.4f}, tolerance {self.logprob_check_tol:g}, server build "
+            f"{self._get_server_build() or 'unknown'}). The gguf backend assumes "
+            "identical requests get identical logprobs, so loglikelihood "
+            "results from this server may not be repeatable. See the GGUF "
+            "section of the lm-evaluation-harness README."
+        )
+        if self.logprob_check == "error":
+            raise RuntimeError(
+                message + " Set `logprob_check=warn` to continue anyway, or "
+                "`logprob_check=off` to skip the check."
+            )
+        logger.warning(
+            message + " Set `logprob_check=error` to stop on this, or "
+            "`logprob_check=off` to skip the check."
+        )
 
     def _map_requests(self, fn, items, disable_tqdm):
         """Apply fn to each item, preserving order, using a thread pool when parallelism is enabled."""
@@ -171,7 +287,7 @@ class GGUFLM(LM):
             request["stop"] = stop
         return self._post_with_retries(self.completions_url, request)
 
-    def _score_position(self, prompt_ids, target_id, id_slot=None):
+    def _score_position(self, prompt_ids, target_id, id_slot=None, cache_prompt=None):
         """Score one continuation token given its natural preceding context.
 
         Sends the preceding tokens as a token-id array (exact control over
@@ -193,6 +309,8 @@ class GGUFLM(LM):
             request["model"] = self.model
         if id_slot is not None:
             request["id_slot"] = id_slot
+        if cache_prompt is not None:
+            request["cache_prompt"] = cache_prompt
         response = self._post_with_retries(self.completions_url, request)
         if not (response and response.get("choices")):
             raise RuntimeError(f"Invalid scoring response: {response}")
@@ -210,9 +328,8 @@ class GGUFLM(LM):
         )
         return entry["logprob"], is_greedy
 
-    def _loglikelihood_one(self, item):
-        args, id_slot = item
-        context, continuation = args
+    def _split_ids(self, context, continuation):
+        """Tokenize a (context, continuation) pair the way scoring does; return (context_ids, continuation_ids)."""
         # Migrate trailing whitespace from context to continuation (match HF backend)
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
@@ -222,7 +339,11 @@ class GGUFLM(LM):
         # (BPE-correct: matches the HF backend's tok_encode approach)
         whole_ids = self._tokenize(context + continuation, add_special=True)
         context_ids = self._tokenize(context, add_special=True)
-        continuation_ids = whole_ids[len(context_ids) :]
+        return context_ids, whole_ids[len(context_ids) :]
+
+    def _loglikelihood_one(self, item):
+        args, id_slot = item
+        context_ids, continuation_ids = self._split_ids(*args)
         if not continuation_ids:
             return (0.0, True)
         total = 0.0
@@ -259,6 +380,7 @@ class GGUFLM(LM):
             return []
         parallel = self._resolve_parallel()
         args_list = [req.args for req in requests]
+        self._check_logprobs(args_list)
         slots = self._assign_slots_by_context(args_list, parallel)
         return self._map_requests(
             self._loglikelihood_one,
@@ -305,3 +427,10 @@ class GGUFLM(LM):
         raise NotImplementedError(
             "loglikelihood_rolling not yet supported for GGUF models"
         )
+
+    def get_model_info(self) -> dict:
+        """Server build and logprob check result, saved in the results file for reproducibility."""
+        return {
+            "llama_server_build": self._get_server_build(),
+            "logprob_check": self._logprob_check_result or {"mode": self.logprob_check},
+        }
