@@ -177,7 +177,8 @@ def load_yaml(
         _seen = set()
     if path in _seen:
         raise ValueError(f"Include cycle at {path}")
-    _seen.add(path)
+    # Track only the current include chain, so sibling includes may share a base.
+    _seen = _seen | {path}
 
     loader_cls = _make_loader(path.parent, resolve_funcs=resolve_func)
     with path.open("rb") as fh:
