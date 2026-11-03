@@ -201,6 +201,38 @@ task: b
         with pytest.raises(ValueError, match="Include cycle"):
             load_yaml(tmp_path / "a.yaml")
 
+    def test_load_yaml_shared_include_is_not_a_cycle(self, tmp_path):
+        """Two includes that share a base file are not a cycle"""
+        base = """
+output_type: generate_until
+dataset_path: base_dataset
+"""
+        mixin_a = """
+include: base.yaml
+description: from_a
+"""
+        mixin_b = """
+include: base.yaml
+target_delimiter: ":"
+"""
+        child = """
+include:
+  - mixin_a.yaml
+  - mixin_b.yaml
+task: diamond_task
+"""
+        (tmp_path / "base.yaml").write_text(base)
+        (tmp_path / "mixin_a.yaml").write_text(mixin_a)
+        (tmp_path / "mixin_b.yaml").write_text(mixin_b)
+        (tmp_path / "child.yaml").write_text(child)
+
+        cfg = load_yaml(tmp_path / "child.yaml")
+
+        assert cfg["task"] == "diamond_task"
+        assert cfg["dataset_path"] == "base_dataset"
+        assert cfg["description"] == "from_a"
+        assert cfg["target_delimiter"] == ":"
+
 
 # =============================================================================
 # TaskIndex Tests
