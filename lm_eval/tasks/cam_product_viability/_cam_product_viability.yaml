@@ -1,0 +1,13 @@
+group: cam_product_viability_all
+task:
+  - cam_product_viability
+  - cam_product_viability_partial
+aggregate_metric_list:
+  - metric: verdict_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: line_exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
