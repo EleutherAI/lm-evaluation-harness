@@ -26,7 +26,14 @@ class TakeFirstFilter(Filter):
 @register_filter("take_first_k")
 class TakeKFilter(Filter):
     def __init__(self, **kwargs) -> None:
-        self.k = kwargs.pop("k")
+        k = kwargs.pop("k", None)
+        if not isinstance(k, int) or isinstance(k, bool) or k < 1:
+            raise ValueError(
+                "The `take_first_k` filter requires a positive integer `k` in its "
+                'config, e.g. {"function": "take_first_k", "k": 2}. '
+                f"Received: {k!r}."
+            )
+        self.k = k
 
         super().__init__(**kwargs)
 
