@@ -62,9 +62,9 @@ def bits_per_byte(items):
 def f1_score(items):
     from sklearn.metrics import f1_score
 
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
+    # An empty items list (every doc filtered out, or limit=0) used to make the
+    # unpacking itself raise IndexError before sklearn could say what was wrong.
+    golds, preds = zip(*items) if items else ((), ())
     fscore = f1_score(golds, preds)
 
     return np.max(fscore)
@@ -74,9 +74,9 @@ def f1_score(items):
 def matthews_corrcoef(items):
     from sklearn.metrics import matthews_corrcoef
 
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
+    # An empty items list (every doc filtered out, or limit=0) used to make the
+    # unpacking itself raise IndexError before sklearn could say what was wrong.
+    golds, preds = zip(*items) if items else ((), ())
     return matthews_corrcoef(golds, preds)
 
 
