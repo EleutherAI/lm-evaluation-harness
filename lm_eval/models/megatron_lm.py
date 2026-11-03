@@ -148,7 +148,9 @@ class MegatronLMEval(LM):
         pipeline_model_parallel_size: Pipeline parallelism degree (default: 1)
         expert_model_parallel_size: Expert parallelism degree for MoE models (default: 1)
         seq_length: Maximum sequence length
-        micro_batch_size: Micro batch size (optional, uses checkpoint value if not specified)
+        micro_batch_size: Micro batch size (default: 1)
+        batch_size: Harness batch size; overrides micro_batch_size when supplied.
+            Must be a positive integer; automatic sizing is not supported.
         max_gen_toks: Maximum number of tokens to generate
         use_dist_ckpt: Whether to use distributed checkpoint format (auto-detected)
         extra_args: Extra MCore command line arguments, space-separated
@@ -177,12 +179,25 @@ class MegatronLMEval(LM):
         num_attention_heads: int | None = None,
         ffn_hidden_size: int | None = None,
         num_query_groups: int | None = None,
+        batch_size: int | str | None = None,
         **kwargs,
     ):
         super().__init__()
 
         self._max_length = seq_length
-        self._batch_size = micro_batch_size if micro_batch_size is not None else 1
+        effective_batch_size = (
+            batch_size if batch_size is not None else micro_batch_size
+        )
+        try:
+            self._batch_size = (
+                int(effective_batch_size) if effective_batch_size is not None else 1
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "Megatron batch_size must be a positive integer; automatic sizing is not supported."
+            ) from exc
+        if self._batch_size < 1:
+            raise ValueError("Megatron batch_size must be a positive integer.")
         self._max_gen_toks = max_gen_toks
         self._load_path = load
         self._ckpt_step = ckpt_step
@@ -229,7 +244,7 @@ class MegatronLMEval(LM):
             pipeline_model_parallel_size=pipeline_model_parallel_size,
             expert_model_parallel_size=expert_model_parallel_size,
             seq_length=seq_length,
-            micro_batch_size=micro_batch_size,
+            micro_batch_size=self._batch_size,
             use_dist_ckpt=use_dist_ckpt,
             extra_args=extra_args,
             num_layers=num_layers,
