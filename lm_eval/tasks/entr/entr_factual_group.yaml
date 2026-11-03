@@ -1,0 +1,6 @@
+group: entr_factual
+task:
+  - entr_factual_five_choice_fixed
+  - entr_factual_five_choice_observed_error
+metadata:
+  version: 1.0
