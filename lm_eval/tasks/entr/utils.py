@@ -12,7 +12,7 @@ from datasets import Dataset, DatasetDict
 from huggingface_hub import hf_hub_download
 
 HELDOUT_DATASET_ID = "umutyesildal/entr-eval-heldout-ids"
-HELDOUT_DATASET_REVISION = "427c5018d34e9e7864cbb77ab1e93cba2560ec69"
+HELDOUT_DATASET_REVISION = "fe6bd502be0f6154ca9a6e4fdba06c4c5447c495"
 VNGRS_DATASET_ID = "vngrs-ai/vngrs-web-corpus"
 VNGRS_REVISION = "ee5c6201ee84457a18182bfc483a7d8a7f3655ba"
 SOURCE_SHARDS_FILE = "data/vngrs_source_shards.json"

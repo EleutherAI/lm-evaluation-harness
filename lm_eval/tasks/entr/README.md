@@ -23,12 +23,15 @@ Neither group defines an aggregate metric.
 - `entr_trwiki_tr`: rolling log-likelihood on the pinned Turkish Wikipedia validation split.
 - `entr_oscar_tr_heldout`: rolling log-likelihood on text reconstructed from the pinned VNGRS
   source shards and the published OSCAR held-out locator.
+- `entr_mc4_tr_heldout`: rolling log-likelihood on text reconstructed from the pinned VNGRS
+  source shards and the mC4 locator mapped from the historical held-out ID file.
 - `entr_factual_five_choice_fixed`: fixed five-candidate synthetic-world panel.
 - `entr_factual_five_choice_observed_error`: outcome-informed exploratory challenge pool; it is not
   held-out validation.
 
-The generic VNGRS loader accepts both `oscar` and `mc4` corpus identifiers, but there is **no mC4
-task YAML** because the mC4 locator is not published.
+The generic VNGRS loader accepts both `oscar` and `mc4` corpus identifiers. The mC4 locator is
+published at the pinned held-out-ID dataset revision; its IDs were mapped from the historical
+held-out file, not recomputed.
 
 ## Metrics and interpretation
 
@@ -59,8 +62,9 @@ are separate dimensions. There is no composite or overall Turkish score.
 - `entr_trwiki_tr`: `umutyesildal/entr-eval-trwiki-validation` at revision
   `635c45b9f1b9ae0f7e76ed2f7f411bd2c63307c0`, CC BY-SA 4.0; attribute Turkish Wikipedia and
   Wikimedia contributors.
-- `entr_oscar_tr_heldout`: locator rows from `umutyesildal/entr-eval-heldout-ids` at revision
-  `427c5018d34e9e7864cbb77ab1e93cba2560ec69`, CC BY-NC-SA 4.0. The repository hosts IDs only;
+- `entr_oscar_tr_heldout` and `entr_mc4_tr_heldout`: locator rows from
+  `umutyesildal/entr-eval-heldout-ids` at revision `fe6bd502be0f6154ca9a6e4fdba06c4c5447c495`,
+  CC BY-NC-SA 4.0. The repository hosts IDs only;
   evaluation text is rebuilt from `vngrs-ai/vngrs-web-corpus` at revision
   `ee5c6201ee84457a18182bfc483a7d8a7f3655ba`. The OSCAR locator references only 2 of the 32
   source shards (`data/train-00004-of-00284.parquet` and `data/train-00013-of-00284.parquet`,

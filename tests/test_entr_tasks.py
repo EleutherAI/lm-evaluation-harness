@@ -243,7 +243,7 @@ def test_vngrs_loader_fails_on_locator_row_missing_from_parquet(tmp_path, monkey
         utils.load_vngrs_heldout("oscar")
 
 
-def test_vngrs_loader_is_corpus_generic_but_m4_has_no_task_yaml(tmp_path, monkeypatch):
+def test_vngrs_loader_is_corpus_generic_for_m4_locator(tmp_path, monkeypatch):
     fixture = _fixture(tmp_path, corpus="mc4")
     _patch_fixture_constants(monkeypatch, fixture)
     result = utils.load_vngrs_heldout(entr_corpus="mc4")
@@ -276,6 +276,7 @@ def test_entr_task_and_group_names_are_indexed_without_loading_datasets():
     expected_tasks = {
         "entr_trwiki_tr",
         "entr_oscar_tr_heldout",
+        "entr_mc4_tr_heldout",
         "entr_factual_five_choice_fixed",
         "entr_factual_five_choice_observed_error",
     }
@@ -288,7 +289,6 @@ def test_entr_task_and_group_names_are_indexed_without_loading_datasets():
             assert entry.kind == Kind.TASK
         else:
             assert entry.kind == Kind.GROUP
-    assert "entr_mc4_tr_heldout" not in manager.task_index
     upstream_paths = [
         path
         for path in (REPO_ROOT / "lm_eval/tasks").iterdir()

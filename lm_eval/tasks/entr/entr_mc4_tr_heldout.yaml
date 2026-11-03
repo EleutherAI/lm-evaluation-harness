@@ -1,0 +1,14 @@
+task: entr_mc4_tr_heldout
+custom_dataset: !function utils.load_vngrs_heldout
+test_split: test
+output_type: loglikelihood_rolling
+doc_to_text: ""
+doc_to_target: "{{text}}"
+process_results: !function utils.process_results
+metric_list:
+  - metric: word_perplexity
+  - metric: byte_perplexity
+  - metric: bits_per_byte
+metadata:
+  version: 1.0
+  entr_corpus: mc4

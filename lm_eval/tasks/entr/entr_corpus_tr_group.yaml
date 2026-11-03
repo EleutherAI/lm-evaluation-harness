@@ -2,5 +2,6 @@ group: entr_corpus_tr
 task:
   - entr_trwiki_tr
   - entr_oscar_tr_heldout
+  - entr_mc4_tr_heldout
 metadata:
   version: 1.0
