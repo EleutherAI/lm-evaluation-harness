@@ -233,6 +233,15 @@ def simple_parse_args_string(args_string: str | None) -> dict:
     if not args_string:
         return {}
     arg_list = [arg for arg in args_string.split(",") if arg]
+    # A bare token such as "trust_remote_code" used to be parsed as an empty
+    # value, silently turning a flag off (or on) instead of reporting the typo.
+    malformed = [arg for arg in arg_list if "=" not in arg or not arg.split("=")[0]]
+    if malformed:
+        raise ValueError(
+            f"Malformed argument string: {args_string!r}. Expected comma-separated "
+            f"key=value pairs, but got entries missing '=' or with an empty key: "
+            f"{malformed}."
+        )
     args_dict = {
         kv[0]: handle_arg_string("=".join(kv[1:]))
         for kv in [arg.split("=") for arg in arg_list]
