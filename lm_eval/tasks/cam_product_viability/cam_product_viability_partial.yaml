@@ -1,0 +1,35 @@
+tag:
+  - money_math
+task: cam_product_viability_partial
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: https://raw.githubusercontent.com/kau17033/cam-pathways-65m/main/benchmark/lm-eval/data/cam_product_viability.jsonl
+output_type: generate_until
+test_split: test
+process_docs: !function utils.process_docs_partial
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{target}}"
+process_results: !function utils.process_results_partial
+metric_list:
+  - metric: verdict_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: line_exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: missing_named_rate
+    aggregation: mean
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 64
+repeats: 1
+num_fewshot: 0
+metadata:
+  version: 1.0
