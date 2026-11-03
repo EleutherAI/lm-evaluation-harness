@@ -159,23 +159,20 @@ class MultiChoiceRegexFilter(RegexFilter):
     ) -> list[list[str]]:
         import unicodedata
 
-        def find_match(regex, resp, convert_dict: dict[str, str] | None = None):
-            if convert_dict is None:
-                convert_dict = {}
+        def find_match(regex, resp, convert_dict=None):
             if not isinstance(resp, str):
                 resp = ""
-            match = regex.findall(resp)
-            if match:
-                match = match[self.group_select]
-                if isinstance(match, tuple):
-                    non_empty = [m for m in match if m]
-                    if not non_empty:
-                        return ""
-                    match = non_empty[0]
-                match = match.strip()
-                if match and match in convert_dict:
-                    match = convert_dict[match]
-            return match
+            matches = regex.findall(resp)
+            if not matches:
+                return ""
+            match = matches[self.group_select]
+            if isinstance(match, tuple):
+                non_empty = [item for item in match if item]
+                if not non_empty:
+                    return ""
+                match = non_empty[0]
+            match = match.strip()
+            return convert_dict.get(match, match) if convert_dict else match
 
         punct_tbl = dict.fromkeys(
             i
@@ -185,63 +182,131 @@ class MultiChoiceRegexFilter(RegexFilter):
 
         def filter_ignores(st):
             if self.regexes_to_ignore is not None:
-                for s in self.regexes_to_ignore:
-                    st = re.sub(s, "", st)
-
+                for pattern in self.regexes_to_ignore:
+                    st = re.sub(pattern, "", st)
             if self.ignore_case:
                 st = st.lower()
-
             if self.ignore_punctuation:
-                # https://stackoverflow.com/a/266162
                 st = st.translate(punct_tbl)
             return st
 
+        def normalize_with_spans(text):
+            chars = [(char, i, i + 1) for i, char in enumerate(text)]
+
+            if self.regexes_to_ignore is not None:
+                for pattern in self.regexes_to_ignore:
+                    current = "".join(char for char, _, _ in chars)
+                    removed = set()
+                    for found in re.finditer(pattern, current):
+                        removed.update(range(found.start(), found.end()))
+                    chars = [
+                        item for i, item in enumerate(chars) if i not in removed
+                    ]
+
+            normalized = []
+            for char, start, end in chars:
+                value = char.lower() if self.ignore_case else char
+                for item in value:
+                    if self.ignore_punctuation and unicodedata.category(
+                        item
+                    ).startswith("P"):
+                        continue
+                    normalized.append((item, start, end))
+
+            return "".join(item[0] for item in normalized), normalized
+
         filtered_resps = []
 
-        for r, doc in zip(resps, docs, strict=True):
+        for responses, doc in zip(resps, docs, strict=True):
             fallback_regexes = []
             choice_to_alpha = {}
             next_alpha = "A"
-
             without_paren_fallback_regexes = []
             without_paren_to_target = {}
 
-            choices = doc["choices"]
-            for c in choices:
-                m = filter_ignores(c.strip())
-                fallback_regexes.append(f"{re.escape(m)}")
-                choice_to_alpha[m] = f"({next_alpha})"
-
+            for choice in doc["choices"]:
+                original_choice = choice.strip()
+                normalized_choice = filter_ignores(original_choice)
+                fallback_regexes.append(re.escape(normalized_choice))
+                choice_to_alpha.setdefault(normalized_choice, []).append(
+                    (original_choice, f"({next_alpha})")
+                )
                 without_paren_fallback_regexes.append(next_alpha)
                 without_paren_to_target[next_alpha] = f"({next_alpha})"
-
                 next_alpha = chr(ord(next_alpha) + 1)
-            # Sort branches longest-first so a choice whose text is a prefix of another
-            # choice can't shadow it: regex alternation is leftmost-wins, so without this
-            # "Guilty" would match inside "Guilty of Romance". choice_to_alpha is keyed by
-            # the choice text, so branch order does not affect the letter assignment.
+
             fallback_regex = re.compile(
                 "|".join(sorted(fallback_regexes, key=len, reverse=True))
             )
-            without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
-                rf":[\s]*({without_paren_fallback_regex})"
+                rf":[\s]*({'|'.join(without_paren_fallback_regexes)})"
             )
 
             filtered = []
-            for resp in r:
-                match = find_match(self.regex, resp)
+
+            for response in responses:
+                match = find_match(self.regex, response)
+
                 if not match:
-                    match = find_match(
-                        fallback_regex, filter_ignores(resp), choice_to_alpha
+                    normalized_response, spans = normalize_with_spans(
+                        response if isinstance(response, str) else ""
                     )
+                    occurrences = list(fallback_regex.finditer(normalized_response))
+
+                    if occurrences:
+                        selected = occurrences[self.group_select]
+                        start, end = selected.span()
+                        if start < end:
+                            original_start = spans[start][1]
+                            original_end = spans[end - 1][2]
+
+                            candidates = choice_to_alpha.get(
+                                selected.group().strip(), []
+                            )
+
+                            # Include one leading punctuation character only
+                            # when it matches a candidate choice's first character.
+                            if original_start > 0:
+                                preceding = response[original_start - 1]
+                                if any(
+                                    choice.startswith(preceding)
+                                    and unicodedata.category(preceding).startswith("P")
+                                    for choice, _ in candidates
+                                ):
+                                    original_start -= 1
+
+                            original_match = response[
+                                original_start:original_end
+                            ].strip()
+
+                            exact = [
+                                label
+                                for choice, label in candidates
+                                if choice == original_match
+                            ]
+                            insensitive = [
+                                label
+                                for choice, label in candidates
+                                if choice.casefold() == original_match.casefold()
+                            ]
+
+                            if exact:
+                                match = exact[0]
+                            elif insensitive:
+                                match = insensitive[0]
+
                     if not match:
                         match = find_match(
-                            without_paren_fallback_regex, resp, without_paren_to_target
+                            without_paren_fallback_regex,
+                            response,
+                            without_paren_to_target,
                         )
+
                 if not match:
                     match = self.fallback
+
                 filtered.append(match)
+
             filtered_resps.append(filtered)
 
         return filtered_resps
