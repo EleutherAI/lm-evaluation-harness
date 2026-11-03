@@ -87,6 +87,7 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
 
 - `seed` (int, optional):
   - Random seed for reproducibility.
+  - Repeats of a sampled request (task `repeats` > 1 with `temperature` > 0) are sent with `seed`, `seed + 1`, ..., so each repeat is an independent sample. A `seed` in the task's `generation_kwargs` replaces this base seed.
   - Default is 1234.
 
 - `add_bos_token` (bool, optional):
