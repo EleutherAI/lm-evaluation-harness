@@ -97,3 +97,91 @@ def test_bbh_multi_choice_regex_prefix_choice_does_not_shadow_longer_choice(vari
 
     assert filt.apply([["The answer is Batman Returns"]], docs) == [["(B)"]]
     assert filt.apply([["The answer is Batman"]], docs) == [["(A)"]]
+
+
+@pytest.mark.parametrize(
+    ("choices", "response", "expected"),
+    [
+        (["-5", "5", "10", "-10"], "So x = -5.", "(A)"),
+        (["-5", "5", "10", "-10"], "So x = 5.", "(B)"),
+        (["15", "1.5", "2", "3"], "The value is 1.5.", "(B)"),
+        (["Na", "NA", "K", "Li"], "The element is Na", "(A)"),
+    ],
+)
+def test_multi_choice_regex_normalization_collisions(
+    choices, response, expected
+):
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=-1,
+        ignore_case=True,
+        ignore_punctuation=True,
+    )
+    assert filt.apply([[response]], [{"choices": choices}]) == [[expected]]
+
+
+def test_multi_choice_regex_collision_uses_selected_match():
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=-1,
+        ignore_case=True,
+        ignore_punctuation=True,
+    )
+    choices = ["-5", "5", "10", "-10"]
+    response = "Not -5; the answer is 5."
+    assert filt.apply([[response]], [{"choices": choices}]) == [["(B)"]]
+
+
+def test_multi_choice_regex_collision_prefers_exact_case():
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=-1,
+        ignore_case=True,
+        ignore_punctuation=True,
+    )
+    choices = ["Na", "NA", "K", "Li"]
+    assert filt.apply([["The element is NA"]], [{"choices": choices}]) == [["(B)"]]
+
+
+def test_multi_choice_regex_collision_falls_back_to_first_case_insensitive_match():
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=-1,
+        ignore_case=True,
+        ignore_punctuation=True,
+    )
+    choices = ["Na", "NA", "K", "Li"]
+    assert filt.apply([["The element is na"]], [{"choices": choices}]) == [["(A)"]]
+
+
+def test_multi_choice_regex_collision_does_not_absorb_unrelated_punctuation():
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=-1,
+        ignore_case=True,
+        ignore_punctuation=True,
+    )
+    choices = ["-5", "5", "10", "-10"]
+    assert filt.apply([["The result is ...5."]], [{"choices": choices}]) == [
+        ["(B)"]
+    ]
+
+
+@pytest.mark.parametrize(
+    ("group_select", "response", "expected"),
+    [
+        (0, "First -5; then 5.", "(A)"),
+        (-1, "First -5; then 5.", "(B)"),
+    ],
+)
+def test_multi_choice_regex_collision_respects_group_select(
+    group_select, response, expected
+):
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=group_select,
+        ignore_case=True,
+        ignore_punctuation=True,
+    )
+    choices = ["-5", "5", "10", "-10"]
+    assert filt.apply([[response]], [{"choices": choices}]) == [[expected]]
