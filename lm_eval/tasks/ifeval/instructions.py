@@ -564,9 +564,13 @@ class SectionChecker(Instruction):
           True if the number of sections in the response is greater than or equal to
           the minimum number of sections; otherwise, False.
         """
-        section_splitter_patten = r"\s?" + self._section_spliter + r"\s?\d+\s?"
-        sections = re.split(section_splitter_patten, value)
-        num_sections = len(sections) - 1
+        section_pattern = (
+            r"^[^\w\n]*"
+            + re.escape(self._section_spliter)
+            + r"[ \t]*\d+\b"
+        )
+        sections = re.findall(section_pattern, value, flags=re.MULTILINE)
+        num_sections = len(sections)
         return num_sections >= self._num_sections
 
 
