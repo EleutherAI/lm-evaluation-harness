@@ -1,0 +1,18 @@
+task: entr_trwiki_tr
+dataset_path: umutyesildal/entr-eval-trwiki-validation
+dataset_kwargs:
+  revision: 635c45b9f1b9ae0f7e76ed2f7f411bd2c63307c0
+  data_files:
+    test: data/validation_documents.jsonl
+test_split: test
+output_type: loglikelihood_rolling
+doc_to_text: ""
+doc_to_target: "{{text}}"
+process_docs: !function utils.process_docs
+process_results: !function utils.process_results
+metric_list:
+  - metric: word_perplexity
+  - metric: byte_perplexity
+  - metric: bits_per_byte
+metadata:
+  version: 1.0
