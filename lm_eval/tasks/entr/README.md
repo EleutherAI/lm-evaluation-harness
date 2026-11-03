@@ -70,6 +70,10 @@ are separate dimensions. There is no composite or overall Turkish score.
   source shards (`data/train-00004-of-00284.parquet` and `data/train-00013-of-00284.parquet`,
   895,992,220 bytes in total), so the first cache fill downloads about 0.9 GB. The loader verifies
   every selected shard's size and SHA-256 before parsing.
+- `entr_mc4_tr_heldout` maps its 10,000 IDs from the historical held-out ID file; the split was not
+  recomputed. Its locator references 30 of 32 shards (8,606,323,208 bytes), so its first cache
+  fill downloads about 8.6 GB of source shards; plan HF cache storage accordingly. The source
+  license is CC BY-NC-SA 4.0.
 - Factual panels: `umutyesildal/entr-eval-factual-panels` at revision
   `3d07437e2fb73ad1819a29c00165dbcb2822ccf5`, MIT.
 
