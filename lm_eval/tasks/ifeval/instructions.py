@@ -565,7 +565,7 @@ class SectionChecker(Instruction):
           the minimum number of sections; otherwise, False.
         """
         section_pattern = (
-            r"^[ \t#*_>]*"
+            r"^[^\w\n]*"
             + re.escape(self._section_spliter)
             + r"[ \t]*\d+\b"
         )
