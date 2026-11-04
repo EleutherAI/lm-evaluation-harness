@@ -1052,20 +1052,18 @@ class ParagraphFirstWordCheck(Instruction):
             word of the specified paragraph is the same as required. Otherwise, false.
         """
 
-        paragraphs = re.split(r"\n\n", value)
+        # Blank segments from a leading break or a doubled separator are not
+        # paragraphs. The count already ignored them; the nth paragraph has to
+        # be chosen from that same list.
+        paragraphs = [
+            paragraph.strip()
+            for paragraph in re.split(r"\n\n", value)
+            if paragraph.strip()
+        ]
         num_paragraphs = len(paragraphs)
-
-        for paragraph in paragraphs:
-            if not paragraph.strip():
-                num_paragraphs -= 1
-
-        # check that index doesn't go out of bounds
-        if self._nth_paragraph <= num_paragraphs:
-            paragraph = paragraphs[self._nth_paragraph - 1].strip()
-            if not paragraph:
-                return False
-        else:
+        if self._nth_paragraph > num_paragraphs:
             return False
+        paragraph = paragraphs[self._nth_paragraph - 1]
 
         # Helper function to remove punctuation from a word
         def remove_punctuation(word):
