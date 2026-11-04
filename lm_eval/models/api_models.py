@@ -1,5 +1,6 @@
 import abc
 import asyncio
+import collections
 import copy
 import itertools
 import json
@@ -460,6 +461,8 @@ class TemplateAPI(TemplateLM):
     ) -> dict | None:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
+        # generate_until may set a per-request seed; send it as the payload seed
+        seed = gen_kwargs.pop("seed", self._seed) if gen_kwargs else self._seed
         try:
             response = requests.post(
                 self.base_url,
@@ -467,7 +470,7 @@ class TemplateAPI(TemplateLM):
                     self.create_message(messages),
                     generate=generate,
                     gen_kwargs=gen_kwargs,
-                    seed=self._seed,
+                    seed=seed,
                     eos=self.eos_string,
                     **kwargs,
                 ),
@@ -501,11 +504,13 @@ class TemplateAPI(TemplateLM):
     ) -> list[str] | list[tuple[float, bool]] | None:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
+        # generate_until may set a per-request seed; send it as the payload seed
+        seed = gen_kwargs.pop("seed", self._seed) if gen_kwargs else self._seed
         payload = self._create_payload(
             self.create_message(messages),
             generate=generate,
             gen_kwargs=gen_kwargs,
-            seed=self._seed,
+            seed=seed,
             **kwargs,
         )
         cache_method = "generate_until" if generate else "loglikelihood"
@@ -592,9 +597,11 @@ class TemplateAPI(TemplateLM):
         *,
         generate: bool = True,
         ctxlens: list[int] | None = None,
+        seeds: list[int | None] | None = None,
         **kwargs,
     ) -> list[list[str]] | list[list[tuple[float, bool]]]:
         ctxlens = ctxlens or [None] * len(requests)
+        seeds = seeds or [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent, ssl=self.verify_certificate)
         sem = asyncio.Semaphore(self._concurrent)
         async with ClientSession(
@@ -608,26 +615,34 @@ class TemplateAPI(TemplateLM):
                     f"Retry attempt {retry_state.attempt_number}"
                 ),
             )(self.amodel_call)
-            # Create tasks for each batch of request
-            tasks = [
-                asyncio.create_task(
-                    retry_(
-                        session=session,
-                        sem=sem,
-                        messages=message,
-                        cache_keys=cache_key,
-                        generate=generate,
-                        ctxlens=ctxlen,
+            # Create tasks for each batch of request. A payload carries one seed,
+            # so a batch only holds consecutive requests with the same seed.
+            tasks = []
+            for seed, run in itertools.groupby(
+                zip(requests, cache_keys, ctxlens, seeds, strict=True),
+                key=lambda x: x[3],
+            ):
+                task_kwargs = kwargs
+                if seed is not None:
+                    task_kwargs = {
                         **kwargs,
+                        "gen_kwargs": {**kwargs["gen_kwargs"], "seed": seed},
+                    }
+                for batch in chunks(list(run), n=self._batch_size):
+                    message, cache_key, ctxlen, _ = map(list, zip(*batch, strict=True))
+                    tasks.append(
+                        asyncio.create_task(
+                            retry_(
+                                session=session,
+                                sem=sem,
+                                messages=message,
+                                cache_keys=cache_key,
+                                generate=generate,
+                                ctxlens=ctxlen,
+                                **task_kwargs,
+                            )
+                        )
                     )
-                )
-                for message, cache_key, ctxlen in zip(
-                    chunks(requests, n=self._batch_size),
-                    chunks(cache_keys, n=self._batch_size),
-                    chunks(ctxlens, n=self._batch_size),
-                    strict=False,
-                )
-            ]
 
             return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
@@ -695,14 +710,37 @@ class TemplateAPI(TemplateLM):
 
         return re_ord.get_original(res)
 
+    def _seed_repeats(
+        self, requests: list[Instance], all_gen_kwargs: Iterable[dict]
+    ) -> list[dict]:
+        """Give each repeat of a sampled request its own seed.
+
+        The evaluator repeats a request by passing the same Instance `repeats`
+        times. Sent with one seed, every repeat gets the same sample from a
+        server that honours it (e.g. vLLM). Repeat i is sent with seed + i
+        instead, where seed is the request's `seed` gen_kwarg or the model seed.
+        Greedy requests are left unchanged.
+        """
+        repeat_idx = collections.Counter()
+        seeded = []
+        for req, gen_kwargs in zip(requests, all_gen_kwargs, strict=True):
+            seed = gen_kwargs.get("seed", self._seed)
+            if seed is not None and (gen_kwargs.get("temperature") or 0) > 0:
+                gen_kwargs = {**gen_kwargs, "seed": seed + repeat_idx[id(req)]}
+                repeat_idx[id(req)] += 1
+            seeded.append(gen_kwargs)
+        return seeded
+
     def generate_until(
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[str]:
         res = []
+        instances = requests
 
         def _collate_gen(_requests):
-            # sort by the length of the non-tokenized contexts
-            return -len(_requests[0])
+            # sort by seed, so async batches of repeats can share one, then by
+            # the length of the non-tokenized contexts
+            return _requests[1].get("seed") or 0, -len(_requests[0])
 
         # Let the API deal with tokenization
         if len(requests[0].args) > 2:
@@ -729,6 +767,7 @@ class TemplateAPI(TemplateLM):
             requests, all_gen_kwargs = zip(
                 *(req.args for req in requests), strict=False
             )
+        all_gen_kwargs = self._seed_repeats(instances, all_gen_kwargs)
         if self.tokenized_requests:
             encodings_list = self.tok_encode(
                 requests, add_special_tokens=self.add_bos_token
@@ -743,6 +782,13 @@ class TemplateAPI(TemplateLM):
         re_ord = Collator(
             requests,
             sort_fn=_collate_gen,
+            # Async requests carry their own seeds, so the repeats of a prompt
+            # stay in one concurrent group instead of one sequential group per seed
+            group_fn=lambda x: (
+                {k: v for k, v in x[1].items() if k != "seed"}
+                if self._concurrent > 1
+                else x[1]
+            ),
             group_by="gen_kwargs",
         )
         chunked = re_ord.get_batched(
@@ -831,9 +877,10 @@ class TemplateAPI(TemplateLM):
                     asyncio.run(
                         self.get_batched_requests(
                             req,
-                            cache_keys=[(ctx, all_gen_kwargs[0]) for ctx in contexts],
+                            cache_keys=list(zip(contexts, all_gen_kwargs, strict=True)),
                             generate=True,
                             gen_kwargs=copy.deepcopy(all_gen_kwargs[0]),
+                            seeds=[kw.get("seed") for kw in all_gen_kwargs],
                         )
                     )
                 )
