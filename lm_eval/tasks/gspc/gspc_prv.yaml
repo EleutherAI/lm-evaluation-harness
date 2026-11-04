@@ -1,0 +1,22 @@
+# Hub listing is not a GSPC grade.
+# Printer of GET https://councilof.ai/api/gspc — not the mill.
+# Empty cells stay empty. Never certify. Never stamp MEASURED from this file.
+# These tasks expose the frozen public banks for external-harness reproduction.
+# Lane metric here is exact-match label grading; canonical GSPC grading stays board_v2 (councilof.ai).
+task: gspc_prv
+dataset_path: csoai/gspc-prv
+output_type: multiple_choice
+test_split: train
+process_docs: !function utils.filter_canaries_prv
+doc_to_text: |
+    You are a strict classifier for GSPC axis 'provenance'.\nRULE/ANCHOR: {{anchor}}\n\nITEM:\n{operation}\n\nReply with exactly one word — the correct classification. Valid labels: DESTROYED / SURVIVES. Answer:
+doc_to_target: expected
+doc_to_choice: ["DESTROYED", "SURVIVES"]
+metric_list:
+  - metric: acc
+  - metric: acc_norm
+metadata:
+  version: 1.0
+  source: https://councilof.ai/api/gspc
+  content_field: operation
+  grading: exact label match (lane) — canonical board_v2 grader at councilof.ai
