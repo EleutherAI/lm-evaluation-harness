@@ -34,7 +34,8 @@ Homepage: https://github.com/google-research/google-research/tree/master/instruc
 ### Changelog
 
 * Version 5.0: Count overlapping italic and bold matches in one highlighted
-  section once. For example, `***one***` counts as one section rather than two.
+  section once. For example, `***one***` and the bold label in `* **one**: a`
+  each count as one section rather than two, including in bolded bullet lists.
   This corrects the inherited reference checker's double counting and changes
   strict and loose scores for affected completions relative to version 4.0.
 
