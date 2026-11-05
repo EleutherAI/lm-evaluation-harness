@@ -253,7 +253,9 @@ def _multimodal_cache_default(obj: Any) -> Any:
 
 
 def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args), default=_multimodal_cache_default)
+    dat = json.dumps(
+        [attr] + list(args), default=_multimodal_cache_default, sort_keys=True
+    )
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
