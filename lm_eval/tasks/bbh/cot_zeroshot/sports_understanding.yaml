@@ -11,7 +11,7 @@ filter_list:
         group_select: -1
         ignore_case: true
         regex_pattern_to_value:
-          \b(no|not plausible)\b: "no"
+          \b(no|not plausible|isn.t plausible|implausible)\b: "no"
           \b(yes|plausible)\b: "yes"
       - function: "take_first"
   - name: "strict-match"
@@ -19,3 +19,5 @@ filter_list:
       - function: "regex"
         regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
       - function: "take_first"
+metadata:
+  version: 4.0

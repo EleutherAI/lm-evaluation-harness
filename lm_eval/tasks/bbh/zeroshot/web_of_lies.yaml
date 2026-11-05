@@ -13,6 +13,8 @@ filter_list:
         group_select: 0
         ignore_case: true
         regex_pattern_to_value:
-          \b(no|does not tell the truth|is not telling the truth)\b: "no"
+          \b(no|lies|is lying|does not tell the truth|doesn.t tell the truth|is not telling the truth|isn.t telling the truth)\b: "no"
           \b(yes|tells the truth|is telling the truth)\b: "yes"
       - function: "take_first"
+metadata:
+  version: 4.0
