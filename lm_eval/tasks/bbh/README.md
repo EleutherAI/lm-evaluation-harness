@@ -57,3 +57,8 @@ None.
 - `bbh_cot_fewshot` v.4.0; 2025-07-14:
   - PR #3140. Removed duplicate "Let's think step by step" from the fewshots.
   - set target_delimiter to "" as the fewshot samples end with a newline character.
+- `bbh_cot_zeroshot_web_of_lies`, `bbh_zeroshot_web_of_lies`, `bbh_cot_zeroshot_sports_understanding`,
+  `bbh_zeroshot_sports_understanding` v4.0; 2026-11-05:
+  - PR #<n>. `flexible-extract` now maps "lies", "is lying", "doesn't tell the truth", "isn't telling the
+    truth" (web_of_lies) and "implausible", "isn't plausible" (sports_understanding) to "no". Only
+    `flexible-extract` scores of these four tasks can change; `strict-match` is unchanged.

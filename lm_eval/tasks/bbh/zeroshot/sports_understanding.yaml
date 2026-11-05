@@ -14,6 +14,8 @@ filter_list:
         group_select: 0
         ignore_case: true
         regex_pattern_to_value:
-          \b(no|not plausible)\b: "no"
+          \b(no|not plausible|isn.t plausible|implausible)\b: "no"
           \b(yes|plausible)\b: "yes"
       - function: "take_first"
+metadata:
+  version: 4.0
