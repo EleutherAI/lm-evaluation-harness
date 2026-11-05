@@ -53,9 +53,31 @@ def test_bytearray_matches_equivalent_bytes():
 def test_text_only_keys_remain_compatible():
     req = ("prompt", {"until": ["\n"]}, {})
     expected = hashlib.sha256(
-        json.dumps(["generate_until"] + list(req)).encode("utf-8")
+        json.dumps(["generate_until"] + list(req), sort_keys=True).encode("utf-8")
     ).hexdigest()
     assert hash_args("generate_until", req) == expected
+
+
+def test_mapping_key_order_does_not_change_key():
+    left = {"temperature": 0.0, "until": ["\n"]}
+    right = {"until": ["\n"], "temperature": 0.0}
+    assert hash_args("generate_until", ("prompt", left)) == hash_args(
+        "generate_until", ("prompt", right)
+    )
+
+
+def test_nested_mapping_key_order_does_not_change_key():
+    left = {"options": {"top_p": 0.9, "temperature": 0.0}, "until": ["\n"]}
+    right = {"until": ["\n"], "options": {"temperature": 0.0, "top_p": 0.9}}
+    assert hash_args("generate_until", ("prompt", left)) == hash_args(
+        "generate_until", ("prompt", right)
+    )
+
+
+def test_sequence_order_still_changes_key():
+    assert hash_args("generate_until", (["a", "b"],)) != hash_args(
+        "generate_until", (["b", "a"],)
+    )
 
 
 def test_unsupported_types_still_fail_loudly():
