@@ -488,17 +488,19 @@ class HighlightSectionChecker(Instruction):
           True if the actual number of highlighted sections in the format of
           *highlighted sections* meets the minimum requirement; otherwise False.
         """
-        num_highlights = 0
-        highlights = re.findall(r"\*[^\n\*]*\*", value)
-        double_highlights = re.findall(r"\*\*[^\n\*]*\*\*", value)
-        for highlight in highlights:
-            if highlight.strip("*").strip():
-                num_highlights += 1
-        for highlight in double_highlights:
-            if highlight.removeprefix("**").removesuffix("**").strip():
-                num_highlights += 1
+        # Bold-italic text matches both patterns. Deduplicate the content,
+        # not delimiters that adjacent sections can share.
+        highlights = {
+            (match.start() + marker_width, match.end() - marker_width)
+            for marker_width, pattern in (
+                (1, r"\*[^\n\*]*\*"),
+                (2, r"\*\*[^\n\*]*\*\*"),
+            )
+            for match in re.finditer(pattern, value)
+            if match.group().strip("*").strip()
+        }
 
-        return num_highlights >= self._num_highlights
+        return len(highlights) >= self._num_highlights
 
 
 class SectionChecker(Instruction):
