@@ -1,0 +1,17 @@
+task: agentest_checklist_examples
+dataset_path: srinivaspadmanabhuni/agentic-ai-test-checklist-110
+dataset_name: examples
+test_split: train
+output_type: generate_until
+doc_to_text: "Scenario: {{scenario}}\nInput: {{input}}\nWhat should a correct agent do?\nAnswer:"
+doc_to_target: "{{expected_behavior}}"
+generation_kwargs:
+  until:
+    - "\n\n"
+  max_gen_toks: 256
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+metadata:
+  version: 1.0
