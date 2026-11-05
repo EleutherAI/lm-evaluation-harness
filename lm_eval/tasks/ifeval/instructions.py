@@ -352,8 +352,16 @@ class BulletListChecker(Instruction):
           True if the actual number of bullet lists in the response meets the
           requirement.
         """
-        bullet_lists = re.findall(r"^\s*\*[^\*].*$", value, flags=re.MULTILINE)
-        bullet_lists_2 = re.findall(r"^\s*-.*$", value, flags=re.MULTILINE)
+        bullet_lists = re.findall(
+            r"^[^\S\r\n]*\*[^\S\r\n]+(?!(?:\*[^\S\r\n]*){2,}\r?$)\S.*$",
+            value,
+            flags=re.MULTILINE,
+        )
+        bullet_lists_2 = re.findall(
+            r"^[^\S\r\n]*-[^\S\r\n]+(?!(?:-[^\S\r\n]*){2,}\r?$)\S.*$",
+            value,
+            flags=re.MULTILINE,
+        )
         num_bullet_lists = len(bullet_lists) + len(bullet_lists_2)
         return num_bullet_lists == self._num_bullets
 

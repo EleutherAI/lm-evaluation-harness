@@ -43,3 +43,6 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+* `4.1`: Fixed false positives in `BulletListChecker` where markdown horizontal rules, line-initial negative numbers, and italics were parsed as bullet lists (#4507).
