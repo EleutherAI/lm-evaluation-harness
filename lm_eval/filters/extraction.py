@@ -184,23 +184,115 @@ class MultiChoiceRegexFilter(RegexFilter):
         )
 
         def filter_ignores(st):
+            return filter_ignores_with_spans(st)[0]
+
+        def filter_ignores_with_spans(st):
+            """Normalize text like `filter_ignores`, and also map each output
+            character back to its source character index in `st`.
+
+            The mapping is built from character-wise operations only, so it stays
+            aligned even when characters are removed (punctuation) or lowered
+            (case). Regex normalization (`regexes_to_ignore`) deletes matched
+            ranges by walking the character/image pair list.
+            """
+            images = list(enumerate(st))
             if self.regexes_to_ignore is not None:
-                for s in self.regexes_to_ignore:
-                    st = re.sub(s, "", st)
+                for pattern in self.regexes_to_ignore:
+                    images = delete_regex_matches(images, pattern)
+            normalized_chars, indices = [], []
+            for idx, ch in images:
+                lowered = ch.lower() if self.ignore_case else ch
+                if not isinstance(lowered, str):
+                    lowered = str(lowered)
+                if self.ignore_punctuation:
+                    lowered = lowered.translate(punct_tbl)
+                for part in lowered:
+                    normalized_chars.append(part)
+                    indices.append(idx)
+            return "".join(normalized_chars), indices
 
-            if self.ignore_case:
-                st = st.lower()
+        def delete_regex_matches(images, pattern):
+            """Delete every `pattern` match from a (character, index) image list.
 
-            if self.ignore_punctuation:
-                # https://stackoverflow.com/a/266162
-                st = st.translate(punct_tbl)
-            return st
+            Works on the currently joined text so later patterns see earlier
+            deletions, mirroring the repeated `re.sub` behavior of the plain
+            normalization.
+            """
+            if not images:
+                return []
+            text = "".join(ch for _, ch in images)
+            kept = []
+            pos = 0
+            for m in re.finditer(pattern, text):
+                if m.end() == m.start():
+                    # Zero-width match: keep the character to honor finditer
+                    # semantics and avoid dropping valid text.
+                    continue
+                for img_idx in range(pos, m.start()):
+                    kept.append(images[img_idx])
+                pos = m.end()
+            for img_idx in range(pos, len(images)):
+                kept.append(images[img_idx])
+            return kept
+
+        def find_choice_match(regex, normalized, original, source_positions):
+            """Like find_match for the choice-text fallback, but aware that
+            several choices can share one normalized text.
+
+            Selects the occurrence that `group_select` picks in `normalized`,
+            then resolves the colliding group by locating each choice's literal
+            text in `original`: only occurrence spans whose kept characters
+            project exactly onto the chosen span count, and the longest such
+            original wins ("So x = -5." names -5, not the 5 inside it). Case
+            only matters when it survives normalization: responses reusing the
+            exact original spelling win first, and otherwise the earliest
+            choice in the group resolves the answer.
+            """
+            matches = list(regex.finditer(normalized))
+            if not matches:
+                return ""
+            match = matches[self.group_select]
+            claims = choice_claims.get(match.group(0).strip(), [])
+            if not claims:
+                return ""
+            span_start, span_end = match.start(), match.end()
+            span_length = span_end - span_start
+
+            def projects_onto_span(occ):
+                positions = [
+                    norm_idx
+                    for norm_idx, src_idx in enumerate(source_positions)
+                    if occ.start() <= src_idx < occ.end()
+                ]
+                if len(positions) != span_length:
+                    return False
+                return positions[0] == span_start and positions[-1] == span_end - 1
+
+            candidates = {}
+            for member, letter in claims:
+                needle = member.strip()
+                if not needle:
+                    continue
+                for occ in re.finditer(re.escape(needle), original):
+                    if projects_onto_span(occ):
+                        length = occ.end() - occ.start()
+                        if letter not in candidates or length > candidates[letter]:
+                            candidates[letter] = length
+            if not candidates:
+                return claims[0][1]
+            best_length = max(candidates.values())
+            winning = [letter for letter, length in candidates.items() if length == best_length]
+            return winning[0]
 
         filtered_resps = []
 
         for r, doc in zip(resps, docs, strict=True):
             fallback_regexes = []
-            choice_to_alpha = {}
+            # Keep every choice's letter per normalized text: distinct choices
+            # can normalize to the same text ("5" and "-5", "Na" and "NA"), and
+            # the match that group_select picks must still resolve to the right
+            # member of that group.
+            choice_claims = {}
             next_alpha = "A"
 
             without_paren_fallback_regexes = []
@@ -210,7 +302,7 @@ class MultiChoiceRegexFilter(RegexFilter):
             for c in choices:
                 m = filter_ignores(c.strip())
                 fallback_regexes.append(f"{re.escape(m)}")
-                choice_to_alpha[m] = f"({next_alpha})"
+                choice_claims.setdefault(m, []).append((c.strip(), f"({next_alpha})"))
 
                 without_paren_fallback_regexes.append(next_alpha)
                 without_paren_to_target[next_alpha] = f"({next_alpha})"
@@ -218,7 +310,7 @@ class MultiChoiceRegexFilter(RegexFilter):
                 next_alpha = chr(ord(next_alpha) + 1)
             # Sort branches longest-first so a choice whose text is a prefix of another
             # choice can't shadow it: regex alternation is leftmost-wins, so without this
-            # "Guilty" would match inside "Guilty of Romance". choice_to_alpha is keyed by
+            # "Guilty" would match inside "Guilty of Romance". choice_claims is keyed by
             # the choice text, so branch order does not affect the letter assignment.
             fallback_regex = re.compile(
                 "|".join(sorted(fallback_regexes, key=len, reverse=True))
@@ -232,8 +324,9 @@ class MultiChoiceRegexFilter(RegexFilter):
             for resp in r:
                 match = find_match(self.regex, resp)
                 if not match:
-                    match = find_match(
-                        fallback_regex, filter_ignores(resp), choice_to_alpha
+                    normalized, positions = filter_ignores_with_spans(resp)
+                    match = find_choice_match(
+                        fallback_regex, normalized, resp, positions
                     )
                     if not match:
                         match = find_match(
