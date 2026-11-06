@@ -3,9 +3,13 @@ from __future__ import annotations
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 _Base = (
@@ -167,6 +171,8 @@ def load_yaml(
     resolve_func: bool = True,
     recursive: bool = True,
     _seen: set[Path] | None = None,
+    allowed_roots: Sequence[str | Path] | None = None,
+    allow_unconfined_includes: bool = False,
 ) -> dict[str, Any]:
     """Pure data-loading helper.
     Returns a dict ready for higher-level interpretation.
@@ -192,14 +198,37 @@ def load_yaml(
     else:
         includes = cfg.pop("include")
 
+    if allowed_roots is not None:
+        norm_roots = [Path(r).expanduser().resolve() for r in allowed_roots]
+    else:
+        tasks_dir = Path(__file__).parent.resolve()
+        if path.is_relative_to(tasks_dir):
+            norm_roots = [tasks_dir]
+        else:
+            norm_roots = [path.parent.resolve(), tasks_dir]
+
     merged = {}
     for inc in includes if isinstance(includes, list) else [includes]:
-        inc_path = (path.parent / inc) if not Path(inc).is_absolute() else Path(inc)
+        inc_raw = Path(inc).expanduser()
+        if not inc_raw.is_absolute():
+            inc_path = (path.parent / inc_raw).resolve()
+        else:
+            inc_path = inc_raw.resolve()
+
+        if not allow_unconfined_includes and not any(
+            inc_path.is_relative_to(root) for root in norm_roots
+        ):
+            raise ValueError(
+                f"Include path '{inc}' ({inc_path}) is outside allowed task roots: {norm_roots}"
+            )
+
         inc_cfg = load_yaml(
             inc_path,
             resolve_func=resolve_func,
             recursive=True,
             _seen=_seen,
+            allowed_roots=norm_roots,
+            allow_unconfined_includes=allow_unconfined_includes,
         )
         # Don't inherit task_list - it defines tasks for the included file only
         inc_cfg.pop("task_list", None)

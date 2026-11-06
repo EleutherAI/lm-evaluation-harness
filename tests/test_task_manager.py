@@ -201,6 +201,74 @@ task: b
         with pytest.raises(ValueError, match="Include cycle"):
             load_yaml(tmp_path / "a.yaml")
 
+    def test_load_yaml_relative_include_outside_root_raises(self, tmp_path):
+        """Relative include traversing outside allowed root raises ValueError."""
+        task_root = tmp_path / "tasks"
+        task_root.mkdir()
+        outside_root = tmp_path / "outside"
+        outside_root.mkdir()
+
+        (outside_root / "payload.yaml").write_text("task: payload\noutput_type: generate_until\n")
+        (task_root / "task.yaml").write_text("include: ../outside/payload.yaml\ntask: child\n")
+
+        with pytest.raises(ValueError, match="outside allowed task roots"):
+            load_yaml(task_root / "task.yaml", allowed_roots=[task_root])
+
+    def test_load_yaml_absolute_include_outside_root_raises(self, tmp_path):
+        """Absolute include outside allowed root raises ValueError."""
+        task_root = tmp_path / "tasks"
+        task_root.mkdir()
+        outside_root = tmp_path / "outside"
+        outside_root.mkdir()
+
+        payload_path = outside_root / "payload.yaml"
+        payload_path.write_text("task: payload\noutput_type: generate_until\n")
+        (task_root / "task.yaml").write_text(f"include: {payload_path.as_posix()}\ntask: child\n")
+
+        with pytest.raises(ValueError, match="outside allowed task roots"):
+            load_yaml(task_root / "task.yaml", allowed_roots=[task_root])
+
+    def test_load_yaml_unconfined_includes_opt_out(self, tmp_path):
+        """Opt-out via allow_unconfined_includes=True permits external includes."""
+        task_root = tmp_path / "tasks"
+        task_root.mkdir()
+        outside_root = tmp_path / "outside"
+        outside_root.mkdir()
+
+        payload_path = outside_root / "payload.yaml"
+        payload_path.write_text("task: payload\noutput_type: generate_until\n")
+        (task_root / "task.yaml").write_text(f"include: {payload_path.as_posix()}\ntask: child\n")
+
+        cfg = load_yaml(
+            task_root / "task.yaml",
+            allowed_roots=[task_root],
+            allow_unconfined_includes=True,
+        )
+        assert cfg["task"] == "child"
+        assert cfg["output_type"] == "generate_until"
+
+    def test_task_manager_include_root_confinement(self, tmp_path):
+        """TaskManager confines includes to configured search roots."""
+        task_root = tmp_path / "tasks"
+        task_root.mkdir()
+        outside_root = tmp_path / "outside"
+        outside_root.mkdir()
+
+        payload_path = outside_root / "payload.yaml"
+        payload_path.write_text("task: payload\noutput_type: generate_until\n")
+        (task_root / "task.yaml").write_text(f"include: {payload_path.as_posix()}\ntask: child\n")
+
+        tm = TaskManager(include_path=str(task_root), include_defaults=False)
+        # Traversal-escaping include should be skipped during build
+        assert "child" not in tm.all_tasks
+
+        tm_unconfined = TaskManager(
+            include_path=str(task_root),
+            include_defaults=False,
+            allow_unconfined_includes=True,
+        )
+        assert "child" in tm_unconfined.all_tasks
+
 
 # =============================================================================
 # TaskIndex Tests

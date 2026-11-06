@@ -9,7 +9,7 @@ from lm_eval.tasks._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
     from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -46,6 +46,7 @@ class TaskIndex:
         paths: Iterable[Path],
         *,
         resolve_includes=True,
+        allow_unconfined_includes: bool = False,
     ) -> dict[str, Entry]:
         index: dict[str, Entry] = {}
         log.debug("Building task index from %s", paths)
@@ -58,6 +59,8 @@ class TaskIndex:
                         yaml_path,
                         resolve_func=False,
                         recursive=resolve_includes,
+                        allowed_roots=list(paths),
+                        allow_unconfined_includes=allow_unconfined_includes,
                     )
                     TaskIndex.process_cfg(cfg, yaml_path, path_index)
                 except Exception as err:
@@ -165,12 +168,21 @@ class TaskIndex:
                 raise ValueError(f"Unknown config shape: keys={list(cfg.keys())}")
 
     @staticmethod
-    def entry_from_path(path: Path) -> Entry | None:
+    def entry_from_path(
+        path: Path,
+        allowed_roots: Sequence[str | Path] | None = None,
+        allow_unconfined_includes: bool = False,
+    ) -> Entry | None:
         """Create an Entry from a YAML file path (not in the index)."""
         path = path.expanduser().resolve()
         if not path.is_file():
             return None
-        cfg = load_yaml(path, resolve_func=False)
+        cfg = load_yaml(
+            path,
+            resolve_func=False,
+            allowed_roots=allowed_roots,
+            allow_unconfined_includes=allow_unconfined_includes,
+        )
         kind = TaskIndex._kind_of(cfg)
         name: str | None = cfg.get("task") or cfg.get("group")
         return Entry(name=name, kind=kind, yaml_path=path) if name else None
