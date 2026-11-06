@@ -56,6 +56,7 @@ class TaskManager:
         include_path: str | Path | list[str | Path] | None = None,
         include_defaults: bool = True,
         metadata: dict[str, dict[str, Any] | str] | None = None,
+        allow_unconfined_includes: bool = False,
     ) -> None:
         """
         Args:
@@ -73,9 +74,9 @@ class TaskManager:
 
         self.include_path = include_path
         self.metadata = metadata
+        self.allow_unconfined_includes = allow_unconfined_includes
 
         index = TaskIndex()
-        self._factory: TaskFactory = TaskFactory(meta=metadata)
 
         all_paths: list[Path] = []
         # Process defaults FIRST, then include_path (later paths can override earlier)
@@ -91,7 +92,17 @@ class TaskManager:
                 )
             ]
 
-        self._index = index.build(all_paths)
+        self._all_paths = all_paths
+        self._factory: TaskFactory = TaskFactory(
+            meta=metadata,
+            allowed_roots=all_paths,
+            allow_unconfined_includes=allow_unconfined_includes,
+        )
+
+        self._index = index.build(
+            all_paths,
+            allow_unconfined_includes=allow_unconfined_includes,
+        )
 
         buckets = defaultdict(list)
         for k, e in self._index.items():
@@ -155,7 +166,11 @@ class TaskManager:
                         entry, overrides=None, registry=self._index
                     )
                 # check if it's a path
-                entry = TaskIndex.entry_from_path(Path(spec))
+                entry = TaskIndex.entry_from_path(
+                    Path(spec),
+                    allowed_roots=self._all_paths + [Path(spec).parent.resolve()],
+                    allow_unconfined_includes=self.allow_unconfined_includes,
+                )
                 if entry:
                     return self._factory.build(
                         entry, overrides=None, registry=self._index
@@ -349,7 +364,13 @@ class TaskManager:
             output_type = ""
 
             if path is not None:
-                config = load_yaml(path, resolve_func=False, recursive=True)
+                config = load_yaml(
+                    path,
+                    resolve_func=False,
+                    recursive=True,
+                    allowed_roots=self._all_paths,
+                    allow_unconfined_includes=self.allow_unconfined_includes,
+                )
                 if "output_type" in config:
                     output_type = config["output_type"]
 

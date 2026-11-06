@@ -14,7 +14,8 @@ from lm_eval.tasks._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
+    from pathlib import Path
 
 eval_logger = logging.getLogger(__name__)
 
@@ -29,8 +30,16 @@ class TaskFactory:
     Returns Task | Group directly - Groups contain their children.
     """
 
-    def __init__(self, *, meta: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        *,
+        meta: dict[str, Any] | None = None,
+        allowed_roots: Sequence[str | Path] | None = None,
+        allow_unconfined_includes: bool = False,
+    ):
         self._meta: dict[str, Any] = meta or {}
+        self._allowed_roots = list(allowed_roots) if allowed_roots is not None else None
+        self._allow_unconfined_includes = allow_unconfined_includes
 
     # ---------------------------------------------------------------- public API
 
@@ -258,7 +267,14 @@ class TaskFactory:
         overrides: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if entry.yaml_path:
-            cfg = deepcopy(load_yaml(entry.yaml_path, resolve_func=True))
+            cfg = deepcopy(
+                load_yaml(
+                    entry.yaml_path,
+                    resolve_func=True,
+                    allowed_roots=self._allowed_roots,
+                    allow_unconfined_includes=self._allow_unconfined_includes,
+                )
+            )
         elif entry.cfg:
             cfg = deepcopy(entry.cfg)
         else:
