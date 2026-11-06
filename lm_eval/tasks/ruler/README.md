@@ -69,3 +69,5 @@ If other tasks on this dataset are already supported:
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
+
+* Version 2.0 (`ruler_qa_squad`, `ruler_qa_hotpot`): Preserve the source corpus order when shuffling a full context. Subsequent shorter contexts now retain the correct supporting documents. Results from runs that previously shuffled the full corpus are not comparable with version 1.0.
