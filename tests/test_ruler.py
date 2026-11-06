@@ -22,7 +22,7 @@ import importlib
 import pytest
 
 from lm_eval.tasks.ruler.common_utils import get_tokenizer, resolve_tokenizer_name
-from lm_eval.tasks.ruler.qa_utils import generate_samples
+from lm_eval.tasks.ruler.qa_utils import generate_input_output, generate_samples
 
 
 class RunawayLoop(BaseException):
@@ -70,6 +70,59 @@ def make_qa_corpus(doc_words: int, gold_docs: int, num_qas: int = 20):
         for i in range(num_qas)
     ]
     return docs, qas
+
+
+@pytest.mark.parametrize("num_docs", [5, 6])
+def test_generate_input_output_keeps_corpus_order(num_docs):
+    """Shuffling a full context must preserve indices into the source corpus."""
+    docs = [f"document {i}" for i in range(5)]
+    original_docs = docs.copy()
+    qas = [{"query": "question?", "outputs": ["answer"], "context": [0]}]
+
+    first = generate_input_output(0, num_docs, qas, docs)
+    second = generate_input_output(0, num_docs, qas, docs)
+
+    assert docs == original_docs
+    assert first == second
+    assert all(doc in first[0] for doc in original_docs)
+    assert first[1] == ["answer"]
+
+
+@pytest.mark.parametrize("gold_docs", [1, 2])
+@pytest.mark.parametrize("incremental", [2, 5])
+def test_generate_samples_preserves_gold_documents_when_shrinking(
+    gold_docs, incremental
+):
+    """A full-corpus sizing probe must not corrupt later gold-document lookups."""
+    docs = [" ".join([f"document_{i}"] * 50) for i in range(5)]
+    original_docs = docs.copy()
+    qas = [
+        {
+            "query": "question?",
+            "outputs": ["answer"],
+            "context": list(range(gold_docs)),
+        }
+    ]
+    tokenizer = FakeTokenizer()
+    gold_prompt, _ = generate_input_output(0, gold_docs, qas, docs)
+    # Fit the gold documents, but force a larger sizing probe to shrink.
+    max_seq_length = len(tokenizer(gold_prompt).input_ids) + 32
+
+    samples = generate_samples(
+        tokenizer=tokenizer,
+        docs=docs,
+        qas=qas,
+        max_seq_length=max_seq_length,
+        num_samples=1,
+        tokens_to_generate=32,
+        incremental=incremental,
+    )
+
+    assert len(samples) == 1
+    assert all(doc in samples[0]["input"] for doc in original_docs[:gold_docs])
+    assert samples[0]["outputs"] == ["answer"]
+    assert samples[0]["length"] <= max_seq_length
+    assert docs == original_docs
 
 
 def test_generate_samples_rejects_impossible_seq_length():

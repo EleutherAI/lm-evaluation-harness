@@ -131,7 +131,8 @@ def generate_input_output(
 
         all_docs = [docs[idx] for idx in all_docs]
     else:
-        all_docs = docs
+        # Keep the corpus order aligned with the document indices in qas.
+        all_docs = docs.copy()
 
     random.Random(SEED).shuffle(all_docs)
 
