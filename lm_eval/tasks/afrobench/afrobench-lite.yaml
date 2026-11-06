@@ -11,5 +11,17 @@ aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: true
+  - metric: f1
+    aggregation: mean
+    weight_by_size: true
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+  - metric: bleu
+    aggregation: mean
+    weight_by_size: true
+  - metric: chrf
+    aggregation: mean
+    weight_by_size: true
 metadata:
   version: 1

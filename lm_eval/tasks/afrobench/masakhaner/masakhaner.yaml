@@ -6,7 +6,7 @@ task:
   - masakhaner_prompt_4
   - masakhaner_prompt_5
 aggregate_metric_list:
-  - metric: acc
+  - metric: f1
     aggregation: mean
     weight_by_size: true
 metadata:
