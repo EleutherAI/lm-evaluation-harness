@@ -897,7 +897,10 @@ def check_remote_tokenizer_support(
     resp = _request_with_retries("GET", info_url)
     if not resp:
         return False
-    info = resp.json()
+    try:
+        info = resp.json()
+    except ValueError:
+        return False
     if not isinstance(info, dict) or "eos_token" not in info:
         return False
 
@@ -907,9 +910,12 @@ def check_remote_tokenizer_support(
     resp = _request_with_retries("POST", tokenize_url, json=test_payload)
     if not resp:
         return False
-    tokens = resp.json().get("tokens")
+    try:
+        token_data = resp.json()
+    except ValueError:
+        return False
 
-    return isinstance(tokens, list)
+    return isinstance(token_data, dict) and isinstance(token_data.get("tokens"), list)
 
 
 def set_torch_seed(seed: int):
