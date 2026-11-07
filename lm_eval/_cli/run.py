@@ -494,10 +494,7 @@ class Run(SubCommand):
                         task_name=task_name, samples=samples[task_name]
                     )
 
-            if (
-                evaluation_tracker.push_results_to_hub
-                or evaluation_tracker.push_samples_to_hub
-            ):
+            if cfg.log_samples and evaluation_tracker.push_samples_to_hub:
                 evaluation_tracker.recreate_metadata_card()
 
             # Print results
