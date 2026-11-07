@@ -301,7 +301,16 @@ def sanitize_model_name(model_name: str) -> str:
     """
     Given the model name, returns a sanitized version of it.
     """
-    return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
+    sanitized = re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
+    max_bytes = 200
+    encoded = sanitized.encode("utf-8")
+    if len(encoded) > max_bytes:
+        digest = hashlib.sha256(encoded).hexdigest()[:8]
+        truncated = encoded[: max_bytes - len(digest) - 1].decode(
+            "utf-8", errors="ignore"
+        )
+        sanitized = f"{truncated}_{digest}"
+    return sanitized
 
 
 def sanitize_task_name(task_name: str) -> str:
