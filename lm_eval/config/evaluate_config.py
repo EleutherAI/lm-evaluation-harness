@@ -261,7 +261,7 @@ class EvaluatorConfig:
             raise FileNotFoundError(f"Config file not found: {_config_path.resolve()}")
 
         try:
-            yaml_data = yaml.safe_load(_config_path.read_text())
+            yaml_data = yaml.safe_load(_config_path.read_bytes())
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in {_config_path}: {e}") from e
         except (OSError, UnicodeDecodeError) as e:
@@ -384,7 +384,7 @@ class EvaluatorConfig:
                     self.samples = json.loads(self.samples)
                 except json.JSONDecodeError:
                     if (samples_path := Path(cast("str", self.samples))).is_file():
-                        self.samples = json.loads(samples_path.read_text())
+                        self.samples = json.loads(samples_path.read_bytes())
 
         # Set up metadata by merging model_args and metadata.
         if self.model_args is None:
