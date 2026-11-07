@@ -654,6 +654,17 @@ def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> lis
     return until
 
 
+def pop_temperature(gen_kwargs: dict) -> float:
+    """Pop `do_sample` and `temperature` from `gen_kwargs` and return the temperature to send to an API.
+
+    `do_sample=False` requests greedy decoding, so it forces a temperature of 0 even
+    when a temperature is also given, matching `normalize_gen_kwargs`.
+    """
+    do_sample = gen_kwargs.pop("do_sample", None)
+    temperature = gen_kwargs.pop("temperature", 0)
+    return 0 if do_sample is False else temperature
+
+
 def normalize_gen_kwargs(
     gen_kwargs: dict,
     default_max_gen_toks: int = 256,
