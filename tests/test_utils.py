@@ -18,6 +18,7 @@ from lm_eval.utils import (
     check_remote_tokenizer_support,
     get_rolling_token_windows,
     make_disjoint_window,
+sanitize_model_name,
 )
 
 
@@ -711,3 +712,27 @@ class TestSimpleParseArgsString:
         result = simple_parse_args_string("trust_remote_code=true,temperature=0.7")
         assert result["trust_remote_code"] is True
         assert result["temperature"] == 0.7
+
+
+def test_sanitize_model_name_short_unchanged():
+    assert sanitize_model_name("EleutherAI/pythia-1b") == "EleutherAI__pythia-1b"
+    assert sanitize_model_name("gpt2") == "gpt2"
+
+
+def test_sanitize_model_name_truncates_long_names():
+    long_name = "/" + "/".join(["very-long-directory-name"] * 12) + "/my-model"
+    sanitized = sanitize_model_name(long_name)
+    assert len(sanitized.encode("utf-8")) <= 200
+    assert len(sanitized) < len(long_name)
+
+
+def test_sanitize_model_name_truncation_keeps_names_distinct():
+    base = "/" + "/".join(["very-long-directory-name"] * 12) + "/my-model"
+    assert sanitize_model_name(base) != sanitize_model_name(base + "-other")
+
+
+def test_sanitize_model_name_non_ascii_stays_valid_utf8():
+    name = "modèle-" + "é" * 150
+    sanitized = sanitize_model_name(name)
+    assert len(sanitized.encode("utf-8")) <= 200
+    sanitized.encode("utf-8").decode("utf-8")    
