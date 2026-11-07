@@ -735,5 +735,4 @@ def test_sanitize_model_name_non_ascii_stays_valid_utf8():
     name = "modèle-" + "é" * 150
     sanitized = sanitize_model_name(name)
     assert len(sanitized.encode("utf-8")) <= 200
-    sanitized.encode("utf-8").decode("utf-8")
-    
+    sanitized.encode("utf-8").decode("utf-8")    
