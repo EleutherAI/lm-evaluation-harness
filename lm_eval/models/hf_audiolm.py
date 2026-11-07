@@ -126,7 +126,7 @@ class HFAUDIOLMQWEN(HFLM):
         strings: list[str],  # note that input signature of this fn is different
         audios: list[list],
         padding_side: str = "left",
-        left_truncate_len: int = None,
+        left_truncate_len: int | None = None,
         truncation: bool = False,
     ) -> (
         BatchEncoding | dict[str, torch.Tensor]
@@ -228,7 +228,7 @@ class HFAUDIOLMQWEN(HFLM):
                             f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
                         )
             else:
-                raise ValueError(
+                raise ValueError(  # noqa: TRY004
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             # add EOS token to stop sequences
@@ -257,8 +257,7 @@ class HFAUDIOLMQWEN(HFLM):
 
             if "max_length" not in kwargs:
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
-            inputs["input_ids"] = inputs["input_ids"].to("cuda")
-            inputs.input_ids = inputs.input_ids.to("cuda")
+            inputs["input_ids"] = inputs["input_ids"].to(self.device)
             cont = self._model_multimodal_generate(inputs, stop=until, **kwargs)
 
             del inputs
