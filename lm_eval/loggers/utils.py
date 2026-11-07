@@ -66,19 +66,19 @@ def get_commit_from_path(repo_path: Path | str) -> str | None:
                 git_folder.read_text(encoding="utf-8").split("\n")[0].split(" ")[-1],
             )
         if Path(git_folder, "HEAD").exists():
-            head_name = (
-                Path(git_folder, "HEAD")
-                .read_text(encoding="utf-8")
-                .split("\n")[0]
-                .split(" ")[-1]
+            head_contents = (
+                Path(git_folder, "HEAD").read_text(encoding="utf-8").split("\n")[0]
             )
+            if re.fullmatch(r"[0-9a-f]{40}(?:[0-9a-f]{24})?", head_contents):
+                return head_contents
+            head_name = head_contents.split(" ")[-1]
             head_ref = Path(git_folder, head_name)
             git_hash = head_ref.read_text(encoding="utf-8").replace("\n", "")
         else:
             git_hash = None
-    except Exception as err:
+    except Exception as err:  # noqa: BLE001 - metadata must not abort evaluation
         logger.debug(
-            f"Failed to retrieve a Git commit hash from path: {str(repo_path)}. Error: {err}"
+            f"Failed to retrieve a Git commit hash from path: {repo_path!s}. Error: {err}"
         )
         return None
     return git_hash
@@ -106,14 +106,14 @@ def add_env_info(storage: dict[str, Any]):
             from torch.utils.collect_env import get_pretty_env_info
 
             pretty_env_info = get_pretty_env_info()
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001 - optional diagnostics are best-effort
             pretty_env_info = str(err)
     else:
         pretty_env_info = "N/A (torch not installed)"
 
     try:
         lm_eval_version = version("lm_eval")
-    except Exception as err:
+    except Exception as err:  # noqa: BLE001 - optional diagnostics are best-effort
         lm_eval_version = str(err)
 
     if is_transformers_available():
@@ -153,7 +153,7 @@ def add_tokenizer_info(storage: dict[str, Any], lm):
                     "max_length": getattr(lm, "max_length", None),
                 }
                 storage.update(tokenizer_info)
-            except Exception as err:
+            except Exception as err:  # noqa: BLE001 - tokenizer metadata is best-effort
                 logger.debug(
                     f"Logging detailed tokenizer info failed with {err}, skipping..."
                 )
@@ -162,5 +162,5 @@ def add_tokenizer_info(storage: dict[str, Any], lm):
             logger.debug(
                 "LM does not have a 'tokenizer' attribute, not logging tokenizer metadata to results."
             )
-    except Exception:
+    except Exception:  # noqa: BLE001 - tokenizer metadata is best-effort
         logger.debug("Couldn't save tokenizer info.")
