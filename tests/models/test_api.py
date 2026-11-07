@@ -59,6 +59,40 @@ def test_create_payload_generate(api):
     }
 
 
+@pytest.mark.parametrize(
+    "gen_kwargs, expected_temperature",
+    [
+        ({"do_sample": False, "temperature": 1}, 0),
+        ({"do_sample": True, "temperature": 0.7}, 0.7),
+        ({"temperature": 0.7}, 0.7),
+        ({}, 0),
+    ],
+)
+@pytest.mark.parametrize(
+    "model_cls, messages",
+    [
+        ("LocalCompletionsAPI", ["Generate a story"]),
+        ("LocalChatCompletion", [{"role": "user", "content": "Generate a story"}]),
+    ],
+)
+def test_create_payload_do_sample_false_is_greedy(
+    model_cls, messages, gen_kwargs, expected_temperature
+):
+    # do_sample=False must decode greedily like the HF and vLLM backends,
+    # even when the task also sets a temperature (e.g. longbench).
+    from lm_eval.models import openai_completions
+
+    model = getattr(openai_completions, model_cls)(
+        base_url="http://test-url.com", tokenizer_backend=None, model="test-model"
+    )
+    payload = model._create_payload(
+        messages, generate=True, gen_kwargs=dict(gen_kwargs)
+    )
+
+    assert payload["temperature"] == expected_temperature
+    assert "do_sample" not in payload
+
+
 def test_create_payload_loglikelihood(api):
     messages = ["The capital of France is"]
     payload = api._create_payload(messages, generate=False, gen_kwargs=None)

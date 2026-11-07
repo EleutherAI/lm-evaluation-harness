@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.openai_completions import LocalCompletionsAPI
-from lm_eval.models.utils import handle_stop_sequences
+from lm_eval.models.utils import handle_stop_sequences, pop_temperature
 
 
 @register_model("sglang-generate")
@@ -32,12 +32,11 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
             else False
         )
         if generate:
-            gen_kwargs.pop("do_sample", False)
             if "max_tokens" in gen_kwargs:
                 max_tokens = gen_kwargs.pop("max_tokens")
             else:
                 max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
-            temperature = gen_kwargs.pop("temperature", 0)
+            temperature = pop_temperature(gen_kwargs)
             stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
             request = {
                 "sampling_params": {
