@@ -115,7 +115,7 @@ class TaskFactory:
         merged_overrides = {**group_task_overrides, **(overrides or {})}
 
         # Build children from task: list (references to existing tasks/groups/tags)
-        task_field = raw_cfg.get("task")
+        task_field = group_cfg.task
         if isinstance(task_field, list):
             for child in self._build_group_members(
                 task_field, group_name, merged_overrides, registry
