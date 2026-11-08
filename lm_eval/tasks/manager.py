@@ -167,8 +167,11 @@ class TaskManager:
             case dict():
                 _entry = TaskIndex.entry_from_config(spec)
                 if _entry:
+                    # Group structural keys belong to the definition, not child overrides.
                     return self._factory.build(
-                        _entry, overrides=spec, registry=self._index
+                        _entry,
+                        overrides=None if _entry.kind is Kind.GROUP else spec,
+                        registry=self._index,
                     )
                 raise ValueError(
                     "Invalid config dict: must contain 'task' or 'group' key"
