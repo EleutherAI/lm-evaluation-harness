@@ -161,9 +161,10 @@ _VLM_COMPILE_PROFILES = {
 }
 
 
-# VLM model_types that should be dispatched to RBLNAutoModelForImageTextToText
-# rather than RBLNAutoModelForVision2Seq. (Verified against rbln-model-zoo
-# image-text-to-text examples.)
+# VLM model_types sent to RBLNAutoModelForImageTextToText when the SDK's auto
+# classes do not expose their mappings (verified against rbln-model-zoo
+# image-text-to-text examples). Otherwise the class whose mapping lists the
+# model_type wins; see ``RBLNLM._get_rbln_model_class``.
 _VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES = {"gemma3"}
 
 
@@ -475,33 +476,40 @@ class RBLNLM(TemplateLM):
     def _get_rbln_model_class(self, pretrained: str):
         """Pick the RBLN Auto class for the resolved ``self.model_type``.
 
-        VLM routing splits between two SDK auto classes based on config.model_type
-        (see ``_VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES``). All other VLMs go through
-        ``RBLNAutoModelForVision2Seq``.
+        VLMs go to whichever of ``RBLNAutoModelForImageTextToText`` and
+        ``RBLNAutoModelForVision2Seq`` lists ``config.model_type`` in its mapping
+        (``_model_mapping_names``). transformers 5 moved every VLM into the
+        image-text-to-text mapping, and optimum-rbln 0.11 dropped
+        ``RBLNAutoModelForVision2Seq``, so routing by a fixed model_type list made
+        every VLM except gemma3 fail to load. Without mappings, gemma3 keeps
+        ImageTextToText and the rest prefer Vision2Seq (the old routing), falling
+        back to whichever class the SDK has.
         """
         if self.model_type == "vlm":
             mt = getattr(self._config, "model_type", "").lower()
-            if mt in _VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES:
-                if RBLNAutoModelForImageTextToText is None:
-                    raise ImportError(
-                        "This optimum-rbln build does not expose "
-                        "RBLNAutoModelForImageTextToText. Upgrade optimum-rbln "
-                        f"to evaluate model_type='{mt}'."
-                    )
-                logger.info(
-                    f"Using RBLNAutoModelForImageTextToText for {mt}: {pretrained}"
-                )
-                return RBLNAutoModelForImageTextToText
-            if RBLNAutoModelForVision2Seq is None:
+            candidates = [
+                c for c in (RBLNAutoModelForImageTextToText, RBLNAutoModelForVision2Seq)
+                if c is not None
+            ]
+            if not candidates:
                 raise ImportError(
-                    "This optimum-rbln build does not expose "
-                    "RBLNAutoModelForVision2Seq. Upgrade optimum-rbln to "
-                    f"evaluate model_type='{mt}'."
+                    "This optimum-rbln build exposes neither "
+                    "RBLNAutoModelForImageTextToText nor RBLNAutoModelForVision2Seq. "
+                    f"Upgrade optimum-rbln to evaluate model_type='{mt}'."
                 )
-            logger.info(
-                f"Using RBLNAutoModelForVision2Seq for {mt}: {pretrained}"
+            chosen = next(
+                (c for c in candidates if mt in (getattr(c, "_model_mapping_names", None) or {})),
+                None,
             )
-            return RBLNAutoModelForVision2Seq
+            if chosen is None:
+                preferred = (
+                    RBLNAutoModelForImageTextToText
+                    if mt in _VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES
+                    else RBLNAutoModelForVision2Seq
+                )
+                chosen = preferred if preferred is not None else candidates[0]
+            logger.info(f"Using {chosen.__name__} for {mt}: {pretrained}")
+            return chosen
 
         if self.model_type == "seq2seq":
             logger.info(f"Using RBLNAutoModelForSeq2SeqLM for: {pretrained}")
@@ -615,6 +623,26 @@ class RBLNLM(TemplateLM):
     def tok_decode(self, tokens):
         return self.tokenizer.decode(tokens)
 
+    def _eos_stop_strings(self) -> List[str]:
+        """EOS token(s) as stop strings.
+
+        Composite VLM configs (transformers 5: Qwen3-VL, Qwen3.5, ...) keep
+        ``eos_token_id`` under ``text_config``, and it may be a list.
+        """
+        eos = getattr(self.config, "eos_token_id", None)
+        if eos is None:
+            eos = getattr(getattr(self.config, "text_config", None), "eos_token_id", None)
+        if eos is None:
+            eos = self.tokenizer.eos_token_id
+        if eos is None:
+            return []
+        ids = eos if isinstance(eos, (list, tuple)) else [eos]
+        return [self.tokenizer.decode([i]) for i in ids]
+
+    def _text_generate(self, input_ids, **kwargs):
+        """``model.generate`` on text-only input (RBLNVLM adds token_type_ids where needed)."""
+        return self.model.generate(input_ids=input_ids, **kwargs)
+
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # we require users to pass do_sample=True explicitly
         # for non-greedy gen. This should be reevaluated when considering beam search.
@@ -625,12 +653,12 @@ class RBLNLM(TemplateLM):
 
             stopping_criteria = stop_sequences_criteria(
                 self.tokenizer,
-                stop + [self.tokenizer.decode([self.config.eos_token_id])],
+                stop + self._eos_stop_strings(),
                 1,
                 context.shape[0],
             )
 
-            return self.model.generate(
+            return self._text_generate(
                 input_ids=context,
                 max_length=max_length,
                 stopping_criteria=stopping_criteria,
