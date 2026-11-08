@@ -1,0 +1,5 @@
+task: hplte_eus_arc_easy_p2
+include: _arc_yaml
+dataset_name: ARC-Easy
+doc_to_text: !function utils.p2
+doc_to_choice: !function utils.doc_to_choice

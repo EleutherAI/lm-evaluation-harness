@@ -1,0 +1,4 @@
+task: hplte_cat_paws_p2
+include: _paws_yaml
+doc_to_text: "Oració 1: {{sentence1}}\nOració 2: {{sentence2}}\nPregunta: Les oracions 1 i 2 expressen el mateix significat? Sí o no?\nResposta:"
+doc_to_choice: ["no", "sí"]

@@ -1,0 +1,17 @@
+dataset_path: projecte-aina/openbookqa_ca
+dataset_kwargs:
+  revision: f3adee6b6a6e3581a9a1ad52302638136e2300cf
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

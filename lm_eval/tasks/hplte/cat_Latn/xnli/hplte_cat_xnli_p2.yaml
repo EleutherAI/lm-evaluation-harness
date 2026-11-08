@@ -1,0 +1,4 @@
+task: hplte_cat_xnli_p2
+include: _xnli_yaml
+doc_to_text: "Premissa: {{premise}}\nHipòtesi: {{hypothesis}}\n\nQuina és la relació entre la premissa i la hipòtesi?\nA. En acord\nB. Neutres entre si\nC. En contradicció\nResposta:"
+doc_to_choice: ["A", "B", "C"]

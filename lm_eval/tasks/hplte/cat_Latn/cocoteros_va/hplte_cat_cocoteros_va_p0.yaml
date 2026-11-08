@@ -1,0 +1,3 @@
+task: hplte_cat_cocoteros_va_p0
+include: _cocoteros_va_yaml
+doc_to_text: "Genera una frase curta amb estes paraules: {{keywords}}. El context és: {{context}} \n\nResposta:"

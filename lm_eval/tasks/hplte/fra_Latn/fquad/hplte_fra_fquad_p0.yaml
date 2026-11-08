@@ -1,0 +1,3 @@
+task: hplte_fra_fquad_p0
+include: _fquad_yaml
+doc_to_text: "Contexte: {{context}}\n\nQuestion: {{question}}\n\nRéponse:"

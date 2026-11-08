@@ -1,0 +1,15 @@
+dataset_path: HiTZ/xnli-eu
+dataset_name: eu_native
+dataset_kwargs:
+  revision: 7a48572e7a36d9bc645ec4c63eb7c7c3e27e23ba
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: test
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

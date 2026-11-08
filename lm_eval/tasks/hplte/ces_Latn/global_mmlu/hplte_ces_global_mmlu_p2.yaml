@@ -1,0 +1,15 @@
+group: hplte_ces_global_mmlu_p2
+task:
+  - hplte_ces_global_mmlu_business_p2
+  - hplte_ces_global_mmlu_humanities_p2
+  - hplte_ces_global_mmlu_medical_p2
+  - hplte_ces_global_mmlu_other_p2
+  - hplte_ces_global_mmlu_stem_p2
+  - hplte_ces_global_mmlu_social_sciences_p2
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+metadata:
+  version: 1.0

@@ -1,0 +1,3 @@
+task: hplte_spa_escola_p0
+include: _escola_yaml
+doc_to_text: "{{Sentence}}\nPregunta: ¿Tiene sentido esta frase?\nRespuesta:"

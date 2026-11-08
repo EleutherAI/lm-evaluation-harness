@@ -1,0 +1,4 @@
+task: hplte_cat_belebele_p1
+include: _belebele_yaml
+doc_to_text: "Llegeix el passatge i respon a la pregunta: {{flores_passage}}\n{{question.strip()}}\nOpció A: {{mc_answer1}}\nOpció B: {{mc_answer2}}\nOpció C: {{mc_answer3}}\nOpció D: {{mc_answer4}}\nÉs la resposta correcta A, B, C o D?"
+doc_to_choice: ["Opció A", "Opció B", "Opció C", "Opció D"]

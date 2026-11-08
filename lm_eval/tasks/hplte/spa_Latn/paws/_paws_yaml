@@ -1,0 +1,16 @@
+dataset_path: google-research-datasets/paws-x
+dataset_name: es
+dataset_kwargs:
+  revision: 4cd8187c404bda33cb1f62b49b001115862acf37
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs_paraphrases
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

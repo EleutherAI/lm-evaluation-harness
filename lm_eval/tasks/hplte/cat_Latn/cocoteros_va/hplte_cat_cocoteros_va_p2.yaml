@@ -1,0 +1,3 @@
+task: hplte_cat_cocoteros_va_p2
+include: _cocoteros_va_yaml
+doc_to_text: "Construeix una oració tenint en compte el següent context: {{context}}.\nUtilitza les paraules clau: {{keywords}}.\n\nResposta:"

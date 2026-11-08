@@ -1,0 +1,7 @@
+task: hplte_fra_grammar_p1
+include: _language_test_yaml
+validation_split: Grammar
+fewshot_split: Grammar
+test_split: Grammar
+doc_to_text: "Remplissez les trous dans la phrase : « {{question.strip()}} » avec une des options suivantes :\n- {{answerA}}\n- {{answerB}}\n- {{answerC}}\n- {{answerD}}\n"
+doc_to_choice: "{{[question.replace('<...>', answerA), question.replace('<...>', answerB), question.replace('<...>', answerC), question.replace('<...>', answerD)]}}"

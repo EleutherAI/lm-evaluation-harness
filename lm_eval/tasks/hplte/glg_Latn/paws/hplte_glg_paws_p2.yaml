@@ -1,0 +1,4 @@
+task: hplte_glg_paws_p2
+include: _paws_yaml
+doc_to_text: "Frase 1: {{sentence1}}\nFrase 2: {{sentence2}}\nPregunta: As frases 1 e 2 expresan o mesmo significado? Si ou non?\nResposta:"
+doc_to_choice: ["non", "si"]

@@ -1,0 +1,17 @@
+dataset_path: proxectonos/openbookqa_gl
+dataset_kwargs:
+  revision: 80a2c313434a8bbdb9c0538b068ac4da321a0dd6
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

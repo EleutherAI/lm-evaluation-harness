@@ -1,0 +1,3 @@
+task: hplte_spa_cocoteros_p2
+include: _cocoteros_yaml
+doc_to_text: "Escribe una frase corta con estas palabras clave: {{keywords}}.\nTen en cuenta el siguiente contexto: {{context}}.\n\nRespuesta:"

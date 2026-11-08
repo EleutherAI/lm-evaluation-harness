@@ -1,0 +1,3 @@
+task: hplte_cat_xquad_p1
+include: _xquad_yaml
+doc_to_text: "{{context}}\n\nPregunta: {{question}}\nRespecte al passatge anterior, la resposta correcta a la pregunta és"

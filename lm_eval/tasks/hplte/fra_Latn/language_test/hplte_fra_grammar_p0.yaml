@@ -1,0 +1,8 @@
+task: hplte_fra_grammar_p0
+include: _language_test_yaml
+validation_split: Grammar
+fewshot_split: Grammar
+test_split: Grammar
+description: "Répond au mieux en complétant la question avec une des réponses proposées."
+doc_to_text: "La phrase suivante est correcte grammaticalement:\n"
+doc_to_choice: "{{[question.replace('<...>', answerA), question.replace('<...>', answerB), question.replace('<...>', answerC), question.replace('<...>', answerD)]}}"

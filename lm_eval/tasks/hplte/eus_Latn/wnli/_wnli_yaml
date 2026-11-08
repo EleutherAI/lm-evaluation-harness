@@ -1,0 +1,16 @@
+dataset_path: HiTZ/wnli-eu
+dataset_name: null
+dataset_kwargs:
+  revision: 64ba521c6642e1a25d959c2852b27cf5388be185
+output_type: multiple_choice
+doc_to_choice: ["Gezurra", "Egia"]
+training_split: null
+validation_split: validation
+test_split: test
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

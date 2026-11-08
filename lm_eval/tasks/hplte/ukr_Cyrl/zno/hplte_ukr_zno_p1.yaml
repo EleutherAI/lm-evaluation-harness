@@ -1,0 +1,4 @@
+task: hplte_ukr_zno_p1
+include: _zno_yaml
+doc_to_text: !function utils.p1
+doc_to_choice: "{{choices.label}}"

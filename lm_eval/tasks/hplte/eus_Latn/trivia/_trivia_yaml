@@ -1,0 +1,20 @@
+dataset_path: HiTZ/EusTrivia
+dataset_name: default
+dataset_kwargs:
+  revision: 6e0c19188ea9f2925a0e4ce0ecf096e2c443bcfb
+validation_split: null
+test_split: test
+fewshot_split: test
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

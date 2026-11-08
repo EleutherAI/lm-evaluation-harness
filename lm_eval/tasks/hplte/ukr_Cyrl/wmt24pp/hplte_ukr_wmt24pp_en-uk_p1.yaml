@@ -1,0 +1,3 @@
+task: hplte_ukr_wmt24pp_en-uk_p1
+include: _wmt24pp_yaml
+doc_to_text: "Перекладіть наступне речення українською: {{source}}.\nУкраїнською:"

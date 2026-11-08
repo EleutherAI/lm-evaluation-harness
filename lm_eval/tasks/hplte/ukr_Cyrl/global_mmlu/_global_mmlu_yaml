@@ -1,0 +1,19 @@
+dataset_path: CohereLabs/Global-MMLU
+dataset_name: uk
+dataset_kwargs:
+  revision: 0e619dbeb34206cd48705a1a0ea7fb21cae09993
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_target: "{{['A', 'B', 'C', 'D'].index(answer)}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

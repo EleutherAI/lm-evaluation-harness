@@ -1,0 +1,3 @@
+task: hplte_fra_include_p1
+include: _include_yaml
+doc_to_text: "Question à choix multiple : {{question.strip()}}\nChoix :\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRéponse :"

@@ -1,0 +1,4 @@
+task: hplte_ukr_belebele_p0
+include: _belebele_yaml
+doc_to_text: "Текст: {{flores_passage}}\n\nПитання: {{question}}\nВаріанти відповіді:\nА {{mc_answer1}}\nБ: {{mc_answer2}}\nВ: {{mc_answer3}}\nГ: {{mc_answer4}}\nВiдповiдь:"
+doc_to_choice: ["А", "Б", "В", "Г"]

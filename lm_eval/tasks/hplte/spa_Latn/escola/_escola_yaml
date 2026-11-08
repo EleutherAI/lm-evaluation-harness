@@ -1,0 +1,14 @@
+dataset_path: nbel/EsCoLA
+dataset_kwargs:
+  revision: f243de45e1d0461d7485537ef013d7756372701f
+output_type: multiple_choice
+doc_to_choice: ["no", "sí"]
+training_split: train
+validation_split: validation
+test_split: null
+doc_to_target: Label
+metric_list:
+  - metric: mcc
+  - metric: acc
+metadata:
+  version: 1.0

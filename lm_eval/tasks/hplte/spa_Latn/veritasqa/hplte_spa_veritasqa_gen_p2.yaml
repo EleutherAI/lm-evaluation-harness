@@ -1,0 +1,3 @@
+task: hplte_spa_veritasqa_gen_p2
+include: _veritasqa_gen_yaml
+doc_to_text: "Proporciona una respuesta detallada para la siguiente pregunta:\n{{question}}\nRespuesta:"

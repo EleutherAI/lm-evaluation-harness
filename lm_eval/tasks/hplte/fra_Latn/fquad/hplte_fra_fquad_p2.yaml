@@ -1,0 +1,3 @@
+task: hplte_fra_fquad_p2
+include: _fquad_yaml
+doc_to_text: "{{context}}\n\nEn répondant en référençant le texte précédent, {{question}}"

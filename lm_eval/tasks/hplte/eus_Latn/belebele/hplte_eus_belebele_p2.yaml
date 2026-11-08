@@ -1,0 +1,4 @@
+task: hplte_eus_belebele_p2
+include: _belebele_yaml
+doc_to_text: "{{flores_passage}}\nGoiko pasartean oinarrituta, erantzun galdera honi: {{question}}\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\n\nZein da erantzun zuzena?"
+doc_to_choice: ["A", "B", "C", "D"]

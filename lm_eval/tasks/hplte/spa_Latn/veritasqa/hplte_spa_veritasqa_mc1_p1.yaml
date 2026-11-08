@@ -1,0 +1,4 @@
+task: hplte_spa_veritasqa_mc1_p1
+include: _veritasqa_mc_yaml
+doc_to_choice: !function utils.doc_to_choice_mc1_p1
+doc_to_text: !function utils.mc1_p1

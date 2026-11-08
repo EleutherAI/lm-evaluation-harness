@@ -1,0 +1,3 @@
+task: hplte_cat_wnli_p2
+include: _wnli_yaml
+doc_to_text: "{{sentence1}}\nPregunta: {{sentence2}}.\nResposta:"

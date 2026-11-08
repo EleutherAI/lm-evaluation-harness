@@ -1,0 +1,277 @@
+{
+  "hplte_glg_belebele_p0": {
+    "type": "task",
+    "hplt_e_name": "glgbelebele_p0",
+    "dataset": "proxectonos/belebele_gl",
+    "doc_to_text": "Contexto: {{flores_passage}}\nPregunta: {{question.strip()}}\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\nResposta:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_glg_belebele_p1": {
+    "type": "task",
+    "hplt_e_name": "glgbelebele_p1",
+    "dataset": "proxectonos/belebele_gl",
+    "doc_to_text": "Lea a pasaxe e responde á pregunta: {{flores_passage}}\n{{question.strip()}}\nOpción A: {{mc_answer1}}\nOpción B: {{mc_answer2}}\nOpción C: {{mc_answer3}}\nOpción D: {{mc_answer4}}\nA resposta correcta é A, B, C ou D?",
+    "doc_to_choice": [
+      "Opción A",
+      "Opción B",
+      "Opción C",
+      "Opción D"
+    ]
+  },
+  "hplte_glg_belebele_p2": {
+    "type": "task",
+    "hplt_e_name": "glgbelebele_p2",
+    "dataset": "proxectonos/belebele_gl",
+    "doc_to_text": "{{flores_passage}}\nBaseándote no texto anterior, responde á pregunta: {{question.strip()}}\nEscolle a resposta correcta da lista:\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\n\nCal é a resposta correcta?",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_glg_flores_en-gl_p0": {
+    "type": "task",
+    "hplt_e_name": "flores_en-gl_p0",
+    "dataset": "facebook/flores",
+    "dataset_name": "all",
+    "doc_to_text": "Translate the following sentence into Galician: {{sentence_eng_Latn}}\nGalician:"
+  },
+  "hplte_glg_flores_en-gl_p1": {
+    "type": "task",
+    "hplt_e_name": "flores_en-gl_p1",
+    "dataset": "facebook/flores",
+    "dataset_name": "all",
+    "doc_to_text": "Translate the sentence from English to Galician.\nSource sentence (English): {{sentence_eng_Latn}}\nTarget sentence (Galician):"
+  },
+  "hplte_glg_flores_en-gl_p2": {
+    "type": "task",
+    "hplt_e_name": "flores_en-gl_p2",
+    "dataset": "facebook/flores",
+    "dataset_name": "all",
+    "doc_to_text": "The following sentence is written in English. Translate it into Galician.\nEnglish: {{sentence_eng_Latn}}\nGalician:"
+  },
+  "hplte_glg_galcola_p0": {
+    "type": "task",
+    "hplt_e_name": "galcola_p0",
+    "dataset": "proxectonos/galcola",
+    "doc_to_text": "{{sentence}}\nPregunta: Ten sentido esta frase?\nResposta:",
+    "doc_to_choice": [
+      "non",
+      "si"
+    ]
+  },
+  "hplte_glg_galcola_p1": {
+    "type": "task",
+    "hplt_e_name": "galcola_p1",
+    "dataset": "proxectonos/galcola",
+    "doc_to_text": "{{sentence}}\nPregunta: Ten sentido esta frase?",
+    "doc_to_choice": [
+      "non",
+      "si"
+    ]
+  },
+  "hplte_glg_galcola_p2": {
+    "type": "task",
+    "hplt_e_name": "galcola_p2",
+    "dataset": "proxectonos/galcola",
+    "doc_to_text": "Determina se a seguinte frase ten sentido: {{sentence}}\nResposta:",
+    "doc_to_choice": [
+      "non",
+      "si"
+    ]
+  },
+  "hplte_glg_mgsm_direct_p0": {
+    "type": "task",
+    "hplt_e_name": "mgsm_direct_gl_p0",
+    "dataset": "proxectonos/mgsm_gl",
+    "doc_to_text": "Pregunta: {{question}}\nResposta:"
+  },
+  "hplte_glg_mgsm_direct_p1": {
+    "type": "task",
+    "hplt_e_name": "mgsm_direct_gl_p1",
+    "dataset": "proxectonos/mgsm_gl",
+    "doc_to_text": "Responde á seguinte pregunta de forma clara e precisa:\n{{question}}\nResposta:"
+  },
+  "hplte_glg_mgsm_direct_p2": {
+    "type": "task",
+    "hplt_e_name": "mgsm_direct_gl_p2",
+    "dataset": "proxectonos/mgsm_gl",
+    "doc_to_text": "Proporcione unha resposta detallada á seguinte pregunta:\n{{question}}\nResposta:"
+  },
+  "hplte_glg_openbookqa_p0": {
+    "type": "task",
+    "hplt_e_name": "openbookqa_gl_p0",
+    "dataset": "proxectonos/openbookqa_gl",
+    "doc_to_text": "question_stem",
+    "doc_to_choice": "{{choices.text}}"
+  },
+  "hplte_glg_openbookqa_p1": {
+    "type": "task",
+    "hplt_e_name": "openbookqa_gl_p1",
+    "dataset": "proxectonos/openbookqa_gl",
+    "doc_to_text": "{{question_stem}}\nOpción A: {{choices['text'][0]}}\nOpción B: {{choices['text'][1]}}\nOpción C: {{choices['text'][2]}}\nOpción D: {{choices['text'][3]}}\n\nA resposta correcta é A, B, C ou D?",
+    "doc_to_choice": [
+      "Opción A",
+      "Opción B",
+      "Opción C",
+      "Opción D"
+    ]
+  },
+  "hplte_glg_openbookqa_p2": {
+    "type": "task",
+    "hplt_e_name": "openbookqa_gl_p2",
+    "dataset": "proxectonos/openbookqa_gl",
+    "doc_to_text": "{{question_stem}}\nA. {{choices['text'][0]}}\nB. {{choices['text'][1]}}\nC. {{choices['text'][2]}}\nD. {{choices['text'][3]}}\nResposta:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_glg_parafrases_p0": {
+    "type": "task",
+    "hplt_e_name": "parafrases_gl_p0",
+    "dataset": "proxectonos/parafrases_gl",
+    "doc_to_choice": "{{[Frase+\", verdadeiro? Non, \"+Paráfrase, Frase+\", verdadeiro? Si, \"+Paráfrase]}}"
+  },
+  "hplte_glg_parafrases_p1": {
+    "type": "task",
+    "hplt_e_name": "parafrases_gl_p1",
+    "dataset": "proxectonos/parafrases_gl",
+    "doc_to_text": "Determina se as dúas seguintes frases expresan a mesma idea ou non.\nFrase 1: {{Frase}}\nFrase 2: {{Paráfrase}}\nResposta:",
+    "doc_to_choice": [
+      "non",
+      "si"
+    ]
+  },
+  "hplte_glg_parafrases_p2": {
+    "type": "task",
+    "hplt_e_name": "parafrases_gl_p2",
+    "dataset": "proxectonos/parafrases_gl",
+    "doc_to_text": "Frase 1: {{Frase}}\nFrase 2: {{Paráfrase}}\nPregunta: As frases 1 e 2 expresan o mesmo significado? Si ou non?\nResposta:",
+    "doc_to_choice": [
+      "non",
+      "si"
+    ]
+  },
+  "hplte_glg_paws_p0": {
+    "type": "task",
+    "hplt_e_name": "paws_gl_p0",
+    "dataset": "proxectonos/PAWS-gl",
+    "doc_to_choice": "{{[sentence1+\", verdadeiro? Non, \"+sentence2, sentence1+\", verdadeiro? Si, \"+sentence2]}}"
+  },
+  "hplte_glg_paws_p1": {
+    "type": "task",
+    "hplt_e_name": "paws_gl_p1",
+    "dataset": "proxectonos/PAWS-gl",
+    "doc_to_text": "Determina se as dúas seguintes frases expresan a mesma idea ou non.\nFrase 1: {{sentence1 }}\nFrase 2: {{sentence2}}\nResposta:",
+    "doc_to_choice": [
+      "non",
+      "si"
+    ]
+  },
+  "hplte_glg_paws_p2": {
+    "type": "task",
+    "hplt_e_name": "paws_gl_p2",
+    "dataset": "proxectonos/PAWS-gl",
+    "doc_to_text": "Frase 1: {{sentence1}}\nFrase 2: {{sentence2}}\nPregunta: As frases 1 e 2 expresan o mesmo significado? Si ou non?\nResposta:",
+    "doc_to_choice": [
+      "non",
+      "si"
+    ]
+  },
+  "hplte_glg_veritasqa_gen_p0": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_gen_p0",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": "Responde á seguinte pregunta:\n{{question}}\nResposta:"
+  },
+  "hplte_glg_veritasqa_gen_p1": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_gen_p1",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": "Responde á seguinte pregunta de forma clara e precisa:\n{{question}}\nResposta:"
+  },
+  "hplte_glg_veritasqa_gen_p2": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_gen_p2",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": "Proporcione unha resposta detallada á seguinte pregunta:\n{{question}}\nResposta:"
+  },
+  "hplte_glg_veritasqa_mc1_p0": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_mc1_p0",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": "Pregunta: {{question}}\nResposta:",
+    "doc_to_choice": "{{mc1_targets.choices}}"
+  },
+  "hplte_glg_veritasqa_mc1_p1": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_mc1_p1",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": {
+      "function": "utils.mc1_p1",
+      "source": "def mc1_p1(doc):\n    choices = doc[\"mc1_targets\"][\"choices\"]\n    formatted_choices = \"\\n\".join(\n        [f\"Opción {LETTERS[i]}: {choice}\" for i, choice in enumerate(choices)]\n    )\n    letters = LETTERS[: len(choices)]\n    return f\"Pregunta: {doc['question']}\\n{formatted_choices}\\nA resposta correcta é {', '.join(letters[:-1])} ou {letters[-1]}?\\nResposta:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_mc1_p1",
+      "source": "def doc_to_choice_mc1_p1(doc):\n    choices = doc[\"mc1_targets\"][\"choices\"]\n    return [f\"Opción {letter}\" for letter in LETTERS[: len(choices)]]"
+    }
+  },
+  "hplte_glg_veritasqa_mc1_p2": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_mc1_p2",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": {
+      "function": "utils.mc1_p2",
+      "source": "def mc1_p2(doc):\n    choices = doc[\"mc1_targets\"][\"choices\"]\n    formatted_choices = \"\".join([f\"\\n- {choice}\" for choice in choices])\n    return f\"Pregunta: {doc['question']}\\nEscolle a resposta correcta da lista:\\n{formatted_choices}\\nCal é a resposta correcta?\\nResposta:\""
+    },
+    "doc_to_choice": "{{mc1_targets.choices}}"
+  },
+  "hplte_glg_veritasqa_mc2_p0": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_mc2_p0",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": "Pregunta: {{question}}\nResposta:",
+    "doc_to_choice": "{{mc2_targets.choices}}"
+  },
+  "hplte_glg_veritasqa_mc2_p1": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_mc2_p1",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": {
+      "function": "utils.mc2_p1",
+      "source": "def mc2_p1(doc):\n    choices = doc[\"mc2_targets\"][\"choices\"]\n    formatted_choices = \"\\n\".join(\n        [f\"Opción {LETTERS[i]}: {choice}\" for i, choice in enumerate(choices)]\n    )\n    letters = LETTERS[: len(choices)]\n    return f\"Pregunta: {doc['question']}\\n{formatted_choices}\\nA resposta correcta é {', '.join(letters[:-1])} ou {letters[-1]}?\\nResposta:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_mc2_p1",
+      "source": "def doc_to_choice_mc2_p1(doc):\n    choices = doc[\"mc2_targets\"][\"choices\"]\n    return [f\"Opción {letter}\" for letter in LETTERS[: len(choices)]]"
+    }
+  },
+  "hplte_glg_veritasqa_mc2_p2": {
+    "type": "task",
+    "hplt_e_name": "veritasqa_gl_mc2_p2",
+    "dataset": "projecte-aina/veritasQA",
+    "dataset_name": "gl",
+    "doc_to_text": {
+      "function": "utils.mc2_p2",
+      "source": "def mc2_p2(doc):\n    choices = doc[\"mc2_targets\"][\"choices\"]\n    formatted_choices = \"\".join([f\"\\n- {choice}\" for choice in choices])\n    return f\"Pregunta: {doc['question']}\\nEscolle a resposta correcta da lista:\\n{formatted_choices}\\nCal é a resposta correcta?\\nResposta:\""
+    },
+    "doc_to_choice": "{{mc2_targets.choices}}"
+  }
+}

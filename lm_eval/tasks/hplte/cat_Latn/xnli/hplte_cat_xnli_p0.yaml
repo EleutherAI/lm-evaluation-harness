@@ -1,0 +1,5 @@
+task: hplte_cat_xnli_p0
+include: _xnli_yaml
+doc_to_text: ""
+target_delimiter: ""
+doc_to_choice: '{{[premise + ", correcte? Sí, " + hypothesis, premise + ", correcte? A més, " + hypothesis, premise + ", correcte? No, " + hypothesis]}}'

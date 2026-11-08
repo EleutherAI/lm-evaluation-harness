@@ -1,0 +1,8 @@
+task: hplte_fra_reading_p0
+include: _language_test_yaml
+validation_split: Reading
+fewshot_split: Reading
+test_split: Reading
+doc_to_text: "Context: {{context}}\n\n"
+doc_to_choice: "{{[question.replace('<...>', answerA) if '<...>' in question else question + ' ' +answerA, question.replace('<...>', answerB) if '<...>' in question else question + ' ' + answerB, question.replace('<...>', answerC) if '<...>' in question else question + ' ' + answerC, question.replace('<...>', answerD) if '<...>' in question else question + ' ' + answerD]}}"
+doc_to_target: '{{["answerA", "answerB", "answerC", "answerD"].index("answer" + answer)}}'

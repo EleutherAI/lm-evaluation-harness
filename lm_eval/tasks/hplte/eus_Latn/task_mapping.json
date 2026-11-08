@@ -1,0 +1,1715 @@
+{
+  "hplte_eus_arc_challenge_p0": {
+    "type": "task",
+    "hplt_e_name": "arc_eu_challenge_p0",
+    "dataset": "HiTZ/ARC-eu",
+    "dataset_name": "ARC-Challenge",
+    "doc_to_text": "Galdera: {{question}}\nErantzuna:",
+    "doc_to_choice": "{{choices.text}}"
+  },
+  "hplte_eus_arc_challenge_p1": {
+    "type": "task",
+    "hplt_e_name": "arc_eu_challenge_p1",
+    "dataset": "HiTZ/ARC-eu",
+    "dataset_name": "ARC-Challenge",
+    "doc_to_text": {
+      "function": "utils.p1",
+      "source": "def p1(doc):\n    candidates, letters = doc[\"choices\"][\"text\"], doc[\"choices\"][\"label\"]\n    formatted_choices = \"\\n\".join(\n        [f\"{letters[i]}: {candidates[i]}\" for i, _ in enumerate(candidates)]\n    )\n    return f\"{doc['question']}\\n{formatted_choices}\\nZein da erantzun zuzena, {', '.join(letters[:-1])} ala {letters[-1]}?\""
+    },
+    "doc_to_choice": "{{choices.label}}"
+  },
+  "hplte_eus_arc_challenge_p2": {
+    "type": "task",
+    "hplt_e_name": "arc_eu_challenge_p2",
+    "dataset": "HiTZ/ARC-eu",
+    "dataset_name": "ARC-Challenge",
+    "doc_to_text": {
+      "function": "utils.p2",
+      "source": "def p2(doc):\n    candidates, letters = doc[\"choices\"][\"text\"], doc[\"choices\"][\"label\"]\n    formatted_choices = \"\\n\".join(\n        [f\"{letters[i]}: {candidates[i]}\" for i, _ in enumerate(candidates)]\n    )\n    return f\"{doc['question']}\\n{formatted_choices}\\nErantzuna:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice",
+      "source": "def doc_to_choice(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    letters = doc[\"choices\"][\"label\"]\n    return [f\"Aukera {letter}\" for letter in letters]"
+    }
+  },
+  "hplte_eus_arc_easy_p0": {
+    "type": "task",
+    "hplt_e_name": "arc_eu_easy_p0",
+    "dataset": "HiTZ/ARC-eu",
+    "dataset_name": "ARC-Easy",
+    "doc_to_text": "Galdera: {{question}}\nErantzuna:",
+    "doc_to_choice": "{{choices.text}}"
+  },
+  "hplte_eus_arc_easy_p1": {
+    "type": "task",
+    "hplt_e_name": "arc_eu_easy_p1",
+    "dataset": "HiTZ/ARC-eu",
+    "dataset_name": "ARC-Easy",
+    "doc_to_text": {
+      "function": "utils.p1",
+      "source": "def p1(doc):\n    candidates, letters = doc[\"choices\"][\"text\"], doc[\"choices\"][\"label\"]\n    formatted_choices = \"\\n\".join(\n        [f\"{letters[i]}: {candidates[i]}\" for i, _ in enumerate(candidates)]\n    )\n    return f\"{doc['question']}\\n{formatted_choices}\\nZein da erantzun zuzena, {', '.join(letters[:-1])} ala {letters[-1]}?\""
+    },
+    "doc_to_choice": "{{choices.label}}"
+  },
+  "hplte_eus_arc_easy_p2": {
+    "type": "task",
+    "hplt_e_name": "arc_eu_easy_p2",
+    "dataset": "HiTZ/ARC-eu",
+    "dataset_name": "ARC-Easy",
+    "doc_to_text": {
+      "function": "utils.p2",
+      "source": "def p2(doc):\n    candidates, letters = doc[\"choices\"][\"text\"], doc[\"choices\"][\"label\"]\n    formatted_choices = \"\\n\".join(\n        [f\"{letters[i]}: {candidates[i]}\" for i, _ in enumerate(candidates)]\n    )\n    return f\"{doc['question']}\\n{formatted_choices}\\nErantzuna:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice",
+      "source": "def doc_to_choice(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    letters = doc[\"choices\"][\"label\"]\n    return [f\"Aukera {letter}\" for letter in letters]"
+    }
+  },
+  "hplte_eus_belebele_p0": {
+    "type": "task",
+    "hplt_e_name": "eusbelebele_p0",
+    "dataset": "facebook/belebele",
+    "dataset_name": "eus_Latn",
+    "doc_to_text": "Testuingurua: {{flores_passage}}\nGaldera: {{question.strip()}}\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_belebele_p1": {
+    "type": "task",
+    "hplt_e_name": "eusbelebele_p1",
+    "dataset": "facebook/belebele",
+    "dataset_name": "eus_Latn",
+    "doc_to_text": "Irakurri pasartea eta erantzun galderari: {{flores_passage}}\n{{question.strip()}}\nA aukera: {{mc_answer1}}\nB aukera: {{mc_answer2}}\nC aukera: {{mc_answer3}}\nD aukera: {{mc_answer4}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_belebele_p2": {
+    "type": "task",
+    "hplt_e_name": "eusbelebele_p2",
+    "dataset": "facebook/belebele",
+    "dataset_name": "eus_Latn",
+    "doc_to_text": "{{flores_passage}}\nGoiko pasartean oinarrituta, erantzun galdera honi: {{question}}\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\n\nZein da erantzun zuzena?",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejadministrari_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejadministrari_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejadministrari",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejadministrari_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejadministrari_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejadministrari",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejadministrari_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejadministrari_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejadministrari",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_ejlaguntza_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejlaguntza_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejlaguntza",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejlaguntza_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejlaguntza_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejlaguntza",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejlaguntza_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejlaguntza_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejlaguntza",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_ejlaguntzaile_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejlaguntzaile_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejlaguntzaile",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejlaguntzaile_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejlaguntzaile_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejlaguntzaile",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejlaguntzaile_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejlaguntzaile_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejlaguntzaile",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_ejteknikari_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejteknikari_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejteknikari",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejteknikari_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejteknikari_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejteknikari",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_ejteknikari_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_ejteknikari_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_ejteknikari",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opebilbaoeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opebilbaoeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opebilbaoeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opebilbaoeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opebilbaoeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opebilbaoeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opebilbaoeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opebilbaoeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opebilbaoeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehuadmineu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuadmineu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuadmineu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuadmineu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuadmineu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuadmineu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuadmineu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuadmineu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuadmineu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehuauxeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuauxeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuauxeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuauxeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuauxeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuauxeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuauxeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuauxeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuauxeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehubiblioeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehubiblioeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehubiblioeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehubiblioeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehubiblioeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehubiblioeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehubiblioeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehubiblioeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehubiblioeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehuderechoeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuderechoeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuderechoeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuderechoeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuderechoeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuderechoeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuderechoeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuderechoeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuderechoeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehueconomicaseu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehueconomicaseu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehueconomicaseu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehueconomicaseu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehueconomicaseu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehueconomicaseu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehueconomicaseu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehueconomicaseu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehueconomicaseu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehuempresarialeseu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuempresarialeseu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuempresarialeseu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuempresarialeseu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuempresarialeseu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuempresarialeseu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuempresarialeseu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuempresarialeseu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuempresarialeseu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehusubalternoeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehusubalternoeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehusubalternoeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehusubalternoeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehusubalternoeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehusubalternoeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehusubalternoeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehusubalternoeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehusubalternoeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehutecnicoeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehutecnicoeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehutecnicoeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehutecnicoeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehutecnicoeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehutecnicoeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehutecnicoeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehutecnicoeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehutecnicoeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeehuteknikarib_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuteknikarib_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuteknikarib",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuteknikarib_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuteknikarib_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuteknikarib",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeehuteknikarib_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeehuteknikarib_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeehuteknikarib",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opegasteizkoudala_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opegasteizkoudala_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opegasteizkoudala",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opegasteizkoudala_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opegasteizkoudala_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opegasteizkoudala",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opegasteizkoudala_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opegasteizkoudala_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opegasteizkoudala",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakiadmineu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiadmineu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiadmineu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiadmineu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiadmineu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiadmineu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiadmineu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiadmineu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiadmineu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakiauxenfeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiauxenfeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiauxenfeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiauxenfeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiauxenfeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiauxenfeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiauxenfeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiauxenfeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiauxenfeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakiauxeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiauxeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiauxeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiauxeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiauxeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiauxeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiauxeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiauxeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiauxeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakiceladoreu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiceladoreu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiceladoreu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiceladoreu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiceladoreu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiceladoreu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakiceladoreu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakiceladoreu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakiceladoreu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakienfeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakienfeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakienfeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakienfeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakienfeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakienfeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakienfeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakienfeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakienfeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakioperarioeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakioperarioeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakioperarioeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakioperarioeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakioperarioeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakioperarioeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakioperarioeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakioperarioeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakioperarioeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakitecnicoeu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakitecnicoeu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakitecnicoeu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakitecnicoeu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakitecnicoeu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakitecnicoeu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakitecnicoeu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakitecnicoeu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakitecnicoeu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_opeosakivarioseu_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakivarioseu_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakivarioseu",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakivarioseu_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakivarioseu_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakivarioseu",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_opeosakivarioseu_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_opeosakivarioseu_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_opeosakivarioseu",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_osakidetza1e_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza1e_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza1e",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza1e_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza1e_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza1e",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza1e_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza1e_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza1e",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_osakidetza2e_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza2e_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza2e",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza2e_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza2e_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza2e",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza2e_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza2e_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza2e",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_osakidetza3e_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza3e_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza3e",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza3e_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza3e_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza3e",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza3e_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza3e_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza3e",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_osakidetza5e_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza5e_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza5e",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza5e_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza5e_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza5e",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza5e_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza5e_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza5e",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_osakidetza6e_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza6e_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza6e",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza6e_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza6e_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza6e",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza6e_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza6e_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza6e",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_osakidetza7e_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza7e_p0",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza7e",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza7e_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza7e_p1",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza7e",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_exams_osakidetza7e_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_exams_eu_osakidetza7e_p2",
+    "dataset": "HiTZ/EusExams",
+    "dataset_name": "eu_osakidetza7e",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_exams_p0": {
+    "type": "group",
+    "hplt_e_name": "eus_exams_eu_p0",
+    "tasks": [
+      "hplte_eus_exams_opeosakiadmineu_p0",
+      "hplte_eus_exams_opeosakiauxenfeu_p0",
+      "hplte_eus_exams_opeosakiauxeu_p0",
+      "hplte_eus_exams_opeosakiceladoreu_p0",
+      "hplte_eus_exams_opeosakienfeu_p0",
+      "hplte_eus_exams_opeosakioperarioeu_p0",
+      "hplte_eus_exams_opeosakitecnicoeu_p0",
+      "hplte_eus_exams_opeosakivarioseu_p0",
+      "hplte_eus_exams_opegasteizkoudala_p0",
+      "hplte_eus_exams_opeehuadmineu_p0",
+      "hplte_eus_exams_opeehuauxeu_p0",
+      "hplte_eus_exams_opeehubiblioeu_p0",
+      "hplte_eus_exams_opeehuderechoeu_p0",
+      "hplte_eus_exams_opeehueconomicaseu_p0",
+      "hplte_eus_exams_opeehuempresarialeseu_p0",
+      "hplte_eus_exams_opeehusubalternoeu_p0",
+      "hplte_eus_exams_opeehutecnicoeu_p0",
+      "hplte_eus_exams_opeehuteknikarib_p0",
+      "hplte_eus_exams_ejadministrari_p0",
+      "hplte_eus_exams_ejlaguntza_p0",
+      "hplte_eus_exams_ejlaguntzaile_p0",
+      "hplte_eus_exams_ejteknikari_p0",
+      "hplte_eus_exams_osakidetza1e_p0",
+      "hplte_eus_exams_osakidetza2e_p0",
+      "hplte_eus_exams_osakidetza3e_p0",
+      "hplte_eus_exams_osakidetza5e_p0",
+      "hplte_eus_exams_osakidetza6e_p0",
+      "hplte_eus_exams_osakidetza7e_p0",
+      "hplte_eus_exams_opebilbaoeu_p0"
+    ]
+  },
+  "hplte_eus_exams_p1": {
+    "type": "group",
+    "hplt_e_name": "eus_exams_eu_p1",
+    "tasks": [
+      "hplte_eus_exams_opeosakiadmineu_p1",
+      "hplte_eus_exams_opeosakiauxenfeu_p1",
+      "hplte_eus_exams_opeosakiauxeu_p1",
+      "hplte_eus_exams_opeosakiceladoreu_p1",
+      "hplte_eus_exams_opeosakienfeu_p1",
+      "hplte_eus_exams_opeosakioperarioeu_p1",
+      "hplte_eus_exams_opeosakitecnicoeu_p1",
+      "hplte_eus_exams_opeosakivarioseu_p1",
+      "hplte_eus_exams_opegasteizkoudala_p1",
+      "hplte_eus_exams_opeehuadmineu_p1",
+      "hplte_eus_exams_opeehuauxeu_p1",
+      "hplte_eus_exams_opeehubiblioeu_p1",
+      "hplte_eus_exams_opeehuderechoeu_p1",
+      "hplte_eus_exams_opeehueconomicaseu_p1",
+      "hplte_eus_exams_opeehuempresarialeseu_p1",
+      "hplte_eus_exams_opeehusubalternoeu_p1",
+      "hplte_eus_exams_opeehutecnicoeu_p1",
+      "hplte_eus_exams_opeehuteknikarib_p1",
+      "hplte_eus_exams_ejadministrari_p1",
+      "hplte_eus_exams_ejlaguntza_p1",
+      "hplte_eus_exams_ejlaguntzaile_p1",
+      "hplte_eus_exams_ejteknikari_p1",
+      "hplte_eus_exams_osakidetza1e_p1",
+      "hplte_eus_exams_osakidetza2e_p1",
+      "hplte_eus_exams_osakidetza3e_p1",
+      "hplte_eus_exams_osakidetza5e_p1",
+      "hplte_eus_exams_osakidetza6e_p1",
+      "hplte_eus_exams_osakidetza7e_p1",
+      "hplte_eus_exams_opebilbaoeu_p1"
+    ]
+  },
+  "hplte_eus_exams_p2": {
+    "type": "group",
+    "hplt_e_name": "eus_exams_eu_p2",
+    "tasks": [
+      "hplte_eus_exams_opeosakiadmineu_p2",
+      "hplte_eus_exams_opeosakiauxenfeu_p2",
+      "hplte_eus_exams_opeosakiauxeu_p2",
+      "hplte_eus_exams_opeosakiceladoreu_p2",
+      "hplte_eus_exams_opeosakienfeu_p2",
+      "hplte_eus_exams_opeosakioperarioeu_p2",
+      "hplte_eus_exams_opeosakitecnicoeu_p2",
+      "hplte_eus_exams_opeosakivarioseu_p2",
+      "hplte_eus_exams_opegasteizkoudala_p2",
+      "hplte_eus_exams_opeehuadmineu_p2",
+      "hplte_eus_exams_opeehuauxeu_p2",
+      "hplte_eus_exams_opeehubiblioeu_p2",
+      "hplte_eus_exams_opeehuderechoeu_p2",
+      "hplte_eus_exams_opeehueconomicaseu_p2",
+      "hplte_eus_exams_opeehuempresarialeseu_p2",
+      "hplte_eus_exams_opeehusubalternoeu_p2",
+      "hplte_eus_exams_opeehutecnicoeu_p2",
+      "hplte_eus_exams_opeehuteknikarib_p2",
+      "hplte_eus_exams_ejadministrari_p2",
+      "hplte_eus_exams_ejlaguntza_p2",
+      "hplte_eus_exams_ejlaguntzaile_p2",
+      "hplte_eus_exams_ejteknikari_p2",
+      "hplte_eus_exams_osakidetza1e_p2",
+      "hplte_eus_exams_osakidetza2e_p2",
+      "hplte_eus_exams_osakidetza3e_p2",
+      "hplte_eus_exams_osakidetza5e_p2",
+      "hplte_eus_exams_osakidetza6e_p2",
+      "hplte_eus_exams_osakidetza7e_p2",
+      "hplte_eus_exams_opebilbaoeu_p2"
+    ]
+  },
+  "hplte_eus_flores_en-eu_p0": {
+    "type": "task",
+    "hplt_e_name": "flores_en-eu_p0",
+    "dataset": "facebook/flores",
+    "dataset_name": "all",
+    "doc_to_text": "Translate the following sentence into Basque: {{sentence_eng_Latn}}\nBasque:"
+  },
+  "hplte_eus_flores_en-eu_p1": {
+    "type": "task",
+    "hplt_e_name": "flores_en-eu_p1",
+    "dataset": "facebook/flores",
+    "dataset_name": "all",
+    "doc_to_text": "Translate the sentence from English to Basque.\nSource sentence (English): {{sentence_eng_Latn}}\nTarget sentence (Basque):"
+  },
+  "hplte_eus_flores_en-eu_p2": {
+    "type": "task",
+    "hplt_e_name": "flores_en-eu_p2",
+    "dataset": "facebook/flores",
+    "dataset_name": "all",
+    "doc_to_text": "The following sentence is written in English. Translate it into Basque.\nEnglish: {{sentence_eng_Latn}}\nBasque:"
+  },
+  "hplte_eus_include_p0": {
+    "type": "task",
+    "hplt_e_name": "include_basque_p0",
+    "dataset": "CohereLabs/include-base-44",
+    "dataset_name": "Basque",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_include_p1": {
+    "type": "task",
+    "hplt_e_name": "include_basque_p1",
+    "dataset": "CohereLabs/include-base-44",
+    "dataset_name": "Basque",
+    "doc_to_text": "{{question.strip()}}\nA. aukera: {{option_a}}\nB. aukera: {{option_b}}\nC. aukera: {{option_c}}\nD. aukera: {{option_d}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_include_p2": {
+    "type": "task",
+    "hplt_e_name": "include_basque_p2",
+    "dataset": "CohereLabs/include-base-44",
+    "dataset_name": "Basque",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\n\nZein da erantzun zuzena?",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_mgsm_direct_p0": {
+    "type": "task",
+    "hplt_e_name": "mgsm_direct_eu_p0",
+    "dataset": "HiTZ/MGSM-eu",
+    "doc_to_text": "Galdera: {{question}}\nErantzuna:"
+  },
+  "hplte_eus_mgsm_direct_p1": {
+    "type": "task",
+    "hplt_e_name": "mgsm_direct_eu_p1",
+    "dataset": "HiTZ/MGSM-eu",
+    "doc_to_text": "Erantzun argi eta garbi hurrengo galderari:\n{{question}}\nErantzuna:"
+  },
+  "hplte_eus_mgsm_direct_p2": {
+    "type": "task",
+    "hplt_e_name": "mgsm_direct_eu_p2",
+    "dataset": "HiTZ/MGSM-eu",
+    "doc_to_text": "Eman erantzun zehatza hurrengo galderari:\n{{question}}\nErantzuna:"
+  },
+  "hplte_eus_paws_p0": {
+    "type": "task",
+    "hplt_e_name": "paws_eu_p0",
+    "dataset": "HiTZ/PAWS-eu",
+    "doc_to_choice": "{{[sentence1+\", ezta? Ez, \"+sentence2, sentence1+\", ezta? Bai, \"+sentence2]}}"
+  },
+  "hplte_eus_paws_p1": {
+    "type": "task",
+    "hplt_e_name": "paws_eu_p1",
+    "dataset": "HiTZ/PAWS-eu",
+    "doc_to_text": "Zehaztu ea hurrengo bi esaldiek ideia bera adierazten duten ala ez.\n1. esaldia: {{sentence1}}\n2. esaldia: {{sentence2}}\nErantzuna:",
+    "doc_to_choice": [
+      "ez",
+      "bai"
+    ]
+  },
+  "hplte_eus_paws_p2": {
+    "type": "task",
+    "hplt_e_name": "paws_eu_p2",
+    "dataset": "HiTZ/PAWS-eu",
+    "doc_to_text": "1. esaldia: {{sentence1}}\n2. esaldia: {{sentence2}}\nGaldera: 1. eta 2. esaldiek esanahi bera adierazten al dute? Bai ala ez?\nErantzuna:",
+    "doc_to_choice": [
+      "ez",
+      "bai"
+    ]
+  },
+  "hplte_eus_piqa_p0": {
+    "type": "task",
+    "hplt_e_name": "piqa_eu_p0",
+    "dataset": "HiTZ/PIQA-eu",
+    "doc_to_text": "Galdera: {{goal}}\nErantzuna:",
+    "doc_to_choice": "{{[sol1, sol2]}}"
+  },
+  "hplte_eus_piqa_p1": {
+    "type": "task",
+    "hplt_e_name": "piqa_eu_p1",
+    "dataset": "HiTZ/PIQA-eu",
+    "doc_to_text": "{{goal}}\nA. {{sol1}}\nB. {{sol2}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B"
+    ]
+  },
+  "hplte_eus_piqa_p2": {
+    "type": "task",
+    "hplt_e_name": "piqa_eu_p2",
+    "dataset": "HiTZ/PIQA-eu",
+    "doc_to_text": "{{goal}}\nA. {{sol1}}\nB. {{sol2}}\nZein da erantzun zuzena?",
+    "doc_to_choice": [
+      "A",
+      "B"
+    ]
+  },
+  "hplte_eus_proficiency_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_proficiency_p0",
+    "dataset": "HiTZ/EusProficiency",
+    "dataset_name": "default",
+    "doc_to_text": "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_proficiency_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_proficiency_p1",
+    "dataset": "HiTZ/EusProficiency",
+    "dataset_name": "default",
+    "doc_to_text": "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_eus_proficiency_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_proficiency_p2",
+    "dataset": "HiTZ/EusProficiency",
+    "dataset_name": "default",
+    "doc_to_text": "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?",
+    "doc_to_choice": [
+      "A aukera",
+      "B aukera",
+      "C aukera",
+      "D aukera"
+    ]
+  },
+  "hplte_eus_reading_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_reading_p0",
+    "dataset": "HiTZ/EusReading",
+    "dataset_name": "default",
+    "doc_to_text": {
+      "function": "utils.p0",
+      "source": "def p0(doc) -> str:\n    \"\"\"\n    Converts a document to a formatted string.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        str: A formatted string containing the question and answer choices.\n    \"\"\"\n    candidates = doc[\"candidates\"]\n    num_choices = len(candidates)\n    choices = LETTERS[:num_choices]\n    formatted_choices = \"\\n\".join(\n        [f\"{choice}: {candidates[i]}\" for i, choice in enumerate(choices)]\n    )\n    return f\"Pasartea: {doc['context']}\\n\\nGaldera: {doc['question']}\\n{formatted_choices}\\nErantzuna:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_p01",
+      "source": "def doc_to_choice_p01(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    num_choices = len(doc[\"candidates\"])\n    return LETTERS[:num_choices]"
+    }
+  },
+  "hplte_eus_reading_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_reading_p1",
+    "dataset": "HiTZ/EusReading",
+    "dataset_name": "default",
+    "doc_to_text": {
+      "function": "utils.p1",
+      "source": "def p1(doc) -> str:\n    \"\"\"\n    Converts a document to a formatted string.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        str: A formatted string containing the question and answer choices.\n    \"\"\"\n    candidates = doc[\"candidates\"]\n    num_choices = len(candidates)\n    choices = LETTERS[:num_choices]\n    formatted_choices = \"\\n\".join(\n        [f\"{choice}: {candidates[i]}\" for i, choice in enumerate(choices)]\n    )\n    return f\"Testuingurua: {doc['context']}\\n\\nGaldera: {doc['question']}\\n{formatted_choices}\\nErantzuna:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_p01",
+      "source": "def doc_to_choice_p01(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    num_choices = len(doc[\"candidates\"])\n    return LETTERS[:num_choices]"
+    }
+  },
+  "hplte_eus_reading_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_reading_p2",
+    "dataset": "HiTZ/EusReading",
+    "dataset_name": "default",
+    "doc_to_text": {
+      "function": "utils.p2",
+      "source": "def p2(doc) -> str:\n    \"\"\"\n    Converts a document to a formatted string.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        str: A formatted string containing the question and answer choices.\n    \"\"\"\n    candidates = doc[\"candidates\"]\n    num_choices = len(candidates)\n    choices = LETTERS[:num_choices]\n    formatted_choices = \"\\n\".join(\n        [f\"Auskera {choice}: {candidates[i]}\" for i, choice in enumerate(choices)]\n    )\n    return f\"Irakurri pasartea eta erantzun galderari: {doc['context']}\\n{doc['question']}\\n{formatted_choices}\\nZein da erantzun zuzena {', '.join(choices)}?\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_p2",
+      "source": "def doc_to_choice_p2(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    num_choices = len(doc[\"candidates\"])\n    return [f\"Aukera {letter}\" for letter in LETTERS[:num_choices]]"
+    }
+  },
+  "hplte_eus_trivia_p0": {
+    "type": "task",
+    "hplt_e_name": "eus_trivia_p0",
+    "dataset": "HiTZ/EusTrivia",
+    "dataset_name": "default",
+    "doc_to_text": {
+      "function": "utils.p0",
+      "source": "def p0(doc) -> str:\n    \"\"\"\n    Converts a document to a formatted string.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        str: A formatted string containing the question and answer choices.\n    \"\"\"\n    candidates = doc[\"candidates\"]\n    num_choices = len(candidates)\n    if num_choices < 2:\n        raise ValueError(\"Invalid number of candidates\")\n    choices = LETTERS[:num_choices]\n    formatted_choices = \"\\n\".join(\n        [f\"{choice}: {candidates[i]}\" for i, choice in enumerate(choices)]\n    )\n    return f\"Galdera: {doc['question']}\\n{formatted_choices}\\nErantzuna:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_p01",
+      "source": "def doc_to_choice_p01(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    num_choices = len(doc[\"candidates\"])\n    if num_choices < 2:\n        raise ValueError(\"Invalid number of candidates\")\n    return LETTERS[:num_choices]"
+    }
+  },
+  "hplte_eus_trivia_p1": {
+    "type": "task",
+    "hplt_e_name": "eus_trivia_p1",
+    "dataset": "HiTZ/EusTrivia",
+    "dataset_name": "default",
+    "doc_to_text": {
+      "function": "utils.p1",
+      "source": "def p1(doc) -> str:\n    \"\"\"\n    Converts a document to a formatted string.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        str: A formatted string containing the question and answer choices.\n    \"\"\"\n    candidates = doc[\"candidates\"]\n    num_choices = len(candidates)\n    if num_choices < 2:\n        raise ValueError(\"Invalid number of candidates\")\n    choices = LETTERS[:num_choices]\n    formatted_choices = \"\\n\".join(\n        [f\"{choice}. {candidates[i]}\" for i, choice in enumerate(choices)]\n    )\n    return f\"{doc['question']}\\n{formatted_choices}\\nErantzuna:\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_p01",
+      "source": "def doc_to_choice_p01(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    num_choices = len(doc[\"candidates\"])\n    if num_choices < 2:\n        raise ValueError(\"Invalid number of candidates\")\n    return LETTERS[:num_choices]"
+    }
+  },
+  "hplte_eus_trivia_p2": {
+    "type": "task",
+    "hplt_e_name": "eus_trivia_p2",
+    "dataset": "HiTZ/EusTrivia",
+    "dataset_name": "default",
+    "doc_to_text": {
+      "function": "utils.p2",
+      "source": "def p2(doc) -> str:\n    \"\"\"\n    Converts a document to a formatted string.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        str: A formatted string containing the question and answer choices.\n    \"\"\"\n    candidates = doc[\"candidates\"]\n    num_choices = len(candidates)\n    if num_choices < 2:\n        raise ValueError(\"Invalid number of candidates\")\n    choices = LETTERS[:num_choices]\n    formatted_choices = \"\\n\".join(\n        [f\"{choice} aukera: {candidates[i]}\" for i, choice in enumerate(choices)]\n    )\n    return f\"{doc['question']}\\n{formatted_choices}\\n\\nZein da erantzun zuzena, A, B, C ala D?\""
+    },
+    "doc_to_choice": {
+      "function": "utils.doc_to_choice_p2",
+      "source": "def doc_to_choice_p2(doc) -> list[str]:\n    \"\"\"\n    Returns the answer choices for a document.\n\n    Args:\n        doc (dict): A dictionary containing the document information.\n\n    Returns:\n        list: A list of strings containing the answer choices.\n    \"\"\"\n    num_choices = len(doc[\"candidates\"])\n    if num_choices < 2:\n        raise ValueError(\"Invalid number of candidates\")\n    return [f\"{letter} aukera\" for letter in LETTERS[:num_choices]]"
+    }
+  },
+  "hplte_eus_wnli_p0": {
+    "type": "task",
+    "hplt_e_name": "wnli_eu_p0",
+    "dataset": "HiTZ/wnli-eu",
+    "doc_to_text": "{{sentence1}}\nGaldera: {{sentence2}} Egia edo Gezurra?\nErantzuna:",
+    "doc_to_choice": [
+      "Gezurra",
+      "Egia"
+    ]
+  },
+  "hplte_eus_wnli_p1": {
+    "type": "task",
+    "hplt_e_name": "wnli_eu_p1",
+    "dataset": "HiTZ/wnli-eu",
+    "doc_to_text": "{{sentence1}}\nGaldera: {{sentence2}}.\nZer da, Egia ala Gezurra?\nErantzuna:",
+    "doc_to_choice": [
+      "Gezurra",
+      "Egia"
+    ]
+  },
+  "hplte_eus_wnli_p2": {
+    "type": "task",
+    "hplt_e_name": "wnli_eu_p2",
+    "dataset": "HiTZ/wnli-eu",
+    "doc_to_text": "{{sentence1}}\nGaldera: {{sentence2}}.\nErantzuna:",
+    "doc_to_choice": [
+      "Gezurra",
+      "Egia"
+    ]
+  },
+  "hplte_eus_xcopa_p0": {
+    "type": "task",
+    "hplt_e_name": "xcopa_eu_p0",
+    "dataset": "HiTZ/XCOPA-eu",
+    "doc_to_text": "{{premise[:-1].strip() +  {\"cause\": \" Izan ere,\", \"effect\": \" Beraz,\"}[question]}}",
+    "doc_to_choice": {
+      "function": "utils.xcopa_doc_to_choice",
+      "source": "def xcopa_doc_to_choice(doc):\n    def convert_choice(choice):\n        return choice[0].lower() + choice[1:]\n\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]"
+    }
+  },
+  "hplte_eus_xcopa_p1": {
+    "type": "task",
+    "hplt_e_name": "xcopa_eu_p1",
+    "dataset": "HiTZ/XCOPA-eu",
+    "doc_to_text": "{{premise[:-1].strip() +  {\"cause\": \" zeren eta\", \"effect\": \". Horregatik,\"}[question]}}",
+    "doc_to_choice": {
+      "function": "utils.xcopa_doc_to_choice",
+      "source": "def xcopa_doc_to_choice(doc):\n    def convert_choice(choice):\n        return choice[0].lower() + choice[1:]\n\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]"
+    }
+  },
+  "hplte_eus_xcopa_p2": {
+    "type": "task",
+    "hplt_e_name": "xcopa_eu_p2",
+    "dataset": "HiTZ/XCOPA-eu",
+    "doc_to_text": "{{premise[:-1].strip() +  {\"cause\": \" zeren\", \"effect\": \"; ondorioz,\"}[question]}}",
+    "doc_to_choice": {
+      "function": "utils.xcopa_doc_to_choice",
+      "source": "def xcopa_doc_to_choice(doc):\n    def convert_choice(choice):\n        return choice[0].lower() + choice[1:]\n\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]"
+    }
+  },
+  "hplte_eus_xnli_native_p0": {
+    "type": "task",
+    "hplt_e_name": "xnli_eu_native_p0",
+    "dataset": "HiTZ/xnli-eu",
+    "dataset_name": "eu_native",
+    "doc_to_choice": "{{[premise+\", ezta? Bai, \"+hypothesis,premise+\", ezta? Gainera, \"+hypothesis,premise+\", ezta? Ez, \"+hypothesis]}}"
+  },
+  "hplte_eus_xnli_native_p1": {
+    "type": "task",
+    "hplt_e_name": "xnli_eu_native_p1",
+    "dataset": "HiTZ/xnli-eu",
+    "dataset_name": "eu_native",
+    "doc_to_text": "Premisa: {{premise}}\nHipotesia: {{hypothesis}}\n\nAdierazi premisaren eta hipotesiaren arteko erlazioa:",
+    "doc_to_choice": [
+      "ados",
+      "elkarren artean neutroak",
+      "kontraesanean"
+    ]
+  },
+  "hplte_eus_xnli_native_p2": {
+    "type": "task",
+    "hplt_e_name": "xnli_eu_native_p2",
+    "dataset": "HiTZ/xnli-eu",
+    "dataset_name": "eu_native",
+    "doc_to_text": "Premisa: {{premise}}\nHipotesia: {{hypothesis}}\n\nZein da premisa eta hipotesiaren arteko erlazioa?\nA. Ados\nB. Elkarren artean neutroak\nC. Kontraesanean\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C"
+    ]
+  },
+  "hplte_eus_xstorycloze_p0": {
+    "type": "task",
+    "hplt_e_name": "xstorycloze_eu_p0",
+    "dataset": "juletxara/xstory_cloze",
+    "dataset_name": "eu",
+    "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+    "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}"
+  },
+  "hplte_eus_xstorycloze_p1": {
+    "type": "task",
+    "hplt_e_name": "xstorycloze_eu_p1",
+    "dataset": "juletxara/xstory_cloze",
+    "dataset_name": "eu",
+    "doc_to_text": "Irakurri hurrengo istorioa: {{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}\nJarraipen zuzena aukeratu:\n- {{sentence_quiz1}}\n- {{sentence_quiz2}}",
+    "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}"
+  },
+  "hplte_eus_xstorycloze_p2": {
+    "type": "task",
+    "hplt_e_name": "xstorycloze_eu_p2",
+    "dataset": "juletxara/xstory_cloze",
+    "dataset_name": "eu",
+    "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}\nZer gertatzen da ondoren?\nA. {{ sentence_quiz1}} \nB. {{sentence_quiz2}}\nErantzuna:",
+    "doc_to_choice": [
+      "A",
+      "B"
+    ]
+  }
+}

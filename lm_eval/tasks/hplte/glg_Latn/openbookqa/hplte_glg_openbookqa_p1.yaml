@@ -1,0 +1,5 @@
+task: hplte_glg_openbookqa_p1
+include: _openbookqa_yaml
+doc_to_text: "{{question_stem}}\nOpción A: {{choices['text'][0]}}\nOpción B: {{choices['text'][1]}}\nOpción C: {{choices['text'][2]}}\nOpción D: {{choices['text'][3]}}\n\nA resposta correcta é A, B, C ou D?"
+target_delimiter: "\n"
+doc_to_choice: ["Opción A", "Opción B", "Opción C", "Opción D"]

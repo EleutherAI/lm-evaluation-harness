@@ -1,0 +1,8 @@
+task: hplte_fra_reading_p1
+include: _language_test_yaml
+validation_split: Reading
+fewshot_split: Reading
+test_split: Reading
+doc_to_text: "{{context}}\n\nEn se basant sur le texte qui précède, laquelle des options ci-dessous répond à la question : {{question}}\nOptions :\nA. {{answerA}}\nB. {{answerB}}\nC. {{answerC}}\nD. {{answerD}}\nRéponse :"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: '{{["answerA", "answerB", "answerC", "answerD"].index("answer" + answer)}}'

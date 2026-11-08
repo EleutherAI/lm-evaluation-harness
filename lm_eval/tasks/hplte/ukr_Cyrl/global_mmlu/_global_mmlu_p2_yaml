@@ -1,0 +1,3 @@
+include: _global_mmlu_yaml
+doc_to_text: "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:"
+doc_to_choice: "{{[option_a, option_b, option_c, option_d]}}"

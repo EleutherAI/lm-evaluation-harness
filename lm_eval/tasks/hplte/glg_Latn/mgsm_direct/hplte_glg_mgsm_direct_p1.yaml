@@ -1,0 +1,3 @@
+task: hplte_glg_mgsm_direct_p1
+include: _mgsm_direct_yaml
+doc_to_text: "Responde á seguinte pregunta de forma clara e precisa:\n{{question}}\nResposta:"

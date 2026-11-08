@@ -1,0 +1,4 @@
+task: hplte_cat_openbookqa_p2
+include: _openbookqa_yaml
+doc_to_text: "{{question_stem}}\nOpció A: {{choices['text'][0]}}\nOpció B: {{choices['text'][1]}}\ C: {{choices['text'][2]}}\nOpció D: {{choices['text'][3]}}\nÉs la resposta correcta A, B, C o D?"
+doc_to_choice: ["Opció A", "Opció B", "Opció C", "Opció D"]

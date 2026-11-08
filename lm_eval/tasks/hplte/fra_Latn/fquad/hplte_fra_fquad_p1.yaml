@@ -1,0 +1,3 @@
+task: hplte_fra_fquad_p1
+include: _fquad_yaml
+doc_to_text: "{{context}}\n\nQuestion : {{question}}\nEn prenant en compte le texte précédent, la réponse à la question est"

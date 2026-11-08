@@ -1,0 +1,4 @@
+task: hplte_cat_siqa_p0
+include: _siqa_yaml
+doc_to_text: "Pregunta: {{context}} {{question}}\nResposta:"
+doc_to_choice: "{{[answerA, answerB, answerC]}}"

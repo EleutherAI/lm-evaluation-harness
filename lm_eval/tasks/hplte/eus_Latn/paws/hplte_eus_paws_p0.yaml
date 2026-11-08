@@ -1,0 +1,4 @@
+task: hplte_eus_paws_p0
+include: _paws_yaml
+doc_to_text: ''
+doc_to_choice: '{{[sentence1+", ezta? Ez, "+sentence2, sentence1+", ezta? Bai, "+sentence2]}}'

@@ -1,0 +1,5 @@
+task: hplte_eus_xnli_native_p0
+include: _xnli_native_yaml
+doc_to_text: ""
+doc_to_choice: '{{[premise+", ezta? Bai, "+hypothesis,premise+", ezta? Gainera,
+"+hypothesis,premise+", ezta? Ez, "+hypothesis]}}'

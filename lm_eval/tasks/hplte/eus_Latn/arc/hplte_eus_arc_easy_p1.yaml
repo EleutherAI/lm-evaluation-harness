@@ -1,0 +1,5 @@
+task: hplte_eus_arc_easy_p1
+include: _arc_yaml
+dataset_name: ARC-Easy
+doc_to_text: !function utils.p1
+doc_to_choice: "{{choices.label}}"

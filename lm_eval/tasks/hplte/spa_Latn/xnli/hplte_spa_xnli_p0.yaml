@@ -1,0 +1,6 @@
+task: hplte_spa_xnli_p0
+include: _xnli_yaml
+doc_to_text: ''
+target_delimiter: ''
+doc_to_choice: '{{[premise+", ¿correcto? Sí, "+hypothesis,premise+", ¿correcto? Así
+  que, "+hypothesis,premise+", ¿correcto? No, "+hypothesis]}}'

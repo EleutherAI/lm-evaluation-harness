@@ -1,0 +1,3 @@
+task: hplte_glg_galcola_p0
+include: _galcola_yaml
+doc_to_text: "{{sentence}}\nPregunta: Ten sentido esta frase?\nResposta:"

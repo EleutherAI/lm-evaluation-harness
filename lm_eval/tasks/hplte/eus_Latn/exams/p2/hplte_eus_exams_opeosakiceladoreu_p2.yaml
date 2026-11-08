@@ -1,0 +1,3 @@
+include: ../_exams_p2_yaml
+task: hplte_eus_exams_opeosakiceladoreu_p2
+dataset_name: eu_opeosakiceladoreu

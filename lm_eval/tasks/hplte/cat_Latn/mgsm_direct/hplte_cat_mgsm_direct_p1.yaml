@@ -1,0 +1,3 @@
+task: hplte_cat_mgsm_direct_p1
+include: _mgsm_direct_yaml
+doc_to_text: "Respon amb claredat i precisió a la pregunta següent\n{{question}}\nResposta:"

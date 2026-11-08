@@ -1,0 +1,15 @@
+group: hplte_ukr_global_mmlu_p1
+task:
+  - hplte_ukr_global_mmlu_business_p1
+  - hplte_ukr_global_mmlu_humanities_p1
+  - hplte_ukr_global_mmlu_medical_p1
+  - hplte_ukr_global_mmlu_other_p1
+  - hplte_ukr_global_mmlu_stem_p1
+  - hplte_ukr_global_mmlu_social_sciences_p1
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+metadata:
+  version: 1.0

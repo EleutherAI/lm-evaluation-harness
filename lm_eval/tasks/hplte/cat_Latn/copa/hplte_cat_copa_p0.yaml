@@ -1,0 +1,3 @@
+task: hplte_cat_copa_p0
+include: _copa_yaml
+doc_to_text: '{{premise[:-1].strip() + " " + {"cause": "perquè", "effect": "i per tant"}[question]}}'

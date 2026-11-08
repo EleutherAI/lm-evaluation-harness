@@ -1,0 +1,4 @@
+task: hplte_cat_piqa_p2
+include: _piqa_yaml
+doc_to_text: "{{goal}}\nA. {{sol1}}\nB. {{sol2}}\nQuina és la resposta correcta?"
+doc_to_choice: ["A", "B"]

@@ -1,0 +1,3 @@
+task: hplte_eus_flores_en-eu_p2
+include: _flores_yaml
+doc_to_text: "The following sentence is written in English. Translate it into Basque.\nEnglish: {{sentence_eng_Latn}}\nBasque:"

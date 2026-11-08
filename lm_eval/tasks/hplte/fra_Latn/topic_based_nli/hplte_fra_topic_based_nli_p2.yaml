@@ -1,0 +1,4 @@
+task: hplte_fra_topic_based_nli_p2
+include: _topic_based_nli_yaml
+doc_to_text: "Avis client : {{text}}\nQuel est l’avis du client sur {{topic}} ?"
+doc_to_choice: ['positif', 'négatif', 'neutre']

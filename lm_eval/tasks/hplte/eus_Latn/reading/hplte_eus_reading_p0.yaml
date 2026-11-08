@@ -1,0 +1,4 @@
+task: hplte_eus_reading_p0
+include: _reading_yaml
+doc_to_text: !function utils.p0
+doc_to_choice: !function utils.doc_to_choice_p01

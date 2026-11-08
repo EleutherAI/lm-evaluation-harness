@@ -1,0 +1,5 @@
+task: hplte_glg_belebele_p2
+include: _belebele_yaml
+doc_to_text: "{{flores_passage}}\nBaseándote no texto anterior, responde á pregunta: {{question.strip()}}\nEscolle a resposta correcta da lista:\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\n\nCal é a resposta correcta?"
+target_delimiter: "\n"
+doc_to_choice: ["A", "B", "C", "D"]

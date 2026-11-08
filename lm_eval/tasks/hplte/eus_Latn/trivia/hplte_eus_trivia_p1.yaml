@@ -1,0 +1,4 @@
+task: hplte_eus_trivia_p1
+include: _trivia_yaml
+doc_to_text: !function utils.p1
+doc_to_choice: !function utils.doc_to_choice_p01

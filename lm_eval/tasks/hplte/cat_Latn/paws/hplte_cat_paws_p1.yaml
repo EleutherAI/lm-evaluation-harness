@@ -1,0 +1,4 @@
+task: hplte_cat_paws_p1
+include: _paws_yaml
+doc_to_text: "Determina si les dues oracions següents expressen la mateixa idea o no.\nOració 1: {{sentence1}}\nOració 2: {{sentence2}}\nResposta:"
+doc_to_choice: ["no", "sí"]

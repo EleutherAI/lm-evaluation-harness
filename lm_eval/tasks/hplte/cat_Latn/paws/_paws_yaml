@@ -1,0 +1,16 @@
+dataset_path: projecte-aina/PAWS-ca
+dataset_name: null
+dataset_kwargs:
+  revision: 4b5077ecb12717dcddb3f3476b3215af9dadd6e0
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs_paraphrases
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

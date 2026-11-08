@@ -1,0 +1,4 @@
+task: hplte_eus_xnli_native_p2
+include: _xnli_native_yaml
+doc_to_text: "Premisa: {{premise}}\nHipotesia: {{hypothesis}}\n\nZein da premisa eta hipotesiaren arteko erlazioa?\nA. Ados\nB. Elkarren artean neutroak\nC. Kontraesanean\nErantzuna:"
+doc_to_choice: ["A", "B", "C"]

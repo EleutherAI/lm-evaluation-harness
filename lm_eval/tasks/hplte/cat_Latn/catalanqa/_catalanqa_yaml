@@ -1,0 +1,27 @@
+dataset_path: projecte-aina/catalanqa
+dataset_name: null
+dataset_kwargs:
+  revision: 1eaa001dc821b49fc3fe1ece27fa27dbbb795459
+output_type: generate_until
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_target: '{{answers[0]["text"]}}'
+process_results: !function utils.process_results_qa
+generation_kwargs:
+  until:
+    - "\n"
+    - "</s>"
+    - "<eos>"
+  do_sample: false
+  num_beams: 1
+  max_new_tokens: 64
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

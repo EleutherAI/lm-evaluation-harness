@@ -1,0 +1,406 @@
+{
+  "hplte_ukr_belebele_p0": {
+    "type": "task",
+    "hplt_e_name": "ukrbelebele_p0",
+    "dataset": "facebook/belebele",
+    "dataset_name": "ukr_Cyrl",
+    "doc_to_text": "Текст: {{flores_passage}}\n\nПитання: {{question}}\nВаріанти відповіді:\nА {{mc_answer1}}\nБ: {{mc_answer2}}\nВ: {{mc_answer3}}\nГ: {{mc_answer4}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_belebele_p1": {
+    "type": "task",
+    "hplt_e_name": "ukrbelebele_p1",
+    "dataset": "facebook/belebele",
+    "dataset_name": "ukr_Cyrl",
+    "doc_to_text": "{{flores_passage}}\n\n{{question}}\n\nА: {{mc_answer1}}\nБ: {{mc_answer2}}\nВ: {{mc_answer3}}\nГ: {{mc_answer4}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_belebele_p2": {
+    "type": "task",
+    "hplt_e_name": "ukrbelebele_p2",
+    "dataset": "facebook/belebele",
+    "dataset_name": "ukr_Cyrl",
+    "doc_to_text": "Текст: {{flores_passage}}\n\nПитання: {{question}}\n\nВиберіть відповідь зі списку варіантів: \n– {{mc_answer1}}\n– {{mc_answer2}}\n– {{mc_answer3}}\n– {{mc_answer4}}\nВiдповiдь:",
+    "doc_to_choice": "{{[mc_answer1, mc_answer2, mc_answer3, mc_answer4]}}"
+  },
+  "hplte_ukr_global_mmlu_business_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_business_p0",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_business_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_business_p1",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА: {{option_a}}\nБ: {{option_b}}\nВ: {{option_c}}\nГ: {{option_d}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_business_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_business_p2",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": "{{[option_a, option_b, option_c, option_d]}}"
+  },
+  "hplte_ukr_global_mmlu_humanities_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_humanities_p0",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_humanities_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_humanities_p1",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА: {{option_a}}\nБ: {{option_b}}\nВ: {{option_c}}\nГ: {{option_d}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_humanities_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_humanities_p2",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": "{{[option_a, option_b, option_c, option_d]}}"
+  },
+  "hplte_ukr_global_mmlu_medical_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_medical_p0",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_medical_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_medical_p1",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА: {{option_a}}\nБ: {{option_b}}\nВ: {{option_c}}\nГ: {{option_d}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_medical_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_medical_p2",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": "{{[option_a, option_b, option_c, option_d]}}"
+  },
+  "hplte_ukr_global_mmlu_other_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_other_p0",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_other_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_other_p1",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА: {{option_a}}\nБ: {{option_b}}\nВ: {{option_c}}\nГ: {{option_d}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_other_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_other_p2",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": "{{[option_a, option_b, option_c, option_d]}}"
+  },
+  "hplte_ukr_global_mmlu_p0": {
+    "type": "group",
+    "hplt_e_name": "global_mmlu_ukrainian_p0",
+    "tasks": [
+      "hplte_ukr_global_mmlu_business_p0",
+      "hplte_ukr_global_mmlu_humanities_p0",
+      "hplte_ukr_global_mmlu_medical_p0",
+      "hplte_ukr_global_mmlu_other_p0",
+      "hplte_ukr_global_mmlu_stem_p0",
+      "hplte_ukr_global_mmlu_social_sciences_p0"
+    ]
+  },
+  "hplte_ukr_global_mmlu_p1": {
+    "type": "group",
+    "hplt_e_name": "global_mmlu_ukrainian_p1",
+    "tasks": [
+      "hplte_ukr_global_mmlu_business_p1",
+      "hplte_ukr_global_mmlu_humanities_p1",
+      "hplte_ukr_global_mmlu_medical_p1",
+      "hplte_ukr_global_mmlu_other_p1",
+      "hplte_ukr_global_mmlu_stem_p1",
+      "hplte_ukr_global_mmlu_social_sciences_p1"
+    ]
+  },
+  "hplte_ukr_global_mmlu_p2": {
+    "type": "group",
+    "hplt_e_name": "global_mmlu_ukrainian_p2",
+    "tasks": [
+      "hplte_ukr_global_mmlu_business_p2",
+      "hplte_ukr_global_mmlu_humanities_p2",
+      "hplte_ukr_global_mmlu_medical_p2",
+      "hplte_ukr_global_mmlu_other_p2",
+      "hplte_ukr_global_mmlu_stem_p2",
+      "hplte_ukr_global_mmlu_social_sciences_p2"
+    ]
+  },
+  "hplte_ukr_global_mmlu_social_sciences_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_social_sciences_p0",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_social_sciences_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_social_sciences_p1",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА: {{option_a}}\nБ: {{option_b}}\nВ: {{option_c}}\nГ: {{option_d}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_social_sciences_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_social_sciences_p2",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": "{{[option_a, option_b, option_c, option_d]}}"
+  },
+  "hplte_ukr_global_mmlu_stem_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_stem_p0",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_stem_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_stem_p1",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "Питання: {{question.strip()}}\nА: {{option_a}}\nБ: {{option_b}}\nВ: {{option_c}}\nГ: {{option_d}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_global_mmlu_stem_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_ukrainian_stem_p2",
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "uk",
+    "doc_to_text": "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": "{{[option_a, option_b, option_c, option_d]}}"
+  },
+  "hplte_ukr_include_p0": {
+    "type": "task",
+    "hplt_e_name": "include_ukrainian_p0",
+    "dataset": "CohereLabs/include-base-44",
+    "dataset_name": "Ukrainian",
+    "doc_to_text": "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_include_p1": {
+    "type": "task",
+    "hplt_e_name": "include_ukrainian_p1",
+    "dataset": "CohereLabs/include-base-44",
+    "dataset_name": "Ukrainian",
+    "doc_to_text": "{{question.strip()}}\nА: {{option_a}}\nБ: {{option_b}}\nВ: {{option_c}}\nГ: {{option_d}}\n\nПравильна відповідь: А, Б, В чи Г?\nВiдповiдь:",
+    "doc_to_choice": [
+      "А",
+      "Б",
+      "В",
+      "Г"
+    ]
+  },
+  "hplte_ukr_include_p2": {
+    "type": "task",
+    "hplt_e_name": "include_ukrainian_p2",
+    "dataset": "CohereLabs/include-base-44",
+    "dataset_name": "Ukrainian",
+    "doc_to_text": "{{question.strip()}}\nВиберіть відповідь зі списку варіантів: \n– {{option_a}}\n– {{option_b}}\n– {{option_c}}\n– {{option_d}}\nВiдповiдь:",
+    "doc_to_choice": "{{[option_a, option_b, option_c, option_d]}}"
+  },
+  "hplte_ukr_textdetox_p0": {
+    "type": "task",
+    "hplt_e_name": "textdetox_ukr_p0",
+    "dataset": "ukr-detect/ukr-toxicity-dataset",
+    "doc_to_text": "Чи токсичний цей текст? Текст: {{text}}",
+    "doc_to_choice": [
+      "Нi",
+      "Так"
+    ]
+  },
+  "hplte_ukr_textdetox_p1": {
+    "type": "task",
+    "hplt_e_name": "textdetox_ukr_p1",
+    "dataset": "ukr-detect/ukr-toxicity-dataset",
+    "doc_to_text": "Текст: {{text}}\n\nЧи містить цей текст токсичний зміст?\nВідповідь:",
+    "doc_to_choice": [
+      "Нi",
+      "Так"
+    ]
+  },
+  "hplte_ukr_textdetox_p2": {
+    "type": "task",
+    "hplt_e_name": "textdetox_ukr_p2",
+    "dataset": "ukr-detect/ukr-toxicity-dataset",
+    "doc_to_text": "Визначте, чи є наведений текст токсичним, чи ні. Текст: {{text}}\nВідповідь:",
+    "doc_to_choice": [
+      "Нетоксичний",
+      "Токсичний"
+    ]
+  },
+  "hplte_ukr_ua_squad_p0": {
+    "type": "task",
+    "hplt_e_name": "ua_squad_p0",
+    "dataset": "HPLT/ua-squad",
+    "doc_to_text": "Текст: {{context}}\n\nПитання: {{question}}\n\nВiдповiдь:"
+  },
+  "hplte_ukr_ua_squad_p1": {
+    "type": "task",
+    "hplt_e_name": "ua_squad_p1",
+    "dataset": "HPLT/ua-squad",
+    "doc_to_text": "Подивіться на наведений нижче текст та дайте відповідь на питання:\n\nТекст: {{context}}\n\nПитання: {{question}}\n\nВiдповiдь:"
+  },
+  "hplte_ukr_ua_squad_p2": {
+    "type": "task",
+    "hplt_e_name": "ua_squad_p2",
+    "dataset": "HPLT/ua-squad",
+    "doc_to_text": "Текст: {{context}}\n\nПитання: {{question}}\n\nМаючи на увазі наведений вище текст, правильна відповідь на поставлене питання:"
+  },
+  "hplte_ukr_wmt24pp_en-uk_p0": {
+    "type": "task",
+    "hplt_e_name": "wmt24pp_en-uk_p0",
+    "dataset": "google/wmt24pp",
+    "dataset_name": "en-uk_UA",
+    "doc_to_text": "Англійською: {{source}}.\nУкраїнською:"
+  },
+  "hplte_ukr_wmt24pp_en-uk_p1": {
+    "type": "task",
+    "hplt_e_name": "wmt24pp_en-uk_p1",
+    "dataset": "google/wmt24pp",
+    "dataset_name": "en-uk_UA",
+    "doc_to_text": "Перекладіть наступне речення українською: {{source}}.\nУкраїнською:"
+  },
+  "hplte_ukr_wmt24pp_en-uk_p2": {
+    "type": "task",
+    "hplt_e_name": "wmt24pp_en-uk_p2",
+    "dataset": "google/wmt24pp",
+    "dataset_name": "en-uk_UA",
+    "doc_to_text": "Як перекласти це речення '{{source}}' українською\n\nУкраїнською:"
+  },
+  "hplte_ukr_zno_p0": {
+    "type": "task",
+    "hplt_e_name": "zno_p0",
+    "dataset": "osyvokon/zno",
+    "doc_to_text": "{{question}}",
+    "doc_to_choice": "{{choices.text}}"
+  },
+  "hplte_ukr_zno_p1": {
+    "type": "task",
+    "hplt_e_name": "zno_p1",
+    "dataset": "osyvokon/zno",
+    "doc_to_text": {
+      "function": "utils.p1",
+      "source": "def p1(doc):\n    prompt = \"Питання: {question}\\n{choices}\\n\\nПравильна відповідь: А, Б, В чи Г?\\nВiдповiдь:\"\n    choices = \"\\n\".join(\n        [\n            f\"{key}. {value}\"\n            for key, value in zip(\n                doc[\"choices\"][\"label\"], doc[\"choices\"][\"text\"], strict=False\n            )\n        ]\n    )\n    return prompt.format(question=doc[\"question\"], choices=choices)"
+    },
+    "doc_to_choice": "{{choices.label}}"
+  },
+  "hplte_ukr_zno_p2": {
+    "type": "task",
+    "hplt_e_name": "zno_p2",
+    "dataset": "osyvokon/zno",
+    "doc_to_text": {
+      "function": "utils.p2",
+      "source": "def p2(doc):\n    prompt = \"Питання: {question}\\n\\nВиберіть відповідь зі списку варіантів: {choices}\\n\\nВiдповiдь:\"\n    choices = \"\".join([f\"\\n- {choice}\" for choice in doc[\"choices\"][\"text\"]])\n    return prompt.format(question=doc[\"question\"], choices=choices)"
+    },
+    "doc_to_choice": "{{choices.text}}"
+  }
+}

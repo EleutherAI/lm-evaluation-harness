@@ -1,0 +1,24 @@
+dataset_path: projecte-aina/CoQCat
+dataset_kwargs:
+  revision: 229fc81226de05aafefdd09ac8c75209a52c7654
+output_type: generate_until
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_target: '{{ answers["input_text"][questions|length - 1] }}'
+process_results: !function utils.process_results_coqcat
+generation_kwargs:
+  until:
+    - "\nQ:"
+    - "\n"
+    - "</s>"
+    - "<eos>"
+metric_list:
+  - metric: "em"
+    aggregation: mean
+    higher_is_better: true
+  - metric: "f1"
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

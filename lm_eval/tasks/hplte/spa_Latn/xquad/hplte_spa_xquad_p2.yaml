@@ -1,0 +1,3 @@
+task: hplte_spa_xquad_p2
+include: _xquad_yaml
+doc_to_text: "Lee el siguiente pasaje y contesta la pregunta.\n\nPasaje: {{context}}\n\nPregunta: {{question}}"

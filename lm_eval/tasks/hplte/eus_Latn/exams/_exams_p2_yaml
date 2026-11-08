@@ -1,0 +1,3 @@
+include: _exams_yaml
+doc_to_text: "{{question}}\nA aukera: {{candidates[0]}}\nB aukera: {{candidates[1]}}\nC aukera: {{candidates[2]}}\nD aukera: {{candidates[3]}}\n\nZein da erantzun zuzena, A, B, C ala D?"
+doc_to_choice: ["A aukera", "B aukera", "C aukera", "D aukera"]

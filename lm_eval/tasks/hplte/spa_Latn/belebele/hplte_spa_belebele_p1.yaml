@@ -1,0 +1,3 @@
+task: hplte_spa_belebele_p1
+include: _belebele_yaml
+doc_to_text: "Lee el pasaje y responde a la pregunta: {{flores_passage}}\n{{question.strip()}}\nOpción A: {{mc_answer1}}\nOpción B: {{mc_answer2}}\nOpción C: {{mc_answer3}}\nOpción D: {{mc_answer4}}\n\n¿Es la respuesta correcta A, B, C o D?"

@@ -1,0 +1,38 @@
+group: hplte_eus_exams_p0
+task:
+  - hplte_eus_exams_opeosakiadmineu_p0
+  - hplte_eus_exams_opeosakiauxenfeu_p0
+  - hplte_eus_exams_opeosakiauxeu_p0
+  - hplte_eus_exams_opeosakiceladoreu_p0
+  - hplte_eus_exams_opeosakienfeu_p0
+  - hplte_eus_exams_opeosakioperarioeu_p0
+  - hplte_eus_exams_opeosakitecnicoeu_p0
+  - hplte_eus_exams_opeosakivarioseu_p0
+  - hplte_eus_exams_opegasteizkoudala_p0
+  - hplte_eus_exams_opeehuadmineu_p0
+  - hplte_eus_exams_opeehuauxeu_p0
+  - hplte_eus_exams_opeehubiblioeu_p0
+  - hplte_eus_exams_opeehuderechoeu_p0
+  - hplte_eus_exams_opeehueconomicaseu_p0
+  - hplte_eus_exams_opeehuempresarialeseu_p0
+  - hplte_eus_exams_opeehusubalternoeu_p0
+  - hplte_eus_exams_opeehutecnicoeu_p0
+  - hplte_eus_exams_opeehuteknikarib_p0
+  - hplte_eus_exams_ejadministrari_p0
+  - hplte_eus_exams_ejlaguntza_p0
+  - hplte_eus_exams_ejlaguntzaile_p0
+  - hplte_eus_exams_ejteknikari_p0
+  - hplte_eus_exams_osakidetza1e_p0
+  - hplte_eus_exams_osakidetza2e_p0
+  - hplte_eus_exams_osakidetza3e_p0
+  - hplte_eus_exams_osakidetza5e_p0
+  - hplte_eus_exams_osakidetza6e_p0
+  - hplte_eus_exams_osakidetza7e_p0
+  - hplte_eus_exams_opebilbaoeu_p0
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true
+  - metric: acc_norm
+    weight_by_size: true
+metadata:
+  version: 1.0

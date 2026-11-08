@@ -1,0 +1,4 @@
+task: hplte_glg_parafrases_p1
+include: _parafrases_yaml
+doc_to_text: "Determina se as dúas seguintes frases expresan a mesma idea ou non.\nFrase 1: {{Frase}}\nFrase 2: {{Paráfrase}}\nResposta:"
+doc_to_choice: ["non", "si"]

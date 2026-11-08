@@ -1,0 +1,16 @@
+dataset_path: CohereLabs/include-base-44
+dataset_name: Ukrainian
+dataset_kwargs:
+  revision: d2e1f6015f67a43c02a9a68db98e2298e2d6a660
+test_split: test
+output_type: multiple_choice
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

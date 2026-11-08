@@ -1,0 +1,3 @@
+task: hplte_cat_catalanqa_p0
+include: _catalanqa_yaml
+doc_to_text: "Context: {{context}}\n\nPregunta: {{question}}\n\nResposta:"

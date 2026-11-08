@@ -1,0 +1,14 @@
+dataset_path: projecte-aina/wnli-ca
+dataset_name: null
+dataset_kwargs:
+  revision: 0bab64a939539e759e062d404995044eafb1ff5d
+output_type: multiple_choice
+doc_to_choice: ["Fals", "Cert"]
+training_split: train
+validation_split: validation
+test_split: null
+doc_to_target: label
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

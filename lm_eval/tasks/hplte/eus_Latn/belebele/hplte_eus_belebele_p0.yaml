@@ -1,0 +1,4 @@
+task: hplte_eus_belebele_p0
+include: _belebele_yaml
+doc_to_text: "Testuingurua: {{flores_passage}}\nGaldera: {{question.strip()}}\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\nErantzuna:"
+doc_to_choice: ["A", "B", "C", "D"]

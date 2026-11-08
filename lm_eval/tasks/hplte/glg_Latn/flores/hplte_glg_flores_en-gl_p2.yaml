@@ -1,0 +1,3 @@
+task: hplte_glg_flores_en-gl_p2
+include: _flores_yaml
+doc_to_text: "The following sentence is written in English. Translate it into Galician.\nEnglish: {{sentence_eng_Latn}}\nGalician:"

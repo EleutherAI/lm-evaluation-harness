@@ -1,0 +1,3 @@
+task: hplte_eus_wnli_p0
+include: _wnli_yaml
+doc_to_text: "{{sentence1}}\nGaldera: {{sentence2}} Egia edo Gezurra?\nErantzuna:"

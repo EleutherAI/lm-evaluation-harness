@@ -1,0 +1,5 @@
+task: hplte_glg_belebele_p1
+include: _belebele_yaml
+doc_to_text: "Lea a pasaxe e responde á pregunta: {{flores_passage}}\n{{question.strip()}}\nOpción A: {{mc_answer1}}\nOpción B: {{mc_answer2}}\nOpción C: {{mc_answer3}}\nOpción D: {{mc_answer4}}\nA resposta correcta é A, B, C ou D?"
+target_delimiter: "\n"
+doc_to_choice: ["Opción A", "Opción B", "Opción C", "Opción D"]

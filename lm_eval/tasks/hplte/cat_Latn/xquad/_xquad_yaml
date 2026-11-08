@@ -1,0 +1,26 @@
+dataset_path: projecte-aina/xquad-ca
+dataset_name: null
+dataset_kwargs:
+  revision: af41c005fac0b131aeb1caa29932a0aa797a5f9d
+output_type: generate_until
+doc_to_target: '{{answers[0]["text"]}}'
+validation_split: null
+test_split: test
+process_results: !function utils.process_results_qa
+generation_kwargs:
+  until:
+    - "\n"
+    - "</s>"
+    - "<eos>"
+  do_sample: false
+  num_beams: 1
+  max_new_tokens: 64
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
