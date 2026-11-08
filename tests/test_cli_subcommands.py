@@ -958,6 +958,94 @@ class TestCLIUtils:
 class TestMergeDictAction:
     """Test MergeDictAction for parsing key=value arguments."""
 
+    @pytest.mark.parametrize(
+        "values",
+        [
+            ['{"temperature": 0}', "max_gen_toks=32"],
+            ["temperature=0", '{"max_gen_toks": 32}'],
+            ['{"temperature": 0}', '{"max_gen_toks": 32}'],
+            ['{"temperature": 1}', "temperature=0,max_gen_toks=32"],
+            ["temperature=1", '{"temperature": 0, "max_gen_toks": 32}'],
+        ],
+    )
+    def test_json_and_key_value_arguments_are_all_merged(self, values):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", *values])
+
+        assert args.args == {"temperature": 0, "max_gen_toks": 32}
+
+    @pytest.mark.parametrize("value", ["not-a-setting", '{"unclosed":'])
+    def test_invalid_argument_after_json_is_rejected(self, value, capsys):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(["--args", '{"temperature": 0}', value])
+
+        assert exc_info.value.code == 2
+        assert "argument --args:" in capsys.readouterr().err
+
+    def test_mixed_formats_preserve_types_and_repeated_flag_precedence(self, caplog):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(
+            [
+                "--args",
+                '{"nested": {"items": [1, 2]}, "enabled": true, "optional": null, "value": 1}',
+                "value=2",
+                "--args",
+                '{"value": 3}',
+                "other=4",
+            ]
+        )
+
+        assert args.args == {
+            "nested": {"items": [1, 2]},
+            "enabled": True,
+            "optional": None,
+            "value": 3,
+            "other": 4,
+        }
+        assert "value: 1 -> 2" in caplog.text
+        assert "value: 2 -> 3" in caplog.text
+
+    @pytest.mark.parametrize("values", [['{"value": 1}', "value=2"], ["value=2"]])
+    def test_merging_does_not_modify_parser_default(self, values):
+        defaults = {"keep": 1, "value": 0}
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--args", nargs="+", action=MergeDictAction, default=defaults
+        )
+
+        args = parser.parse_args(["--args", *values])
+
+        assert args.args == {"keep": 1, "value": 2}
+        assert defaults == {"keep": 1, "value": 0}
+        assert parser.parse_args([]).args == defaults
+
+    @pytest.mark.parametrize(
+        "option",
+        [
+            "model_args",
+            "gen_kwargs",
+            "metadata",
+            "wandb_args",
+            "wandb_config_args",
+            "trackio_args",
+            "hf_hub_log_args",
+        ],
+    )
+    def test_run_options_keep_arguments_after_json(self, option):
+        parser = argparse.ArgumentParser()
+        Run.create(parser.add_subparsers())
+
+        args = parser.parse_args(["run", f"--{option}", '{"first": 1}', "second=2"])
+
+        assert getattr(args, option) == {"first": 1, "second": 2}
+
     def test_comma_separated_key_value(self):
         """Test parsing comma-separated key=value pairs."""
         parser = argparse.ArgumentParser()
