@@ -38,6 +38,7 @@ from lm_eval.models.utils import (
     Collator,
     flatten_image_list,
     handle_stop_sequences,
+    postprocess_generated_text,
     replace_placeholders,
     resize_image,
 )
@@ -161,6 +162,57 @@ class RBLNVLM(RBLNLM):
                 )
 
         self.chat_applied = False
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
+        """Render with the processor's chat template (as HFMultimodalLM).
+
+        ``<image>`` placeholders in each message become ``{"type": "image"}``
+        content entries, so the template emits the model's own image markers;
+        ``tok_batch_multimodal_encode`` then skips its placeholder replacement.
+        """
+        self.chat_applied = True
+        for message in chat_history:
+            text = message["content"]
+            if not isinstance(text, str):
+                continue
+            expected = min(self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER))
+            content = []
+            if not self.interleave:
+                content += [{"type": "image"} for _ in range(expected)]
+                text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
+                content.append({"type": "text", "text": text})
+            else:
+                parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
+                for i, part in enumerate(parts):
+                    if part:
+                        content.append({"type": "text", "text": part})
+                    if i < len(parts) - 1 and i < self.max_images:
+                        content.append({"type": "image"})
+            if sum(c["type"] == "image" for c in content) != expected:
+                raise ValueError(
+                    f"Mismatch in image placeholder count. Expected: {expected}"
+                )
+            message["content"] = content
+
+        return self.processor.apply_chat_template(
+            chat_history,
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
+            **self.chat_template_args,
+        )
+
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        """Select the template from the processor when it has one."""
+        if hasattr(self.processor, "apply_chat_template"):
+            tokenizer, self.tokenizer = self.tokenizer, self.processor
+            try:
+                return super().chat_template(chat_template)
+            finally:
+                self.tokenizer = tokenizer
+        return super().chat_template(chat_template)
 
     def _load_processor(
         self, pretrained: str, revision: str, trust_remote_code: bool
@@ -472,10 +524,9 @@ class RBLNVLM(RBLNLM):
 
             for cont_toks, context in zip(cont.tolist(), contexts):
                 cont_toks = cont_toks[context_enc.shape[1] :]
-                s = self.tok_decode(cont_toks)
-                for term in until:
-                    if term:
-                        s = s.split(term)[0]
+                s = postprocess_generated_text(
+                    self.tok_decode(cont_toks), until, self.think_end_token
+                )
                 res.append(s)
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
                 pbar.update(1)

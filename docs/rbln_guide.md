@@ -83,6 +83,11 @@ IDEFICS3, PaliGemma / PaliGemma2, Pixtral, BLIP-2
 `llava`, `llava_next`, `qwen2_vl`, `qwen2_5_vl`, `qwen3_vl`, `gemma3`,
 `idefics3`, `paligemma`, `paligemma2`, `pixtral`, `blip-2` / `blip_2`.
 
+Pre-compiled artifacts (`export=False`) load through whichever RBLN Auto class
+lists their `model_type`, so newer types without a built-in compile profile
+(`qwen3_5`, `gemma4`, `exaone4_5`) also run. BLIP-2 cannot run text-only
+requests: its `generate()` requires `pixel_values`.
+
 **Request types:**
 - Multimodal `generate_until` (e.g. `mmmu*`, `chartqa`)
 - Text-only `loglikelihood` and `generate_until` on the **same** VLM
@@ -134,6 +139,26 @@ lm_eval --model rbln \
     --model_args pretrained=meta-llama/Meta-Llama-3-8B-Instruct,rbln_tensor_parallel_size=4 \
     --tasks hellaswag
 ```
+
+## Chat templates
+
+`--apply_chat_template` works on both `rbln` (tokenizer template) and `rbln-vlm`
+(processor template; `<image>` placeholders become the model's own image
+markers). Template kwargs follow `--model hf`:
+
+```bash
+# Qwen3 / Qwen3.5 instruct scoring without the thinking block
+lm_eval --model rbln \
+    --model_args pretrained=/path/to/Qwen3-8B-w8a16,export=False,enable_thinking=False \
+    --tasks gsm8k,ifeval --apply_chat_template
+
+# Reasoning models: drop everything up to </think> before scoring
+lm_eval --model rbln \
+    --model_args pretrained=/path/to/DeepSeek-R1-Distill-Qwen-7B-w8a16,export=False,think_end_token=</think> \
+    --tasks gsm8k --apply_chat_template --gen_kwargs max_gen_toks=4096
+```
+
+Other template kwargs go through `chat_template_args` (a JSON object).
 
 ## Current limitations
 

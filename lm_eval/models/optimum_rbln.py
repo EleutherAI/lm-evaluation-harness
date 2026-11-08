@@ -10,6 +10,7 @@ import json
 import logging
 from typing import List, Optional, Union
 
+import jinja2
 import torch
 import torch.nn.functional as F
 import transformers
@@ -209,6 +210,9 @@ class RBLNLM(TemplateLM):
         add_bos_token: Optional[bool] = None,
         device_map: Optional[str] = None,
         model_type: Optional[str] = None,  # "causal", "seq2seq", or None for auto-detect
+        enable_thinking: Optional[bool] = None,
+        think_end_token: Optional[Union[str, int]] = None,
+        chat_template_args: Optional[Union[dict, str]] = None,
         **kwargs,
     ) -> None:
         if not RBLN_AVAILABLE:
@@ -278,6 +282,27 @@ class RBLNLM(TemplateLM):
         self.truncation = truncation
         self.vocab_size = self.tokenizer.vocab_size
         self.add_bos_token = add_bos_token
+        # Extra kwargs for tokenizer.apply_chat_template (as HFLM), e.g.
+        # enable_thinking=False for Qwen3 / Qwen3.5 instruct evaluation.
+        if isinstance(chat_template_args, str):
+            chat_template_args = json.loads(chat_template_args)
+        self.chat_template_args = dict(chat_template_args or {})
+        if enable_thinking is not None:
+            self.chat_template_args["enable_thinking"] = enable_thinking
+        self.enable_thinking = enable_thinking
+        # Generated text before the last think_end_token (e.g. "</think>") is
+        # dropped before stop sequences apply, as HFLM does. A token id is
+        # decoded to its string.
+        if isinstance(think_end_token, int) or (
+            isinstance(think_end_token, str) and think_end_token.isdigit()
+        ):
+            think_end_token = self.tokenizer.decode([int(think_end_token)])
+        self.think_end_token = think_end_token
+        if enable_thinking and not think_end_token:
+            raise ValueError(
+                "enable_thinking=True needs think_end_token (e.g. think_end_token=</think>) "
+                "so the reasoning is not scored as the answer."
+            )
 
         self.batch_schedule = 1
         self.batch_sizes = {}
@@ -558,6 +583,29 @@ class RBLNLM(TemplateLM):
     @property
     def world_size(self):
         return 1
+
+    @property
+    def tokenizer_name(self) -> str:
+        return self.tokenizer.name_or_path.replace("/", "__")
+
+    def apply_chat_template(
+        self, chat_history: List[dict], add_generation_prompt: bool = True
+    ) -> str:
+        """Render the chat history with the tokenizer's chat template (as HFLM)."""
+        kwargs = dict(
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
+            **self.chat_template_args,
+        )
+        try:
+            return self.tokenizer.apply_chat_template(chat_history, **kwargs)
+        except jinja2.exceptions.TemplateError:
+            logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_history = [m for m in chat_history if m["role"] != "system"]
+            return self.tokenizer.apply_chat_template(chat_history, **kwargs)
 
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """Encode a single string, mirroring HFLM behaviour.
@@ -1254,12 +1302,11 @@ class RBLNLM(TemplateLM):
 
                     s = self.tok_decode(cont_toks)
 
-                    # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                    for term in until:
-                        if len(term) > 0:
-                            # ignore '' separator,
-                            # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
-                            s = s.split(term)[0]
+                    # drop the reasoning (think_end_token), then cut at the
+                    # secondary stop seqs post-hoc ('' separators are ignored)
+                    s = lm_eval.models.utils.postprocess_generated_text(
+                        s, until, self.think_end_token
+                    )
 
                     res[key].append(s)
 

@@ -134,3 +134,55 @@ def test_text_generate_other_errors_propagate():
     lm.model.generate = lambda **kw: (_ for _ in ()).throw(ValueError("something else"))
     with pytest.raises(ValueError, match="something else"):
         lm._text_generate(input_ids=torch.tensor([[1]]))
+
+
+# --------------------------------------------------------------------------- chat templates
+
+
+class _ChatTok:
+    name_or_path = "org/model"
+
+    def __init__(self):
+        self.calls = []
+
+    def apply_chat_template(self, history, **kwargs):
+        self.calls.append((history, kwargs))
+        return "rendered"
+
+
+def test_rbln_chat_template_passes_args():
+    lm = RBLNLM.__new__(RBLNLM)
+    lm.tokenizer = _ChatTok()
+    lm.chat_template_args = {"enable_thinking": False}
+    assert lm.tokenizer_name == "org__model"
+    assert lm.apply_chat_template([{"role": "user", "content": "hi"}]) == "rendered"
+    _, kwargs = lm.tokenizer.calls[0]
+    assert kwargs == {"tokenize": False, "add_generation_prompt": True,
+                      "continue_final_message": False, "enable_thinking": False}
+
+
+def test_rbln_vlm_chat_template_turns_placeholders_into_image_entries():
+    from lm_eval.models.optimum_rbln_vlm import RBLNVLM
+
+    lm = RBLNVLM.__new__(RBLNVLM)
+    lm.processor = _ChatTok()
+    lm.chat_template_args = {}
+    lm.interleave, lm.max_images, lm.chat_applied = True, 999, False
+    history = [{"role": "user", "content": "<image> What is this? <image> And this?"}]
+    assert lm.apply_chat_template(history) == "rendered"
+    assert lm.chat_applied
+    content = lm.processor.calls[0][0][0]["content"]
+    assert [c["type"] for c in content] == ["image", "text", "image", "text"]
+
+
+@pytest.mark.parametrize(
+    "text, until, think, expected",
+    [
+        ("<think>\nlong\n\nreasoning</think>\n\nAnswer: 4\n\nQ:", ["\n\nQ:"], "</think>", "Answer: 4"),
+        ("Answer: 4\n\nQ:", ["\n\nQ:"], None, "Answer: 4"),
+    ],
+)
+def test_think_end_token_postprocess(text, until, think, expected):
+    from lm_eval.models.utils import postprocess_generated_text
+
+    assert postprocess_generated_text(text, until, think) == expected
