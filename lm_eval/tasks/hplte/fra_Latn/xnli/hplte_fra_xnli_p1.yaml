@@ -1,4 +1,5 @@
 task: hplte_fra_xnli_p1
+tag: hplte_fra_xnli
 include: _xnli_yaml
 doc_to_text: "Quel est le rapport logique entre les deux phrases suivantes parmis :\nA. L’hypothèse peut être inférée à partir de la prémisse.\nB. L’hypothèse et la prémisse sont indépendantes.\nC. L’hypothèse et la prémisse sont en contradiction.\nPrémisse : {{premise}}\nHypothèse : {{hypothesis}}\nRéponse :"
 doc_to_choice: "{{['A', 'B', 'C']}}"

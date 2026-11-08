@@ -2,6 +2,7 @@
   "hplte_spa_belebele_p0": {
     "type": "task",
     "hplt_e_name": "spabelebele_p0",
+    "tag": "hplte_spa_belebele",
     "dataset": "facebook/belebele",
     "dataset_name": "spa_Latn",
     "doc_to_text": "Pasaje: {{flores_passage}}\nPregunta: {{question.strip()}}\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\nRespuesta:",
@@ -15,6 +16,7 @@
   "hplte_spa_belebele_p1": {
     "type": "task",
     "hplt_e_name": "spabelebele_p1",
+    "tag": "hplte_spa_belebele",
     "dataset": "facebook/belebele",
     "dataset_name": "spa_Latn",
     "doc_to_text": "Lee el pasaje y responde a la pregunta: {{flores_passage}}\n{{question.strip()}}\nOpción A: {{mc_answer1}}\nOpción B: {{mc_answer2}}\nOpción C: {{mc_answer3}}\nOpción D: {{mc_answer4}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -28,6 +30,7 @@
   "hplte_spa_belebele_p2": {
     "type": "task",
     "hplt_e_name": "spabelebele_p2",
+    "tag": "hplte_spa_belebele",
     "dataset": "facebook/belebele",
     "dataset_name": "spa_Latn",
     "doc_to_text": "{{flores_passage}}\nEn base al pasaje anterior, responde a la pregunta: {{question.strip()}}\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\n\n¿Cuál es la respuesta correcta?",
@@ -41,24 +44,28 @@
   "hplte_spa_cocoteros_p0": {
     "type": "task",
     "hplt_e_name": "cocoteros_es_p0",
+    "tag": "hplte_spa_cocoteros",
     "dataset": "gplsi/cocoteros",
     "doc_to_text": "Genera una frase corta con estas palabras: {{keywords}}. El contexto es: {{context}} \n\nRespuesta:"
   },
   "hplte_spa_cocoteros_p1": {
     "type": "task",
     "hplt_e_name": "cocoteros_es_p1",
+    "tag": "hplte_spa_cocoteros",
     "dataset": "gplsi/cocoteros",
     "doc_to_text": "Contexto: {{context}}\nCon ese contexto, forma una frase corta usando las palabras: {{keywords}}\n\nRespuesta:"
   },
   "hplte_spa_cocoteros_p2": {
     "type": "task",
     "hplt_e_name": "cocoteros_es_p2",
+    "tag": "hplte_spa_cocoteros",
     "dataset": "gplsi/cocoteros",
     "doc_to_text": "Escribe una frase corta con estas palabras clave: {{keywords}}.\nTen en cuenta el siguiente contexto: {{context}}.\n\nRespuesta:"
   },
   "hplte_spa_copa_p0": {
     "type": "task",
     "hplt_e_name": "copa_es_p0",
+    "tag": "hplte_spa_copa",
     "dataset": "BSC-LT/COPA-es",
     "doc_to_text": "{{premise[:-1].strip() + \" \" + {\"cause\": \"porque\", \"effect\": \"y por lo tanto\"}[question]}}",
     "doc_to_choice": "{{[choice1, choice2]}}"
@@ -66,6 +73,7 @@
   "hplte_spa_copa_p1": {
     "type": "task",
     "hplt_e_name": "copa_es_p1",
+    "tag": "hplte_spa_copa",
     "dataset": "BSC-LT/COPA-es",
     "doc_to_text": "{{premise[:-1].strip() + \" \" + {\"cause\": \"dado que\", \"effect\": \"así que\"}[question]}}",
     "doc_to_choice": "{{[choice1, choice2]}}"
@@ -73,6 +81,7 @@
   "hplte_spa_copa_p2": {
     "type": "task",
     "hplt_e_name": "copa_es_p2",
+    "tag": "hplte_spa_copa",
     "dataset": "BSC-LT/COPA-es",
     "doc_to_text": "{{premise[:-1].strip() + {\"cause\": \" debido a que\", \"effect\": \", y como resultado,\"}[question]}}",
     "doc_to_choice": "{{[choice1, choice2]}}"
@@ -80,6 +89,7 @@
   "hplte_spa_escola_p0": {
     "type": "task",
     "hplt_e_name": "escola_p0",
+    "tag": "hplte_spa_escola",
     "dataset": "nbel/EsCoLA",
     "doc_to_text": "{{Sentence}}\nPregunta: ¿Tiene sentido esta frase?\nRespuesta:",
     "doc_to_choice": [
@@ -90,6 +100,7 @@
   "hplte_spa_escola_p1": {
     "type": "task",
     "hplt_e_name": "escola_p1",
+    "tag": "hplte_spa_escola",
     "dataset": "nbel/EsCoLA",
     "doc_to_text": "{{Sentence}}\n¿Esta frase tiene sentido, sí o no?",
     "doc_to_choice": [
@@ -100,6 +111,7 @@
   "hplte_spa_escola_p2": {
     "type": "task",
     "hplt_e_name": "escola_p2",
+    "tag": "hplte_spa_escola",
     "dataset": "nbel/EsCoLA",
     "doc_to_text": "Determina si la siguiente frase tiene sentido: {{Sentence}}\nRespuesta:",
     "doc_to_choice": [
@@ -110,6 +122,7 @@
   "hplte_spa_flores_en-es_p0": {
     "type": "task",
     "hplt_e_name": "flores_en-es_p0",
+    "tag": "hplte_spa_flores_en-es",
     "dataset": "facebook/flores",
     "dataset_name": "all",
     "doc_to_text": "Translate the following sentence into Spanish: {{sentence_eng_Latn}}\nSpanish:"
@@ -117,6 +130,7 @@
   "hplte_spa_flores_en-es_p1": {
     "type": "task",
     "hplt_e_name": "flores_en-es_p1",
+    "tag": "hplte_spa_flores_en-es",
     "dataset": "facebook/flores",
     "dataset_name": "all",
     "doc_to_text": "Translate the sentence from English to Spanish.\nSource sentence (English): {{sentence_eng_Latn}}\nTarget sentence (Spanish):"
@@ -124,6 +138,7 @@
   "hplte_spa_flores_en-es_p2": {
     "type": "task",
     "hplt_e_name": "flores_en-es_p2",
+    "tag": "hplte_spa_flores_en-es",
     "dataset": "facebook/flores",
     "dataset_name": "all",
     "doc_to_text": "The following sentence is written in English. Translate it into Spanish.\nEnglish: {{sentence_eng_Latn}}\nSpanish:"
@@ -131,6 +146,7 @@
   "hplte_spa_global_mmlu_business_p0": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_business_p0",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:",
@@ -144,6 +160,7 @@
   "hplte_spa_global_mmlu_business_p1": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_business_p1",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -157,6 +174,7 @@
   "hplte_spa_global_mmlu_business_p2": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_business_p2",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?",
@@ -170,6 +188,7 @@
   "hplte_spa_global_mmlu_humanities_p0": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_humanities_p0",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:",
@@ -183,6 +202,7 @@
   "hplte_spa_global_mmlu_humanities_p1": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_humanities_p1",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -196,6 +216,7 @@
   "hplte_spa_global_mmlu_humanities_p2": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_humanities_p2",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?",
@@ -209,6 +230,7 @@
   "hplte_spa_global_mmlu_medical_p0": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_medical_p0",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:",
@@ -222,6 +244,7 @@
   "hplte_spa_global_mmlu_medical_p1": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_medical_p1",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -235,6 +258,7 @@
   "hplte_spa_global_mmlu_medical_p2": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_medical_p2",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?",
@@ -248,6 +272,7 @@
   "hplte_spa_global_mmlu_other_p0": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_other_p0",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:",
@@ -261,6 +286,7 @@
   "hplte_spa_global_mmlu_other_p1": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_other_p1",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -274,6 +300,7 @@
   "hplte_spa_global_mmlu_other_p2": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_other_p2",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?",
@@ -323,6 +350,7 @@
   "hplte_spa_global_mmlu_social_sciences_p0": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_social_sciences_p0",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:",
@@ -336,6 +364,7 @@
   "hplte_spa_global_mmlu_social_sciences_p1": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_social_sciences_p1",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -349,6 +378,7 @@
   "hplte_spa_global_mmlu_social_sciences_p2": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_social_sciences_p2",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?",
@@ -362,6 +392,7 @@
   "hplte_spa_global_mmlu_stem_p0": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_stem_p0",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:",
@@ -375,6 +406,7 @@
   "hplte_spa_global_mmlu_stem_p1": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_stem_p1",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -388,6 +420,7 @@
   "hplte_spa_global_mmlu_stem_p2": {
     "type": "task",
     "hplt_e_name": "global_mmlu_spanish_stem_p2",
+    "tag": null,
     "dataset": "CohereLabs/Global-MMLU",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?",
@@ -401,6 +434,7 @@
   "hplte_spa_include_p0": {
     "type": "task",
     "hplt_e_name": "include_spanish_p0",
+    "tag": "hplte_spa_include",
     "dataset": "CohereLabs/include-base-44",
     "dataset_name": "Spanish",
     "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:",
@@ -414,6 +448,7 @@
   "hplte_spa_include_p1": {
     "type": "task",
     "hplt_e_name": "include_spanish_p1",
+    "tag": "hplte_spa_include",
     "dataset": "CohereLabs/include-base-44",
     "dataset_name": "Spanish",
     "doc_to_text": "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?",
@@ -427,6 +462,7 @@
   "hplte_spa_include_p2": {
     "type": "task",
     "hplt_e_name": "include_spanish_p2",
+    "tag": "hplte_spa_include",
     "dataset": "CohereLabs/include-base-44",
     "dataset_name": "Spanish",
     "doc_to_text": "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?",
@@ -440,6 +476,7 @@
   "hplte_spa_mgsm_direct_p0": {
     "type": "task",
     "hplt_e_name": "mgsm_direct_es_p0",
+    "tag": "hplte_spa_mgsm_direct",
     "dataset": "juletxara/mgsm",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {{question}}\nRespuesta:"
@@ -447,6 +484,7 @@
   "hplte_spa_mgsm_direct_p1": {
     "type": "task",
     "hplt_e_name": "mgsm_direct_es_p1",
+    "tag": "hplte_spa_mgsm_direct",
     "dataset": "juletxara/mgsm",
     "dataset_name": "es",
     "doc_to_text": "Responde a la siguiente pregunta:\n{{question}}\nRazona tu respuesta:"
@@ -454,6 +492,7 @@
   "hplte_spa_mgsm_direct_p2": {
     "type": "task",
     "hplt_e_name": "mgsm_direct_es_p2",
+    "tag": "hplte_spa_mgsm_direct",
     "dataset": "juletxara/mgsm",
     "dataset_name": "es",
     "doc_to_text": "Proporciona una respuesta detallada para la siguiente pregunta:\n{{question}}\nRespuesta:"
@@ -461,6 +500,7 @@
   "hplte_spa_openbookqa_p0": {
     "type": "task",
     "hplt_e_name": "openbookqa_es_p0",
+    "tag": "hplte_spa_openbookqa",
     "dataset": "BSC-LT/openbookqa-es",
     "doc_to_text": "question_stem",
     "doc_to_choice": "{{choices.text}}"
@@ -468,6 +508,7 @@
   "hplte_spa_openbookqa_p1": {
     "type": "task",
     "hplt_e_name": "openbookqa_es_p1",
+    "tag": "hplte_spa_openbookqa",
     "dataset": "BSC-LT/openbookqa-es",
     "doc_to_text": "{{question_stem.strip()}}\nA. {{choices['text'][0]}}\nB. {{choices['text'][1]}}\nC. {{choices['text'][2]}}\nD. {{choices['text'][3]}}\nRespuesta:",
     "doc_to_choice": [
@@ -480,6 +521,7 @@
   "hplte_spa_openbookqa_p2": {
     "type": "task",
     "hplt_e_name": "openbookqa_es_p2",
+    "tag": "hplte_spa_openbookqa",
     "dataset": "BSC-LT/openbookqa-es",
     "doc_to_text": "{{question_stem.strip()}}\nOpción A: {{choices['text'][0]}}\nOpción B: {{choices['text'][1]}}\nOpción C: {{choices['text'][2]}}\nOpción D: {{choices['text'][3]}}\n\n¿Es la respuesta correcta A, B, C o D?",
     "doc_to_choice": [
@@ -492,6 +534,7 @@
   "hplte_spa_paws_p0": {
     "type": "task",
     "hplt_e_name": "paws_es_p0",
+    "tag": "hplte_spa_paws",
     "dataset": "google-research-datasets/paws-x",
     "dataset_name": "es",
     "doc_to_choice": "{{[sentence1+\", ¿verdad? No, \"+sentence2, sentence1+\", ¿verdad? Sí, \"+sentence2]}}"
@@ -499,6 +542,7 @@
   "hplte_spa_paws_p1": {
     "type": "task",
     "hplt_e_name": "paws_es_p1",
+    "tag": "hplte_spa_paws",
     "dataset": "google-research-datasets/paws-x",
     "dataset_name": "es",
     "doc_to_text": "Determina si las siguientes dos oraciones expresan la misma idea o no.\nOración 1: {{sentence1}}\nOración 2: {{sentence2}}\nRespuesta:",
@@ -510,6 +554,7 @@
   "hplte_spa_paws_p2": {
     "type": "task",
     "hplt_e_name": "paws_es_p2",
+    "tag": "hplte_spa_paws",
     "dataset": "google-research-datasets/paws-x",
     "dataset_name": "es",
     "doc_to_text": "Oración 1: {{sentence1}}\nOración 2: {{sentence2}}\nPregunta: ¿Las oraciones 1 y 2 expresan el mismo significado? ¿Sí o no?\nRespuesta:",
@@ -521,6 +566,7 @@
   "hplte_spa_veritasqa_gen_p0": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_gen_p0",
+    "tag": "hplte_spa_veritasqa_gen",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": "Responde a la siguiente pregunta:\n{{question}}\nRespuesta:"
@@ -528,6 +574,7 @@
   "hplte_spa_veritasqa_gen_p1": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_gen_p1",
+    "tag": "hplte_spa_veritasqa_gen",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": "Responde con claridad y precisión a la siguiente pregunta:\n{{question}}\nRespuesta:"
@@ -535,6 +582,7 @@
   "hplte_spa_veritasqa_gen_p2": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_gen_p2",
+    "tag": "hplte_spa_veritasqa_gen",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": "Proporciona una respuesta detallada para la siguiente pregunta:\n{{question}}\nRespuesta:"
@@ -542,6 +590,7 @@
   "hplte_spa_veritasqa_mc1_p0": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_mc1_p0",
+    "tag": "hplte_spa_veritasqa_mc1",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {{question}}\nRespuesta:",
@@ -550,6 +599,7 @@
   "hplte_spa_veritasqa_mc1_p1": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_mc1_p1",
+    "tag": "hplte_spa_veritasqa_mc1",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": {
@@ -564,6 +614,7 @@
   "hplte_spa_veritasqa_mc1_p2": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_mc1_p2",
+    "tag": "hplte_spa_veritasqa_mc1",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": {
@@ -575,6 +626,7 @@
   "hplte_spa_veritasqa_mc2_p0": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_mc2_p0",
+    "tag": "hplte_spa_veritasqa_mc2",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": "Pregunta: {{question}}\nRespuesta:",
@@ -583,6 +635,7 @@
   "hplte_spa_veritasqa_mc2_p1": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_mc2_p1",
+    "tag": "hplte_spa_veritasqa_mc2",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": {
@@ -597,6 +650,7 @@
   "hplte_spa_veritasqa_mc2_p2": {
     "type": "task",
     "hplt_e_name": "veritasqa_es_mc2_p2",
+    "tag": "hplte_spa_veritasqa_mc2",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "es",
     "doc_to_text": {
@@ -608,6 +662,7 @@
   "hplte_spa_xnli_p0": {
     "type": "task",
     "hplt_e_name": "xnli_es_p0",
+    "tag": "hplte_spa_xnli",
     "dataset": "facebook/xnli",
     "dataset_name": "es",
     "doc_to_choice": "{{[premise+\", ¿correcto? Sí, \"+hypothesis,premise+\", ¿correcto? Así que, \"+hypothesis,premise+\", ¿correcto? No, \"+hypothesis]}}"
@@ -615,6 +670,7 @@
   "hplte_spa_xnli_p1": {
     "type": "task",
     "hplt_e_name": "xnli_es_p1",
+    "tag": "hplte_spa_xnli",
     "dataset": "facebook/xnli",
     "dataset_name": "es",
     "doc_to_text": "Premisa: {{premise}}\nHipótesis: {{hypothesis}}\n\nIndica la relación entre la premisa y la hipótesis:",
@@ -627,6 +683,7 @@
   "hplte_spa_xnli_p2": {
     "type": "task",
     "hplt_e_name": "xnli_es_p2",
+    "tag": "hplte_spa_xnli",
     "dataset": "facebook/xnli",
     "dataset_name": "es",
     "doc_to_text": "Premisa: {{premise}}\nHipótesis: {{hypothesis}}\n\n¿Cuál es la relación entre la premisa y la hipótesis?\nA. En acuerdo\nB. Neutras entre sí\nC. En contradicción\nRespuesta:",
@@ -639,6 +696,7 @@
   "hplte_spa_xquad_p0": {
     "type": "task",
     "hplt_e_name": "xquad_es_p0",
+    "tag": "hplte_spa_xquad",
     "dataset": "google/xquad",
     "dataset_name": "xquad.es",
     "doc_to_text": "Contexto: {{context}}\n\nPregunta: {{question}}\n\nRespuesta:"
@@ -646,6 +704,7 @@
   "hplte_spa_xquad_p1": {
     "type": "task",
     "hplt_e_name": "xquad_es_p1",
+    "tag": "hplte_spa_xquad",
     "dataset": "google/xquad",
     "dataset_name": "xquad.es",
     "doc_to_text": "{{context}}\n\nPregunta: {{question}}\nCon respecto al pasaje anterior, la respuesta correcta a la pregunta es"
@@ -653,6 +712,7 @@
   "hplte_spa_xquad_p2": {
     "type": "task",
     "hplt_e_name": "xquad_es_p2",
+    "tag": "hplte_spa_xquad",
     "dataset": "google/xquad",
     "dataset_name": "xquad.es",
     "doc_to_text": "Lee el siguiente pasaje y contesta la pregunta.\n\nPasaje: {{context}}\n\nPregunta: {{question}}"
@@ -660,6 +720,7 @@
   "hplte_spa_xstorycloze_p0": {
     "type": "task",
     "hplt_e_name": "xstorycloze_es_p0",
+    "tag": "hplte_spa_xstorycloze",
     "dataset": "juletxara/xstory_cloze",
     "dataset_name": "es",
     "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
@@ -668,6 +729,7 @@
   "hplte_spa_xstorycloze_p1": {
     "type": "task",
     "hplt_e_name": "xstorycloze_es_p1",
+    "tag": "hplte_spa_xstorycloze",
     "dataset": "juletxara/xstory_cloze",
     "dataset_name": "es",
     "doc_to_text": "Lee la siguiente historia: {{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}\nElige la continuación correcta:\n- {{sentence_quiz1}}\n- {{sentence_quiz2}}",
@@ -676,6 +738,7 @@
   "hplte_spa_xstorycloze_p2": {
     "type": "task",
     "hplt_e_name": "xstorycloze_es_p2",
+    "tag": "hplte_spa_xstorycloze",
     "dataset": "juletxara/xstory_cloze",
     "dataset_name": "es",
     "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4] | join(' ') }}\n¿Qué ocurre después?\nA. {{ sentence_quiz1}} \nB. {{sentence_quiz2}}\nRespuesta:",

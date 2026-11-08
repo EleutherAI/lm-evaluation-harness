@@ -1,3 +1,4 @@
 task: hplte_cat_wnli_p1
+tag: hplte_cat_wnli
 include: _wnli_yaml
 doc_to_text: "Llegeix el text i contesta si l'afirmació és veritable o falsa.\nTexto: {{sentence1}}\nAfirmación: {{sentence2}}\nResposta:"

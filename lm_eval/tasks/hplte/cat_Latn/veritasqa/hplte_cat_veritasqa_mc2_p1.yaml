@@ -1,4 +1,5 @@
 task: hplte_cat_veritasqa_mc2_p1
+tag: hplte_cat_veritasqa_mc2
 include: _veritasqa_mc_yaml
 doc_to_choice: !function utils.doc_to_choice_mc2_p1
 process_results: !function utils.process_results_mc2

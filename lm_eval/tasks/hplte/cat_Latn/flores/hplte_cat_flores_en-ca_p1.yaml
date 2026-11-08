@@ -1,3 +1,4 @@
 task: hplte_cat_flores_en-ca_p1
+tag: hplte_cat_flores_en-ca
 include: _flores_yaml
 doc_to_text: "Translate the sentence from English to Catalan.\nSource sentence (English): {{sentence_eng_Latn}}\nTarget sentence (Catalan):"

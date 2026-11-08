@@ -1,3 +1,4 @@
 task: hplte_cat_catcola_p2
+tag: hplte_cat_catcola
 include: _catcola_yaml
 doc_to_text: "Determina si la següent frase té sentit: {{Sentence}}\nResposta:"

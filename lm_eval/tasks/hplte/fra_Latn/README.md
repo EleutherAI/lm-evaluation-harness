@@ -158,7 +158,7 @@ url={https://openreview.net/forum?id=k3gCieTXeY}
 
 #### Tags
 
-None.
+* `hplte_fra_<task>`: all prompts of a task, e.g. `hplte_fra_belebele` runs `hplte_fra_belebele_p[0-2]`. There is a tag for every task in the table below, except the ones whose prompts are groups (see above).
 
 #### Tasks
 

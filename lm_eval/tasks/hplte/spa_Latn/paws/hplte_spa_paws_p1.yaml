@@ -1,4 +1,5 @@
 task: hplte_spa_paws_p1
+tag: hplte_spa_paws
 include: _paws_yaml
 doc_to_text: "Determina si las siguientes dos oraciones expresan la misma idea o no.\nOración 1: {{sentence1}}\nOración 2: {{sentence2}}\nRespuesta:"
 doc_to_choice: ["no", "sí"]

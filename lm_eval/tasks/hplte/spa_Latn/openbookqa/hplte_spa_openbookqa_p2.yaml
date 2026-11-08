@@ -1,4 +1,5 @@
 task: hplte_spa_openbookqa_p2
+tag: hplte_spa_openbookqa
 include: _openbookqa_yaml
 doc_to_text: "{{question_stem.strip()}}\nOpción A: {{choices['text'][0]}}\nOpción B: {{choices['text'][1]}}\nOpción C: {{choices['text'][2]}}\nOpción D: {{choices['text'][3]}}\n\n¿Es la respuesta correcta A, B, C o D?"
 doc_to_choice: ["Opción A", "Opción B", "Opción C", "Opción D"]

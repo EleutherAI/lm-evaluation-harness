@@ -130,7 +130,7 @@ None.
 
 #### Tags
 
-None.
+* `hplte_glg_<task>`: all prompts of a task, e.g. `hplte_glg_belebele` runs `hplte_glg_belebele_p[0-2]`. There is a tag for every task in the table below.
 
 #### Tasks
 

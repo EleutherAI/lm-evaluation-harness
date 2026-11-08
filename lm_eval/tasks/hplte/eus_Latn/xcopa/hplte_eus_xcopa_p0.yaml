@@ -1,3 +1,4 @@
 task: hplte_eus_xcopa_p0
+tag: hplte_eus_xcopa
 include: _xcopa_yaml
 doc_to_text: '{{premise[:-1].strip() +  {"cause": " Izan ere,", "effect": " Beraz,"}[question]}}'

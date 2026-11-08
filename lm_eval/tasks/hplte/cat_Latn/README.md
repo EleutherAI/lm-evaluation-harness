@@ -130,7 +130,7 @@ None.
 
 #### Tags
 
-None.
+* `hplte_cat_<task>`: all prompts of a task, e.g. `hplte_cat_arc_easy` runs `hplte_cat_arc_easy_p[0-2]`. There is a tag for every task in the table below.
 
 #### Tasks
 

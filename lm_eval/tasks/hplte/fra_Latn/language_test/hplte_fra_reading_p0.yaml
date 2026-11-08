@@ -1,4 +1,5 @@
 task: hplte_fra_reading_p0
+tag: hplte_fra_reading
 include: _language_test_yaml
 validation_split: Reading
 fewshot_split: Reading

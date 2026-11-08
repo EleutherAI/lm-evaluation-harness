@@ -1,3 +1,4 @@
 task: hplte_cat_catalanqa_p1
+tag: hplte_cat_catalanqa
 include: _catalanqa_yaml
 doc_to_text: "{{context}}\n\nPregunta: {{question}}\nRespecte al passatge anterior, la resposta correcta a la pregunta és"

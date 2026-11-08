@@ -1,3 +1,4 @@
 task: hplte_fra_belebele_p2
+tag: hplte_fra_belebele
 include: _belebele_yaml
 doc_to_text: "Répondez à la question suivante avec l’une des options proposées en vous basant sur le texte ci-dessous.\nQuestion : {{question}}\nOptions :\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\nTexte : {{flores_passage}}\n\nRéponse :"

@@ -139,7 +139,7 @@ url={https://openreview.net/forum?id=k3gCieTXeY}
 
 #### Tags
 
-None.
+* `hplte_eus_<task>`: all prompts of a task, e.g. `hplte_eus_arc_easy` runs `hplte_eus_arc_easy_p[0-2]`. There is a tag for every task in the table below, except the ones whose prompts are groups (see above).
 
 #### Tasks
 

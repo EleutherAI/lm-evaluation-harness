@@ -1,4 +1,5 @@
 task: hplte_cat_parafraseja_p0
+tag: hplte_cat_parafraseja
 include: _parafraseja_yaml
 doc_to_text: ''
 doc_to_choice: '{{[sentence1+", veritat? No, "+sentence2, sentence1+", veritat? Sí, "+sentence2]}}'

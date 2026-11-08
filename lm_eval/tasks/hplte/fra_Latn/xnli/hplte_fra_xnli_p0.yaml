@@ -1,4 +1,5 @@
 task: hplte_fra_xnli_p0
+tag: hplte_fra_xnli
 include: _xnli_yaml
 description: "La prémisse et l'hypothèse sont elles en accord, neutres en elles, ou en contradiction ?"
 doc_to_text: "\nPrémisse: {{premise}}\n\nHypothèse: {{hypothesis}}\n\nLa prémisse et l'hypothèse sont"

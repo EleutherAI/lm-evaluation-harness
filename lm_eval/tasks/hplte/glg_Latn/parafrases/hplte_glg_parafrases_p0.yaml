@@ -1,4 +1,5 @@
 task: hplte_glg_parafrases_p0
+tag: hplte_glg_parafrases
 include: _parafrases_yaml
 doc_to_text: ""
 doc_to_choice: '{{[Frase+", verdadeiro? Non, "+Paráfrase, Frase+", verdadeiro? Si, "+Paráfrase]}}'

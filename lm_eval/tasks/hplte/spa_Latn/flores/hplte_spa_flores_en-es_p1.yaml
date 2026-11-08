@@ -1,3 +1,4 @@
 task: hplte_spa_flores_en-es_p1
+tag: hplte_spa_flores_en-es
 include: _flores_yaml
 doc_to_text: "Translate the sentence from English to Spanish.\nSource sentence (English): {{sentence_eng_Latn}}\nTarget sentence (Spanish):"

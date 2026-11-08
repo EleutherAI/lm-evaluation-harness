@@ -1,3 +1,4 @@
 task: hplte_glg_veritasqa_gen_p1
+tag: hplte_glg_veritasqa_gen
 include: _veritasqa_gen_yaml
 doc_to_text: "Responde á seguinte pregunta de forma clara e precisa:\n{{question}}\nResposta:"

@@ -1,3 +1,4 @@
 task: hplte_cat_mgsm_direct_p2
+tag: hplte_cat_mgsm_direct
 include: _mgsm_direct_yaml
 doc_to_text: "Respon a la següent pregunta:\n{{question}}\nRaona la teva resposta:"

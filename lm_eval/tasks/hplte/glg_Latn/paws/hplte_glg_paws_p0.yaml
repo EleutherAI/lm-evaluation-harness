@@ -1,4 +1,5 @@
 task: hplte_glg_paws_p0
+tag: hplte_glg_paws
 include: _paws_yaml
 doc_to_text: ""
 doc_to_choice: '{{[sentence1+", verdadeiro? Non, "+sentence2, sentence1+", verdadeiro? Si, "+sentence2]}}'

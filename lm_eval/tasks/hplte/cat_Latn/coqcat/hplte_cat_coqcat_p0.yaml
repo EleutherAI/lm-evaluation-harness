@@ -1,3 +1,4 @@
 task: hplte_cat_coqcat_p0
+tag: hplte_cat_coqcat
 include: _coqcat_yaml
 doc_to_text: '{{story+"\n\n"}}{% for i in range(questions|length-1) %}{{"Q: "+questions[i]+"\n\n"+"A: "+answers["input_text"][i]+"\n\n"}}{% endfor %}{{"Q: "+questions[-1]+"\n\n"+"A:"}}'

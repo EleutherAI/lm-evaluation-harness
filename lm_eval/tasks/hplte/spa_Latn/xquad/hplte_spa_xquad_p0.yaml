@@ -1,3 +1,4 @@
 task: hplte_spa_xquad_p0
+tag: hplte_spa_xquad
 include: _xquad_yaml
 doc_to_text: "Contexto: {{context}}\n\nPregunta: {{question}}\n\nRespuesta:"

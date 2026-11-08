@@ -34,16 +34,18 @@ The other HPLT-e languages are not part of this folder:
 
 Tasks are named `hplte_<language>_<task>_p<N>`, where `<language>` is the ISO 639-3 code (`cat`, `ces`, `eus`, `fra`, `glg`, `spa`, `ukr`) and `p<N>` is the prompt (`p0`–`p2`). Each prompt is treated as a separate task. The language READMEs map every task to its name in the HPLT-e repository and paper.
 
-To evaluate all prompts of a task, use a wildcard:
+To evaluate all prompts of a task, use its tag, which is the task name without the prompt suffix (`hplte_<language>_<task>`):
 
 ```bash
 lm-eval run \
   --model hf \
   --model_args pretrained=<model> \
-  --tasks "hplte_spa_xnli_p*" \
+  --tasks hplte_spa_xnli \
   --num_fewshot 0 \
   --batch_size auto
 ```
+
+Global-MMLU and EusExams have a group per prompt instead of a tag (see below); use a wildcard such as `--tasks "hplte_spa_global_mmlu_p*"` to run all of their prompts.
 
 ### Aggregation
 

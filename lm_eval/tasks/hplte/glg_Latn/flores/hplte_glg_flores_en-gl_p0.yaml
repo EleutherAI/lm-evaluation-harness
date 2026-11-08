@@ -1,3 +1,4 @@
 task: hplte_glg_flores_en-gl_p0
+tag: hplte_glg_flores_en-gl
 include: _flores_yaml
 doc_to_text: "Translate the following sentence into Galician: {{sentence_eng_Latn}}\nGalician:"

@@ -1,4 +1,5 @@
 task: hplte_glg_openbookqa_p0
+tag: hplte_glg_openbookqa
 include: _openbookqa_yaml
 doc_to_text: question_stem
 doc_to_choice: "{{choices.text}}"

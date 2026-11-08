@@ -1,3 +1,4 @@
 task: hplte_glg_mgsm_direct_p2
+tag: hplte_glg_mgsm_direct
 include: _mgsm_direct_yaml
 doc_to_text: "Proporcione unha resposta detallada á seguinte pregunta:\n{{question}}\nResposta:"

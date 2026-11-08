@@ -1,3 +1,4 @@
 task: hplte_cat_coqcat_p1
+tag: hplte_cat_coqcat
 include: _coqcat_yaml
 doc_to_text: '{{story+"\n\n"}}Respecte al passatge anterior, la resposta correcta a la pregunta és: {% for i in range(questions|length-1) %}{{"Pregunta: "+questions[i]+"\n\n"+"Resposta: "+answers["input_text"][i]+"\n\n"}}{% endfor %}{{"Pregunta: "+questions[-1]+"\n\n"+"Resposta:"}}'

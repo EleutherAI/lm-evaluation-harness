@@ -2,6 +2,7 @@
   "hplte_cat_arc_challenge_p0": {
     "type": "task",
     "hplt_e_name": "arc_ca_challenge_p0",
+    "tag": "hplte_cat_arc_challenge",
     "dataset": "projecte-aina/arc_ca",
     "dataset_name": "ARC-Challenge",
     "doc_to_text": "Pregunta: {{question}}\nResposta:",
@@ -10,6 +11,7 @@
   "hplte_cat_arc_challenge_p1": {
     "type": "task",
     "hplt_e_name": "arc_ca_challenge_p1",
+    "tag": "hplte_cat_arc_challenge",
     "dataset": "projecte-aina/arc_ca",
     "dataset_name": "ARC-Challenge",
     "doc_to_text": {
@@ -21,6 +23,7 @@
   "hplte_cat_arc_challenge_p2": {
     "type": "task",
     "hplt_e_name": "arc_ca_challenge_p2",
+    "tag": "hplte_cat_arc_challenge",
     "dataset": "projecte-aina/arc_ca",
     "dataset_name": "ARC-Challenge",
     "doc_to_text": {
@@ -35,6 +38,7 @@
   "hplte_cat_arc_easy_p0": {
     "type": "task",
     "hplt_e_name": "arc_ca_easy_p0",
+    "tag": "hplte_cat_arc_easy",
     "dataset": "projecte-aina/arc_ca",
     "dataset_name": "ARC-Easy",
     "doc_to_text": "Pregunta: {{question}}\nResposta:",
@@ -43,6 +47,7 @@
   "hplte_cat_arc_easy_p1": {
     "type": "task",
     "hplt_e_name": "arc_ca_easy_p1",
+    "tag": "hplte_cat_arc_easy",
     "dataset": "projecte-aina/arc_ca",
     "dataset_name": "ARC-Easy",
     "doc_to_text": {
@@ -54,6 +59,7 @@
   "hplte_cat_arc_easy_p2": {
     "type": "task",
     "hplt_e_name": "arc_ca_easy_p2",
+    "tag": "hplte_cat_arc_easy",
     "dataset": "projecte-aina/arc_ca",
     "dataset_name": "ARC-Easy",
     "doc_to_text": {
@@ -68,6 +74,7 @@
   "hplte_cat_belebele_p0": {
     "type": "task",
     "hplt_e_name": "catbelebele_p0",
+    "tag": "hplte_cat_belebele",
     "dataset": "facebook/belebele",
     "dataset_name": "cat_Latn",
     "doc_to_text": "Passatge: {{flores_passage}}\nPregunta: {{question.strip()}}\nA. {{mc_answer1}}\nB. {{mc_answer2}}\nC. {{mc_answer3}}\nD. {{mc_answer4}}\nResposta:",
@@ -81,6 +88,7 @@
   "hplte_cat_belebele_p1": {
     "type": "task",
     "hplt_e_name": "catbelebele_p1",
+    "tag": "hplte_cat_belebele",
     "dataset": "facebook/belebele",
     "dataset_name": "cat_Latn",
     "doc_to_text": "Llegeix el passatge i respon a la pregunta: {{flores_passage}}\n{{question.strip()}}\nOpció A: {{mc_answer1}}\nOpció B: {{mc_answer2}}\nOpció C: {{mc_answer3}}\nOpció D: {{mc_answer4}}\nÉs la resposta correcta A, B, C o D?",
@@ -94,6 +102,7 @@
   "hplte_cat_belebele_p2": {
     "type": "task",
     "hplt_e_name": "catbelebele_p2",
+    "tag": "hplte_cat_belebele",
     "dataset": "facebook/belebele",
     "dataset_name": "cat_Latn",
     "doc_to_text": "{{flores_passage}}\nEn base al passatge anterior, respon a la pregunta: {{question}}\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\n\nQuina és la resposta correcta?",
@@ -107,24 +116,28 @@
   "hplte_cat_catalanqa_p0": {
     "type": "task",
     "hplt_e_name": "catalanqa_p0",
+    "tag": "hplte_cat_catalanqa",
     "dataset": "projecte-aina/catalanqa",
     "doc_to_text": "Context: {{context}}\n\nPregunta: {{question}}\n\nResposta:"
   },
   "hplte_cat_catalanqa_p1": {
     "type": "task",
     "hplt_e_name": "catalanqa_p1",
+    "tag": "hplte_cat_catalanqa",
     "dataset": "projecte-aina/catalanqa",
     "doc_to_text": "{{context}}\n\nPregunta: {{question}}\nRespecte al passatge anterior, la resposta correcta a la pregunta és"
   },
   "hplte_cat_catalanqa_p2": {
     "type": "task",
     "hplt_e_name": "catalanqa_p2",
+    "tag": "hplte_cat_catalanqa",
     "dataset": "projecte-aina/catalanqa",
     "doc_to_text": "Llegeix el següent passatge i contesta la pregunta.\n\nPassatge: {{context}}\n\nPregunta: {{question}}\n\nResposta:"
   },
   "hplte_cat_catcola_p0": {
     "type": "task",
     "hplt_e_name": "catcola_p0",
+    "tag": "hplte_cat_catcola",
     "dataset": "nbel/CatCoLA",
     "doc_to_text": "{{Sentence}}\nPregunta: Té sentit aquesta frase?\nResposta:",
     "doc_to_choice": [
@@ -135,6 +148,7 @@
   "hplte_cat_catcola_p1": {
     "type": "task",
     "hplt_e_name": "catcola_p1",
+    "tag": "hplte_cat_catcola",
     "dataset": "nbel/CatCoLA",
     "doc_to_text": "Frase: {{Sentence}}\nPregunta: Té sentit aquesta frase?\nResposta:",
     "doc_to_choice": [
@@ -145,6 +159,7 @@
   "hplte_cat_catcola_p2": {
     "type": "task",
     "hplt_e_name": "catcola_p2",
+    "tag": "hplte_cat_catcola",
     "dataset": "nbel/CatCoLA",
     "doc_to_text": "Determina si la següent frase té sentit: {{Sentence}}\nResposta:",
     "doc_to_choice": [
@@ -155,24 +170,28 @@
   "hplte_cat_cocoteros_va_p0": {
     "type": "task",
     "hplt_e_name": "cocoteros_va_p0",
+    "tag": "hplte_cat_cocoteros_va",
     "dataset": "gplsi/cocoteros_va",
     "doc_to_text": "Genera una frase curta amb estes paraules: {{keywords}}. El context és: {{context}} \n\nResposta:"
   },
   "hplte_cat_cocoteros_va_p1": {
     "type": "task",
     "hplt_e_name": "cocoteros_va_p1",
+    "tag": "hplte_cat_cocoteros_va",
     "dataset": "gplsi/cocoteros_va",
     "doc_to_text": "Escriu una frase curta amb aquestes paraules clau: {{keywords}}.\nTingues en compte el següent context: {{context}}.\n\nResposta:"
   },
   "hplte_cat_cocoteros_va_p2": {
     "type": "task",
     "hplt_e_name": "cocoteros_va_p2",
+    "tag": "hplte_cat_cocoteros_va",
     "dataset": "gplsi/cocoteros_va",
     "doc_to_text": "Construeix una oració tenint en compte el següent context: {{context}}.\nUtilitza les paraules clau: {{keywords}}.\n\nResposta:"
   },
   "hplte_cat_copa_p0": {
     "type": "task",
     "hplt_e_name": "copa_ca_p0",
+    "tag": "hplte_cat_copa",
     "dataset": "projecte-aina/COPA-ca",
     "doc_to_text": "{{premise[:-1].strip() + \" \" + {\"cause\": \"perquè\", \"effect\": \"i per tant\"}[question]}}",
     "doc_to_choice": "{{[choice1, choice2]}}"
@@ -180,6 +199,7 @@
   "hplte_cat_copa_p1": {
     "type": "task",
     "hplt_e_name": "copa_ca_p1",
+    "tag": "hplte_cat_copa",
     "dataset": "projecte-aina/COPA-ca",
     "doc_to_text": "{{premise[:-1].strip() + \" \" + {\"cause\": \"atès que\", \"effect\": \"així que\"}[question]}}",
     "doc_to_choice": "{{[choice1, choice2]}}"
@@ -187,6 +207,7 @@
   "hplte_cat_copa_p2": {
     "type": "task",
     "hplt_e_name": "copa_ca_p2",
+    "tag": "hplte_cat_copa",
     "dataset": "projecte-aina/COPA-ca",
     "doc_to_text": "{{premise[:-1].strip() +  {\"cause\": \" a causa que\", \"effect\": \", i com a resultat,\"}[question]}}",
     "doc_to_choice": "{{[choice1, choice2]}}"
@@ -194,24 +215,28 @@
   "hplte_cat_coqcat_p0": {
     "type": "task",
     "hplt_e_name": "coqcat_p0",
+    "tag": "hplte_cat_coqcat",
     "dataset": "projecte-aina/CoQCat",
     "doc_to_text": "{{story+\"\\n\\n\"}}{% for i in range(questions|length-1) %}{{\"Q: \"+questions[i]+\"\\n\\n\"+\"A: \"+answers[\"input_text\"][i]+\"\\n\\n\"}}{% endfor %}{{\"Q: \"+questions[-1]+\"\\n\\n\"+\"A:\"}}"
   },
   "hplte_cat_coqcat_p1": {
     "type": "task",
     "hplt_e_name": "coqcat_p1",
+    "tag": "hplte_cat_coqcat",
     "dataset": "projecte-aina/CoQCat",
     "doc_to_text": "{{story+\"\\n\\n\"}}Respecte al passatge anterior, la resposta correcta a la pregunta és: {% for i in range(questions|length-1) %}{{\"Pregunta: \"+questions[i]+\"\\n\\n\"+\"Resposta: \"+answers[\"input_text\"][i]+\"\\n\\n\"}}{% endfor %}{{\"Pregunta: \"+questions[-1]+\"\\n\\n\"+\"Resposta:\"}}"
   },
   "hplte_cat_coqcat_p2": {
     "type": "task",
     "hplt_e_name": "coqcat_p2",
+    "tag": "hplte_cat_coqcat",
     "dataset": "projecte-aina/CoQCat",
     "doc_to_text": "Llegeix el següent passatge i contesta la pregunta\\n\\nPassatge: {{story+\"\\n\\n\"}}{% for i in range(questions|length-1) %}{{\"Pregunta: \"+questions[i]+\"\\n\\n\"+\"Resposta: \"+answers[\"input_text\"][i]+\"\\n\\n\"}}{% endfor %}{{\"Pregunta: \"+questions[-1]+\"\\n\\n\"+\"Resposta:\"}}"
   },
   "hplte_cat_flores_en-ca_p0": {
     "type": "task",
     "hplt_e_name": "flores_en-ca_p0",
+    "tag": "hplte_cat_flores_en-ca",
     "dataset": "facebook/flores",
     "dataset_name": "all",
     "doc_to_text": "Translate the following sentence into Catalan: {{sentence_eng_Latn}}\nCatalan:"
@@ -219,6 +244,7 @@
   "hplte_cat_flores_en-ca_p1": {
     "type": "task",
     "hplt_e_name": "flores_en-ca_p1",
+    "tag": "hplte_cat_flores_en-ca",
     "dataset": "facebook/flores",
     "dataset_name": "all",
     "doc_to_text": "Translate the sentence from English to Catalan.\nSource sentence (English): {{sentence_eng_Latn}}\nTarget sentence (Catalan):"
@@ -226,6 +252,7 @@
   "hplte_cat_flores_en-ca_p2": {
     "type": "task",
     "hplt_e_name": "flores_en-ca_p2",
+    "tag": "hplte_cat_flores_en-ca",
     "dataset": "facebook/flores",
     "dataset_name": "all",
     "doc_to_text": "The following sentence is written in English. Translate it into Catalan.\nEnglish: {{sentence_eng_Latn}}\nCatalan:"
@@ -233,24 +260,28 @@
   "hplte_cat_mgsm_direct_p0": {
     "type": "task",
     "hplt_e_name": "mgsm_direct_ca_p0",
+    "tag": "hplte_cat_mgsm_direct",
     "dataset": "projecte-aina/mgsm_ca",
     "doc_to_text": "Pregunta: {{question}}\nResposta:"
   },
   "hplte_cat_mgsm_direct_p1": {
     "type": "task",
     "hplt_e_name": "mgsm_direct_ca_p1",
+    "tag": "hplte_cat_mgsm_direct",
     "dataset": "projecte-aina/mgsm_ca",
     "doc_to_text": "Respon amb claredat i precisió a la pregunta següent\n{{question}}\nResposta:"
   },
   "hplte_cat_mgsm_direct_p2": {
     "type": "task",
     "hplt_e_name": "mgsm_direct_ca_p2",
+    "tag": "hplte_cat_mgsm_direct",
     "dataset": "projecte-aina/mgsm_ca",
     "doc_to_text": "Respon a la següent pregunta:\n{{question}}\nRaona la teva resposta:"
   },
   "hplte_cat_openbookqa_p0": {
     "type": "task",
     "hplt_e_name": "openbookqa_ca_p0",
+    "tag": "hplte_cat_openbookqa",
     "dataset": "projecte-aina/openbookqa_ca",
     "doc_to_text": "question_stem",
     "doc_to_choice": "{{choices.text}}"
@@ -258,6 +289,7 @@
   "hplte_cat_openbookqa_p1": {
     "type": "task",
     "hplt_e_name": "openbookqa_ca_p1",
+    "tag": "hplte_cat_openbookqa",
     "dataset": "projecte-aina/openbookqa_ca",
     "doc_to_text": "{{question_stem}}\nA. {{choices['text'][0]}}\nB. {{choices['text'][1]}}\nC. {{choices['text'][2]}}\nD. {{choices['text'][3]}}\nResposta:",
     "doc_to_choice": "{{choices.label}}"
@@ -265,6 +297,7 @@
   "hplte_cat_openbookqa_p2": {
     "type": "task",
     "hplt_e_name": "openbookqa_ca_p2",
+    "tag": "hplte_cat_openbookqa",
     "dataset": "projecte-aina/openbookqa_ca",
     "doc_to_text": "{{question_stem}}\nOpció A: {{choices['text'][0]}}\nOpció B: {{choices['text'][1]}} C: {{choices['text'][2]}}\nOpció D: {{choices['text'][3]}}\nÉs la resposta correcta A, B, C o D?",
     "doc_to_choice": [
@@ -277,12 +310,14 @@
   "hplte_cat_parafraseja_p0": {
     "type": "task",
     "hplt_e_name": "parafraseja_p0",
+    "tag": "hplte_cat_parafraseja",
     "dataset": "projecte-aina/Parafraseja",
     "doc_to_choice": "{{[sentence1+\", veritat? No, \"+sentence2, sentence1+\", veritat? Sí, \"+sentence2]}}"
   },
   "hplte_cat_parafraseja_p1": {
     "type": "task",
     "hplt_e_name": "parafraseja_p1",
+    "tag": "hplte_cat_parafraseja",
     "dataset": "projecte-aina/Parafraseja",
     "doc_to_text": "Determina si les dues oracions següents expressen la mateixa idea o no.\nOració 1: {{sentence1}}\nOració 2: {{sentence2}}\nResposta:",
     "doc_to_choice": [
@@ -293,6 +328,7 @@
   "hplte_cat_parafraseja_p2": {
     "type": "task",
     "hplt_e_name": "parafraseja_p2",
+    "tag": "hplte_cat_parafraseja",
     "dataset": "projecte-aina/Parafraseja",
     "doc_to_text": "Oració 1: {{sentence1}}\nOració 2: {{sentence2}}\nPregunta: Les oracions 1 i 2 expressen el mateix significat? Sí o no?\nResposta:",
     "doc_to_choice": [
@@ -303,12 +339,14 @@
   "hplte_cat_paws_p0": {
     "type": "task",
     "hplt_e_name": "paws_ca_p0",
+    "tag": "hplte_cat_paws",
     "dataset": "projecte-aina/PAWS-ca",
     "doc_to_choice": "{{[sentence1+\", veritat? No, \"+sentence2, sentence1+\", veritat? Sí, \"+sentence2]}}"
   },
   "hplte_cat_paws_p1": {
     "type": "task",
     "hplt_e_name": "paws_ca_p1",
+    "tag": "hplte_cat_paws",
     "dataset": "projecte-aina/PAWS-ca",
     "doc_to_text": "Determina si les dues oracions següents expressen la mateixa idea o no.\nOració 1: {{sentence1}}\nOració 2: {{sentence2}}\nResposta:",
     "doc_to_choice": [
@@ -319,6 +357,7 @@
   "hplte_cat_paws_p2": {
     "type": "task",
     "hplt_e_name": "paws_ca_p2",
+    "tag": "hplte_cat_paws",
     "dataset": "projecte-aina/PAWS-ca",
     "doc_to_text": "Oració 1: {{sentence1}}\nOració 2: {{sentence2}}\nPregunta: Les oracions 1 i 2 expressen el mateix significat? Sí o no?\nResposta:",
     "doc_to_choice": [
@@ -329,6 +368,7 @@
   "hplte_cat_piqa_p0": {
     "type": "task",
     "hplt_e_name": "piqa_ca_p0",
+    "tag": "hplte_cat_piqa",
     "dataset": "projecte-aina/piqa_ca",
     "doc_to_text": "Pregunta: {{goal}}\nResposta:",
     "doc_to_choice": "{{[sol1, sol2]}}"
@@ -336,6 +376,7 @@
   "hplte_cat_piqa_p1": {
     "type": "task",
     "hplt_e_name": "piqa_ca_p1",
+    "tag": "hplte_cat_piqa",
     "dataset": "projecte-aina/piqa_ca",
     "doc_to_text": "{{goal}}\nA. {{sol1}}\nB. {{sol2}}\nResposta:",
     "doc_to_choice": [
@@ -346,6 +387,7 @@
   "hplte_cat_piqa_p2": {
     "type": "task",
     "hplt_e_name": "piqa_ca_p2",
+    "tag": "hplte_cat_piqa",
     "dataset": "projecte-aina/piqa_ca",
     "doc_to_text": "{{goal}}\nA. {{sol1}}\nB. {{sol2}}\nQuina és la resposta correcta?",
     "doc_to_choice": [
@@ -356,6 +398,7 @@
   "hplte_cat_siqa_p0": {
     "type": "task",
     "hplt_e_name": "siqa_ca_p0",
+    "tag": "hplte_cat_siqa",
     "dataset": "projecte-aina/siqa_ca",
     "doc_to_text": "Pregunta: {{context}} {{question}}\nResposta:",
     "doc_to_choice": "{{[answerA, answerB, answerC]}}"
@@ -363,6 +406,7 @@
   "hplte_cat_siqa_p1": {
     "type": "task",
     "hplt_e_name": "siqa_ca_p1",
+    "tag": "hplte_cat_siqa",
     "dataset": "projecte-aina/siqa_ca",
     "doc_to_text": "Passatge: {{context}}\nPregunta: {{question}}\nA. {{answerA}}\nB. {{answerB}}\nC. {{answerC}}\nResposta:",
     "doc_to_choice": [
@@ -374,6 +418,7 @@
   "hplte_cat_siqa_p2": {
     "type": "task",
     "hplt_e_name": "siqa_ca_p2",
+    "tag": "hplte_cat_siqa",
     "dataset": "projecte-aina/siqa_ca",
     "doc_to_text": "Llegeix el passatge i respon a la pregunta: {{context}}\n{{question}}\nOpció A: {{answerA}}\nOpció B: {{answerB}}\nOpció C: {{answerC}}\nÉs la resposta correcta A, B  o C?",
     "doc_to_choice": [
@@ -385,12 +430,14 @@
   "hplte_cat_teca_p0": {
     "type": "task",
     "hplt_e_name": "teca_p0",
+    "tag": "hplte_cat_teca",
     "dataset": "projecte-aina/teca",
     "doc_to_choice": "{{[premise + \", correcte? Sí, \" + hypothesis, premise + \", correcte? A més, \" + hypothesis, premise + \", correcte? No, \" + hypothesis]}}"
   },
   "hplte_cat_teca_p1": {
     "type": "task",
     "hplt_e_name": "teca_p1",
+    "tag": "hplte_cat_teca",
     "dataset": "projecte-aina/teca",
     "doc_to_text": "Premissa: {{premise}}\n\nHipòtesi: {{hypothesis}}\n\nIndica la relació entre la premissa i la hipòtesi:",
     "doc_to_choice": [
@@ -402,6 +449,7 @@
   "hplte_cat_teca_p2": {
     "type": "task",
     "hplt_e_name": "teca_p2",
+    "tag": "hplte_cat_teca",
     "dataset": "projecte-aina/teca",
     "doc_to_text": "Premissa: {{premise}}\nHipòtesi: {{hypothesis}}\n\nQuina és la relació entre la premissa i la hipòtesi?\nA. En acord\nB. Neutres entre si\nC. En contradicció\nResposta:",
     "doc_to_choice": [
@@ -413,6 +461,7 @@
   "hplte_cat_veritasqa_gen_p0": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_gen_p0",
+    "tag": "hplte_cat_veritasqa_gen",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": "Respon a la següent pregunta:\n{{question}}\nResposta:"
@@ -420,6 +469,7 @@
   "hplte_cat_veritasqa_gen_p1": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_gen_p1",
+    "tag": "hplte_cat_veritasqa_gen",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": "Respon amb claredat i precisió a la pregunta següent:\n{{question}}\nResposta:"
@@ -427,6 +477,7 @@
   "hplte_cat_veritasqa_gen_p2": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_gen_p2",
+    "tag": "hplte_cat_veritasqa_gen",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": "Proporciona una resposta detallada per a la pregunta següent:\n{{question}}\nResposta:"
@@ -434,6 +485,7 @@
   "hplte_cat_veritasqa_mc1_p0": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_mc1_p0",
+    "tag": "hplte_cat_veritasqa_mc1",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": "Pregunta: {{question}}\nResposta:",
@@ -442,6 +494,7 @@
   "hplte_cat_veritasqa_mc1_p1": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_mc1_p1",
+    "tag": "hplte_cat_veritasqa_mc1",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": {
@@ -456,6 +509,7 @@
   "hplte_cat_veritasqa_mc1_p2": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_mc1_p2",
+    "tag": "hplte_cat_veritasqa_mc1",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": {
@@ -467,6 +521,7 @@
   "hplte_cat_veritasqa_mc2_p0": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_mc2_p0",
+    "tag": "hplte_cat_veritasqa_mc2",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": "Pregunta: {{question}}\nResposta:",
@@ -475,6 +530,7 @@
   "hplte_cat_veritasqa_mc2_p1": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_mc2_p1",
+    "tag": "hplte_cat_veritasqa_mc2",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": {
@@ -489,6 +545,7 @@
   "hplte_cat_veritasqa_mc2_p2": {
     "type": "task",
     "hplt_e_name": "veritasqa_ca_mc2_p2",
+    "tag": "hplte_cat_veritasqa_mc2",
     "dataset": "projecte-aina/veritasQA",
     "dataset_name": "ca",
     "doc_to_text": {
@@ -500,6 +557,7 @@
   "hplte_cat_wnli_p0": {
     "type": "task",
     "hplt_e_name": "wnli_ca_p0",
+    "tag": "hplte_cat_wnli",
     "dataset": "projecte-aina/wnli-ca",
     "doc_to_text": "{{sentence1}}\nPregunta: {{sentence2}} Cert o Fals?\nResposta:",
     "doc_to_choice": [
@@ -510,6 +568,7 @@
   "hplte_cat_wnli_p1": {
     "type": "task",
     "hplt_e_name": "wnli_ca_p1",
+    "tag": "hplte_cat_wnli",
     "dataset": "projecte-aina/wnli-ca",
     "doc_to_text": "Llegeix el text i contesta si l'afirmació és veritable o falsa.\nTexto: {{sentence1}}\nAfirmación: {{sentence2}}\nResposta:",
     "doc_to_choice": [
@@ -520,6 +579,7 @@
   "hplte_cat_wnli_p2": {
     "type": "task",
     "hplt_e_name": "wnli_ca_p2",
+    "tag": "hplte_cat_wnli",
     "dataset": "projecte-aina/wnli-ca",
     "doc_to_text": "{{sentence1}}\nPregunta: {{sentence2}}.\nResposta:",
     "doc_to_choice": [
@@ -530,12 +590,14 @@
   "hplte_cat_xnli_p0": {
     "type": "task",
     "hplt_e_name": "xnli_ca_p0",
+    "tag": "hplte_cat_xnli",
     "dataset": "projecte-aina/xnli-ca",
     "doc_to_choice": "{{[premise + \", correcte? Sí, \" + hypothesis, premise + \", correcte? A més, \" + hypothesis, premise + \", correcte? No, \" + hypothesis]}}"
   },
   "hplte_cat_xnli_p1": {
     "type": "task",
     "hplt_e_name": "xnli_ca_p1",
+    "tag": "hplte_cat_xnli",
     "dataset": "projecte-aina/xnli-ca",
     "doc_to_text": "Premissa: {{premise}}\n\nHipòtesi: {{hypothesis}}\n\nIndica la relació entre la premissa i la hipòtesi:",
     "doc_to_choice": [
@@ -547,6 +609,7 @@
   "hplte_cat_xnli_p2": {
     "type": "task",
     "hplt_e_name": "xnli_ca_p2",
+    "tag": "hplte_cat_xnli",
     "dataset": "projecte-aina/xnli-ca",
     "doc_to_text": "Premissa: {{premise}}\nHipòtesi: {{hypothesis}}\n\nQuina és la relació entre la premissa i la hipòtesi?\nA. En acord\nB. Neutres entre si\nC. En contradicció\nResposta:",
     "doc_to_choice": [
@@ -558,24 +621,28 @@
   "hplte_cat_xquad_p0": {
     "type": "task",
     "hplt_e_name": "xquad_ca_p0",
+    "tag": "hplte_cat_xquad",
     "dataset": "projecte-aina/xquad-ca",
     "doc_to_text": "Context: {{context}}\n\nPregunta: {{question}}\n\nResposta:"
   },
   "hplte_cat_xquad_p1": {
     "type": "task",
     "hplt_e_name": "xquad_ca_p1",
+    "tag": "hplte_cat_xquad",
     "dataset": "projecte-aina/xquad-ca",
     "doc_to_text": "{{context}}\n\nPregunta: {{question}}\nRespecte al passatge anterior, la resposta correcta a la pregunta és"
   },
   "hplte_cat_xquad_p2": {
     "type": "task",
     "hplt_e_name": "xquad_ca_p2",
+    "tag": "hplte_cat_xquad",
     "dataset": "projecte-aina/xquad-ca",
     "doc_to_text": "Llegeix el següent passatge i contesta la pregunta.\n\nPassatge: {{context}}\n\nPregunta: {{question}}\n\nResposta:"
   },
   "hplte_cat_xstorycloze_p0": {
     "type": "task",
     "hplt_e_name": "xstorycloze_ca_p0",
+    "tag": "hplte_cat_xstorycloze",
     "dataset": "projecte-aina/xstorycloze_ca",
     "dataset_name": "ca",
     "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
@@ -584,6 +651,7 @@
   "hplte_cat_xstorycloze_p1": {
     "type": "task",
     "hplt_e_name": "xstorycloze_ca_p1",
+    "tag": "hplte_cat_xstorycloze",
     "dataset": "projecte-aina/xstorycloze_ca",
     "dataset_name": "ca",
     "doc_to_text": "Llegeix la següent història: {{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}\nTria la continuació correcta:\n- {{sentence_quiz1}}\n- {{sentence_quiz2}}",
@@ -592,6 +660,7 @@
   "hplte_cat_xstorycloze_p2": {
     "type": "task",
     "hplt_e_name": "xstorycloze_ca_p2",
+    "tag": "hplte_cat_xstorycloze",
     "dataset": "projecte-aina/xstorycloze_ca",
     "dataset_name": "ca",
     "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4] | join(' ') }}\nQuè ocorre després?\nA. {{ sentence_quiz1}} \nB. {{sentence_quiz2}}\nResposta:",

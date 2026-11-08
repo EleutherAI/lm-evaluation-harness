@@ -1,3 +1,4 @@
 task: hplte_eus_flores_en-eu_p1
+tag: hplte_eus_flores_en-eu
 include: _flores_yaml
 doc_to_text: "Translate the sentence from English to Basque.\nSource sentence (English): {{sentence_eng_Latn}}\nTarget sentence (Basque):"

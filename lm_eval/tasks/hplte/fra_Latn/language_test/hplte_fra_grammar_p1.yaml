@@ -1,4 +1,5 @@
 task: hplte_fra_grammar_p1
+tag: hplte_fra_grammar
 include: _language_test_yaml
 validation_split: Grammar
 fewshot_split: Grammar

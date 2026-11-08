@@ -1,3 +1,4 @@
 task: hplte_glg_galcola_p2
+tag: hplte_glg_galcola
 include: _galcola_yaml
 doc_to_text: "Determina se a seguinte frase ten sentido: {{sentence}}\nResposta:"

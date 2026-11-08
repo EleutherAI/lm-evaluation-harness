@@ -1,3 +1,4 @@
 task: hplte_cat_veritasqa_gen_p0
+tag: hplte_cat_veritasqa_gen
 include: _veritasqa_gen_yaml
 doc_to_text: "Respon a la següent pregunta:\n{{question}}\nResposta:"

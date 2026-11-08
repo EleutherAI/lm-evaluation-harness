@@ -1,4 +1,5 @@
 task: hplte_ukr_textdetox_p2
+tag: hplte_ukr_textdetox
 include: _textdetox_yaml
 doc_to_text: "Визначте, чи є наведений текст токсичним, чи ні. Текст: {{text}}\nВідповідь:"
 doc_to_choice: ["Нетоксичний", "Токсичний"]

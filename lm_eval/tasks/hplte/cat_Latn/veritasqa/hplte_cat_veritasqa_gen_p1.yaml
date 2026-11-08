@@ -1,3 +1,4 @@
 task: hplte_cat_veritasqa_gen_p1
+tag: hplte_cat_veritasqa_gen
 include: _veritasqa_gen_yaml
 doc_to_text: "Respon amb claredat i precisió a la pregunta següent:\n{{question}}\nResposta:"

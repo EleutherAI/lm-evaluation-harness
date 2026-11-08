@@ -1,3 +1,4 @@
 task: hplte_cat_wnli_p0
+tag: hplte_cat_wnli
 include: _wnli_yaml
 doc_to_text: "{{sentence1}}\nPregunta: {{sentence2}} Cert o Fals?\nResposta:"

@@ -1,4 +1,5 @@
 task: hplte_cat_teca_p1
+tag: hplte_cat_teca
 include: _teca_yaml
 doc_to_text: "Premissa: {{premise}}\n\nHipòtesi: {{hypothesis}}\n\nIndica la relació entre la premissa i la hipòtesi:"
 doc_to_choice: ["en acord", "neutres entre si", "en contradicció"]

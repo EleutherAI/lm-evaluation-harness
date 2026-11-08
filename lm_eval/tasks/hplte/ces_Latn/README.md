@@ -143,7 +143,7 @@ Homepage: https://github.com/hplt-project/hplt-e
 
 #### Tags
 
-None.
+None: the Global-MMLU prompts are groups (see above).
 
 #### Tasks
 

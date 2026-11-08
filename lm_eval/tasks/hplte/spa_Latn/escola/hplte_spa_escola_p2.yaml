@@ -1,3 +1,4 @@
 task: hplte_spa_escola_p2
+tag: hplte_spa_escola
 include: _escola_yaml
 doc_to_text: "Determina si la siguiente frase tiene sentido: {{Sentence}}\nRespuesta:"
