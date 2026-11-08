@@ -80,9 +80,13 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         tokenizer: transformers.PreTrainedTokenizer,
         initial_decoder_input_length: int,
         batch_size: int,
+        *,
+        done_tracker: list[bool] | None = None,
     ) -> None:
         self.initial_decoder_input_length = initial_decoder_input_length
-        self.done_tracker = [False] * batch_size
+        self.done_tracker = (
+            [False] * batch_size if done_tracker is None else done_tracker
+        )
         self.sequence = sequence
         self.sequence_ids = tokenizer.encode(sequence, add_special_tokens=False)
         # print(sequence, self.sequence_ids)
@@ -117,11 +121,18 @@ def stop_sequences_criteria(
     initial_decoder_input_length: int,
     batch_size: int,
 ) -> transformers.StoppingCriteriaList:
+    # Each row may finish on a different stop sequence. Share completion state
+    # so the batch stops once every row has matched any configured sequence.
+    done_tracker = [False] * batch_size
     return transformers.StoppingCriteriaList(
         [
             *[
                 MultiTokenEOSCriteria(
-                    sequence, tokenizer, initial_decoder_input_length, batch_size
+                    sequence,
+                    tokenizer,
+                    initial_decoder_input_length,
+                    batch_size,
+                    done_tracker=done_tracker,
                 )
                 for sequence in stop_sequences
             ],
