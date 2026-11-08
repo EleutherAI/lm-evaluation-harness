@@ -168,33 +168,25 @@ class MergeDictAction(argparse.Action):
         values: str | Sequence[Any] | None,
         option_string: str | None = None,
     ) -> None:
-        current = vars(namespace).setdefault(self.dest, {}) or {}
+        current = dict(vars(namespace).setdefault(self.dest, {}) or {})
 
         if not values:
             return
 
-        # e.g. parses `{"pretrained":"/models/openai_gpt-oss-20b","dtype":"auto","chat_template_args":{"reasoning_effort":"low"},"enable_thinking": true,"think_end_token":"<|message|>"}`.
-        result = try_parse_json(values[0])
-
-        if isinstance(result, dict):
-            current = {**current, **result}
-        else:
-            # e.g. parses `max_gen_toks=8000`
-            if values:
-                for v in values:
-                    try:
-                        v = key_val_to_dict(v)
-                    except ValueError as e:
-                        parser.error(f"argument {option_string or self.dest}: {e}")
-                    if overlap := current.keys() & v.keys():
-                        eval_logger.warning(
-                            "%s: Overwriting %s",
-                            option_string or self.dest,
-                            ", ".join(
-                                f"{k}: {current[k]!r} -> {v[k]!r}" for k in overlap
-                            ),
-                        )
-                    current.update(v)
+        for value in values:
+            try:
+                parsed = try_parse_json(value)
+                if not isinstance(parsed, dict):
+                    parsed = key_val_to_dict(value)
+            except ValueError as e:
+                parser.error(f"argument {option_string or self.dest}: {e}")
+            if overlap := current.keys() & parsed.keys():
+                eval_logger.warning(
+                    "%s: Overwriting %s",
+                    option_string or self.dest,
+                    ", ".join(f"{k}: {current[k]!r} -> {parsed[k]!r}" for k in overlap),
+                )
+            current.update(parsed)
 
         setattr(namespace, self.dest, current)
 
