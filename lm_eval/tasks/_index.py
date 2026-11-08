@@ -60,7 +60,7 @@ class TaskIndex:
                         recursive=resolve_includes,
                     )
                     TaskIndex.process_cfg(cfg, yaml_path, path_index)
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001 - skip any invalid task config
                     log.debug("Skip %s (%s)", yaml_path, err)
                     continue
 
@@ -172,7 +172,7 @@ class TaskIndex:
             return None
         cfg = load_yaml(path, resolve_func=False)
         kind = TaskIndex._kind_of(cfg)
-        name: str | None = cfg.get("task") or cfg.get("group")
+        name: str | None = cfg.get("group") if kind is Kind.GROUP else cfg.get("task")
         return Entry(name=name, kind=kind, yaml_path=path) if name else None
 
     @staticmethod
