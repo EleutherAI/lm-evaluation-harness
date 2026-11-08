@@ -78,6 +78,7 @@ habana = ["optimum-habana"]
 sparsify = ["sparsify"]
 #sae_lens = ["sae_lens"] #  sae-lens requires datasets < 3.0
 # Task specific dependencies
+polar_bench = ["openai>=1"]
 acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 audiolm_qwen = ["librosa", "soundfile"]
 dev = ["pytest>=9.0", "pytest-cov", "pytest-xdist", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece", "pillow"]

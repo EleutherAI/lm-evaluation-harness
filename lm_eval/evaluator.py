@@ -13,6 +13,7 @@ import numpy as np
 
 import lm_eval.api.model
 import lm_eval.api.registry
+from lm_eval.api.multiturn import run_multi_turn_rollout
 from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
@@ -306,7 +307,10 @@ def simple_evaluate(
 
     # Apply config overrides to tasks
     for task_name, task_obj in loaded["tasks"].items():
-        if task_obj.get_config("output_type") == "generate_until":
+        if task_obj.get_config("output_type") in {
+            "generate_until",
+            "multi_turn_generate",
+        }:
             if gen_kwargs is not None:
                 task_obj.set_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
@@ -532,6 +536,13 @@ def evaluate(
         )
     # end validation check
 
+    if lm.world_size > 1 and any(
+        task.OUTPUT_TYPE == "multi_turn_generate" for task in eval_tasks.values()
+    ):
+        raise NotImplementedError(
+            "multi_turn_generate requires world_size=1; model tensor parallelism is supported"
+        )
+
     # Cache the limit arg.
     limit_arg = limit
     limits = []
@@ -586,6 +597,17 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
+        if reqtype == "multi_turn_generate":
+            run_multi_turn_rollout(
+                lm,
+                eval_tasks,
+                reqs,
+                bool(apply_chat_template),
+                getattr(lm, "apply_chat_template", None)
+                if apply_chat_template
+                else None,
+            )
+            continue
         eval_logger.info("Running %s requests", reqtype)
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []

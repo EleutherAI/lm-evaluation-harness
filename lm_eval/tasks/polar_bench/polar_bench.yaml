@@ -1,0 +1,27 @@
+task: polar_bench
+class: !function task.PolarBenchTask
+output_type: multi_turn_generate
+test_split: test
+doc_to_target: ""
+num_fewshot: 0
+repeats: 1
+generation_kwargs:
+  until: []
+  max_gen_toks: 8192
+  temperature: 0.0
+  top_p: 1.0
+  do_sample: false
+metric_list:
+  - {metric: privacy, aggregation: mean, higher_is_better: true}
+  - {metric: utility, aggregation: mean, higher_is_better: true}
+  - {metric: overall, aggregation: mean, higher_is_better: true}
+  - {metric: final_answer_rate, aggregation: mean, higher_is_better: true}
+  - {metric: zero_turn_rate, aggregation: mean, higher_is_better: false}
+metadata:
+  version: 2
+  dataset_revision: 2fe6a18ac50ab86c64b2e5935031901ca35a2d18
+  thinking_mode: final_only
+  requires_system_prompt_authority: true
+  max_rounds: 6
+  base_seed: 42
+  attacker_max_tokens: 32768
