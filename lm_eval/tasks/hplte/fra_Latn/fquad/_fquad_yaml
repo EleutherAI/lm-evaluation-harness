@@ -1,0 +1,28 @@
+dataset_path: manu/fquad2_test
+dataset_kwargs:
+  revision: 5384ce827bbc2156d46e6fcba83d75f8e6e1b4a6
+validation_split: valid
+test_split: test
+fewshot_split: valid
+fewshot_config:
+  sampler: first_n
+output_type: generate_until
+description: "D'après l'information dans le contexte donné, donne la réponse à la question en citant quelques mots du contexte. Si il est impossible de répondre avec les informations du contexte, répond 'Impossible'.\n"
+doc_to_target: "{% if answers.text| length > 0 %}{{answers.text[0]}}{% else %}{{['Impossible']}}{% endif %}"
+generation_kwargs:
+  until:
+    - "\n"
+    - "</s>"
+    - "<eos>"
+  do_sample: false
+  num_beams: 1
+  max_new_tokens: 64
+metric_list:
+  - metric: !function utils.exact
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

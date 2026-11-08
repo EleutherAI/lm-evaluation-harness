@@ -1,0 +1,17 @@
+dataset_path: proxectonos/parafrases_gl
+dataset_name: null
+dataset_kwargs:
+  revision: a5f0ba4488f08fdb8492891f6195b27436ed3a58
+training_split: train
+validation_split: validation
+test_split: test
+output_type: multiple_choice
+doc_to_target: '{{0 if Avaliación == 0 else 1}}'
+process_docs: !function utils.process_docs_paraphrases
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

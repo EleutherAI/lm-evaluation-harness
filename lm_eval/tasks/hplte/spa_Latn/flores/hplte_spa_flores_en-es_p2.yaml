@@ -1,0 +1,4 @@
+task: hplte_spa_flores_en-es_p2
+tag: hplte_spa_flores_en-es
+include: _flores_yaml
+doc_to_text: "The following sentence is written in English. Translate it into Spanish.\nEnglish: {{sentence_eng_Latn}}\nSpanish:"

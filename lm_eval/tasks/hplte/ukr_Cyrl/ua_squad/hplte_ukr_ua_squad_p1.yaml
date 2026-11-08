@@ -1,0 +1,4 @@
+task: hplte_ukr_ua_squad_p1
+tag: hplte_ukr_ua_squad
+include: _ua_squad_yaml
+doc_to_text: "Подивіться на наведений нижче текст та дайте відповідь на питання:\n\nТекст: {{context}}\n\nПитання: {{question}}\n\nВiдповiдь:"

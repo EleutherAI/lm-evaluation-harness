@@ -1,0 +1,4 @@
+task: hplte_cat_copa_p1
+tag: hplte_cat_copa
+include: _copa_yaml
+doc_to_text: '{{premise[:-1].strip() + " " + {"cause": "atès que", "effect": "així que"}[question]}}'

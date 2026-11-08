@@ -1,0 +1,19 @@
+dataset_path: manu/topic_based_nli_test
+dataset_kwargs:
+  revision: bedd5923d341a06bc48f65f3801ba2a76883f8fe
+output_type: multiple_choice
+validation_split: valid
+test_split: test
+fewshot_split: valid
+fewshot_config:
+  sampler: first_n
+doc_to_target: "{{['positif', 'negatif', 'neutre'].index(polarity)}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

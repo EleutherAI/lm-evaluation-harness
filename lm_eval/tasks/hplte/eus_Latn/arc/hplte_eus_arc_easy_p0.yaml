@@ -1,0 +1,6 @@
+task: hplte_eus_arc_easy_p0
+tag: hplte_eus_arc_easy
+include: _arc_yaml
+dataset_name: ARC-Easy
+doc_to_text: "Galdera: {{question}}\nErantzuna:"
+doc_to_choice: "{{choices.text}}"

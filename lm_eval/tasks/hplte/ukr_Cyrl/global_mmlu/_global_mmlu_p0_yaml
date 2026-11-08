@@ -1,0 +1,7 @@
+include: _global_mmlu_yaml
+doc_to_text: "Питання: {{question.strip()}}\nА. {{option_a}}\nБ. {{option_b}}\nВ. {{option_c}}\nГ. {{option_d}}\nВiдповiдь:"
+doc_to_choice:
+  - А
+  - Б
+  - В
+  - Г

@@ -1,0 +1,4 @@
+task: hplte_cat_coqcat_p2
+tag: hplte_cat_coqcat
+include: _coqcat_yaml
+doc_to_text: 'Llegeix el següent passatge i contesta la pregunta\n\nPassatge: {{story+"\n\n"}}{% for i in range(questions|length-1) %}{{"Pregunta: "+questions[i]+"\n\n"+"Resposta: "+answers["input_text"][i]+"\n\n"}}{% endfor %}{{"Pregunta: "+questions[-1]+"\n\n"+"Resposta:"}}'

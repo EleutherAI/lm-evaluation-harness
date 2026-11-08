@@ -1,0 +1,4 @@
+task: hplte_cat_catalanqa_p2
+tag: hplte_cat_catalanqa
+include: _catalanqa_yaml
+doc_to_text: "Llegeix el següent passatge i contesta la pregunta.\n\nPassatge: {{context}}\n\nPregunta: {{question}}\n\nResposta:"

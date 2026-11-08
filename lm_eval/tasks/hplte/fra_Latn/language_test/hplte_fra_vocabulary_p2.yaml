@@ -1,0 +1,8 @@
+task: hplte_fra_vocabulary_p2
+tag: hplte_fra_vocabulary
+include: _language_test_yaml
+validation_split: Vocabulary
+fewshot_split: Vocabulary
+test_split: Vocabulary
+doc_to_text: "Laquelle de ces options :\nA. {{answerA}}\nB. {{answerB}}\nC. {{answerC}}\nD. {{answerD}}\nremplie au mieux la phrase suivante : {{question.strip()}} ?"
+doc_to_choice: ["A", "B", "C", "D"]

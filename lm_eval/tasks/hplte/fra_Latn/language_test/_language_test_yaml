@@ -1,0 +1,16 @@
+dataset_path: manu/french-bench-grammar-vocab-reading
+dataset_kwargs:
+  revision: dcbe950e3266f4a64e5ea35586d948a80faf3f18
+output_type: multiple_choice
+fewshot_config:
+  sampler: first_n
+doc_to_target: '{{["answerA", "answerB", "answerC", "answerD"].index("answer" + answer)}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

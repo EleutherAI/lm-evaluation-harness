@@ -1,0 +1,6 @@
+task: hplte_fra_topic_based_nli_p0
+tag: hplte_fra_topic_based_nli
+include: _topic_based_nli_yaml
+description: "A propos du thème spécifié, l'avis client est il positif, négatif, ou neutre ?"
+doc_to_text: "\nAvis Client: {{text}}\n\nA propos du thème \"{{topic}}\", l'avis client est"
+doc_to_choice: ['positif', 'négatif', 'neutre']

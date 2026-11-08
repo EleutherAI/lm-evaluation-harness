@@ -1,0 +1,4 @@
+task: hplte_cat_catcola_p1
+tag: hplte_cat_catcola
+include: _catcola_yaml
+doc_to_text: "Frase: {{Sentence}}\nPregunta: Té sentit aquesta frase?\nResposta:"

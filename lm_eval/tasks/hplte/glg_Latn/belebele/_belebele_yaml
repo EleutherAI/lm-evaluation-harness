@@ -1,0 +1,18 @@
+dataset_path: proxectonos/belebele_gl
+dataset_kwargs:
+  revision: c36782bed30548e6e16924a417b6778aeb476753
+fewshot_split: train
+test_split: train
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_target: "{{['1', '2', '3', '4'].index(correct_answer_num)}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

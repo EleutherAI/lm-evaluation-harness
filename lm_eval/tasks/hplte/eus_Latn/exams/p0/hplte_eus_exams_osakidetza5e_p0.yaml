@@ -1,0 +1,3 @@
+include: ../_exams_p0_yaml
+task: hplte_eus_exams_osakidetza5e_p0
+dataset_name: eu_osakidetza5e

@@ -1,0 +1,5 @@
+task: hplte_eus_belebele_p1
+tag: hplte_eus_belebele
+include: _belebele_yaml
+doc_to_text: "Irakurri pasartea eta erantzun galderari: {{flores_passage}}\n{{question.strip()}}\nA aukera: {{mc_answer1}}\nB aukera: {{mc_answer2}}\nC aukera: {{mc_answer3}}\nD aukera: {{mc_answer4}}\n\nZein da erantzun zuzena, A, B, C ala D?"
+doc_to_choice: ["A aukera", "B aukera", "C aukera", "D aukera"]

@@ -1,0 +1,4 @@
+task: hplte_spa_flores_en-es_p0
+tag: hplte_spa_flores_en-es
+include: _flores_yaml
+doc_to_text: "Translate the following sentence into Spanish: {{sentence_eng_Latn}}\nSpanish:"

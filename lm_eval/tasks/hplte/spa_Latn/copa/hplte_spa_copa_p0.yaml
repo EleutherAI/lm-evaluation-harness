@@ -1,0 +1,4 @@
+task: hplte_spa_copa_p0
+tag: hplte_spa_copa
+include: _copa_yaml
+doc_to_text: '{{premise[:-1].strip() + " " + {"cause": "porque", "effect": "y por lo tanto"}[question]}}'

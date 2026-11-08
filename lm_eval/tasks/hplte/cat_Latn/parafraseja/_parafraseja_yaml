@@ -1,0 +1,16 @@
+dataset_path: projecte-aina/Parafraseja
+dataset_kwargs:
+  revision: 0f56ee42feeede263e251006d80d7de43b9527cd
+output_type: multiple_choice
+dataset_name: null
+test_split: test
+training_split: train
+validation_split: validation
+process_docs: !function utils.process_docs_paraphrases
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

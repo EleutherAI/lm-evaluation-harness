@@ -1,0 +1,6 @@
+task: hplte_cat_arc_challenge_p1
+tag: hplte_cat_arc_challenge
+include: _arc_yaml
+dataset_name: ARC-Challenge
+doc_to_text: !function utils.p1
+doc_to_choice: "{{choices.label}}"

@@ -1,0 +1,17 @@
+dataset_path: proxectonos/PAWS-gl
+dataset_name: null
+dataset_kwargs:
+  revision: 9e9e8cc223458f88c2d65da6af39414779ebd8a7
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: test
+process_docs: !function utils.process_docs_paws
+doc_to_target: label
+target_delimiter: ''
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

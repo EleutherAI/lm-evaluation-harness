@@ -1,0 +1,4 @@
+task: hplte_cat_cocoteros_va_p1
+tag: hplte_cat_cocoteros_va
+include: _cocoteros_va_yaml
+doc_to_text: "Escriu una frase curta amb aquestes paraules clau: {{keywords}}.\nTingues en compte el següent context: {{context}}.\n\nResposta:"

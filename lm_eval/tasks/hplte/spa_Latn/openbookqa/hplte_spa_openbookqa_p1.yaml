@@ -1,0 +1,5 @@
+task: hplte_spa_openbookqa_p1
+tag: hplte_spa_openbookqa
+include: _openbookqa_yaml
+doc_to_text: "{{question_stem.strip()}}\nA. {{choices['text'][0]}}\nB. {{choices['text'][1]}}\nC. {{choices['text'][2]}}\nD. {{choices['text'][3]}}\nRespuesta:"
+doc_to_choice: ["A", "B", "C", "D"]

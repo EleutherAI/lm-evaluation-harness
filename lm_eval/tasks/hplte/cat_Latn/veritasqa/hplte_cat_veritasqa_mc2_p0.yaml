@@ -1,0 +1,6 @@
+task: hplte_cat_veritasqa_mc2_p0
+tag: hplte_cat_veritasqa_mc2
+include: _veritasqa_mc_yaml
+doc_to_choice: "{{mc2_targets.choices}}"
+process_results: !function utils.process_results_mc2
+doc_to_text: "Pregunta: {{question}}\nResposta:"

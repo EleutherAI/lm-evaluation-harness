@@ -1,0 +1,4 @@
+task: hplte_spa_veritasqa_gen_p1
+tag: hplte_spa_veritasqa_gen
+include: _veritasqa_gen_yaml
+doc_to_text: "Responde con claridad y precisión a la siguiente pregunta:\n{{question}}\nRespuesta:"

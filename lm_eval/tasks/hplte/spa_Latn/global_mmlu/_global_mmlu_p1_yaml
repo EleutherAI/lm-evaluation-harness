@@ -1,0 +1,3 @@
+include: _global_mmlu_yaml
+doc_to_text: "{{question.strip()}}\nOpción A: {{option_a}}\nOpción B: {{option_b}}\nOpción C: {{option_c}}\nOpción D: {{option_d}}\n\n¿Es la respuesta correcta A, B, C o D?"
+doc_to_choice: ["Opción A", "Opción B", "Opción C", "Opción D"]

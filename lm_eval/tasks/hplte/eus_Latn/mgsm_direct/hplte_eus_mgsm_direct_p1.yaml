@@ -1,0 +1,4 @@
+task: hplte_eus_mgsm_direct_p1
+tag: hplte_eus_mgsm_direct
+include: _mgsm_direct_yaml
+doc_to_text: "Erantzun argi eta garbi hurrengo galderari:\n{{question}}\nErantzuna:"

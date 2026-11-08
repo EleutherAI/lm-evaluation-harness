@@ -1,0 +1,5 @@
+task: hplte_eus_proficiency_p1
+tag: hplte_eus_proficiency
+include: _proficiency_yaml
+doc_to_text: "{{question}}\nA. {{candidates[0]}}\nB. {{candidates[1]}}\nC. {{candidates[2]}}\nD. {{candidates[3]}}\nErantzuna:"
+doc_to_choice: ["A", "B", "C", "D"]

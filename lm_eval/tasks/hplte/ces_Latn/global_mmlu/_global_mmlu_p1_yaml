@@ -1,0 +1,2 @@
+include: _global_mmlu_yaml
+doc_to_text: "Otázka: {{question.strip()}}\nVyber správnou odpověď z následujících možností (vždy je správně právě jedna):\nMožnost A: {{option_a}}\nMožnost B: {{option_b}}\nMožnost C: {{option_c}}\nMožnost D: {{option_d}}\n\nSprávná odpověď:"

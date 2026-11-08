@@ -1,0 +1,4 @@
+task: hplte_eus_mgsm_direct_p0
+tag: hplte_eus_mgsm_direct
+include: _mgsm_direct_yaml
+doc_to_text: "Galdera: {{question}}\nErantzuna:"

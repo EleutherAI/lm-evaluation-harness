@@ -1,0 +1,5 @@
+task: hplte_eus_paws_p1
+tag: hplte_eus_paws
+include: _paws_yaml
+doc_to_text: "Zehaztu ea hurrengo bi esaldiek ideia bera adierazten duten ala ez.\n1. esaldia: {{sentence1}}\n2. esaldia: {{sentence2}}\nErantzuna:"
+doc_to_choice: ["ez", "bai"]

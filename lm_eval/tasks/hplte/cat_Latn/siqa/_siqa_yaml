@@ -1,0 +1,14 @@
+dataset_path: projecte-aina/siqa_ca
+dataset_kwargs:
+  revision: 1befa9b58c89ed9f1ff3974a3651a8901be0f6ac
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: null
+doc_to_target: "{{ (label|int) - 1 }}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

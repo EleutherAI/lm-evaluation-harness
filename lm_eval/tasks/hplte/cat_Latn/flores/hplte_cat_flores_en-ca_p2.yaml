@@ -1,0 +1,4 @@
+task: hplte_cat_flores_en-ca_p2
+tag: hplte_cat_flores_en-ca
+include: _flores_yaml
+doc_to_text: "The following sentence is written in English. Translate it into Catalan.\nEnglish: {{sentence_eng_Latn}}\nCatalan:"

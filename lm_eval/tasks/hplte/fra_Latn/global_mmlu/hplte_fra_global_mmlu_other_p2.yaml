@@ -1,0 +1,3 @@
+include: _global_mmlu_p2_yaml
+task: hplte_fra_global_mmlu_other_p2
+process_docs: !function utils.process_other

@@ -1,0 +1,5 @@
+task: hplte_cat_belebele_p2
+tag: hplte_cat_belebele
+include: _belebele_yaml
+doc_to_text: "{{flores_passage}}\nEn base al passatge anterior, respon a la pregunta: {{question}}\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\n\nQuina és la resposta correcta?"
+doc_to_choice: ["A", "B", "C", "D"]

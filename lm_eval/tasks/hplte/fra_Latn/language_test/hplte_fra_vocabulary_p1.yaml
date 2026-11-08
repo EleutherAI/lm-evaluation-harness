@@ -1,0 +1,8 @@
+task: hplte_fra_vocabulary_p1
+tag: hplte_fra_vocabulary
+include: _language_test_yaml
+validation_split: Vocabulary
+fewshot_split: Vocabulary
+test_split: Vocabulary
+doc_to_text: "Remplissez les trous dans la phrase : « {{question.strip()}} » avec une des options suivantes :\n- {{answerA}}\n- {{answerB}}\n- {{answerC}}\n- {{answerD}}\n"
+doc_to_choice: "{{[question.replace('<...>', answerA), question.replace('<...>', answerB), question.replace('<...>', answerC), question.replace('<...>', answerD)]}}"

@@ -1,0 +1,5 @@
+task: hplte_spa_include_p2
+tag: hplte_spa_include
+include: _include_yaml
+doc_to_text: "Pregunta: {question.strip()}}\nElige la respuesta correcta de la lista:\nA: {{option_a}}\nB: {{option_b}}\nC: {{option_c}}\nD: {{option_d}}\n\n¿Cuál es la respuesta correcta?"
+doc_to_choice: ["A", "B", "C", "D"]

@@ -1,0 +1,3 @@
+include: _global_mmlu_p1_yaml
+task: hplte_fra_global_mmlu_medical_p1
+process_docs: !function utils.process_medical

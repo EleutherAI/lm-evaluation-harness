@@ -1,0 +1,28 @@
+dataset_path: facebook/flores
+dataset_name: all
+dataset_kwargs:
+  revision: 71abf77d8b7beb5cfef59898d6b24d92ab7654fc
+output_type: generate_until
+#! The test split of flores is not publicly available! (See paper section 6.1)
+training_split: dev
+validation_split: dev
+test_split: devtest
+fewshot_split: dev
+doc_to_target: '{{sentence_glg_Latn}}'
+generation_kwargs:
+  until:
+    - "\n"
+    - "<eos>"
+    - "</s>"
+  do_sample: false
+  num_beams: 1
+  max_new_tokens: 64
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: chrf
+    aggregation: chrf
+    higher_is_better: true
+metadata:
+  version: 1.0

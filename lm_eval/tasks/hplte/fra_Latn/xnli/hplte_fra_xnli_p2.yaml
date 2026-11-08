@@ -1,0 +1,5 @@
+task: hplte_fra_xnli_p2
+tag: hplte_fra_xnli
+include: _xnli_yaml
+doc_to_text: "Quelle est la relation entre l'hypothèse suivante : {{hypothesis}} et la prémisse : {{premise}} ?\nRéponse :"
+doc_to_choice: "{{['en accord', 'neutres entre elles', 'en contradiction']}}"

@@ -1,0 +1,18 @@
+dataset_path: projecte-aina/piqa_ca
+dataset_name: null
+dataset_kwargs:
+  revision: d17831b3d2ab7195234dfd63b676e52b7b9d7abc
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: null
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

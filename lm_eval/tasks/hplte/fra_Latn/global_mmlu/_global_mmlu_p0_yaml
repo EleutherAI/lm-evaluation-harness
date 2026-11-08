@@ -1,0 +1,2 @@
+include: _global_mmlu_yaml
+doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRéponse :"

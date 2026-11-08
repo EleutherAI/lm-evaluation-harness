@@ -1,0 +1,5 @@
+task: hplte_spa_veritasqa_mc1_p2
+tag: hplte_spa_veritasqa_mc1
+include: _veritasqa_mc_yaml
+doc_to_choice: "{{mc1_targets.choices}}"
+doc_to_text: !function utils.mc1_p2

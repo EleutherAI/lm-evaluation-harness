@@ -1,0 +1,4 @@
+task: hplte_spa_belebele_p2
+tag: hplte_spa_belebele
+include: _belebele_yaml
+doc_to_text: "{{flores_passage}}\nEn base al pasaje anterior, responde a la pregunta: {{question.strip()}}\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\n\n¿Cuál es la respuesta correcta?"

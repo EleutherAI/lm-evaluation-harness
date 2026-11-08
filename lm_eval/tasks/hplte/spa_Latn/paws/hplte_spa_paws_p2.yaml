@@ -1,0 +1,5 @@
+task: hplte_spa_paws_p2
+tag: hplte_spa_paws
+include: _paws_yaml
+doc_to_text: "Oración 1: {{sentence1}}\nOración 2: {{sentence2}}\nPregunta: ¿Las oraciones 1 y 2 expresan el mismo significado? ¿Sí o no?\nRespuesta:"
+doc_to_choice: ["no", "sí"]

@@ -1,0 +1,5 @@
+task: hplte_cat_siqa_p1
+tag: hplte_cat_siqa
+include: _siqa_yaml
+doc_to_text: "Passatge: {{context}}\nPregunta: {{question}}\nA. {{answerA}}\nB. {{answerB}}\nC. {{answerC}}\nResposta:"
+doc_to_choice: ["A", "B", "C"]

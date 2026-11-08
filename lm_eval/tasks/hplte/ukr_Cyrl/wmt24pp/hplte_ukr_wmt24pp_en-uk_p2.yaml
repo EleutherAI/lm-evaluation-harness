@@ -1,0 +1,4 @@
+task: hplte_ukr_wmt24pp_en-uk_p2
+tag: hplte_ukr_wmt24pp_en-uk
+include: _wmt24pp_yaml
+doc_to_text: "Як перекласти це речення '{{source}}' українською\n\nУкраїнською:"

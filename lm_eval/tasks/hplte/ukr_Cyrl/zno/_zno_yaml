@@ -1,0 +1,18 @@
+dataset_path: osyvokon/zno
+dataset_kwargs:
+  revision: 473616f29e9f6504593235deb7aa27e85b400c58
+output_type: multiple_choice
+training_split: train
+validation_split: null
+test_split: test
+doc_to_target: "{{choices.label.index(correct_answers[0])}}"
+process_docs: !function utils.process_docs
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

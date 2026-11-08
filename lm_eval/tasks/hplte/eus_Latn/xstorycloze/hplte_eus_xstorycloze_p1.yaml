@@ -1,0 +1,6 @@
+task: hplte_eus_xstorycloze_p1
+tag: hplte_eus_xstorycloze
+include: _xstorycloze_yaml
+doc_to_text: "Irakurri hurrengo istorioa: {{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}\nJarraipen zuzena aukeratu:\n- {{sentence_quiz1}}\n- {{sentence_quiz2}}"
+target_delimiter: "\n\n"
+doc_to_choice: "{{[sentence_quiz1, sentence_quiz2]}}"

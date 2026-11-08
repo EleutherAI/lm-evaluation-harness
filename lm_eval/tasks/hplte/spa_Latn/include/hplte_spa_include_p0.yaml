@@ -1,0 +1,5 @@
+task: hplte_spa_include_p0
+tag: hplte_spa_include
+include: _include_yaml
+doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nRespuesta:"
+doc_to_choice: ["A", "B", "C", "D"]

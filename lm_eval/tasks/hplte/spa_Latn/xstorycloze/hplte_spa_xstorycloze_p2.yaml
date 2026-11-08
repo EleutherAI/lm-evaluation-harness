@@ -1,0 +1,5 @@
+task: hplte_spa_xstorycloze_p2
+tag: hplte_spa_xstorycloze
+include: _xstorycloze_yaml
+doc_to_text: "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4] | join(' ') }}\n¿Qué ocurre después?\nA. {{ sentence_quiz1}} \nB. {{sentence_quiz2}}\nRespuesta:"
+doc_to_choice: ["A", "B"]

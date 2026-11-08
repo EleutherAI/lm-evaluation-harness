@@ -1,0 +1,5 @@
+task: hplte_spa_xnli_p1
+tag: hplte_spa_xnli
+include: _xnli_yaml
+doc_to_text: "Premisa: {{premise}}\nHipótesis: {{hypothesis}}\n\nIndica la relación entre la premisa y la hipótesis:"
+doc_to_choice: ["en acuerdo", "neutras entre sí", "en contradicción"]

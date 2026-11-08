@@ -1,0 +1,4 @@
+task: hplte_spa_cocoteros_p1
+tag: hplte_spa_cocoteros
+include: _cocoteros_yaml
+doc_to_text: "Contexto: {{context}}\nCon ese contexto, forma una frase corta usando las palabras: {{keywords}}\n\nRespuesta:"

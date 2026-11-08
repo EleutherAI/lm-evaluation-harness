@@ -1,0 +1,16 @@
+dataset_path: BSC-LT/COPA-es
+dataset_name: null
+dataset_kwargs:
+  revision: cf6adfa4a05cec75587263246f79ebfba50927d9
+output_type: multiple_choice
+doc_to_choice: '{{[choice1, choice2]}}'
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs_copa_es
+doc_to_target: '{{choice1 if label == 0 else choice2}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

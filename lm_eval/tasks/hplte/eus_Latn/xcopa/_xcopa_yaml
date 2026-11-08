@@ -1,0 +1,14 @@
+dataset_path: HiTZ/XCOPA-eu
+dataset_name: null
+dataset_kwargs:
+  revision: 053b5d4a71b99d29530fe3b32b35e48f60d418de
+output_type: multiple_choice
+doc_to_choice: !function utils.xcopa_doc_to_choice
+training_split: null
+validation_split: validation
+test_split: test
+doc_to_target: label
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

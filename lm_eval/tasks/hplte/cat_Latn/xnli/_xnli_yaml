@@ -1,0 +1,15 @@
+dataset_path: projecte-aina/xnli-ca
+dataset_name: null
+dataset_kwargs:
+  revision: f6f786fe3266860ee7a9c9abac86067b3f4a27a4
+output_type: multiple_choice
+process_docs: !function utils.process_doc_nli
+training_split: null
+validation_split: validation
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

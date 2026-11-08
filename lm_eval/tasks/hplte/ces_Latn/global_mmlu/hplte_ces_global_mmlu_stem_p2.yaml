@@ -1,0 +1,3 @@
+include: _global_mmlu_p2_yaml
+task: hplte_ces_global_mmlu_stem_p2
+process_docs: !function utils.process_stem

@@ -1,0 +1,16 @@
+dataset_path: projecte-aina/teca
+dataset_name: null
+dataset_kwargs:
+  revision: 9b8582d26a007c4670993130c73eef89f61fc017
+training_split: train
+validation_split: validation
+test_split: test
+output_type: multiple_choice
+process_docs: !function utils.process_doc_nli
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

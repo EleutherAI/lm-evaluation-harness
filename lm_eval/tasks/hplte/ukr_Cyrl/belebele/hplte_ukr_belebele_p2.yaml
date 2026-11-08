@@ -1,0 +1,5 @@
+task: hplte_ukr_belebele_p2
+tag: hplte_ukr_belebele
+include: _belebele_yaml
+doc_to_text: "Текст: {{flores_passage}}\n\nПитання: {{question}}\n\nВиберіть відповідь зі списку варіантів: \n– {{mc_answer1}}\n– {{mc_answer2}}\n– {{mc_answer3}}\n– {{mc_answer4}}\nВiдповiдь:"
+doc_to_choice: "{{[mc_answer1, mc_answer2, mc_answer3, mc_answer4]}}"

@@ -1,0 +1,4 @@
+task: hplte_spa_mgsm_direct_p2
+tag: hplte_spa_mgsm_direct
+include: _mgsm_direct_yaml
+doc_to_text: "Proporciona una respuesta detallada para la siguiente pregunta:\n{{question}}\nRespuesta:"

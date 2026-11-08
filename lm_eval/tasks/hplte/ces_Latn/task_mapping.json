@@ -1,0 +1,290 @@
+{
+  "hplte_ces_global_mmlu_business_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_business_p0",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_business_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_business_p1",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Otázka: {{question.strip()}}\nVyber správnou odpověď z následujících možností (vždy je správně právě jedna):\nMožnost A: {{option_a}}\nMožnost B: {{option_b}}\nMožnost C: {{option_c}}\nMožnost D: {{option_d}}\n\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_business_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_business_p2",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Pro následující otázku vybere jednu správnou odpověď:\n{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_humanities_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_humanities_p0",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_humanities_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_humanities_p1",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Otázka: {{question.strip()}}\nVyber správnou odpověď z následujících možností (vždy je správně právě jedna):\nMožnost A: {{option_a}}\nMožnost B: {{option_b}}\nMožnost C: {{option_c}}\nMožnost D: {{option_d}}\n\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_humanities_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_humanities_p2",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Pro následující otázku vybere jednu správnou odpověď:\n{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_medical_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_medical_p0",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_medical_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_medical_p1",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Otázka: {{question.strip()}}\nVyber správnou odpověď z následujících možností (vždy je správně právě jedna):\nMožnost A: {{option_a}}\nMožnost B: {{option_b}}\nMožnost C: {{option_c}}\nMožnost D: {{option_d}}\n\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_medical_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_medical_p2",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Pro následující otázku vybere jednu správnou odpověď:\n{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_other_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_other_p0",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_other_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_other_p1",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Otázka: {{question.strip()}}\nVyber správnou odpověď z následujících možností (vždy je správně právě jedna):\nMožnost A: {{option_a}}\nMožnost B: {{option_b}}\nMožnost C: {{option_c}}\nMožnost D: {{option_d}}\n\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_other_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_other_p2",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Pro následující otázku vybere jednu správnou odpověď:\n{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_p0": {
+    "type": "group",
+    "hplt_e_name": "global_mmlu_czech_p0",
+    "tasks": [
+      "hplte_ces_global_mmlu_business_p0",
+      "hplte_ces_global_mmlu_humanities_p0",
+      "hplte_ces_global_mmlu_medical_p0",
+      "hplte_ces_global_mmlu_other_p0",
+      "hplte_ces_global_mmlu_stem_p0",
+      "hplte_ces_global_mmlu_social_sciences_p0"
+    ]
+  },
+  "hplte_ces_global_mmlu_p1": {
+    "type": "group",
+    "hplt_e_name": "global_mmlu_czech_p1",
+    "tasks": [
+      "hplte_ces_global_mmlu_business_p1",
+      "hplte_ces_global_mmlu_humanities_p1",
+      "hplte_ces_global_mmlu_medical_p1",
+      "hplte_ces_global_mmlu_other_p1",
+      "hplte_ces_global_mmlu_stem_p1",
+      "hplte_ces_global_mmlu_social_sciences_p1"
+    ]
+  },
+  "hplte_ces_global_mmlu_p2": {
+    "type": "group",
+    "hplt_e_name": "global_mmlu_czech_p2",
+    "tasks": [
+      "hplte_ces_global_mmlu_business_p2",
+      "hplte_ces_global_mmlu_humanities_p2",
+      "hplte_ces_global_mmlu_medical_p2",
+      "hplte_ces_global_mmlu_other_p2",
+      "hplte_ces_global_mmlu_stem_p2",
+      "hplte_ces_global_mmlu_social_sciences_p2"
+    ]
+  },
+  "hplte_ces_global_mmlu_social_sciences_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_social_sciences_p0",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_social_sciences_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_social_sciences_p1",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Otázka: {{question.strip()}}\nVyber správnou odpověď z následujících možností (vždy je správně právě jedna):\nMožnost A: {{option_a}}\nMožnost B: {{option_b}}\nMožnost C: {{option_c}}\nMožnost D: {{option_d}}\n\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_social_sciences_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_social_sciences_p2",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Pro následující otázku vybere jednu správnou odpověď:\n{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_stem_p0": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_stem_p0",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_stem_p1": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_stem_p1",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Otázka: {{question.strip()}}\nVyber správnou odpověď z následujících možností (vždy je správně právě jedna):\nMožnost A: {{option_a}}\nMožnost B: {{option_b}}\nMožnost C: {{option_c}}\nMožnost D: {{option_d}}\n\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  },
+  "hplte_ces_global_mmlu_stem_p2": {
+    "type": "task",
+    "hplt_e_name": "global_mmlu_czech_stem_p2",
+    "tag": null,
+    "dataset": "CohereLabs/Global-MMLU",
+    "dataset_name": "cs",
+    "doc_to_text": "Pro následující otázku vybere jednu správnou odpověď:\n{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nSprávná odpověď:",
+    "doc_to_choice": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  }
+}

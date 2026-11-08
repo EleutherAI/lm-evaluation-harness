@@ -1,0 +1,4 @@
+task: hplte_spa_escola_p1
+tag: hplte_spa_escola
+include: _escola_yaml
+doc_to_text: "{{Sentence}}\n¿Esta frase tiene sentido, sí o no?"

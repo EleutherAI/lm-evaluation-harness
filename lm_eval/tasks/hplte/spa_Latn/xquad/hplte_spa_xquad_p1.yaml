@@ -1,0 +1,4 @@
+task: hplte_spa_xquad_p1
+tag: hplte_spa_xquad
+include: _xquad_yaml
+doc_to_text: "{{context}}\n\nPregunta: {{question}}\nCon respecto al pasaje anterior, la respuesta correcta a la pregunta es"
