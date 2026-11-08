@@ -102,30 +102,3 @@ Overall is the mean of privacy and utility. `final_answer_rate` reports the shar
 of A turns containing visible answers; `zero_turn_rate` reports empty episodes.
 An empty episode may score privacy 1, utility 0, overall 0.5, so report both
 completion diagnostics alongside the three primary metrics.
-
-## Validation
-
-Offline tests use the real evaluator and deterministic local A/B fixtures:
-
-```bash
-pip install -e '.[dev,polar_bench]'
-HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 python -m pytest \
-  tests/test_multiturn.py tests/test_polar_bench.py -q
-```
-
-The SDK-specific test skips explicitly when optional client dependencies are not
-installed. The other protocol/scoring tests require no credentials or model calls.
-
-A separate offline CLI check exercised 250 coverage samples with 771 A turns
-and 238 B requests. Cold/warm request-cache runs agreed exactly. Against the
-Swiss-AI implementation, all A prompts/generation kwargs, B requests, transcripts,
-and scores matched for the same deterministic fixtures. These are offline
-transport fixtures, not real model scores.
-
-The preceding Swiss-AI implementation completed a Clariden run on 250 coverage
-samples, with Qwen2.5-7B-Instruct as A and locally served Llama-3.3-70B-Instruct as
-B: 771 A turns, privacy 0.3315714286, utility 0.8632349206,
-overall 0.5974031746, final_answer_rate 1, zero_turn_rate 0.
-This is context for the port; a real GPU run of this upstream implementation has
-not yet been performed. The coverage subset and deployment wrapper are separate
-from this task contribution.
