@@ -13,6 +13,8 @@ from lm_eval.tasks.polar_bench import utils
 
 
 class ListDocs(list):
+    """JSON rows exposing the small dataset interface used by ConfigurableTask."""
+
     @property
     def features(self):
         return dict.fromkeys(self[0]) if self else {}
@@ -33,6 +35,7 @@ def final_answer(response):
 
 
 def process_results(doc, results, model_a_seed_name="evaluated-model", base_seed=42):
+    """Score all visible A turns; B text never contributes to disclosure scores."""
     result = results[0]
     score = utils.score_example(
         doc,
@@ -55,6 +58,13 @@ def process_results(doc, results, model_a_seed_name="evaluated-model", base_seed
 
 
 class PolarBenchTask(ConfigurableTask):
+    """Adapt the reference protocol to the harness's episode hooks.
+
+    Each state owns its transcript and generation options. ``turn`` counts
+    completed A answers; a pending B attack can precede the next A generation.
+    The input document is read-only and renderers never enter cached requests.
+    """
+
     VERSION = 2
     MAX_MULTITURN_STEPS = 64
 
@@ -103,6 +113,7 @@ class PolarBenchTask(ConfigurableTask):
         super().__init__(config=config, **kwargs)
 
     def download(self, dataset_kwargs=None, **kwargs):
+        """Load pinned/local JSON and record its digest for provenance and caching."""
         path = os.getenv("POLAR_DATASET_PATH")
         metadata = self.config.metadata
         if path:
@@ -148,6 +159,7 @@ class PolarBenchTask(ConfigurableTask):
         return self.dataset["test"]
 
     def fewshot_context(self, doc, num_fewshot, **kwargs):
+        """Defer prompt construction to each turn's policy-aware chat rendering."""
         if num_fewshot:
             raise ValueError("POLAR requires num_fewshot=0")
         if kwargs.get("system_instruction"):
@@ -163,11 +175,30 @@ class PolarBenchTask(ConfigurableTask):
     def init_multiturn_state(
         self, doc, ctx, gen_kwargs, apply_chat_template=False, chat_template=None
     ):
+        """Validate rendering and initialize one isolated dialogue, without inference."""
         if not apply_chat_template or chat_template is None:
             raise ValueError(
                 "POLAR requires --apply_chat_template to preserve the system role"
             )
+        # Probe with a controlled user message before calling B. If only the
+        # actual prompt were checked, an attack echoing the policy could hide a
+        # backend fallback that discarded the system role. This probe is never
+        # generated on by A or included in either peer's conversation history.
+        policy = utils.build_a_system(doc)
+        marker = (
+            "POLAR_SYSTEM_ROLE_PROBE_" + hashlib.sha256(policy.encode()).hexdigest()
+        )
+        probe = chat_template(
+            [
+                {"role": "system", "content": policy + "\n" + marker},
+                {"role": "user", "content": "Check the system message."},
+            ],
+            add_generation_prompt=True,
+        )
+        if not isinstance(probe, str) or marker not in probe:
+            raise ValueError("Chat template did not preserve the POLAR system policy")
         turns = utils.parse_attacker_turns(doc)
+        # The configured limit is a fallback: explicit sample budgets take precedence.
         budget = utils.extract_attack_turn_budget(doc, self.settings["max_rounds"])
         budget = min(len(turns), budget) if turns else budget
         if not 1 <= budget <= self.MAX_MULTITURN_STEPS:
@@ -199,6 +230,7 @@ class PolarBenchTask(ConfigurableTask):
         return self.attacker
 
     def multiturn_next_request(self, state):
+        """Choose a fixed/adaptive B turn, then render A's complete visible history."""
         if state["done"]:
             return None
         doc, turn = state["doc"], state["turn"]
@@ -235,10 +267,9 @@ class PolarBenchTask(ConfigurableTask):
         messages = utils.build_a_messages_from_transcript(
             utils.build_a_system(doc), state["transcript"]
         )
-        try:
-            prompt = state["chat_template"](messages, add_generation_prompt=True)
-        except TypeError:
-            prompt = state["chat_template"](messages)
+        # Renderer failures propagate; retrying TypeError could hide a real
+        # template bug. Supported model renderers accept add_generation_prompt.
+        prompt = state["chat_template"](messages, add_generation_prompt=True)
         # Some backend renderers retry unsupported templates without the system
         # message. Never score a conversation after dropping the privacy policy.
         policy = messages[0]["content"]
@@ -247,6 +278,8 @@ class PolarBenchTask(ConfigurableTask):
         ):
             raise ValueError("Chat template did not preserve the POLAR system policy")
         generation = deepcopy(state["gen_kwargs"])
+        # Preserve the reference's seed indices: fixed attacks count transcript
+        # entries (1, 3, ...), while adaptive episodes count A rounds (1, 2, ...).
         generation["seed"] = utils.stable_seed(
             sample_id,
             self.settings["model_a_seed_name"],
@@ -258,6 +291,7 @@ class PolarBenchTask(ConfigurableTask):
         return prompt, generation
 
     def multiturn_consume_response(self, state, response):
+        """Store only visible A text; neither refusal nor leakage alone ends a run."""
         answer, status = final_answer(response)
         state["transcript"].append({"role": "A", "content": answer})
         state["turn_info"].append({"status": status})
@@ -266,6 +300,7 @@ class PolarBenchTask(ConfigurableTask):
             state.update(done=True, stop_reason="turn_budget")
 
     def multiturn_result(self, state):
+        """Export a serializable, completed episode; reject interrupted rollouts."""
         if not state["done"]:
             raise RuntimeError("POLAR rollout was interrupted by the harness step cap")
         return {

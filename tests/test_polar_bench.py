@@ -392,8 +392,8 @@ def test_real_attacker_client_does_not_break_config_export(monkeypatch):
 )
 def test_system_policy_cannot_be_silently_dropped(renderer):
     task = make_task([sample()])
-    state = task.init_multiturn_state(sample(), "", {}, True, renderer)
     with pytest.raises(ValueError, match="system policy"):
+        state = task.init_multiturn_state(sample(), "", {}, True, renderer)
         task.multiturn_next_request(state)
 
 
@@ -403,3 +403,95 @@ def test_nonzero_fewshot_and_external_system_instruction_are_rejected():
         task.fewshot_context(sample(), 1)
     with pytest.raises(ValueError, match="own per-sample"):
         task.fewshot_context(sample(), 0, system_instruction="Replacement policy")
+
+
+@pytest.mark.parametrize("change", ["data", "generation", "samples"])
+def test_request_cache_changes_with_dataset_and_generation_kwargs(
+    tmp_path, monkeypatch, change
+):
+    from lm_eval.caching import cache
+
+    monkeypatch.setattr(cache, "PATH", str(tmp_path / "cache"))
+    source = tmp_path / "input.json"
+    monkeypatch.setenv("POLAR_DATASET_PATH", str(source))
+    rows = [sample(), {**sample(), "sample_id": "second-document"}]
+    source.write_text(json.dumps(rows))
+
+    def build(max_tokens, selected):
+        task = PolarBenchTask(config=load_yaml(CONFIG))
+        task.set_config("generation_kwargs", {"max_gen_toks": max_tokens}, update=True)
+        task.build_all_requests(
+            cache_requests=True,
+            samples=selected,
+            apply_chat_template=True,
+            chat_template=FakeLM().apply_chat_template,
+        )
+        return task
+
+    first = build(8192, [0])
+    if change == "data":
+        rows[0]["sample_id"] = "different-document"
+        source.write_text(json.dumps(rows))
+    selected = [1] if change == "samples" else [0]
+    max_tokens = 16384 if change == "generation" else 8192
+    second = build(max_tokens, selected)
+    expected = (
+        "different-document" if change == "data" else rows[selected[0]]["sample_id"]
+    )
+    assert second.instances[0].doc["sample_id"] == expected
+    assert second.instances[0].args[1]["max_gen_toks"] == max_tokens
+    if change != "generation":
+        assert (
+            first.instances[0].doc["sample_id"] != second.instances[0].doc["sample_id"]
+        )
+
+
+def test_policy_echo_in_user_message_cannot_hide_dropped_system_role():
+    doc = sample()
+    doc["generated_texts"]["attacker_prompt_text"] = json.dumps(
+        [utils.build_a_system(doc)]
+    )
+    task = make_task([doc])
+
+    def drop_system(messages, **kwargs):
+        return "\n".join(m["content"] for m in messages if m["role"] != "system")
+
+    with pytest.raises(ValueError, match="system policy"):
+        state = task.init_multiturn_state(doc, "", {}, True, drop_system)
+        task.multiturn_next_request(state)
+
+
+def test_renderer_probe_never_enters_history_and_precedes_b():
+    doc = sample(5)
+    attacker = FakeAttacker()
+    task = make_task([doc], attacker)
+    lm = FakeLM()
+    run(task, lm)
+    assert len(attacker.calls) == 2
+    assert all(
+        "POLAR_SYSTEM_ROLE_PROBE_" not in json.dumps(call) for call in attacker.calls
+    )
+    assert all(
+        "POLAR_SYSTEM_ROLE_PROBE_" not in prompt
+        for wave in lm.calls
+        for prompt, _ in wave
+    )
+    attacker.calls.clear()
+    with pytest.raises(ValueError, match="system policy"):
+        task.init_multiturn_state(
+            doc, "", {}, True, lambda messages, **kwargs: "no policy"
+        )
+    assert not attacker.calls
+
+
+def test_internal_renderer_type_error_is_not_retried():
+    task = make_task([sample()])
+    calls = []
+
+    def renderer(messages, **kwargs):
+        calls.append(messages)
+        raise TypeError("Internal renderer failure")
+
+    with pytest.raises(TypeError, match="Internal renderer failure"):
+        task.init_multiturn_state(sample(), "", {}, True, renderer)
+    assert len(calls) == 1

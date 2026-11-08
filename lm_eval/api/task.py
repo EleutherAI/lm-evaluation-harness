@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import json
 import logging
 import random
 import re
@@ -319,6 +320,21 @@ class Task(abc.ABC):
             else ""
         )
         cache_key += f"-tokenizer{tokenizer_name}"
+        if self.OUTPUT_TYPE == "multi_turn_generate":
+            # Interactive placeholders retain docs and generation kwargs. A
+            # shared key could pair old conversations with new scoring targets.
+            # Tasks with variable data must include its digest in metadata;
+            # POLAR records the full input file SHA256 before requests are built.
+            context = {
+                "version": self.VERSION,
+                "config": self.dump_config(),
+                "samples": samples,
+            }
+            cache_key += "-episode" + utils.hash_string(
+                json.dumps(
+                    context, sort_keys=True, default=utils.handle_non_serializable
+                )
+            )
 
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 

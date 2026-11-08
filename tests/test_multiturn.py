@@ -211,3 +211,19 @@ def test_backend_errors_propagate_without_episode_results():
     with pytest.raises(RuntimeError, match="Backend unavailable"):
         run_multi_turn_rollout(lm, {task.config.task: task}, [req])
     assert not req.resps
+
+
+def test_result_hook_failure_does_not_publish_partial_batch():
+    first = EpisodeTask([{"name": "first", "turns": 1}], name="first")
+    second = EpisodeTask([{"name": "second", "turns": 1}], name="second")
+    requests = [placeholder(first), placeholder(second)]
+
+    def fail(state):
+        raise RuntimeError("Result extraction failed")
+
+    second.multiturn_result = fail
+    with pytest.raises(RuntimeError, match="Result extraction failed"):
+        run_multi_turn_rollout(
+            RecordingLM(), {"first": first, "second": second}, requests
+        )
+    assert all(not request.resps for request in requests)

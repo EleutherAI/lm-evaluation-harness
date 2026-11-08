@@ -16,7 +16,10 @@ forwarded; B must return its final attack in `message.content`. Unexpected inlin
 thinking tags are stripped defensively, but reasoning-prefilled A templates are
 outside the supported scope. A chat template must retain the entire per-sample
 system policy; discarded or transformed policies raise instead of being scored.
-This content check does not certify every model's interpretation of role hierarchy.
+A separate rendering-only probe, using a controlled user message, detects dropped
+system roles even when an attacker echoes the policy in its own message. The
+probe never reaches A inference or either peer's history. These checks do not
+certify every model's interpretation of role hierarchy.
 
 ## Run
 
@@ -72,6 +75,8 @@ its own per-sample policy and complete conversation.
   output. This budget includes reasoning for servers that count it toward output.
   Truncated or empty B responses fail explicitly. No finite budget guarantees
   completion.
+- B requests are synchronous and sequential within each wave. Full-dataset
+  throughput depends on the service; concurrent attacker scheduling is deferred.
 - B's timeout defaults to 600 seconds per attempt, with two SDK retries. Override
   with `POLAR_ATTACKER_TIMEOUT`.
 - `POLAR_MAX_ROUNDS` defaults to 6, with sample-specific turn budgets taking
@@ -85,6 +90,9 @@ its own per-sample policy and complete conversation.
   Their ASTs match the published functions. The increased A/B budgets differ
   from the reference's 1,200/500; these results are not direct reproductions of
   the historical configuration. The task records protocol `final-answer-only-v2`.
+- Request caching (`--cache_requests`) incorporates dataset SHA256, task
+  configuration, and sample selection, preventing stale requests after changing
+  local data or generation settings. Clients and episode state are never cached.
 - The standard interface returns text without A's termination reason, so this
   task does not claim an A truncation-rate metric. Check token/context limits.
   Response caching (`--use_cache`) is not validated for this integration.

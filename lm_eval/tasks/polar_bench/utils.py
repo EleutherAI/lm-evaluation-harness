@@ -435,10 +435,6 @@ def unique_keep_order(xs: List[str]) -> List[str]:
     return out
 
 
-def avg(xs: List[float]) -> float:
-    return sum(xs) / len(xs) if xs else 0.0
-
-
 def expand_possible_list_string(value: Any) -> List[str]:
     out: List[str] = []
 
@@ -956,17 +952,6 @@ def score_example(
     }
 
 
-def safe_float(x: Any) -> float | None:
-    if x is None:
-        return None
-    if isinstance(x, str) and x.strip().lower() in {"none", "null", "nan", ""}:
-        return None
-    try:
-        return float(x)
-    except Exception:
-        return None
-
-
 def compute_example_score(
     privacy_score: float | None,
     utility_score: float | None,
@@ -990,56 +975,3 @@ def compute_example_score(
     if utility_score is None:
         return privacy_score / 2.0
     return (privacy_score + utility_score) / 2.0
-
-
-def summarize_result_group(results: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Build one summary block.
-
-    Reports:
-    - overall score
-    - leakage score, same as privacy_score
-    - utility score
-
-    Missing single-side scores are treated as 0.0.
-    If both scores are missing, the example is counted as invalid but still
-    contributes 0.0 to all aggregate scores so that:
-
-        score_100 == (leakage_score_100 + utility_score_100) / 2
-    """
-    leakage_scores: List[float] = []
-    utility_scores: List[float] = []
-    example_scores: List[float] = []
-
-    invalid_example_count = 0
-
-    for r in results:
-        raw_leakage_score = safe_float(r.get("privacy_score"))
-        raw_utility_score = safe_float(r.get("utility_score"))
-
-        if raw_leakage_score is None and raw_utility_score is None:
-            invalid_example_count += 1
-
-        leakage_score = 0.0 if raw_leakage_score is None else raw_leakage_score
-        utility_score = 0.0 if raw_utility_score is None else raw_utility_score
-        example_score = (leakage_score + utility_score) / 2.0
-
-        leakage_scores.append(leakage_score)
-        utility_scores.append(utility_score)
-        example_scores.append(example_score)
-
-    avg_example = avg(example_scores)
-    avg_leakage = avg(leakage_scores)
-    avg_utility = avg(utility_scores)
-
-    return {
-        "num_examples": len(results),
-        "valid_example_count": len(results) - invalid_example_count,
-        "invalid_example_count": invalid_example_count,
-        "avg_example_score": avg_example,
-        "score_100": 100.0 * avg_example,
-        "avg_leakage_score": avg_leakage,
-        "leakage_score_100": 100.0 * avg_leakage,
-        "avg_utility_score": avg_utility,
-        "utility_score_100": 100.0 * avg_utility,
-    }

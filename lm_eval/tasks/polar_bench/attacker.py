@@ -6,6 +6,8 @@ from lm_eval.tasks.polar_bench.task import final_answer
 
 
 class Attacker:
+    """Fixed B service, created only when an episode actually needs an attack."""
+
     def __init__(self, model):
         try:
             from openai import OpenAI
@@ -29,6 +31,11 @@ class Attacker:
         )
 
     def chat(self, system_prompt, messages, max_tokens, seed):
+        """Return visible attack text; reject budget exhaustion and empty finals.
+
+        The SDK retries transport failures twice. Separately returned reasoning
+        fields are deliberately ignored and never enter A's history.
+        """
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "system", "content": system_prompt}] + messages,

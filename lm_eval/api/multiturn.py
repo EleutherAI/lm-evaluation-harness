@@ -33,6 +33,8 @@ def run_multi_turn_rollout(
     if lm.world_size != 1:
         raise NotImplementedError("multi_turn_generate requires world_size=1")
 
+    # Cached placeholders carry no live clients, renderer, or conversation state.
+    # Each repeat gets fresh state and a private copy of generation options.
     episodes = []
     for instance in requests:
         task = eval_tasks[instance.task_name]
@@ -50,6 +52,8 @@ def run_multi_turn_rollout(
                 raise ValueError("MAX_MULTITURN_STEPS must be a positive integer")
             episodes.append((task, instance, state, cap))
 
+    # One request per active episode forms a wave. Consume the whole wave
+    # before constructing any next turn, preserving sequential feedback.
     pending = [(episode, 0) for episode in episodes]
     while pending:
         active = []
@@ -88,5 +92,11 @@ def run_multi_turn_rollout(
             task.multiturn_consume_response(state, response)
         pending = [(episode, step + 1) for episode, step in active]
 
-    for task, instance, state, _ in episodes:
-        instance.resps.append(task.multiturn_result(state))
+    # Publish results only after every episode finishes: a failed peer must not
+    # leave apparently successful partial results in the normal scoring pipeline.
+    completed = [
+        (instance, task.multiturn_result(state))
+        for task, instance, state, _ in episodes
+    ]
+    for instance, result in completed:
+        instance.resps.append(result)

@@ -22,14 +22,22 @@ an empty initial context, as POLAR does. Declaring this output type alone does
 not implement a conversation; the hooks must be supplied by the task class.
 
 One placeholder `Instance` per document is built and cached by the normal task
-machinery. The driver runs each repeat independently, then puts completed episode
+machinery. For interactive tasks the request-cache key also includes the task
+version, exported configuration and sample selection, so changed generation
+options do not reuse stale placeholders. Tasks loading variable/local data must
+record its content digest in task metadata before building requests; POLAR does
+this with the input JSON file's SHA256. Input documents must be treated as
+read-only; evolving conversation state belongs in the episode.
+
+The driver runs each repeat independently, then puts completed episode
 results into that instance's `resps`. Standard filters, task scoring, logging,
 aggregation, limits, and sample selection continue through the existing pipeline.
 Do not include clients, renderers, credentials, or mutable episode state in the
 placeholder or exported task configuration.
 
 Set `MAX_MULTITURN_STEPS` (default 64) on the task to bound the number of model
-calls per episode. The cap is per task, including when tasks are mixed in one
+backend calls per episode. External tools/attacker calls are task-owned and are
+not counted by this driver limit. The cap is per task, including mixed tasks in a
 run. Reaching it before completion raises; returning `None` without marking the
 episode done also raises. Model exceptions and mismatched response counts are
 propagated, so interrupted conversations are not silently scored.
