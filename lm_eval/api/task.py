@@ -40,7 +40,9 @@ from lm_eval.api.utils import (
     requires_delimiter,
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
-from lm_eval.config.task import TaskConfig
+from lm_eval.config.task import (
+    TaskConfig as TaskConfig,  # noqa: PLC0414 - Public re-export.
+)
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
@@ -56,9 +58,6 @@ ALL_OUTPUT_TYPES = [
 ]
 
 eval_logger = logging.getLogger(__name__)
-
-
-TaskConfig = TaskConfig
 
 
 class Task(abc.ABC):
@@ -168,17 +167,14 @@ class Task(abc.ABC):
     @abc.abstractmethod
     def has_training_docs(self):
         """Whether the task has a training set"""
-        pass
 
     @abc.abstractmethod
     def has_validation_docs(self):
         """Whether the task has a validation set"""
-        pass
 
     @abc.abstractmethod
     def has_test_docs(self):
         """Whether the task has a test set"""
-        pass
 
     def training_docs(self) -> Iterable:
         """
@@ -397,7 +393,6 @@ class Task(abc.ABC):
             The number of times each instance in a dataset is inferred on. Defaults to 1,
             can be increased for techniques like majority voting.
         """
-        pass
 
     @abc.abstractmethod
     def process_results(self, doc, results):
@@ -410,7 +405,6 @@ class Task(abc.ABC):
         :param results:
             The results of the requests created in construct_requests.
         """
-        pass
 
     @abc.abstractmethod
     def aggregation(self):
@@ -419,7 +413,6 @@ class Task(abc.ABC):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metric scores
         """
-        pass
 
     @abc.abstractmethod
     def higher_is_better(self):
@@ -428,7 +421,6 @@ class Task(abc.ABC):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        pass
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
@@ -628,7 +620,7 @@ class ConfigurableTask(Task):
         config: dict | None = None,
     ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
-        self._config = self.CONFIG
+        self._config = deepcopy(self.CONFIG)
 
         # Use new configurations if there was no preconfiguration
         if self.config is None:
@@ -724,7 +716,7 @@ class ConfigurableTask(Task):
                     agg_name = metric_config["aggregation"]
                     if isinstance(agg_name, str):
                         self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
+                    elif callable(agg_name):
                         self._aggregation_list[metric_name] = metric_config[
                             "aggregation"
                         ]
@@ -916,7 +908,7 @@ class ConfigurableTask(Task):
             match samples:
                 case list(): return samples
                 case fsamples if callable(samples): return fsamples()
-                case _: raise Exception(
+                case _: raise Exception(  # noqa: TRY002 - Preserve the legacy exception type.
                         "`fewshot_config['samples']` was incorrectly defined in the configuration. It should either be `list[dict]`, or callable returning this list."
                     ) from None
             # fmt: on
@@ -1200,9 +1192,7 @@ class ConfigurableTask(Task):
     def doc_to_text(self, doc, doc_to_text=None):
         if self.prompt is not None:
             doc_to_text = self.prompt
-        elif doc_to_text is not None:
-            doc_to_text = doc_to_text
-        else:
+        elif doc_to_text is None:
             doc_to_text = self.config.doc_to_text
 
         if isinstance(doc_to_text, int):
@@ -1236,9 +1226,7 @@ class ConfigurableTask(Task):
     def doc_to_target(self, doc: Mapping, doc_to_target=None) -> int | str | list:
         if self.prompt is not None:
             doc_to_target = self.prompt
-        elif doc_to_target is not None:
-            doc_to_target = doc_to_target
-        else:
+        elif doc_to_target is None:
             doc_to_target = self.config.doc_to_target
 
         if isinstance(doc_to_target, int):
@@ -1282,12 +1270,10 @@ class ConfigurableTask(Task):
     def doc_to_choice(self, doc: Any, doc_to_choice=None) -> list[str]:
         if self.prompt is not None:
             doc_to_choice = self.prompt
-        elif doc_to_choice is not None:
-            doc_to_choice = doc_to_choice
-        elif self.config.doc_to_choice is None:
-            eval_logger.error("doc_to_choice was called but not set in config")
-        else:
+        elif doc_to_choice is None:
             doc_to_choice = self.config.doc_to_choice
+            if doc_to_choice is None:
+                eval_logger.error("doc_to_choice was called but not set in config")
 
         if isinstance(doc_to_choice, str):
             if doc_to_choice in self.features:
@@ -1306,11 +1292,9 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
-        if doc_to_image is not None:
-            doc_to_image = doc_to_image
-        elif self.config.doc_to_image is not None:
+        if doc_to_image is None:
             doc_to_image = self.config.doc_to_image
-        else:
+        if doc_to_image is None:
             return None
 
         if isinstance(doc_to_image, list):
@@ -1329,11 +1313,9 @@ class ConfigurableTask(Task):
             return None
 
     def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list | None:
-        if doc_to_audio is not None:
-            doc_to_audio = doc_to_audio
-        elif self.config.doc_to_audio is not None:
+        if doc_to_audio is None:
             doc_to_audio = self.config.doc_to_audio
-        else:
+        if doc_to_audio is None:
             return None
 
         if isinstance(doc_to_audio, list):
@@ -1413,7 +1395,7 @@ class ConfigurableTask(Task):
         ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
             multimodal_arg = {
                 **multimodal_arg,
-                **{"visual": self.doc_to_image(doc)},
+                "visual": self.doc_to_image(doc),
             }
 
         if (
@@ -1421,7 +1403,7 @@ class ConfigurableTask(Task):
         ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
             multimodal_arg = {
                 **multimodal_arg,
-                **{"audio": self.doc_to_audio(doc)},
+                "audio": self.doc_to_audio(doc),
             }
 
         if bool(multimodal_arg):
@@ -1649,9 +1631,15 @@ class ConfigurableTask(Task):
                         # Without this, _compute_task_aggregations falls back to mean()
                         # because it looks up the aggregation by the result-dict key, not
                         # by the originating callable's __name__.
-                        if metric in self._aggregation_list and k not in self._aggregation_list:
+                        if (
+                            metric in self._aggregation_list
+                            and k not in self._aggregation_list
+                        ):
                             self._aggregation_list[k] = self._aggregation_list[metric]
-                        if metric in self._higher_is_better and k not in self._higher_is_better:
+                        if (
+                            metric in self._higher_is_better
+                            and k not in self._higher_is_better
+                        ):
                             self._higher_is_better[k] = self._higher_is_better[metric]
                 else:
                     result_dict[metric] = result_score
