@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_humanities_tasks
+task: greekmmlu_greek_history_professional
+task_alias: Greek History_Professional
+dataset_name: Greek_History_Professional

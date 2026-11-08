@@ -259,7 +259,7 @@ class SGLangLM(TemplateLM):
                 # create sampling params
                 kwargs = self.modify_gen_kwargs(kwargs)
                 sampling_params.append(
-                    kwargs | {"max_tokens": max_gen_toks, "stop": until}
+                    kwargs | {"max_new_tokens": max_gen_toks, "stop": until}
                 )
             # perform batched generation
             # cont is a list of dic. See here https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 .

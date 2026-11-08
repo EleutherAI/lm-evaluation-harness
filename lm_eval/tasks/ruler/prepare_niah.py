@@ -13,28 +13,29 @@
 # limitations under the License
 
 
+import logging
 import os
 import random
 import re
 import uuid
-from functools import lru_cache, cache
-from typing import List, Union, Literal
-import datasets
+from functools import cache, lru_cache
+from importlib.metadata import version
+from typing import Literal
 
+import datasets
 import numpy as np
 from packaging.version import parse as parse_version
-from importlib.metadata import version
-
 from tqdm import tqdm
 
+
 try:
-    import wonderwords
     import nltk
+    import wonderwords
     from nltk import sent_tokenize
-except ImportError:
+except ImportError as e:
     raise ImportError(
         'Please install the `wonderwords` and `nltk` packages to run this script. You can install them with `pip install lm_eval["ruler"]` or`pip install wonderwords nltk`.'
-    )
+    ) from e
 
 
 NUM_SAMPLES = 500
@@ -52,7 +53,7 @@ nouns = r._categories["nouns"]
 adjs = r._categories["adjectives"]
 verbs = r._categories["verbs"]
 words = [f"{adj}-{noun}" for adj in adjs for noun in nouns]
-WORDS = sorted(list(set(words)))
+WORDS = sorted(set(words))
 
 # Positions
 DEPTHS = list(np.round(np.linspace(0, 100, num=40, endpoint=True)).astype(int))
@@ -60,14 +61,16 @@ DEPTHS = list(np.round(np.linspace(0, 100, num=40, endpoint=True)).astype(int))
 NLTK_MIN_VERSION = "3.9.1"
 RANK = os.environ.get("LOCAL_RANK", "0")
 
+eval_logger = logging.getLogger(__name__)
+
 
 @lru_cache(maxsize=1024)
-def cached_sent_tokenize(text: str) -> List[str]:
+def cached_sent_tokenize(text: str) -> list[str]:
     return sent_tokenize(text)
 
 
 def download_nltk_resources():
-    """Download 'punkt' if not already installed"""
+    """Download 'punkt' if not already installed."""
     assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
         NLTK_MIN_VERSION
     ), (
@@ -113,7 +116,7 @@ def generate_random(type_needle: str) -> str:
 
 def generate_input_output(
     num_haystack: int,
-    haystack: Union[list[str], str],
+    haystack: list[str] | str,
     *,
     type_haystack: str,
     num_needle_k: int,
@@ -180,7 +183,7 @@ def generate_input_output(
             ]
 
         indexes = sorted(random.sample(range(num_haystack), len(needles)), reverse=True)
-        for index, element in zip(indexes, needles):
+        for index, element in zip(indexes, needles, strict=False):
             sentences.insert(index, element)
         context = "\n".join(sentences)
 
@@ -230,19 +233,22 @@ def generate_samples(
 ) -> list[dict]:
     assert TOKENIZER is not None, "TOKENIZER is not defined."
     num_needle_k = max(num_needle_k, num_needle_q)
+    num_needles = num_needle_k * num_needle_v
     write_jsons = []
+    skipped = 0
+    last_skip_reason = None
 
     if type_haystack == "essay":
         incremental = 500
-    elif type_haystack == "repeat":
-        incremental = 25
-    elif type_haystack == "needle":
+    elif type_haystack == "repeat" or type_haystack == "needle":
         incremental = 25
 
     if type_haystack != "essay" and max_seq_length < 4096:
         incremental = 5
 
-    num_haystack = incremental
+    # `num_haystack` must stay large enough to host every needle, otherwise
+    # `generate_input_output` raises for any value we try (see #2963).
+    num_haystack = max(incremental, num_needles)
 
     total_tokens = 0  # Track the total tokens generated for the first example
     while total_tokens + tokens_to_generate < max_seq_length:
@@ -268,9 +274,20 @@ def generate_samples(
             num_haystack = len(haystack)
             break
 
+        # Every haystack unit costs at least one token, so needing more units
+        # than `max_seq_length` means the loop will never converge.
+        if num_haystack > max_seq_length:
+            raise ValueError(
+                f"Haystack for '{type_haystack}' grew past {max_seq_length} units without "
+                f"reaching max_seq_length={max_seq_length} (last measurement: "
+                f"{total_tokens} tokens). The tokenizer is under-reporting lengths."
+            )
+
         num_haystack += incremental
 
-    # print("Num haystack:", num_haystack)
+    # The loop above subtracts `incremental` on overflow, which lands on 0 when
+    # even the smallest haystack does not fit `max_seq_length`.
+    num_haystack = max(num_haystack, num_needles)
 
     # Generate samples
     for index in tqdm(
@@ -278,7 +295,12 @@ def generate_samples(
         desc=f"Generating synthetic samples: {type_haystack} | {max_seq_length}",
     ):
         used_haystack = num_haystack
-        while True:
+        sample = None
+        last_error = None
+        # Shrink the haystack until the sample fits. `used_haystack` decreases
+        # monotonically towards 0, so this always terminates -- the previous
+        # `while True` spun forever once shrinking stopped helping (#2963).
+        while used_haystack > 0:
             try:
                 input_text, answer, query = generate_input_output(
                     used_haystack,
@@ -293,12 +315,23 @@ def generate_samples(
                     random_seed=random_seed,
                 )
                 length = len(TOKENIZER(input_text).input_ids) + tokens_to_generate
-                assert length <= max_seq_length, f"{length} exceeds max_seq_length."
-                break
-                # ruff: noqa
-            except:
-                if used_haystack > incremental:
-                    used_haystack -= incremental
+                if length <= max_seq_length:
+                    sample = (input_text, answer, query, length)
+                    break
+                last_error = f"{length} exceeds max_seq_length={max_seq_length}"
+            except Exception as e:  # noqa: BLE001 - any failure means "try smaller"
+                last_error = e
+            used_haystack -= incremental
+
+        # Bail out *before* the formatting block: on failure `input_text` and
+        # `length` still hold the previous sample's values (or are unbound on
+        # the first iteration), so falling through would emit a duplicate, an
+        # over-length sample, or raise `UnboundLocalError`.
+        if sample is None:
+            skipped += 1
+            last_skip_reason = last_error
+            continue
+        input_text, answer, query, length = sample
 
         if remove_newline_tab:
             input_text = " ".join(
@@ -311,22 +344,46 @@ def generate_samples(
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
-            "gen_prefix": f"The special magic {type_needle_v[:-1]} for {query} mentioned in the provided text is"
-            if num_needle_q * num_needle_v == 1
-            else f"The special magic {type_needle_v} for {query} mentioned in the provided text are",
+            "gen_prefix": (
+                f"The special magic {type_needle_v[:-1]} for {query} mentioned in the provided text is"
+                if num_needle_q * num_needle_v == 1
+                else f"The special magic {type_needle_v} for {query} mentioned in the provided text are"
+            ),
         }
-        if formatted_output["outputs"][0] not in formatted_output["input"]:
-            assert False, (
+
+        if (
+            not formatted_output["outputs"]
+            or formatted_output["outputs"][0] not in formatted_output["input"]
+        ):
+            raise RuntimeError(
                 f"Needle not in input: {formatted_output}. Something went wrong."
             )
+
         write_jsons.append(formatted_output)
+
+    if skipped:
+        eval_logger.warning(
+            "Skipped %s/%s samples for %s | max_seq_length=%s: could not fit them within the sequence length. Last reason: %s",
+            skipped,
+            num_samples,
+            type_haystack,
+            max_seq_length,
+            last_skip_reason,
+        )
+    if not write_jsons:
+        raise ValueError(
+            f"Could not generate any sample for haystack '{type_haystack}' at "
+            f"max_seq_length={max_seq_length}. It leaves no room for the prompt "
+            f"template, {num_needles} needle(s) and {tokens_to_generate} generated "
+            f"tokens. Raise `max_seq_lengths` for this task."
+        )
     return write_jsons
 
 
 @cache
 def get_haystack(
     type_haystack: Literal["essay", "repeat", "needle"],
-) -> Union[list[str], str]:
+) -> list[str] | str:
     NEEDLE = "One of the special magic {type_needle_v} for {key} is: {value}."
     if type_haystack == "essay":
         essay = datasets.load_dataset("baber/paul_graham_essays", split="train")["text"]

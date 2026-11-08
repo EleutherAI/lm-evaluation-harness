@@ -1,3 +1,0 @@
-dataset_name: nno_latn
-include: _template
-task: global_piqa_prompted_nno_latn

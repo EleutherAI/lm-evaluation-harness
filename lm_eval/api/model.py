@@ -227,8 +227,33 @@ class LM(abc.ABC):
 
 
 ### SQLite-based caching of LM responses
+def _multimodal_cache_default(obj: Any) -> Any:
+    """JSON ``default`` handler for cache-key hashing.
+
+    Replaces multimodal payloads with type-tagged content digests so that
+    request keys stay deterministic and content-sensitive:
+
+    - separate image objects with identical content map to the same key;
+    - different content maps to a different key;
+    - anything unsupported keeps failing loudly (no unstable object reprs).
+    """
+    if isinstance(obj, (bytes, bytearray)):
+        return {"__bytes_sha256__": hashlib.sha256(bytes(obj)).hexdigest()}
+    try:
+        from PIL import Image
+
+        if isinstance(obj, Image.Image):
+            from lm_eval.utils import convert_pil_to_hash
+
+            # PNG canonicalization, same as logged-sample sanitization
+            return {"__pil_image_sha256__": convert_pil_to_hash(obj)}
+    except ImportError:
+        pass
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
 def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args))
+    dat = json.dumps([attr] + list(args), default=_multimodal_cache_default)
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 

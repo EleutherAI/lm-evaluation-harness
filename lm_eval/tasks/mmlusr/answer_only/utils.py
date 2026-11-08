@@ -3,16 +3,18 @@ import datasets
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _helper(doc):
-        # Assuming that the 'answer' field in the dataset now contains numbers 0-3 instead of 'A', 'B', 'C', 'D'
-        answer_list = ["A", "B", "C", "D"]
-        # Convert numeric index to corresponding letter
-        answer_index = int(doc["answer"])  # Make sure the answer is an integer
-        answer_letter = answer_list[answer_index]
-
+        # The published CSVs carry no header row and store the answer as a
+        # letter, so the columns are named in the task config and used as-is.
+        # A handful of rows upstream have an empty choice, which the CSV
+        # reader hands back as None.
         out_doc = {
-            "questions": doc["question"],
-            "choices": [doc["choice1"], doc["choice2"], doc["choice3"], doc["choice4"]],
-            "answer": answer_letter,  # Include the letter for clarity
+            "choices": [
+                doc["choice1"] or "",
+                doc["choice2"] or "",
+                doc["choice3"] or "",
+                doc["choice4"] or "",
+            ],
+            "answer": (doc["answer"] or "").strip(),
         }
         return out_doc
 

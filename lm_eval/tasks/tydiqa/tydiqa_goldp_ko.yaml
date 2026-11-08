@@ -1,0 +1,5 @@
+include: _tydiqa_goldp_common_yaml
+task: tydiqa_goldp_ko
+doc_to_text: "맥락: {{context}}\n\n질문: {{question}}\n\n답변:"
+process_docs: !function utils.process_docs_ko
+process_results: !function utils.process_results_ko

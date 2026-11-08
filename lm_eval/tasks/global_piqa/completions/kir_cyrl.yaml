@@ -1,3 +1,0 @@
-dataset_name: kir_cyrl
-include: _template
-task: global_piqa_completions_kir_cyrl

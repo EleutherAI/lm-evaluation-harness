@@ -154,7 +154,7 @@ class TaskConfig(dict):
         self.fewshot_config = (
             FewshotConfig.from_dict(
                 self.fewshot_config or {},
-                split=self.fewshot_split,
+                fewshot_split=self.fewshot_split,
                 process_docs=self.process_docs,
                 fewshot_delimiter=self.fewshot_delimiter,
                 target_delimiter=self.target_delimiter,

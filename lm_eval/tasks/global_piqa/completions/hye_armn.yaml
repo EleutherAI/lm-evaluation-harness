@@ -1,3 +1,0 @@
-dataset_name: hye_armn
-include: _template
-task: global_piqa_completions_hye_armn

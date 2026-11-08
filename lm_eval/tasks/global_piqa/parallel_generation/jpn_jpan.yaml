@@ -1,0 +1,3 @@
+dataset_name: jpn_jpan
+include: _template
+task: global_piqa_parallel_generation_jpn_jpan

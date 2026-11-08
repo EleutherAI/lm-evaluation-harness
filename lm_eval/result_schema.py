@@ -166,7 +166,10 @@ class SampleResult(TypedDict, extra_items=float):
     There is one entry per filter (e.g. ``"none"``, ``"strict-match"``).
     Fixed keys are common across all task types (multiple-choice, generation, etc.).
     Dynamic keys are per-sample metric scores (e.g. ``acc``, ``acc_norm``,
-    ``exact_match``) whose names and count vary by task — these are always floats.
+    ``exact_match``) whose names and count vary by task — these are floats,
+    but note they are commonly ``numpy.float64`` (a ``float`` subclass that is
+    NOT JSON-serializable) in memory and only become plain ``float`` after the
+    save-path sanitization in ``evaluation_tracker``.
     """
 
     doc_id: int
@@ -178,10 +181,15 @@ class SampleResult(TypedDict, extra_items=float):
     target: str
     """Gold-standard target string."""
 
-    arguments: dict[str, dict[str, Any]]
-    """Per-request model inputs, as ``{"gen_args_N": {"arg_0": ..., "arg_1": ...}}``.
-    Multiple-choice: one entry per choice, ``{"arg_0": context, "arg_1": continuation}``.
-    Generation: single entry, ``{"arg_0": prompt, "arg_1": gen_kwargs}``."""
+    arguments: list[list[Any]]
+    """Per-request model inputs, one entry per request (built as
+    ``[req.args for req in requests]`` in ``evaluator`` — tuples in memory,
+    lists after a JSON round-trip).
+    Multiple-choice: one entry per choice, ``(context, continuation)``.
+    Generation: single entry, ``(prompt, gen_kwargs)``.
+    NOTE: the ``{"gen_args_N": {"arg_0": ..., "arg_1": ...}}`` dict shape only
+    exists in sanitized on-disk output (see ``evaluation_tracker``), not in
+    the in-memory samples this schema describes."""
 
     resps: list[list[str]] | list[list[list[str]]]
     """Raw model responses.  Outer list is per-request (one per ``gen_args_N``).

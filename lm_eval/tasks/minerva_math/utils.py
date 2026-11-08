@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import logging
 import re
 import signal
 from importlib.metadata import version
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING
 
-import datasets
+
+if TYPE_CHECKING:
+    import datasets
 
 
 eval_logger = logging.getLogger(__name__)
 
 
 try:
-    import antlr4
+    import antlr4  # noqa: F401
     import sympy
     from math_verify import parse, verify
     from sympy.parsing.latex import parse_latex
@@ -49,7 +53,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 def list_fewshot_samples() -> list[dict]:
     return [
         {
-            "problem": "Find the domain of the expression  $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.}",
+            "problem": "Find the domain of the expression  $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.",
             "solution": "The expressions inside each square root must be non-negative. Therefore, $x-2 \\ge 0$, so $x\\ge2$, and $5 - x \\ge 0$, so $x \\le 5$. Also, the denominator cannot be equal to zero, so $5-x>0$, which gives $x<5$. Therefore, the domain of the expression is $\\boxed{[2,5)}$.\nFinal Answer: The final answer is $[2,5)$. I hope it is correct.",
             "few_shot": "1",
         },
@@ -60,11 +64,11 @@ def list_fewshot_samples() -> list[dict]:
         },
         {
             "problem": "Terrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?",
-            "solution": "If Terrell lifts two 20-pound weights 12 times, he lifts a total of $2\\cdot 12\\cdot20=480$ pounds of weight.  If he lifts two 15-pound weights instead for $n$ times, he will lift a total of $2\\cdot15\\cdot n=30n$ pounds of weight.  Equating this to 480 pounds, we can solve for $n$:\n\\begin{align*}\n30n&=480\\\n\\Rightarrow\\qquad n&=480/30=\\boxed{16}\n\\end{align*}\nFinal Answer: The final answer is $16$. I hope it is correct.",
+            "solution": "If Terrell lifts two 20-pound weights 12 times, he lifts a total of $2\\cdot 12\\cdot20=480$ pounds of weight.  If he lifts two 15-pound weights instead for $n$ times, he will lift a total of $2\\cdot15\\cdot n=30n$ pounds of weight.  Equating this to 480 pounds, we can solve for $n$:\n\\begin{align*}\n30n&=480\\\\\n\\Rightarrow\\qquad n&=480/30=\\boxed{16}\n\\end{align*}\nFinal Answer: The final answer is $16$. I hope it is correct.",
             "few_shot": "1",
         },
         {
-            "problem": "If the system of equations\n\n\\begin{align*}\n6x-4y&=a,\\\n6y-9x &=b.\n\\end{align*}has a solution $(x, y)$ where $x$ and $y$ are both nonzero,\nfind $\\frac{a}{b},$ assuming $b$ is nonzero.",
+            "problem": "If the system of equations\n\n\\begin{align*}\n6x-4y&=a,\\\\\n6y-9x &=b.\n\\end{align*}has a solution $(x, y)$ where $x$ and $y$ are both nonzero,\nfind $\\frac{a}{b},$ assuming $b$ is nonzero.",
             "solution": "If we multiply the first equation by $-\\frac{3}{2}$, we obtain\n\n$$6y-9x=-\\frac{3}{2}a.$$Since we also know that $6y-9x=b$, we have\n\n$$-\\frac{3}{2}a=b\\Rightarrow\\frac{a}{b}=\\boxed{-\\frac{2}{3}}.$$\nFinal Answer: The final answer is $-\\frac{2}{3}$. I hope it is correct.",
             "few_shot": "1",
         },
@@ -96,7 +100,7 @@ def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     return res
 
 
-def last_boxed_only_string(string: str) -> Optional[str]:
+def last_boxed_only_string(string: str) -> str | None:
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
         return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
@@ -152,14 +156,19 @@ class timeout:
         signal.signal(signal.SIGALRM, self.handle_timeout)
         signal.alarm(self.seconds)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, value, traceback):
         signal.alarm(0)
 
 
 def is_equiv(x1: str, x2: str) -> bool:
-    """
-    x1 and x2 are normalized latex string
-    """
+    """x1 and x2 are normalized latex string."""
+    # parse_latex raises on tuples, intervals and matrices, and the handler
+    # below then returns False for the pair -- so without this an answer
+    # identical to the gold is scored wrong. Only ever turns a False into a
+    # True: identical strings sympy can parse already compare equal below.
+    if isinstance(x1, str) and x1 and x1 == x2:
+        return True
+
     try:
         with timeout(seconds=5):
             try:
@@ -170,32 +179,30 @@ def is_equiv(x1: str, x2: str) -> bool:
                 sympy.SympifyError,
                 TypeError,
             ):
-                eval_logger.debug(f"couldn't parse one of {x1} or {x2}")
+                eval_logger.debug("couldn't parse one of %s or %s", x1, x2)
                 return False
 
             try:
                 diff = parsed_x1 - parsed_x2
             except TypeError:
-                eval_logger.debug(f"couldn't subtract {x1} and {x2}")
+                eval_logger.debug("couldn't subtract %s and %s", x1, x2)
                 return False
 
             try:
-                if sympy.simplify(diff) == 0:
-                    return True
-                else:
-                    return False
+                return sympy.simplify(diff) == 0
             except ValueError:
                 eval_logger.debug(
-                    f"Had some trouble simplifying when comparing {x1} and {x2}"
+                    "Had some trouble simplifying when comparing %s and %s", x1, x2
                 )
+                return False
     except TimeoutError:
-        eval_logger.debug(f"Timed out comparing {x1} and {x2}")
+        eval_logger.debug("Timed out comparing %s and %s", x1, x2)
         return False
     except ImportError as e:
         eval_logger.error(e)
         raise
-    except Exception as e:
-        eval_logger.debug(f"Failed comparing {x1} and {x2} with {e}")
+    except Exception as e:  # noqa: BLE001
+        eval_logger.debug("Failed comparing %s and %s with %s", x1, x2, e)
         return False
 
 
@@ -272,17 +279,33 @@ REMOVED_EXPRESSIONS = [
 
 
 def normalize_final_answer(final_answer: str) -> str:
-    """
-    Normalize a final answer to a quantitative reasoning question.
+    """Normalize a final answer to a quantitative reasoning question.
 
     Copied character for character from appendix D of Lewkowycz et al. (2022)
     """
     final_answer = final_answer.split("=")[-1]
 
+    # Remove unit words while whitespace still delimits them, so that
+    # "2\pi cm" loses "cm" and "\left" keeps its "ft" (word boundaries
+    # cannot match inside a LaTeX command name)
+    for expr in REMOVED_EXPRESSIONS:
+        if expr.isalpha():
+            final_answer = re.sub(rf"(?<!\\)\b{expr}\b", "", final_answer)
+
     for before, after in SUBSTITUTIONS:
         final_answer = final_answer.replace(before, after)
     for expr in REMOVED_EXPRESSIONS:
-        final_answer = final_answer.replace(expr, "")
+        if expr.isalpha():
+            # Units glued to their surroundings once whitespace is gone;
+            # skip LaTeX command spans so "ft" cannot corrupt "\left".
+            # Trade-off: a zero-separator <command><unit> run like "\picm"
+            # survives as one token instead of being stripped by accident.
+            segments = re.split(r"(\\[a-zA-Z]+)", final_answer)
+            for i in range(0, len(segments), 2):
+                segments[i] = segments[i].replace(expr, "")
+            final_answer = "".join(segments)
+        else:
+            final_answer = final_answer.replace(expr, "")
 
     # Extract answer that is in LaTeX math, is bold,
     # is surrounded by a box, etc.
@@ -299,11 +322,19 @@ def normalize_final_answer(final_answer: str) -> str:
     #  \sqrta -> \sqrt{a}
     #  \sqrtab -> sqrt{a}b
     final_answer = re.sub(r"(frac)([^{])(.)", "frac{\\2}{\\3}", final_answer)
-    final_answer = re.sub(r"(sqrt)([^{])", "sqrt{\\2}", final_answer)
+    # \sqrt[3]a -> \sqrt[3]{a}: canonicalize indexed roots with an unbraced
+    # argument before the shorthand rule below, which must skip them entirely
+    # or its [^ {] class would consume the "[" of the index and corrupt
+    # \sqrt[3]{8} into \sqrt{[}3]{8}.
+    final_answer = re.sub(r"(sqrt)(\[[^\]]*\])(\w)", "\\1\\2{\\3}", final_answer)
+    final_answer = re.sub(r"(sqrt)(?!\[)([^{])", "sqrt{\\2}", final_answer)
     final_answer = final_answer.replace("$", "")
 
-    # Normalize 100,000 -> 100000
-    if final_answer.replace(",", "").isdigit():
+    # Normalize 100,000 -> 100000: strip commas only when they are true
+    # thousands-group separators. A bare tuple like "0,1" would otherwise
+    # pass the old digit check and get fused into the garbage number "01"
+    # (16 MATH test-set gold answers are bare tuples).
+    if re.fullmatch(r"-?\d{1,3}(,\d{3})+", final_answer):
         final_answer = final_answer.replace(",", "")
 
     return final_answer

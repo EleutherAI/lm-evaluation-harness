@@ -1,3 +1,0 @@
-dataset_name: hin_deva
-include: _template
-task: global_piqa_prompted_hin_deva
