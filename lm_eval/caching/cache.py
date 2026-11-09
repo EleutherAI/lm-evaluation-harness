@@ -29,20 +29,30 @@ FILE_SUFFIX = f".{HASH_PREFIX}.pickle"
 # entries remain stable and unique without overflowing the filesystem limit.
 MAX_CACHE_FILENAME_BYTES = 240
 CACHE_KEY_HASH_LEN = 16
+WINDOWS_MAX_PATH_CHARS = 260
+IS_WINDOWS = os.name == "nt"
 
 
 def _cache_file_path(file_name: str) -> str:
     safe_file_name = re.sub(r"[/\\\\]+", "_", file_name)
     basename = f"{safe_file_name}{FILE_SUFFIX}"
 
-    if len(basename.encode("utf-8")) <= MAX_CACHE_FILENAME_BYTES:
+    max_filename_bytes = MAX_CACHE_FILENAME_BYTES
+    if IS_WINDOWS:
+        # MAX_PATH includes the separator and terminating null character.
+        max_filename_bytes = min(
+            max_filename_bytes,
+            WINDOWS_MAX_PATH_CHARS - len(os.path.abspath(PATH)) - 2,
+        )
+
+    if len(basename.encode("utf-8")) <= max_filename_bytes:
         return os.path.join(PATH, basename)
 
     file_name_hash = hashlib.sha256(file_name.encode("utf-8")).hexdigest()[
         :CACHE_KEY_HASH_LEN
     ]
     hashed_suffix = f"-{file_name_hash}{FILE_SUFFIX}"
-    max_prefix_bytes = MAX_CACHE_FILENAME_BYTES - len(hashed_suffix.encode("utf-8"))
+    max_prefix_bytes = max_filename_bytes - len(hashed_suffix.encode("utf-8"))
 
     prefix = safe_file_name.encode("utf-8")[:max_prefix_bytes]
     prefix = prefix.decode("utf-8", errors="ignore").rstrip("-_.") or "cache"
