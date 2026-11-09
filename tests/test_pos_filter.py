@@ -24,6 +24,14 @@ def test_pos_filter_accepts_quoted_tuple_formats(response):
     assert list(POSFilter().apply([[response]], [{}])) == [[["NOUN", "VERB"]]]
 
 
+@pytest.mark.parametrize("delimiter", ["'", '"'], ids=["single", "double"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n"], ids=["LF", "CRLF"])
+def test_pos_filter_accepts_escaped_newlines_in_tokens(delimiter, newline):
+    response = f"[({delimiter}do\\{newline}g{delimiter}, 'NOUN'), ('runs', 'VERB')]"
+
+    assert list(POSFilter().apply([[response]], [{}])) == [[["NOUN", "VERB"]]]
+
+
 @pytest.mark.parametrize(
     ("response", "expected"),
     [

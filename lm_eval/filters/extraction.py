@@ -88,7 +88,9 @@ class POSFilter(Filter):
             # Extract tagged tokens list from text input using regex
             quoted_string = r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')"""
             tokens = re.findall(
-                rf"\(\s*({quoted_string})\s*,\s*({quoted_string})\s*,?\s*\)", text
+                rf"\(\s*({quoted_string})\s*,\s*({quoted_string})\s*,?\s*\)",
+                text,
+                flags=re.DOTALL,
             )
             return [(token[1:-1], pos[1:-1]) for token, pos in tokens]
 
