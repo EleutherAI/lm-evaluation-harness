@@ -86,8 +86,11 @@ class POSFilter(Filter):
     def apply(self, resps: Iterable[Sequence[str]], docs: Sequence[dict[str, Any]]):
         def extract_tagged_tokens(text):
             # Extract tagged tokens list from text input using regex
-            tokens = re.findall(r"\('([^']*)', '([^']*)'\)", text)
-            return [(token, pos) for token, pos in tokens]
+            quoted_string = r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')"""
+            tokens = re.findall(
+                rf"\(\s*({quoted_string})\s*,\s*({quoted_string})\s*,?\s*\)", text
+            )
+            return [(token[1:-1], pos[1:-1]) for token, pos in tokens]
 
         def extract_pos_tags(result):
             pos_tags = []

@@ -10,6 +10,12 @@ Paper Link: https://aclanthology.org/2023.acl-long.609/
 
 HomePage: https://github.com/masakhane-io/masakhane-pos
 
+### Changelog
+
+* 2026-11-09 — Version 1.0 → 2.0: The POS filter accepts single- or double-quoted
+  token/tag pairs, escaped quotes, and whitespace around tuple fields. Previously,
+  these formatting differences could drop tags or produce an invalid response.
+
 ### Citation
 
 ```
