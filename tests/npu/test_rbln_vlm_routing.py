@@ -186,3 +186,40 @@ def test_think_end_token_postprocess(text, until, think, expected):
     from lm_eval.models.utils import postprocess_generated_text
 
     assert postprocess_generated_text(text, until, think) == expected
+
+
+@pytest.mark.parametrize(
+    "rbln_config, expected",
+    [
+        # decoder-only and Qwen-VL style: top level (the visual entry is ignored)
+        ({"max_seq_len": 262144, "visual": {"max_seq_lens": [16384]}}, 262144),
+        # gemma3 / pixtral / llava style composite
+        ({"vision_tower": {}, "language_model": {"max_seq_len": 131072}}, 131072),
+        ({"vision_model": {}, "text_model": {"max_seq_len": 131072}}, 131072),
+        ({"vlm": {"max_seq_len": 114688}}, 114688),
+        # attribute-style config objects (the loaded model's rbln_config)
+        (types.SimpleNamespace(max_seq_len=None, language_model=types.SimpleNamespace(max_seq_len=8192)), 8192),
+        ({"vlm": {}}, None),
+        (None, None),
+    ],
+)
+def test_compiled_max_seq_len(rbln_config, expected):
+    assert rbln.compiled_max_seq_len(rbln_config) == expected
+
+
+@pytest.mark.parametrize(
+    "explicit, compiled, config, expected",
+    [
+        (None, 262144, types.SimpleNamespace(text_config=types.SimpleNamespace(max_position_embeddings=262144)), 262144),
+        # composite VLM config without a compiled value: read text_config, not 2048
+        (None, None, types.SimpleNamespace(text_config=types.SimpleNamespace(max_position_embeddings=32768)), 32768),
+        (None, None, types.SimpleNamespace(max_position_embeddings=4096), 4096),
+        (None, None, types.SimpleNamespace(), 2048),
+        (1024, 262144, types.SimpleNamespace(), 1024),
+    ],
+)
+def test_max_length(explicit, compiled, config, expected):
+    lm = _lm(config)
+    lm._max_length = explicit
+    lm._compiled_max_seq_len = compiled
+    assert lm.max_length == expected

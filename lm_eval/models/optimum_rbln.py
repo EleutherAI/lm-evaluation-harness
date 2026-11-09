@@ -8,6 +8,7 @@ using the RBLN SDK.
 import copy
 import json
 import logging
+import os
 from typing import List, Optional, Union
 
 import jinja2
@@ -187,6 +188,43 @@ def _deep_merge_dict(base: dict, override: dict) -> dict:
     return result
 
 
+def _cfg_get(cfg, key):
+    return cfg.get(key) if isinstance(cfg, dict) else getattr(cfg, key, None)
+
+
+def compiled_max_seq_len(rbln_config) -> Optional[int]:
+    """``max_seq_len`` of a compiled RBLN artifact, or None.
+
+    Decoder-only builds keep it at the top level. Composite VLM builds keep it
+    under the language-model submodule (``language_model``, ``text_model`` or
+    ``vlm``); the vision encoder's own ``max_seq_len(s)`` is not the decoder
+    limit and is ignored.
+    """
+    if rbln_config is None:
+        return None
+    value = _cfg_get(rbln_config, "max_seq_len")
+    if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+        return value
+    for sub in ("language_model", "text_model", "vlm"):
+        sub_cfg = _cfg_get(rbln_config, sub)
+        if sub_cfg is not None:
+            value = compiled_max_seq_len(sub_cfg)
+            if value:
+                return value
+    return None
+
+
+def _read_rbln_config_json(pretrained) -> Optional[dict]:
+    path = os.path.join(str(pretrained), "rbln_config.json")
+    if not os.path.isfile(path):
+        return None
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
 @register_model("rbln")
 class RBLNLM(TemplateLM):
     """
@@ -278,6 +316,11 @@ class RBLNLM(TemplateLM):
         except Exception as e:
             print(f"ERROR: Failed to load {self.model_type} model on Rebellions NPU: {e}")
             raise
+
+        self._max_length = max_length
+        self._compiled_max_seq_len = compiled_max_seq_len(
+            getattr(self.model, "rbln_config", None)
+        ) or compiled_max_seq_len(_read_rbln_config_json(pretrained))
 
         self.truncation = truncation
         self.vocab_size = self.tokenizer.vocab_size
@@ -560,8 +603,23 @@ class RBLNLM(TemplateLM):
 
     @property
     def max_length(self):
-        # TODO: Get actual max length from model config
-        return getattr(self._config, "max_position_embeddings", 2048)
+        """Longest sequence the model accepts, prompt plus generated tokens.
+
+        An explicit ``max_length`` model arg wins. Otherwise the compiled
+        ``max_seq_len`` is the real NPU limit. Composite VLM configs keep
+        ``max_position_embeddings`` under ``text_config``, so without these the
+        old fallback of 2048 left-truncated long multimodal prompts through
+        their image tokens.
+        """
+        if self._max_length:
+            return int(self._max_length)
+        if self._compiled_max_seq_len:
+            return self._compiled_max_seq_len
+        for cfg in (self._config, getattr(self._config, "text_config", None)):
+            value = getattr(cfg, "max_position_embeddings", None)
+            if value:
+                return int(value)
+        return 2048
 
     @property
     def max_gen_toks(self) -> int:
