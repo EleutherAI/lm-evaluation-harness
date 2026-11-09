@@ -29,6 +29,18 @@ def test_long_cache_keys_are_hashed_below_filesystem_limit(tmp_path, monkeypatch
     assert cache.load_from_cache(cache_key, cache=True) == {"ok": True}
 
 
+def test_long_cache_keys_fit_windows_max_path(tmp_path, monkeypatch):
+    monkeypatch.setattr(cache, "PATH", str(tmp_path))
+    monkeypatch.setattr(cache, "IS_WINDOWS", True)
+
+    cache_key = "requests-" + "very-long-model-name/" * 30
+    cache.save_to_cache(cache_key, {"ok": True})
+
+    cache_file = os.path.join(tmp_path, os.listdir(tmp_path)[0])
+    assert len(os.path.abspath(cache_file)) < cache.WINDOWS_MAX_PATH_CHARS
+    assert cache.load_from_cache(cache_key, cache=True) == {"ok": True}
+
+
 def test_short_cache_keys_keep_readable_name(tmp_path, monkeypatch):
     monkeypatch.setattr(cache, "PATH", str(tmp_path))
 
