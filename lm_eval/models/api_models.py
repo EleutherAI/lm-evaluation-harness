@@ -282,7 +282,7 @@ class TemplateAPI(TemplateLM):
 
         if not self.tokenized_requests:
             # if messages are tokenized:
-            if isinstance(messages[0][0], int):
+            if isinstance(messages[0], list):
                 # assuming decoding is lossless. However, this is only for loglikelihood requests
                 # as we need to compute the context length. For generations, we don't need to tokenize.
                 messages = self.decode_batch(messages)
