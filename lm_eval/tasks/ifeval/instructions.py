@@ -788,7 +788,8 @@ class KeywordChecker(Instruction):
     def check_following(self, value):
         """Check if the response contain the expected keywords."""
         for keyword in self._keywords:
-            if not re.search(keyword, value, flags=re.IGNORECASE):
+            pattern = r"(?<!\w)" + re.escape(keyword) + r"(?:e?s)?(?!\w)"
+            if not re.search(pattern, value, flags=re.IGNORECASE):
                 return False
         return True
 
@@ -856,7 +857,8 @@ class KeywordFrequencyChecker(Instruction):
 
     def check_following(self, value):
         """Checks if the response contain the keyword with required frequency."""
-        actual_occurrences = len(re.findall(self._keyword, value, flags=re.IGNORECASE))
+        pattern = r"(?<!\w)" + re.escape(self._keyword) + r"(?:e?s)?(?!\w)"
+        actual_occurrences = len(re.findall(pattern, value, flags=re.IGNORECASE))
 
         if self._comparison_relation == _COMPARISON_RELATION[0]:
             return actual_occurrences < self._frequency
