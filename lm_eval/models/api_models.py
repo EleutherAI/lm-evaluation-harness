@@ -389,7 +389,10 @@ class TemplateAPI(TemplateLM):
                     return self.tokenizer.bos_token_id
                 return self.tokenizer.eos_token_id
             elif self.tokenizer_backend == "remote":
-                return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
+                bos_token_id = self.tokenizer.bos_token_id
+                if bos_token_id is not None:
+                    return bos_token_id
+                return self.tokenizer.eos_token_id
             else:
                 return self.tokenizer.eot_token
 
