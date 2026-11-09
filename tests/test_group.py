@@ -192,6 +192,34 @@ class TestGroupFilterDiscovery:
         discovered = group._discover_filters_for_metric("acc_norm", self.task_metrics)
         assert set(discovered) == {"none", "prefix", "custom"}
 
+    @pytest.mark.parametrize(
+        "filter_name",
+        [
+            "report_stderr",
+            "ignore_stderr_in_response",
+            "_stderr",
+            "none",
+            "stderr_filter",
+        ],
+    )
+    def test_discover_filters_preserves_stderr_in_filter_names(self, filter_name):
+        group = Group(name="test_group")
+        group.add(self.task_a)
+        group.add(self.task_b)
+        metrics = {
+            "task_a": {
+                f"acc,{filter_name}": 0.8,
+                f"acc_stderr,{filter_name}": 0.1,
+                "acc_stderr,error_only": 0.1,
+                "acc_norm,other_metric": 0.6,
+            },
+            "task_b": {f"acc,{filter_name}": 0.7, "acc,none": 0.9},
+        }
+
+        assert group._discover_filters_for_metric("acc", metrics) == sorted(
+            {filter_name, "none"}
+        )
+
 
 class TestGroupAggregation:
     """Tests for Group.aggregate() with filter auto-discovery."""
