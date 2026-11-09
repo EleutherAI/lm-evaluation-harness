@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,14 @@ _Base = (
     yaml.CSafeLoader if getattr(yaml, "__with_libyaml__", False) else yaml.FullLoader
 )
 _IGNORE_DIRS = {"__pycache__", ".ipynb_checkpoints"}
+
+
+class _FreshSourceFileLoader(SourceFileLoader):
+    """Compile current helper source without a timestamp-based bytecode cache."""
+
+    def get_code(self, fullname):
+        source_path = self.get_filename(fullname)
+        return self.source_to_code(self.get_data(source_path), source_path)
 
 
 def _mk_function_ctor(base_dir: Path, resolve: bool):
@@ -82,6 +91,10 @@ def _load_module_with_cache(module_path: Path) -> Any:
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Cannot load module from {module_path}") from None
+    if isinstance(spec.loader, SourceFileLoader):
+        spec.loader = _FreshSourceFileLoader(
+            module_name, spec.loader.get_filename(module_name)
+        )
     module = importlib.util.module_from_spec(spec)
     # Store mtime for future checks
     module.__mtime__ = module_path.stat().st_mtime_ns  # type: ignore
@@ -185,7 +198,7 @@ def load_yaml(
         cfg = yaml.load(fh, Loader=loader_cls)  # noqa: S506
 
     if not isinstance(cfg, dict):
-        raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")
+        raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")  # noqa: TRY004 - preserve the YAML error contract
 
     if not recursive or "include" not in cfg:
         return cfg
