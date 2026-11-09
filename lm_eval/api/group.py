@@ -174,11 +174,11 @@ class Group:
 
             for key in task_result.keys():
                 # Look for "metric,filter" keys (exclude stderr keys)
-                if key.startswith(prefix) and "_stderr" not in key:
+                if key.startswith(prefix):
                     filter_name = key[len(prefix) :]  # Extract filter part
                     discovered_filters.add(filter_name)
 
-        return sorted(list(discovered_filters))  # Sort for deterministic ordering
+        return sorted(discovered_filters)  # Sort for deterministic ordering
 
     def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
         """

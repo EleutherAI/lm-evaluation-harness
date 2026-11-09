@@ -112,6 +112,44 @@ def _make_acc(
 class TestTaskToGroupPipeline:
     """End-to-end: raw per-sample values flow through task agg into group agg."""
 
+    @pytest.mark.parametrize(
+        "filter_name", ["report_stderr", "ignore_stderr_in_response", "none"]
+    )
+    @pytest.mark.parametrize("weight_by_size", [True, False])
+    def test_auto_discovery_matches_explicit_filter_list(
+        self, filter_name, weight_by_size
+    ):
+        first = MockTask("first", agg={"acc": mean}, n_eval_docs=2)
+        second = MockTask("second", agg={"acc": mean}, n_eval_docs=4)
+        groups = {}
+        for name, filters in [("auto", None), ("explicit", [filter_name])]:
+            group = Group(
+                name=name,
+                aggregate_metric_list=[
+                    AggMetricConfig(
+                        metric="acc",
+                        filter_list=filters,
+                        weight_by_size=weight_by_size,
+                    )
+                ],
+            )
+            group.add(first)
+            group.add(second)
+            groups[name] = group
+        accumulator = {
+            "first": _make_acc(first, {("acc", filter_name): [1.0, 1.0]}),
+            "second": _make_acc(second, {("acc", filter_name): [0.0, 0.0, 0.0, 1.0]}),
+        }
+
+        result = _process_results(accumulator, groups=groups, bootstrap_iters=0)
+        expected = 0.5 if weight_by_size else 0.625
+        metric_key = f"acc,{filter_name}"
+        stderr_key = f"acc_stderr,{filter_name}"
+        assert result.metrics["explicit"][metric_key] == pytest.approx(expected)
+        assert result.metrics["auto"][metric_key] == pytest.approx(expected)
+        assert result.metrics["auto"][stderr_key] == "N/A"
+        assert result.metrics["auto"]["sample_count"][metric_key] == 6
+
     def test_single_task_single_group(self):
         """One task, one group — group metric == task metric."""
         task = MockTask("t1", agg={"acc": mean}, n_eval_docs=4)
