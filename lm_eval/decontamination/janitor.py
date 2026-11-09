@@ -2,7 +2,8 @@ import pickle
 import re
 import string
 import traceback
-from typing import Iterator, List, Sequence, Tuple, TypeVar
+from collections.abc import Iterator, Sequence
+from typing import TypeVar
 
 
 # This is a cpp module.
@@ -12,7 +13,7 @@ try:
     import janitor_util
 
     JANITOR_CPP = True
-except Exception:
+except Exception:  # noqa: BLE001 - preserve optional native extension fallback
     print("WARNING: C++ module could not be loaded. Janitor running in python mode")
     traceback.print_exc()
     JANITOR_CPP = False
@@ -22,7 +23,7 @@ T = TypeVar("T")
 
 # Implementation from nltk source
 # https://www.nltk.org/_modules/nltk/util.html
-def form_ngrams(sequence: Iterator[T], n: int) -> Iterator[Tuple[T, ...]]:
+def form_ngrams(sequence: Iterator[T], n: int) -> Iterator[tuple[T, ...]]:
     history = []
     while n > 1:
         # PEP 479, prevent RuntimeError from being raised when StopIteration bubbles out of generator
@@ -71,14 +72,14 @@ def word_ngrams(s: str, n: int) -> Iterator[str]:
 
 
 # https://stackoverflow.com/questions/13734451/string-split-with-indices-in-python
-def split_indices(s: str) -> Iterator[Tuple[str, Tuple[int, int]]]:
+def split_indices(s: str) -> Iterator[tuple[str, tuple[int, int]]]:
     """Splits a string on whitespaces and records the indices of each in the original string.
     @:return generator((word, (start_idx, end_idx)), ...)
     """
     return ((m.group(0), (m.start(), m.end() - 1)) for m in re.finditer(r"\S+", s))
 
 
-def word_ngrams_indices(s: str, n: int) -> Iterator[Tuple[str, Tuple[int, int]]]:
+def word_ngrams_indices(s: str, n: int) -> Iterator[tuple[str, tuple[int, int]]]:
     """Splits a string into pairs of (ngram words, their start/end indices)"""
     tokens_with_indices = split_indices(s)
 
@@ -96,7 +97,8 @@ def word_ngrams_indices(s: str, n: int) -> Iterator[Tuple[str, Tuple[int, int]]]
     #   ...
     # )
     ngram_indices_pairs = (
-        zip(*ngram_with_indices) for ngram_with_indices in ngram_seqs_with_indices
+        zip(*ngram_with_indices, strict=False)
+        for ngram_with_indices in ngram_seqs_with_indices
     )
 
     # Generator of ( (word_ngram, (start, end)), (word_ngram, start, end)), ...)
@@ -139,11 +141,11 @@ class Janitor:
 
     def save_contamination_ngrams(self, filename: str) -> None:
         with open(filename, "wb") as fp:
-            pickle.dump(filename, fp)
+            pickle.dump(self.dirt_ngrams, fp)
 
     def load_contamination_ngrams(self, filename: str) -> None:
         with open(filename, "rb") as fp:
-            self.dirt_ngrams = pickle.load(fp)
+            self.dirt_ngrams = pickle.load(fp)  # noqa: S301 - preserve existing set-file format
 
     ##############
     # Call these :)
@@ -151,17 +153,19 @@ class Janitor:
 
     def register_contaminant(self, dirt_string: str) -> None:
         """Register a string as contamination to be removed, e.g. a test set
-        This breaks the dirt_string into ngrams to store for future cleaning"""
+        This breaks the dirt_string into ngrams to store for future cleaning
+        """
         if JANITOR_CPP:
             return self.register_contaminant_cpp(dirt_string)
         else:
             print("WARNING: Janitor running in python mode")
             return self.register_contaminant_python(dirt_string)
 
-    def clean(self, dirty_string: str) -> List[str]:
+    def clean(self, dirty_string: str) -> list[str]:
         """Clean a string (e.g. a training set) by removing all ngrams previously
         registered as contaminants. Returns a list of clean chunks, or empty if
-        the string was too dirty"""
+        the string was too dirty
+        """
         if JANITOR_CPP:
             return self.clean_cpp(dirty_string)
         else:
@@ -169,12 +173,12 @@ class Janitor:
             return self.clean_python(dirty_string)
 
     def _split_chunks(
-        self, dirty_string: str, dirty_parts: Sequence[Tuple]
-    ) -> List[str]:
+        self, dirty_string: str, dirty_parts: Sequence[tuple]
+    ) -> list[str]:
         clean_chunks = []
         splice_idx = 0
         end = -1
-        for i, (ngram, start, end) in enumerate(dirty_parts):
+        for i, (_ngram, start, end) in enumerate(dirty_parts):
             if i >= self.too_dirty_cutoff:
                 return []
             start = max(0, start - self.window_to_remove)
@@ -198,7 +202,7 @@ class Janitor:
             janitor_util.clean_ngram(dirt_string, self.delete_chars, self.ngram_n)
         )
 
-    def clean_cpp(self, dirty_string: str) -> List[str]:
+    def clean_cpp(self, dirty_string: str) -> list[str]:
         contamination_indices = janitor_util.clean_ngram_with_indices(
             dirty_string, self.delete_chars, self.ngram_n
         )
@@ -216,7 +220,7 @@ class Janitor:
             word_ngrams(self.normalize_string(dirt_string), self.ngram_n)
         )
 
-    def clean_python(self, dirty_string: str) -> List[str]:
+    def clean_python(self, dirty_string: str) -> list[str]:
         contamination_indices = (
             (None, *idx_pair)
             for dirty_ngram, idx_pair in word_ngrams_indices(dirty_string, self.ngram_n)
