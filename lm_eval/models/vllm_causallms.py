@@ -180,16 +180,15 @@ class VLLM(TemplateLM):
             ),  # type :ignore[invalid-argument-type]
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
-        self.chat_template_args = chat_template_args or {}
+                self.chat_template_args = dict(chat_template_args) if chat_template_args else {}
         self.enable_thinking = self.chat_template_args.pop(
             "enable_thinking", enable_thinking
         )
 
-        self.enable_thinking = enable_thinking
-
-        if enable_thinking and think_end_token is None:
+        
+        if self.enable_thinking and think_end_token is None:
             raise ValueError(
-                f"Got {enable_thinking=}, but {think_end_token=}. think_end_token is required when using `enable_thinking=True`. Please provide it, and refer to https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md."
+                f"Got enable_thinking={self.enable_thinking}, but {think_end_token=}. think_end_token is required when using `enable_thinking=True`. Please provide it, and refer to https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md."
             )
 
         if parse_version(version("vllm")) >= parse_version("0.8.3") and hasattr(
