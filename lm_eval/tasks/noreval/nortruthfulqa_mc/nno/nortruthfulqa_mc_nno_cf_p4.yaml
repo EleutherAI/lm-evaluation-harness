@@ -1,0 +1,6 @@
+tag:
+  - nortruthfulqa_mc_nno
+  - nortruthfulqa_mc_nno_cf
+task: nortruthfulqa_mc_nno_cf_p4
+include: _nortruthfulqa_mc_nno_yaml
+doc_to_text: !function utils.cf_p4_nn

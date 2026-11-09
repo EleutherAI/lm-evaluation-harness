@@ -1,0 +1,7 @@
+tag:
+  - nrk_quiz_qa_nob
+  - nrk_quiz_qa_nob_hybrid
+task: nrk_quiz_qa_nob_hybrid_p0
+include: _nrk_quiz_qa_nob_yaml
+doc_to_text: !function utils.hybrid_p0_nb
+doc_to_choice: !function utils.choices_text

@@ -1,0 +1,7 @@
+tag:
+  - norec_sentence_nob
+  - norec_sentence_nob_cf
+task: norec_sentence_nob_cf_p1
+include: _norec_sentence_nob_yaml
+doc_to_text: "{{review}}\nHva er sentimentet i denne setningen?\nSvar:"
+doc_to_choice: !function utils.choices_negativ_positiv

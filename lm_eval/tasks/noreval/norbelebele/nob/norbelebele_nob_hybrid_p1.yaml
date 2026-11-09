@@ -1,0 +1,7 @@
+tag:
+  - norbelebele_nob
+  - norbelebele_nob_hybrid
+task: norbelebele_nob_hybrid_p1
+include: _norbelebele_nob_yaml
+doc_to_text: "Bakgrunn: {{flores_passage}}\nSpørsmål: {{question}}\nSvaralternativer:\n- {{mc_answer1}}\n- {{mc_answer2}}\n- {{mc_answer3}}\n- {{mc_answer4}}\nRiktig svar:"
+doc_to_choice: !function utils.choices_text

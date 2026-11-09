@@ -1,0 +1,7 @@
+tag:
+  - noropenbookqa_nno
+  - noropenbookqa_nno_cf
+task: noropenbookqa_nno_cf_p4
+include: _noropenbookqa_nno_yaml
+doc_to_text: "Ta utgangspunkt i følgande fakta når du svarar på spørsmålet: {{fact}}\n\n{{question_stem}}\n\nSvar:"
+doc_to_choice: !function utils.choices_text

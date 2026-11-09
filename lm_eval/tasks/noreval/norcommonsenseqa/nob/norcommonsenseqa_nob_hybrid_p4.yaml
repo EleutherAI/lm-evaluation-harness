@@ -1,0 +1,7 @@
+tag:
+  - norcommonsenseqa_nob
+  - norcommonsenseqa_nob_hybrid
+task: norcommonsenseqa_nob_hybrid_p4
+include: _norcommonsenseqa_nob_yaml
+doc_to_text: "{{question}}\n- {{choices.text[0]}}\n- {{choices.text[1]}}\n- {{choices.text[2]}}\n- {{choices.text[3]}}\n- {{choices.text[4]}}\n\nEr det riktige svaret {{choices.text[0]}}, {{choices.text[1]}}, {{choices.text[2]}}, {{choices.text[3]}} eller {{choices.text[4]}}?\n\nSvar:"
+doc_to_choice: !function utils.choices_text

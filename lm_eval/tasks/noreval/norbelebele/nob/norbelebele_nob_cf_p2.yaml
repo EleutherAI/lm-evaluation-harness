@@ -1,0 +1,7 @@
+tag:
+  - norbelebele_nob
+  - norbelebele_nob_cf
+task: norbelebele_nob_cf_p2
+include: _norbelebele_nob_yaml
+doc_to_text: "{{flores_passage}}\n{{question}}\nHva er riktig svar på spørsmålet?\nSvar:"
+doc_to_choice: !function utils.choices_text

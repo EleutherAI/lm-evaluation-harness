@@ -9,6 +9,7 @@ import pandas as pd
 def parse_args():
     """
     Parses arguments.
+
     Returns:
         Arguments containing the names of the prediction file and the file directory to for saving the evaluation results.
     """
@@ -30,14 +31,16 @@ def parse_args():
 def read_examples(fpath: str):
     """
     Reads examples from the prediction file.
+
     Args:
         fpath: A path to the prediction file.
+
     Returns:
         Lists of the sources, targets, and predictions.
     """
     examples = pd.read_json(fpath, lines=True)
     sources, targets, predictions = [], [], []
-    for i, example in examples.iterrows():
+    for _, example in examples.iterrows():
         sources.append(example["doc"]["source"])
         targets.append(example["doc"]["correction"])
         predictions.append(example["resps"][0][0].replace("\n\n", "\n"))
@@ -47,6 +50,7 @@ def read_examples(fpath: str):
 def save_results(fpath: str, obj: dict):
     """
     Saves the evaluation results.
+
     Args:
         fpath: A path for the output file for saving the results.
         obj: The evaluation results.
@@ -58,6 +62,7 @@ def save_results(fpath: str, obj: dict):
 def evaluate(fpath: str, out_fpath: str):
     """
     Runs the evaluation based on the ERRANT performance metric.
+
     Args:
         fpath: A path to the prediction file.
         out_Fpath: A path for the output file for saving the results.
@@ -66,20 +71,20 @@ def evaluate(fpath: str, out_fpath: str):
     os.makedirs("tmp", exist_ok=True)
     sources, targets, predictions = read_examples(fpath=fpath)
     with open(f"tmp/{tmp_name}_sources.txt", "w+") as f:
-        f.write("\n".join(sources))
+        f.write("\n".join(sources) + "\n")
     with open(f"tmp/{tmp_name}_targets.txt", "w+") as f:
-        f.write("\n".join(targets))
+        f.write("\n".join(targets) + "\n")
     with open(f"tmp/{tmp_name}_predictions.txt", "w+") as f:
-        f.write("\n".join(predictions))
-    subprocess.run(
+        f.write("\n".join(predictions) + "\n")
+    subprocess.run(  # noqa: S602, PLW1510
         f"errant_parallel -orig tmp/{tmp_name}_sources.txt -cor tmp/{tmp_name}_targets.txt -out tmp/{tmp_name}_targets.m2 -lev -tok",
         shell=True,
     )
-    subprocess.run(
+    subprocess.run(  # noqa: S602, PLW1510
         f"errant_parallel -orig tmp/{tmp_name}_sources.txt -cor tmp/{tmp_name}_predictions.txt -out tmp/{tmp_name}_predictions.m2 -lev -tok",
         shell=True,
     )
-    output = subprocess.check_output(
+    output = subprocess.check_output(  # noqa: S602
         f"errant_compare -ref tmp/{tmp_name}_targets.m2 -hyp tmp/{tmp_name}_predictions.m2",
         shell=True,
     )
@@ -87,7 +92,7 @@ def evaluate(fpath: str, out_fpath: str):
     print(f"Prediction fpath: {fpath}\n\nERRANT: {f_05}", flush=True)
     print(f"Saving to: {out_fpath}", flush=True)
     save_results(obj={"errant": f_05}, fpath=out_fpath)
-    subprocess.run(f"rm tmp/{tmp_name}_*", shell=True)
+    subprocess.run(f"rm tmp/{tmp_name}_*", shell=True, check=False)  # noqa: S602
 
 
 def main():

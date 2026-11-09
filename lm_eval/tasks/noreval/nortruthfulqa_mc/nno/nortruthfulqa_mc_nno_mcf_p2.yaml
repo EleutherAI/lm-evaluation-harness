@@ -1,0 +1,8 @@
+tag:
+  - nortruthfulqa_mc_nno
+  - nortruthfulqa_mc_nno_mcf
+task: nortruthfulqa_mc_nno_mcf_p2
+include: _nortruthfulqa_mc_nno_yaml
+doc_to_text: !function utils.mcf_p2_nn
+doc_to_choice: !function utils.mcf_labels_nn
+process_results: !function utils.process_results_mcf

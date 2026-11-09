@@ -1,0 +1,3 @@
+task: translation_nno_eng_p3
+include: _translation_nno_eng_yaml
+doc_to_text: "Kva blir \"{{targetString}}\" på engelsk?\nEngelsk:"

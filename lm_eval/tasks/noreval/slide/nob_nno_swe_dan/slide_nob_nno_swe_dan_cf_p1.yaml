@@ -1,0 +1,7 @@
+tag:
+  - slide_nob_nno_swe_dan
+  - slide_nob_nno_swe_dan_cf
+task: slide_nob_nno_swe_dan_cf_p1
+include: _slide_nob_nno_swe_dan_yaml
+doc_to_text: "Tekst: {{text}}\nHvilket språk er teksten skrevet på?\n\nSvar:"
+doc_to_choice: !function utils.choices_words

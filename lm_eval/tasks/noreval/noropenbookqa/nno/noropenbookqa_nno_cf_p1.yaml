@@ -1,0 +1,7 @@
+tag:
+  - noropenbookqa_nno
+  - noropenbookqa_nno_cf
+task: noropenbookqa_nno_cf_p1
+include: _noropenbookqa_nno_yaml
+doc_to_text: "Faktatekst: {{fact}}\nSpørsmål til teksten: {{question_stem}}\n\nKva er rett svar?"
+doc_to_choice: !function utils.choices_text
