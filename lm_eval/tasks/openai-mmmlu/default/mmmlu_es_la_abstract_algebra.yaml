@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ES_LA"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_es_la_stem_tasks"
+"task": "mmmlu_es_la_abstract_algebra"
+"task_alias": "abstract algebra (Spanish)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (Spanish).\n\n"

@@ -1,0 +1,6 @@
+"dataset_name": "trade"
+"description": "以下為貿易的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_other_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_trade"
+"task_alias": "trade"

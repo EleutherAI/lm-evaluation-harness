@@ -1,0 +1,9 @@
+description: 'Hier is ''n multikeusevraag oor Fisika (met antwoorde). Dink asseblief
+  stap vir stap en eindig jou antwoord met "Die antwoord is (X)", waar X die letter
+  van die korrekte opsie is.
+
+  '
+include: _af_lite_template_yaml
+task: mmlu_prox_lite_af_physics
+task_alias: physics
+process_docs: !function utils.process_physics

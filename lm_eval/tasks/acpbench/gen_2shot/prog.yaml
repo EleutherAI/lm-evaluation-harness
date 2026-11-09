@@ -1,0 +1,20 @@
+task: acp_prog_gen
+dataset_name: acp_prog_gen
+include: _gen_yaml_2shot
+fewshot_config:
+  sampler: first_n
+  samples:
+  - context: "A robot is in a grid and can only move to places that are connected to its current position. \nThe grid size is 5x5, and the locations are of the form fi-jf (e.g., f3-2f or f0-1f). The grid cells are connected to their neighbors (e.g., f1-2f is connected to the four neighbors f0-2f, f2-2f, f1-1f, and f1-3f). Some positions on the grid are locked and can be opened with a key of a matching shape. The robot has an arm that can pick up a key when the key is in same location as the robot and the arm is empty.  \nThere are 2 keys in 0 different shapes: Key key0-0 is of shape shape0, Key key0-1 is of shape shape0.  \nCurrently, the robot is at position f0-1f and its arm is empty. All the positions are open except the following: f4-2f has shape0 shaped lock. Key key0-1 is at position f1-3f. Key key0-0 is at position f0-1f. The available propositions are: (at ?r ?x) - Key ?r is at ?x location, (at-robot ?x) - Robot is at ?x location, (locked ?x) - Location ?x is locked, (holding ?k) - Robot is holding ?k, (open ?x) - Location ?x is open, and (arm-empty) - Robot's arm is empty."
+    question: "Break down the outcomes of performing the action \"retrieve the key key0-0 from its current position f0-1f\" into two lists, positive effects and negative effects. Positive effects are the propositions that are false in the current state but will become true after performing the action. Negative effects are the propositions that are true in the current state and will become false after performing the action."
+    answer: "[(holding key0-0)] [(arm-empty), (at key0-0 f0-1f)]"
+  - context: "There are several cities, each containing several locations, some of which are airports. There are also trucks, which can drive within a single city, and airplanes, which can fly between airports. The goal is to get some packages from various locations to various new locations. There are 2 trucks and 1 airplane, as well as 4 packages. There are 4 locations across 2 cities. The locations are in cities as follows: l1-1 and l1-0 are in c1; l0-1 and l0-0 are in c0. Currently, p2, t1, p1, p3, a0, and p0 are at l1-0, t0 is at l0-1. The available propositions are: (at ?obj ?loc) - ?obj is at ?loc and (in ?obj1 ?obj2) - ?obj1 is in ?obj2."
+    question: "Break down the outcomes of performing the action \"load object p3 into truck t1 at location l1-0\" into two lists, positive effects and negative effects. Positive effects are the propositions that are false in the current state but will become true after performing the action. Negative effects are the propositions that are true in the current state and will become false after performing the action."
+    answer: "[(in p3 t1)] [(at p3 l1-0)]"
+doc_to_text: "**Question**: {{context}} {{question}} Provide only the two lists with the ground propositions. **Final Answer**:"
+filter_list:
+  - name: "acp_grammar_parse"
+    filter:
+      - function: "ACP_grammar_filter"
+        grammar_task: "progression_list"
+        clean: "pos_neg"
+      - function: "take_first"

@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Un salario minimo effettivo imposto a questo mercato del lavoro.
+      B: Un aumento del prezzo dei litri di vernice.
+      C: Un aumento nella costruzione di nuove case.
+      D: "Un aumento del prezzo dei verniciatori meccanici finch\xE9 l\u2019effetto\
+        \ produzione supera l\u2019effetto sostituzione."
+    input_correct_responses:
+    - C
+    input_question: In un mercato del lavoro competitivo per gli imbianchini, quale
+      dei seguenti fattori aumenterebbe la domanda di imbianchini?
+  - input_choice_list:
+      A: "la domanda del prodotto aumenter\xE0"
+      B: "la domanda del prodotto diminuir\xE0"
+      C: "il surplus del consumatore aumenter\xE0"
+      D: "il surplus del consumatore diminuir\xE0"
+    input_correct_responses:
+    - C
+    input_question: Se il governo sovvenziona i produttori in un mercato perfettamente
+      competitivo, allora
+  - input_choice_list:
+      A: '0'
+      B: '5'
+      C: '10'
+      D: '100'
+    input_correct_responses:
+    - D
+    input_question: "Il rapporto di concentrazione per un monopolio \xE8"
+  - input_choice_list:
+      A: Il prezzo minimo sposta la curva di domanda verso sinistra.
+      B: Un pavimento efficace crea una carenza di bene.
+      C: Il prezzo minimo sposta la curva di offerta del bene verso destra.
+      D: Per essere un livello efficace, deve essere fissato al di sopra del prezzo
+        di equilibrio.
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti affermazioni \xE8 vera riguardo al prezzo\
+      \ minimo?"
+  - input_choice_list:
+      A: Libera entrata e uscita dal mercato
+      B: Pochi grandi produttori
+      C: Un produttore di un bene senza sostituti prossimi
+      D: Un prodotto omogeneo
+    input_correct_responses:
+    - B
+    input_question: "Quale delle seguenti \xE8 necessariamente una caratteristica\
+      \ dell&#39;oligopolio?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_microeconomics
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_high_school_microeconomics
+task_alias: high_school_microeconomics

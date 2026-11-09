@@ -1,0 +1,6 @@
+"dataset_name": "human_sexuality"
+"description": "The following are questions (with answers) about human\
+  \ sexuality.\n\n"
+"tag": "mmlu_social_sciences_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_human_sexuality_continuation"

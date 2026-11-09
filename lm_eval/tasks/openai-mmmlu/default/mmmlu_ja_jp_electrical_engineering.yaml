@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "JA_JP"
+process_docs: !function utils.process_electrical_engineering
+"tag": "mmmlu_ja_jp_stem_tasks"
+"task": "mmmlu_ja_jp_electrical_engineering"
+"task_alias": "electrical engineering (Japanese)"
+"description": "The following are multiple choice questions (with answers) about electrical engineering (Japanese).\n\n"

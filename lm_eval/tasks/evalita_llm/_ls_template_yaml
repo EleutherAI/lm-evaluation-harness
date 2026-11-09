@@ -1,0 +1,16 @@
+dataset_path: evalitahf/lexical_substitution
+test_split: test
+validation_split: dev
+fewshot_split: dev
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "</s>"
+doc_to_target: !function utils.ls_doc_to_target
+process_results: !function utils.ls_process_results
+metric_list:
+  - metric: f1
+    higher_is_better: True
+    aggregation: !function metrics._aggreg_ls
+metadata:
+  version: 1

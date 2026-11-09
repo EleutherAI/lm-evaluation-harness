@@ -1,0 +1,20 @@
+# Base configuration for include walkthrough tests
+# This will be included by other configs to demonstrate inheritance
+
+task: base_task # This should be overridden by including configs
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: tests/test_configs/test_data.json
+output_type: multiple_choice
+doc_to_text: "{{question}}"
+doc_to_target: "{{choices[answer]}}"
+test_split: test
+num_fewshot: 0 # Default, can be overridden
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  description: "Base config for include demonstration"

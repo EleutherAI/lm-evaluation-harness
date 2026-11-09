@@ -1,0 +1,5 @@
+dataset_name: zho_Hans
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_zho_Hans
+test_split: test

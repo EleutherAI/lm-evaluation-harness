@@ -1,0 +1,4 @@
+"dataset_name": "Physics"
+"description": "قم بالإجابة على مايلي في مجال الفيزياء \n\n"
+"include": "_default_template_yaml"
+"task": "aexams_Physics"

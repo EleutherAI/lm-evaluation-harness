@@ -1,0 +1,12 @@
+"dataset_kwargs":
+  "data_files":
+    "train": "question_and_answer_dev/question_and_answer_astronomy_dev.csv"
+    "test": "question_and_answer_test/question_and_answer_astronomy_test.csv"
+  "column_names": ["question", "choice1", "choice2", "choice3", "choice4", "answer"]
+  "header": null
+"description": "The following are multiple choice questions (with answers) about astronomy.\n\
+  \n"
+"tag": "mmlusr_question_and_answer_stem_tasks"
+"include": "_mmlusr_qna_yml"
+"task": "mmlusr_question_and_answer_astronomy"
+"task_alias": "astronomy"

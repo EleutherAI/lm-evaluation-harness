@@ -1,0 +1,74 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_mathematics
+description:
+  "Soru: 3 farklı fizik ve 4 farklı kimya kitabı sıra halinde bir rafa dizilecektir. Fizik veya kimya kitaplarının\
+  \ birbirinden ayrılmaması koşuluyla bu kitaplar kaç farklı şekilde dizilebilir\nA) 7.3!.4! \nB) 3.3!.4!\nC) 5.3!.4!\nD)\
+  \ 6.3!.4!\nE) 2!.3!.4!\nÇözüm: Adım adım düşünelim.
+  \ Bu tür soruları çözerken, ilgili koşulları adım adım inceleyerek ilerlemek önemlidir. Bu\
+  \ problemde iki önemli koşul var: fizik kitaplarının birbirinden ayrılmaması ve kimya\
+  \ kitaplarının birbirinden ayrılmaması gerekmektedir. 1. Adım: Fizik ve kimya kitapları kendi arasında ayrılmaması gerektiği için, tüm fizik\
+  \ kitaplarını tek bir grup olarak ve tüm kimya kitaplarını da tek bir grup olarak\
+  \ düşünebiliriz. Bu durumda, sadece iki grup olduğu için bu iki grubu sıra halinde\
+  \ dizmenin 2! farklı yolu vardır. 2. Adım: Fizik kitapları kendi içinde sıralanabilir. 3 farklı fizik kitabı olduğu için, bu\
+  \ kitapları sıralamanın 3! farklı yolu vardır. 3. Adım: Kimya kitapları kendi içinde sıralanabilir. 4 farklı kimya kitabı olduğu için, bu\
+  \ kitapları sıralamanın 4! farklı yolu vardır. 4. Adım: Bu durumda, tüm durumların toplam sayısını bulmak için bu\
+  \ kombinasyonların çarpımını alırız: 2! . 3! . 4!.\
+  \ Doğru cevap E şıkkıdır.\n\nSoru: $(p \\land q')' \\Rightarrow p$ koşullu önermesinin\
+  \ karşıtı aşağıdakilerden hangisidir?\nA) $p \\Rightarrow (p \\Rightarrow q)$\nB) $p \\Rightarrow (p \\land q')$\nC)\
+  \ $p' \\Rightarrow q$\nD) $q' \\lor p$\nE) $p' \\lor (q \\Rightarrow p)$\nÇözüm: Adım adım düşünelim.\
+  \ Verilen koşullu önermenin karşıtını bulmak için, öncelikle verilen koşullu önermeyi ve\
+  \ karşıtını gözden geçirelim.\
+  \ Verilen koşullu önerme: $(p \\land q')' \\Rightarrow p$\
+  \  Bir koşullu önermenin karşıtını bulmak için, koşullu önermenin solundaki ifade (hipotez) ile\
+  \ sağdaki ifade (sonuç) yer değiştirilmelidir. Buna göre, verilen önermenin karşıtı:\
+  \ $p \\Rightarrow (p \\land q')'$\
+  \ $(p \\land q')'$ ifadesini açalım:\
+  \ $(p \\land q')' = p' \\lor q$\
+  \ $(p \\land q')' = $p \\Rightarrow q$\
+  \ Bu durumda, verilen koşullu önermenin karşıtı: $p \\Rightarrow (p \\land q')'$\
+  \ $p \\Rightarrow (p \\Rightarrow q)$ şeklinde de ifade edilebilir. \
+  \ Doğru cevap A şıkkıdır.\n\nSoru: A oto kiralama firması kiralanacak bir araç için sabit 200 TL\
+  \ ve her bir kilometre için 20 kuruş almaktadır. B oto kiralama firması ise kiralanacak bir araç için sabit 140 TL ve her bir kilometre için 25 kuruş almaktadır.\
+  \ Buna göre kiralanan birer araçla kaç kilometre yol gidilirse iki firmaya da ödenecek ücret birbirine eşit olur\nA) 1150\nB)\
+  \ 1200\nC) 1250\nD) 1300\nE) 1350\nÇözüm: Adım adım düşünelim. A ve B firmalarının uyguladığı ücret planını bir denklemle ifade edebiliriz.\
+  \ A firması için toplam maliyet: 200 + 0.20k TL ('k' kilometre için)\
+  \ B firması için toplam maliyet: 140 + 0.25k TL\
+  \ Bu iki firmaya ödenecek ücretin birbirine eşit olduğu durumu bulmak için bu iki ifadeyi birbirine eşitleriz:\
+  \ 200 + 0.20k = 140 + 0.25k\
+  \ Bu denklemi çözmek için öncelikle her iki tarafından da '140' çıkarırız ve '0.20k' sapmasını bir tarafa alırız:\
+  \ 60 = 0.05k\
+  \ Buradan 'k' değerini bulmak için:\
+  \ k = 60/0.05 = 1200\
+  \ Yani, araçlarla 1200 kilometre yol gidildiğinde iki firmaya da ödenecek ücret birbirine eşit olur.\
+  \ Bu nedenle doğru seçenek B: 1200 olacaktır. Doğru cevap B şıkkıdır.\n\nSoru:\
+  \ Merkezinin koordinatları M(-1,2) ve yarıçap uzunluğu r=3 birim olan çemberin standart denklemi\
+  \ aşağıdakilerden hangisidir?\nA) $\\(\\mathrm{\\left( x-1\\right) ^{2}+\\left( y-2\\right) ^{2}=9}\\)$\nB)\
+  \ $\\(\\mathrm{\\left( x-1\\right) ^{2}-\\left( y-2\\right) ^{2}=9}\\)$\nC)\
+  \ $\\(\\mathrm{\\left( x+1\\right) ^{2}+\\left( y-2\\right) ^{2}=9}\\)$\nD)\
+  \ $\\(\\mathrm{\\left( x+1\\right) ^{2}+\\left( y+2\\right) ^{2}=9}\\)$\nE)\
+  \ $\\(\\mathrm{\\left( x+1\\right) ^{2}-\\left( y+2\\right) ^{2}=9}\\)$\nÇözüm: Adım adım düşünelim.\
+  \ Çemberin standart denklemi $(x - h)^2 + (y - k)^2 = r^2$ şeklinde ifade edilir, burada\
+  \ $(h, k)$ çemberin merkezinin koordinatlarıdır ve $r$ çemberin yarıçapıdır.\
+  \ Verilen soruda, çemberin merkezi $M(-1,2)$ ve yarıçapının uzunluğu $r=3$ birim\
+  \ olarak belirtilmiştir. Bu değerleri standart denklemde yerine koyalım:\
+  \ Merkez $(-1, 2)$ olduğu için, $h = -1$ ve $k = 2$ olur. Yarıçap $r = 3$ birimi olduğu\
+  \ için denklem $r^2 = 9$ şekline dönüşür.\
+  \ Bunu denkleme yerleştirirsek:\
+  \ $(x - (-1))^2 + (y - 2)^2 = 3^2$.\
+  \ Bu da şu şekilde basitleştirilir:\
+  \ $(x + 1)^2 + (y - 2)^2 = 9$.\
+  \ Doğru cevap C şıkkıdır.\n\nSoru:\
+  \ $\\(\\large| -8-1\\large| +\\large|-1+6\\large| -\\large|4\\large|\\)$ işleminin sonucu kaçtır?\nA) 2\nB)\
+  \ 4\nC) 9\nD) 10\nE) 18\nÇözüm: Adım adım düşünelim.\
+  \ Mutlak değer ifadesindeki sayı negatif olsa dahi sonuç pozitif olacaktır. Soruda\
+  \ verilen ifadeyi adım adım çözeceğiz:\
+  \ $\\large| -8 - 1\\large| + \\large| -1 + 6\\large| - \\large| 4\\large|$\
+  \ İlk adımda her bir mutlak değer içindeki işlemi yapalım:\
+  \ - $\\large| -8 - 1\\large| = \\large| -9\\large| = 9$ (Mutlak değer içindeki sonuç her\
+  \ zaman pozitiftir.)\
+  \ - $\\large| -1 + 6\\large| = \\large| 5\\large| = 5$.\
+  \ - $\\large| 4\\large| = 4$.\
+  \ Böylece ifade şu şekle dönüşür: $9 + 5 - 4$. Sonuç: $9 + 5 - 4 = 10$\
+  \ Bu nedenle işlemin sonucu 10'dur. Doğru cevap D şıkkıdır.\n\n"
+num_fewshot: 0
+dataset_name: Mathematics

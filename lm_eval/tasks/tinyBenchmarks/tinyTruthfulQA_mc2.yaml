@@ -1,0 +1,13 @@
+include: tinyTruthfulQA_mc1.yaml
+task: tinyTruthfulQA
+doc_to_target: 0
+doc_to_choice: "{{mc2_targets.choices}}"
+process_results: !function utils_truthfulqa.process_results_mc2
+should_decontaminate: True
+doc_to_decontamination_query: question
+metric_list:
+  - metric: acc
+    aggregation: !function agg_functions.agg_gpirt_truthfulqa
+    higher_is_better: true
+metadata:
+  version: 0.0

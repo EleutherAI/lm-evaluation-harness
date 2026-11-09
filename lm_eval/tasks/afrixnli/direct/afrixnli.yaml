@@ -1,0 +1,13 @@
+group: afrixnli-irokobench
+task:
+  - afrixnli_tasks_prompt_1
+  - afrixnli_tasks_prompt_2
+  - afrixnli_tasks_prompt_3
+  - afrixnli_tasks_prompt_4
+  - afrixnli_tasks_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 2

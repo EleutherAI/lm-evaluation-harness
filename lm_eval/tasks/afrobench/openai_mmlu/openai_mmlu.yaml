@@ -1,0 +1,13 @@
+group: openai_mmlu
+task:
+  - openai_mmlu_prompt_1
+  - openai_mmlu_prompt_2
+  - openai_mmlu_prompt_3
+  - openai_mmlu_prompt_4
+  - openai_mmlu_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

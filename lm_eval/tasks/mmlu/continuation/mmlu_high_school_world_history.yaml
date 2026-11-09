@@ -1,0 +1,6 @@
+"dataset_name": "high_school_world_history"
+"description": "The following are questions (with answers) about high\
+  \ school world history.\n\n"
+"tag": "mmlu_humanities_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_high_school_world_history_continuation"

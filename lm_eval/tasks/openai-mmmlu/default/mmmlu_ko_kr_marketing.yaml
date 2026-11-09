@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_marketing
+"tag": "mmmlu_ko_kr_other_tasks"
+"task": "mmmlu_ko_kr_marketing"
+"task_alias": "marketing (Korean)"
+"description": "The following are multiple choice questions (with answers) about marketing (Korean).\n\n"

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_global_facts
+"tag": "mmmlu_pt_br_other_tasks"
+"task": "mmmlu_pt_br_global_facts"
+"task_alias": "global facts (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about global facts (Brazilian Portuguese).\n\n"

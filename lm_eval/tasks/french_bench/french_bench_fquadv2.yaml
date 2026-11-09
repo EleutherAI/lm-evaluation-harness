@@ -1,0 +1,29 @@
+include: "_default_template_yaml"
+tag:
+  - french_bench
+  - french_bench_extra
+description: "D'après l'information dans le contexte donné, donne la réponse à la question en citant quelques mots du contexte. Si il est impossible de répondre avec les informations du contexte, répond 'Impossible'."
+task: french_bench_fquadv2
+dataset_path: manu/fquad2_test
+output_type: generate_until
+validation_split: valid
+doc_to_text: "\nContexte: {{context}}\n\nQuestion: {{question}}\n\nRéponse:"
+doc_to_target: "{% if answers.text| length > 0 %}{{answers.text[0]}}{% else %}{{['Impossible']}}{% endif %}"
+target_delimiter: " "
+should_decontaminate: true
+doc_to_decontamination_query: context
+generation_kwargs:
+  until:
+    - "\n"
+# filter_list:
+#   - name: remove_whitespace
+#     filter:
+#       - function: remove_whitespace
+#       - function: take_first
+metric_list:
+  - metric: !function utils.exact
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.f1
+    aggregation: mean
+    higher_is_better: true

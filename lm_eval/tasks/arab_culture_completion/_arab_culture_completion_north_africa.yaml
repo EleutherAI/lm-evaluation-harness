@@ -1,0 +1,10 @@
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true
+group: arab_culture_completion_north_africa
+group_alias: North Africa
+metadata:
+    description: arab Culture tasks
+    version: 0
+task:
+- arab_culture_completion_north_africa_tasks

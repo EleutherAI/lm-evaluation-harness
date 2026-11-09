@@ -1,0 +1,3 @@
+dataset_name: lm_syneval__agreement__obj_rel_within_anim__plur_ES_EV_sing_MS_MV
+include: _template_yaml
+task: lm_syneval__agreement__obj_rel_within_anim__plur_ES_EV_sing_MS_MV

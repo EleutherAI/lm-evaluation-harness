@@ -1,0 +1,3 @@
+task: translation_eng_nno_p1
+include: _translation_eng_nno_yaml
+doc_to_text: "Omsett følgande setning til nynorsk: {{sourceString}}\nNynorsk:"

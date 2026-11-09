@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_human_sexuality
+"tag": "mmmlu_bn_bd_social_sciences_tasks"
+"task": "mmmlu_bn_bd_human_sexuality"
+"task_alias": "human sexuality (Bengali)"
+"description": "The following are multiple choice questions (with answers) about human sexuality (Bengali).\n\n"

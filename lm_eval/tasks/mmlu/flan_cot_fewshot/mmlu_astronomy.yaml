@@ -1,0 +1,70 @@
+dataset_name: astronomy
+description: The following are multiple choice questions (with answers) about astronomy.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Where do most short-period comets come from and how do we know?
+
+      (A) The Kuiper belt; short period comets tend to be in the plane of the solar
+      system just like the Kuiper belt. (B) The Kuiper belt; short period comets tend
+      to come from random directions indicating a spherical distribution of comets
+      called the Kuiper belt. (C) The asteroid belt; short period comets have orbital
+      periods similar to asteroids like Vesta and are found in the plane of the solar
+      system just like the asteroid belt. (D) The Oort cloud; short period comets
+      tend to be in the plane of the solar system just like the Oort cloud.'
+    target: Let's think step by step. Most short-period comets come from the Kuiper
+      belt, and we know because short period coments tend to be in the plane of the
+      solar system, just like the Kuiper belt is. The answer is (A).
+  - question: 'You are pushing a truck along a road. Would it be easier to accelerate
+      this truck on Mars? Why? (Assume there is no friction)
+
+      (A) It would be harder since the truck is heavier on Mars. (B) It would be easier
+      since the truck is lighter on Mars. (C) It would be harder since the truck is
+      lighter on Mars. (D) It would be the same no matter where you are.'
+    target: "Let's think step by step. If we assume that there is no friction, the\
+      \ force needed to accelerate the truck is by Newton\u2019s second law only dependent\
+      \ on the mass of the truck. Hence (A), (B) and (C) are incorrect since it doesn\u2019\
+      t matter that it\u2019s on Mars, and (D) is the correct answer. The answer is\
+      \ (D)."
+  - question: 'Say the pupil of your eye has a diameter of 5 mm and you have a telescope
+      with an aperture of 50 cm. How much more light can the telescope gather than
+      your eye?
+
+      (A) 10000 times more (B) 100 times more (C) 1000 times more (D) 10 times more'
+    target: Let's think step by step. The amount of light is proportional to the aperture
+      area $A = \pi D^2/4$ for a lens with diameter $D$, so the relative amounts of
+      light between the eye with diameter 5mm and the telescope with diameter 50mm
+      is $(50 cm)^2/(5mm)^2 = 10000$. The answer is (A).
+  - question: 'Why isn''t there a planet where the asteroid belt is located?
+
+      (A) A planet once formed here but it was broken apart by a catastrophic collision.
+      (B) There was not enough material in this part of the solar nebula to form a
+      planet. (C) There was too much rocky material to form a terrestrial planet but
+      not enough gaseous material to form a jovian planet. (D) Resonance with Jupiter
+      prevented material from collecting together to form a planet.'
+    target: "Let's think step by step. The asteroid belt is a stellar disc consisting\
+      \ of a large number of asteroids between Mars and Jupiter's orbits. The asteroids\
+      \ in this belt are affected by the gravitational pull from both other asteroids\
+      \ and nearby planets. Due to the strong gravitational force of Jupiter there\
+      \ are resonances that give rise to low density regions of asteroids known as\
+      \ the Kirkwood gap. So (B) and (C) are not correct since it\u2019s not a lack\
+      \ of material that prevents a planet from being formed, and (A) is incorrect\
+      \ because the Kirkwood gap would have prevented a planet from forming in the\
+      \ first place, and (D) is the correct option. The answer is (D)."
+  - question: 'Why is Mars red?
+
+      (A) Because the surface is covered with heavily oxidized ("rusted") minerals.
+      (B) Because the atmosphere scatters more light at bluer wavelengths transmitting
+      mostly red light. (C) Because Mars is covered with ancient lava flows which
+      are red in color. (D) Because flowing water on Mars''s surface altered the surface
+      minerals several billion years ago.'
+    target: 'Let''s think step by step. Option (B) is not correct because if the red
+      color was caused by the scattering off the atmosphere, then the earth with a
+      much thicker atmosphere would also look red. Options (C) and (D) are not specific
+      enough about why the color of the surface would be red, while (A) is correct
+      because it explains that the surface is red due to the rusted materials on the
+      surface and the red color comes from the rust. So the correct option is (A).
+      The answer is (A).'
+tag: mmlu_flan_cot_fewshot_stem
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_astronomy

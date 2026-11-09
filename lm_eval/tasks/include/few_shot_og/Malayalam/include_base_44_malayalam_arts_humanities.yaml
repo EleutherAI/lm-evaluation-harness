@@ -1,0 +1,5 @@
+include: _malayalam_few_shot_og_template_yaml
+description: ഇനിപ്പറയുന്നവ Arts & Humanities നെക്കുറിച്ചുള്ള മൾട്ടിപ്പിൾ ചോയ്‌സ് ചോദ്യങ്ങളാണ്
+  (ഉത്തരങ്ങളോടെ).
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_malayalam_few_shot_og_arts_humanities

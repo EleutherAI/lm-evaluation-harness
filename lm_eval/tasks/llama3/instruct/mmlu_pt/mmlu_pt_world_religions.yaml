@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "O arco-\xEDris"
+      B: "Circuncis\xE3o"
+      C: Um filho
+      D: Bar Mitzvah
+    input_correct_responses:
+    - B
+    input_question: "Qual \xE9 o sinal da alian\xE7a para os homens judeus?"
+  - input_choice_list:
+      A: O Dharma
+      B: A Sanga
+      C: O Buda
+      D: O Bodisatva
+    input_correct_responses:
+    - A
+    input_question: "Qual \xE9 a segunda joia do budismo?"
+  - input_choice_list:
+      A: Shang
+      B: Zhou
+      C: Han
+      D: Xia
+    input_correct_responses:
+    - B
+    input_question: "Em que dinastia foi desenvolvido o \u201CMandato do C\xE9u\u201D\
+      \ para legitimar os novos governantes?"
+  - input_choice_list:
+      A: Honen
+      B: Tanaka
+      C: Tokugawa
+      D: Meiji
+    input_correct_responses:
+    - D
+    input_question: "Que governo japon\xEAs promoveu uma esp\xE9cie de culto nacional\
+      \ baseado no imperador e nas suas associa\xE7\xF5es com os kami?"
+  - input_choice_list:
+      A: Textos rituais
+      B: "Textos filos\xF3ficos"
+      C: Hinos
+      D: "Hist\xF3rias de origem"
+    input_correct_responses:
+    - B
+    input_question: Como os Upanishads podem ser caracterizados?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_world_religions
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_world_religions
+task_alias: world_religions

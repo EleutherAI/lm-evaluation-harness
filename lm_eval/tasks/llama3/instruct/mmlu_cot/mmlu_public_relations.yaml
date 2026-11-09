@@ -1,0 +1,6 @@
+"dataset_name": "public_relations"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_social_sciences_tasks"
+"task": "mmlu_cot_llama_public_relations"
+"task_alias": "public relations"

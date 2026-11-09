@@ -1,0 +1,3 @@
+include: arc_challenge_mt_fi.yaml
+task: arc_challenge_mt_pl
+dataset_name: pl

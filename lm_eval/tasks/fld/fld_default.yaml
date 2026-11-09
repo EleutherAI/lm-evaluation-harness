@@ -1,0 +1,19 @@
+task: fld_default
+dataset_path: hitachi-nlp/FLD.v2
+dataset_name: default
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Based on the provided facts ($context$), either prove or disprove the hypothesis or state that it is unknown. {{prompt_serial}}"
+doc_to_target: world_assump_label
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+filter_list:
+  - name: remove_whitespace
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+metadata:
+  version: 2.0

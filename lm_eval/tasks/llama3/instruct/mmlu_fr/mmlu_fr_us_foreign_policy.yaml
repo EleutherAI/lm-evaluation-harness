@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Il a endommag\xE9 le soutien au mod\xE8le am\xE9ricain d&#39;\xE9conomie\
+        \ politique et de capitalisme"
+      B: "Cela a provoqu\xE9 la col\xE8re des \xC9tats-Unis pour avoir exag\xE9r\xE9\
+        \ la crise"
+      C: "Il a accru le soutien au leadership mondial am\xE9ricain sous le pr\xE9\
+        sident Obama"
+      D: "Il a r\xE9duit l&#39;utilisation mondiale du dollar am\xE9ricain"
+    input_correct_responses:
+    - A
+    input_question: "Comment la crise financi\xE8re de 2008 a-t-elle affect\xE9 la\
+      \ r\xE9putation internationale de l&#39;Am\xE9rique ?"
+  - input_choice_list:
+      A: "Il a mondialis\xE9 le confinement."
+      B: "Il a militaris\xE9 le confinement."
+      C: "Il appelait au d\xE9veloppement de la bombe \xE0 hydrog\xE8ne."
+      D: "Tout ce qui pr\xE9c\xE8de"
+    input_correct_responses:
+    - D
+    input_question: "Comment le NSC-68 a-t-il chang\xE9 la strat\xE9gie am\xE9ricaine\_\
+      ?"
+  - input_choice_list:
+      A: politique antiterroriste.
+      B: "politique \xE9conomique."
+      C: "police \xE9trang\xE8re."
+      D: politique internationale.
+    input_correct_responses:
+    - C
+    input_question: "Le domaine des d\xE9cisions politiques concernant principalement\
+      \ les relations entre les \xC9tats-Unis et le reste du monde est connu sous\
+      \ le nom de"
+  - input_choice_list:
+      A: "Les r\xE9alistes d\xE9fensifs mettent davantage l&#39;accent sur le r\xF4\
+        le des institutions internationales"
+      B: "Les r\xE9alistes d\xE9fensifs accordent moins d&#39;importance aux facteurs\
+        \ g\xE9ographiques"
+      C: "Les r\xE9alistes offensifs accordent plus de priorit\xE9 \xE0 l&#39;int\xE9\
+        r\xEAt national que les r\xE9alistes d\xE9fensifs."
+      D: "Les r\xE9alistes d\xE9fensifs pensent que les \xC9tats maximisent la s\xE9\
+        curit\xE9, tandis que les r\xE9alistes offensifs pensent que les \xC9tats\
+        \ maximisent le pouvoir"
+    input_correct_responses:
+    - D
+    input_question: "En quoi le r\xE9alisme d\xE9fensif et le r\xE9alisme offensif\
+      \ diff\xE8rent-ils dans leur explication du comportement de l&#39;\xC9tat\_?"
+  - input_choice_list:
+      A: La mondialisation avait rendu les hommes comme lui trop riches
+      B: "La mondialisation n&#39;a profit\xE9 qu&#39;\xE0 certains \xC9tats am\xE9\
+        ricains, comme New York"
+      C: "Les \xE9lites lib\xE9rales avaient encourag\xE9 la mondialisation, tandis\
+        \ que les &quot;Am\xE9ricains ordinaires&quot; perdaient des emplois \xE0\
+        \ cause d&#39;elle"
+      D: "La mondialisation a encourag\xE9 des guerres commerciales dommageables"
+    input_correct_responses:
+    - C
+    input_question: "Comment Donald Trump a-t-il attaqu\xE9 la mondialisation lors\
+      \ de la campagne de 2016 ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_us_foreign_policy
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_us_foreign_policy
+task_alias: us_foreign_policy

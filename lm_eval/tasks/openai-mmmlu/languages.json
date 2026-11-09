@@ -1,0 +1,16 @@
+[
+  {"slug": "ar_xy", "dataset_name": "AR_XY", "display_name": "Arabic"},
+  {"slug": "bn_bd", "dataset_name": "BN_BD", "display_name": "Bengali"},
+  {"slug": "de_de", "dataset_name": "DE_DE", "display_name": "German"},
+  {"slug": "es_la", "dataset_name": "ES_LA", "display_name": "Spanish"},
+  {"slug": "fr_fr", "dataset_name": "FR_FR", "display_name": "French"},
+  {"slug": "hi_in", "dataset_name": "HI_IN", "display_name": "Hindi"},
+  {"slug": "id_id", "dataset_name": "ID_ID", "display_name": "Indonesian"},
+  {"slug": "it_it", "dataset_name": "IT_IT", "display_name": "Italian"},
+  {"slug": "ja_jp", "dataset_name": "JA_JP", "display_name": "Japanese"},
+  {"slug": "ko_kr", "dataset_name": "KO_KR", "display_name": "Korean"},
+  {"slug": "pt_br", "dataset_name": "PT_BR", "display_name": "Brazilian Portuguese"},
+  {"slug": "sw_ke", "dataset_name": "SW_KE", "display_name": "Swahili"},
+  {"slug": "yo_ng", "dataset_name": "YO_NG", "display_name": "Yoruba"},
+  {"slug": "zh_cn", "dataset_name": "ZH_CN", "display_name": "Simplified Chinese"}
+]

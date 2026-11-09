@@ -1,0 +1,68 @@
+dataset_name: college_medicine
+description: The following are multiple choice questions (with answers) about college
+  medicine.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'An expected side effect of creatine supplementation is:
+
+      (A) muscle weakness. (B) gain in body mass. (C) muscle cramps. (D) loss of electrolytes.'
+    target: Let's think step by step. We refer to Wikipedia articles on medicine for
+      help. Creatine supplementation is a dietary supplement that results in body
+      mass gain. The answer is (B).
+  - question: 'Which of the following is not a true statement?
+
+      (A) Muscle glycogen is broken down enzymatically to glucose-1-phosphate (B)
+      Elite endurance runners have a high proportion of Type I fibres in their leg
+      muscles (C) Liver glycogen is important in the maintenance of the blood glucose
+      concentration (D) Insulin promotes glucose uptake by all tissues in the body'
+    target: "Let's think step by step. We refer to Wikipedia articles on medicine\
+      \ for help. Let\u2019s solve this step by step and go over each choice: \n(A)\
+      \ \u201CMuscle glycogen is broken down enzymatically to glucose-1-phosphate\u201D\
+      : This is a correct statement.\n(B) \u201CElite endurance runners have a high\
+      \ proportion of Type I fibres in their leg muscles\u201D: This is a correct\
+      \ statement.\n(C) \u201CLiver glycogen is important in the maintenance of the\
+      \ blood glucose concentration\u201D: This is a correct statement. \n(D) \u201C\
+      Insulin promotes glucose uptake by all tissues in the body\u201D: This is not\
+      \ a correct statement, because insulin promotes glucose uptake by the liver,\
+      \ adipose tissue, and muscle, but not all tissues. For instance, the tissues\
+      \ in the brain and red blood cells are not affected by insulin. The answer is\
+      \ (D)."
+  - question: "A high school science teacher fills a 1 liter bottle with pure nitrogen\
+      \ and seals the lid. The pressure is 1.70 atm, and the room temperature is 25\xB0\
+      C. Which two variables will both increase the pressure of the system, if all\
+      \ other variables are held constant?\n(A) Increasing temperature, increasing\
+      \ moles of gas (B) Increasing temperature, increasing volume (C) Decreasing\
+      \ volume, decreasing temperature (D) Decreasing moles of gas, increasing volume"
+    target: 'Let''s think step by step. We refer to Wikipedia articles on medicine
+      for help. The relevant equation for this is the ideal gas law: PV=nRT. To increase
+      the pressure of the system (P), then either n (number of moles of the gas) or
+      T (temperature) have to increase. The answer is (A).'
+  - question: 'In a genetic test of a newborn, a rare genetic disorder is found that
+      has X-linked recessive transmission. Which of the following statements is likely
+      true regarding the pedigree of this disorder?
+
+      (A) All descendants on the maternal side will have the disorder. (B) Females
+      will be approximately twice as affected as males in this family. (C) All daughters
+      of an affected male will be affected. (D) There will be equal distribution of
+      males and females affected.'
+    target: "Let's think step by step. We refer to Wikipedia articles on medicine\
+      \ for help. Let\u2019s solve this step by step. Let's recall first that females\
+      \ have two X chromosomes, while males have one X and one Y chromosome. This\
+      \ is an important fact we need to know before answering this question. \nBecause\
+      \ a male can only pass his only one X chromosome to a daughter, if he is affected\
+      \ by this rare genetic disorder, then we know for sure that he will pass this\
+      \ rare genetic disorder to all his future-born daughters. Therefore, \u201C\
+      (C): All daughters of an affected male will be affected\u201D is a correct statement.\
+      \ The answer is (C)."
+  - question: 'Glucose is transported into the muscle cell:
+
+      (A) via protein transporters called GLUT4. (B) only in the presence of insulin.
+      (C) via hexokinase. (D) via monocarbylic acid transporters.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on medicine
+      for help. Glucose (also known as the blood sugar) is the main sugar found in
+      the human body. It is transported into the muscle cell via diffusion through
+      protein transporters called GLUT4. The answer is (A).'
+tag: mmlu_flan_cot_fewshot_other
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_college_medicine

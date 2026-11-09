@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Sarebbe pi\xF9 difficile dato che il camion \xE8 pi\xF9 pesante su Marte."
+      B: "Sarebbe pi\xF9 facile dato che il camion \xE8 pi\xF9 leggero su Marte."
+      C: "Sarebbe pi\xF9 difficile poich\xE9 il camion \xE8 pi\xF9 leggero su Marte."
+      D: Sarebbe lo stesso, non importa dove ti trovi.
+    input_correct_responses:
+    - D
+    input_question: "Stai spingendo un camion lungo una strada. Sarebbe pi\xF9 facile\
+      \ accelerare questo camion su Marte? Perch\xE9? (Supponiamo che non vi sia attrito)"
+  - input_choice_list:
+      A: La cintura di Kuiper; le comete di breve periodo tendono a trovarsi nel piano
+        del sistema solare proprio come la fascia di Kuiper.
+      B: La cintura di Kuiper; le comete di breve periodo tendono a provenire da direzioni
+        casuali che indicano una distribuzione sferica delle comete chiamata fascia
+        di Kuiper.
+      C: La cintura degli asteroidi; le comete di breve periodo hanno periodi orbitali
+        simili a quelli degli asteroidi come Vesta e si trovano nel piano del sistema
+        solare proprio come la cintura degli asteroidi.
+      D: La nube di Oort; le comete di breve periodo tendono a trovarsi nel piano
+        del sistema solare proprio come la nube di Oort.
+    input_correct_responses:
+    - A
+    input_question: Da dove provengono la maggior parte delle comete di breve periodo
+      e come lo sappiamo?
+  - input_choice_list:
+      A: "10000 volte di pi\xF9"
+      B: "100 volte di pi\xF9"
+      C: "1000 volte di pi\xF9"
+      D: "10 volte di pi\xF9"
+    input_correct_responses:
+    - A
+    input_question: "Supponiamo che la pupilla del tuo occhio abbia un diametro di\
+      \ 5 mm e che tu abbia un telescopio con un&#39;apertura di 50 cm. Quanta pi\xF9\
+      \ luce pu\xF2 raccogliere il telescopio rispetto al tuo occhio?"
+  - input_choice_list:
+      A: "Qui una volta si form\xF2 un pianeta, ma fu distrutto da una collisione\
+        \ catastrofica."
+      B: In questa parte della nebulosa solare non c&#39;era abbastanza materiale
+        per formare un pianeta.
+      C: C&#39;era troppo materiale roccioso per formare un pianeta terrestre ma non
+        abbastanza materiale gassoso per formare un pianeta gioviano.
+      D: La risonanza con Giove ha impedito al materiale di riunirsi per formare un
+        pianeta.
+    input_correct_responses:
+    - D
+    input_question: "Perch\xE9 non esiste un pianeta dove si trova la fascia degli\
+      \ asteroidi?"
+  - input_choice_list:
+      A: "Perch\xE9 la superficie \xE8 ricoperta da minerali fortemente ossidati (&quot;arrugginiti&quot;)."
+      B: "Perch\xE9 l\u2019atmosfera disperde pi\xF9 luce alle lunghezze d\u2019onda\
+        \ pi\xF9 blu trasmettendo principalmente luce rossa."
+      C: "Perch\xE9 Marte \xE8 ricoperto da antiche colate laviche di colore rosso."
+      D: "Perch\xE9 l&#39;acqua che scorre sulla superficie di Marte ha alterato i\
+        \ minerali superficiali diversi miliardi di anni fa."
+    input_correct_responses:
+    - A
+    input_question: "Perch\xE9 Marte \xE8 rosso?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_astronomy
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_astronomy
+task_alias: astronomy

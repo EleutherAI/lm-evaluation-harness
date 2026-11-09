@@ -1,0 +1,8 @@
+include: _cabreu_common_yaml
+task: cabreu_extreme
+description: "Examina el text següent i genera'n un resum que sigui el més concís possible i que preservi el significat del text original.\n"
+doc_to_text: >-
+  Text: {{content}}
+
+  Resum:
+doc_to_target: '{{summaries["extreme"]["a1"]}}'

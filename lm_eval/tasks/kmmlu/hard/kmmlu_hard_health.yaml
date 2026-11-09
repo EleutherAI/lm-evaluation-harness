@@ -1,0 +1,4 @@
+dataset_name: health
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_health
+tag: kmmlu_hard_other_tasks

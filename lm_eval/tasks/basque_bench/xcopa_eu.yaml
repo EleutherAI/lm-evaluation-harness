@@ -1,0 +1,14 @@
+task: xcopa_eu
+dataset_path: HiTZ/XCOPA-eu
+dataset_name: null
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+doc_to_text: !function utils.xcopa_doc_to_text
+doc_to_target: label
+doc_to_choice: !function utils.xcopa_doc_to_choice
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

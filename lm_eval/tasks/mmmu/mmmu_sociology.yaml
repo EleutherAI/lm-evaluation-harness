@@ -1,0 +1,4 @@
+task: mmmu_val_sociology
+include: _template_yaml
+task_alias: Sociology
+dataset_name: Sociology

@@ -1,0 +1,4 @@
+dataset_name: nondestructive_testing
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_nondestructive_testing
+tag: kmmlu_hard_applied_science_tasks

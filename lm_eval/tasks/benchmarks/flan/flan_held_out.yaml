@@ -1,0 +1,13 @@
+group: flan_held_out
+task:
+  # BBH
+  - bbh_zeroshot
+  - bbh_fewshot
+  - bbh_cot_fewshot
+  - bbh_cot_zeroshot
+  # MMLU
+  - mmlu
+  - mmlu_flan_n_shot_generative
+  - mmlu_flan_n_shot_loglikelihood
+  - mmlu_flan_cot_zeroshot
+  - mmlu_flan_cot_fewshot

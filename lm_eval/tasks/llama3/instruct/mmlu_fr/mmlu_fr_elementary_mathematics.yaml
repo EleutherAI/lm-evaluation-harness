@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 5 milliers
+      B: 5 centaines
+      C: 5 dizaines
+      D: 5 ceux
+    input_correct_responses:
+    - A
+    input_question: "La population de la ville o\xF9 Michelle est n\xE9e est de 145\
+      \ 826 habitants. Quelle est la valeur du 5 dans le nombre 145 826 ?"
+  - input_choice_list:
+      A: "Le 10e num\xE9ro du motif sera un nombre pair."
+      B: "Le mod\xE8le de nombre n&#39;aura jamais deux nombres pairs l&#39;un \xE0\
+        \ c\xF4t\xE9 de l&#39;autre."
+      C: "Les deux nombres suivants dans le mod\xE8le seront un nombre pair puis un\
+        \ nombre impair."
+      D: "Si le mod\xE8le de nombre commen\xE7ait par un nombre impair, le mod\xE8\
+        le ne contiendrait que des nombres impairs."
+    input_correct_responses:
+    - B
+    input_question: "Olivia a utilis\xE9 la r\xE8gle &quot;Ajouter 11&quot; pour cr\xE9\
+      er le mod\xE8le de nombre illustr\xE9 ci-dessous. 10, 21, 32, 43, 54 Quelle\
+      \ affirmation sur la r\xE9gularit\xE9 num\xE9rique est vraie\_?"
+  - input_choice_list:
+      A: "Ajoutez 5 \xE0 30 pour trouver 35 \xE9quipes."
+      B: "Divisez 30 par 5 pour trouver 6 \xE9quipes."
+      C: "Multipliez 30 et 5 pour trouver 150 \xE9quipes."
+      D: "Soustrayez 5 de 30 pour trouver 25 \xE9quipes."
+    input_correct_responses:
+    - B
+    input_question: "Au total, 30 joueurs joueront au basket dans un parc. Il y aura\
+      \ exactement 5 joueurs dans chaque \xE9quipe. Quelle affirmation explique correctement\
+      \ comment trouver le nombre d&#39;\xE9quipes n\xE9cessaires\_?"
+  - input_choice_list:
+      A: '749'
+      B: 2 675
+      C: "2\_945"
+      D: 4 250
+    input_correct_responses:
+    - B
+    input_question: "Un magasin vend 107 couleurs de peinture diff\xE9rentes. Ils\
+      \ ont 25 canettes de chaque couleur en stock. Le nombre de pots de peinture\
+      \ que le magasin a en stock peut \xEAtre trouv\xE9 \xE0 l&#39;aide de l&#39;expression\
+      \ ci-dessous. 107 \xD7 25. Combien de pots de peinture le magasin a-t-il en\
+      \ stock\_?"
+  - input_choice_list:
+      A: (5 x 4) x (6 x 5)
+      B: (5 x 5) + (5 x 4)
+      C: (5 x 5) + (5 x 9)
+      D: (5 x 9) x (6 x 9)
+    input_correct_responses:
+    - B
+    input_question: "Quelle expression \xE9quivaut \xE0 5 x 9 ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_elementary_mathematics
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_elementary_mathematics
+task_alias: elementary_mathematics

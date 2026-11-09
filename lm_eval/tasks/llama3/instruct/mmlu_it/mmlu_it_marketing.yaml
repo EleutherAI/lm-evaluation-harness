@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Geodemografica
+      B: Differenziazione del prodotto.
+      C: Matrice ANSOFF.
+      D: Gestione del marchio.
+    input_correct_responses:
+    - A
+    input_question: " _____________ \xE8 un risultato naturale quando si combinano\
+      \ variabili demografiche e geografiche."
+  - input_choice_list:
+      A: "Unit\xE0 di outsourcing."
+      B: Centro acquisti.
+      C: "Unit\xE0 esecutiva principale."
+      D: "Unit\xE0 decisionale."
+    input_correct_responses:
+    - D
+    input_question: In un&#39;organizzazione, il gruppo di persone incaricate delle
+      decisioni di acquisto viene definito _______________.
+  - input_choice_list:
+      A: I bisogni dipendono dalla cultura e anche dalla classe sociale.
+      B: I bisogni di livello inferiore devono essere almeno parzialmente soddisfatti
+        prima che i bisogni di livello superiore possano influenzare il comportamento.
+      C: I bisogni non sono prioritari o organizzati in un ordine particolare.
+      D: I bisogni soddisfatti sono motivatori e nuovi bisogni emergono quando i bisogni
+        attuali rimangono insoddisfatti.
+    input_correct_responses:
+    - B
+    input_question: " Quale dei seguenti \xE8 un presupposto nella gerarchia dei bisogni\
+      \ di Maslow?"
+  - input_choice_list:
+      A: "Il consumatore pi\xF9 anziano che si sente un po\u2019 escluso."
+      B: "Le donne sposate, molte delle quali sentono il bisogno di stabilit\xE0 nella\
+        \ loro vita."
+      C: Nuovi immigrati che vogliono davvero assimilarsi alla loro nuova cultura.
+      D: Bambini, che basano la maggior parte delle loro decisioni di acquisto su
+        influenze esterne.
+    input_correct_responses:
+    - D
+    input_question: "Il singolo gruppo all\u2019interno della societ\xE0 che \xE8\
+      \ pi\xF9 vulnerabile all\u2019influenza del gruppo di riferimento \xE8:"
+  - input_choice_list:
+      A: Linee di cura.
+      B: Posta diretta.
+      C: Inserti.
+      D: Porta a porta.
+    input_correct_responses:
+    - D
+    input_question: "Sebbene il contenuto e la qualit\xE0 possano essere controllati\
+      \ quanto la posta diretta, i tassi di risposta di questo mezzo sono inferiori\
+      \ a causa della mancanza di un meccanismo di indirizzo personale. Questo formato\
+      \ multimediale \xE8 noto come:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_marketing
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_marketing
+task_alias: marketing

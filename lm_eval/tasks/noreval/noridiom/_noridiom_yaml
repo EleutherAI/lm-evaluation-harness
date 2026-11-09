@@ -1,0 +1,27 @@
+dataset_path: Sprakbanken/Norwegian_idioms
+dataset_kwargs:
+  revision: b3aea6a444a0c718d1740870db79245a762ce968
+training_split: null
+validation_split: null
+test_split: test
+output_type: generate_until
+doc_to_target: "{{accepted_completions[0]}}"
+process_results: !function utils.process_results
+generation_kwargs:
+  do_sample: true
+  temperature: 1.0
+  top_p: 1.0
+  top_k: 0
+  max_new_tokens: 16
+metric_list:
+  - metric: em_first
+    aggregation: mean
+    higher_is_better: true
+  - metric: em
+    aggregation: mean
+    higher_is_better: true
+  - metric: fscore
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.3

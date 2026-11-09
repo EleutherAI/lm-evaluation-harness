@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_similar_words
+include: toksuite_english_base.yaml
+task: toksuite_english_similar_words
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Similar words
+  num_samples: 74

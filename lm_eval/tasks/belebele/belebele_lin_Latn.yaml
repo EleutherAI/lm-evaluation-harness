@@ -1,0 +1,5 @@
+dataset_name: lin_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_lin_Latn
+test_split: test

@@ -1,0 +1,4 @@
+dataset_name: Social-Welfare
+include: _default_kmmlu_yaml
+task: kmmlu_social_welfare
+tag: kmmlu_humss_tasks

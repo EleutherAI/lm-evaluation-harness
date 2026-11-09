@@ -1,0 +1,16 @@
+task: siqa_ca
+dataset_path: projecte-aina/siqa_ca
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: null
+doc_to_text: "Pregunta: {{context}} {{question}}\nResposta:"
+target_delimiter: " "
+doc_to_choice: "{{[answerA, answerB, answerC]}}"
+doc_to_target: "{{ (label|int) - 1 }}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,0 +1,23 @@
+group: afrobench
+task:
+#  - adr_tasks
+##  - afrihate_tasks #dataset not publicly available yet
+#  - afrimgsm_cot_tasks
+#  - afrixnli_tasks
+#  - afrobench_xqa_tasks
+#  - afrobench_sentiment_tasks
+  - afrobench_MT_tasks
+#  - afrobench_TC_tasks
+#  - afrobench_mmlu_tasks
+#  - injongointent_tasks
+#  - masakhaner_tasks
+#  - masakhapos_tasks
+#  - RC_tasks
+#  - uhura_arc_easy_tasks
+#  - xlsum_tasks
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

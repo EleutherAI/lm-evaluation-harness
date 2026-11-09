@@ -1,0 +1,52 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Polymerase Kettenreaktion.
+      B: Einzelstrang-Konformationspolymorphismusanalyse.
+      C: Southern-Blotting.
+      D: Western-Blotting.
+    input_correct_responses:
+    - C
+    input_question: "Gro\xDFe Triplett-Wiederholungsexpansionen k\xF6nnen erkannt\
+      \ werden durch:"
+  - input_choice_list:
+      A: "ein Enzym, das Fragmente bei der normalen DNA-Replikation zusammenf\xFC\
+        gt"
+      B: ein Enzym bakteriellen Ursprungs, das DNA an definierten Basensequenzen schneidet
+      C: ein Enzym, das die Transkription bestimmter Gene erleichtert
+      D: "ein Enzym, das das Niveau begrenzt, das ein bestimmter N\xE4hrstoff erreicht"
+    input_correct_responses:
+    - A
+    input_question: DNA-Ligase ist
+  - input_choice_list:
+      A: "hat beide Allele unabh\xE4ngig voneinander in der Heterozygote exprimiert"
+      B: "hat ein Allel, das gegen\xFCber dem anderen dominant ist"
+      C: hat Allele, die eng auf demselben Chromosom verbunden sind
+      D: hat Allele, die zur gleichen Zeit in der Entwicklung exprimiert werden
+    input_correct_responses:
+    - A
+    input_question: Ein Gen, das Kodominanz zeigt
+  - input_choice_list:
+      A: Pylorusstenose
+      B: Schizophrenie
+      C: Spina bifida (Neuralrohrdefekt)
+      D: Marfan-Syndrom
+    input_correct_responses:
+    - D
+    input_question: Welche der folgenden Bedingungen zeigt keine multifaktorielle
+      Vererbung?
+  - input_choice_list:
+      A: Prophase I
+      B: Metaphase I
+      C: Prophase II
+      D: Metaphase II
+    input_correct_responses:
+    - A
+    input_question: "Das Stadium der Meiose, in dem sich Chromosomen paaren und \xFC\
+      berkreuzen, ist:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_medical_genetics
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_medical_genetics
+task_alias: medical_genetics

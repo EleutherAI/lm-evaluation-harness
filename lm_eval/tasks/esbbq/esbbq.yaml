@@ -1,0 +1,27 @@
+group: esbbq
+task:
+  - esbbq_age
+  - esbbq_disability_status
+  - esbbq_gender
+  - esbbq_lgbtqia
+  - esbbq_nationality
+  - esbbq_physical_appearance
+  - esbbq_race_ethnicity
+  - esbbq_religion
+  - esbbq_ses
+  - esbbq_spanish_region
+tag:
+  - social_bias
+aggregate_metric_list:
+  - metric: "acc_ambig"
+    weight_by_size: true
+  - metric: "acc_disambig"
+    weight_by_size: true
+  - metric: "bias_score_ambig"
+    weight_by_size: true
+  - metric: "bias_score_disambig"
+    weight_by_size: true
+
+  # `weight_by_size`:
+  # `true` for micro average: retain all subtasks' per-document results and take the mean over all documents' scores to get the aggregate mean
+  # `false` for macro average: take the mean of the subtasks' aggregated results

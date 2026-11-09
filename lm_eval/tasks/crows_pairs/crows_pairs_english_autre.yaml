@@ -1,0 +1,3 @@
+include: crows_pairs_english.yaml
+task: crows_pairs_english_autre
+process_docs: !function utils.filter_autre

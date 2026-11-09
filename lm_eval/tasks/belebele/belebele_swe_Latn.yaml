@@ -1,0 +1,5 @@
+dataset_name: swe_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_swe_Latn
+test_split: test

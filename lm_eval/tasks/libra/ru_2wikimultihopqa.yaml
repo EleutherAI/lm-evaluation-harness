@@ -1,0 +1,28 @@
+tag:
+- libra
+task: ru_2wikimultihopqa
+task_alias: ru2WikiMultihopQA
+dataset_name: ru_2wikimultihopqa
+dataset_kwargs:
+  dataset_name: ru_2wikimultihopqa
+include: _template_yaml
+doc_to_text: 'Ответь на вопрос, основываясь на приведенных отрывках.
+
+  {{context}}
+
+  Ответь коротко на вопрос, основываясь на приведенных отрывках.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 32
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

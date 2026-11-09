@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_management
+"tag": "mmmlu_ko_kr_other_tasks"
+"task": "mmmlu_ko_kr_management"
+"task_alias": "management (Korean)"
+"description": "The following are multiple choice questions (with answers) about management (Korean).\n\n"

@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: L&#39;arc-en-ciel
+      B: Circoncision
+      C: Un fils
+      D: Bar Mitzvah
+    input_correct_responses:
+    - B
+    input_question: Quel est le signe de l&#39;alliance pour les hommes juifs ?
+  - input_choice_list:
+      A: Le Dharma
+      B: La Sangha
+      C: Le Bouddha
+      D: Le bodhisattva
+    input_correct_responses:
+    - A
+    input_question: "Quel est le deuxi\xE8me joyau du bouddhisme ?"
+  - input_choice_list:
+      A: Chang
+      B: Zhou
+      C: Han
+      D: Xia
+    input_correct_responses:
+    - B
+    input_question: "Dans quelle dynastie le &quot;Mandat du Ciel&quot; a-t-il \xE9\
+      t\xE9 d\xE9velopp\xE9 pour l\xE9gitimer les nouveaux dirigeants\_?"
+  - input_choice_list:
+      A: "H\xF6nen"
+      B: Tanaka
+      C: Tokugawa
+      D: Meiji
+    input_correct_responses:
+    - D
+    input_question: "Quel gouvernement japonais a promu une sorte de culte national\
+      \ bas\xE9 sur l&#39;empereur et ses associations avec les kami\_?"
+  - input_choice_list:
+      A: Textes rituels
+      B: Textes philosophiques
+      C: Hymnes
+      D: Histoires d&#39;origine
+    input_correct_responses:
+    - B
+    input_question: "Comment caract\xE9riser les Upanishads ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_world_religions
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_world_religions
+task_alias: world_religions

@@ -1,0 +1,9 @@
+group: leaderboard_musr
+task:
+  - leaderboard_musr_murder_mysteries
+  - leaderboard_musr_object_placements
+  - leaderboard_musr_team_allocation
+aggregate_metric_list:
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true

@@ -1,0 +1,17 @@
+"dataset_name": "penguins_in_a_table"
+"description": "Answer questions about a table of penguins and their attributes.\n\n"
+"doc_to_text": "Q: {{input}}\nA:"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_zeroshot_penguins_in_a_table"
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MultiChoiceRegexFilter
+        group_select: 0
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"

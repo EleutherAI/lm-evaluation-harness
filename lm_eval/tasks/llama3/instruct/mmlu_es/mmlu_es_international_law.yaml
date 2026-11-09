@@ -1,0 +1,70 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "El art\xEDculo 2(4) abarca \xFAnicamente la fuerza armada"
+      B: "El art\xEDculo 2(4) abarca todos los tipos de fuerza, incluidas las sanciones."
+      C: "El art\xEDculo 2(4) abarca toda injerencia en los asuntos internos de los\
+        \ Estados."
+      D: "El art\xEDculo 2(4) abarca la fuerza dirigida \xFAnicamente contra la integridad\
+        \ territorial de un Estado."
+    input_correct_responses:
+    - A
+    input_question: "\xBFQu\xE9 tipos de fuerza proh\xEDbe el art\xEDculo 2(4) de\
+      \ la Carta de las Naciones Unidas?"
+  - input_choice_list:
+      A: "Si una parte en un caso contencioso ante la CIJ no tiene un juez nacional,\
+        \ tiene derecho a nombrar a alguien como juez \xFAnicamente para ese caso,\
+        \ con el t\xEDtulo de juez ad hoc."
+      B: El juez ad hoc es el miembro de la sala de la CIJ con voto de calidad.
+      C: El juez ad hoc es un juez sustituto, en caso de que un juez sea inhabilitado
+        o fallezca
+      D: "El juez ad hoc es el juez que cada parte designar\xE1 siempre en cada caso\
+        \ contencioso."
+    input_correct_responses:
+    - A
+    input_question: "\xBFQu\xE9 es el juez ad hoc?"
+  - input_choice_list:
+      A: "Esta es una reserva aceptable si la legislaci\xF3n del pa\xEDs que la formula\
+        \ emplea una definici\xF3n diferente."
+      B: "Esta es una reserva inaceptable porque contraviene el objeto y fin del Pacto\
+        \ Internacional de Derechos Civiles y Pol\xEDticos."
+      C: "Esta es una reserva inaceptable porque la definici\xF3n de tortura en el\
+        \ PIDCP es consistente con el derecho internacional consuetudinario."
+      D: "Se trata de una reserva aceptable porque, seg\xFAn el derecho internacional\
+        \ general, los Estados tienen derecho a formular reservas a los tratados."
+    input_correct_responses:
+    - B
+    input_question: "\xBFSer\xEDa aceptable en la pr\xE1ctica contempor\xE1nea una\
+      \ reserva a la definici\xF3n de tortura del PIDCP?"
+  - input_choice_list:
+      A: El consentimiento puede servir como circunstancia excluyente de la ilicitud
+        siempre que se preste
+      B: El consentimiento nunca puede servir como circunstancia que excluya la ilicitud
+      C: "El consentimiento puede servir como circunstancia que excluye la ilicitud,\
+        \ siempre que el consentimiento sea v\xE1lido y en la medida en que la conducta\
+        \ se mantenga dentro de los l\xEDmites del consentimiento prestado."
+      D: "El consentimiento siempre puede servir como circunstancia excluyente de\
+        \ la ilicitud, cualquiera que sea el \xF3rgano del Estado que lo otorgue."
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1ndo el &quot;consentimiento&quot; puede servir como\
+      \ circunstancia que excluye la ilicitud de una conducta estatal?"
+  - input_choice_list:
+      A: "El consentimiento de un Estado en obligarse se expresa \xFAnicamente mediante\
+        \ la ratificaci\xF3n."
+      B: "El consentimiento de un Estado en obligarse por un tratado puede expresarse\
+        \ mediante firma, ratificaci\xF3n, aceptaci\xF3n, aprobaci\xF3n o adhesi\xF3\
+        n."
+      C: El consentimiento de un Estado en obligarse se expresa mediante la firma.
+      D: El consentimiento de un Estado en obligarse se expresa por cualquier medio
+        que elija
+    input_correct_responses:
+    - B
+    input_question: "\xBFC\xF3mo puede expresarse el consentimiento de un Estado en\
+      \ obligarse?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_international_law
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_international_law
+task_alias: international_law

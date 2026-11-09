@@ -1,0 +1,4 @@
+include: _arabic_template_yaml
+description: The following is multiple-choice question about Driving License.
+process_docs: !function 'utils.process_driving_license'
+task: include_base_44_arabic_driving_license

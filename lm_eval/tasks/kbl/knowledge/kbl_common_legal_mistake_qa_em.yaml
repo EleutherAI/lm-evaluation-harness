@@ -1,0 +1,4 @@
+task: kbl_common_legal_mistake_qa_em
+dataset_name: kbl_knowledge_common_legal_mistake_qa
+doc_to_text: "### 질문: {{question}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\n'A', 'B', 'C' 중 하나를 선택하여 ''답변: A'' 와 같이 단답식으로 답해 주세요."
+include: _kbl_knowledge_yaml

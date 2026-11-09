@@ -1,0 +1,4 @@
+dataset_name: Maritime-Engineering
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_maritime_engineering
+tag: kmmlu_direct_applied_science_tasks

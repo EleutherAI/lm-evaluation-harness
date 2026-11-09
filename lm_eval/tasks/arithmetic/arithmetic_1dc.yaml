@@ -1,0 +1,20 @@
+tag:
+  - arithmetic
+task: arithmetic_1dc
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    validation: hf://datasets/EleutherAI/arithmetic/data/single_digit_three_ops.jsonl
+output_type: loglikelihood
+validation_split: validation
+test_split: null
+process_docs: !function utils.process_docs
+doc_to_text: "{{context}}"
+doc_to_target: "{{completion}}"
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 2.0

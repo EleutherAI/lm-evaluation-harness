@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Alla fine morirai
+      B: Perseverare indefinitamente
+      C: Crescere in modo esponenziale
+      D: Non verificarsi mai
+    input_correct_responses:
+    - A
+    input_question: Per un processo autoregressivo stazionario, gli shock lo faranno
+  - input_choice_list:
+      A: 0,2
+      B: '0.4'
+      C: 0,5
+      D: 0,33
+    input_correct_responses:
+    - D
+    input_question: "Consideriamo il seguente modello AR(1) con i disturbi aventi\
+      \ media nulla e varianza unitaria yt = 0,2 + 0,4 yt-1 + ut La media (incondizionata)\
+      \ di y sar\xE0 data da"
+  - input_choice_list:
+      A: Solo (ii) e (iv).
+      B: Solo (i) e (iii).
+      C: solo (i), (ii) e (iii).
+      D: (i), (ii), (iii) e (iv)
+    input_correct_responses:
+    - C
+    input_question: "Supponiamo che ad una statistica test sia associato un valore\
+      \ p pari a 0,08. Quale delle seguenti affermazioni \xE8 vera? (i) Se la dimensione\
+      \ del test fosse esattamente l\u20198%, saremmo indifferenti tra rifiutare e\
+      \ non rifiutare l\u2019ipotesi nulla (ii) Il valore nullo verrebbe rifiutato\
+      \ se venisse utilizzata una dimensione del test del 10% (iii) Il valore nullo\
+      \ non verrebbe rifiutato essere rifiutato se fosse utilizzata una dimensione\
+      \ del test dell&#39;1%. (iv) Il valore nullo verrebbe rifiutato se fosse utilizzata\
+      \ una dimensione del test del 5%."
+  - input_choice_list:
+      A: "Sar\xE0 di parte"
+      B: "Sar\xE0 incoerente"
+      C: "Sar\xE0 inefficiente"
+      D: Tutti i punti (a), (b) e (c) saranno veri.
+    input_correct_responses:
+    - C
+    input_question: "Quali sarebbero allora le conseguenze per lo stimatore OLS se\
+      \ l\u2019eteroschedasticit\xE0 fosse presente in un modello di regressione ma\
+      \ venisse ignorata?"
+  - input_choice_list:
+      A: 1 ritardo
+      B: 2 ritardi
+      C: 3 ritardi
+      D: 4 ritardi
+    input_correct_responses:
+    - C
+    input_question: "Supponiamo ora che un ricercatore desideri utilizzare criteri\
+      \ informativi per determinare la lunghezza di ritardo ottimale per un VAR. Sono\
+      \ disponibili 500 osservazioni per il VAR bivariato e i valori del determinante\
+      \ della matrice di varianza-covarianza dei residui sono 0,0336, 0,0169, 0,0084\
+      \ e 0,0062 rispettivamente per 1, 2, 3 e 4 ritardi. Qual \xE8 l&#39;ordine ottimale\
+      \ dei modelli secondo il criterio informativo di Akaike?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_econometrics
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_econometrics
+task_alias: econometrics

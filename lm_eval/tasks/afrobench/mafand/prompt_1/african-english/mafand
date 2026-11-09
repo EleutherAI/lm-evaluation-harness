@@ -1,0 +1,28 @@
+tag:
+- mafand_tasks
+- mafand_afr-eng
+- mafand_afr-eng_prompt_1
+- afrobench_MT_tasks
+dataset_path: masakhane/mafand
+dataset_kwargs: {trust_remote_code: True}
+output_type: generate_until
+validation_split: validation
+fewshot_split: validation
+test_split: test
+doc_to_target: !function utils.get_target
+doc_to_text: !function utils.create_text_prompt_1
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: chrf
+    aggregation: chrf
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+metadata:
+  version: 1.0

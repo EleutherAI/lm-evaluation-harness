@@ -1,0 +1,3 @@
+dataset_name: lm_syneval__agreement__prep_inanim__sing_IS_IV_sing_ES
+include: _template_yaml
+task: lm_syneval__agreement__prep_inanim__sing_IS_IV_sing_ES

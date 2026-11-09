@@ -1,0 +1,133 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "el estatuto es nulo por vaguedad seg\xFAn la cl\xE1usula del debido proceso\
+        \ de la Decimocuarta Enmienda."
+      B: "el estatuto es inv\xE1lido porque viola la libertad de expresi\xF3n del\
+        \ peticionario bajo la Primera Enmienda."
+      C: "el estatuto es una limitaci\xF3n de la libertad de expresi\xF3n bajo la\
+        \ Primera Enmienda porque hay medios menos restrictivos disponibles para lograr\
+        \ el mismo prop\xF3sito."
+      D: "el estatuto es demasiado amplio y, en consecuencia, inv\xE1lido seg\xFA\
+        n las enmiendas primera y decimocuarta."
+    input_correct_responses:
+    - D
+    input_question: "Una legislatura estatal ha promulgado recientemente un estatuto\
+      \ que convierte en delito menor maldecir, injuriar o usar lenguaje obsceno u\
+      \ oprobio hacia o en referencia a un oficial de polic\xEDa que desempe\xF1a\
+      \ sus funciones. Un estudiante de una universidad estatal organiz\xF3 una manifestaci\xF3\
+      n en el campus para protestar contra la guerra. A la manifestaci\xF3n asisti\xF3\
+      \ un grupo de 50 estudiantes que gritaron mensajes contra la guerra a los coches\
+      \ que pasaban. Para mostrar su desprecio por Estados Unidos, el estudiante cosi\xF3\
+      \ la bandera estadounidense en la parte trasera de sus jeans. Cuando un oficial\
+      \ de polic\xEDa vio la bandera cosida en los jeans del estudiante, se acerc\xF3\
+      \ y le dijo que se la quitara o lo arrestar\xEDan. El estudiante se enoj\xF3\
+      \ y le grit\xF3 al oficial de polic\xEDa: &quot;Escucha, bastardo, usar\xE9\
+      \ este trapo donde quiera&quot;. Posteriormente, el estudiante fue arrestado\
+      \ y acusado de violar el estatuto estatal. Posteriormente, el estudiante presenta\
+      \ una demanda ante un tribunal estatal impugnando la constitucionalidad del\
+      \ estatuto. El argumento constitucional m\xE1s fuerte para el estudiante es\
+      \ que"
+  - input_choice_list:
+      A: "La cl\xE1usula de comercio."
+      B: "La cl\xE1usula de igual protecci\xF3n de la Decimocuarta Enmienda."
+      C: "La cl\xE1usula de privilegios e inmunidades del Art\xEDculo IV, Secci\xF3\
+        n 2."
+      D: "La cl\xE1usula del contrato."
+    input_correct_responses:
+    - A
+    input_question: "Un estado ha promulgado recientemente un estatuto que proh\xED\
+      be la eliminaci\xF3n de desechos nucleares dentro del estado. Esta ley no contraviene\
+      \ ni entra en conflicto con ning\xFAn estatuto federal. Un hombre dirige una\
+      \ empresa en el estado que se dedica a la eliminaci\xF3n de desechos nucleares.\
+      \ Despu\xE9s de la aprobaci\xF3n del estatuto estatal, el hombre, que a\xFA\
+      n no conoc\xEDa la nueva ley, celebr\xF3 contratos con muchas empresas de fuera\
+      \ del estado para eliminar sus desechos nucleares en el estado. Sin embargo,\
+      \ a causa de esta nueva ley, el hombre no podr\xE1 cumplir estos contratos.\
+      \ Supongamos que el hombre tiene capacidad para impugnar esta ley estatal. \xBF\
+      Cu\xE1l de los siguientes presenta sus fundamentos constitucionales m\xE1s s\xF3\
+      lidos para impugnar la ley estatal que proh\xEDbe la eliminaci\xF3n de desechos\
+      \ nucleares dentro del estado?"
+  - input_choice_list:
+      A: Hechos indiscutibles.
+      B: "Hechos que han sido afirmados por organizaciones pol\xEDticas individuales."
+      C: "Hechos reconocidos como ciertos por el conocimiento com\xFAn."
+      D: "Hechos susceptibles de verificaci\xF3n cient\xEDfica."
+    input_correct_responses:
+    - B
+    input_question: "El juez tom\xF3 conocimiento judicial de algunos hechos al inicio\
+      \ del juicio. \xBFCu\xE1l de los siguientes no es un tipo de hecho apropiado\
+      \ para notificaci\xF3n judicial?"
+  - input_choice_list:
+      A: "otorgar alivio, porque la cerca violaba la restricci\xF3n de servidumbre."
+      B: "conceder alivio, porque la invasi\xF3n de la valla violaba la restricci\xF3\
+        n del plan original."
+      C: "denegar el alivio, porque el maestro no hizo cumplir la restricci\xF3n contra\
+        \ el jubilado."
+      D: "negar el alivio, porque la cerca no ser\xEDa interpretada como &quot;una\
+        \ estructura&quot; dentro de los t\xE9rminos de la restricci\xF3n."
+    input_correct_responses:
+    - B
+    input_question: "El 1 de octubre de 1980, un promotor inmobiliario, propietario\
+      \ de varios cientos de acres en un condado rural, redact\xF3 un plan general\
+      \ de desarrollo para la zona. El plan debidamente registrado impon\xEDa limitaciones\
+      \ y restricciones elaboradas sobre el terreno en el plan, que iba a ser desarrollado\
+      \ como un distrito residencial. Las restricciones se extender\xEDan a todas\
+      \ las personas que adquirieran cualquiera de los lotes y a sus herederos, cesionarios\
+      \ y arrendatarios. Se dispuso adem\xE1s que todos los propietarios posteriores\
+      \ recibir\xEDan la debida notificaci\xF3n de las restricciones. Entre esas restricciones\
+      \ en el plan general estaban las siguientes: (22) Se crea un derecho de franquicia\
+      \ en una franja de terreno de 10 pies de ancho a lo largo de la parte trasera\
+      \ de cada lote para el uso de empresas de servicios p\xFAblicos con derecho\
+      \ de entrada y salida. (23) No se construir\xE1 ninguna casa o estructura de\
+      \ ning\xFAn tipo en la franja de terreno antes mencionada que corre a trav\xE9\
+      s de dichos bloques. En 2000, un jubilado compr\xF3 uno de los lotes, construy\xF3\
+      \ una casa y erigi\xF3 una cerca en la parte trasera de su propiedad dentro\
+      \ del \xE1rea restringida. En 2004, un maestro compr\xF3 un terreno adyacente\
+      \ a la propiedad del jubilado y construy\xF3 una casa nueva. Dos a\xF1os m\xE1\
+      s tarde, un bibliotecario compr\xF3 el lote contiguo a la propiedad del maestro.\
+      \ Las tres escrituras de esas propiedades conten\xEDan cada una referencias\
+      \ al libro de escrituras donde se registr\xF3 el plano general. En 2008, el\
+      \ bibliotecario inici\xF3 la construcci\xF3n de una cerca de postes y barandas\
+      \ de siete pies a lo largo de la l\xEDnea que divide su lote con el del maestro,\
+      \ y a lo largo del centro del \xE1rea sujeta al derecho de franquicia. Aunque\
+      \ el maestro se opuso a su construcci\xF3n, la valla se complet\xF3. Si el maestro\
+      \ solicita una orden judicial obligatoria para obligar a retirar la cerca del\
+      \ bibliotecario, lo m\xE1s probable es que el tribunal"
+  - input_choice_list:
+      A: "La promesa del padre y la confianza del acreedor en ella, si se probaban,\
+        \ daban lugar a un reclamo v\xE1lido del acreedor contra el padre basado en\
+        \ la doctrina del impedimento promisorio."
+      B: "Como era previsible que la promesa del padre inducir\xEDa al acreedor a\
+        \ abstenerse de emprender cualquier acci\xF3n contra el hijo, dicha tolerancia\
+        \ era, como cuesti\xF3n de derecho, una contraprestaci\xF3n negociada por\
+        \ la promesa del padre."
+      C: "Los cinco pagos del padre al acreedor por un total de $2,500 manifestaron\
+        \ una intenci\xF3n seria por parte del padre de quedar obligado contractualmente,\
+        \ y dicha manifestaci\xF3n generalmente se reconoce como un sustituto eficaz\
+        \ de la contraprestaci\xF3n."
+      D: "Al asumir la obligaci\xF3n de deuda antecedente que el hijo deb\xEDa al\
+        \ acreedor, el padre se convert\xEDa en fiador cuya promesa al acreedor era\
+        \ exigible, ya que estaba por escrito y respaldada por una contraprestaci\xF3\
+        n adecuada."
+    input_correct_responses:
+    - A
+    input_question: "Un hijo le deb\xEDa a un acreedor 5.000 d\xF3lares. El padre\
+      \ del hijo se puso en contacto con el acreedor y le dijo que quer\xEDa pagar\
+      \ la deuda del hijo. El padre firm\xF3 un documento que establec\xEDa que pagar\xED\
+      a la deuda del hijo a raz\xF3n de 500 d\xF3lares al mes durante 10 meses. El\
+      \ acreedor no se comprometi\xF3 verbalmente ni por escrito a abstenerse de demandar\
+      \ al hijo para cobrar la deuda de $5,000, y el padre no hizo ninguna solicitud\
+      \ oral ni escrita de dicha indulgencia. Durante los siguientes cinco meses,\
+      \ el padre realiz\xF3 y el acreedor acept\xF3 los pagos mensuales de $500 seg\xFA\
+      n lo acordado. Durante ese per\xEDodo, el acreedor, de hecho, se abstuvo de\
+      \ emprender cualquier acci\xF3n legal contra el hijo. Sin embargo, el padre\
+      \ inform\xF3 entonces al acreedor que no har\xEDa m\xE1s pagos de la deuda.\
+      \ \xBFCu\xE1l de los siguientes es el argumento m\xE1s convincente de que el\
+      \ padre es responsable ante el acreedor seg\xFAn los t\xE9rminos de su acuerdo?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_law
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_professional_law
+task_alias: professional_law

@@ -1,0 +1,7 @@
+task: belebele_glg_Latn
+include: ../belebele/_default_template_yaml
+dataset_path: proxectonos/belebele_gl
+fewshot_split: train
+test_split: train
+metadata:
+  version: 1.0

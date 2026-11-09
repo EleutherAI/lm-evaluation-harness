@@ -1,0 +1,3 @@
+task: translation_nno_nob_p0
+include: _translation_nno_nob_yaml
+doc_to_text: "Nynorsk: {{text_nno}}\nBokmål:"

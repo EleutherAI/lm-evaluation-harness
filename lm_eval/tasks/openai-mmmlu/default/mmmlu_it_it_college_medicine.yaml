@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_college_medicine
+"tag": "mmmlu_it_it_other_tasks"
+"task": "mmmlu_it_it_college_medicine"
+"task_alias": "college medicine (Italian)"
+"description": "The following are multiple choice questions (with answers) about college medicine (Italian).\n\n"

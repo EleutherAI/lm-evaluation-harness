@@ -1,0 +1,6 @@
+"dataset_name": "abstract_algebra"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_stem_tasks"
+"task": "mmlu_cot_llama_abstract_algebra"
+"task_alias": "abstract algebra"

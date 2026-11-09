@@ -1,0 +1,53 @@
+dataset_name: binary
+output_type: multiple_choice
+training_split: train
+test_split: test
+doc_to_target: sentiment
+metric_list:
+  - metric: f1
+    aggregation: !function utils.multi_f1
+    higher_is_better: true
+  - metric: f1_norm
+    aggregation: !function utils.multi_f1
+    higher_is_better: true
+  - metric: f1_mutual_info
+    aggregation: !function utils.multi_f1
+    higher_is_better: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_mutual_info
+    aggregation: mean
+    higher_is_better: true
+  - metric: prob_correct
+    aggregation: mean
+    higher_is_better: true
+  - metric: prob_correct_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: prob_correct_mutual_info
+    aggregation: mean
+    higher_is_better: true
+  - metric: loglikelihood_correct
+    aggregation: mean
+    higher_is_better: true
+  - metric: loglikelihood_correct_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: loglikelihood_correct_mutual_info
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1_stderr
+    aggregation: !function utils.multi_f1_stderr
+    higher_is_better: false
+  - metric: f1_norm_stderr
+    aggregation: !function utils.multi_f1_stderr
+    higher_is_better: false
+  - metric: f1_mutual_info_stderr
+    aggregation: !function utils.multi_f1_stderr
+    higher_is_better: false
+metadata:
+  version: 1.3

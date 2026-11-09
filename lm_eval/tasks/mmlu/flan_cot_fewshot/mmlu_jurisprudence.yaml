@@ -1,0 +1,59 @@
+dataset_name: jurisprudence
+description: The following are multiple choice questions (with answers) about jurisprudence.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Iverson Jewelers wrote a letter to Miller, ''We have received an exceptionally
+      fine self winding Rolox watch which we will sell to you at a very favorable
+      price.''
+
+      (A) The letter is an offer to sell (B) A valid offer cannot be made by letter.
+      (C) The letter contains a valid offer which will terminate within a reasonable
+      time. (D) The letter lacks one of the essential elements of an offer.'
+    target: Let's think step by step. We refer to Wikipedia articles on jurisprudence
+      for help. An offer shows the intent to enter into a mutually-beneficial contract
+      with specific terms. An offer can be made by a letter. While this letter indicates
+      the willingness to sell, the lack of specific terms, such as transaction price
+      and offer expiration date, makes it an incomplete offer. The answer is (D).
+  - question: 'Functions of the law include all but which of the following?
+
+      (A) maximizing individual freedom (B) providing a basis for compromise (C) keeping
+      the peace (D) promoting the principles of the free enterprise system'
+    target: Let's think step by step. We refer to Wikipedia articles on jurisprudence
+      for help. Laws are fundamentally about helping resolve disputes between individuals,
+      and therefore essential for maximizing individual freedom, providing a basis
+      for compromise, and keeping the peace. The answer is (D).
+  - question: 'The ________ School of jurisprudence postulates that the law is based
+      on what is "correct."
+
+      (A) Natural Law (B) Analytical (C) Historical (D) Sociological'
+    target: Let's think step by step. We refer to Wikipedia articles on jurisprudence
+      for help. Natural Law School of jurisprudence focuses on the laws of nature,
+      and states that the law should be based on ethics, morals, and what is "correct".
+      Analytical deals with the law as it already exists, Historical postulates that
+      the law was found and not made, and Sociological studies how the law and society
+      impact each other. The answer is (A).
+  - question: 'Which word best summarizes Weber''s explanation of the development of
+      formally rational law?
+
+      (A) Authority. (B) Charisma. (C) Co-operation. (D) Capitalism.'
+    target: Let's think step by step. We refer to Wikipedia articles on jurisprudence
+      for help. Weber explained the development of formal rationality in laws as how
+      the modern society moved from tradition to rationality, where people decide
+      actions based less on how they were culturally done and more on expected utilities.
+      How rational individuals optimize efficiency of accomplishing tasks for higher
+      rewards is a core principle of Capitalism. The answer is (D).
+  - question: 'Which position does Rawls claim is the least likely to be adopted by the
+      POP (people in the original position)?
+
+      (A) The POP would choose equality above liberty. (B) The POP would opt for the
+      ''maximin'' strategy. (C) The POP would opt for the ''difference principle''.
+      (D) The POP would reject the ''system of natural liberty.'''
+    target: 'Let''s think step by step. We refer to Wikipedia articles on jurisprudence
+      for help. The POP would opt for the ''maximin'' strategy, opt for the ''difference
+      principle'', and reject the ''system of natural liberty'', but the POP would
+      not choose equality above liberty, since the POP assume both equal and free
+      citizens. The answer is (A).'
+tag: mmlu_flan_cot_fewshot_humanities
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_jurisprudence

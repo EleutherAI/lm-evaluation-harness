@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Finalement mourir
+      B: "Persister ind\xE9finiment"
+      C: Croissance exponentielle
+      D: Ne se produit jamais
+    input_correct_responses:
+    - A
+    input_question: "Pour un processus autor\xE9gressif stationnaire, les chocs"
+  - input_choice_list:
+      A: 0,2
+      B: 0,4
+      C: 0,5
+      D: 0,33
+    input_correct_responses:
+    - D
+    input_question: "Consid\xE9rons le mod\xE8le AR(1) suivant avec les perturbations\
+      \ ayant une moyenne nulle et une variance unitaire yt = 0,2 + 0,4 yt-1 + ut\
+      \ La moyenne (inconditionnelle) de y sera donn\xE9e par"
+  - input_choice_list:
+      A: (ii) et (iv) uniquement
+      B: (i) et (iii) uniquement
+      C: (i), (ii) et (iii) uniquement
+      D: (i), (ii), (iii) et (iv)
+    input_correct_responses:
+    - C
+    input_question: "Supposons qu&#39;une statistique de test soit associ\xE9e \xE0\
+      \ une valeur p de 0,08. Laquelle des affirmations suivantes est vraie\_? (i)\
+      \ Si la taille du test \xE9tait exactement de 8\_%, nous serions indiff\xE9\
+      rents entre rejeter et ne pas rejeter l&#39;hypoth\xE8se nulle (ii) Le nul serait\
+      \ rejet\xE9 si une taille de test de 10\_% \xE9tait utilis\xE9e (iii) Le nul\
+      \ ne serait pas \xEAtre rejet\xE9e si une taille de test de 1 % \xE9tait utilis\xE9\
+      e (iv) La valeur nulle serait rejet\xE9e si une taille de test de 5 % \xE9tait\
+      \ utilis\xE9e."
+  - input_choice_list:
+      A: "ce sera biais\xE9"
+      B: "Ce sera incoh\xE9rent"
+      C: Ce sera inefficace
+      D: Tous (a), (b) et (c) seront vrais.
+    input_correct_responses:
+    - C
+    input_question: "Quelles seraient alors les cons\xE9quences pour l&#39;estimateur\
+      \ MCO si l&#39;h\xE9t\xE9rosc\xE9dasticit\xE9 est pr\xE9sente dans un mod\xE8\
+      le de r\xE9gression mais ignor\xE9e\_?"
+  - input_choice_list:
+      A: "1 d\xE9calage"
+      B: "2 d\xE9calages"
+      C: "3 d\xE9calages"
+      D: "4 d\xE9calages"
+    input_correct_responses:
+    - C
+    input_question: "Supposons maintenant qu&#39;un chercheur souhaite utiliser des\
+      \ crit\xE8res d&#39;information pour d\xE9terminer la longueur de d\xE9calage\
+      \ optimale pour un VAR. 500 observations sont disponibles pour le VAR bivari\xE9\
+      , et les valeurs du d\xE9terminant de la matrice variance-covariance des r\xE9\
+      sidus sont 0,0336, 0,0169, 0,0084 et 0,0062 pour 1, 2, 3 et 4 retards respectivement.\
+      \ Quel est l&#39;ordre optimal du mod\xE8le selon le crit\xE8re d&#39;information\
+      \ d&#39;Akaike ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_econometrics
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_econometrics
+task_alias: econometrics

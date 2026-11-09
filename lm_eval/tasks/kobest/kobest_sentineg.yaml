@@ -1,0 +1,21 @@
+task: kobest_sentineg
+dataset_path: skt/kobest_v1
+dataset_name: sentineg
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: !function utils.sentineg_doc_to_text
+doc_to_target: "{{label}}"
+doc_to_choice: ["부정", "긍정"]
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: True
+  - metric: f1
+    aggregation: !function utils.macro_f1_score
+    average: macro
+    hf_evaluate: true
+    higher_is_better: True
+metadata:
+  version: 1.0

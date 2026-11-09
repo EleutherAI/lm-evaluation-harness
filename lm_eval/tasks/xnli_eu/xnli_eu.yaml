@@ -1,0 +1,8 @@
+include: xnli_common_yaml
+task: xnli_eu
+dataset_path: HiTZ/xnli-eu
+dataset_name: eu
+doc_to_choice: '{{[premise+", ezta? Bai, "+hypothesis,premise+", ezta? Gainera,
+"+hypothesis,premise+", ezta? Ez, "+hypothesis]}}'
+doc_to_text: ""
+test_split: test

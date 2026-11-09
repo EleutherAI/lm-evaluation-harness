@@ -1,0 +1,5 @@
+include: _belarusian_few_shot_og_template_yaml
+description: Ніжэй прыведзены пытанні з некалькімі варыянтамі адказаў (з адказамі)
+  пра Arts & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_belarusian_few_shot_og_arts_humanities

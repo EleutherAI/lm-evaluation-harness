@@ -1,0 +1,5 @@
+dataset_name: icd9cm_easy
+include: _default_template_yaml
+tag: med_concepts_qa_icd9cm_tasks
+task: med_concepts_qa_icd9cm_easy
+task_alias: icd9cm_easy

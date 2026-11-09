@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "JA_JP"
+process_docs: !function utils.process_astronomy
+"tag": "mmmlu_ja_jp_stem_tasks"
+"task": "mmmlu_ja_jp_astronomy"
+"task_alias": "astronomy (Japanese)"
+"description": "The following are multiple choice questions (with answers) about astronomy (Japanese).\n\n"

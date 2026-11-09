@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Es besch\xE4digte die Unterst\xFCtzung f\xFCr das US-amerikanische Modell\
+        \ der politischen \xD6konomie und des Kapitalismus"
+      B: "Es erzeugte Wut auf die Vereinigten Staaten, weil sie die Krise \xFCbertrieben"
+      C: "Es erh\xF6hte die Unterst\xFCtzung f\xFCr die amerikanische globale F\xFC\
+        hrung unter Pr\xE4sident Obama"
+      D: Es reduzierte die weltweite Verwendung des US-Dollars
+    input_correct_responses:
+    - A
+    input_question: Wie hat sich die Finanzkrise von 2008 auf Amerikas internationalen
+      Ruf ausgewirkt?
+  - input_choice_list:
+      A: "Es globalisierte die Eind\xE4mmung."
+      B: "Es militarisierte die Eind\xE4mmung."
+      C: Es forderte die Entwicklung der Wasserstoffbombe.
+      D: Alles das oben Genannte
+    input_correct_responses:
+    - D
+    input_question: "Wie hat NSC-68 die US-Strategie ver\xE4ndert?"
+  - input_choice_list:
+      A: Terrorismuspolitik.
+      B: Wirtschaftspolitik.
+      C: "Au\xDFenpolitik."
+      D: Internationale Politik.
+    input_correct_responses:
+    - C
+    input_question: "Der Bereich der politischen Entscheidungen, die sich haupts\xE4\
+      chlich mit den Beziehungen zwischen den Vereinigten Staaten und dem Rest der\
+      \ Welt befassen, wird als bezeichnet"
+  - input_choice_list:
+      A: "Defensive Realisten legen gr\xF6\xDFeres Gewicht auf die Rolle internationaler\
+        \ Institutionen"
+      B: Defensive Realisten legen weniger Wert auf geografische Faktoren
+      C: "Offensive Realisten geben dem nationalen Interesse mehr Priorit\xE4t als\
+        \ defensive Realisten."
+      D: "Defensive Realisten glauben, dass Staaten Sicherheitsmaximierer sind, w\xE4\
+        hrend offensive Realisten glauben, dass Staaten Machtmaximierer sind"
+    input_correct_responses:
+    - D
+    input_question: "Wie unterscheiden sich Defensiver Realismus und Offensiver Realismus\
+      \ in ihrer Erkl\xE4rung staatlichen Verhaltens?"
+  - input_choice_list:
+      A: "Die Globalisierung hatte M\xE4nner wie ihn zu reich gemacht"
+      B: Von der Globalisierung profitierten nur bestimmte amerikanische Staaten wie
+        New York
+      C: "Liberale Eliten hatten die Globalisierung gef\xF6rdert, w\xE4hrend \u201E\
+        einfache Amerikaner\u201C deswegen Arbeitspl\xE4tze verloren"
+      D: "Die Globalisierung f\xF6rderte sch\xE4dliche Handelskriege"
+    input_correct_responses:
+    - C
+    input_question: Wie hat Donald Trump im Wahlkampf 2016 die Globalisierung angegriffen?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_us_foreign_policy
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_us_foreign_policy
+task_alias: us_foreign_policy

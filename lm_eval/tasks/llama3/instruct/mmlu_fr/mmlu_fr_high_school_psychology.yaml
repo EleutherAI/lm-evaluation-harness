@@ -1,0 +1,66 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: un surmoi fort.
+      B: faible estime de soi.
+      C: "faible auto-efficacit\xE9."
+      D: "un lieu de contr\xF4le interne."
+    input_correct_responses:
+    - D
+    input_question: "Ani pense que ses attitudes et son comportement jouent un r\xF4\
+      le central dans ce qui lui arrive. Une telle croyance est susceptible d&#39;\xEA\
+      tre associ\xE9e \xE0"
+  - input_choice_list:
+      A: "identifier les causes et les solutions des probl\xE8mes pr\xE9sent\xE9s\
+        \ par le client"
+      B: "identifier et \xE9liminer les causes des difficult\xE9s de la personne consult\xE9\
+        e \xE0 g\xE9rer un probl\xE8me"
+      C: "\xE9tablir une hi\xE9rarchie d&#39;autorit\xE9 pour permettre une prise\
+        \ de d\xE9cision efficace"
+      D: "pr\xE9senter un plan d&#39;action unique, bien d\xE9fini et sans ambigu\xEF\
+        t\xE9 au consultant pour surmonter les d\xE9ficits de comp\xE9tences"
+    input_correct_responses:
+    - B
+    input_question: "Selon le mod\xE8le de consultation de cas centr\xE9 sur le consultant\
+      \ de Caplan, le consultant s&#39;int\xE9resse principalement \xE0"
+  - input_choice_list:
+      A: "Les messages sont envoy\xE9s du thalamus directement \xE0 l&#39;amygdale."
+      B: "Les messages sont envoy\xE9s du thalamus aux voies &quot;quoi&quot; et &quot;o\xF9\
+        &quot;."
+      C: "Les messages sont envoy\xE9s du syst\xE8me nerveux parasympathique au cortex\
+        \ c\xE9r\xE9bral."
+      D: "Les messages sont envoy\xE9s des lobes frontaux \xE0 l&#39;hypophyse."
+    input_correct_responses:
+    - A
+    input_question: "En nageant dans l&#39;oc\xE9an, Ivan est effray\xE9 par une ombre\
+      \ sombre dans l&#39;eau avant m\xEAme d&#39;avoir la chance d&#39;identifier\
+      \ ce qu&#39;est l&#39;ombre. Les connexions synaptiques qui se produisent au\
+      \ cours de cet incident de peur sont mieux d\xE9crites par lequel des \xE9l\xE9\
+      ments suivants\_?"
+  - input_choice_list:
+      A: "Donner \xE0 l&#39;enfant une p\xE9riode d&#39;essai dans le nouvel environnement"
+      B: "Informer les parents par \xE9crit"
+      C: Obtenir l&#39;approbation du conseil scolaire
+      D: Obtenir le consentement parental
+    input_correct_responses:
+    - B
+    input_question: "Selon la loi sur l&#39;am\xE9lioration de l&#39;\xE9ducation\
+      \ des personnes handicap\xE9es, laquelle des actions suivantes un organisme\
+      \ d&#39;enseignement doit-il effectuer avant de modifier le placement scolaire\
+      \ d&#39;un \xE9l\xE8ve handicap\xE9\_?"
+  - input_choice_list:
+      A: socioculturel
+      B: clinique
+      C: cognitif
+      D: comportementaliste
+    input_correct_responses:
+    - C
+    input_question: "Pascale s&#39;int\xE9resse aux strat\xE9gies de traitement que\
+      \ les enfants utilisent pour apprendre de nouvelles informations. Pascale serait\
+      \ mieux class\xE9e dans quel type de psychologue\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_psychology
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_high_school_psychology
+task_alias: high_school_psychology

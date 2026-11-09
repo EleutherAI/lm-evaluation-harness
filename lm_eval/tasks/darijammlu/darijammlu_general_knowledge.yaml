@@ -1,0 +1,6 @@
+"dataset_name": "general_knowledge"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_ar_mmlu_tasks"
+"task": "darijammlu_general_knowledge"
+"task_alias": "general knowledge"

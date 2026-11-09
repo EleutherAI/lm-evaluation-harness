@@ -1,0 +1,103 @@
+# MATH
+
+ℹ️ This is the 4-shot variant!
+
+## Paper
+
+Measuring Mathematical Problem Solving With the MATH Dataset
+https://arxiv.org/abs/2103.03874
+
+Many intellectual endeavors require mathematical problem solving, but this skill remains beyond the capabilities of
+computers. To measure this ability in machine learning models, we introduce MATH, a new dataset of 12,500 challenging
+competition mathematics problems. Each problem in MATH has a full step-by-step solution which can be used to teach
+models to generate answer derivations and explanations.
+
+NOTE: The few-shot and the generated answer extraction is based on the [Minerva](https://arxiv.org/abs/2206.14858) and
+exact match equivalence is calculated using the `sympy` library. This requires additional dependencies, which can be
+installed via the `lm-eval[math]` extra.
+
+Homepage: https://github.com/hendrycks/math
+
+## Citation
+
+```
+@article{hendrycksmath2021,
+  title={Measuring Mathematical Problem Solving With the MATH Dataset},
+  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
+  journal={Advances in neural information processing systems},
+  year={2021}
+}
+
+@article{lewkowycz2022solving,
+  title={Solving quantitative reasoning problems with language models},
+  author={Lewkowycz, Aitor and Andreassen, Anders and Dohan, David and Dyer, Ethan and Michalewski, Henryk and Ramasesh, Vinay and Slone, Ambrose and Anil, Cem and Schlag, Imanol and Gutman-Solo, Theo and others},
+  journal={Advances in neural information processing systems},
+  volume={35},
+  pages={3843--3857},
+  year={2022}
+}
+
+@misc{kydlicek2025fixing,
+  title={Fixing open llm leaderboard with math-verify},
+  author={Kydlicek, Hynek and Lozovskaya, Alina and Habib, Nathan and Fourrier, Cl{\'e}mentine},
+  year={2025}
+}
+```
+
+### Groups and Tasks
+
+#### Groups
+
+- `minerva_math`
+
+#### Tasks
+
+- `minerva_math_algebra`
+- `minerva_math_counting_and_prob`
+- `minerva_math_geometry`
+- `minerva_math_intermediate_algebra`
+- `minerva_math_num_theory`
+- `minerva_math_prealgebra`
+- `minerva_math_precalc`
+- `minerva_math500`
+
+### Checklist
+
+The checklist is the following:
+
+For adding novel benchmarks/datasets to the library:
+
+* [x] Is the task an existing benchmark in the literature?
+    * [x] Have you referenced the original paper that introduced the task?
+    * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the
+      reference implementation and documented how to run such a test?
+        * The implementation in the original paper is one where the model is first fine-tuned on the data. They do have
+          a few-shot evaluation for GPT-3, however the few-shot context used here is sourced
+          from [Lewkowycz et al](https://arxiv.org/abs/2206.14858). The achieved accuracy on Llama-2 models is
+          comparable to that provided in the paper, though not identical.
+
+If other tasks on this dataset are already supported:
+
+* [x] Is the "Main" variant of this task clearly denoted?
+* [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [x] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Variant Wishlist
+
+- [ ] zero-shot variant
+
+### Changelog
+
+- version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For
+  details [see](https://huggingface.co/blog/math_verify_leaderboard)
+- version 3.0 (21-Aug-2025); pass the full solution and model generation to `math_verify`'s `parse`
+- version 3.1 (28-Aug-2026); prompt and scoring fixes. Scores shift slightly relative to 3.0.
+  - corrected the hardcoded 4-shot prompt: restored the `\\` row separators in the two `align*` blocks (emitted
+    as a single `\` since #1895 split the prompt into Python string literals) and removed a stray trailing `}`.
+    The few-shot text now matches the source rows in `EleutherAI/hendrycks_math` (#4045)
+  - an answer identical to the gold now scores correct even when sympy cannot parse it — tuples, intervals and
+    matrices (#4034)
+  - commas are stripped only from true thousands separators, so bare tuples like `0,1` are no longer fused into
+    `01` (#4039)
+  - unit-word stripping no longer corrupts LaTeX command names (`\left` -> `\le`, `\infty` -> `\iny`), and
+    `\sqrt[n]{...}` survives the sqrt shorthand rule (#4037)

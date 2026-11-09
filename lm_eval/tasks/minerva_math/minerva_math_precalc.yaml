@@ -1,0 +1,3 @@
+include: minerva_math_algebra.yaml
+dataset_name: precalculus
+task: minerva_math_precalc

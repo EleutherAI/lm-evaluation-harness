@@ -1,0 +1,56 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: taxa bruta de mortalidade a partir da data bruta de nascimento.
+      B: taxa bruta de natalidade da taxa bruta de mortalidade.
+      C: duplicando o tempo da taxa bruta de natalidade.
+      D: taxa de fertilidade da taxa bruta de mortalidade.
+    input_correct_responses:
+    - A
+    input_question: "A taxa de aumento natural de uma popula\xE7\xE3o \xE9 encontrada\
+      \ subtraindo o"
+  - input_choice_list:
+      A: "As taxas de natalidade aumentam e a taxa de crescimento populacional \xE9\
+        \ menos r\xE1pida."
+      B: "As taxas de natalidade diminuem e a taxa de crescimento populacional \xE9\
+        \ menos r\xE1pida."
+      C: As taxas de natalidade aumentam e a taxa de crescimento populacional aumenta.
+      D: As taxas de natalidade diminuem e a taxa de crescimento populacional aumenta.
+    input_correct_responses:
+    - B
+    input_question: "Durante a terceira fase do modelo de transi\xE7\xE3o demogr\xE1\
+      fica, qual das seguintes afirma\xE7\xF5es \xE9 verdadeira?"
+  - input_choice_list:
+      A: "A duplica\xE7\xE3o de esfor\xE7os ocorre frequentemente."
+      B: "Os problemas sociais da cidade central espalham-se pelos sub\xFArbios residenciais\
+        \ circundantes."
+      C: "A inefici\xEAncia na presta\xE7\xE3o de servi\xE7os ocorre frequentemente."
+      D: "Os esfor\xE7os de um bairro para reduzir a polui\xE7\xE3o s\xE3o sempre\
+        \ apoiados pelas comunidades vizinhas."
+    input_correct_responses:
+    - D
+    input_question: "Qual das seguintes afirma\xE7\xF5es N\xC3O \xE9 precisa em rela\xE7\
+      \xE3o aos servi\xE7os prestados pelos governos locais nos Estados Unidos?"
+  - input_choice_list:
+      A: "terceiriza\xE7\xE3o."
+      B: "terceiriza\xE7\xE3o."
+      C: maquiladoras.
+      D: "interdepend\xEAncia locacional."
+    input_correct_responses:
+    - B
+    input_question: "A pr\xE1tica de contratar um terceiro prestador de servi\xE7\
+      os estrangeiro para executar uma opera\xE7\xE3o \xE9 chamada"
+  - input_choice_list:
+      A: Sabonete pomba
+      B: Barra de chocolate pomba
+      C: "S\xEDmbolo de pomba"
+      D: "Uma pomba (p\xE1ssaro)"
+    input_correct_responses:
+    - C
+    input_question: "Qual dos itens a seguir \xE9 um exemplo de cultura imaterial?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_geography
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_high_school_geography
+task_alias: high_school_geography

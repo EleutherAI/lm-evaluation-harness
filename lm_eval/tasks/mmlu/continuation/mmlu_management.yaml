@@ -1,0 +1,6 @@
+"dataset_name": "management"
+"description": "The following are questions (with answers) about management.\n\
+  \n"
+"tag": "mmlu_other_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_management_continuation"

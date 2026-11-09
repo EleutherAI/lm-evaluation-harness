@@ -1,0 +1,4 @@
+dataset_name: aviation_engineering_and_maintenance
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_direct_hard_aviation_engineering_and_maintenance
+tag: kmmlu_direct_hard_applied_science_tasks

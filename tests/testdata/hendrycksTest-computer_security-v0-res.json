@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-computer_security": {"acc": 0.24, "acc_norm": 0.27, "acc_norm_stderr": 0.044619604333847394, "acc_stderr": 0.042923469599092816}}, "versions": {"hendrycksTest-computer_security": 0}}

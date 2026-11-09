@@ -1,0 +1,4 @@
+dataset_name: economics
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_economics
+tag: kmmlu_hard_humss_tasks

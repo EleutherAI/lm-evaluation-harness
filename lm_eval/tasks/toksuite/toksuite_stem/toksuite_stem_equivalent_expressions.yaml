@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_equivalent_expressions
+include: toksuite_stem_base.yaml
+task: toksuite_stem_equivalent_expressions
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: "Equivalent _expressions"
+  num_samples: 15

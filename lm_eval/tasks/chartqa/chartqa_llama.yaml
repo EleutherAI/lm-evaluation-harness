@@ -1,0 +1,3 @@
+include: chartqa.yaml
+doc_to_text: "<image>You are provided a chart image and will be asked a question. You have to think through your answer and provide a step-by-step solution. Once you have the solution, write the final answer in at most a few words at the end with the phrase \"FINAL ANSWER:\". The question is: {{query}}\nLet's think step by step."
+task: chartqa_llama

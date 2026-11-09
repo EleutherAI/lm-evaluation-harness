@@ -1,0 +1,4 @@
+task: mmmu_val_art
+include: _template_yaml
+task_alias: Art
+dataset_name: Art

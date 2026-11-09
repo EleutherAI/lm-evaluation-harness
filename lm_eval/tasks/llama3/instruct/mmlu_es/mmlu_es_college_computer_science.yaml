@@ -1,0 +1,82 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: a*(c + d)+ b(c + d)
+      B: a*(c + d)* + b(c + d)*
+      C: a*(c + d)+ b*(c + d)
+      D: (a + b)*c +(a + b)*d
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes expresiones regulares es equivalente\
+      \ a (describe el mismo conjunto de cadenas que) (a* + b)*(c + d)?"
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '8'
+    input_correct_responses:
+    - B
+    input_question: "Cierta m\xE1quina RISC canalizada tiene 8 registros de prop\xF3\
+      sito general R0, R1,. . . , R7 y admite las siguientes operaciones. SUMAR Rs1,\
+      \ Rs2, Rd Sumar Rs1 a Rs2 y poner la suma en Rd MUL Rs1, Rs2, Rd Multiplicar\
+      \ Rs1 por Rs2 y poner el producto en Rd Una operaci\xF3n normalmente toma un\
+      \ ciclo; sin embargo, una operaci\xF3n requiere dos ciclos si produce un resultado\
+      \ requerido por la operaci\xF3n inmediatamente siguiente en una secuencia de\
+      \ operaciones. Considere la expresi\xF3n AB + ABC + BC, donde las variables\
+      \ A, B, C est\xE1n ubicadas en los registros R0, R1, R2. Si no se debe modificar\
+      \ el contenido de estos tres registros, \xBFcu\xE1l es el n\xFAmero m\xEDnimo\
+      \ de ciclos de reloj requeridos para una secuencia de operaci\xF3n que calcula\
+      \ el valor de AB + ABC + BC?"
+  - input_choice_list:
+      A: yo solo
+      B: Yo solo
+      C: solo III
+      D: I, II y III
+    input_correct_responses:
+    - D
+    input_question: "El patr\xF3n de dise\xF1o Singleton se utiliza para garantizar\
+      \ que solo se pueda crear una instancia de una clase. \xBFCu\xE1l de las siguientes\
+      \ afirmaciones es cierta respecto de este patr\xF3n de dise\xF1o? I. La clase\
+      \ Singleton tiene un m\xE9todo de f\xE1brica est\xE1tico para proporcionar su\
+      \ instancia. II. La clase Singleton puede ser una subclase de otra clase. III.\
+      \ La clase Singleton tiene un constructor privado."
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '9'
+    input_correct_responses:
+    - D
+    input_question: "Un compilador genera c\xF3digo para la siguiente declaraci\xF3\
+      n de asignaci\xF3n. G := (A + B) * C - (D + E) * F La m\xE1quina de destino\
+      \ tiene un \xFAnico acumulador y un conjunto de instrucciones de direcci\xF3\
+      n \xFAnica que consta de instrucciones de carga, almacenamiento, suma, resta\
+      \ y multiplicaci\xF3n. Para las operaciones aritm\xE9ticas, el operando izquierdo\
+      \ se toma del acumulador y el resultado aparece en el acumulador. El menor n\xFA\
+      mero posible de instrucciones en el c\xF3digo resultante es"
+  - input_choice_list:
+      A: 1/50
+      B: 1/27
+      C: 1/25
+      D: 2/27
+    input_correct_responses:
+    - B
+    input_question: "Considere un dise\xF1o de computadora en el que m\xFAltiples\
+      \ procesadores, cada uno con una memoria cach\xE9 privada, comparten la memoria\
+      \ global usando un solo bus. Este bus es el recurso cr\xEDtico del sistema.\
+      \ Cada procesador puede ejecutar una instrucci\xF3n cada 500 nanosegundos siempre\
+      \ que su cach\xE9 local satisfaga las referencias de memoria. Cuando se produce\
+      \ una p\xE9rdida de cach\xE9, el procesador se retrasa 2000 nanosegundos adicionales.\
+      \ Durante la mitad de este retraso adicional, el autob\xFAs se dedica a atender\
+      \ la p\xE9rdida de cach\xE9. Durante la otra mitad, el procesador no puede continuar,\
+      \ pero el bus queda libre para atender las solicitudes de otros procesadores.\
+      \ En promedio, cada instrucci\xF3n requiere 2 referencias a la memoria. En promedio,\
+      \ los errores de cach\xE9 ocurren en el 1 por ciento de las referencias. \xBF\
+      Qu\xE9 proporci\xF3n de la capacidad del bus consumir\xEDa un solo procesador,\
+      \ ignorando los retrasos debidos a la competencia de otros procesadores?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_computer_science
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_college_computer_science
+task_alias: college_computer_science

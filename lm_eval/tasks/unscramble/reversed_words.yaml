@@ -1,0 +1,20 @@
+tag:
+  - unscramble
+task: reversed_words
+dataset_path: EleutherAI/unscramble
+dataset_name: reversed_words
+output_type: generate_until
+test_split: validation
+doc_to_text: "{{context}}"
+doc_to_target: "{{completion}}"
+generation_kwargs:
+  until:
+    - "\n"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: false
+    ignore_punctuation: false
+metadata:
+  version: 2.0

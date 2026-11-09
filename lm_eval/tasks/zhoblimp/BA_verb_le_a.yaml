@@ -1,0 +1,3 @@
+dataset_name: BA_verb_le_a
+include: _template_yaml
+task: zhoblimp_BA_verb_le_a

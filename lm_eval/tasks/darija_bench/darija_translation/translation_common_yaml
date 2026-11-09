@@ -1,0 +1,27 @@
+output_type: generate_until
+dataset_path: MBZUAI-Paris/DarijaBench
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+metric_list:
+  - metric: bleu
+  - metric: ter
+  - metric: chrf
+  - metric: !function utils.bert
+generation_kwargs:
+  until:
+    - "<end_of_turn>"
+    - "<eos>"
+    - "</s>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+filter_list:
+  - name: "STRIP_ANSWER"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.strip
+repeats: 1
+metadata:
+  version: 1.0

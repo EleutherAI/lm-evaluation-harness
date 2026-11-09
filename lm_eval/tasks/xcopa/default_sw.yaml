@@ -1,0 +1,4 @@
+include: default_et.yaml
+task: xcopa_sw
+dataset_name: sw
+doc_to_text: !function utils.doc_to_text_sw

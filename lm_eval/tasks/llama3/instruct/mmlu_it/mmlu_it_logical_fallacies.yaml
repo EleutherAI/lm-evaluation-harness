@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: tu quoque
+      B: risata del cavallo
+      C: argomento contro la persona
+      D: ignoratio elenchi
+    input_correct_responses:
+    - C
+    input_question: Se qualcuno attacca il carattere dell&#39;avversario, invece di
+      rispondere alle argomentazioni di quell&#39;avversario, la prima persona ha
+      probabilmente commesso quale dei seguenti errori?
+  - input_choice_list:
+      A: "sostenere che qualcosa \xE8 inferiore solo perch\xE9 non fa qualcosa che\
+        \ non avrebbe mai dovuto fare."
+      B: "includere pi\xF9 di una affermazione nella proposizione e trattare la prova\
+        \ di una affermazione come prova di tutte le affermazioni."
+      C: trarre una conclusione prima di esaminare le prove e considerare solo le
+        prove che supportano tale conclusione.
+      D: "porre una domanda che includa un presupposto non dimostrato o pi\xF9 di\
+        \ una domanda, rendendo cos\xEC priva di significato una risposta semplice\
+        \ s\xEC o no."
+    input_correct_responses:
+    - D
+    input_question: La complessa fallacia della domanda consiste in
+  - input_choice_list:
+      A: La premessa minore deve negare l&#39;antecedente
+      B: La premessa maggiore deve affermare il conseguente
+      C: Il termine medio deve essere utilizzato in almeno una premessa in senso universale
+        o assoluto
+      D: Tutti i precedenti
+    input_correct_responses:
+    - C
+    input_question: "Quale delle seguenti affermazioni \xE8 vera per un sillogismo\
+      \ categorico valido?"
+  - input_choice_list:
+      A: Divisione
+      B: Composizione
+      C: Appello alla persona
+      D: Appello all&#39;ignoranza
+    input_correct_responses:
+    - B
+    input_question: "Sostenere che ci\xF2 che \xE8 vero per le parti deve essere vero\
+      \ per il tutto \xE8 un errore..."
+  - input_choice_list:
+      A: "scarsa sportivit\xE0"
+      B: appello alla compassione
+      C: argomento contro la persona
+      D: ignoranza della confutazione
+    input_correct_responses:
+    - D
+    input_question: "Quando un argomentatore causa confusione durante la confutazione\
+      \ a causa della reale o finta mancanza di capacit\xE0 di impegnarsi nella confutazione,\
+      \ quell&#39;argomante potrebbe aver commesso l&#39;errore di"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_logical_fallacies
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_logical_fallacies
+task_alias: logical_fallacies

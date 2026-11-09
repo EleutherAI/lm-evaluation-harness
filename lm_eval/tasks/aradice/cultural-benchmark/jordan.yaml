@@ -1,0 +1,25 @@
+task: AraDiCE_jordan_cultural
+dataset_path: QCRI/AraDiCE-Culture
+dataset_name: Jordan
+training_split: null
+validation_split: null
+test_split: test
+output_type: multiple_choice
+process_docs: !function utils.process_docs
+doc_to_text: "سؤال : {{Question}}\nإجابة :"
+doc_to_target: 0
+doc_to_choice: choices
+should_decontaminate: true
+doc_to_decontamination_query: Question
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    higher_is_better: true
+    aggregation: !function metrics.micro_f1_score
+metadata:
+  version: 1.0

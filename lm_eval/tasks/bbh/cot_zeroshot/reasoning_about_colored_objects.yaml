@@ -1,0 +1,19 @@
+"dataset_name": "reasoning_about_colored_objects"
+"description": "Answer extremely simple questions about the colors of objects on a surface.\n\n"
+"doc_to_text": "Q: {{input}}\nA: Let's think step by step."
+"include": "_cot_zeroshot_template_yaml"
+"task": "bbh_cot_zeroshot_reasoning_about_colored_objects"
+filter_list:
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MultiChoiceRegexFilter
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"

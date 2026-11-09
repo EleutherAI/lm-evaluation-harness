@@ -1,0 +1,32 @@
+task: ja_leaderboard_mgsm
+
+dataset_path: juletxara/mgsm
+dataset_name: ja
+
+training_split: train
+validation_split: null
+test_split: test
+
+fewshot_split: train
+num_fewshot: 5
+
+description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
+doc_to_text: "### 指示：\n与えられた問題に対して、ステップごとに答えを導き出してください。\n\n### 入力：\n{{ question | replace('問題：', '') }}\n\n### 応答："
+doc_to_target: "{{ answer | replace('ステップごとの答え：', '') }}"
+target_delimiter: "\n"
+
+output_type: generate_until
+process_results: !function ja_leaderboard_mgsm.process_results
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+
+metadata:
+  version: 1.0

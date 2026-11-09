@@ -1,0 +1,10 @@
+group: mmmlu_it_it_stem
+group_alias: "Italian stem"
+task:
+  - mmmlu_it_it_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

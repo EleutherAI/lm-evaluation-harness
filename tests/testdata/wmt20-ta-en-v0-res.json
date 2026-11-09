@@ -1,0 +1,1 @@
+{"results": {"wmt20-ta-en": {"bleu": 0.0, "bleu_stderr": 0.0, "chrf": 0.013841110664859798, "chrf_stderr": 0.00018476696850880766, "ter": 1.0, "ter_stderr": 0.0}}, "versions": {"wmt20-ta-en": 0}}

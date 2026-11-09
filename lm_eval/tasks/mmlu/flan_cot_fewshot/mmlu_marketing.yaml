@@ -1,0 +1,56 @@
+dataset_name: marketing
+description: The following are multiple choice questions (with answers) about marketing.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Although the content and quality can be as controlled as direct mail,
+      response rates of this medium are lower because of the lack of a personal address
+      mechanism. This media format is known as:
+
+      (A) Care lines. (B) Direct mail. (C) Inserts. (D) Door to door.'
+    target: Let's think step by step. We refer to Wikipedia articles on marketing
+      for help. Door to door marketing delivers non-addressed items within all buildings
+      within a geographic area. While it can control the content and quality as well
+      as direct mail marketing, its response rate is lower because of the lack of
+      a personal address mechanism. The answer is (D).
+  - question: 'In an organization, the group of people tasked with buying decisions is
+      referred to as the _______________.
+
+      (A) Outsourcing unit. (B) Procurement centre. (C) Chief executive unit. (D)
+      Decision-making unit.'
+    target: Let's think step by step. We refer to Wikipedia articles on marketing
+      for help. In an organization, the group of the people tasked with buying decision
+      is referred to as the decision-making unit. The answer is (D).
+  - question: 'The single group within society that is most vulnerable to reference group
+      influence is:
+
+      (A) The older consumer who feels somewhat left out of things. (B) The married
+      women, many of whom feel a need for stability in their lives. (C) New immigrants
+      who really want to assimilate into their new culture. (D) Children, who base
+      most of their buying decisions on outside influences.'
+    target: Let's think step by step. We refer to Wikipedia articles on marketing
+      for help. Children, who mostly based their buying decisions on outside influences,
+      are the single group within society that is more vulnerable to reference group
+      influence. The answer is (D).
+  - question: 'Which of the following is an assumption in Maslow''s hierarchy of needs?
+
+      (A) Needs are dependent on culture and also on social class. (B) Lower-level
+      needs must be at least partially satisfied before higher needs can affect behaviour.
+      (C) Needs are not prioritized or arranged in any particular order. (D) Satisfied
+      needs are motivators, and new needs emerge when current needs remain unmet.'
+    target: Let's think step by step. We refer to Wikipedia articles on marketing
+      for help. Maslow's hierarchy of needs, from the bottom upwards, are physiological
+      (food and clothing), safety, love and belonging needs, esteem, and self-actualization.
+      Lower-level needs must be at least partially satisfied before higher ones can
+      affect behavior. The answer is (B).
+  - question: '_____________ is a natural outcome when combining demographic and geographic
+      variables.
+
+      (A) Geodemographics (B) Product differentiation. (C) ANSOFF matrix. (D) Brand
+      management.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on marketing
+      for help. Geodemographics is a natural outcome when combining demographic and
+      geographic variables. The answer is (A).'
+tag: mmlu_flan_cot_fewshot_other
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_marketing

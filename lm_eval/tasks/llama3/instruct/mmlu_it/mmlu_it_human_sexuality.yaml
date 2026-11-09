@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: durante il primo trimestre
+      B: durante il secondo trimestre
+      C: durante il terzo trimestre
+      D: per tutta la gravidanza
+    input_correct_responses:
+    - A
+    input_question: "La nausea mattutina \xE8 in genere un problema:"
+  - input_choice_list:
+      A: un ego forte
+      B: un Super-Io debole
+      C: "un&#39;identit\xE0 debole"
+      D: un forte Super-Io
+    input_correct_responses:
+    - B
+    input_question: 'Una donna che sa di avere un herpes attivo e una sifilide non
+      trattata ma continua a fare sesso senza informare i suoi partner della sua condizione
+      ha, in termini psicoanalitici:'
+  - input_choice_list:
+      A: il fatto che non hanno un periodo refrattario.
+      B: la risposta degli strati interni della vagina.
+      C: avere orgasmi alternati in luoghi diversi.
+      D: il punto G.
+    input_correct_responses:
+    - A
+    input_question: "La capacit\xE0 delle donne di avere orgasmi multipli \xE8 dovuta\
+      \ principalmente a:"
+  - input_choice_list:
+      A: rapporto sessuale
+      B: il cerchio sussulta
+      C: esibizionismo
+      D: toccarsi i genitali a vicenda
+    input_correct_responses:
+    - A
+    input_question: "La natura delle attivit\xE0 omosessuali che si verificano durante\
+      \ la preadolescenza include tutte le seguenti, tranne quale?"
+  - input_choice_list:
+      A: eiaculazione precoce
+      B: eiaculazione inibita
+      C: disturbo erettile
+      D: disturbo eiaculatorio
+    input_correct_responses:
+    - C
+    input_question: "Il disturbo pi\xF9 comune tra gli uomini che cercano una terapia\
+      \ sessuale \xE8:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_sexuality
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_human_sexuality
+task_alias: human_sexuality

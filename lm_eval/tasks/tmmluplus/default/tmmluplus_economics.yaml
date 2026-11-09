@@ -1,0 +1,6 @@
+"dataset_name": "economics"
+"description": "以下為經濟學的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_social_sciences_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_economics"
+"task_alias": "economics"

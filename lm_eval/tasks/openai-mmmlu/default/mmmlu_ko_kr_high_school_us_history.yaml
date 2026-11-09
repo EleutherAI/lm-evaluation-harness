@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_high_school_us_history
+"tag": "mmmlu_ko_kr_humanities_tasks"
+"task": "mmmlu_ko_kr_high_school_us_history"
+"task_alias": "high school us history (Korean)"
+"description": "The following are multiple choice questions (with answers) about high school us history (Korean).\n\n"

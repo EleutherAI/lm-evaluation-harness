@@ -1,0 +1,75 @@
+dataset_name: college_biology
+description: The following are multiple choice questions (with answers) about college
+  biology.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Which of the following represents an accurate statement concerning arthropods?
+
+      (A) They possess an exoskeleton composed primarily of peptidoglycan. (B) They
+      possess an open circulatory system with a dorsal heart. (C) They are members
+      of a biologically unsuccessful phylum incapable of exploiting diverse habitats
+      and nutrition sources. (D) They lack paired, jointed appendages.'
+    target: Let's think step by step. Peptidoglycan is known to comprise the plasma
+      membrane of most bacteria, rather than the exoskeleton of arthropods, which
+      is made of chitin, which rules out (A). The answer (C) is false because arthropods
+      are a highly successful phylum. Likewise, arthropods have paired, jointed appendages,
+      which rules out (D). The only remaining option is (B), as arthropods have an
+      open circulatory system with a dorsal tubular heart. The answer is (B).
+  - question: 'In a given population, 1 out of every 400 people has a cancer caused by
+      a completely recessive allele, b. Assuming the population is in Hardy-Weinberg
+      equilibrium, which of the following is the expected proportion of individuals
+      who carry the b allele but are not expected to develop the cancer?
+
+      (A) 1/400 (B) 19/400 (C) 20/400 (D) 38/400'
+    target: "Let's think step by step. According to the Hardy Weinberg Law, $p^2 +\
+      \ 2 p q + q^2 = 1$, and $p + q = 1$ where $p$ is the frequency of the dominant\
+      \ allele, $q$ is the frequency of the recessive allele, and $p^2$, $q^2$, and\
+      \ $2pq$ are the frequencies of dominant homozygous, recessive homozygous, and\
+      \ heterozygous individuals, respectively. \u200BThe frequency of the recessive\
+      \ allele (q) is $\\sqrt{\frac{1}{400}} = 0.05$. We have $p = 1 - q = 0.95$.\
+      \ The frequency of heterozygous individuals is $2pq = 2 \\cdot 0.05 \\cdot 0.95\
+      \ = 0.095$. The number of heterozygous individuals is equal to the frequency\
+      \ of heterozygous individuals times the size of the population, or $0.095 *\
+      \ 400 = 38$. So we end up with 38/400. The answer is (D)."
+  - question: 'According to the pressure-flow model of movement of phloem contents, photosynthate
+      movement from source to sink is driven by
+
+      (A) an ATP-dependent pressure-flow pump (B) a water-pressure potential gradient
+      (C) transpiration (D) apoplastic diffusion'
+    target: Let's think step by step. It is a gradient in water pressure that induces
+      the movement of phloem content, which refers to answer (B). The mechanism of
+      movement does not rely on metabolism, which rules out (A). Transpiration refers
+      to the exhalation of water vapor through plant stomata, and is also not related,
+      which rules out (C). While the apoplastic pathway is one of two main pathways
+      for water transport in plants, it is not central to the pressure flow model,
+      which rules out (D). The answer is (B).
+  - question: 'Which of the following contain DNA sequences required for the segregation
+      of chromosomes in mitosis and meiosis?
+
+      (A) Telomeres (B) Centromeres (C) Nucleosomes (D) Spliceosomes'
+    target: Let's think step by step. The genetic material in Telomeres is not used,
+      which rules out (A). Nucleosomes are the repeating subunit that comprises chromatin
+      packed in a cell nucleus, and do not specifically refer to DNA sequences necessary
+      for segregating chromosomes in cell division, which rules out (C). A spliceosome
+      is a large ribonucleoprotein that removes introns from transcribed pre-mRNA
+      rather than governing chromosome segregation. Centromeres are directly responsible
+      for segregating chromosomes in cell division. The answer is (B).
+  - question: 'The presence of homologous structures in two different organisms, such
+      as the humerus in the front limb of a human and a bird, indicates that
+
+      (A) the human and bird are polyphyletic species (B) a human''s and bird''s evolution
+      is convergent (C) the human and bird belong to a clade (D) the human and bird
+      developed by analogy'
+    target: 'Let''s think step by step. Polyphyletic species are organisms that are
+      grouped due to having similar characteristics but which do not have a common
+      ancestor. This is not the case for humans and birds, which rules out (A). Convergent
+      evolution refers to the indepdendent development of similar features in different
+      species at different periods, which is also not the case for humans and birds,
+      which rules out (B). Analogy refers to the superficial resemblance of structures
+      that have different origins, which is not the case for the human and bird forearms,
+      which rules out (D). Humans and birds do belong to the same clade - a group
+      of organisms composed of a common ancestor. The answer is (C).'
+tag: mmlu_flan_cot_fewshot_stem
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_college_biology

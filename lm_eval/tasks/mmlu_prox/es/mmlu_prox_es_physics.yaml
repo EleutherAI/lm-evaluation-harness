@@ -1,0 +1,9 @@
+description: 'Las siguientes son preguntas de opción múltiple (con respuestas) sobre
+  física. Piense paso a paso y luego termine su respuesta con "La respuesta es (X)"
+  donde X es la letra de la opción correcta.
+
+  '
+include: _es_template_yaml
+task: mmlu_prox_es_physics
+task_alias: physics
+process_docs: !function utils.process_physics

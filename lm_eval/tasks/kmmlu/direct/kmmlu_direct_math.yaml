@@ -1,0 +1,4 @@
+dataset_name: Math
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_math
+tag: kmmlu_direct_stem_tasks

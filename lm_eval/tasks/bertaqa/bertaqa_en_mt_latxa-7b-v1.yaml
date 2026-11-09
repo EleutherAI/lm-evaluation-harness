@@ -1,0 +1,4 @@
+task: bertaqa_en_mt_latxa-7b-v1
+include: _bertaqa_template
+dataset_name: en_mt_latxa-7b-v1
+doc_to_text: "Question: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nAnswer:"

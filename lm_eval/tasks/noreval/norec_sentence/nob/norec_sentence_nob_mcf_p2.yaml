@@ -1,0 +1,8 @@
+tag:
+  - norec_sentence_nob
+  - norec_sentence_nob_mcf
+task: norec_sentence_nob_mcf_p2
+include: _norec_sentence_nob_yaml
+doc_to_text: "{{review}}\nHva slags sentiment uttrykker anmelderen, A. negativ eller B. positiv?\nSvar:"
+doc_to_choice: !function utils.choices_letters
+process_results: !function utils.process_results_mcf

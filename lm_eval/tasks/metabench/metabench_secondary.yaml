@@ -1,0 +1,14 @@
+group: metabench_secondary
+task:
+  - metabench_arc_secondary
+  - metabench_gsm8k_secondary
+  - metabench_hellaswag_secondary
+  - metabench_mmlu_secondary
+  - metabench_truthfulqa_secondary
+  - metabench_winogrande_secondary
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 0.0

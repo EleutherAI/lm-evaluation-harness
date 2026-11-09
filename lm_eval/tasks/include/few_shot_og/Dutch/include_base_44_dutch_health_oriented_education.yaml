@@ -1,0 +1,5 @@
+include: _dutch_few_shot_og_template_yaml
+description: Hieronder staan ​​meerkeuzevragen (met antwoorden) over Health oriented
+  education.
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_dutch_few_shot_og_health_oriented_education

@@ -1,0 +1,29 @@
+tag:
+- libra
+task: ru_sci_passage_count
+task_alias: ruSciPassageCount
+dataset_name: ru_sci_passage_count
+dataset_kwargs:
+  dataset_name: ru_sci_passage_count
+include: _template_yaml
+doc_to_text: 'Ниже приведены несколько параграфов. Прочти их и определи количество
+  уникальных параграфов.
+
+  {{context}}
+
+  Определи количество уникальных параграфов. Ответ должен содержать только одно число.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 8
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_count_score
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

@@ -1,0 +1,64 @@
+dataset_name: high_school_psychology
+description: The following are multiple choice questions (with answers) about high
+  school psychology.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Pascale is interested in the processing strategies children use to learn
+      new information. Pascale would best be classified as what type of psychologist?
+
+      (A) sociocultural (B) clinical (C) cognitive (D) behaviorist'
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. Sociocultural psychologist focuses on the effect of societal factors
+      on people. Clinical psychologist focuses on people with mental issues. Cognitive
+      psychologist focuses on how people think and learn, including the processing
+      strategies. Behaviorist focuses more on the environment and experience effect
+      on people. The answer is (C).
+  - question: 'According to Caplan''s model of consultee-centered case consultation,
+      the consultant is primarily interested in
+
+      (A) identifying the causes and solutions of the client''s presenting problems
+      (B) identifying and eliminating the causes of the consultee''s difficulties
+      in handling a problem (C) establishing a hierarchy of authority to enable effective
+      decision making (D) presenting a single, well-defined and unambiguous course
+      of action for the consultant to overcome skills deficits'
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. Caplan defines two type of consultation. Client-centered case consultation
+      aims to handle client's problems, while consultee-centered case consultation
+      aims to identify the reason of client's difficulty to solve problems. The answer
+      is (B).
+  - question: 'According to the Individuals with Disabilities Education Improvement Act,
+      which of the following must an educational agency do before it changes the educational
+      placement of a student with a disability?
+
+      (A) Give the child a trial period in the new environment (B) Notify the parents
+      in writing (C) Obtain school board approval (D) Obtain parental consent'
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. When the decision to change the educational placement of a student
+      with a disability is made, the educational agency must notify the parents in
+      writing on that date. The answer is (B).
+  - question: 'While swimming in the ocean, Ivan is frightened by a dark shadow in the
+      water even before he has the chance to identify what the shadow is. The synaptic
+      connections taking place during this incident of fright are best described by
+      which of the following?
+
+      (A) Messages are sent from the thalamus directly to the amygdala. (B) Messages
+      are sent from the thalamus to the "what" and "where" pathways. (C) Messages
+      are sent from the parasympathetic nervous system to the cerebral cortex. (D)
+      Messages are sent from the frontal lobes to the pituitary gland.'
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. Our neural system has a mechanism that can respond immediate emotional
+      signal before going to the thought center. In the Ivan's case, messages travel
+      directly from thalamus to amygdala. The answer is (A).
+  - question: 'Ani believes that her attitudes and behavior play a central role in what
+      happens to her. Such a belief is likely to be associated with
+
+      (A) a strong superego. (B) low self-esteem. (C) low self-efficacy. (D) an internal
+      locus of control.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on psychology
+      for help. People with an external locus of control believes fate and luck play
+      an important role in their lives, while people with an internal locus of control
+      believes they control their lives. The answer is (D).'
+tag: mmlu_flan_cot_fewshot_social_sciences
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_high_school_psychology

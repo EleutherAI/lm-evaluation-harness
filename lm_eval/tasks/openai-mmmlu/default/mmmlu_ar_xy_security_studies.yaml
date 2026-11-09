@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_security_studies
+"tag": "mmmlu_ar_xy_social_sciences_tasks"
+"task": "mmmlu_ar_xy_security_studies"
+"task_alias": "security studies (Arabic)"
+"description": "The following are multiple choice questions (with answers) about security studies (Arabic).\n\n"

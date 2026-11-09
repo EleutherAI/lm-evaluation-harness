@@ -1,0 +1,31 @@
+tag:
+- libra
+task: ru_babilong_qa1
+task_alias: ruBABILongQA1
+dataset_name: ru_babilong_qa1
+dataset_kwargs:
+  dataset_name: ru_babilong_qa1
+include: _template_yaml
+doc_to_text: 'Я даю тебе контекст с фактами о местоположении разных людей. Тебе нужно
+  ответить на вопрос, основываясь только на информации, полученной из фактов. Если
+  человек находился в разных местах, используй последнее местоположение для ответа
+  на вопрос.
+
+  {{context}}
+
+  Ответь на вопрос как можно более кратко.
+
+  Вопрос: {{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 16
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

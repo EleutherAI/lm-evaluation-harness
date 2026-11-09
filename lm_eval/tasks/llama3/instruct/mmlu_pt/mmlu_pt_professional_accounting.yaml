@@ -1,0 +1,74 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: US$ 70.000
+      B: US$ 75.000
+      C: US$ 80.000
+      D: '100.000'
+    input_correct_responses:
+    - D
+    input_question: "Box, uma organiza\xE7\xE3o n\xE3o governamental sem fins lucrativos\
+      \ teve as seguintes transa\xE7\xF5es durante o ano: Receitas da venda de investimentos\
+      \ $ 80.000 Compra de bens im\xF3veis e equipamentos $ 10.000 Receitas de d\xED\
+      vidas de longo prazo $ 100.000 Perda na venda de investimentos $ 5.000 Qual\
+      \ valor deve ser relatado como l\xEDquido caixa fornecido pelas atividades de\
+      \ financiamento na demonstra\xE7\xE3o dos fluxos de caixa da Box?"
+  - input_choice_list:
+      A: US$ 13.000
+      B: US$ 600
+      C: US$ 15.000
+      D: US$ 28.000
+    input_correct_responses:
+    - A
+    input_question: "Cem anos atr\xE1s, sua tatarav\xF3 investiu US$ 100 com juros\
+      \ de 5% ao ano. Quanto vale o investimento hoje?"
+  - input_choice_list:
+      A: US$ 0
+      B: US$ 500
+      C: US$ 1.650
+      D: US$ 16.500
+    input_correct_responses:
+    - A
+    input_question: "Krete \xE9 um contribuinte solteiro que recebe rendimentos exclusivamente\
+      \ de sal\xE1rios. At\xE9 31 de dezembro do ano 1, o empregador de Krete reteve\
+      \ US$ 16.000 em impostos federais sobre a renda e Krete n\xE3o fez nenhum pagamento\
+      \ estimado de impostos. Em 15 de abril do ano 2, Krete apresentou oportunamente\
+      \ um pedido de prorroga\xE7\xE3o para apresentar sua declara\xE7\xE3o de imposto\
+      \ de renda individual e pagou US$ 300 de impostos adicionais. A obriga\xE7\xE3\
+      o fiscal do ano 1 de Krete era de $ 16.500 quando ela apresentou sua declara\xE7\
+      \xE3o oportunamente em 30 de abril do ano 2 e pagou o saldo restante da obriga\xE7\
+      \xE3o fiscal. Qual valor estaria sujeito \xE0 penalidade por pagamento a menor\
+      \ de impostos estimados?"
+  - input_choice_list:
+      A: US$ 5.000
+      B: US$ 13.500
+      C: US$ 16.000
+      D: US$ 20.000
+    input_correct_responses:
+    - B
+    input_question: "Em 1\xBA de janeiro do ano 1, a Alpha Co. assinou um contrato\
+      \ de manuten\xE7\xE3o anual com um fornecedor de software por US$ 15.000 e o\
+      \ per\xEDodo de manuten\xE7\xE3o come\xE7a em 1\xBA de mar\xE7o do ano 2. A\
+      \ Alpha tamb\xE9m incorreu em US$ 5.000 em custos em 1\xBA de janeiro do ano\
+      \ 1, relacionados \xE0 modifica\xE7\xE3o do software. solicita\xE7\xF5es que\
+      \ aumentar\xE3o a funcionalidade do software. A Alpha deprecia e amortiza seus\
+      \ ativos de computadores e software ao longo de cinco anos usando o m\xE9todo\
+      \ linear. Qual \xE9 o valor da despesa total que Alpha deve reconhecer relacionada\
+      \ ao contrato de manuten\xE7\xE3o e \xE0s modifica\xE7\xF5es de software para\
+      \ o ano encerrado em 31 de dezembro, ano 1?"
+  - input_choice_list:
+      A: "Avalia\xE7\xE3o e aloca\xE7\xE3o"
+      B: Completude
+      C: Direitos e deveres
+      D: "Apresenta\xE7\xE3o e divulga\xE7\xE3o"
+    input_correct_responses:
+    - B
+    input_question: "Um auditor rastreia os n\xFAmeros de s\xE9rie do equipamento\
+      \ at\xE9 o livro auxiliar de um n\xE3o emissor. Qual das seguintes afirma\xE7\
+      \xF5es de gest\xE3o \xE9 apoiada por este teste?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_accounting
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_professional_accounting
+task_alias: professional_accounting

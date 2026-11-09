@@ -1,0 +1,10 @@
+group: mmmlu_zh_cn_social_sciences
+group_alias: "Simplified Chinese social sciences"
+task:
+  - mmmlu_zh_cn_social_sciences_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

@@ -1,0 +1,4 @@
+"dataset_name": "environmental_impact_assessment_engineer"
+"description": "以下是中国关于环境影响评价工程师的单项选择题，请选出其中的正确答案。\n\n"
+"include": "_default_ceval_yaml"
+"task": "ceval-valid_environmental_impact_assessment_engineer"

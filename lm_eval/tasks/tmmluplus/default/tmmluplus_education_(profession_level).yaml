@@ -1,0 +1,6 @@
+"dataset_name": "education_(profession_level)"
+"description": "以下為教育專業的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_social_sciences_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_education_(profession_level)"
+"task_alias": "education (profession level)"

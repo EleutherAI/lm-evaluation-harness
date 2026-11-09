@@ -1,0 +1,57 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "As pessoas tendem a ser optimistas quanto ao seu pr\xF3prio futuro e ao\
+        \ futuro da sua na\xE7\xE3o ou do mundo."
+      B: "As pessoas tendem a ser optimistas quanto ao seu pr\xF3prio futuro, mas\
+        \ pessimistas quanto ao futuro da sua na\xE7\xE3o ou do mundo."
+      C: "As pessoas tendem a ser pessimistas quanto ao seu pr\xF3prio futuro, mas\
+        \ otimistas quanto ao futuro da sua na\xE7\xE3o ou do mundo."
+      D: "As pessoas tendem a ser pessimistas quanto ao seu pr\xF3prio futuro e ao\
+        \ futuro da sua na\xE7\xE3o ou do mundo."
+    input_correct_responses:
+    - B
+    input_question: "Quais dos seguintes pares de afirma\xE7\xF5es s\xE3o verdadeiros\
+      \ (em 2019)?"
+  - input_choice_list:
+      A: 31%
+      B: 46%
+      C: 61%
+      D: 76%
+    input_correct_responses:
+    - B
+    input_question: "Em 2019, que percentagem de americanos concorda que o estado\
+      \ \xE9 administrado para o benef\xEDcio de todo o povo?"
+  - input_choice_list:
+      A: aumentou, aumentou
+      B: Aumento diminuido
+      C: diminuiu, aumentou
+      D: diminuiu, diminuiu
+    input_correct_responses:
+    - B
+    input_question: "Em 2015, desde 1990, as florestas tinham ____ na Europa e ____\
+      \ na \xC1frica e nas Am\xE9ricas."
+  - input_choice_list:
+      A: 38%
+      B: 53%
+      C: 68%
+      D: 83%
+    input_correct_responses:
+    - A
+    input_question: "Em 2019, que percentagem de russos afirma que \xE9 muito importante\
+      \ ter meios de comunica\xE7\xE3o livres no nosso pa\xEDs, sem censura governamental/estatal?"
+  - input_choice_list:
+      A: 80%
+      B: 60%
+      C: 40%
+      D: 20%
+    input_correct_responses:
+    - A
+    input_question: "Em 2017, quantas crian\xE7as de 1 ano de idade no mundo foram\
+      \ vacinadas contra alguma doen\xE7a? *"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_global_facts
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_global_facts
+task_alias: global_facts

@@ -1,0 +1,18 @@
+include: _babilong_common_yaml
+task: babilong_qa9
+test_split: qa9
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa9
+description: "I will give you context with the facts about people and their locations hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nIf a person was in different locations, use the latest location the person was in to answer the question.\nYour answer should contain only one word - $yes$ or $no$. Do not write anything else. Do not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "John is not in the bathroom. Sandra is not in the bedroom."
+      question: "Is John in the bathroom?"
+      target: "no"
+    - input: "Mary journeyed to the kitchen. John is in the bedroom. Sandra is not in the garden."
+      question: "Is Mary in the kitchen?"
+      target: "yes"

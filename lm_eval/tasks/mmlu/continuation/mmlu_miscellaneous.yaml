@@ -1,0 +1,6 @@
+"dataset_name": "miscellaneous"
+"description": "The following are questions (with answers) about miscellaneous.\n\
+  \n"
+"tag": "mmlu_other_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_miscellaneous_continuation"

@@ -1,0 +1,8 @@
+description: 'ต่อไปนี้เป็นคำถามปรนัย (พร้อมคำตอบ) เกี่ยวกับ คณิตศาสตร์ คิดทีละขั้นตอนแล้วสรุปคำตอบด้วย
+  "คำตอบคือ (X)" โดยที่ X คือตัวอักษรที่เป็นตัวเลือกที่ถูกต้อง
+
+  '
+include: _th_template_yaml
+task: mmlu_prox_th_math
+task_alias: math
+process_docs: !function utils.process_math

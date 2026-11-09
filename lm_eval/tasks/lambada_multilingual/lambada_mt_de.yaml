@@ -1,0 +1,3 @@
+include: lambada_mt_en.yaml
+task: lambada_openai_mt_de
+dataset_name: de

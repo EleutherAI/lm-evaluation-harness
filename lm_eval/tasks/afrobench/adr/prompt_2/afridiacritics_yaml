@@ -1,0 +1,24 @@
+tag:
+- adr_tasks
+- adr_prompt_2
+dataset_path: masakhane/diacritics-restoration
+doc_to_target: target
+output_type: generate_until
+fewshot_split: dev
+test_split: test
+training_split: train
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: chrf
+    aggregation: chrf
+    higher_is_better: true
+generation_kwargs:
+  do_sample: false
+  until:
+  - '<eos>'
+  - </s>
+  - <|im_end|>
+metadata:
+  version: 1.0

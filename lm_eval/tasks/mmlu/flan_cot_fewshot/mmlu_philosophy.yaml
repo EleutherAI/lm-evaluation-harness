@@ -1,0 +1,44 @@
+dataset_name: philosophy
+description: The following are multiple choice questions (with answers) about philosophy.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'The study of reality in the broadest sense, an inquiry into the elemental
+      nature of the universe and the things in it, is known as _____.
+
+      (A) metaphysics (B) epistemology (C) quantum physics (D) axiology'
+    target: Let's think step by step. We refer to Wikipedia articles on philosophy
+      for help. Among the options, only metaphysics studies the nature of reality
+      and existence. The answer is (A).
+  - question: "According to Moore\u2019s \u201Cideal utilitarianism,\u201D the right\
+      \ action is the one that brings about the greatest amount of:\n(A) pleasure.\
+      \ (B) happiness. (C) good. (D) virtue."
+    target: Let's think step by step. We refer to Wikipedia articles on philosophy
+      for help. Moore's "ideal utilitarianism" states that one's actions should maximize
+      intrinsic goods. The answer is (C).
+  - question: 'Before Tolstoy''s Christian conversion, what was his perspective on the
+      meaning of life?
+
+      (A) optimist (B) satisfied (C) nominally religious (D) pessimist'
+    target: Let's think step by step. We refer to Wikipedia articles on philosophy
+      for help. Before his conversion, Tolstoy feels that life was uncertain, which
+      is a pessimist's point of view. The answer is (D).
+  - question: 'According to d''Holbach, people always act according to _____.
+
+      (A) free choices (B) dictates of the soul (C) necessary natural laws (D) undetermined
+      will'
+    target: Let's think step by step. We refer to Wikipedia articles on philosophy
+      for help. d'Holbach believes that people act according to necessary laws, and
+      it proves nothing about people's free will. The answer is (C).
+  - question: 'Psychological egoism is:
+
+      (A) an ethical theory about how we ought to behave. (B) a generalization concerning
+      the way people tend to behave. (C) a claim about human nature and the ways people
+      are capable of behaving. (D) none of the above.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on philosophy
+      for help. Psychological egoism suggests that one behaves based on what makes
+      one feels good, hence it is a claim about human nature and how humans are capable
+      of behaving. The answer is (C).'
+tag: mmlu_flan_cot_fewshot_humanities
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_philosophy

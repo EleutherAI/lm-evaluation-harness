@@ -1,0 +1,12 @@
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true
+group: arab_culture
+metadata:
+    description: Arab Culture tasks
+    version: 0
+task:
+- arab_culture_gulf
+- arab_culture_levant
+- arab_culture_north_africa
+- arab_culture_nile_valley

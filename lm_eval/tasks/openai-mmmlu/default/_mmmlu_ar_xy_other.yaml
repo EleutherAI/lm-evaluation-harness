@@ -1,0 +1,10 @@
+group: mmmlu_ar_xy_other
+group_alias: "Arabic other"
+task:
+  - mmmlu_ar_xy_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

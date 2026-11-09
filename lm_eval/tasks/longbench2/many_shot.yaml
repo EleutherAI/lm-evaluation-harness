@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2_tasks
+  - longbench2_incontext_tasks
+task: longbench2_many_shot
+dataset_name: manyshot_learning

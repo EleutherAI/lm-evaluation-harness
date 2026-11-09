@@ -1,0 +1,30 @@
+include: cruxeval_common_yaml
+task: cruxeval_input
+repeats: 10
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [1]
+description: "You will be given a function f and an output in the form f(??) == output. Find any input such that executing f on the input leads to the given output. There may be multiple answers, but you should only output one. In [ANSWER] and [/ANSWER] tags, complete the assertion with one such input that will produce the output when executing the function.\n"
+doc_to_text: "[PYTHON]\n{{code}}\nassert f(??) == {{output}}\n[/PYTHON]"
+doc_to_target: "{% if is_fewshot is defined %}\n[ANSWER]\nassert f({{input}}) == {{output}}\n[/ANSWER]{% else %}[ANSWER]{% endif %}"
+generation_kwargs:
+  until:
+    - "[/ANSWER]"
+    - "</seed:think>[ANSWER]"
+  max_gen_toks: 1024
+  do_sample: True
+  temperature: 0.2
+  top_p: 0.95
+filter_list:
+  - name: "create_test"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions_input
+num_fewshot: 2
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples_input
+metadata:
+  version: 1.0

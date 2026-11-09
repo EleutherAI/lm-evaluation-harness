@@ -1,0 +1,35 @@
+dataset_path: li-lab/MMLU-ProX
+dataset_name: te
+test_split: test
+fewshot_split: validation
+fewshot_config:
+  sampler: first_n
+  doc_to_text: !function utils.fewshot_to_text
+  doc_to_target: ""
+output_type: generate_until
+doc_to_text: !function utils.doc_to_text
+doc_to_target: answer
+filter_list:
+  - name: "custom-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: 'సమాధానం \(?([ABCDEFGHIJ])\)?'
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+    - "Q:"
+    - "ప్రశ్న:"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 2048
+num_fewshot: 5
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 0.0

@@ -1,0 +1,3 @@
+task: translation_sme_nob_p0
+include: _translation_sme_nob_yaml
+doc_to_text: "Samisk: {{text_sme}}\nBokmål:"

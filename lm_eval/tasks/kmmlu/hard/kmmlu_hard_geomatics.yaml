@@ -1,0 +1,4 @@
+dataset_name: geomatics
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_geomatics
+tag: kmmlu_hard_applied_science_tasks

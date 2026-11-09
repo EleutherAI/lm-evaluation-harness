@@ -1,0 +1,9 @@
+description: 'Itt van egy feleletválasztós kérdés a(z) jog témában (választ is tartalmazza).
+  Kérjük, gondolkodjon lépésről lépésre, és a válaszát a(z) "A válasz (X)" kifejezéssel
+  fejezze be, ahol X a helyes válasz betűjele.
+
+  '
+include: _hu_template_yaml
+task: mmlu_prox_hu_law
+task_alias: law
+process_docs: !function utils.process_law

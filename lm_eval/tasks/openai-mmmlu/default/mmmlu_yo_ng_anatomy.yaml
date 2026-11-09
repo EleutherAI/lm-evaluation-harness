@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "YO_NG"
+process_docs: !function utils.process_anatomy
+"tag": "mmmlu_yo_ng_stem_tasks"
+"task": "mmmlu_yo_ng_anatomy"
+"task_alias": "anatomy (Yoruba)"
+"description": "The following are multiple choice questions (with answers) about anatomy (Yoruba).\n\n"

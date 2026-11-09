@@ -1,0 +1,9 @@
+description: 'Itt van egy feleletválasztós kérdés a(z) egyéb témában (választ is tartalmazza).
+  Kérjük, gondolkodjon lépésről lépésre, és a válaszát a(z) "A válasz (X)" kifejezéssel
+  fejezze be, ahol X a helyes válasz betűjele.
+
+  '
+include: _hu_template_yaml
+task: mmlu_prox_hu_other
+task_alias: other
+process_docs: !function utils.process_other

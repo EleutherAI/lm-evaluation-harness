@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_us_foreign_policy
+"tag": "mmmlu_de_de_social_sciences_tasks"
+"task": "mmmlu_de_de_us_foreign_policy"
+"task_alias": "us foreign policy (German)"
+"description": "The following are multiple choice questions (with answers) about us foreign policy (German).\n\n"

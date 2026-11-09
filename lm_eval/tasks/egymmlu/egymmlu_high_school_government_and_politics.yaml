@@ -1,0 +1,7 @@
+"dataset_name": "high_school_government_and_politics"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_social_sciences_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_high_school_government_and_politics"
+"task_alias": "high school government and politics"

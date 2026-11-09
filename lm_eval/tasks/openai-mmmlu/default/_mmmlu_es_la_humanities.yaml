@@ -1,0 +1,10 @@
+group: mmmlu_es_la_humanities
+group_alias: "Spanish humanities"
+task:
+  - mmmlu_es_la_humanities_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

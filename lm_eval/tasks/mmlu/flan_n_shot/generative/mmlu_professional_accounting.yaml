@@ -1,0 +1,6 @@
+"dataset_name": "professional_accounting"
+"description": "The following are multiple choice questions (with answers) about professional\
+  \ accounting.\n\n"
+"tag": "mmlu_flan_n_shot_generative_other"
+"include": "_mmlu_flan_generative_template_yaml"
+"task": "mmlu_flan_n_shot_generative_professional_accounting"

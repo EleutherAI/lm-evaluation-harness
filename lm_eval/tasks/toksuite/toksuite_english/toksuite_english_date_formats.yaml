@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_date_formats
+include: toksuite_english_base.yaml
+task: toksuite_english_date_formats
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Date formats
+  num_samples: 18

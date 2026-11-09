@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Die POP w\xFCrde die Gleichheit der Freiheit vorziehen."
+      B: "Der POP w\xFCrde sich f\xFCr die \u201EMaximin\u201C-Strategie entscheiden."
+      C: "Die POP w\xFCrde sich f\xFCr das \u201EDifferenzprinzip\u201C entscheiden."
+      D: "Die POP w\xFCrde das \u201ESystem der nat\xFCrlichen Freiheit\u201C ablehnen."
+    input_correct_responses:
+    - A
+    input_question: "Welche Position wird laut Rawls am wenigsten wahrscheinlich von\
+      \ der POP (Personen in der urspr\xFCnglichen Position) \xFCbernommen?"
+  - input_choice_list:
+      A: Maximierung der individuellen Freiheit
+      B: Kompromissbasis bieten
+      C: den Frieden bewahren
+      D: "F\xF6rderung der Prinzipien des freien Unternehmertums"
+    input_correct_responses:
+    - D
+    input_question: "Zu den Funktionen des Gesetzes geh\xF6ren alle bis auf welche\
+      \ der folgenden?"
+  - input_choice_list:
+      A: "Beh\xF6rde."
+      B: Charisma.
+      C: Zusammenarbeit.
+      D: Kapitalismus.
+    input_correct_responses:
+    - D
+    input_question: "Welches Wort fasst Webers Erkl\xE4rung der Entwicklung des formal\
+      \ rationalen Rechts am besten zusammen?"
+  - input_choice_list:
+      A: Naturgesetz
+      B: Analytisch
+      C: Historisch
+      D: Soziologische
+    input_correct_responses:
+    - A
+    input_question: "Die ________ Rechtsschule postuliert, dass das Recht auf dem\
+      \ basiert, was \u201Erichtig\u201C ist."
+  - input_choice_list:
+      A: Der Brief ist ein Verkaufsangebot
+      B: "Ein g\xFCltiges Angebot kann per Brief nicht abgegeben werden."
+      C: "Das Schreiben enth\xE4lt ein g\xFCltiges Angebot, das innerhalb einer angemessenen\
+        \ Frist endet."
+      D: Dem Schreiben fehlt eines der wesentlichen Elemente eines Angebots.
+    input_correct_responses:
+    - D
+    input_question: "Iverson Jewellers schrieb Miller einen Brief: \u201EWir haben\
+      \ eine au\xDFergew\xF6hnlich feine Rolox-Uhr mit Automatikaufzug erhalten, die\
+      \ wir Ihnen zu einem sehr g\xFCnstigen Preis verkaufen werden.\u201C"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_jurisprudence
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_jurisprudence
+task_alias: jurisprudence

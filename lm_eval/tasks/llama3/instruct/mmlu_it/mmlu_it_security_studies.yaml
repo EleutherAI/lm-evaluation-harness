@@ -1,0 +1,113 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Compellenza \xE8 un altro termine per indicare la diplomazia coercitiva,\
+        \ ma copre un insieme pi\xF9 ristretto di criteri; la coercizione copre quelle\
+        \ minacce volte ad avviare un&#39;azione avversaria. Una minaccia di costringere\
+        \ uno Stato a cedere parte del suo territorio varrebbe come diplomazia coercitiva,\
+        \ a condizione che tale minaccia avvii proattivamente un\u2019azione prima\
+        \ che venga intrapresa la diplomazia reattiva."
+      B: "La diplomazia coercitiva costituisce la minaccia di una forza limitata per\
+        \ incentivare l&#39;avversario a soddisfare le richieste del coercitivo. \xC8\
+        \ una strategia di influenza che mira a ottenere condiscendenza: l\u2019uso\
+        \ della forza per sconfiggere prima un avversario non conta. Lascia un elemento\
+        \ di scelta con l&#39;obiettivo di conformarsi o continuare."
+      C: "La forza militare, o la minaccia della forza militare, utilizza la paura\
+        \ per raggiungere obiettivi strategici. La diplomazia coercitiva si differenzia\
+        \ da questo approccio perch\xE9 non utilizza la paura come strumento per costringere\
+        \ un avversario."
+      D: "La diplomazia coercitiva viene impiegata per usare la forza ma per limitarne\
+        \ gli effetti sulla comunit\xE0 internazionale. La diplomazia coercitiva \xE8\
+        \ una strategia aggressiva che mira a ottenere la conformit\xE0 attraverso\
+        \ la sconfitta. Non lascia un elemento di scelta all&#39;obiettivo, poich\xE9\
+        \ l&#39;obiettivo \xE8 costretto a conformarsi o ad impegnarsi in un conflitto.\
+        \ Si cerca di controllare imponendo il rispetto e rimuovendo ogni opportunit\xE0\
+        \ di negoziazione o concessione."
+    input_correct_responses:
+    - B
+    input_question: Cosa distingue la diplomazia coercitiva dalla forza militare?
+  - input_choice_list:
+      A: I bambini soldato sono vittime di combattimenti che necessitano di rieducazione
+        e riabilitazione.
+      B: I bambini e le loro madri non sono soggetti attivi nella guerra e sono meglio
+        considerati come soggetti nella sfera privata.
+      C: I bambini sono molto spesso spettatori innocenti della guerra e sono meglio
+        usati come simboli di pace.
+      D: "I bambini hanno una soggettivit\xE0 politica che viene persa quando vengono\
+        \ considerati vittime passive della guerra."
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti \xE8 la lente migliore attraverso la quale\
+      \ indagare il ruolo dei bambini soldato?"
+  - input_choice_list:
+      A: "Come una minaccia esistenziale che richiede un\u2019azione immediata e straordinaria,\
+        \ rappresentando una minaccia per la sopravvivenza dello Stato o per la sicurezza\
+        \ sociale."
+      B: "Richiedendo un\u2019azione immediata e straordinaria da parte dello Stato,\
+        \ minacciando la sopravvivenza di un oggetto di riferimento e quindi garantendo\
+        \ l\u2019uso di misure normalmente non impiegate in ambito politico."
+      C: "Come una minaccia urgente alla sopravvivenza dell&#39;oggetto referente,\
+        \ cos\xEC grave da legittimare il ricorso ad azioni straordinarie di risposta."
+      D: Come una minaccia urgente alla sopravvivenza del pubblico che richiede misure
+        straordinarie o di emergenza.
+    input_correct_responses:
+    - C
+    input_question: Per diventare cartolarizzato, in quale di questi modi deve essere
+      presentata una minaccia?
+  - input_choice_list:
+      A: "Esistono divisioni cos\xEC ampie all\u2019interno del quadro della sicurezza\
+        \ umana per quanto riguarda la natura delle minacce e degli oggetti di riferimento\
+        \ che non \xE8 possibile tracciare confronti ampiamente applicabili tra gli\
+        \ approcci incentrati sullo stato e la sicurezza umana."
+      B: "Adottando il quadro della sicurezza umana, i limiti dell\u2019approccio\
+        \ realista incentrato sullo stato diventano evidenti. Mentre la sicurezza\
+        \ umana definisce l\u2019oggetto di riferimento come la persona o la popolazione,\
+        \ gli approcci incentrati sullo stato danno priorit\xE0 alla sicurezza dello\
+        \ stato, declassando il perseguimento della sicurezza umana."
+      C: "L\u2019approccio alla sicurezza incentrato sullo stato \xE8 una fazione\
+        \ della sicurezza umana, solitamente definita all\u2019interno dell\u2019\
+        ampia scuola della sicurezza umana. Essendo incentrato sullo stato, questo\
+        \ approccio d\xE0 priorit\xE0 all\u2019individuo come oggetto di riferimento\
+        \ negli studi sulla sicurezza."
+      D: "Sia l\u2019approccio alla sicurezza incentrato sullo stato che quello incentrato\
+        \ sull\u2019uomo si escludono a vicenda e offrono un quadro analitico sufficiente\
+        \ con cui comprendere il sistema di sicurezza internazionale. \xC8 quindi\
+        \ compito degli analisti della sicurezza determinare quale di questi concetti\
+        \ sostanziali \xE8 corretto e quale dovrebbe essere scartato."
+    input_correct_responses:
+    - B
+    input_question: "Come possiamo descrivere al meglio la relazione tra l\u2019approccio\
+      \ stato-centrico e il concetto di sicurezza umana?"
+  - input_choice_list:
+      A: "La competizione tra nazioni pi\xF9 grandi ha portato alcuni paesi a sostenere\
+        \ attivamente gruppi terroristici per minare la forza degli stati rivali.\
+        \ Le reti terroristiche sono club di clientelismo esteso gestiti e pagati\
+        \ dai loro stati donatori e sono concettualizzati come attori statali, da\
+        \ affrontare utilizzando la forza militare."
+      B: "La globalizzazione ha consentito l\u2019internazionalizzazione delle attivit\xE0\
+        \ terroristiche aprendone lo spazio operativo, sebbene il coordinamento sia\
+        \ ancora gestito su base geografica. Ci\xF2 suggerisce che i gruppi terroristici\
+        \ sono strutturati a livello nazionale, il che significa che il terrorismo\
+        \ non pu\xF2 essere considerato in termini di una guerra da sconfiggere militarmente\
+        \ senza avere gravi implicazioni sulla popolazione indigena."
+      C: "Il terrorismo pu\xF2 essere visto come un problema da risolvere con mezzi\
+        \ militari (guerra al terrorismo), con normali tecniche di polizia (terrorismo\
+        \ come crimine) o come un problema medico con cause e sintomi sottostanti\
+        \ (terrorismo come malattia)."
+      D: "Il terrorismo \xE8 visto come un problema criminale. La criminalizzazione\
+        \ del terrorismo ha due importanti implicazioni. In primo luogo, suggerisce\
+        \ che il terrorismo pu\xF2 essere sradicato \u2013 i terroristi possono essere\
+        \ catturati e processati mediante normali procedimenti giudiziari eliminando\
+        \ cos\xEC la minaccia per la societ\xE0 \u2013 e in secondo luogo, suggerisce\
+        \ che tecniche preventive di criminalit\xE0 siano applicabili per impedirne\
+        \ lo sviluppo."
+    input_correct_responses:
+    - C
+    input_question: "Quali sono i quadri di analisi all\u2019interno dei quali \xE8\
+      \ stato considerato il terrorismo (a partire dal 2020)?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_security_studies
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_security_studies
+task_alias: security_studies

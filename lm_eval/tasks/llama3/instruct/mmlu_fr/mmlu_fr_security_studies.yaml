@@ -1,0 +1,123 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "La contrainte est un autre terme pour la diplomatie coercitive, mais couvrant\
+        \ un ensemble plus restreint de crit\xE8res ; la contrainte couvre les menaces\
+        \ visant \xE0 d\xE9clencher une action adverse. Une menace de contraindre\
+        \ un \xC9tat \xE0 c\xE9der une partie de son territoire compterait comme une\
+        \ diplomatie coercitive, tant que cette menace initie de mani\xE8re proactive\
+        \ une action avant que la diplomatie r\xE9active ne soit entreprise."
+      B: "La diplomatie coercitive constitue les menaces d&#39;une force limit\xE9\
+        e pour inciter l&#39;adversaire \xE0 se conformer aux exigences de l&#39;auteur\
+        \ de la coercition. Il s&#39;agit d&#39;une strat\xE9gie d&#39;influence qui\
+        \ vise \xE0 obtenir la conformit\xE9 : l&#39;usage de la force pour vaincre\
+        \ un adversaire en premier ne compte pas. Il laisse un \xE9l\xE9ment de choix\
+        \ \xE0 l&#39;objectif de se conformer ou de continuer."
+      C: "La force militaire, ou la menace de la force militaire, utilise la peur\
+        \ pour atteindre des objectifs strat\xE9giques. La diplomatie coercitive se\
+        \ diff\xE9rencie de cette approche, car elle n&#39;utilise pas la peur comme\
+        \ outil pour contraindre un adversaire."
+      D: "La diplomatie coercitive est employ\xE9e pour utiliser la force mais pour\
+        \ limiter ses effets sur la communaut\xE9 internationale. La diplomatie coercitive\
+        \ est une strat\xE9gie agressive qui vise \xE0 obtenir la conformit\xE9 par\
+        \ la d\xE9faite. Il ne laisse aucun \xE9l\xE9ment de choix \xE0 la cible,\
+        \ la cible \xE9tant soit forc\xE9e de se conformer, soit de s&#39;engager\
+        \ dans un conflit. Il cherche \xE0 contr\xF4ler en imposant le respect en\
+        \ supprimant toute possibilit\xE9 de n\xE9gociation ou de concession."
+    input_correct_responses:
+    - B
+    input_question: Qu&#39;est-ce qui distingue la diplomatie coercitive de la force
+      militaire ?
+  - input_choice_list:
+      A: "Les enfants soldats sont des victimes de combat qui ont besoin de r\xE9\xE9\
+        ducation et de r\xE9habilitation."
+      B: "Les enfants et leurs m\xE8res ne sont pas des sujets actifs dans la guerre\
+        \ et sont mieux consid\xE9r\xE9s comme des sujets de la sph\xE8re priv\xE9\
+        e."
+      C: "Les enfants sont le plus souvent des spectateurs innocents de la guerre\
+        \ et sont mieux utilis\xE9s comme signifiants de paix."
+      D: "Les enfants ont une subjectivit\xE9 politique qui leur manque lorsqu&#39;ils\
+        \ sont consid\xE9r\xE9s comme des victimes passives de la guerre."
+    input_correct_responses:
+    - D
+    input_question: "Lequel des \xE9l\xE9ments suivants est le meilleur objectif \xE0\
+      \ travers lequel enqu\xEAter sur le r\xF4le des enfants soldats\_?"
+  - input_choice_list:
+      A: "Comme une menace existentielle qui n\xE9cessite une action imm\xE9diate\
+        \ et extraordinaire, posant une menace \xE0 la survie de l&#39;\xC9tat ou\
+        \ \xE0 la s\xE9curit\xE9 de la soci\xE9t\xE9."
+      B: "Comme exigeant une action imm\xE9diate et extraordinaire de l&#39;\xC9tat,\
+        \ mena\xE7ant la survie d&#39;un objet r\xE9f\xE9rent et justifiant ainsi\
+        \ l&#39;utilisation de mesures qui ne sont pas normalement employ\xE9es dans\
+        \ le domaine politique."
+      C: "Comme une menace urgente \xE0 la survie de l&#39;objet r\xE9f\xE9rent, si\
+        \ grave qu&#39;elle l\xE9gitime l&#39;emploi d&#39;une action extraordinaire\
+        \ en r\xE9ponse."
+      D: "Comme une menace urgente pour la survie du public qui n\xE9cessite des mesures\
+        \ extraordinaires ou d&#39;urgence."
+    input_correct_responses:
+    - C
+    input_question: "Pour \xEAtre titris\xE9e, une menace doit \xEAtre pr\xE9sent\xE9\
+      e de quelle mani\xE8re\_?"
+  - input_choice_list:
+      A: "Il existe de telles divisions au sein du cadre de la s\xE9curit\xE9 humaine\
+        \ concernant la nature des menaces et des objets de r\xE9f\xE9rence qu&#39;aucune\
+        \ comparaison largement applicable entre les approches centr\xE9es sur l&#39;\xC9\
+        tat et la s\xE9curit\xE9 humaine ne peut \xEAtre \xE9tablie."
+      B: "En adoptant le cadre de la s\xE9curit\xE9 humaine, les limites de l&#39;approche\
+        \ r\xE9aliste centr\xE9e sur l&#39;\xC9tat deviennent \xE9videntes. Alors\
+        \ que la s\xE9curit\xE9 humaine d\xE9finit l&#39;objet r\xE9f\xE9rent comme\
+        \ la personne ou la population, les approches centr\xE9es sur l&#39;\xC9tat\
+        \ donnent la priorit\xE9 \xE0 la s\xE9curit\xE9 de l&#39;\xC9tat, d\xE9valorisant\
+        \ la poursuite de la s\xE9curit\xE9 humaine."
+      C: "L&#39;approche de la s\xE9curit\xE9 centr\xE9e sur l&#39;\xC9tat est une\
+        \ faction de la s\xE9curit\xE9 humaine, g\xE9n\xE9ralement d\xE9finie au sein\
+        \ de l&#39;\xE9cole g\xE9n\xE9rale de la s\xE9curit\xE9 humaine. En \xE9tant\
+        \ centr\xE9e sur l&#39;\xE9tat, cette approche donne la priorit\xE9 \xE0 l&#39;individu\
+        \ comme objet de r\xE9f\xE9rence dans les \xE9tudes de s\xE9curit\xE9."
+      D: "Les approches de la s\xE9curit\xE9 centr\xE9es sur l&#39;\xC9tat et centr\xE9\
+        es sur l&#39;humain s&#39;excluent mutuellement et offrent un cadre analytique\
+        \ suffisant pour comprendre le syst\xE8me de s\xE9curit\xE9 international.\
+        \ C&#39;est donc le r\xF4le des analystes de s\xE9curit\xE9 de d\xE9terminer\
+        \ lequel de ces concepts substantiels est correct et lequel doit \xEAtre \xE9\
+        cart\xE9."
+    input_correct_responses:
+    - B
+    input_question: "Comment d\xE9crire au mieux la relation entre l&#39;approche\
+      \ centr\xE9e sur l&#39;\xC9tat et le concept de s\xE9curit\xE9 humaine ?"
+  - input_choice_list:
+      A: "La concurrence entre les grandes nations a conduit certains pays \xE0 soutenir\
+        \ activement des groupes terroristes pour saper la force des \xC9tats rivaux.\
+        \ Les r\xE9seaux terroristes sont des clubs de patronage \xE9tendus entretenus\
+        \ et financ\xE9s par leurs \xC9tats donateurs et sont conceptualis\xE9s comme\
+        \ \xE9tant comme des acteurs \xE9tatiques, devant \xEAtre trait\xE9s par la\
+        \ force militaire."
+      B: "La mondialisation a permis l&#39;internationalisation des activit\xE9s terroristes\
+        \ en ouvrant leur espace op\xE9rationnel, bien que la coordination soit encore\
+        \ g\xE9r\xE9e \xE0 partir d&#39;une base g\xE9ographique. Cela sugg\xE8re\
+        \ que les groupes terroristes sont structur\xE9s au niveau national, ce qui\
+        \ signifie que le terrorisme ne peut \xEAtre consid\xE9r\xE9 comme une guerre\
+        \ \xE0 vaincre militairement sans avoir de graves implications sur la population\
+        \ indig\xE8ne."
+      C: "Le terrorisme peut \xEAtre consid\xE9r\xE9 comme un probl\xE8me \xE0 r\xE9\
+        soudre par des moyens militaires (guerre contre le terrorisme), par des techniques\
+        \ polici\xE8res normales (le terrorisme en tant que crime) ou comme un probl\xE8\
+        me m\xE9dical avec des causes et des sympt\xF4mes sous-jacents (le terrorisme\
+        \ en tant que maladie)."
+      D: "Le terrorisme est consid\xE9r\xE9 comme un probl\xE8me criminel. La criminalisation\
+        \ du terrorisme a deux implications importantes. Premi\xE8rement, cela sugg\xE8\
+        re que le terrorisme peut \xEAtre \xE9radiqu\xE9 - les terroristes peuvent\
+        \ \xEAtre arr\xEAt\xE9s et traduits en justice par des proc\xE9dures judiciaires\
+        \ normales, \xE9liminant ainsi la menace de la soci\xE9t\xE9 - et deuxi\xE8\
+        mement, cela sugg\xE8re que des techniques de pr\xE9vention de la criminalit\xE9\
+        \ sont applicables pour emp\xEAcher son d\xE9veloppement."
+    input_correct_responses:
+    - C
+    input_question: "Quels sont les cadres d&#39;analyse dans lesquels le terrorisme\
+      \ a \xE9t\xE9 consid\xE9r\xE9 (\xE0 partir de 2020) ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_security_studies
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_security_studies
+task_alias: security_studies

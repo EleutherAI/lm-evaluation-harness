@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ~Pd
+      B: "(\u2200x)(Px \u2228 ~Dx)"
+      C: "(\u2200x)(Px \u2283 ~Dx)"
+      D: ~Dp
+    input_correct_responses:
+    - C
+    input_question: ' Seleziona la migliore traduzione nella logica dei predicati:
+      nessuna persona guida su Marte.'
+  - input_choice_list:
+      A: Blgh
+      B: Bhlg
+      C: Bglh
+      D: Bghl
+    input_correct_responses:
+    - C
+    input_question: 'Seleziona la migliore traduzione nella logica dei predicati.
+      George prende in prestito il tosaerba di Hector. (g: George; h: Hector; l: il
+      tosaerba di Hector; Bxyx: x prende in prestito y da z)'
+  - input_choice_list:
+      A: "Marina \xE8 una ballerina. Alcuni deboli non sono ballerini. O tutto \xE8\
+        \ debole o la Georgia gioca a pallavolo. Quindi qualcosa gioca a pallavolo."
+      B: "Marina \xE8 una ballerina. Nessun debole \xE8 un ballerino. Tutto o \xE8\
+        \ un debole o gioca a pallavolo. Quindi qualcosa gioca a pallavolo."
+      C: "Marina \xE8 una ballerina. Alcuni deboli non sono ballerini. Tutto o \xE8\
+        \ un debole o gioca a pallavolo. Quindi qualcosa gioca a pallavolo."
+      D: "Marina \xE8 una ballerina. Nessun debole \xE8 un ballerino. O tutto \xE8\
+        \ debole o la Georgia gioca a pallavolo. Quindi qualcosa gioca a pallavolo."
+    input_correct_responses:
+    - D
+    input_question: " Seleziona la migliore interpretazione inglese degli argomenti\
+      \ forniti nella logica dei predicati. Dm (\u2200x)(Wx \u2283 ~Dx) (\u2200x)Wx\
+      \ \u2228 Ag / (\u2203x)Ax"
+  - input_choice_list:
+      A: Logicamente equivalente
+      B: Contraddittorio
+      C: "N\xE9 logicamente equivalenti n\xE9 contraddittori, ma coerenti"
+      D: Incoerente
+    input_correct_responses:
+    - C
+    input_question: " Costruisci una tavola di verit\xE0 completa per le seguenti\
+      \ coppie di proposizioni. Quindi, utilizzando le tavole di verit\xE0, determina\
+      \ se le affermazioni sono logicamente equivalenti o contraddittorie. In caso\
+      \ contrario, determinare se sono coerenti o incoerenti. Motiva le tue risposte.\
+      \ E \u2283 (F \xB7 E) e ~E \xB7 F"
+  - input_choice_list:
+      A: "(L \u2022 H) \u2261 I"
+      B: "(L \u2022 H) \u2228 I"
+      C: "L \u2022 (H \u2228 I)"
+      D: "L \u2022 (H \u2283 R)"
+    input_correct_responses:
+    - B
+    input_question: " Quale delle formule fornite di PL \xE8 la migliore simbolizzazione\
+      \ della seguente frase? Le tartarughe vivono a lungo e sono creature felici,\
+      \ a meno che non vengano ferite."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_formal_logic
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_formal_logic
+task_alias: formal_logic

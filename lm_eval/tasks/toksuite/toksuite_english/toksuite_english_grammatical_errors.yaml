@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_grammatical_errors
+include: toksuite_english_base.yaml
+task: toksuite_english_grammatical_errors
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Grammatical errors
+  num_samples: 41

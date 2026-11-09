@@ -1,0 +1,5 @@
+include: _malayalam_few_shot_en_template_yaml
+description: The following are multiple-choice questions (with answers) about General
+  knowledge.
+process_docs: !function 'utils.process_general_knowledge'
+task: include_base_44_malayalam_few_shot_en_general_knowledge

@@ -1,0 +1,13 @@
+group: metabench_secondary_permute
+task:
+  - metabench_arc_secondary_permute
+  - metabench_hellaswag_secondary_permute
+  - metabench_mmlu_secondary_permute
+  - metabench_truthfulqa_secondary_permute
+  - metabench_winogrande_secondary_permute
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 0.0

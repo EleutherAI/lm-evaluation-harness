@@ -1,0 +1,4 @@
+dataset_name: refrigerating_machinery
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_direct_hard_refrigerating_machinery
+tag: kmmlu_direct_hard_other_tasks

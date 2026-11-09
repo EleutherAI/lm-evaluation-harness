@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2_tasks
+  - longbench2_multi_tasks
+task: longbench2_fin_multi
+dataset_name: financial_multi

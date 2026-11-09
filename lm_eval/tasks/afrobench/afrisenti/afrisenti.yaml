@@ -1,0 +1,13 @@
+group: afrisenti
+task:
+  - afrisenti_prompt_1
+  - afrisenti_prompt_2
+  - afrisenti_prompt_3
+  - afrisenti_prompt_4
+  - afrisenti_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

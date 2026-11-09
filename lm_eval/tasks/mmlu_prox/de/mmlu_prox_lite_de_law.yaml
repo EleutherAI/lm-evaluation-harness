@@ -1,0 +1,9 @@
+description: 'Im Folgenden sind Multiple-Choice-Fragen (mit Antworten) zu Recht. Denken
+  Sie Schritt für Schritt nach und beenden Sie Ihre Antwort mit "Die Antwort ist (X)",
+  wobei X der richtige Buchstabe ist.
+
+  '
+include: _de_lite_template_yaml
+task: mmlu_prox_lite_de_law
+task_alias: law
+process_docs: !function utils.process_law

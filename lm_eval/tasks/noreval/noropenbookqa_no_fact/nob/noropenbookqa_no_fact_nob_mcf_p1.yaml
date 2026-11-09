@@ -1,0 +1,8 @@
+tag:
+  - noropenbookqa_no_fact_nob
+  - noropenbookqa_no_fact_nob_mcf
+task: noropenbookqa_no_fact_nob_mcf_p1
+include: _noropenbookqa_no_fact_nob_yaml
+doc_to_text: "Spørsmål: {{question_stem}}\n\nSvaralternativer:\n A: {{choices.text[0]}}\n B: {{choices.text[1]}}\n C: {{choices.text[2]}}\n D: {{choices.text[3]}}\n\nHva er riktig svar?"
+doc_to_choice: !function utils.choices_labels
+process_results: !function utils.process_results_mcf

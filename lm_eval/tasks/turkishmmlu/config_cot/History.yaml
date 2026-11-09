@@ -1,0 +1,72 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_history
+description:
+  "Soru: Denizcilikte öne çıkan ............. Beyliği Balıkesir bölgesinde kuruldu.\
+  \ Osmanlı Devleti’ne .............. döneminde katıldı. Bu beyliğin Osmanlı Devletine katılmasıyla Osmanlı\
+  \ Devleti’nde donanma gücü oluşturuldu. Yukarıdaki metinde boş bırakılan yerlere aşağıdakilerden hangisi getirilmelidir?\nA)\
+  \ Karesioğulları - Orhan Bey\nB) Hamitoğulları - I. Murat (Hüdavendigar)\nC) Ramazanoğluları\
+  \ - I. Selim (Yavuz)\nD) Karamanoğulları - II. Mehmet (Fatih)\nE) Candaroğulları - II. Mehmet (Fatih)\nÇözüm: Adım adım düşünelim.\
+  \ Denizcilikte öne çıkan Karesi Beyliği Balıkesir bölgesinde kurulmuştur.\
+  \ Osmanlı Devleti'ne katılması ise Orhan Bey döneminde gerçekleşmiştir.\
+  \ Bu dönemde Karesi Beyliği'nin Osmanlı'ya katılmasıyla Osmanlı Devleti'nde donanma gücü oluşturulmuştur.\
+  \ Doğru cevap A şıkkıdır.\n\nSoru: Osmanlı Devleti’nin kuruluşu ile ilgili birçok tez ortaya atılmıştır.\
+  \ Bu tezler arasında birbiriyle benzer fikirler\
+  \ olmakla beraber birbirinden oldukça farklı bakış açılarını temsil eden görüşler de ortaya atılmıştır.\
+  \ Bu doğrultuda Tarihçi Colin İmber’in görüşleri “Osmanlıların kökenleri hakkındaki eski ya da çağdaş kuramların\
+  \ hiçbiri kesinlikle kanıtlanamaz. Osman Gazi hakkındaki geleneksel hikâyelerin neredeyse tümü hayal ürünüdür.\
+  \ Çağdaş bir tarihçinin yapabileceği en iyi şey, Osmanlı tarihinin başlangıcının bir kara delikten ibaret\
+  \ olduğunu kabul etmek olacaktır.” şeklindedir. Ancak 15. yüzyılda Aşıkpaşazade Osmanlı Tarihi eserini nasıl yazdığını\
+  \ şu cümlelerle ifade etmiştir: \"Kendimden önce yazılmış eserleri inceledim. Bu inceleme sonucunda\
+  \ önceki dönemleri kaleme aldım.\" Buna göre, Tarihçi Colin İmber ve Aşıkpaşazade’nin görüşleri dikkate\
+  \ alındığında aşağıdakilerden hangisine ulaşılamaz?\nA)\
+  \ Tarihî meselelerde birbirine zıt görüşler ortaya atılmıştır.\nB) Colin İmber, Osmanlı kuruluş kaynaklarını yetersiz\
+  \ görmüştür.\nC) Aşıkpaşazade eserini kaynaklara dayandırmıştır.\nD) Colin İmber, Osman Bey hakkındaki görüşleri\
+  \ reddetmiştir.\nE) Osmanlı kuruluşu efsanelere dayanılarak yazılmıştır.\nÇözüm: Adım adım düşünelim.\
+  \ Seçenekleri gözden geçirelim:\
+  \ A) Tarihi meselelerde birbirine zıt görüşler ortaya atılmıştır.\
+  \ - Bu doğru, çünkü Colin İmber ve Asıkpaşazade'nin görüşleri birbirine zıt gibi görünmektedir.\
+  \ B) Colin İmber, Osmanlı kuruluş kaynaklarını yetersiz görmüştür. \
+  \ - Doğru, çünkü İmber'e göre Osmanlı tarihindeki kaynaklar yetersiz ve hikayeler hayal ürünüdür.\
+  \ C) Asıkpaşazade eserini kaynaklara dayandırmıştır. - Doğru, çünkü Asıkpaşazade, eserini kaynaklara dayandırdığını belirtmiştir.\
+  \ D) Colin İmber, Osman Bey hakkındaki görüşleri reddetmiştir.\
+  \ - Doğru, çünkü İmber, Osman Gazi hakkındaki geleneksel hikayelerin çoğunun hayal ürünü olduğunu belirtmiştir.\
+  \ E) Osmanlı kuruluşu efsanelere dayanılarak yazılmıştır.\
+  \ - Bu yanlıştır, çünkü Asıkpaşazade'nin eserini kaynaklara dayandırdığı\
+  \ ve İmber'in görüşüne göre Osmanlı tarihinin başlangıcının kesin olarak bilinmediği belirtilmiştir.\
+  \ Doğru cevap E şıkkıdır.\n\nSoru: Aşağıdakilerden hangisi İstanbul İsyanları’nın sonuçlarından biri değildir?\nA) İstanbul’da\
+  \ asayiş ve kamu düzeni bozulmuştur.\nB) Yeniçerilerin devlet içindeki otoritesi artmıştır.\nC) Padişah ve devlet adamlarının\
+  \ otoriteleri sarsılmıştır.\nD) Tarımsal üretim azalmış, topraklar boş kalmıştır.\nE) Halkın orduya olan güveni\
+  \ azalmıştır.\nÇözüm: Adım adım düşünelim.\
+  \ İstanbul İsyanları'nın sonuçlarından biri olarak verilen seçeneklerin hepsi olumlu ya da olumsuz sonuçlar içermektedir.\
+  \ Ancak, D seçeneği olan \"Tarımsal üretim azalmış, topraklar boş kalmıştır\" \
+  \ İstanbul İsyanları'nın sonuçlarından biri olarak kabul edilmemektedir. İstanbul İsyanları genellikle\
+  \ askeri, siyasi ve sosyal sonuçlarla ilişkilendirilir, tarımsal üretimdeki azalma ve toprakların boş\
+  \ kalması bu isyanlarla doğrudan bağlantılı değildir.\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: SSCB'nin 1991'de dağılmasından sonra Rusya'nın girişimiyle kurulan teşkilat\
+  \ aşağıdakilerden hangisidir?\nA) Gümrük Birliği\nB) Avrupa Birliği\nC) Bağımsız Devletler Topluluğu\nD) Şhangay\
+  \ Teşkilatı\nE) AGİT\nÇözüm: Adım adım düşünelim.\
+  \ Seçenekleri gözden geçirelim: A) Gümrük Birliği - SSCB'nin dağılmasından sonra Rusya'nın girişimiyle kurulan bir teşkilat değildir.\
+  \ B) Avrupa Birliği - SSCB'nin dağılmasıyla ilgili değildir ve Rusya'nın girişimiyle kurulmamıştır.\
+  \ C) Bağımsız Devletler Topluluğu - SSCB'nin dağılmasından sonra Rusya'nın girişimiyle kurulan bir teşkilattır.\
+  \ D) Şangay Teşkilatı - SSCB'nin dağılmasıyla ilgili değildir ve Rusya'nın girişimiyle kurulmamıştır.\
+  \ E) AGİT (Avrupa Güvenlik ve İşbirliği Teşkilatı) - SSCB'nin dağılmasıyla ilgili değildir ve Rusya'nın girişimiyle kurulmamıştır.\
+  \ Doğru cevap C şıkkıdır.\n\nSoru: Cüveynî “Tarih-i Cihangüşa” adlı eserinde Uygur bölgesini gezerken rastladığı garip\
+  \ işaretlerle yazılmış taşlardan söz etmektedir.\
+  \ Daha sonra Danimarkalı Messerschmidt’in (Mesırşmit) 1721’de bu eseri görerek Avrupa bilim camiasına tanıtması üzerine birçok bilim adamı\
+  \ bu yazıların kime ait olduğu hakkında tahminlerde bulunmuştur. Bu bilim insanlarının bazıları bu yazıların; Prusyalılara, İskitlere,\
+  \ Yunanlara ve Latinlere ait olduğunu ileri sürmüştür. Bölgeye giden birçok araştırmacı burada kazılar yaparak yeni kalıntılar tespit etmiştir.\
+  \ Kitabelerin okunuşunu ilk çözen Danimarkalı W. Thomsen (V. Tomsen) olmuş, Türklerin yaşantılarına, töresine,\
+  \ kültürüne ve devlet yönetimine dair bilgilerle birlikte bu abidelerin Türklere ait olduğunu tüm dünyaya duyurmuştur.\
+  \ Metne göre, tarih biliminin aşağıdaki hangi bilim dalından yararlandığı söylenemez?\nA) Arkeoloji\nB)\
+  \ Nümizmatik\nC) Epigrafi\nD) Paleografya\nE) Etnografya\nÇözüm: Adım adım düşünelim.\
+  \ Metinde, Cuveyni'nin \"Tarih-i Cihanguşa\" adlı eserinde Uygur bölgesinde rastladığı garip işaretlerle yazılmış taşlardan bahsedilmektedir.\
+  \ Kitabelerin okunuşunu ilk çözen Danimarkalı W. Thomsen, bu abidelerin Türklere ait olduğunu tüm dünyaya duyurmuştur.\
+  \ Bu ifadelerde, epigrafi ve paleografi bilim dallarından bahsedilmektedir.\
+  \ Yeni kalıntıların tespitiyle ilgili olarak arkeoloji bilim dalından da bahsedilmektedir.\
+  \ Türklerin yaşantılarına, töresine, kültürüne ve devlet yönetimine dair bilgilerin elde edilmesi etnografya bilim dalıyla ilgilidir.\
+  \ Nümizmatik, madeni paraları ve metal para basımı tarihini inceleyen bir bilim dalıdır.\
+  \ Metinde bahsedilen taşlarla ilgili olarak nümizmatik biliminin bir katkısından bahsedilmemektedir.\
+  \ Sonuç olarak, verilen metne göre tarih bilimi, nümizmatik bilim dalından yararlanmamıştır.\
+  \ Doğru cevap B şıkkıdır."
+num_fewshot: 0
+dataset_name: History

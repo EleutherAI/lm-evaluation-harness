@@ -1,0 +1,19 @@
+task: pile_10k
+dataset_path: NeelNanda/pile-10k
+dataset_name: null
+output_type: loglikelihood_rolling
+test_split: train
+doc_to_text: ""
+doc_to_target: "text"
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false
+metadata:
+  version: 1.0

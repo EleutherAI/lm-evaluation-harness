@@ -1,0 +1,5 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2_tasks
+task: longbench2_code
+dataset_name: code_repo_qa

@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-moral_scenarios": {"acc": 0.2547486033519553, "acc_norm": 0.25251396648044694, "acc_norm_stderr": 0.014530330201468654, "acc_stderr": 0.014572650383409158}}, "versions": {"hendrycksTest-moral_scenarios": 0}}

@@ -1,0 +1,15 @@
+group: mmmlu_sw_ke
+group_alias: "Swahili"
+task:
+  - mmmlu_sw_ke_stem
+  - mmmlu_sw_ke_other
+  - mmmlu_sw_ke_social_sciences
+  - mmmlu_sw_ke_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

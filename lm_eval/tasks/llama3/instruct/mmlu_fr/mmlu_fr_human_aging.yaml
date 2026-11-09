@@ -1,0 +1,56 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Un homme ou une femme asiatique
+      B: Un homme hispanique
+      C: "Une femme afro-am\xE9ricaine"
+      D: Un homme ou une femme blanche
+    input_correct_responses:
+    - C
+    input_question: "Laquelle des personnes suivantes est la plus susceptible de rester\
+      \ seule \xE0 la maison, \xE0 partir de 2019\_?"
+  - input_choice_list:
+      A: "Avantage \xE0 l&#39;adolescence"
+      B: "Bosse de r\xE9miniscence"
+      C: "M\xE9morial M\xE9morial"
+      D: "Pointe de r\xE9cup\xE9ration quadratique"
+    input_correct_responses:
+    - B
+    input_question: "La d\xE9couverte selon laquelle les adultes ont tendance \xE0\
+      \ mieux se souvenir des \xE9v\xE9nements de leur adolescence que des autres\
+      \ p\xE9riodes de leur vie est appel\xE9e la"
+  - input_choice_list:
+      A: Texas
+      B: Californie
+      C: Hawaii
+      D: Vermont
+    input_correct_responses:
+    - A
+    input_question: "Lorsque des personnes \xE2g\xE9es d\xE9m\xE9nagent dans un nouvel\
+      \ \xC9tat apr\xE8s leur retraite, laquelle des destinations suivantes est la\
+      \ destination la plus probable\_?"
+  - input_choice_list:
+      A: Nicotine
+      B: Le goudron
+      C: Monoxyde de carbone
+      D: "Particules de fum\xE9e"
+    input_correct_responses:
+    - B
+    input_question: "Quel \xE9l\xE9ment de la fum\xE9e de tabac est responsable des\
+      \ cancers ?"
+  - input_choice_list:
+      A: "Une femme hispano-am\xE9ricaine plus \xE2g\xE9e"
+      B: "Une femme afro-am\xE9ricaine plus \xE2g\xE9e"
+      C: "Une femme am\xE9ricaine d&#39;origine asiatique plus \xE2g\xE9e"
+      D: "Une femme am\xE9rindienne plus \xE2g\xE9e"
+    input_correct_responses:
+    - C
+    input_question: "Toutes choses \xE9tant \xE9gales par ailleurs, laquelle des personnes\
+      \ suivantes est la plus susceptible d&#39;\xEAtre atteinte d&#39;ost\xE9oporose\_\
+      ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_aging
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_human_aging
+task_alias: human_aging

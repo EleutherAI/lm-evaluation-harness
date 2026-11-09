@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "reacci\xF3n en cadena de la polimerasa."
+      B: "An\xE1lisis de polimorfismo conformacional monocatenario."
+      C: Transferencia del Sur.
+      D: Transferencia Western.
+    input_correct_responses:
+    - C
+    input_question: 'Las expansiones de repeticiones de tripletes grandes se pueden
+      detectar mediante:'
+  - input_choice_list:
+      A: "Enzima que une fragmentos en la replicaci\xF3n normal del ADN."
+      B: una enzima de origen bacteriano que corta el ADN en secuencias de bases definidas
+      C: "una enzima que facilita la transcripci\xF3n de genes espec\xEDficos"
+      D: Enzima que limita el nivel al que llega un nutriente en particular.
+    input_correct_responses:
+    - A
+    input_question: La ADN ligasa es
+  - input_choice_list:
+      A: Tiene ambos alelos expresados independientemente en el heterocigoto.
+      B: tiene un alelo dominante sobre el otro
+      C: Tiene alelos estrechamente unidos en el mismo cromosoma.
+      D: Tiene alelos expresados al mismo tiempo en el desarrollo.
+    input_correct_responses:
+    - A
+    input_question: Un gen que muestra codominancia.
+  - input_choice_list:
+      A: "Estenosis pil\xF3rica"
+      B: Esquizofrenia
+      C: "Espina b\xEDfida (defectos del tubo neural)"
+      D: "s\xEDndrome de Marfan"
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes condiciones no muestra herencia\
+      \ multifactorial?"
+  - input_choice_list:
+      A: profase I
+      B: metafase I
+      C: profase II
+      D: metafase II
+    input_correct_responses:
+    - A
+    input_question: 'La etapa de la meiosis en la que los cromosomas se aparean y
+      se cruzan es:'
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_medical_genetics
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_medical_genetics
+task_alias: medical_genetics

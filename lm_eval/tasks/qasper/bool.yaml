@@ -1,0 +1,14 @@
+tag: qasper
+task: qasper_bool
+dataset_path: allenai/qasper
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+process_docs: !function utils.process_docs_bool
+doc_to_text: "TITLE: {{title}}\nABSTRACT: {{abstract}}\n\nQ: {{question}}\n\nA:"
+doc_to_target: 1
+doc_to_choice: ["no", "yes"]
+metric_list:
+  - metric: f1
+metadata:
+  version: 1.0

@@ -1,0 +1,20 @@
+tag:
+  - social_bias
+  - winogender
+task: winogender_all
+dataset_path: oskarvanderwal/winogender
+dataset_name: all
+test_split: test
+doc_to_text: "{{sentence}} ‘{{pronoun.capitalize()}}’ refers to the"
+doc_to_target: label
+doc_to_choice: "{{[occupation, participant]}}"
+output_type: multiple_choice
+should_decontaminate: true
+doc_to_decontamination_query: sentence
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  num_fewshot: 0

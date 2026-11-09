@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-jurisprudence": {"acc": 0.25, "acc_norm": 0.3148148148148148, "acc_norm_stderr": 0.04489931073591312, "acc_stderr": 0.04186091791394607}}, "versions": {"hendrycksTest-jurisprudence": 0}}

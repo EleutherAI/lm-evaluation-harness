@@ -1,0 +1,3 @@
+task: norsumm_nob_p0
+include: _norsumm_nob_yaml
+doc_to_text: "Skriv en oppsummering av følgende artikkel med kun noen få punkter: {{article}}\nOppsummering:"

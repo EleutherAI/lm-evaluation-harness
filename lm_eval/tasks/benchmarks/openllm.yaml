@@ -1,0 +1,20 @@
+group: openllm
+group_alias: Open LLM Leaderboard
+task:
+  - task: arc_challenge
+    fewshot_split: train
+    num_fewshot: 25
+  - task: hellaswag
+    fewshot_split: train
+    num_fewshot: 10
+  - task: truthfulqa
+    num_fewshot: 0
+  - task: mmlu
+    num_fewshot: 5
+  - task: winogrande
+    fewshot_split: train
+    num_fewshot: 5
+  - task: gsm8k
+    num_fewshot: 5
+metadata:
+  version: 2

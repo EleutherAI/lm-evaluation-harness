@@ -1,0 +1,2 @@
+loader,hook_action,sparse_model,hookpoint,feature_index,steering_coefficient,sae_id,description,
+sae_lens,add,gemma-scope-2b-pt-res-canonical,layers.20,12082,10.0,layer_20/width_16k/canonical,increase dogs,

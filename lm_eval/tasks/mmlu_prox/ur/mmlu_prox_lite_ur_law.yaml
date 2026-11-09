@@ -1,0 +1,9 @@
+description: 'درج ذیل قانون کے متعلق ایک متعدد انتخابی سوال ہے (جوابات کے ساتھ)۔ براہ
+  کرم قدم بہ قدم سوچیں، اور پھر اپنے جواب کو "جواب (X) ہے" کے ساتھ ختم کریں، جہاں
+  X درست آپشن کا حرف ہے۔
+
+  '
+include: _ur_lite_template_yaml
+task: mmlu_prox_lite_ur_law
+task_alias: law
+process_docs: !function utils.process_law

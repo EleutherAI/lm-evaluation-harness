@@ -1,0 +1,19 @@
+task: tinyArc
+dataset_path: tinyBenchmarks/tinyAI2_arc
+dataset_name: ARC-Challenge
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+num_fewshot: 25
+doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+doc_to_choice: "{{choices.text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "Question: {{question}}\nAnswer:"
+metric_list:
+  - metric: acc_norm
+    aggregation: !function agg_functions.agg_gpirt_arc
+    higher_is_better: true
+metadata:
+  version: 0.0

@@ -1,0 +1,9 @@
+description: 'క్రింది ఆర్థిక శాస్త్రంకి సంబంధించిన బహుళఎంపిక ప్రశ్న (సమాధానాలతో).
+  దయచేసి దశలవారీగా ఆలోచించి, మీ సమాధానాన్ని "సమాధానం (X)"తో ముగించండి, ఇక్కడ X సరైన
+  ఎంపిక అక్షరం.
+
+  '
+include: _te_template_yaml
+task: mmlu_prox_te_economics
+task_alias: economics
+process_docs: !function utils.process_economics

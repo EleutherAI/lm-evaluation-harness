@@ -1,0 +1,4 @@
+task: mmmu_val_music
+include: _template_yaml
+task_alias: Music
+dataset_name: Music

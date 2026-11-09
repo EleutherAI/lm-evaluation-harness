@@ -1,0 +1,5 @@
+include: arithmetic_1dc.yaml
+task: arithmetic_5ds
+dataset_kwargs:
+  data_files:
+    validation: hf://datasets/EleutherAI/arithmetic/data/five_digit_subtraction.jsonl

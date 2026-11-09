@@ -1,0 +1,20 @@
+tag:
+  - xlsum_tasks
+  - xlsum_prompt_2
+task: null
+dataset_path: csebuetnlp/xlsum
+dataset_name: null
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "</s>"
+validation_split: validation
+fewshot_split: validation
+test_split: test
+should_decontaminate: false
+metric_list:
+  - metric: !function utils.rougeL
+    higher_is_better: true
+    aggregation:  !function utils.rougeL_agg
+metadata:
+  version: 1.0

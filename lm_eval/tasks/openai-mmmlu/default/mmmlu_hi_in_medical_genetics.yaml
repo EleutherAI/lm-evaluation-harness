@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_medical_genetics
+"tag": "mmmlu_hi_in_other_tasks"
+"task": "mmmlu_hi_in_medical_genetics"
+"task_alias": "medical genetics (Hindi)"
+"description": "The following are multiple choice questions (with answers) about medical genetics (Hindi).\n\n"

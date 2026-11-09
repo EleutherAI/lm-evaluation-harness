@@ -1,0 +1,15 @@
+group: afrobench_lite
+task:
+  - afrimgsm_cot_tasks
+  - afrimmlu_tasks
+  - afrixnli_tasks
+  - belebele_tasks
+  - sib_tasks
+  - african_flores_tasks
+  - injongointent_tasks
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

@@ -1,0 +1,4 @@
+include: default_et.yaml
+task: xcopa_qu
+dataset_name: qu
+doc_to_text: !function utils.doc_to_text_qu

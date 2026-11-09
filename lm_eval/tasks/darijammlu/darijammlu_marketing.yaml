@@ -1,0 +1,6 @@
+"dataset_name": "marketing"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_marketing"
+"task_alias": "marketing"

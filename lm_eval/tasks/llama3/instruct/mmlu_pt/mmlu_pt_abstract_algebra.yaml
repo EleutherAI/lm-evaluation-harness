@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '0'
+      B: '1'
+      C: '2'
+      D: '3'
+    input_correct_responses:
+    - B
+    input_question: Encontre todo c em Z_3 tal que Z_3[x]/(x^2 + c) seja um corpo.
+  - input_choice_list:
+      A: Verdade verdade
+      B: Falso, Falso
+      C: Verdadeiro falso
+      D: Falso verdadeiro
+    input_correct_responses:
+    - B
+    input_question: "Declara\xE7\xE3o 1 | Se aH \xE9 um elemento de um grupo de fatores,\
+      \ ent\xE3o |aH| divide |a|. Declara\xE7\xE3o 2 | Se H e K s\xE3o subgrupos de\
+      \ G, ent\xE3o HK \xE9 um subgrupo de G."
+  - input_choice_list:
+      A: Verdade verdade
+      B: Falso, Falso
+      C: Verdadeiro falso
+      D: Falso verdadeiro
+    input_correct_responses:
+    - C
+    input_question: "Declara\xE7\xE3o 1 | Cada elemento de um grupo gera um subgrupo\
+      \ c\xEDclico do grupo. Declara\xE7\xE3o 2 | O grupo sim\xE9trico S_10 possui\
+      \ 10 elementos."
+  - input_choice_list:
+      A: Verdade verdade
+      B: Falso, Falso
+      C: Verdadeiro falso
+      D: Falso verdadeiro
+    input_correct_responses:
+    - A
+    input_question: "Declara\xE7\xE3o 1| Toda fun\xE7\xE3o de um conjunto finito sobre\
+      \ si mesma deve ser injetora. Declara\xE7\xE3o 2 | Todo subgrupo de um grupo\
+      \ abeliano \xE9 abeliano."
+  - input_choice_list:
+      A: '0'
+      B: '3'
+      C: '12'
+      D: '30'
+    input_correct_responses:
+    - A
+    input_question: "Encontre a caracter\xEDstica do anel 2Z."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_abstract_algebra
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_abstract_algebra
+task_alias: abstract_algebra

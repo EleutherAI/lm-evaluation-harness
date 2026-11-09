@@ -1,0 +1,3 @@
+task: norsumm_nno_p1
+include: _norsumm_nno_yaml
+doc_to_text: "Oppsummer følgande artikkel med nokre få setningar: {{article}}\nOppsummering:"

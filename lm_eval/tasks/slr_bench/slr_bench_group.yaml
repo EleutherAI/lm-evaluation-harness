@@ -1,0 +1,13 @@
+group: slr_bench_group
+task:
+  - slr_bench_all
+  - slr_bench_basic
+  - slr_bench_easy
+  - slr_bench_medium
+  - slr_bench_hard
+metric_list:
+  - metric: verifiable_reward
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

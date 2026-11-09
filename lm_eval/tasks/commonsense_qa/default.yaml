@@ -1,0 +1,12 @@
+task: commonsense_qa
+dataset_path: tau/commonsense_qa
+training_split: train
+validation_split: validation
+output_type: multiple_choice
+doc_to_text: "Question: {{ question.strip() }}\nA. {{choices['text'][0]}}\nB. {{choices['text'][1]}}\nC. {{choices['text'][2]}}\nD. {{choices['text'][3]}}\nE. {{choices['text'][4]}}\nAnswer:"
+doc_to_target: answerKey
+doc_to_choice: ['A', 'B', 'C', 'D', 'E']
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

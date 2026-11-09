@@ -1,0 +1,10 @@
+group: mmmlu_fr_fr_social_sciences
+group_alias: "French social sciences"
+task:
+  - mmmlu_fr_fr_social_sciences_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

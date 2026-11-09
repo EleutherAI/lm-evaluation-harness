@@ -1,0 +1,30 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+group: toksuite_italian
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+task:
+- toksuite_italian_english_keyboard
+- toksuite_italian_date_formats
+- toksuite_italian_typographical_errors
+- toksuite_italian_orthographic_errors
+- toksuite_italian_abbreviations
+- toksuite_italian_code_language_script_switching
+- toksuite_italian_phonetic_spelling
+- toksuite_italian_dialects
+- toksuite_italian_similar_words
+- toksuite_italian_grammatical_errors
+- toksuite_italian_contractions
+- toksuite_italian_web_search_query
+- toksuite_italian_spelled_out
+- toksuite_italian_keyboard_proximity_errors
+- toksuite_italian_numerical_formats
+- toksuite_italian_capitalization
+- toksuite_italian_canonical
+- toksuite_italian_plausible_diacritics_errors

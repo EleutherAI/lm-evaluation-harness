@@ -1,0 +1,13 @@
+group: include_base_44_malayalam
+task:
+- include_base_44_malayalam_stem
+- include_base_44_malayalam_marine_license
+- include_base_44_malayalam_health_oriented_education
+- include_base_44_malayalam_arts_humanities
+- include_base_44_malayalam_social_science
+- include_base_44_malayalam_general_knowledge
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

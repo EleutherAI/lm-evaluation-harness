@@ -1,0 +1,15 @@
+group: mmmlu_es_la
+group_alias: "Spanish"
+task:
+  - mmmlu_es_la_stem
+  - mmmlu_es_la_other
+  - mmmlu_es_la_social_sciences
+  - mmmlu_es_la_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

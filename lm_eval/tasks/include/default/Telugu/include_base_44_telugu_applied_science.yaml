@@ -1,0 +1,4 @@
+include: _telugu_template_yaml
+description: The following is multiple-choice question about Applied Science.
+process_docs: !function 'utils.process_applied_science'
+task: include_base_44_telugu_applied_science

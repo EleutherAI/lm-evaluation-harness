@@ -1,0 +1,19 @@
+task: xnli_ca
+dataset_path: projecte-aina/xnli-ca
+dataset_name: null
+include: ../xnli/xnli_common_yaml
+output_type: multiple_choice
+doc_to_choice: '{{[premise+", correcte? Sí, "+hypothesis,premise+", correcte? A més,
+  "+hypothesis,premise+", correcte? No, "+hypothesis]}}'
+doc_to_text: ''
+target_delimiter: ''
+process_docs: !function utils.process_doc_nli
+training_split: null
+validation_split: validation
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

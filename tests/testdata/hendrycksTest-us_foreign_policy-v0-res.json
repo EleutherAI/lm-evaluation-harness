@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-us_foreign_policy": {"acc": 0.2, "acc_norm": 0.24, "acc_norm_stderr": 0.04292346959909283, "acc_stderr": 0.040201512610368445}}, "versions": {"hendrycksTest-us_foreign_policy": 0}}

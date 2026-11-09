@@ -1,0 +1,70 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "O Artigo 2(4) abrange apenas a for\xE7a armada"
+      B: "O Artigo 2(4) abrange todos os tipos de for\xE7a, incluindo san\xE7\xF5\
+        es"
+      C: "O Artigo 2(4) abrange todas as interfer\xEAncias nos assuntos internos dos\
+        \ Estados"
+      D: "O Artigo 2(4) abrange a for\xE7a dirigida apenas contra a integridade territorial\
+        \ de um Estado"
+    input_correct_responses:
+    - A
+    input_question: "Que tipos de for\xE7a o Artigo 2(4) da Carta das Na\xE7\xF5es\
+      \ Unidas pro\xEDbe?"
+  - input_choice_list:
+      A: "Se uma parte em um caso contencioso perante a CIJ n\xE3o tiver um cidad\xE3\
+        o nacional como juiz, ela ter\xE1 o direito de nomear algu\xE9m como juiz\
+        \ exclusivamente para esse caso, com o t\xEDtulo de juiz ad hoc."
+      B: "Juiz ad hoc \xE9 membro da bancada da CIJ com voto de qualidade"
+      C: "O juiz ad hoc \xE9 um juiz substituto, caso um juiz seja desqualificado\
+        \ ou fale\xE7a"
+      D: "Juiz ad hoc \xE9 o juiz que cada parte sempre nomear\xE1 em cada caso contencioso"
+    input_correct_responses:
+    - A
+    input_question: "O que \xE9 o juiz ad hoc?"
+  - input_choice_list:
+      A: "Esta \xE9 uma reserva aceit\xE1vel se a legisla\xE7\xE3o do pa\xEDs que\
+        \ fez a reserva empregar uma defini\xE7\xE3o diferente"
+      B: "Esta \xE9 uma reserva inaceit\xE1vel porque contraria o objecto e a finalidade\
+        \ do PIDCP"
+      C: "Esta \xE9 uma reserva inaceit\xE1vel porque a defini\xE7\xE3o de tortura\
+        \ no PIDCP \xE9 consistente com o direito internacional consuetudin\xE1rio"
+      D: "Esta \xE9 uma reserva aceit\xE1vel porque, de acordo com o direito internacional\
+        \ geral, os Estados t\xEAm o direito de inserir reservas aos tratados"
+    input_correct_responses:
+    - B
+    input_question: "Ser\xE1 que uma reserva \xE0 defini\xE7\xE3o de tortura constante\
+      \ do PIDCP seria aceit\xE1vel na pr\xE1tica contempor\xE2nea?"
+  - input_choice_list:
+      A: "O consentimento pode servir como circunst\xE2ncia que exclui a ilicitude\
+        \ sempre que for dado"
+      B: "O consentimento nunca pode servir como uma circunst\xE2ncia que exclui a\
+        \ ilicitude"
+      C: "O consentimento pode servir como circunst\xE2ncia que exclui a ilicitude,\
+        \ desde que o consentimento seja v\xE1lido e na medida em que a conduta permane\xE7\
+        a dentro dos limites do consentimento dado"
+      D: "O consentimento pode sempre servir como circunst\xE2ncia que exclui a ilicitude,\
+        \ independentemente do \xF3rg\xE3o do Estado que o conceda."
+    input_correct_responses:
+    - C
+    input_question: "Quando o \u201Cconsentimento\u201D pode servir como uma circunst\xE2\
+      ncia que exclui a ilicitude de uma conduta estatal?"
+  - input_choice_list:
+      A: "O consentimento de um Estado em ficar vinculado \xE9 expresso apenas por\
+        \ ratifica\xE7\xE3o"
+      B: "O consentimento de um Estado em ficar vinculado por um tratado pode ser\
+        \ expresso por assinatura, ratifica\xE7\xE3o, aceita\xE7\xE3o, aprova\xE7\xE3\
+        o ou ades\xE3o."
+      C: "O consentimento de um Estado em ficar vinculado \xE9 expresso pela assinatura"
+      D: "O consentimento de um Estado em ficar vinculado \xE9 expresso por qualquer\
+        \ meio que escolher"
+    input_correct_responses:
+    - B
+    input_question: Como pode ser expresso o consentimento de um Estado em obrigar-se?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_international_law
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_international_law
+task_alias: international_law

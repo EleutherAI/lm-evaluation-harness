@@ -1,0 +1,16 @@
+group: agieval_nous
+task:
+  - agieval_aqua_rat
+  - agieval_logiqa_en
+  - agieval_lsat_ar
+  - agieval_lsat_lr
+  - agieval_lsat_rc
+  - agieval_sat_en_without_passage
+  - agieval_sat_en
+  - agieval_sat_math
+aggregate_metric_list:
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

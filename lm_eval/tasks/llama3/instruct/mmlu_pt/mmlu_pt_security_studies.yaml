@@ -1,0 +1,113 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Compet\xEAncia \xE9 outro termo para diplomacia coercitiva, mas abrange\
+        \ um conjunto mais restrito de crit\xE9rios; a compet\xEAncia abrange as amea\xE7\
+        as destinadas a iniciar a a\xE7\xE3o do advers\xE1rio. Uma amea\xE7a de coagir\
+        \ um Estado a ceder parte do seu territ\xF3rio contaria como diplomacia coercitiva,\
+        \ desde que essa amea\xE7a iniciasse proativamente uma a\xE7\xE3o antes de\
+        \ ser adotada uma diplomacia reativa."
+      B: "A diplomacia coercitiva constitui as amea\xE7as de for\xE7a limitada para\
+        \ induzir o incentivo do advers\xE1rio a cumprir as exig\xEAncias do coagente.\
+        \ \xC9 uma estrat\xE9gia de influ\xEAncia que visa obter conformidade: o uso\
+        \ da for\xE7a para derrotar primeiro um advers\xE1rio n\xE3o conta. Deixa\
+        \ um elemento de escolha com a meta a cumprir ou a continuar."
+      C: "A for\xE7a militar, ou a amea\xE7a da for\xE7a militar, utiliza o medo para\
+        \ atingir objetivos estrat\xE9gicos. A diplomacia coercitiva diferencia-se\
+        \ desta abordagem porque n\xE3o utiliza o medo como ferramenta para coagir\
+        \ um advers\xE1rio."
+      D: "A diplomacia coercitiva \xE9 utilizada para usar a for\xE7a, mas para limitar\
+        \ os seus efeitos na comunidade internacional. A diplomacia coercitiva \xE9\
+        \ uma estrat\xE9gia agressiva que visa obter conformidade atrav\xE9s da derrota.\
+        \ N\xE3o deixa um elemento de escolha ao alvo, sendo o alvo for\xE7ado a obedecer\
+        \ ou a envolver-se em conflito. Procura controlar impondo o cumprimento, eliminando\
+        \ qualquer oportunidade de negocia\xE7\xE3o ou concess\xE3o."
+    input_correct_responses:
+    - B
+    input_question: "O que distingue a diplomacia coercitiva da for\xE7a militar?"
+  - input_choice_list:
+      A: "As crian\xE7as-soldados s\xE3o v\xEDtimas de combates que necessitam de\
+        \ reeduca\xE7\xE3o e reabilita\xE7\xE3o."
+      B: "As crian\xE7as e as suas m\xE3es n\xE3o s\xE3o sujeitos activos na guerra\
+        \ e s\xE3o melhor consideradas como sujeitos da esfera privada."
+      C: "As crian\xE7as s\xE3o, na maioria das vezes, espectadores inocentes na guerra\
+        \ e s\xE3o melhor utilizadas como s\xEDmbolos de paz."
+      D: "As crian\xE7as t\xEAm uma subjetividade pol\xEDtica que \xE9 ignorada quando\
+        \ s\xE3o consideradas v\xEDtimas passivas da guerra."
+    input_correct_responses:
+    - D
+    input_question: "Qual das alternativas a seguir \xE9 a melhor perspectiva para\
+      \ investigar o papel das crian\xE7as-soldados?"
+  - input_choice_list:
+      A: "Como uma amea\xE7a existencial que requer uma a\xE7\xE3o imediata e extraordin\xE1\
+        ria, representando uma amea\xE7a \xE0 sobreviv\xEAncia do Estado ou \xE0 seguran\xE7\
+        a social."
+      B: "Como exigindo uma a\xE7\xE3o imediata e extraordin\xE1ria por parte do Estado,\
+        \ amea\xE7ando a sobreviv\xEAncia de um objeto de refer\xEAncia e, portanto,\
+        \ justificando o uso de medidas normalmente n\xE3o empregadas na esfera pol\xED\
+        tica."
+      C: "Como amea\xE7a urgente \xE0 sobreviv\xEAncia do objeto referente, t\xE3\
+        o grave que legitima o emprego de a\xE7\xE3o extraordin\xE1ria em resposta."
+      D: "Como amea\xE7a urgente \xE0 sobreviv\xEAncia do p\xFAblico que exige medidas\
+        \ extraordin\xE1rias ou emergenciais."
+    input_correct_responses:
+    - C
+    input_question: "Para se tornar securitizado, uma amea\xE7a deve ser apresentada\
+      \ de qual destas formas?"
+  - input_choice_list:
+      A: "Existem divis\xF5es t\xE3o amplas no quadro da seguran\xE7a humana relativamente\
+        \ \xE0 natureza das amea\xE7as e dos objectos de refer\xEAncia que n\xE3o\
+        \ \xE9 poss\xEDvel estabelecer compara\xE7\xF5es amplamente aplic\xE1veis\
+        \ entre as abordagens centradas no Estado e a seguran\xE7a humana."
+      B: "Ao adoptar o quadro da seguran\xE7a humana, as limita\xE7\xF5es da abordagem\
+        \ realista centrada no Estado tornam-se evidentes. Embora a seguran\xE7a humana\
+        \ defina o objecto de refer\xEAncia como a pessoa ou popula\xE7\xE3o, as abordagens\
+        \ centradas no Estado d\xE3o prioridade \xE0 seguran\xE7a do Estado, despriorizando\
+        \ a procura da seguran\xE7a humana."
+      C: "A abordagem da seguran\xE7a centrada no Estado \xE9 uma fac\xE7\xE3o da\
+        \ seguran\xE7a humana, geralmente definida dentro da ampla escola de seguran\xE7\
+        a humana. Por ser centrada no Estado, esta abordagem prioriza o indiv\xED\
+        duo como objeto de refer\xEAncia nos estudos de seguran\xE7a."
+      D: "Tanto a abordagem da seguran\xE7a centrada no Estado como a abordagem centrada\
+        \ no ser humano s\xE3o mutuamente exclusivas e oferecem um quadro anal\xED\
+        tico suficiente para compreender o sistema de seguran\xE7a internacional.\
+        \ \xC9, portanto, papel dos analistas de seguran\xE7a determinar quais destes\
+        \ conceitos substanciais est\xE3o corretos e quais devem ser descartados."
+    input_correct_responses:
+    - B
+    input_question: "Como podemos descrever melhor a rela\xE7\xE3o entre a abordagem\
+      \ centrada no Estado e o conceito de seguran\xE7a humana?"
+  - input_choice_list:
+      A: "A concorr\xEAncia entre na\xE7\xF5es maiores resultou em alguns pa\xEDses\
+        \ apoiarem activamente grupos terroristas para minar a for\xE7a de estados\
+        \ rivais. As redes terroristas s\xE3o clubes de clientelismo alargados mantidos\
+        \ e pagos pelos seus estados doadores e s\xE3o conceptualizados como sendo\
+        \ semelhantes a actores estatais, a serem combatidos com recurso \xE0 for\xE7\
+        a militar."
+      B: "A globaliza\xE7\xE3o permitiu a internacionaliza\xE7\xE3o das actividades\
+        \ terroristas, abrindo o seu espa\xE7o operacional, embora a coordena\xE7\xE3\
+        o ainda seja gerida a partir de uma base geogr\xE1fica. Isto sugere que os\
+        \ grupos terroristas est\xE3o estruturados a n\xEDvel nacional, o que significa\
+        \ que o terrorismo n\xE3o pode ser considerado em termos de uma guerra a ser\
+        \ derrotada militarmente sem ter implica\xE7\xF5es graves para a popula\xE7\
+        \xE3o ind\xEDgena."
+      C: "O terrorismo pode ser visto como um problema a ser resolvido por meios militares\
+        \ (guerra ao terrorismo), por t\xE9cnicas policiais normais (terrorismo como\
+        \ crime), ou como um problema m\xE9dico com causas e sintomas subjacentes\
+        \ (terrorismo como doen\xE7a)."
+      D: "O terrorismo \xE9 visto como um problema criminal. A criminaliza\xE7\xE3\
+        o do terrorismo tem duas implica\xE7\xF5es importantes. Em primeiro lugar,\
+        \ sugere que o terrorismo pode ser erradicado - os terroristas podem ser capturados\
+        \ e levados a julgamento atrav\xE9s de processos judiciais normais, eliminando\
+        \ assim a amea\xE7a da sociedade - e, em segundo lugar, sugere que s\xE3o\
+        \ aplic\xE1veis t\xE9cnicas preventivas do crime para impedir o seu desenvolvimento."
+    input_correct_responses:
+    - C
+    input_question: "Quais s\xE3o os quadros de an\xE1lise dentro dos quais o terrorismo\
+      \ foi considerado (a partir de 2020)?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_security_studies
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_security_studies
+task_alias: security_studies

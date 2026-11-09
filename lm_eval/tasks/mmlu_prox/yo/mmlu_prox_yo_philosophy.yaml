@@ -1,0 +1,9 @@
+description: 'Àwọn wọ̀nyí jẹ́ àwọn ìbéèrè ọ̀pọ̀ àṣàyàn (pẹ̀lú àwọn ìdáhùn) nípa ìmọ̀
+  ọgbọ́n. Rò ní ìṣẹ́sẹ́ kí o sì parí ìdáhùn rẹ pẹ̀lú "Ìdáhùn náà ni (X)" níbi tí X
+  jẹ́ lẹ́tà àṣàyàn tó tọ́.
+
+  '
+include: _yo_template_yaml
+task: mmlu_prox_yo_philosophy
+task_alias: philosophy
+process_docs: !function utils.process_philosophy

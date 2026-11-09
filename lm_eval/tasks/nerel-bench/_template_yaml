@@ -1,0 +1,14 @@
+dataset_path: bond005/NEREL_bench
+test_split: test
+output_type: generate_until
+doc_to_text: input_task
+doc_to_target: true_answer
+process_docs: !function utils.process_docs
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 512
+num_fewshot: 3

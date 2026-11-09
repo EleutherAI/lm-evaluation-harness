@@ -1,0 +1,62 @@
+dataset_name: professional_psychology
+description: The following are multiple choice questions (with answers) about professional
+  psychology.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'In the construction of a multiple regression equation for purposes of
+      prediction, the optimal combination of measures is one in which the predictors
+
+      (A) are uncorrelated with each other but are moderately correlated with the
+      criterion (B) have low correlations with each other and low correlations with
+      the criterion (C) are highly intercorrelated with each other and moderately
+      correlated with the criterion (D) have low correlations with the criterion bur
+      are moderately correlated with each other'
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. The basis of multiple regression is to assess the relationship between
+      one continuous variable and a set of independent variables. So the predictors
+      should be uncorrelated with each other but are moderately correlated with the
+      criterion. The answer is (A).
+  - question: 'There are three ways to measure the Central Tendency: the Mean, the Median
+      and the Mode. From your knowledge about them, what is the mode?
+
+      (A) less sensitive to extreme scores than the mean (B) more useful for skewed
+      distributions (C) sensitive to extreme values and highly skewed distributions
+      (D) the most frequently occurring number'
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. The definition of mode is the most frequently occurring number. The
+      answer is (D).
+  - question: "Carl Jung believed that a client's transference:\n(A) is a fantasy that\
+      \ distracts the client from reality. (B) represents \u201Cmixed feelings\u201D\
+      \ toward the therapist. (C) \"is a form of \"\"acting out.\"\"\" (D) reflects\
+      \ the client\u2019s personal and collective unconscious."
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. Transference is a phenomenon that a person's feelings are unconsciously
+      redirected, so it reflects the client's personal and collective unconscious.
+      The answer is (D).
+  - question: "In terms of Hofstede\u2019s (1980) five cultural dimensions, the United\
+      \ States scores at the top of the scale on:\n(A) individualism. (B) individualism\
+      \ and power distance. (C) power distance and masculinity. (D) uncertainty avoidance."
+    target: Let's think step by step. We refer to Wikipedia articles on psychology
+      for help. US scores highest on individualism among the five cultural dimensions.
+      The answer is (A).
+  - question: 'One of your therapy clients asks your advice about a good weight- reduction
+      program. You have investigated the programs in the community and are enrolled
+      in the one you consider the best. This program offers a $50 bonus to its patrons
+      for each new person they bring into the program. Under these circumstances,
+      your most appropriate response would be to
+
+      (A) tell your client the pros and cons of each program you know about except
+      for the one in which you are enrolled (B) recommend to your client the program
+      in which you are enrolled and explain the $50 bonus you will receive (C) recommend
+      to your client the program in which you are enrolled and offer to have the $50
+      bonus credited to your client''s account in the program (D) tell your client
+      the pros and cons of each program you know about, but do not claim the $50 bonus
+      if your client enrolls in your program'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on psychology
+      for help. Based on the circumstances, you should tell your client about the
+      pros and cons of each program, but it would be inappropriate to receive the
+      bonus, so you should not claim the $50 bonus. The answer is (D).'
+tag: mmlu_flan_cot_fewshot_social_sciences
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_professional_psychology

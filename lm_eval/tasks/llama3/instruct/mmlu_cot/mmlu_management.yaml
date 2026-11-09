@@ -1,0 +1,6 @@
+"dataset_name": "management"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_other_tasks"
+"task": "mmlu_cot_llama_management"
+"task_alias": "management"

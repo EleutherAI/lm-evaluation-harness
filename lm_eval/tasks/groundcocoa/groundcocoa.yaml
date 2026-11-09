@@ -1,0 +1,17 @@
+task: groundcocoa
+dataset_path: harsh147/GroundCocoa
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: "{{criteria}}"
+doc_to_target: gold
+doc_to_choice: "choices"
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+dataset_kwargs:
+  streaming: true

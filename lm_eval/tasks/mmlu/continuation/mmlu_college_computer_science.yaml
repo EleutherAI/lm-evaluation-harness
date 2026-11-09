@@ -1,0 +1,6 @@
+"dataset_name": "college_computer_science"
+"description": "The following are questions (with answers) about college\
+  \ computer science.\n\n"
+"tag": "mmlu_stem_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_college_computer_science_continuation"

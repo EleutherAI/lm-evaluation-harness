@@ -1,0 +1,74 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 2.0/15
+      B: 1.0/7
+      C: 3.0/16
+      D: 1.0/5
+    input_correct_responses:
+    - B
+    input_question: "Se lanza un dado de 6 caras 15 veces y los resultados son: la\
+      \ cara 1 sale 0 veces; lado 2: 1 vez; lado 3: 2 veces; lado 4: 3 veces; lado\
+      \ 5: 4 veces; lado 6: 5 veces. Seg\xFAn estos resultados, \xBFcu\xE1l es la\
+      \ probabilidad de que aparezca el lado 3 cuando se utiliza el suavizado Add-1?"
+  - input_choice_list:
+      A: recorte aleatorio y giro horizontal
+      B: recorte aleatorio y giro vertical
+      C: "posterizaci\xF3n"
+      D: vacilante
+    input_correct_responses:
+    - A
+    input_question: "\xBFQu\xE9 aumento de datos de imagen es m\xE1s com\xFAn para\
+      \ im\xE1genes naturales?"
+  - input_choice_list:
+      A: "\xA1Mi m\xE9todo logra un error de entrenamiento menor que todos los m\xE9\
+        todos anteriores!"
+      B: "\xA1Mi m\xE9todo logra un error de prueba menor que todos los m\xE9todos\
+        \ anteriores! (Nota al pie: cuando el par\xE1metro de regularizaci\xF3n \u03BB\
+        \ se elige para minimizar el error de prueba)."
+      C: "\xA1Mi m\xE9todo logra un error de prueba menor que todos los m\xE9todos\
+        \ anteriores! (Nota al pie: cuando el par\xE1metro de regularizaci\xF3n \u03BB\
+        \ se elige para minimizar el error de validaci\xF3n cruzada)."
+      D: "\xA1Mi m\xE9todo logra un error de validaci\xF3n cruzada menor que todos\
+        \ los m\xE9todos anteriores! (Nota al pie: cuando el par\xE1metro de regularizaci\xF3\
+        n \u03BB se elige para minimizar el error de validaci\xF3n cruzada)."
+    input_correct_responses:
+    - C
+    input_question: "Est\xE1 revisando art\xEDculos para la conferencia de aprendizaje\
+      \ autom\xE1tico m\xE1s elegante del mundo y ve env\xEDos con las siguientes\
+      \ afirmaciones. \xBFCu\xE1les considerar\xEDas aceptar?"
+  - input_choice_list:
+      A: alrededor de 10 ejemplos
+      B: alrededor de 100 ejemplos
+      C: entre 100 y 500 ejemplos
+      D: "m\xE1s de 1000 ejemplos"
+    input_correct_responses:
+    - D
+    input_question: "Para lograr una estimaci\xF3n de p\xE9rdida 0/1 que sea inferior\
+      \ al 1 por ciento de la p\xE9rdida 0/1 verdadera (con una probabilidad del 95%),\
+      \ seg\xFAn la desigualdad de Hoeffding, \xBFcu\xE1ntos ejemplos debe tener el\
+      \ conjunto de pruebas IID?"
+  - input_choice_list:
+      A: Es demasiado costoso computacionalmente.
+      B: "Probablemente dar\xEDa como resultado un \xE1rbol de decisiones con una\
+        \ mala puntuaci\xF3n en el conjunto de entrenamiento y en el conjunto de pruebas."
+      C: "Probablemente dar\xEDa como resultado un \xE1rbol de decisi\xF3n que obtiene\
+        \ una buena puntuaci\xF3n en el conjunto de entrenamiento pero mal en un conjunto\
+        \ de pruebas."
+      D: "Probablemente dar\xEDa como resultado un \xE1rbol de decisi\xF3n que obtiene\
+        \ una buena puntuaci\xF3n en un conjunto de pruebas pero una mala puntuaci\xF3\
+        n en un conjunto de entrenamiento."
+    input_correct_responses:
+    - C
+    input_question: "Tradicionalmente, cuando tenemos un atributo de entrada de valor\
+      \ real durante el aprendizaje del \xE1rbol de decisiones, consideramos una divisi\xF3\
+      n binaria seg\xFAn si el atributo est\xE1 por encima o por debajo de alg\xFA\
+      n umbral. Pat sugiere que, en cambio, deber\xEDamos tener una divisi\xF3n multidireccional\
+      \ con una rama para cada uno de los distintos valores del atributo. De la lista\
+      \ siguiente, elija el mayor problema con la sugerencia de Pat:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_machine_learning
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_machine_learning
+task_alias: machine_learning

@@ -1,0 +1,12 @@
+group: lingoly
+task:
+  - group: delta_nc
+    task:
+      - lingoly_context
+      - lingoly_nocontext
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: !function script.aggregate_metrics
+        weight_by_size: false
+metadata:
+  version: 1.0

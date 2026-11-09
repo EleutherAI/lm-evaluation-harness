@@ -1,0 +1,6 @@
+"dataset_name": "international_law"
+"description": "The following are questions (with answers) about international\
+  \ law.\n\n"
+"tag": "mmlu_humanities_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_international_law_continuation"

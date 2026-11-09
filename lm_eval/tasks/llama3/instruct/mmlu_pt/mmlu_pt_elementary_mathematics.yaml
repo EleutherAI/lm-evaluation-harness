@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 5 mil
+      B: 5 centenas
+      C: 5 dezenas
+      D: 5 uns
+    input_correct_responses:
+    - A
+    input_question: "A popula\xE7\xE3o da cidade onde Michelle nasceu \xE9 de 145.826\
+      \ habitantes. Qual \xE9 o valor de 5 no n\xFAmero 145.826?"
+  - input_choice_list:
+      A: "O d\xE9cimo n\xFAmero do padr\xE3o ser\xE1 um n\xFAmero par."
+      B: "O padr\xE3o num\xE9rico nunca ter\xE1 dois n\xFAmeros pares pr\xF3ximos\
+        \ um do outro."
+      C: "Os pr\xF3ximos dois n\xFAmeros no padr\xE3o ser\xE3o um n\xFAmero par e\
+        \ depois um n\xFAmero \xEDmpar."
+      D: "Se o padr\xE3o num\xE9rico come\xE7asse com um n\xFAmero \xEDmpar, o padr\xE3\
+        o conteria apenas n\xFAmeros \xEDmpares."
+    input_correct_responses:
+    - B
+    input_question: "Olivia usou a regra &quot;Adicionar 11&quot; para criar o padr\xE3\
+      o num\xE9rico mostrado abaixo. 10, 21, 32, 43, 54 Qual afirma\xE7\xE3o sobre\
+      \ o padr\xE3o num\xE9rico \xE9 verdadeira?"
+  - input_choice_list:
+      A: Adicione 5 a 30 para encontrar 35 equipes.
+      B: Divida 30 por 5 para encontrar 6 equipes.
+      C: Multiplique 30 por 5 para encontrar 150 equipes.
+      D: Subtraia 5 de 30 para encontrar 25 equipes.
+    input_correct_responses:
+    - B
+    input_question: "Um total de 30 jogadores jogar\xE3o basquete em um parque. Haver\xE1\
+      \ exatamente 5 jogadores em cada equipe. Qual afirma\xE7\xE3o explica corretamente\
+      \ como encontrar o n\xFAmero de equipes necess\xE1rias?"
+  - input_choice_list:
+      A: '749'
+      B: '2.675'
+      C: '2.945'
+      D: '4.250'
+    input_correct_responses:
+    - B
+    input_question: "Uma loja vende 107 cores diferentes de tinta. Eles t\xEAm 25\
+      \ latas de cada cor armazenadas. A quantidade de latas de tinta que a loja possui\
+      \ armazenada pode ser encontrada pela express\xE3o abaixo. 107 \xD7 25. Quantas\
+      \ latas de tinta a loja tem armazenadas?"
+  - input_choice_list:
+      A: (5x4)x(6x5)
+      B: (5x5) + (5x4)
+      C: (5x5) + (5x9)
+      D: (5x9)x(6x9)
+    input_correct_responses:
+    - B
+    input_question: "Qual express\xE3o \xE9 equivalente a 5 x 9?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_elementary_mathematics
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_elementary_mathematics
+task_alias: elementary_mathematics

@@ -1,0 +1,40 @@
+tag:
+  - social_bias
+task: simple_cooccurrence_bias_gen
+dataset_path: oskarvanderwal/simple-cooccurrence-bias
+test_split: test
+output_type: generate_until
+doc_to_text: "{{sentence}}"
+# doc_to_target is not used as we overload process_results
+doc_to_target: "all"
+#doc_to_choice: ["female","woman","male","man"]
+process_results: !function utils.process_results_gen
+metric_list:
+  - metric: difference_male_female
+    aggregation: mean
+    higher_is_better: false
+  - metric: pct_male_preferred
+    aggregation: mean
+    higher_is_better: false
+  - metric: pct_female_preferred
+    aggregation: mean
+    higher_is_better: false
+  - metric: pct_invalid
+    aggregation: mean
+    higher_is_better: false
+repeats: 10
+filter_list:
+  - name: "sample_response"
+    filter:
+      - function: "lowercase"
+      - function: "regex"
+        regex_pattern: "(?=(female|woman|man|male))"
+      - function: "take_first_k"
+        k: 10
+generation_kwargs:
+  do_sample: true
+  temperature: 0.2
+  max_gen_toks: 5
+metadata:
+  version: 1.0
+  num_fewshot: 0

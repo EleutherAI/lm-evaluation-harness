@@ -1,0 +1,7 @@
+"dataset_name": "management_ar"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_other_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_management_ar"
+"task_alias": "management ar"

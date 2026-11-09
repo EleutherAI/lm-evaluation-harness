@@ -1,0 +1,10 @@
+group: longbench_summarization_e
+group_alias: "Summarization (LongBench-E)"
+task:
+  - longbench_gov_report_e
+  - longbench_multi_news_e
+aggregate_metric_list:
+  - metric: score
+    weight_by_size: False
+metadata:
+  version: 0.0

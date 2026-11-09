@@ -1,0 +1,9 @@
+group: afrimgsm_tt_cot-irokobench
+task:
+  - afrimgsm_tt_cot_tasks
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 2

@@ -1,0 +1,168 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Respuesta organizada a la rebeli\xF3n de Bacon"
+      B: "Respuesta federal a la rebeli\xF3n de Shays"
+      C: "Respuesta federal a la rebeli\xF3n del whisky"
+      D: "Respuesta federal a la rebeli\xF3n de Pontiac"
+    input_correct_responses:
+    - C
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. &quot;La\
+      \ sociedad en todos los estados es una bendici\xF3n, pero el gobierno, incluso\
+      \ en su mejor estado, no es m\xE1s que un mal necesario; en su peor estado,\
+      \ un mal intolerable; porque cuando sufrimos o estamos expuestos a las mismas\
+      \ miserias por parte de un gobierno, que podr\xEDamos esperar En un pa\xEDs\
+      \ sin gobierno, nuestra calamidad se acent\xFAa al pensar que nosotros proporcionamos\
+      \ los medios por los cuales sufrimos. El gobierno, como la vestimenta, es la\
+      \ insignia de la inocencia perdida; los palacios de los reyes est\xE1n construidos\
+      \ sobre las ruinas de las glorietas del para\xEDso. Si los impulsos de la conciencia\
+      \ fueran claros, uniformes e irresistiblemente obedecidos, el hombre no necesitar\xED\
+      a otro legislador; pero no siendo ese el caso, considera necesario renunciar\
+      \ a una parte de su propiedad para proporcionar medios para la protecci\xF3\
+      n del resto; y Esto lo induce a hacer la misma prudencia que en todos los dem\xE1\
+      s casos le aconseja elegir entre dos males el menor, por lo que, siendo la seguridad\
+      \ el verdadero designio y fin del gobierno, se sigue incontestablemente que\
+      \ cualquier forma de ella que parezca m\xE1s probable para asegurar Para nosotros,\
+      \ con el menor gasto y el mayor beneficio, es preferible a todos los dem\xE1\
+      s.&quot; Thomas Paine, Common Sense, 1776 \xBFCu\xE1les de las siguientes &quot;miserias&quot;\
+      \ mencionadas anteriormente fueron las m\xE1s condenadas por los antifederalistas\
+      \ de la era posrevolucionaria?"
+  - input_choice_list:
+      A: "Tensiones entre las pol\xEDticas brit\xE1nicas y las aspiraciones de los\
+        \ colonos norteamericanos."
+      B: "Tensiones entre los indios americanos aliados de los franceses y los aliados\
+        \ de los brit\xE1nicos."
+      C: Tensiones entre afroamericanos liberados y plantadores blancos.
+      D: "Tensiones entre los colonos del interior del pa\xEDs y las \xE9lites dentro\
+        \ de la Am\xE9rica colonial."
+    input_correct_responses:
+    - D
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. &quot;Dado\
+      \ que nuestra \xFAltima conducta en Conestoga Manor y Lancaster ha ocasionado\
+      \ mucha especulaci\xF3n y una gran diversidad de sentimientos en este y los\
+      \ gobiernos vecinos; algunos lo reivindican y otros lo condenan; algunos alivian\
+      \ caritativamente el crimen y otros lo pintan maliciosamente de la manera m\xE1\
+      s odiosa y Colores detestables, creemos que es nuestro deber exponer ante el\
+      \ p\xFAblico todo el asunto tal como nos apareci\xF3, y todav\xEDa nos aparece...\
+      \ &quot;Si estas cosas no son suficientes para probar un apego injustificable\
+      \ de los cu\xE1queros a los indios salvajes , una firme resoluci\xF3n de hacerse\
+      \ amigo de ellos y una total insensibilidad ante las angustias humanas, consideremos\
+      \ algunos hechos m\xE1s recientes. Cuando el verano pasado descubrimos que probablemente\
+      \ no recibir\xEDamos ayuda del gobierno, algunos voluntarios salieron a nuestra\
+      \ costa, decididos a expulsar a nuestros enemigos de nuestras fronteras; Y cuando\
+      \ llegamos cerca de la gran isla, entendimos que varios de sus guerreros hab\xED\
+      an salido contra nuestras fronteras. Luego de esto regresamos, nos reunimos\
+      \ con ellos y luchamos con ellos en Munfey Hill, donde perdimos a algunos de\
+      \ nuestros hombres y matamos a algunos de sus guerreros y as\xED salvamos nuestras\
+      \ fronteras de esta historia en otra expedici\xF3n. Pero tan pronto como destruimos\
+      \ sus provisiones en la gran isla y arruinamos su comercio con la buena gente\
+      \ de Bel\xE9n, estos mismos indios, de quienes se sospechaba con raz\xF3n que\
+      \ hab\xEDan asesinado a nuestros amigos en el condado de Northampton, fueron\
+      \ apresados por la influencia de algunos cu\xE1queros. bajo la protecci\xF3\
+      n del gobierno para protegerlos de los resentimientos de los amigos y parientes\
+      \ de los asesinados, y para apoyarlos durante el invierno&quot;. \u2014&quot;Apology\
+      \ of the Paxton Boys&quot; (folleto), 1764 (Nota: &quot;apology&quot; en (Este\
+      \ contexto debe leerse como una explicaci\xF3n, no como una admisi\xF3n de culpa\
+      \ o arrepentimiento). \xBFCu\xE1les de las tensiones actuales durante el per\xED\
+      odo colonial de la historia estadounidense reflejan los sentimientos expresados\
+      \ en la explicaci\xF3n anterior?"
+  - input_choice_list:
+      A: la Enmienda de Igualdad de Derechos
+      B: sufragio universal
+      C: derechos de los estados
+      D: "prohibici\xF3n"
+    input_correct_responses:
+    - B
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. &quot;En\
+      \ el nuevo C\xF3digo de Leyes que supongo ser\xE1 necesario que hagas, deseo\
+      \ que recuerdes a las Damas y seas m\xE1s generoso y favorable con ellas que\
+      \ tus antepasados. No pongas tal poder ilimitado en manos de los Esposos. .\
+      \ Recuerde que todos los Hombres ser\xEDan tiranos si pudieran. Si no se presta\
+      \ especial cuidado y atenci\xF3n a las Damas, estamos decididos a fomentar una\
+      \ Rebeli\xF3n, y no nos obligaremos a ninguna Ley en la que no tengamos voz\
+      \ o Representaci\xF3n.&quot; Abigail Adams, en una carta a John Adams, 1776:\
+      \ &quot;La legislaci\xF3n especial para la mujer nos ha colocado en una posici\xF3\
+      n de lo m\xE1s an\xF3mala. Las mujeres investidas de los derechos de los ciudadanos\
+      \ en una secci\xF3n (votantes, jurados, funcionarios) que cruzan una l\xEDnea\
+      \ imaginaria, son sujetos en el siguiente. En algunos estados, una mujer casada\
+      \ puede poseer propiedades y realizar negocios en su propio nombre; en otros,\
+      \ sus ganancias pertenecen a su marido. En algunos estados, una mujer puede\
+      \ testificar contra su marido, demandar y ser demandada en ante los tribunales;\
+      \ en otros, no tiene reparaci\xF3n en caso de da\xF1o a la persona, a la propiedad\
+      \ o al car\xE1cter. En caso de divorcio por causa de adulterio del marido, se\
+      \ considera que la esposa inocente no posee ning\xFAn derecho a los hijos o\
+      \ a la propiedad, a menos que por decreto especial del tribunal. Pero en ning\xFA\
+      n Estado de la Uni\xF3n la esposa tiene derecho a su propia persona, o a cualquier\
+      \ parte de las ganancias conjuntas de la sociedad durante la vida de su marido.\
+      \ En algunos Estados las mujeres pueden entrar en el facultades de derecho y\
+      \ ejercer en los tribunales; en otros est\xE1n prohibidos. En algunas universidades,\
+      \ las ni\xF1as disfrutan de las mismas ventajas educativas que los ni\xF1os,\
+      \ mientras que muchas de las instituciones m\xE1s orgullosas del pa\xEDs les\
+      \ niegan la admisi\xF3n, aunque los hijos de China, Jap\xF3n y \xC1frica son\
+      \ bienvenidos all\xED. Pero los privilegios ya concedidos en los distintos estados\
+      \ no son en modo alguno seguros.&quot; Susan B. Anthony, &quot;Declaraci\xF3\
+      n de derechos para la mujer&quot;, 4 de julio de 1876. Los sentimientos expresados\
+      \ en el segundo extracto de Susan B. Anthony probablemente apoyen de"
+  - input_choice_list:
+      A: "Los estadounidenses deben maximizar su ventaja tecnol\xF3gica en Vietnam."
+      B: "Los bombardeos estadounidenses en Vietnam est\xE1n llevando paso a paso\
+        \ al progreso de la guerra."
+      C: Los bombardeos estadounidenses en Vietnam son un fracaso.
+      D: Estados Unidos no debe ceder al derrotismo respecto de la guerra de Vietnam.
+    input_correct_responses:
+    - C
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. Nuestros\
+      \ l\xEDderes hablan de detener la agresi\xF3n desde el norte, pero esto era\
+      \ una lucha entre grupos de vietnamitas hasta que intervinimos. Parecemos decididos\
+      \ a salvar a los vietnamitas de Ho Chi Minh incluso si para ello tenemos que\
+      \ matarlos y demoler su pa\xEDs. Mientras los nativos contemplan las aldeas\
+      \ bombardeadas, las mujeres y los ni\xF1os quemados con napalm, los cultivos\
+      \ de arroz destruidos y las ciudades invadidas por nuestro personal militar,\
+      \ sin duda est\xE1n diciendo en secreto de las guerrillas del Vietcong y de\
+      \ las fuerzas estadounidenses: &quot;Una plaga en sus dos casas&quot;. &quot;.\
+      \ \u2026 Detener los bombardeos, al norte y al sur, poner fin a las operaciones\
+      \ ofensivas de b\xFAsqueda y destrucci\xF3n, y limitar nuestra acci\xF3n militar\
+      \ a mantener operaciones sobre el terreno. Los bombardeos en el norte no han\
+      \ logrado detener ni controlar seriamente el flujo de tropas hacia el sur y,\
+      \ de hecho, pueden haber provocado un esfuerzo b\xE9lico mucho mayor por parte\
+      \ de Hanoi. \u2014Senador George McGovern, &quot;The Lessons of Vietnam&quot;,\
+      \ 25 de abril de 1967 \xBFCu\xE1l de las siguientes opiniones de la d\xE9cada\
+      \ de 1960 refleja m\xE1s directamente la perspectiva del discurso de George\
+      \ McGovern?"
+  - input_choice_list:
+      A: Abigail Adams
+      B: "Clara Bart\xF3n"
+      C: Shirley Temple
+      D: Hillary Clinton
+    input_correct_responses:
+    - B
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. No vengo\
+      \ a instar reclamos personales, ni a buscar beneficios individuales; Aparezco\
+      \ como abogado de aquellos que no pueden defender su propia causa; Vengo como\
+      \ amigo de aquellos que est\xE1n abandonados, oprimidos y desolados. En la Providencia\
+      \ de Dios, soy la voz del man\xEDaco cuyos gritos desgarradores desde las l\xFA\
+      gubres mazmorras de vuestras c\xE1rceles no penetran en vuestras Salas de Legislaci\xF3\
+      n. Soy la Esperanza de los pobres seres enloquecidos que suspiran en las celdas,\
+      \ los establos, las jaulas y los cuartos bald\xEDos de vuestras casas de pobres.\
+      \ Soy la Revelaci\xF3n de cientos de criaturas que lloran y sufren, escondidas\
+      \ en vuestras moradas privadas, en corrales y caba\xF1as, excluidas, aisladas\
+      \ de toda influencia curativa, de toda preocupaci\xF3n restauradora de la mente...\
+      \ \xBFPodr\xEDan difundirse ante vosotros sus melanc\xF3licas historias? como\
+      \ se le revel\xF3 a mi esp\xEDritu afligido durante los \xFAltimos tres meses,\
+      \ con qu\xE9 prontitud y con qu\xE9 seriedad buscar\xEDas los medios de alivio\
+      \ m\xE1s aprobados; \xA1Cu\xE1n insignificantes, en comparaci\xF3n, parecer\xED\
+      an los sacrificios que os piden que hag\xE1is! \xBFC\xF3mo unas pocas monedas\
+      \ de diez centavos y d\xF3lares, recaudados de cada ciudadano, disminuir\xED\
+      an de valor como posesi\xF3n, en comparaci\xF3n con los ciertos beneficios y\
+      \ el vasto bien que se asegurar\xEDa a los dementes que sufren... mediante la\
+      \ consagraci\xF3n y aplicaci\xF3n de un fondo suficiente para la construcci\xF3\
+      n? de un hospital adecuado... \u2014Dorothea Dix, Memorial Soliciting a State\
+      \ Hospital for the Protection and Cure of the Insane, presentado a la Asamblea\
+      \ General de Carolina del Norte, noviembre de 1848 \xBFCon qui\xE9n se puede\
+      \ comparar mejor a Dorothea Dix?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_us_history
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_high_school_us_history
+task_alias: high_school_us_history

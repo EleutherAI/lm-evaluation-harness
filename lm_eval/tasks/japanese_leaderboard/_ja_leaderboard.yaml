@@ -1,0 +1,14 @@
+group: japanese_leaderboard
+
+task:
+  - ja_leaderboard_jaqket_v2
+  - ja_leaderboard_jcommonsenseqa
+  - ja_leaderboard_jnli
+  - ja_leaderboard_jsquad
+  - ja_leaderboard_marc_ja
+  - ja_leaderboard_mgsm
+  - ja_leaderboard_xlsum
+  - ja_leaderboard_xwinograd
+
+metadata:
+  version: 1.0

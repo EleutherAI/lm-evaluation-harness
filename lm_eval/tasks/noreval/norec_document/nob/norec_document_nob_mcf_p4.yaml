@@ -1,0 +1,8 @@
+tag:
+  - norec_document_nob
+  - norec_document_nob_mcf
+task: norec_document_nob_mcf_p4
+include: _norec_document_nob_yaml
+doc_to_text: "Anmeldelse: {{review}}\nVil du oppsummere anmeldelsen som A. dårlig eller B. bra?\nSvar:"
+doc_to_choice: !function utils.choices_letters
+process_results: !function utils.process_results_mcf

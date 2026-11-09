@@ -1,0 +1,7 @@
+"dataset_name": "biology"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_stem_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_biology"
+"task_alias": "biology"

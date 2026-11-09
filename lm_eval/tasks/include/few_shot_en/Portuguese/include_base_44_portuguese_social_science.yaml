@@ -1,0 +1,5 @@
+include: _portuguese_few_shot_en_template_yaml
+description: The following are multiple-choice questions (with answers) about Social
+  Science.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_portuguese_few_shot_en_social_science

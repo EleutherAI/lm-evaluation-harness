@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_anatomy
+"tag": "mmmlu_bn_bd_stem_tasks"
+"task": "mmmlu_bn_bd_anatomy"
+"task_alias": "anatomy (Bengali)"
+"description": "The following are multiple choice questions (with answers) about anatomy (Bengali).\n\n"

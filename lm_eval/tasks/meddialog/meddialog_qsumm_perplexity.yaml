@@ -1,0 +1,14 @@
+include: meddialog_qsumm.yaml
+task: meddialog_qsumm_perplexity
+output_type: loglikelihood_rolling
+doc_to_text: ""
+process_results: !function utils_perplexity.process_results_qsumm
+metric_list:
+  - metric: word_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    higher_is_better: false
+metadata:
+  version: 1.0

@@ -1,0 +1,29 @@
+tag:
+- libra
+task: passkey
+task_alias: Passkey
+dataset_name: passkey
+dataset_kwargs:
+  dataset_name: passkey
+include: _template_yaml
+doc_to_text: 'Тебе предоставляется длинный текст, в котором содержится ключ доступа.
+  Запомни только ключ доступа.
+
+  {{context}}
+
+  В ответе нужно указать только ключ доступа.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 16
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

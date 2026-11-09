@@ -1,0 +1,13 @@
+include: _ner_template_yaml
+dataset_name: wn
+test_split: reduced_test
+fewshot_split: trial
+
+task_alias: WN prompt-1
+tag: evalita-mp_ner_tasks_wn
+task: evalita-mp_ner_wn_p1
+
+
+doc_to_text: "Estrai tutte le entità di tipo PER (persona), LOC (luogo) e ORG (organizzazione) dal testo seguente. Riporta ogni entità con il formato: Entità$Tipo, separando ciascuna coppia con ','. Se non ci sono entità da estrarre, rispondi con '&&NOENT&&'.
+Testo: '{{text}}'
+Entità:"

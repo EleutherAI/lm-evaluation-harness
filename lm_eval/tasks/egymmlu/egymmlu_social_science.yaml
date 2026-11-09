@@ -1,0 +1,7 @@
+"dataset_name": "social_science"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_social_sciences_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_social_science"
+"task_alias": "social science"

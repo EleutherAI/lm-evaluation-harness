@@ -1,0 +1,56 @@
+dataset_name: high_school_microeconomics
+description: The following are multiple choice questions (with answers) about high
+  school microeconomics.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Which of the following is necessarily a characteristic of oligopoly?
+
+      (A) Free entry into and exit from the market (B) A few large producers (C) One
+      producer of a good with no close substitutes (D) A homogenous product'
+    target: Let's think step by step. We refer to Wikipedia articles on microeconomics
+      for help. An oligopoly is when a market is dominated by just one or a few number
+      of sellers or producers. To get oligopoly, the market should have high barriers
+      to new entry, and the product has differentiation. The answer is (B).
+  - question: 'If the government subsidizes producers in a perfectly competitive market,
+      then
+
+      (A) the demand for the product will increase (B) the demand for the product
+      will decrease (C) the consumer surplus will increase (D) the consumer surplus
+      will decrease'
+    target: Let's think step by step. We refer to Wikipedia articles on microeconomics
+      for help. (A) and (B) are wrong because the demand curve does not change at
+      all. If the government subsidizes producers, the supply will increase, and thus
+      the consumer surplus also increases. The answer is (C).
+  - question: 'Which of the following is true of a price floor?
+
+      (A) The price floor shifts the demand curve to the left. (B) An effective floor
+      creates a shortage of the good. (C) The price floor shifts the supply curve
+      of the good to the right. (D) To be an effective floor, it must be set above
+      the equilibrium price.'
+    target: Let's think step by step. We refer to Wikipedia articles on microeconomics
+      for help. Price floor does not shift the demand or shift curve. An effective
+      price floor should be set above the equilibrium price, otherwise the market
+      bears and the floor does not have effective effect. The answer is (D).
+  - question: 'The concentration ratio for a monopoly is
+
+      (A) 0 (B) 5 (C) 10 (D) 100'
+    target: Let's think step by step. We refer to Wikipedia articles on microeconomics
+      for help. The concentration ratio is calculated as the sum of market share of
+      a specific number of largest companies. Monopoly means one company or entity
+      controls the entire market, therefore, the concentration ratio is 100 percent.
+      The answer is (D).
+  - question: 'In a competitive labor market for housepainters, which of the following
+      would increase the demand for housepainters?
+
+      (A) An effective minimum wage imposed on this labor market. (B) An increase
+      in the price of gallons of paint. (C) An increase in the construction of new
+      houses. (D) An increase in the price of mechanical painters so long as the output
+      effect exceeds the substitution effect.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on microeconomics
+      for help. An increase in the construction of new houses means an increase demand
+      of in-house painting, thus increases the demand for housepainters. The answer
+      is (C).'
+tag: mmlu_flan_cot_fewshot_social_sciences
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_high_school_microeconomics

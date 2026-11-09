@@ -1,0 +1,4 @@
+"dataset_name": "poetry_sentiment_analysis"
+"description": "以下是关于诗词情感分类的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "aclue_poetry_sentiment_analysis"

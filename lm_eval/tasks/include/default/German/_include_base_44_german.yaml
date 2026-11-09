@@ -1,0 +1,10 @@
+group: include_base_44_german
+task:
+- include_base_44_german_stem
+- include_base_44_german_social_science
+- include_base_44_german_driving_license
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

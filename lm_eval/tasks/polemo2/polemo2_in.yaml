@@ -1,0 +1,46 @@
+tag:
+  - polemo2
+task: polemo2_in
+dataset_path: allegro/klej-polemo2-in
+dataset_name: null
+output_type: generate_until
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Opinia: \"{{sentence}}\"\nOkreśl sentyment podanej opinii. Możliwe odpowiedzi:\nA - Neutralny\nB - Negatywny\nC - Pozytywny\nD - Niejednoznaczny\nPrawidłowa odpowiedź:"
+doc_to_target: "{{['__label__meta_zero', '__label__meta_minus_m', '__label__meta_plus_m', '__label__meta_amb'].index(target)}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{sentence}}"
+generation_kwargs:
+  until:
+    - "."
+    - ","
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50
+filter_list:
+  - name: "score-first"
+    filter:
+      - function: "regex"
+        regex_pattern: "(\\b[ABCD]\\b)"
+      - function: "take_first"
+      - function: "map"
+        mapping_dict:
+          A: 0
+          B: 1
+          C: 2
+          D: 3
+        default_value: -1
+      - function: "take_first"
+metric_list:
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+    hf_evaluate: true
+    average: micro
+  - metric: accuracy
+    aggregation: mean
+    higher_is_better: true
+    hf_evaluate: true
+metadata:
+  version: 1.0

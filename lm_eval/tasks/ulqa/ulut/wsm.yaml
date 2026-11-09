@@ -1,0 +1,22 @@
+tag:
+  - uyghur_language
+  - uyghur_llm
+task: wsm
+dataset_path: keramjan/ulut
+dataset_name: wsm
+output_type: multiple_choice
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text: "تۆۋەندىكى سۆزنىڭ مەنىداش سۆزىنى تاللاڭ: {{word}}\nجاۋاپ:"
+doc_to_target: 3
+doc_to_choice: "{{[distractor1, distractor2, distractor3, synonym]}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0.0

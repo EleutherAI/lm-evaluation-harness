@@ -1,0 +1,12 @@
+"dataset_kwargs":
+  "data_files":
+    "train": "question_and_answer_dev/question_and_answer_high_school_microeconomics_dev.csv"
+    "test": "question_and_answer_test/question_and_answer_high_school_microeconomics_test.csv"
+  "column_names": ["question", "choice1", "choice2", "choice3", "choice4", "answer"]
+  "header": null
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school microeconomics.\n\n"
+"tag": "mmlusr_question_and_answer_social_sciences_tasks"
+"include": "_mmlusr_qna_yml"
+"task": "mmlusr_question_and_answer_high_school_microeconomics"
+"task_alias": "high school microeconomics"

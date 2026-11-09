@@ -1,0 +1,39 @@
+tag:
+  - acp_mcq_cot_2shot
+  - acp_bench
+output_type: generate_until
+dataset_path: ibm-research/acp_bench
+test_split: test
+num_fewshot: 2
+doc_to_target: "{{answer}}"
+doc_to_text: "**Question**: {{context}}  {{question}} **Thoughts**:"
+generation_kwargs:
+  until:
+    - "\n\n\n\n"
+    - "**Question**:"
+    - "**Question:**"
+    - "Q:"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 1024
+metric_list:
+  - metric: exact_match
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - "\\.$"
+      - ","
+      - "\\\\"
+      - "\n"
+      - '"'
+filter_list:
+  - name: "mcq-extract"
+    filter:
+      - function: multi_choice_regex
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: '(((?<=[answer is ])[A-D])|([A-D]\n)|([A-D]\.)|( [A-D] )|(^[A-D]$)|(\[[A-D]\])|([A-D])|(?<=..Final Answer..: )(.*)(?=.)|(?<=..answer..: )(.*)(?=.)|(?<=..Answer..: )(.*)(?=.))'
+      - function: "take_first"
+metadata:
+  version: 1.0

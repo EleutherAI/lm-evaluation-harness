@@ -1,0 +1,3 @@
+task: coedit_gec
+include: unitxt
+recipe: card=cards.coedit_gec,template=templates.grammatical_error_correction.simple

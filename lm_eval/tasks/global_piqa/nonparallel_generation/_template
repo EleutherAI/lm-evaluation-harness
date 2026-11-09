@@ -1,0 +1,24 @@
+dataset_path: mrlbenchmarks/global-piqa-nonparallel
+output_type: generate_until
+test_split: test
+doc_to_text: "Given the following situation, which option is more likely to be correct?\n\nSituation:\n{{prompt}} ...\n\nOption A: {{solution0}}\n\nOption B: {{solution1}}\n\nYour response should end with \"The best answer is: [answer_letter]\" where [answer_letter] is one of A or B."
+doc_to_target: "{{['A', 'B'][label]}}"
+generation_kwargs:
+  do_sample: true
+  temperature: 0.8
+  top_p: 0.95
+  max_gen_toks: 2048
+  until: [ ]
+filter_list:
+  - name: strict_match
+    filter:
+      - function: "regex"
+        regex_pattern: '[Tt]he (?:[Bb]est [Aa]nswer|[Ff]inal [Aa]nswer|[Aa]nswer)[^A-B]*([A-B])|[Aa]nswer\s*:[^A-B]*([A-B])|\\boxed\{([A-B])\}'
+        group_select: -1
+      - function: take_first
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true

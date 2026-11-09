@@ -1,0 +1,9 @@
+description: 'Voici des questions à choix multiples (avec réponses) sur psychologie.
+  Réfléchissez étape par étape, puis terminez votre réponse par "La réponse est (X)"
+  où X est la lettre correspondant au bon choix.
+
+  '
+include: _fr_template_yaml
+task: mmlu_prox_fr_psychology
+task_alias: psychology
+process_docs: !function utils.process_psychology

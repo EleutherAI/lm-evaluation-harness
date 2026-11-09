@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Eventualmente morrer
+      B: Persistir indefinidamente
+      C: Crescer exponencialmente
+      D: Nunca ocorre
+    input_correct_responses:
+    - A
+    input_question: "Para um processo autorregressivo estacion\xE1rio, os choques"
+  - input_choice_list:
+      A: 0,2
+      B: 0,4
+      C: 0,5
+      D: 0,33
+    input_correct_responses:
+    - D
+    input_question: "Considere o seguinte modelo AR(1) com os dist\xFArbios tendo\
+      \ m\xE9dia zero e vari\xE2ncia unit\xE1ria yt = 0,2 + 0,4 yt-1 + ut A m\xE9\
+      dia (incondicional) de y ser\xE1 dada por"
+  - input_choice_list:
+      A: (ii) e (iv) apenas
+      B: (i) e (iii) apenas
+      C: (i), (ii) e (iii) apenas
+      D: (i), (ii), (iii) e (iv)
+    input_correct_responses:
+    - C
+    input_question: "Suponha que uma estat\xEDstica de teste tenha associado a ela\
+      \ um valor p de 0,08. Qual das seguintes afirma\xE7\xF5es \xE9 verdadeira? (i)\
+      \ Se o tamanho do teste fosse exatamente 8%, ser\xEDamos indiferentes entre\
+      \ rejeitar ou n\xE3o rejeitar a hip\xF3tese nula (ii) O nulo seria rejeitado\
+      \ se um tamanho de teste de 10% fosse usado (iii) O nulo n\xE3o seria seria\
+      \ rejeitado se um tamanho de teste de 1% fosse usado (iv) O valor nulo seria\
+      \ rejeitado se um tamanho de teste de 5% fosse usado."
+  - input_choice_list:
+      A: "Ser\xE1 tendencioso"
+      B: "Ser\xE1 inconsistente"
+      C: "Ser\xE1 ineficiente"
+      D: "Todos os itens (a), (b) e (c) ser\xE3o verdadeiros."
+    input_correct_responses:
+    - C
+    input_question: "Quais seriam ent\xE3o as consequ\xEAncias para o estimador OLS\
+      \ se a heterocedasticidade estivesse presente em um modelo de regress\xE3o,\
+      \ mas fosse ignorada?"
+  - input_choice_list:
+      A: 1 atraso
+      B: 2 atrasos
+      C: 3 atrasos
+      D: 4 atrasos
+    input_correct_responses:
+    - C
+    input_question: "Suponha agora que um pesquisador deseja usar crit\xE9rios de\
+      \ informa\xE7\xE3o para determinar a dura\xE7\xE3o ideal da defasagem para um\
+      \ VAR. 500 observa\xE7\xF5es est\xE3o dispon\xEDveis para o VAR bivariado, e\
+      \ os valores do determinante da matriz de vari\xE2ncia-covari\xE2ncia dos res\xED\
+      duos s\xE3o 0,0336, 0,0169, 0,0084 e 0,0062 para 1, 2, 3 e 4 defasagens, respectivamente.\
+      \ Qual \xE9 a ordem ideal do modelo de acordo com o crit\xE9rio de informa\xE7\
+      \xE3o de Akaike?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_econometrics
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_econometrics
+task_alias: econometrics

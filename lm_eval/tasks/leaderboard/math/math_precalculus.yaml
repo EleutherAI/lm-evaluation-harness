@@ -1,0 +1,3 @@
+include: _template_yaml
+dataset_name: precalculus
+task: leaderboard_math_precalculus_hard

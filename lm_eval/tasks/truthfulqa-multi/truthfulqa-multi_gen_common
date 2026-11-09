@@ -1,0 +1,69 @@
+tag:
+  - truthfulqa_multi
+dataset_path: HiTZ/truthfulqa-multi
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "!\n\n"
+    - "Q:"
+    - ".\n\n"
+training_split: train
+validation_split: validation
+test_split: null
+doc_to_target: "{{'A: ' + best_answer}}"
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+process_docs: !function utils.process_docs_gen
+process_results: !function utils.process_results_gen
+doc_to_text: "{{'Q: ' + question}}"
+should_decontaminate: True
+doc_to_decontamination_query: question
+metric_list:
+  # - metric: bleurt_max
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: bleurt_acc
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: bleurt_diff
+  #   aggregation: mean
+  #   higher_is_better: true
+  - metric: bleu_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu_diff
+    aggregation: mean
+    higher_is_better: true
+  #- metric: rouge1_max
+  #  aggregation: mean
+  #  higher_is_better: true
+  #- metric: rouge1_acc
+  #  aggregation: mean
+  #   higher_is_better: true
+  # - metric: rouge1_diff
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: rouge2_max
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: rouge2_acc
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: rouge2_diff
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: rougeL_max
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: rougeL_acc
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: rougeL_diff
+  #   aggregation: mean
+  #   higher_is_better: true
+metadata:
+  version: 3.0

@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: durante o primeiro trimestre
+      B: durante o segundo trimestre
+      C: durante o terceiro trimestre
+      D: durante toda a gravidez
+    input_correct_responses:
+    - A
+    input_question: "O enj\xF4o matinal costuma ser um problema:"
+  - input_choice_list:
+      A: um ego forte
+      B: um superego fraco
+      C: "uma identifica\xE7\xE3o fraca"
+      D: um superego forte
+    input_correct_responses:
+    - B
+    input_question: "Uma mulher que sabe que tem herpes activo e s\xEDfilis n\xE3\
+      o tratada, mas continua a ter rela\xE7\xF5es sexuais sem informar os seus parceiros\
+      \ sobre a sua condi\xE7\xE3o, tem, em termos psicanal\xEDticos:"
+  - input_choice_list:
+      A: "o fato de n\xE3o possu\xEDrem per\xEDodo refrat\xE1rio."
+      B: a resposta das camadas internas da vagina.
+      C: tendo orgasmos alternados em locais diferentes.
+      D: o ponto G.
+    input_correct_responses:
+    - A
+    input_question: "A capacidade das mulheres de ter orgasmos m\xFAltiplos se deve\
+      \ principalmente a:"
+  - input_choice_list:
+      A: "rela\xE7\xE3o sexual"
+      B: "c\xEDrculo empurr\xF5es"
+      C: exibicionismo
+      D: "tocando os \xF3rg\xE3os genitais um do outro"
+    input_correct_responses:
+    - A
+    input_question: "A natureza das atividades homossexuais que ocorrem durante a\
+      \ pr\xE9-adolesc\xEAncia inclui todas as op\xE7\xF5es a seguir, exceto qual?"
+  - input_choice_list:
+      A: "ejacula\xE7\xE3o precoce"
+      B: "ejacula\xE7\xE3o inibida"
+      C: "dist\xFArbio er\xE9til"
+      D: "dist\xFArbio ejaculat\xF3rio"
+    input_correct_responses:
+    - C
+    input_question: "O dist\xFArbio mais comum entre homens que procuram terapia sexual\
+      \ \xE9:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_sexuality
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_human_sexuality
+task_alias: human_sexuality

@@ -1,0 +1,6 @@
+"dataset_name": "security_studies"
+"description": "The following are questions (with answers) about security\
+  \ studies.\n\n"
+"tag": "mmlu_social_sciences_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_security_studies_continuation"

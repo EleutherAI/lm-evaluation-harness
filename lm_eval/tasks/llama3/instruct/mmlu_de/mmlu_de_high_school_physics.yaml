@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Nur I und II
+      B: Nur I und III
+      C: Nur II und III
+      D: III nur
+    input_correct_responses:
+    - D
+    input_question: "Welche der folgenden Bedingungen stellt sicher, dass der Drehimpuls\
+      \ erhalten bleibt? I. Impulserhaltung II. Null \xE4u\xDFere Nettokraft III.\
+      \ Externes Nettodrehmoment von Null"
+  - input_choice_list:
+      A: Der Druck befindet sich an einem Knoten, aber die Partikelverschiebung befindet
+        sich an einem Bauch.
+      B: Der Druck befindet sich an einem Schwingungsbauch, aber die Partikelverschiebung
+        befindet sich an einem Knoten.
+      C: Der Druck und die Partikelverschiebung liegen beide an Knoten.
+      D: "Der Druck und die Partikelverschiebung sind beide an Wellenb\xE4uchen."
+    input_correct_responses:
+    - B
+    input_question: "Ein mit Luft gef\xFClltes Rohr ist an einem Ende verschlossen.\
+      \ In der Pfeife wird eine stehende Welle erzeugt, wodurch die Pfeife einen Ton\
+      \ ert\xF6nen l\xE4sst. Welche der folgenden Aussagen \xFCber die Eigenschaften\
+      \ der Welle am geschlossenen Rohrende ist richtig?"
+  - input_choice_list:
+      A: 2:00 UHR
+      B: '6.00'
+      C: 12:00 MITTAGS
+      D: 24 A
+    input_correct_responses:
+    - D
+    input_question: "Eine Fotozelle mit Austrittsarbeit \u03D5 = 2 eV ist mit einem\
+      \ Widerstand in Reihe geschaltet. Licht der Frequenz f = 1 \xD7 10^15 Hz trifft\
+      \ auf eine Metallplatte der Fotozelle. Wenn die Leistung des Lichts P = 100\
+      \ W betr\xE4gt, wie gro\xDF ist der Strom durch den Widerstand?"
+  - input_choice_list:
+      A: 10 W
+      B: 30 W
+      C: 60 W
+      D: 240 W
+    input_correct_responses:
+    - D
+    input_question: Ein Mikrowellenherd wird an eine 120-V-Steckdose angeschlossen
+      und zieht einen Strom von 2 Ampere. Wie viel Energie verbraucht der Mikrowellenherd?
+  - input_choice_list:
+      A: 3,5 J
+      B: 6,0 J
+      C: 22,5 J
+      D: 40J
+    input_correct_responses:
+    - B
+    input_question: "Am Ursprung wird eine Punktladung Q = +1 mC fixiert. Wie viel\
+      \ Arbeit ist erforderlich, um eine Ladung Q = +8 \xB5C vom Punkt (0, 4 Meter)\
+      \ zum Punkt (3 Meter, 0) zu bewegen?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_physics
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_high_school_physics
+task_alias: high_school_physics

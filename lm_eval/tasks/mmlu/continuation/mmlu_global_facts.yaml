@@ -1,0 +1,6 @@
+"dataset_name": "global_facts"
+"description": "The following are questions (with answers) about global\
+  \ facts.\n\n"
+"tag": "mmlu_other_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_global_facts_continuation"

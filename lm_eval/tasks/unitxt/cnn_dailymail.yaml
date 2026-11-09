@@ -1,0 +1,3 @@
+task: cnn_dailymail
+include: unitxt
+recipe: card=cards.cnn_dailymail,template=templates.summarization.abstractive.full

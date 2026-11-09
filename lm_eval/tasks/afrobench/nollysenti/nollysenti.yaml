@@ -1,0 +1,13 @@
+group: nollysenti
+task:
+  - nollysenti_prompt_1
+  - nollysenti_prompt_2
+  - nollysenti_prompt_3
+  - nollysenti_prompt_4
+  - nollysenti_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

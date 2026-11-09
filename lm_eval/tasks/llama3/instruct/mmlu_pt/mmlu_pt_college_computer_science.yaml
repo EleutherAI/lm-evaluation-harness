@@ -1,0 +1,83 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: uma*(c + d)+ b(c + d)
+      B: uma*(c + d)* + b(c + d)*
+      C: uma*(c + d)+ b*(c + d)
+      D: (a + b)*c +(a + b)*d
+    input_correct_responses:
+    - D
+    input_question: "Qual das seguintes express\xF5es regulares \xE9 equivalente a\
+      \ (descreve o mesmo conjunto de strings que) (a* + b)*(c + d)?"
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '8'
+    input_correct_responses:
+    - B
+    input_question: "Uma certa m\xE1quina RISC em pipeline possui 8 registradores\
+      \ de uso geral R0, R1,. . . , R7 e suporta as seguintes opera\xE7\xF5es. ADD\
+      \ Rs1, Rs2, Rd Adicione Rs1 a Rs2 e coloque a soma em Rd MUL Rs1, Rs2, Rd Multiplique\
+      \ Rs1 por Rs2 e coloque o produto em Rd Uma opera\xE7\xE3o normalmente leva\
+      \ um ciclo; entretanto, uma opera\xE7\xE3o leva dois ciclos se produzir um resultado\
+      \ exigido pela opera\xE7\xE3o imediatamente seguinte em uma sequ\xEAncia de\
+      \ opera\xE7\xF5es. Considere a express\xE3o AB + ABC + BC, onde as vari\xE1\
+      veis A, B, C est\xE3o localizadas nos registradores R0, R1, R2. Se o conte\xFA\
+      do desses tr\xEAs registradores n\xE3o deve ser modificado, qual \xE9 o n\xFA\
+      mero m\xEDnimo de ciclos de clock necess\xE1rios para uma sequ\xEAncia de opera\xE7\
+      \xF5es que calcule o valor de AB + ABC + BC?"
+  - input_choice_list:
+      A: eu apenas
+      B: II apenas
+      C: III apenas
+      D: I, II e III
+    input_correct_responses:
+    - D
+    input_question: "O padr\xE3o de design Singleton \xE9 usado para garantir que\
+      \ apenas uma \xFAnica inst\xE2ncia de uma classe possa ser instanciada. Qual\
+      \ das afirma\xE7\xF5es a seguir \xE9 (s\xE3o) verdadeira para esse padr\xE3\
+      o de design? I. A classe Singleton possui um m\xE9todo de f\xE1brica est\xE1\
+      tico para fornecer sua inst\xE2ncia. II. A classe Singleton pode ser uma subclasse\
+      \ de outra classe. III. A classe Singleton possui um construtor privado."
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '9'
+    input_correct_responses:
+    - D
+    input_question: "Um compilador gera c\xF3digo para a seguinte instru\xE7\xE3o\
+      \ de atribui\xE7\xE3o. G := (A + B) * C - (D + E) * F A m\xE1quina alvo possui\
+      \ um \xFAnico acumulador e um conjunto de instru\xE7\xF5es de endere\xE7o \xFA\
+      nico que consiste em instru\xE7\xF5es de carga, armazenamento, adi\xE7\xE3o,\
+      \ subtra\xE7\xE3o e multiplica\xE7\xE3o. Para as opera\xE7\xF5es aritm\xE9ticas,\
+      \ o operando esquerdo \xE9 retirado do acumulador e o resultado aparece no acumulador.\
+      \ O menor n\xFAmero poss\xEDvel de instru\xE7\xF5es no c\xF3digo resultante\
+      \ \xE9"
+  - input_choice_list:
+      A: 1/50
+      B: 27/01
+      C: 25/01
+      D: 27/02
+    input_correct_responses:
+    - B
+    input_question: "Considere um projeto de computador no qual v\xE1rios processadores,\
+      \ cada um com uma mem\xF3ria cache privada, compartilham mem\xF3ria global usando\
+      \ um \xFAnico barramento. Este barramento \xE9 o recurso cr\xEDtico do sistema.\
+      \ Cada processador pode executar uma instru\xE7\xE3o a cada 500 nanossegundos,\
+      \ desde que as refer\xEAncias de mem\xF3ria sejam satisfeitas pelo seu cache\
+      \ local. Quando ocorre uma falta de cache, o processador \xE9 atrasado por mais\
+      \ 2.000 nanossegundos. Durante metade desse atraso adicional, o barramento \xE9\
+      \ dedicado a atender a perda de cache. Durante a outra metade, o processador\
+      \ n\xE3o pode continuar, mas o barramento fica livre para atender solicita\xE7\
+      \xF5es de outros processadores. Em m\xE9dia, cada instru\xE7\xE3o requer 2 refer\xEA\
+      ncias de mem\xF3ria. Em m\xE9dia, as perdas de cache ocorrem em 1% das refer\xEA\
+      ncias. Que propor\xE7\xE3o da capacidade do barramento um \xFAnico processador\
+      \ consumiria, ignorando os atrasos devidos \xE0 concorr\xEAncia de outros processadores?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_computer_science
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_college_computer_science
+task_alias: college_computer_science

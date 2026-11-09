@@ -1,0 +1,8 @@
+include: multi_line_infilling.yaml
+task: humaneval_single_line_infilling
+dataset_name: HumanEval-SingleLineInfilling
+generation_kwargs:
+  until:
+    - "\n"
+  max_gen_toks: 1024
+  do_sample: false

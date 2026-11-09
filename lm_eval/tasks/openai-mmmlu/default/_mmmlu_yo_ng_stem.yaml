@@ -1,0 +1,10 @@
+group: mmmlu_yo_ng_stem
+group_alias: "Yoruba stem"
+task:
+  - mmmlu_yo_ng_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

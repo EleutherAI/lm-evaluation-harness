@@ -1,0 +1,94 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Labetalol
+      B: "Uma dose de ataque de cloreto de pot\xE1ssio"
+      C: Nifedipina
+      D: Fenoxibenzamina
+    input_correct_responses:
+    - D
+    input_question: "Um homem de 42 anos vem ao consult\xF3rio para avalia\xE7\xE3\
+      o pr\xE9-operat\xF3ria antes de ser submetido \xE0 adrenalectomia programada\
+      \ para daqui a 2 semanas. H\xE1 um m\xEAs, ele recebeu atendimento no pronto-socorro\
+      \ devido a dores no flanco direito ap\xF3s uma colis\xE3o de ve\xEDculo motorizado.\
+      \ Naquela \xE9poca, a press\xE3o arterial era de 160/100 mm Hg e a tomografia\
+      \ computadorizada de abdome mostrou uma massa adrenal esquerda incidental de\
+      \ 10 cm. Os resultados dos estudos laboratoriais, incluindo hemograma completo,\
+      \ concentra\xE7\xF5es s\xE9ricas de eletr\xF3litos e testes de fun\xE7\xE3o\
+      \ hep\xE1tica, estavam dentro dos intervalos de refer\xEAncia. O paciente, por\
+      \ outro lado, era saud\xE1vel e nunca foi informado de que tinha press\xE3o\
+      \ arterial elevada. Ele n\xE3o toma medicamentos. Uma visita de acompanhamento\
+      \ no consult\xF3rio h\xE1 2 semanas revelou concentra\xE7\xF5es elevadas de\
+      \ normetanefrina e metanefrina urin\xE1ria e aldosterona plasm\xE1tica. O paciente\
+      \ foi encaminhado ao cirurgi\xE3o, que recomendou a adrenalectomia. Hoje, os\
+      \ sinais vitais s\xE3o temperatura 36,6\xB0C (97,9\xB0F), pulso 100/min, respira\xE7\
+      \xE3o 14/min e press\xE3o arterial 170/95 mm Hg. O exame f\xEDsico n\xE3o revela\
+      \ achados significativos. A prepara\xE7\xE3o pr\xE9-operat\xF3ria inicial deve\
+      \ incluir tratamento com qual dos seguintes?"
+  - input_choice_list:
+      A: "tor\xE7\xE3o sacral esquerda-esquerda"
+      B: "tor\xE7\xE3o sacral esquerda-direita"
+      C: "flex\xE3o sacral unilateral direita"
+      D: "tor\xE7\xE3o sacral direita sobre direita"
+    input_correct_responses:
+    - D
+    input_question: "Um homem de 36 anos chega ao consult\xF3rio com hist\xF3ria de\
+      \ dor lombar h\xE1 tr\xEAs semanas. Ele nega qualquer trauma recente, mas diz\
+      \ que entra e sai da caminhonete in\xFAmeras vezes ao dia para trabalhar. O\
+      \ exame do paciente em dec\xFAbito ventral revela um sulco sacral profundo \xE0\
+      \ esquerda, um \xE2ngulo lateral p\xF3stero-inferior \xE0 direita e uma jun\xE7\
+      \xE3o lombossacral que salta livremente sob compress\xE3o. O diagn\xF3stico\
+      \ mais prov\xE1vel \xE9"
+  - input_choice_list:
+      A: Dopamina
+      B: Glutamato
+      C: Norepinefrina
+      D: Serotonina
+    input_correct_responses:
+    - D
+    input_question: "Uma mulher de 32 anos, previamente saud\xE1vel, procura o m\xE9\
+      dico 8 meses depois que seu marido morreu em um acidente de carro. Desde ent\xE3\
+      o, ela apresenta diminui\xE7\xE3o do apetite e dificuldade em adormecer. Ela\
+      \ afirma que muitas vezes fica triste e chora com frequ\xEAncia. Ela verificou\
+      \ novamente a fechadura da porta cinco vezes antes de sair de casa e precisa\
+      \ contar exatamente cinco peda\xE7os de papel higi\xEAnico antes de us\xE1-lo.\
+      \ Ela diz que sempre foi perfeccionista, mas esses impulsos e rituais s\xE3\
+      o novos. A farmacoterapia deve ser direcionada para qual dos seguintes neurotransmissores?"
+  - input_choice_list:
+      A: "Rinite al\xE9rgica"
+      B: "V\xEDrus de Epstein Barr"
+      C: Mycoplasma pneumoniae
+      D: "Rinov\xEDrus"
+    input_correct_responses:
+    - D
+    input_question: "Um homem de 44 anos chega ao consult\xF3rio devido a uma hist\xF3\
+      ria de 3 dias de dor de garganta, tosse improdutiva, coriza e dor de cabe\xE7\
+      a frontal. Ele diz que a dor de cabe\xE7a piora pela manh\xE3 e o ibuprofeno\
+      \ proporciona algum al\xEDvio. Ele n\xE3o teve falta de ar. A hist\xF3ria m\xE9\
+      dica n\xE3o \xE9 digna de nota. Ele n\xE3o toma outros medicamentos al\xE9m\
+      \ do ibuprofeno para dor. Os sinais vitais s\xE3o temperatura 37,4\xB0C (99,4\xB0\
+      F), pulso 88/min, respira\xE7\xE3o 18/min e press\xE3o arterial 120/84 mm Hg.\
+      \ O exame das narinas mostra membranas mucosas eritematosas. O exame da garganta\
+      \ mostra eritema e hiperplasia linfoide folicular na orofaringe posterior. N\xE3\
+      o h\xE1 adenopatia cervical palp\xE1vel. Os pulm\xF5es est\xE3o limpos \xE0\
+      \ ausculta. Qual das alternativas a seguir \xE9 a causa mais prov\xE1vel dos\
+      \ sintomas deste paciente?"
+  - input_choice_list:
+      A: escaleno anterior
+      B: grande dorsal
+      C: peitoral menor
+      D: quadrado lombar
+    input_correct_responses:
+    - C
+    input_question: "Um maratonista de 22 anos chega ao consult\xF3rio com queixa\
+      \ de dor na costela do lado direito quando corre longas dist\xE2ncias. O exame\
+      \ f\xEDsico revela achados card\xEDacos e pulmonares normais e uma disfun\xE7\
+      \xE3o expirat\xF3ria nas costelas 4-5 \xE0 direita. Qual dos seguintes m\xFA\
+      sculos ou grupos musculares ser\xE1 mais \xFAtil na corre\xE7\xE3o desta disfun\xE7\
+      \xE3o utilizando um m\xE9todo direto?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_medicine
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_professional_medicine
+task_alias: professional_medicine

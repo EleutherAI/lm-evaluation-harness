@@ -1,0 +1,14 @@
+tag: evalita-mp_faq_tasks
+include: _faq_template_yaml
+task: evalita-mp_faq_prompt-2
+task_alias: prompt-2
+#doc_to_text: "Data la seguente domanda {{question}}, individua la risposta corretta tra le seguenti opzioni:\n A: {{A}}\nB: {{B}}\nC: {{C}}\nD: {{D}} Risposta:"
+doc_to_text: "Devi risolvere un compito di risposte a domande. Rispondi alla seguente domanda: '{{question}}'"
+doc_to_choice: "{{[A,B,C,D]}}"
+doc_to_target: "{{ A if correct_answer == 'A' else B if correct_answer == 'B' else C if correct_answer == 'C' else D}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1

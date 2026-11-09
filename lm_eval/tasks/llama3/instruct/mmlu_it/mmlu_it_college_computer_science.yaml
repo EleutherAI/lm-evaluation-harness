@@ -1,0 +1,81 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: a*(c + d)+ b(c + d)
+      B: a*(c+d)* + b(c+d)*
+      C: a*(c + d)+ b*(c + d)
+      D: (a + b)*c +(a + b)*d
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti espressioni regolari \xE8 equivalente a\
+      \ (descrive lo stesso insieme di stringhe di) (a* + b)*(c + d)?"
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '8'
+    input_correct_responses:
+    - B
+    input_question: "Una determinata macchina RISC in pipeline ha 8 registri di uso\
+      \ generale R0, R1, . . . , R7 e supporta le seguenti operazioni. AGGIUNGI Rs1,\
+      \ Rs2, Rd Somma Rs1 a Rs2 e metti la somma in Rd MUL Rs1, Rs2, Rd Moltiplica\
+      \ Rs1 per Rs2 e metti il prodotto in Rd Un&#39;operazione normalmente richiede\
+      \ un ciclo; tuttavia, un&#39;operazione richiede due cicli se produce un risultato\
+      \ richiesto dall&#39;operazione immediatamente successiva in una sequenza di\
+      \ operazioni. Considera l&#39;espressione AB + ABC + BC, dove le variabili A,\
+      \ B, C si trovano nei registri R0, R1, R2. Se il contenuto di questi tre registri\
+      \ non deve essere modificato, qual \xE8 il numero minimo di cicli di clock richiesti\
+      \ per una sequenza di operazioni che calcola il valore di AB + ABC + BC?"
+  - input_choice_list:
+      A: I solo
+      B: Solo II
+      C: Solo III
+      D: I, II e III
+    input_correct_responses:
+    - D
+    input_question: "Il modello di progettazione Singleton viene utilizzato per garantire\
+      \ che sia possibile istanziare solo una singola istanza di una classe. Quale\
+      \ delle seguenti affermazioni \xE8 (sono) vera per questo modello di progettazione?\
+      \ I. La classe Singleton ha un metodo factory statico per fornire la sua istanza.\
+      \ II. La classe Singleton pu\xF2 essere una sottoclasse di un&#39;altra classe.\
+      \ III. La classe Singleton ha un costruttore privato."
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '9'
+    input_correct_responses:
+    - D
+    input_question: "Un compilatore genera codice per la seguente istruzione di assegnazione.\
+      \ G := (A + B) * C - (D + E) * F La macchina target ha un singolo accumulatore\
+      \ e un set di istruzioni a indirizzo singolo costituito da istruzioni caricare,\
+      \ memorizzare, aggiungere, sottrarre e moltiplicare. Per le operazioni aritmetiche,\
+      \ l&#39;operando sinistro viene prelevato dall&#39;accumulatore e il risultato\
+      \ appare nell&#39;accumulatore. Il minor numero possibile di istruzioni nel\
+      \ codice risultante \xE8"
+  - input_choice_list:
+      A: 1/50
+      B: 1/27
+      C: 1/25
+      D: 27/2
+    input_correct_responses:
+    - B
+    input_question: "Consideriamo un progetto di computer in cui pi\xF9 processori,\
+      \ ciascuno con una memoria cache privata, condividono la memoria globale utilizzando\
+      \ un singolo bus. Questo bus \xE8 la risorsa critica del sistema. Ogni processore\
+      \ pu\xF2 eseguire un&#39;istruzione ogni 500 nanosecondi purch\xE9 i riferimenti\
+      \ di memoria siano soddisfatti dalla cache locale. Quando si verifica un errore\
+      \ nella cache, il processore viene ritardato di altri 2.000 nanosecondi. Durante\
+      \ la met\xE0 di questo ritardo aggiuntivo, l&#39;autobus \xE8 dedicato a servire\
+      \ la cache miss. Durante l&#39;altra met\xE0, il processore non pu\xF2 continuare,\
+      \ ma il bus \xE8 libero di soddisfare le richieste di altri processori. In media,\
+      \ ogni istruzione richiede 2 riferimenti di memoria. In media, gli errori di\
+      \ cache si verificano nell&#39;1% dei riferimenti. Quale percentuale della capacit\xE0\
+      \ del bus consumerebbe un singolo processore, ignorando i ritardi dovuti alla\
+      \ concorrenza di altri processori?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_computer_science
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_college_computer_science
+task_alias: college_computer_science

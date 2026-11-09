@@ -1,0 +1,23 @@
+dataset_kwargs: null
+dataset_name: toksuite_italian
+dataset_path: toksuite/toksuite_italian
+doc_to_choice: choices
+doc_to_target: answer
+doc_to_text: '{{ question.strip() }}'
+metadata:
+  canonical_task: toksuite_italian_canonical
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+  num_samples: 40
+  task_pretty_name: null
+metric_list:
+- aggregation: mean
+  higher_is_better: true
+  metric: acc
+- aggregation: mean
+  higher_is_better: true
+  metric: acc_norm
+output_type: multiple_choice
+target_delimiter: ' '
+# task: tokenization_robustness_completion
+test_split: test

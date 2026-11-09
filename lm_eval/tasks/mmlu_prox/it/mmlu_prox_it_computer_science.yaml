@@ -1,0 +1,9 @@
+description: 'Ecco una domanda a scelta multipla su informatica (con risposta). Si
+  prega di ragionare passo dopo passo e terminare la risposta con "La risposta è (X)",
+  dove X è la lettera dell''opzione corretta.
+
+  '
+include: _it_template_yaml
+task: mmlu_prox_it_computer_science
+task_alias: computer_science
+process_docs: !function utils.process_computer_science

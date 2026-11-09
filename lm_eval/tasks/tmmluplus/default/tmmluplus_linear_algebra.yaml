@@ -1,0 +1,11 @@
+"dataset_path": "csv"
+"dataset_name": null
+"dataset_kwargs":
+  "data_files":
+    "train": "hf://datasets/ikala/tmmluplus/data/linear_algebra_train.csv"
+    "test": "hf://datasets/ikala/tmmluplus/data/linear_algebra_test.csv"
+"description": "以下為線代的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_STEM_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_linear_algebra"
+"task_alias": "linear algebra"

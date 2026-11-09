@@ -1,0 +1,57 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: rohe Sterbeziffer ab dem rohen Geburtsdatum.
+      B: rohe Geburtenrate von der rohen Sterberate.
+      C: Verdopplungszeit aus der rohen Geburtenrate.
+      D: Fruchtbarkeitsrate aus der rohen Sterberate.
+    input_correct_responses:
+    - A
+    input_question: "Die Rate des nat\xFCrlichen Bev\xF6lkerungswachstums ergibt sich\
+      \ aus der Subtraktion von"
+  - input_choice_list:
+      A: "Die Geburtenraten steigen und das Bev\xF6lkerungswachstum ist weniger schnell."
+      B: "Die Geburtenraten gehen zur\xFCck und das Bev\xF6lkerungswachstum ist weniger\
+        \ schnell."
+      C: "Die Geburtenraten steigen und das Bev\xF6lkerungswachstum steigt."
+      D: "Die Geburtenraten sinken und das Bev\xF6lkerungswachstum steigt."
+    input_correct_responses:
+    - B
+    input_question: "Welche der folgenden Aussagen trifft w\xE4hrend der dritten Stufe\
+      \ des demografischen \xDCbergangsmodells zu?"
+  - input_choice_list:
+      A: "Doppelarbeit kommt h\xE4ufig vor."
+      B: "Soziale Probleme der Innenstadt schwappen auf die umliegenden Wohnvororte\
+        \ \xFCber."
+      C: "Ineffizienz bei der Bereitstellung von Dienstleistungen tritt h\xE4ufig\
+        \ auf."
+      D: "Die Bem\xFChungen eines Viertels, die Umweltverschmutzung zu reduzieren,\
+        \ werden immer von den Nachbargemeinden unterst\xFCtzt."
+    input_correct_responses:
+    - D
+    input_question: Welche der folgenden Aussagen in Bezug auf die von Kommunalverwaltungen
+      in den Vereinigten Staaten erbrachten Dienstleistungen trifft NICHT zu?
+  - input_choice_list:
+      A: Auslagerung.
+      B: Offshoring.
+      C: maquiladoras.
+      D: "Standortabh\xE4ngigkeit."
+    input_correct_responses:
+    - B
+    input_question: "Die Praxis, einen ausl\xE4ndischen Drittanbieter mit der Durchf\xFC\
+      hrung eines Betriebs zu beauftragen, wird als bezeichnet"
+  - input_choice_list:
+      A: Taube Seife
+      B: Dove Schokoriegel
+      C: Taube-Symbol
+      D: Eine Taube (Vogel)
+    input_correct_responses:
+    - C
+    input_question: "Welcher der folgenden Gegenst\xE4nde ist ein Beispiel f\xFCr\
+      \ immaterielle Kultur?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_geography
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_high_school_geography
+task_alias: high_school_geography

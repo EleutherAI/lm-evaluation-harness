@@ -1,0 +1,5 @@
+include: _malayalam_few_shot_en_template_yaml
+description: The following are multiple-choice questions (with answers) about Arts
+  & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_malayalam_few_shot_en_arts_humanities

@@ -1,0 +1,19 @@
+task: acp_app_gen
+dataset_name: acp_app_gen
+include: _gen_yaml_2shot
+fewshot_config:
+  sampler: first_n
+  samples:
+  - context: "A robot is in a grid and can only move to places that are connected to its current position. The grid size is 5x5, and the locations are of the form fi-jf (e.g., f3-2f or f0-1f). The grid cells are connected to their neighbors (e.g., f1-2f is connected to the four neighbors f0-2f, f2-2f, f1-1f, and f1-3f). Some positions on the grid are locked and can be opened with a key of a matching shape. The robot has an arm that can pick up a key when the key is in same location as the robot and the arm is empty.  There are 2 keys in 1 different shapes: Key key0-1 is of shape shape0, Key key0-0 is of shape shape0.  Currently, the robot is at position f3-2f and its arm is empty. All the positions are open except the following: f2-0f has shape0 shaped lock, f4-2f has shape0 shaped lock. Key key0-0 is at position f2-2f. Key key0-1 is at position f1-3f. The available actions are: (unlock ?curpos ?lockpos ?key ?shape) - unlock the place ?lockpos with key ?key of shape ?shape from the current position place ?curpos, (move ?curpos ?nextpos) - travel from the current position ?curpos to the next position ?nextpos, (pickup ?curpos ?key) - pick up key ?key from place ?curpos, (pickup-and-loose ?curpos ?newkey ?oldkey) - pick up the key ?newkey at the current position place ?curpos and loose the key ?oldkey being held, and (putdown ?curpos ?key) - put down key ?key at current position place ?curpos."
+    question: "Generate the list of all ground actions that are applicable in this state."
+    answer: "[(move f3-2f f3-1f), (move f3-2f f2-2f), (move f3-2f f3-3f)]"
+  - context: "There are several cities, each containing several locations, some of which are airports. There are also trucks, which can drive within a single city, and airplanes, which can fly between airports. The goal is to get some packages from various locations to various new locations. There are 2 trucks and 1 airplane, as well as 4 packages. There are 4 locations across 2 cities. The locations are in cities as follows: l0-0 and l0-1 are in c0; l1-0 and l1-1 are in c1. Currently, t1, p2, and p3 are at l1-0, a0 is at l0-0, t0 is at l0-1, p1 and p0 are in t1. The available actions are: (load-truck ?obj ?truck ?loc) - load object ?obj into truck ?truck at location ?loc, (load-airplane ?obj ?airplane ?loc) - load object ?obj into airplane ?airplane at location ?loc, (unload-truck ?obj ?truck ?loc) - unload object ?obj from truck ?truck at location ?loc, (unload-airplane ?obj ?airplane ?loc) - remove the object ?obj from the airplane ?airplane and place it on the location ?loc, (drive-truck ?truck ?loc-from ?loc-to ?city) - navigate the truck ?truck from its current location ?loc-from in city ?city to the new location ?loc-to within the same city, and (fly-airplane ?airplane ?loc-from ?loc-to) - fly airplane ?airplane from airport ?loc-from to airport ?loc-to."
+    question: "Generate the list of all ground actions that are applicable in this state."
+    answer: "[(drive-truck t1 l1-0 l1-0 c1), (drive-truck t0 l0-1 l0-0 c0), (load-truck p2 t1 l1-0), (unload-truck p0 t1 l1-0), (drive-truck t0 l0-1 l0-1 c0), (fly-airplane a0 l0-0 l1-0), (fly-airplane a0 l0-0 l0-0), (unload-truck p1 t1 l1-0), (drive-truck t1 l1-0 l1-1 c1), (load-truck p3 t1 l1-0)]"
+doc_to_text: "**Question**: {{context}} {{question}} Each action starts with an opening parenthesis and ends with closing parenthesis. Provide only the actions. **Final Answer**:"
+filter_list:
+  - name: "acp_grammar_parse"
+    filter:
+      - function: "ACP_grammar_filter"
+        grammar_task: "action_list"
+      - function: "take_first"

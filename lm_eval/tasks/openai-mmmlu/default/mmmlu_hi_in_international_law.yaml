@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_international_law
+"tag": "mmmlu_hi_in_humanities_tasks"
+"task": "mmmlu_hi_in_international_law"
+"task_alias": "international law (Hindi)"
+"description": "The following are multiple choice questions (with answers) about international law (Hindi).\n\n"

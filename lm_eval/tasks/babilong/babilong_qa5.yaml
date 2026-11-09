@@ -1,0 +1,21 @@
+include: _babilong_common_yaml
+task: babilong_qa5
+test_split: qa5
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa5
+description: "I will give you context with the facts about locations and their relations hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nYour answer should contain only one word. Do not write anything else after that. Do not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Mary picked up the apple there. Mary gave the apple to Fred. Mary moved to the bedroom. Bill took the milk there."
+      question: "Who did Mary give the apple to?"
+      target: "Fred"
+    - input: "Jeff took the football there. Jeff passed the football to Fred. Jeff got the milk there. Bill travelled to the bedroom."
+      question: "Who gave the football?"
+      target: "Jeff"
+    - input: "Fred picked up the apple there. Fred handed the apple to Bill. Bill journeyed to the bedroom. Jeff went back to the garden."
+      question: "What did Fred give to Bill?"
+      target: "apple"

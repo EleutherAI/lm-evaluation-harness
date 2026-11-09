@@ -1,0 +1,14 @@
+group: mmmu_val
+task:
+  - mmmu_val_art_and_design
+  - mmmu_val_business
+  - mmmu_val_health_and_medicine
+  - mmmu_val_humanities_and_social_science
+  - mmmu_val_science
+  - mmmu_val_tech_and_engineering
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

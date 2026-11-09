@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: S=0, R=0
+      B: S=0, R=1
+      C: S = 1, R = 0
+      D: S = 1, R = 1
+    input_correct_responses:
+    - D
+    input_question: "Em uma trava SR constru\xEDda a partir de portas NOR, cuja condi\xE7\
+      \xE3o n\xE3o \xE9 permitida"
+  - input_choice_list:
+      A: "200\u03A9"
+      B: "100\u03A9"
+      C: "50\u03A9"
+      D: "10\u03A9"
+    input_correct_responses:
+    - C
+    input_question: "Em uma m\xE1quina CC com enrolamento de volta de 2 p\xF3los,\
+      \ a resist\xEAncia de um condutor \xE9 2\u03A9 e o n\xFAmero total de condutores\
+      \ \xE9 100. Encontre a resist\xEAncia total"
+  - input_choice_list:
+      A: 1mA.
+      B: 2 mA.
+      C: 3mA.
+      D: 4mA.
+    input_correct_responses:
+    - B
+    input_question: "A bobina de um medidor de bobina m\xF3vel tem 100 voltas, 40\
+      \ mm de comprimento e 30 mm de largura. O torque de controle \xE9 240*10-6 Nm\
+      \ em escala completa. Se a densidade do fluxo magn\xE9tico for 1Wb/m2, a faixa\
+      \ do medidor \xE9"
+  - input_choice_list:
+      A: 100 N.
+      B: 0,1 N.
+      C: 1N.
+      D: 0,01N.
+    input_correct_responses:
+    - B
+    input_question: "Dois longos condutores paralelos transportam 100 A. Se os condutores\
+      \ estiverem separados por 20 mm, a for\xE7a por metro de comprimento de cada\
+      \ condutor ser\xE1"
+  - input_choice_list:
+      A: 15 N.
+      B: 20 N.
+      C: 7,5 N.
+      D: 3,75 N.
+    input_correct_responses:
+    - A
+    input_question: "Um poste pontual tem uma resist\xEAncia de 4\u03C0 * 10 ^ -4\
+      \ weber. A for\xE7a em newtons em um p\xF3lo pontual de 4\u03C0 * 1,5 * 10 ^\
+      \ -4 weber colocado a uma dist\xE2ncia de 10 cm dele ser\xE1"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_electrical_engineering
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_electrical_engineering
+task_alias: electrical_engineering

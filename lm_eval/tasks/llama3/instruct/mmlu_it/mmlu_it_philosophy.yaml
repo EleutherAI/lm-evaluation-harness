@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: una teoria etica su come dovremmo comportarci.
+      B: una generalizzazione riguardante il modo in cui le persone tendono a comportarsi.
+      C: un&#39;affermazione sulla natura umana e sui modi in cui le persone sono
+        capaci di comportarsi.
+      D: nessuna delle precedenti.
+    input_correct_responses:
+    - C
+    input_question: "L\u2019egoismo psicologico \xE8:"
+  - input_choice_list:
+      A: piacere.
+      B: "felicit\xE0."
+      C: Bene.
+      D: "virt\xF9."
+    input_correct_responses:
+    - C
+    input_question: "Secondo l\u2019\u201Cutilitarismo ideale\u201D di Moore, l\u2019\
+      azione giusta \xE8 quella che produce il maggior numero di:"
+  - input_choice_list:
+      A: libere scelte
+      B: dettami dell&#39;anima
+      C: leggi naturali necessarie
+      D: "volont\xE0 indeterminata"
+    input_correct_responses:
+    - C
+    input_question: Secondo d&#39;Holbach le persone agiscono sempre secondo _____.
+  - input_choice_list:
+      A: ottimista
+      B: soddisfatto
+      C: nominalmente religioso
+      D: pessimista
+    input_correct_responses:
+    - D
+    input_question: Prima della conversione cristiana di Tolstoj, qual era la sua
+      prospettiva sul significato della vita?
+  - input_choice_list:
+      A: metafisica
+      B: epistemologia
+      C: fisica quantistica
+      D: assiologia
+    input_correct_responses:
+    - A
+    input_question: "Lo studio della realt\xE0 nel senso pi\xF9 ampio, un&#39;indagine\
+      \ sulla natura elementare dell&#39;universo e delle cose in esso contenute,\
+      \ \xE8 noto come _____."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_philosophy
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_philosophy
+task_alias: philosophy

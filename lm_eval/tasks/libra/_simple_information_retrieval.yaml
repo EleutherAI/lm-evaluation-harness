@@ -1,0 +1,5 @@
+group: libra_simple_information_retrieval
+group_alias: Simple Information Retrieval
+task:
+  - passkey
+  - passkey_with_librusec

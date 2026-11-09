@@ -1,0 +1,6 @@
+"dataset_name": "high_school_government_and_politics"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_social_sciences_tasks"
+"task": "mmlu_cot_llama_high_school_government_and_politics"
+"task_alias": "high school government and politics"

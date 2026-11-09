@@ -1,0 +1,12 @@
+group: AraDiCE_ArabicMMLU_lev
+task:
+- AraDiCE_ArabicMMLU_humanities_lev
+- AraDiCE_ArabicMMLU_language_lev
+- AraDiCE_ArabicMMLU_social-science_lev
+- AraDiCE_ArabicMMLU_stem_lev
+- AraDiCE_ArabicMMLU_other_lev
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True

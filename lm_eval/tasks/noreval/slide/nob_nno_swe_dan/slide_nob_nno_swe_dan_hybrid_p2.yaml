@@ -1,0 +1,7 @@
+tag:
+  - slide_nob_nno_swe_dan
+  - slide_nob_nno_swe_dan_hybrid
+task: slide_nob_nno_swe_dan_hybrid_p2
+include: _slide_nob_nno_swe_dan_yaml
+doc_to_text: "Tekst: {{text}}\n\nIdentifiser språket i teksten. Velg alternativet som passer best.\n\nAlternativer:\n- bokmål\n- nynorsk\n- dansk\n- svensk\n- et annet språk\n\nSvar:"
+doc_to_choice: !function utils.choices_words

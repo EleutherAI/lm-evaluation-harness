@@ -1,0 +1,15 @@
+group: galician_bench
+task:
+  - belebele_glg_Latn
+  - flores_gl
+  - galcola
+  - summarization_gl
+  - parafrases_gl
+  - paws_gl
+  - openbookqa_gl
+  - mgsm_direct_gl
+  - truthfulqa_gl
+  - xnli_gl
+  - xstorycloze_gl
+metadata:
+  version: 1.0

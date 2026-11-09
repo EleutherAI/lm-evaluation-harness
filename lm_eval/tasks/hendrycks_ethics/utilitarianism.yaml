@@ -1,0 +1,12 @@
+include: commonsense.yaml
+tag:
+  - hendrycks_ethics
+task: ethics_utilitarianism
+dataset_name: utilitarianism
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+doc_to_choice: ['no', 'yes']
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

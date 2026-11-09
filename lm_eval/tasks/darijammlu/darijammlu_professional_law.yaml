@@ -1,0 +1,6 @@
+"dataset_name": "professional_law"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_professional_law"
+"task_alias": "professional law"

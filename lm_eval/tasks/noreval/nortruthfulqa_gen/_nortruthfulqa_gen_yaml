@@ -1,0 +1,57 @@
+dataset_path: ltg/nortruthfulqa_gen
+dataset_kwargs:
+  revision: a8f3b00ed45867a3272be621560ecf5ac6c8b13f
+output_type: generate_until
+training_split: null
+validation_split: validation
+test_split: null
+doc_to_target: best_answer
+process_docs: !function utils.process_docs
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: true
+  temperature: 1.0
+  top_p: 1.0
+  top_k: 0
+  max_new_tokens: 64
+metric_list:
+  - metric: rougeL_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu_diff
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge1_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge1_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge1_diff
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge2_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge2_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: rouge2_diff
+    aggregation: mean
+    higher_is_better: true
+  - metric: rougeL_acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: rougeL_diff
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.3

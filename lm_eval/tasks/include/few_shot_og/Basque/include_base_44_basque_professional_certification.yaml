@@ -1,0 +1,5 @@
+include: _basque_few_shot_og_template_yaml
+description: Honako hauek aukera anitzeko galderak dira (erantzunekin) Professional
+  certification-i buruz.
+process_docs: !function 'utils.process_professional_certification'
+task: include_base_44_basque_few_shot_og_professional_certification

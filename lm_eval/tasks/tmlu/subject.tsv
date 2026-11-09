@@ -1,0 +1,38 @@
+category	subject	name	# Questions	# Choices
+civics	AST_civics	分科測驗公民	57	4
+geography	AST_geography	分科測驗地理	58	4
+civics	CAP_civics	會考公民	73	4
+geography	CAP_geography	會考地理	45	4
+civics	GSAT_civics	學測公民	73	4
+geography	GSAT_geography	學測地理	49	4
+accounting	accountant	會計師	117	4
+psychologist	clinical_psychologist	臨床心理師	117	4
+biology	AST_biology	分科測驗生物	40	4
+chemistry	AST_chemistry	分科測驗化學	34	5
+mathematics	AST_mathematics	分科測驗數學	25	5
+physics	AST_physics	分科測驗物理	43	5
+biology	CAP_biology	會考生物	27	4
+chemistry	CAP_chemistry	會考化學	27	4
+earth science	CAP_earth_science	會考地球科學	15	4
+mathematics	CAP_mathematics	會考數學	115	4
+physics	CAP_physics	會考物理	15	4
+biology	GSAT_biology	學測生物	21	5
+chemistry	GSAT_chemistry	學測化學	29	5
+earth science	GSAT_earth_science	學測地球科學	24	5
+mathematics	GSAT_mathematics	學測數學	29	5
+physics	GSAT_physics	學測物理	24	5
+Chinese	AST_chinese	分科測驗國文	131	4
+history	AST_history	分科測驗歷史	56	4
+Chinese	CAP_chinese	會考國文	61	4
+history	CAP_history	會考歷史	56	4
+Chinese	GSAT_chinese	學測國文	97	4
+history	GSAT_history	學測歷史	85	4
+Tour	tour_guide	導遊	99	4
+Tour	tour_leader	領隊	145	4
+law	lawyer_qualification	律師資格	279	4
+Taiwan Specific	driving_rule	台灣駕駛規則	432	4
+Taiwan Specific	teacher_qualification	教師資格	75	4
+Taiwan Specific	taiwan_tourist_resources	台灣觀光資源	50	4
+Medicine	basic_traditional_chinese_medicine	中醫基礎醫學	159	4
+Medicine	clinical_traditional_chinese_medicine	中醫針灸	79	4
+Nutritionist	nutritionist	營養師	120	4

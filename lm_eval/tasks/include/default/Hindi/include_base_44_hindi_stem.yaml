@@ -1,0 +1,4 @@
+include: _hindi_template_yaml
+description: The following is multiple-choice question about STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_hindi_stem

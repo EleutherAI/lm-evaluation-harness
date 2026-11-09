@@ -1,0 +1,4 @@
+include: _greek_template_yaml
+description: The following is multiple-choice question about Medical License.
+process_docs: !function 'utils.process_medical_license'
+task: include_base_44_greek_medical_license

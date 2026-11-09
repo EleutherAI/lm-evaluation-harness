@@ -1,0 +1,25 @@
+tag:
+    - afrixnli
+    - afrixnli_native_direct
+dataset_path: masakhane/afrixnli
+dataset_name: null
+output_type: multiple_choice
+validation_split: validation
+test_split: test
+fewshot_split: validation
+doc_to_target: label
+doc_to_text: ""
+metric_list:
+  - metric: f1
+    aggregation: !function utils.weighted_f1_score
+    average: weighted
+    higher_is_better: True
+    ignore_case: true
+    ignore_punctuation: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

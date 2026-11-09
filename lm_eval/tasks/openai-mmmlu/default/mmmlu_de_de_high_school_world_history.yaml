@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_high_school_world_history
+"tag": "mmmlu_de_de_humanities_tasks"
+"task": "mmmlu_de_de_high_school_world_history"
+"task_alias": "high school world history (German)"
+"description": "The following are multiple choice questions (with answers) about high school world history (German).\n\n"

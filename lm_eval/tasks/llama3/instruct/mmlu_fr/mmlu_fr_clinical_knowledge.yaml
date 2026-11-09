@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ATP.
+      B: ADP.
+      C: "phosphocr\xE9atine."
+      D: la phosphorylation oxydative.
+    input_correct_responses:
+    - A
+    input_question: "L&#39;\xE9nergie pour toutes les formes de contraction musculaire\
+      \ est fournie par :"
+  - input_choice_list:
+      A: "Les cath\xE9ters masculins et f\xE9minins sont de couleurs diff\xE9rentes."
+      B: "Les cath\xE9ters masculins sont plus longs que les cath\xE9ters f\xE9minins."
+      C: "Les cath\xE9ters masculins sont plus gros que les cath\xE9ters f\xE9minins."
+      D: "Les cath\xE9ters f\xE9minins sont plus longs que les cath\xE9ters masculins."
+    input_correct_responses:
+    - B
+    input_question: "Quelle est la diff\xE9rence entre un cath\xE9ter masculin et\
+      \ un cath\xE9ter f\xE9minin ?"
+  - input_choice_list:
+      A: "L&#39;abduction du pouce est fournie par la racine vert\xE9brale T2"
+      B: "L&#39;opposition du pouce par opponens policis est fournie par la racine\
+        \ vert\xE9brale T1"
+      C: "L&#39;adduction des doigts est assur\xE9e par le nerf m\xE9dian"
+      D: "L&#39;abduction des doigts est m\xE9di\xE9e par les interosseux palmaires"
+    input_correct_responses:
+    - B
+    input_question: "Dans l&#39;\xE9valuation de la fonction de la main, laquelle\
+      \ des affirmations suivantes est vraie\_?"
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '2'
+      D: '1'
+    input_correct_responses:
+    - C
+    input_question: "Combien de tentatives faut-il faire pour canuler un patient avant\
+      \ de passer le relais \xE0 un coll\xE8gue senior, selon les connaissances m\xE9\
+      dicales de 2020 ?"
+  - input_choice_list:
+      A: "glycog\xE8ne en glucose-1-phosphate."
+      B: "glycog\xE8ne ou glucose en fructose."
+      C: "glycog\xE8ne ou glucose en pyruvate ou lactate."
+      D: "glycog\xE8ne ou glucose en pyruvate ou ac\xE9tyl CoA."
+    input_correct_responses:
+    - C
+    input_question: "La glycolyse est le nom donn\xE9 \xE0 la voie de conversion de\
+      \ :"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_clinical_knowledge
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_clinical_knowledge
+task_alias: clinical_knowledge

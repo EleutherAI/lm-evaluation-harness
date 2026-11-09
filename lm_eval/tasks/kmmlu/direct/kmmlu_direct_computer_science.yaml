@@ -1,0 +1,4 @@
+dataset_name: Computer-Science
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_computer_science
+tag: kmmlu_direct_stem_tasks

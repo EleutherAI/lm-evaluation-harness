@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_professional_medicine
+"tag": "mmmlu_zh_cn_other_tasks"
+"task": "mmmlu_zh_cn_professional_medicine"
+"task_alias": "professional medicine (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about professional medicine (Simplified Chinese).\n\n"

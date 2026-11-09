@@ -1,0 +1,4 @@
+include: _urdu_template_yaml
+description: The following is multiple-choice question about Health oriented education.
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_urdu_health_oriented_education

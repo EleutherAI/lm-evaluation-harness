@@ -1,0 +1,113 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Competencia es otro t\xE9rmino para la diplomacia coercitiva, pero cubre\
+        \ un conjunto m\xE1s limitado de criterios; La compelencia cubre aquellas\
+        \ amenazas dirigidas a iniciar una acci\xF3n adversaria. Una amenaza de obligar\
+        \ a un Estado a ceder parte de su territorio contar\xEDa como diplomacia coercitiva,\
+        \ siempre y cuando esa amenaza inicie de manera proactiva una acci\xF3n antes\
+        \ de que se adopte una diplomacia reactiva."
+      B: "La diplomacia coercitiva constituye las amenazas de fuerza limitada para\
+        \ inducir el incentivo del adversario a cumplir con las demandas del coaccionador.\
+        \ Es una estrategia de influencia que tiene como objetivo obtener el cumplimiento:\
+        \ el uso de la fuerza para derrotar primero a un oponente no cuenta. Deja\
+        \ un elemento de elecci\xF3n con el objetivo de cumplir o continuar."
+      C: "La fuerza militar, o la amenaza de la fuerza militar, utiliza el miedo para\
+        \ lograr objetivos estrat\xE9gicos. La diplomacia coercitiva se diferencia\
+        \ de este enfoque porque no utiliza el miedo como herramienta para coaccionar\
+        \ a un adversario."
+      D: "La diplomacia coercitiva se emplea para utilizar la fuerza pero para limitar\
+        \ sus efectos en la comunidad internacional. La diplomacia coercitiva es una\
+        \ estrategia agresiva cuyo objetivo es lograr el cumplimiento mediante la\
+        \ derrota. No deja al objetivo un elemento de elecci\xF3n, ya sea forz\xE1\
+        ndolo a cumplir o involucrarse en un conflicto. Busca controlar imponiendo\
+        \ el cumplimiento eliminando cualquier oportunidad de negociaci\xF3n o concesi\xF3\
+        n."
+    input_correct_responses:
+    - B
+    input_question: "\xBFQu\xE9 distingue la diplomacia coercitiva de la fuerza militar?"
+  - input_choice_list:
+      A: "Los ni\xF1os soldados son v\xEDctimas de combates que necesitan reeducaci\xF3\
+        n y rehabilitaci\xF3n."
+      B: "Los ni\xF1os y sus madres no son sujetos activos en la guerra y es mejor\
+        \ considerarlos como sujetos en la esfera privada."
+      C: "Los ni\xF1os suelen ser espectadores inocentes de la guerra y es mejor utilizarlos\
+        \ como s\xEDmbolos de la paz."
+      D: "Los ni\xF1os tienen una subjetividad pol\xEDtica que se pasa por alto cuando\
+        \ se les considera v\xEDctimas pasivas de la guerra."
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de los siguientes es el mejor lente a trav\xE9s del\
+      \ cual investigar el papel de los ni\xF1os soldados?"
+  - input_choice_list:
+      A: "Como una amenaza existencial que requiere una acci\xF3n inmediata y extraordinaria,\
+        \ representando una amenaza a la supervivencia del Estado o a la seguridad\
+        \ de la sociedad."
+      B: "Como que requiere una acci\xF3n inmediata y extraordinaria por parte del\
+        \ Estado, amenazando la supervivencia de un objeto de referencia y, por lo\
+        \ tanto, justificando el uso de medidas que normalmente no se emplean en el\
+        \ \xE1mbito pol\xEDtico."
+      C: Como una amenaza urgente a la supervivencia del objeto de referencia, tan
+        grave que legitima el empleo de acciones extraordinarias como respuesta.
+      D: Como una amenaza urgente a la supervivencia de la audiencia que requiere
+        medidas extraordinarias o de emergencia.
+    input_correct_responses:
+    - C
+    input_question: "Para convertirse en titulizado, \xBFde cu\xE1l de estas maneras\
+      \ se debe presentar una amenaza?"
+  - input_choice_list:
+      A: Existen divisiones tan amplias dentro del marco de la seguridad humana con
+        respecto a la naturaleza de las amenazas y los objetos de referencia que no
+        se pueden establecer comparaciones ampliamente aplicables entre los enfoques
+        centrados en el Estado y la seguridad humana.
+      B: "Al adoptar el marco de la seguridad humana, las limitaciones del enfoque\
+        \ realista estatista se vuelven evidentes. Mientras que la seguridad humana\
+        \ define el objeto de referencia como la persona o poblaci\xF3n, los enfoques\
+        \ estadoc\xE9ntricos priorizan la seguridad del Estado, restando prioridad\
+        \ a la b\xFAsqueda de la seguridad humana."
+      C: "El enfoque de seguridad centrado en el Estado es una facci\xF3n de la seguridad\
+        \ humana, generalmente definida dentro de la escuela amplia de seguridad humana.\
+        \ Al estar centrado en el Estado, este enfoque prioriza al individuo como\
+        \ objeto de referencia en los estudios de seguridad."
+      D: "Tanto el enfoque de seguridad centrado en el Estado como el centrado en\
+        \ el ser humano son mutuamente excluyentes y ofrecen un marco anal\xEDtico\
+        \ suficiente para comprender el sistema de seguridad internacional. Por lo\
+        \ tanto, el papel de los analistas de seguridad es determinar cu\xE1l de estos\
+        \ conceptos sustanciales es correcto y cu\xE1l debe descartarse."
+    input_correct_responses:
+    - B
+    input_question: "\xBFC\xF3mo podemos describir mejor la relaci\xF3n entre el enfoque\
+      \ estadoc\xE9ntrico y el concepto de seguridad humana?"
+  - input_choice_list:
+      A: "La competencia entre naciones m\xE1s grandes ha resultado en que algunos\
+        \ pa\xEDses apoyen activamente a grupos terroristas para socavar la fuerza\
+        \ de estados rivales. Las redes terroristas son clubes de patrocinio extendido\
+        \ mantenidos y pagados por sus estados donantes y son conceptualizados como\
+        \ actores estatales, a los que se debe enfrentar utilizando la fuerza militar."
+      B: "La globalizaci\xF3n ha permitido la internacionalizaci\xF3n de las actividades\
+        \ terroristas al abrir su espacio operativo, aunque la coordinaci\xF3n todav\xED\
+        a se gestiona desde una base geogr\xE1fica. Esto sugiere que los grupos terroristas\
+        \ est\xE1n estructurados a nivel nacional, lo que significa que el terrorismo\
+        \ no puede considerarse en t\xE9rminos de una guerra que debe ser derrotada\
+        \ militarmente sin tener implicaciones graves para la poblaci\xF3n ind\xED\
+        gena."
+      C: "El terrorismo puede verse como un problema que debe resolverse por medios\
+        \ militares (guerra contra el terrorismo), mediante t\xE9cnicas policiales\
+        \ normales (terrorismo como delito) o como un problema m\xE9dico con causas\
+        \ y s\xEDntomas subyacentes (terrorismo como enfermedad)."
+      D: "El terrorismo es visto como un problema criminal. La criminalizaci\xF3n\
+        \ del terrorismo tiene dos implicaciones importantes. En primer lugar, sugiere\
+        \ que el terrorismo puede ser erradicado (los terroristas pueden ser capturados\
+        \ y juzgados mediante procedimientos judiciales normales, eliminando as\xED\
+        \ la amenaza de la sociedad) y, en segundo lugar, sugiere que se pueden aplicar\
+        \ t\xE9cnicas criminales preventivas para impedir su desarrollo."
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1les son los marcos de an\xE1lisis dentro de los cuales\
+      \ se ha considerado el terrorismo (a partir de 2020)?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_security_studies
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_security_studies
+task_alias: security_studies

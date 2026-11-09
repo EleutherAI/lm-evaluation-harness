@@ -1,0 +1,6 @@
+"dataset_name": "professional_medicine"
+"description": "The following are questions (with answers) about professional\
+  \ medicine.\n\n"
+"tag": "mmlu_other_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_professional_medicine_continuation"

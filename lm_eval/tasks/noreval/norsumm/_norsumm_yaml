@@ -1,0 +1,39 @@
+dataset_path: SamiaT/NorSumm
+dataset_kwargs:
+  revision: b281b1a0ba5b5ee550aa206171034e65a8ed0ec2
+training_split: null
+validation_split: null
+test_split: test
+doc_to_target: summaries
+output_type: generate_until
+process_docs: !function utils.clean_summaries
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: true
+  temperature: 1.0
+  top_p: 1.0
+  top_k: 0
+  max_new_tokens: 256
+metric_list:
+  - metric: rougeL_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: rougeL_avg
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleu_avg
+    aggregation: mean
+    higher_is_better: true
+  - metric: bertscore_f1_max
+    aggregation: mean
+    higher_is_better: true
+  - metric: bertscore_f1_avg
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.3

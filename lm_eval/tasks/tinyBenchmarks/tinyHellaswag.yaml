@@ -1,0 +1,18 @@
+task: tinyHellaswag
+dataset_path: tinyBenchmarks/tinyHellaswag
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+num_fewshot: 10
+test_split: null
+process_docs: !function utils_hellaswag.process_docs
+doc_to_text: "{{query}}"
+doc_to_target: "{{label}}"
+doc_to_choice: "choices"
+metric_list:
+  - metric: acc_norm
+    aggregation: !function agg_functions.agg_gpirt_hellaswag
+    higher_is_better: true
+metadata:
+  version: 0.0

@@ -1,0 +1,4 @@
+dataset_name: marketing
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_marketing
+tag: kmmlu_hard_other_tasks

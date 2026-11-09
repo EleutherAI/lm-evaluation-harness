@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "cuidados de sa\xFAde e educa\xE7\xE3o gratuitos para todos"
+      B: "um sal\xE1rio m\xEDnimo"
+      C: pleno emprego
+      D: bem-estar universal
+    input_correct_responses:
+    - B
+    input_question: "Qual das seguintes op\xE7\xF5es o estado de bem-estar social\
+      \ do p\xF3s-guerra de 1948 n\xE3o pretendia fornecer:"
+  - input_choice_list:
+      A: um passeio de feira
+      B: um circo
+      C: um teatro de fantoches
+      D: "um bal\xE9"
+    input_correct_responses:
+    - C
+    input_question: "O que Berger (1963) descreve como uma met\xE1fora para a realidade\
+      \ social?"
+  - input_choice_list:
+      A: "a crescente burocracia do estado tornou a religi\xE3o apenas uma parte marginal\
+        \ de nossas vidas"
+      B: "apesar do enfraquecimento da autoridade tradicional, a nossa vida quotidiana\
+        \ e o \u201Csenso comum\u201D continuam a ser moldados por cren\xE7as e valores\
+        \ religiosos"
+      C: "a participa\xE7\xE3o religiosa no culto colectivo pode ter diminu\xEDdo,\
+        \ mas as pessoas ainda praticam a sua f\xE9 em privado"
+      D: "as pessoas s\xE3o muito mais propensas a discutir suas cren\xE7as religiosas\
+        \ em ambientes p\xFAblicos e informais"
+    input_correct_responses:
+    - B
+    input_question: "A mudan\xE7a da \u201Creligi\xE3o civil\u201D para a \u201Creligi\xE3\
+      o comum\u201D significa que:"
+  - input_choice_list:
+      A: "a tend\xEAncia da classe trabalhadora de n\xE3o realizar seus pr\xF3prios\
+        \ interesses"
+      B: "uma ideologia dominante que legitima o poder econ\xF3mico, pol\xEDtico e\
+        \ cultural"
+      C: "uma forma de consci\xEAncia dupla baseada na ideologia e nas experi\xEA\
+        ncias cotidianas"
+      D: uma forma de pagamento dada para topiaria pendente
+    input_correct_responses:
+    - B
+    input_question: 'O termo &#39;hegemonia&#39; refere-se a:'
+  - input_choice_list:
+      A: "a maioria das greves passa despercebida pelos empregadores e pela m\xED\
+        dia de massa"
+      B: "nem todos os conflitos laborais ser\xE3o comunicados pelo empregador"
+      C: "a defini\xE7\xE3o de greve exclui aquelas que envolvem menos de dez trabalhadores\
+        \ ou duram menos de um dia"
+      D: "\xE9 dif\xEDcil comparar greves que foram medidas de maneiras diferentes"
+    input_correct_responses:
+    - A
+    input_question: "Qual das alternativas a seguir n\xE3o \xE9 um problema associado\
+      \ \xE0s estat\xEDsticas oficiais sobre greves?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_sociology
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_sociology
+task_alias: sociology

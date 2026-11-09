@@ -1,0 +1,115 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Kompetenz ist ein anderer Begriff f\xFCr Zwangsdiplomatie, deckt jedoch\
+        \ einen engeren Kriterienkatalog ab; Zwang umfasst jene Drohungen, die darauf\
+        \ abzielen, gegnerische Ma\xDFnahmen einzuleiten. Eine Drohung, einen Staat\
+        \ zu zwingen, einen Teil seines Territoriums aufzugeben, w\xFCrde als Zwangsdiplomatie\
+        \ gelten, solange diese Drohung proaktiv Ma\xDFnahmen einleitet, bevor eine\
+        \ reaktive Diplomatie ergriffen wird."
+      B: "Zwangsdiplomatie stellt die Androhung begrenzter Gewalt dar, um den Gegner\
+        \ dazu zu bringen, den Forderungen des Zwangsmittels nachzukommen. Es ist\
+        \ eine Beeinflussungsstrategie, die darauf abzielt, F\xFCgsamkeit zu erlangen:\
+        \ Die Anwendung von Gewalt, um einen Gegner zuerst zu besiegen, z\xE4hlt nicht.\
+        \ Es l\xE4sst ein Element der Wahl mit dem Ziel, es zu erf\xFCllen oder fortzufahren."
+      C: "Milit\xE4rische Gewalt oder die Androhung milit\xE4rischer Gewalt nutzt\
+        \ Angst, um strategische Ziele zu erreichen. Zwangsdiplomatie unterscheidet\
+        \ sich von diesem Ansatz, weil sie Angst nicht als Mittel zur N\xF6tigung\
+        \ eines Gegners einsetzt."
+      D: "Zwangsdiplomatie wird eingesetzt, um Gewalt anzuwenden, aber ihre Auswirkungen\
+        \ auf die internationale Gemeinschaft zu begrenzen. Zwangsdiplomatie ist eine\
+        \ aggressive Strategie, die darauf abzielt, durch Niederlagen Gehorsam zu\
+        \ erlangen. Es l\xE4sst der Zielperson keine Wahlm\xF6glichkeit, da die Zielperson\
+        \ entweder gezwungen wird, sich zu f\xFCgen oder sich auf einen Konflikt einzulassen.\
+        \ Es versucht zu kontrollieren, indem es Compliance auferlegt, indem es jede\
+        \ Gelegenheit f\xFCr Verhandlungen oder Zugest\xE4ndnisse ausschlie\xDFt."
+    input_correct_responses:
+    - B
+    input_question: "Was unterscheidet Zwangsdiplomatie von milit\xE4rischer Gewalt?"
+  - input_choice_list:
+      A: "Kindersoldaten sind Opfer von K\xE4mpfen, die Umerziehung und Rehabilitation\
+        \ ben\xF6tigen."
+      B: "Kinder und ihre M\xFCtter sind keine aktiven Subjekte in der Kriegsf\xFC\
+        hrung und werden am besten als Subjekte im privaten Bereich betrachtet."
+      C: Kinder sind meistens unschuldige Zuschauer im Krieg und werden am besten
+        als Zeichen des Friedens verwendet.
+      D: Kinder haben eine politische Untertanenrolle, die vermisst wird, wenn sie
+        als passive Kriegsopfer betrachtet werden.
+    input_correct_responses:
+    - D
+    input_question: Welche der folgenden ist die beste Linse, um die Rolle von Kindersoldaten
+      zu untersuchen?
+  - input_choice_list:
+      A: "Als existenzielle Bedrohung, die sofortiges und au\xDFerordentliches Handeln\
+        \ erfordert, die den Fortbestand des Staates oder die gesellschaftliche Sicherheit\
+        \ bedroht."
+      B: "Als ein sofortiges und au\xDFerordentliches Handeln des Staates, das den\
+        \ Fortbestand eines Bezugsobjekts bedroht und daher den Einsatz von Ma\xDF\
+        nahmen rechtfertigt, die normalerweise nicht im politischen Bereich eingesetzt\
+        \ werden."
+      C: "Als dringende Bedrohung f\xFCr das \xDCberleben des Referenzobjekts, so\
+        \ ernst, dass es den Einsatz au\xDFergew\xF6hnlicher Ma\xDFnahmen als Reaktion\
+        \ legitimiert."
+      D: "Als dringende Bedrohung f\xFCr das \xDCberleben des Publikums, die au\xDF\
+        erordentliche oder dringende Ma\xDFnahmen erfordert."
+    input_correct_responses:
+    - C
+    input_question: Auf welche dieser Arten muss eine Bedrohung dargestellt werden,
+      um verbrieft zu werden?
+  - input_choice_list:
+      A: "Innerhalb des Rahmenwerks der menschlichen Sicherheit gibt es so gro\xDF\
+        e Unterschiede hinsichtlich der Art von Bedrohungen und Bezugsobjekten, dass\
+        \ keine allgemein anwendbaren Vergleiche zwischen staatszentrierten Ans\xE4\
+        tzen und menschlicher Sicherheit gezogen werden k\xF6nnen."
+      B: "Durch die Annahme des Rahmens der menschlichen Sicherheit werden die Grenzen\
+        \ des realistischen staatszentrierten Ansatzes deutlich. W\xE4hrend die menschliche\
+        \ Sicherheit das Bezugsobjekt als Person oder Bev\xF6lkerung definiert, priorisieren\
+        \ staatszentrierte Ans\xE4tze die Sicherheit des Staates und r\xE4umen dem\
+        \ Streben nach menschlicher Sicherheit den Vorrang ein."
+      C: Der staatszentrierte Sicherheitsansatz ist eine Fraktion der menschlichen
+        Sicherheit, die normalerweise innerhalb der breiten Schule der menschlichen
+        Sicherheit definiert wird. Da dieser Ansatz staatszentriert ist, priorisiert
+        er das Individuum als Bezugsobjekt in Sicherheitsstudien.
+      D: "Sowohl der staatszentrierte als auch der menschenzentrierte Sicherheitsansatz\
+        \ schlie\xDFen sich gegenseitig aus und bieten einen ausreichenden analytischen\
+        \ Rahmen, um das internationale Sicherheitssystem zu verstehen. Es ist daher\
+        \ die Aufgabe von Sicherheitsanalysten zu bestimmen, welches dieser wesentlichen\
+        \ Konzepte richtig ist und welches verworfen werden sollte."
+    input_correct_responses:
+    - B
+    input_question: "Wie l\xE4sst sich die Beziehung zwischen dem staatszentrierten\
+      \ Ansatz und dem Konzept der menschlichen Sicherheit am besten beschreiben?"
+  - input_choice_list:
+      A: "Der Wettbewerb zwischen gr\xF6\xDFeren Nationen hat dazu gef\xFChrt, dass\
+        \ einige L\xE4nder terroristische Gruppen aktiv unterst\xFCtzen, um die St\xE4\
+        rke rivalisierender Staaten zu untergraben. Terroristische Netzwerke sind\
+        \ erweiterte Patronatsklubs, die von ihren Geberstaaten unterhalten und bezahlt\
+        \ werden und wie staatliche Akteure konzipiert sind, denen mit milit\xE4rischer\
+        \ Gewalt begegnet werden soll."
+      B: "Die Globalisierung hat die Internationalisierung terroristischer Aktivit\xE4\
+        ten erm\xF6glicht, indem sie ihren Aktionsraum ge\xF6ffnet hat, obwohl die\
+        \ Koordinierung immer noch von einer geografischen Basis aus gesteuert wird.\
+        \ Dies deutet darauf hin, dass terroristische Gruppen national strukturiert\
+        \ sind, was bedeutet, dass Terrorismus nicht als Krieg angesehen werden kann,\
+        \ der milit\xE4risch besiegt werden muss, ohne ernsthafte Auswirkungen auf\
+        \ die indigene Bev\xF6lkerung zu haben."
+      C: "Terrorismus kann als ein Problem angesehen werden, das mit milit\xE4rischen\
+        \ Mitteln (Krieg gegen den Terrorismus), mit normalen Polizeitechniken (Terrorismus\
+        \ als Verbrechen) oder als medizinisches Problem mit zugrunde liegenden Ursachen\
+        \ und Symptomen (Terrorismus als Krankheit) gel\xF6st werden muss."
+      D: "Terrorismus wird als kriminelles Problem angesehen. Die Kriminalisierung\
+        \ des Terrorismus hat zwei wichtige Implikationen. Erstens deutet es darauf\
+        \ hin, dass Terrorismus ausgerottet werden kann \u2013 Terroristen k\xF6nnen\
+        \ gefasst und durch normale Gerichtsverfahren vor Gericht gestellt werden,\
+        \ wodurch die Bedrohung von der Gesellschaft beseitigt wird \u2013 und zweitens\
+        \ deutet es darauf hin, dass pr\xE4ventive Kriminalit\xE4tstechniken anwendbar\
+        \ sind, um seine Entwicklung zu verhindern."
+    input_correct_responses:
+    - C
+    input_question: In welchen Analyserahmen wurde Terrorismus betrachtet (Stand 2020)?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_security_studies
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_security_studies
+task_alias: security_studies

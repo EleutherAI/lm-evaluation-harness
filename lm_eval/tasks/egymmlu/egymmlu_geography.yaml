@@ -1,0 +1,7 @@
+"dataset_name": "geography"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_social_sciences_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_geography"
+"task_alias": "geography"

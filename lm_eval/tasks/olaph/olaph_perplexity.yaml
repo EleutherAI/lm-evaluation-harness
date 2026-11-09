@@ -1,0 +1,26 @@
+task: olaph_perplexity
+#include: olaph.yaml
+dataset_path: dmis-lab/MedLFQA
+description: >
+  Instructions: You are a helpful healthcare assistant. Answer the following question as concisely as possible without omitting relevant information.
+
+training_split: test
+validation_split: test
+test_split: test
+output_type: loglikelihood_rolling
+doc_to_text: ""
+process_docs: !function utils.process_docs
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils_perplexity.process_results
+generation_kwargs:
+  until:
+    - "\n\n"
+metric_list:
+  - metric: word_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    higher_is_better: false
+metadata:
+  version: 1.0

@@ -1,0 +1,6 @@
+dataset_path: ai-forever/LIBRA
+custom_dataset: !function utils.filter_dataset_by_page_lengths
+test_split: test
+output_type: generate_until
+doc_to_target: positive_outputs
+process_results: !function utils.process_results

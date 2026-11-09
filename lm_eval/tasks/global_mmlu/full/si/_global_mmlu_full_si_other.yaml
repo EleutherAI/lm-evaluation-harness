@@ -1,0 +1,8 @@
+group: global_mmlu_full_si_other
+task:
+  - global_mmlu_full_si_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true
+metadata:
+  version: 0.0

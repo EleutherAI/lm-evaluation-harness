@@ -1,0 +1,61 @@
+dataset_name: high_school_government_and_politics
+description: The following are multiple choice questions (with answers) about high
+  school government and politics.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Which of the following best states an argument made by James Madison in
+      The Federalist number 10?
+
+      (A) Honest politicians can prevent factions from developing. (B) Factions are
+      more likely to occur in large republics than in small ones. (C) The negative
+      effects of factionalism can be reduced by a republican government. (D) Free
+      elections are the people''s best defense against factionalism.'
+    target: Let's think step by step. We refer to Wikipedia articles on government
+      and politics for help. In the Federalist number 10, James Madison advocated
+      for a representative republican form of government to guard against factionalism.
+      The answer is (C).
+  - question: 'The term "budget deficit" refers to the
+
+      (A) annual increase in federal spending on the military (B) amount of interest
+      on the national debt (C) difference between the initial budget proposals made
+      by the president and Congress (D) amount the government spends in excess of
+      its revenues'
+    target: Let's think step by step. We refer to Wikipedia articles on government
+      and politics for help. When the goverment spends more than it earns, their difference
+      is the budget deficit. The answer is (D).
+  - question: 'Which of the following statements about cabinet departments is FALSE?
+
+      (A) They are established by the legislative branch. (B) Their members often
+      don''t have much influence over presidential decisions. (C) They cannot all
+      be run by leaders who belong to the same political party the president does.
+      (D) Not every federal agency is a cabinet department.'
+    target: Let's think step by step. We refer to Wikipedia articles on government
+      and politics for help. There is no law stipulating that some cabinet department
+      leaders have to belong to a political party different from that of the president.
+      The answer is (C).
+  - question: 'Which of the following cases established the precedent that a defendant
+      must be informed of the right to remain silent, the right to a lawyer, and protection
+      from self-incrimination?
+
+      (A) Weeks v. United States (B) Betts v. Brady (C) Mapp v. Ohio (D) Miranda v.
+      Arizona'
+    target: Let's think step by step. We refer to Wikipedia articles on government
+      and politics for help. In the landmark Miranda v. Arizona in 1966, the US Supreme
+      Court, based on the Fifth and Sixth Amendment of the US Constitution, guaranteed
+      a defendant's right to an attorney and protection from self-incrimination. The
+      answer is (D).
+  - question: 'Uncertainty over the limits to presidential power is caused primarily
+      by the fact that
+
+      (A) the constitutional definition of those powers is broad and unspecific (B)
+      most people agree that the Constitution places too many limits on presidential
+      power (C) the Supreme Court consistently refuses to rule on cases concerning
+      presidential powers (D) constitutional amendments have greatly increased presidential
+      powers'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on government
+      and politics for help. The US Constitution is not very specific about the powers
+      of the president, leading to uncertainty over its limits. The answer is (A).'
+tag: mmlu_flan_cot_fewshot_social_sciences
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_high_school_government_and_politics

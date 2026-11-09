@@ -1,0 +1,3 @@
+include: aqua-rat.yaml
+task: agieval_gaokao_physics
+dataset_path: hails/agieval-gaokao-physics

@@ -1,0 +1,27 @@
+task: ja_leaderboard_jcommonsenseqa
+
+dataset_path: Rakuten/JGLUE
+dataset_name: JCommonsenseQA
+training_split: train
+validation_split: validation
+test_split: null
+
+fewshot_split: train
+num_fewshot: 3
+
+description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
+process_docs: !function ja_leaderboard_jcommonsenseqa.process_docs
+doc_to_text: "### 指示：\n出力は以下から選択してください：\n{% for choice in choices %}- {{ choice }}\n{% endfor %}\n### 入力：\n{{ question }}\n\n### 応答："
+doc_to_target: label
+doc_to_choice: choices
+target_delimiter: "\n"
+
+output_type: multiple_choice
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0

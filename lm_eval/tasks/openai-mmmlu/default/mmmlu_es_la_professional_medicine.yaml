@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ES_LA"
+process_docs: !function utils.process_professional_medicine
+"tag": "mmmlu_es_la_other_tasks"
+"task": "mmmlu_es_la_professional_medicine"
+"task_alias": "professional medicine (Spanish)"
+"description": "The following are multiple choice questions (with answers) about professional medicine (Spanish).\n\n"

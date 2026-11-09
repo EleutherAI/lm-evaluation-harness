@@ -1,0 +1,9 @@
+group: evalita-mp_wic
+group_alias: word-in-context
+task:
+  - evalita-mp_wic_tasks # this has to match the tag in the task yaml file
+aggregate_metric_list:
+  - metric: f1
+    weight_by_size: True
+metadata:
+  version: 1

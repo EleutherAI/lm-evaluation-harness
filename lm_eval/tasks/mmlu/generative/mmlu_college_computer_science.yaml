@@ -1,0 +1,7 @@
+"dataset_name": "college_computer_science"
+"description": "The following are multiple choice questions (with answers) about college\
+  \ computer science.\n\n"
+"tag": "mmlu_stem_generative"
+"include": "_default_template_yaml"
+"task": "mmlu_college_computer_science_generative"
+"task_alias": "college_computer_science"

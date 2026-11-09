@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_security_studies
+"tag": "mmmlu_hi_in_social_sciences_tasks"
+"task": "mmmlu_hi_in_security_studies"
+"task_alias": "security studies (Hindi)"
+"description": "The following are multiple choice questions (with answers) about security studies (Hindi).\n\n"

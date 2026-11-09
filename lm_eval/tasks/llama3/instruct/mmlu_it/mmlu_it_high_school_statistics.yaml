@@ -1,0 +1,72 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Se la pendenza della retta di regressione \xE8 esattamente 1, allora la\
+        \ correlazione \xE8 esattamente 1."
+      B: "Se la correlazione \xE8 0, la pendenza della retta di regressione non \xE8\
+        \ definita."
+      C: Invertendo quale variabile si chiama x e quale si chiama y si cambia il segno
+        della correlazione.
+      D: "La correlazione r \xE8 uguale alla pendenza della linea di regressione quando\
+        \ i punteggi z per la variabile y vengono tracciati rispetto ai punteggi z\
+        \ per la variabile x."
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti \xE8 un&#39;affermazione corretta sulla\
+      \ correlazione?"
+  - input_choice_list:
+      A: E(X + Y) = 99, var(X + Y) = 8,5
+      B: E(X + Y) = 99, var(X + Y) = 13
+      C: E(X + Y) = 99, var(X + Y) = 17
+      D: Non ci sono informazioni sufficienti per rispondere a questa domanda.
+    input_correct_responses:
+    - D
+    input_question: "Supponiamo che X e Y siano variabili casuali con E(X) = 37, var(X)\
+      \ = 5, E(Y) = 62 e var(Y) = 12. Quali sono il valore atteso e la varianza della\
+      \ variabile casuale X + S\xEC?"
+  - input_choice_list:
+      A: "La percentuale di alberi che hanno subito pi\xF9 del 50% di danni a causa\
+        \ del gelo."
+      B: Il numero di alberi colpiti dal gelo.
+      C: Il numero di alberi campionati dal boschetto.
+      D: "Per ogni albero campionato, se ha subito pi\xF9 del 50% di danni o al massimo\
+        \ il 50% di danni."
+    input_correct_responses:
+    - D
+    input_question: "Dopo l&#39;allarme gelo, il proprietario di un grande aranceto\
+      \ ha chiesto ai suoi lavoratori di spruzzare acqua su tutti i suoi alberi. Si\
+      \ supponeva che l&#39;acqua si congelasse e formasse uno strato protettivo di\
+      \ ghiaccio attorno ai fiori d&#39;arancio. Tuttavia il proprietario sospettava\
+      \ che alcuni alberi avessero subito notevoli danni a causa del gelo. Per stimare\
+      \ la percentuale di alberi che hanno subito pi\xF9 del 50% di danni a causa\
+      \ del gelo, ha prelevato un campione casuale di 100 alberi dal suo boschetto.\
+      \ Qual \xE8 la variabile di risposta in questo esperimento?"
+  - input_choice_list:
+      A: Media 518 grammi; deviazione standard 7,0 grammi
+      B: Media 518 grammi; deviazione standard 3,5 grammi
+      C: Media 518 grammi; deviazione standard 6,1 grammi
+      D: Media 394 grammi; deviazione standard 6,1 grammi
+    input_correct_responses:
+    - C
+    input_question: 'Un nuovo smartwatch viene prodotto in una parte della fabbrica,
+      quindi assicurato per la spedizione in un&#39;altra parte indipendente della
+      fabbrica. Il peso dello smartwatch ha una media di 62 grammi e una deviazione
+      standard di 1,0 grammi. Il peso dell&#39;imballaggio (scatola, manuale d&#39;uso,
+      pluriball, ecc.) ha una media di 456 grammi e una deviazione standard di 6 grammi.
+      Insieme, la distribuzione del peso dello smartwatch e della sua confezione avrebbe
+      la seguente media e deviazione standard:'
+  - input_choice_list:
+      A: Io, II
+      B: II, III
+      C: III, I
+      D: III, II
+    input_correct_responses:
+    - D
+    input_question: "Quale dei seguenti insiemi ha la deviazione standard pi\xF9 piccola?\
+      \ Quale ha il pi\xF9 grande? I: {1,2,3} II: {-10,10} III: {100}\\n"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_statistics
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_high_school_statistics
+task_alias: high_school_statistics

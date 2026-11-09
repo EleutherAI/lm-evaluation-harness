@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_bn_bd_social_sciences_tasks"
+"task": "mmmlu_bn_bd_professional_psychology"
+"task_alias": "professional psychology (Bengali)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Bengali).\n\n"

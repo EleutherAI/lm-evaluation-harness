@@ -1,0 +1,8 @@
+description: '다음은 수학에 관한 객관식 문제(정답 포함)입니다. 단계적으로 생각한 다음 "답은 (X)입니다"로 답변을 마무리하세요. 여기서
+  X는 올바른 선택지 문자입니다.
+
+  '
+include: _ko_template_yaml
+task: mmlu_prox_ko_math
+task_alias: math
+process_docs: !function utils.process_math

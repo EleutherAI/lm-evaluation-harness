@@ -1,0 +1,5 @@
+include: _german_few_shot_og_template_yaml
+description: Nachfolgend finden Sie Multiple-Choice-Fragen (mit Antworten) zu Social
+  Science.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_german_few_shot_og_social_science

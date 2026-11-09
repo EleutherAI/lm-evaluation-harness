@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: L&#39;Arcobaleno
+      B: Circoncisione
+      C: Un figlio
+      D: Bar mitzvah
+    input_correct_responses:
+    - B
+    input_question: " Qual \xE8 il segno del patto per i maschi ebrei?"
+  - input_choice_list:
+      A: Il Dharma
+      B: Il Sangha
+      C: Il Budda
+      D: Il Bodhisattva
+    input_correct_responses:
+    - A
+    input_question: "Qual \xE8 la seconda gemma nel buddismo?"
+  - input_choice_list:
+      A: Shang
+      B: Zhou
+      C: Han
+      D: Xia
+    input_correct_responses:
+    - B
+    input_question: ' In quale dinastia fu sviluppato il &quot;Mandato del Cielo&quot;
+      per legittimare i nuovi sovrani?'
+  - input_choice_list:
+      A: Honen
+      B: Tanaka
+      C: Tokugawa
+      D: Meiji
+    input_correct_responses:
+    - D
+    input_question: ' Quale governo giapponese promosse una sorta di culto nazionale
+      basato sull&#39;imperatore e sulla sua associazione con i kami?'
+  - input_choice_list:
+      A: Testi rituali
+      B: Testi filosofici
+      C: Inni
+      D: Storie di origine
+    input_correct_responses:
+    - B
+    input_question: Come si possono caratterizzare le Upanishad?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_world_religions
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_world_religions
+task_alias: world_religions

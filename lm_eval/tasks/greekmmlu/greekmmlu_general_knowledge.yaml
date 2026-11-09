@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_other_tasks
+task: greekmmlu_general_knowledge
+task_alias: General Knowledge
+dataset_name: General_Knowledge

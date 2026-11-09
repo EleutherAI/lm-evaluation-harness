@@ -1,0 +1,3 @@
+"dataset_name": "WR"
+"include": "_default_csatqa_yaml"
+"task": "csatqa_wr"

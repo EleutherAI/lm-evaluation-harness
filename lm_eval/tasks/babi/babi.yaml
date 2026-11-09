@@ -1,0 +1,20 @@
+task: babi
+dataset_path: Muennighoff/babi
+dataset_name: null
+output_type: generate_until
+training_split: train
+validation_split: valid
+test_split: test
+doc_to_text: "Passage: {{passage}}Question: {{question}}\nAnswer:"
+doc_to_target: " {{answer}}"
+target_delimiter: ""
+generation_kwargs:
+  until:
+    - "\n"
+    - "Passage:"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

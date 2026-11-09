@@ -1,0 +1,29 @@
+tag:
+- libra
+task: ru_gsm100
+task_alias: ruGSM100
+dataset_name: ru_gsm100
+dataset_kwargs:
+  dataset_name: ru_gsm100
+include: _template_yaml
+doc_to_text: 'Ниже приведены п��имеры математических задач. Размышляй шаг за шагом
+  и дай ответ на вопрос.
+
+  {{context}}
+
+  Размышляй шаг за шагом и дай ответ вопрос.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 32
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

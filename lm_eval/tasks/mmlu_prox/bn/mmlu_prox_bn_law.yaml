@@ -1,0 +1,9 @@
+description: 'নিম্নলিখিত আইন সম্পর্কে বহুনির্বাচনী প্রশ্ন (উত্তরসহ)। ধাপে ধাপে চিন্তা
+  করুন এবং তারপর আপনার উত্তর "উত্তর হল (X)" দিয়ে শেষ করুন যেখানে X হল সঠিক বিকল্পের
+  অক্ষর।
+
+  '
+include: _bn_template_yaml
+task: mmlu_prox_bn_law
+task_alias: law
+process_docs: !function utils.process_law

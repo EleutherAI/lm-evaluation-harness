@@ -1,0 +1,92 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Labetalol
+      B: Eine Ladedosis Kaliumchlorid
+      C: Nifedipin
+      D: Phenoxybenzamin
+    input_correct_responses:
+    - D
+    input_question: "Ein 42-j\xE4hriger Mann kommt zur pr\xE4operativen Untersuchung\
+      \ in die Praxis, bevor er sich in 2 Wochen einer Adrenalektomie unterziehen\
+      \ muss. Vor einem Monat wurde er in der Notaufnahme wegen Schmerzen an der rechten\
+      \ Flanke nach einem Autounfall behandelt. Zu diesem Zeitpunkt betrug der Blutdruck\
+      \ 160/100 mmHg und ein CT-Scan des Abdomens zeigte eine zuf\xE4llige 10-cm-Masse\
+      \ in der linken Nebenniere. Die Ergebnisse der Laborstudien, einschlie\xDFlich\
+      \ des vollst\xE4ndigen Blutbildes, der Elektrolytkonzentrationen im Serum und\
+      \ der Leberfunktionstests, lagen innerhalb der Referenzbereiche. Der Patient\
+      \ war ansonsten gesund gewesen und ihm war nie gesagt worden, dass er einen\
+      \ erh\xF6hten Blutdruck hatte. Er nimmt keine Medikamente. Bei einem Kontrollbesuch\
+      \ in der Praxis vor 2 Wochen wurden erh\xF6hte Normetanephrin- und Metanephrin-\
+      \ sowie Plasma-Aldosteron-Konzentrationen im Urin festgestellt. Der Patient\
+      \ wurde an einen Chirurgen \xFCberwiesen, der die Adrenalektomie empfahl. Heute\
+      \ sind die Vitalfunktionen Temperatur 36,6 \xB0C (97,9 \xB0F), Puls 100/min,\
+      \ Atmung 14/min und Blutdruck 170/95 mm Hg. Die k\xF6rperliche Untersuchung\
+      \ ergibt keine signifikanten Befunde. Die anf\xE4ngliche pr\xE4operative Vorbereitung\
+      \ sollte die Behandlung mit welchen der folgenden Mittel umfassen?"
+  - input_choice_list:
+      A: Kreuzbeintorsion von links nach links
+      B: Kreuzbeintorsion von links nach rechts
+      C: rechte einseitige Sakralflexion
+      D: Kreuzbeintorsion von rechts nach rechts
+    input_correct_responses:
+    - D
+    input_question: "Ein 36-j\xE4hriger Mann stellt sich mit einer 3-w\xF6chigen Vorgeschichte\
+      \ von Kreuzschmerzen in der Praxis vor. Er bestreitet jedes k\xFCrzliche Trauma,\
+      \ sagt aber, dass er f\xFCr seinen Job mehrmals am Tag in seinen Truck ein-\
+      \ und aussteigt. Die Untersuchung des Patienten in Bauchlage zeigt links einen\
+      \ tiefen sakralen Sulcus, rechts einen posterioren inferioren Lateralwinkel\
+      \ und einen bei Kompression frei federnden lumbosakralen \xDCbergang. Die wahrscheinlichste\
+      \ Diagnose ist"
+  - input_choice_list:
+      A: Dopamin
+      B: Glutamat
+      C: Noradrenalin
+      D: Serotonin
+    input_correct_responses:
+    - D
+    input_question: "Eine zuvor gesunde 32-j\xE4hrige Frau kommt 8 Monate nach dem\
+      \ Tod ihres Mannes bei einem Autounfall zum Arzt. Seitdem hat sie einen verminderten\
+      \ Appetit und Schwierigkeiten beim Einschlafen. Sie gibt an, dass sie oft traurig\
+      \ ist und h\xE4ufig weint. Sie hat f\xFCnf Mal das T\xFCrschloss \xFCberpr\xFC\
+      ft, bevor sie ihr Haus verl\xE4sst, und muss genau f\xFCnf St\xFCck Toilettenpapier\
+      \ z\xE4hlen, bevor sie es benutzt. Sie sagt, sie sei schon immer eine Perfektionistin\
+      \ gewesen, aber diese Triebe und Rituale seien neu. Auf welche der folgenden\
+      \ Neurotransmitter sollte die Pharmakotherapie abzielen?"
+  - input_choice_list:
+      A: Allergischer Schnupfen
+      B: Epstein Barr Virus
+      C: Mycoplasma pneumoniae
+      D: Rhinovirus
+    input_correct_responses:
+    - D
+    input_question: "Ein 44-j\xE4hriger Mann kommt wegen einer 3-t\xE4gigen Vorgeschichte\
+      \ von Halsschmerzen, unproduktivem Husten, laufender Nase und Stirnkopfschmerzen\
+      \ in die Praxis. Er sagt, die Kopfschmerzen seien morgens schlimmer und Ibuprofen\
+      \ verschaffe etwas Linderung. Kurzatmigkeit hat er nicht. Die Anamnese ist unauff\xE4\
+      llig. Er nimmt keine Medikamente au\xDFer Ibuprofen gegen Schmerzen. Vitalzeichen\
+      \ sind Temperatur 37,4\xB0C (99,4\xB0F), Puls 88/min, Atmung 18/min und Blutdruck\
+      \ 120/84 mmHg. Die Untersuchung der Nasenl\xF6cher zeigt ger\xF6tete Schleimh\xE4\
+      ute. Die Untersuchung des Rachens zeigt ein Erythem und eine follikul\xE4re\
+      \ lymphoide Hyperplasie am hinteren Oropharynx. Es gibt keine tastbare zervikale\
+      \ Adenopathie. Lungen sind auskultierbar. Welche der folgenden Ursachen ist\
+      \ die wahrscheinlichste Ursache f\xFCr die Symptome dieses Patienten?"
+  - input_choice_list:
+      A: vordere Skalenus
+      B: Latissimus dorsi
+      C: kleiner Brustmuskel
+      D: M. quadratus lumborum
+    input_correct_responses:
+    - C
+    input_question: "Ein 22-j\xE4hriger m\xE4nnlicher Marathonl\xE4ufer stellt sich\
+      \ mit rechtsseitigen Rippenschmerzen bei Langstreckenl\xE4ufen in der Praxis\
+      \ vor. Die k\xF6rperliche Untersuchung zeigt einen normalen Herz- und Lungenbefund\
+      \ und eine Ausatmungsst\xF6rung an den Rippen 4-5 rechts. Welche der folgenden\
+      \ Muskeln oder Muskelgruppen sind am n\xFCtzlichsten, um diese Dysfunktion mit\
+      \ einer direkten Methode zu korrigieren?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_medicine
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_professional_medicine
+task_alias: professional_medicine

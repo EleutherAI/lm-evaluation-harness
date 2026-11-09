@@ -1,0 +1,5 @@
+dataset_name: ukr_Cyrl
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_ukr_Cyrl
+test_split: test

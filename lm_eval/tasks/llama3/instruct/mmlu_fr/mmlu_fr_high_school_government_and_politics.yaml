@@ -1,0 +1,66 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "la d\xE9finition constitutionnelle de ces pouvoirs est large et impr\xE9\
+        cise"
+      B: "la plupart des gens conviennent que la Constitution impose trop de limites\
+        \ au pouvoir pr\xE9sidentiel"
+      C: "la Cour supr\xEAme refuse syst\xE9matiquement de statuer sur les affaires\
+        \ concernant les pouvoirs pr\xE9sidentiels"
+      D: "les amendements constitutionnels ont consid\xE9rablement accru les pouvoirs\
+        \ pr\xE9sidentiels"
+    input_correct_responses:
+    - A
+    input_question: "L&#39;incertitude sur les limites du pouvoir pr\xE9sidentiel\
+      \ tient avant tout au fait que"
+  - input_choice_list:
+      A: "augmentation annuelle des d\xE9penses f\xE9d\xE9rales pour l&#39;arm\xE9\
+        e"
+      B: "montant des int\xE9r\xEAts sur la dette nationale"
+      C: "diff\xE9rence entre les propositions budg\xE9taires initiales faites par\
+        \ le pr\xE9sident et le Congr\xE8s"
+      D: "montant que le gouvernement d\xE9pense en exc\xE9dent de ses revenus"
+    input_correct_responses:
+    - D
+    input_question: "Le terme &quot;d\xE9ficit budg\xE9taire&quot; d\xE9signe le"
+  - input_choice_list:
+      A: "Weeks contre \xC9tats-Unis"
+      B: Betts contre Brady
+      C: Mapp contre Ohio
+      D: Miranda contre Arizona
+    input_correct_responses:
+    - D
+    input_question: "Lequel des cas suivants a \xE9tabli le pr\xE9c\xE9dent selon\
+      \ lequel un accus\xE9 doit \xEAtre inform\xE9 du droit de garder le silence,\
+      \ du droit \xE0 un avocat et de la protection contre l&#39;auto-incrimination\_\
+      ?"
+  - input_choice_list:
+      A: "Ils sont \xE9tablis par le pouvoir l\xE9gislatif."
+      B: "Leurs membres n&#39;ont souvent pas beaucoup d&#39;influence sur les d\xE9\
+        cisions pr\xE9sidentielles."
+      C: "Ils ne peuvent pas tous \xEAtre dirig\xE9s par des dirigeants appartenant\
+        \ au m\xEAme parti politique que le pr\xE9sident."
+      D: "Tous les organismes f\xE9d\xE9raux ne sont pas des minist\xE8res du Cabinet."
+    input_correct_responses:
+    - C
+    input_question: "Laquelle des affirmations suivantes concernant les d\xE9partements\
+      \ minist\xE9riels est FAUX\_?"
+  - input_choice_list:
+      A: "Les politiciens honn\xEAtes peuvent emp\xEAcher les factions de se d\xE9\
+        velopper."
+      B: "Les factions sont plus susceptibles de se produire dans les grandes r\xE9\
+        publiques que dans les petites."
+      C: "Les effets n\xE9gatifs du factionnalisme peuvent \xEAtre r\xE9duits par\
+        \ un gouvernement r\xE9publicain."
+      D: "Des \xE9lections libres sont la meilleure d\xE9fense du peuple contre le\
+        \ factionnalisme."
+    input_correct_responses:
+    - C
+    input_question: "Lequel des \xE9nonc\xE9s suivants \xE9nonce le mieux un argument\
+      \ avanc\xE9 par James Madison dans The Federalist num\xE9ro 10\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_government_and_politics
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_high_school_government_and_politics
+task_alias: high_school_government_and_politics

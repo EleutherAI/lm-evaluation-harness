@@ -1,0 +1,16 @@
+dataset_path: EunsuKim/CLIcK
+test_split: train
+fewshot_split: train
+output_type: multiple_choice
+doc_to_text: !function utils.get_context
+doc_to_choice: !function utils.get_choices
+doc_to_target: !function utils.get_target
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

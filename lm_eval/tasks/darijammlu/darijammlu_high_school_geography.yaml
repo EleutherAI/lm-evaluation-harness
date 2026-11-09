@@ -1,0 +1,6 @@
+"dataset_name": "high_school_geography"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_high_school_geography"
+"task_alias": "high school geography"

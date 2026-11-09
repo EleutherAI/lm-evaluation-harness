@@ -1,0 +1,5 @@
+include: _turkish_few_shot_og_template_yaml
+description: Aşağıda Social Science ile ilgili çoktan seçmeli sorular (cevaplarıyla
+  birlikte) bulunmaktadır.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_turkish_few_shot_og_social_science

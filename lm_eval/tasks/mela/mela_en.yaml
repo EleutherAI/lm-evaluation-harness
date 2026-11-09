@@ -1,0 +1,17 @@
+task: mela_en
+dataset_path: Geralt-Targaryen/MELA
+dataset_name: en
+training_split: train
+validation_split: dev
+test_split: test
+output_type: multiple_choice
+doc_to_text: "Sentence: {{sentence}}\nDetermine whether this sentence is acceptable or unacceptable?\nA. Acceptable\nB. Unacceptable\nAnswer:"
+doc_to_choice: ["A", "B"]
+doc_to_target: "{{['B', 'A'][label]}}"
+description: "Determine whether the following sentence(s) violate certain linguistic constraints. If yes, then it is \"unacceptable\"; otherwise, \"acceptable\".\n\n"
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+metric_list:
+  - metric: mcc
+    higher_is_better: true
