@@ -8,8 +8,10 @@ using the RBLN SDK.
 import copy
 import json
 import logging
+import os
 from typing import List, Optional, Union
 
+import jinja2
 import torch
 import torch.nn.functional as F
 import transformers
@@ -161,9 +163,10 @@ _VLM_COMPILE_PROFILES = {
 }
 
 
-# VLM model_types that should be dispatched to RBLNAutoModelForImageTextToText
-# rather than RBLNAutoModelForVision2Seq. (Verified against rbln-model-zoo
-# image-text-to-text examples.)
+# VLM model_types sent to RBLNAutoModelForImageTextToText when the SDK's auto
+# classes do not expose their mappings (verified against rbln-model-zoo
+# image-text-to-text examples). Otherwise the class whose mapping lists the
+# model_type wins; see ``RBLNLM._get_rbln_model_class``.
 _VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES = {"gemma3"}
 
 
@@ -183,6 +186,43 @@ def _deep_merge_dict(base: dict, override: dict) -> dict:
         else:
             result[key] = value
     return result
+
+
+def _cfg_get(cfg, key):
+    return cfg.get(key) if isinstance(cfg, dict) else getattr(cfg, key, None)
+
+
+def compiled_max_seq_len(rbln_config) -> Optional[int]:
+    """``max_seq_len`` of a compiled RBLN artifact, or None.
+
+    Decoder-only builds keep it at the top level. Composite VLM builds keep it
+    under the language-model submodule (``language_model``, ``text_model`` or
+    ``vlm``); the vision encoder's own ``max_seq_len(s)`` is not the decoder
+    limit and is ignored.
+    """
+    if rbln_config is None:
+        return None
+    value = _cfg_get(rbln_config, "max_seq_len")
+    if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+        return value
+    for sub in ("language_model", "text_model", "vlm"):
+        sub_cfg = _cfg_get(rbln_config, sub)
+        if sub_cfg is not None:
+            value = compiled_max_seq_len(sub_cfg)
+            if value:
+                return value
+    return None
+
+
+def _read_rbln_config_json(pretrained) -> Optional[dict]:
+    path = os.path.join(str(pretrained), "rbln_config.json")
+    if not os.path.isfile(path):
+        return None
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
 
 
 @register_model("rbln")
@@ -208,6 +248,9 @@ class RBLNLM(TemplateLM):
         add_bos_token: Optional[bool] = None,
         device_map: Optional[str] = None,
         model_type: Optional[str] = None,  # "causal", "seq2seq", or None for auto-detect
+        enable_thinking: Optional[bool] = None,
+        think_end_token: Optional[Union[str, int]] = None,
+        chat_template_args: Optional[Union[dict, str]] = None,
         **kwargs,
     ) -> None:
         if not RBLN_AVAILABLE:
@@ -274,9 +317,35 @@ class RBLNLM(TemplateLM):
             print(f"ERROR: Failed to load {self.model_type} model on Rebellions NPU: {e}")
             raise
 
+        self._max_length = max_length
+        self._compiled_max_seq_len = compiled_max_seq_len(
+            getattr(self.model, "rbln_config", None)
+        ) or compiled_max_seq_len(_read_rbln_config_json(pretrained))
+
         self.truncation = truncation
         self.vocab_size = self.tokenizer.vocab_size
         self.add_bos_token = add_bos_token
+        # Extra kwargs for tokenizer.apply_chat_template (as HFLM), e.g.
+        # enable_thinking=False for Qwen3 / Qwen3.5 instruct evaluation.
+        if isinstance(chat_template_args, str):
+            chat_template_args = json.loads(chat_template_args)
+        self.chat_template_args = dict(chat_template_args or {})
+        if enable_thinking is not None:
+            self.chat_template_args["enable_thinking"] = enable_thinking
+        self.enable_thinking = enable_thinking
+        # Generated text before the last think_end_token (e.g. "</think>") is
+        # dropped before stop sequences apply, as HFLM does. A token id is
+        # decoded to its string.
+        if isinstance(think_end_token, int) or (
+            isinstance(think_end_token, str) and think_end_token.isdigit()
+        ):
+            think_end_token = self.tokenizer.decode([int(think_end_token)])
+        self.think_end_token = think_end_token
+        if enable_thinking and not think_end_token:
+            raise ValueError(
+                "enable_thinking=True needs think_end_token (e.g. think_end_token=</think>) "
+                "so the reasoning is not scored as the answer."
+            )
 
         self.batch_schedule = 1
         self.batch_sizes = {}
@@ -475,33 +544,40 @@ class RBLNLM(TemplateLM):
     def _get_rbln_model_class(self, pretrained: str):
         """Pick the RBLN Auto class for the resolved ``self.model_type``.
 
-        VLM routing splits between two SDK auto classes based on config.model_type
-        (see ``_VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES``). All other VLMs go through
-        ``RBLNAutoModelForVision2Seq``.
+        VLMs go to whichever of ``RBLNAutoModelForImageTextToText`` and
+        ``RBLNAutoModelForVision2Seq`` lists ``config.model_type`` in its mapping
+        (``_model_mapping_names``). transformers 5 moved every VLM into the
+        image-text-to-text mapping, and optimum-rbln 0.11 dropped
+        ``RBLNAutoModelForVision2Seq``, so routing by a fixed model_type list made
+        every VLM except gemma3 fail to load. Without mappings, gemma3 keeps
+        ImageTextToText and the rest prefer Vision2Seq (the old routing), falling
+        back to whichever class the SDK has.
         """
         if self.model_type == "vlm":
             mt = getattr(self._config, "model_type", "").lower()
-            if mt in _VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES:
-                if RBLNAutoModelForImageTextToText is None:
-                    raise ImportError(
-                        "This optimum-rbln build does not expose "
-                        "RBLNAutoModelForImageTextToText. Upgrade optimum-rbln "
-                        f"to evaluate model_type='{mt}'."
-                    )
-                logger.info(
-                    f"Using RBLNAutoModelForImageTextToText for {mt}: {pretrained}"
-                )
-                return RBLNAutoModelForImageTextToText
-            if RBLNAutoModelForVision2Seq is None:
+            candidates = [
+                c for c in (RBLNAutoModelForImageTextToText, RBLNAutoModelForVision2Seq)
+                if c is not None
+            ]
+            if not candidates:
                 raise ImportError(
-                    "This optimum-rbln build does not expose "
-                    "RBLNAutoModelForVision2Seq. Upgrade optimum-rbln to "
-                    f"evaluate model_type='{mt}'."
+                    "This optimum-rbln build exposes neither "
+                    "RBLNAutoModelForImageTextToText nor RBLNAutoModelForVision2Seq. "
+                    f"Upgrade optimum-rbln to evaluate model_type='{mt}'."
                 )
-            logger.info(
-                f"Using RBLNAutoModelForVision2Seq for {mt}: {pretrained}"
+            chosen = next(
+                (c for c in candidates if mt in (getattr(c, "_model_mapping_names", None) or {})),
+                None,
             )
-            return RBLNAutoModelForVision2Seq
+            if chosen is None:
+                preferred = (
+                    RBLNAutoModelForImageTextToText
+                    if mt in _VLM_IMAGE_TEXT_TO_TEXT_MODEL_TYPES
+                    else RBLNAutoModelForVision2Seq
+                )
+                chosen = preferred if preferred is not None else candidates[0]
+            logger.info(f"Using {chosen.__name__} for {mt}: {pretrained}")
+            return chosen
 
         if self.model_type == "seq2seq":
             logger.info(f"Using RBLNAutoModelForSeq2SeqLM for: {pretrained}")
@@ -527,8 +603,23 @@ class RBLNLM(TemplateLM):
 
     @property
     def max_length(self):
-        # TODO: Get actual max length from model config
-        return getattr(self._config, "max_position_embeddings", 2048)
+        """Longest sequence the model accepts, prompt plus generated tokens.
+
+        An explicit ``max_length`` model arg wins. Otherwise the compiled
+        ``max_seq_len`` is the real NPU limit. Composite VLM configs keep
+        ``max_position_embeddings`` under ``text_config``, so without these the
+        old fallback of 2048 left-truncated long multimodal prompts through
+        their image tokens.
+        """
+        if self._max_length:
+            return int(self._max_length)
+        if self._compiled_max_seq_len:
+            return self._compiled_max_seq_len
+        for cfg in (self._config, getattr(self._config, "text_config", None)):
+            value = getattr(cfg, "max_position_embeddings", None)
+            if value:
+                return int(value)
+        return 2048
 
     @property
     def max_gen_toks(self) -> int:
@@ -550,6 +641,29 @@ class RBLNLM(TemplateLM):
     @property
     def world_size(self):
         return 1
+
+    @property
+    def tokenizer_name(self) -> str:
+        return self.tokenizer.name_or_path.replace("/", "__")
+
+    def apply_chat_template(
+        self, chat_history: List[dict], add_generation_prompt: bool = True
+    ) -> str:
+        """Render the chat history with the tokenizer's chat template (as HFLM)."""
+        kwargs = dict(
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
+            **self.chat_template_args,
+        )
+        try:
+            return self.tokenizer.apply_chat_template(chat_history, **kwargs)
+        except jinja2.exceptions.TemplateError:
+            logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_history = [m for m in chat_history if m["role"] != "system"]
+            return self.tokenizer.apply_chat_template(chat_history, **kwargs)
 
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """Encode a single string, mirroring HFLM behaviour.
@@ -615,6 +729,26 @@ class RBLNLM(TemplateLM):
     def tok_decode(self, tokens):
         return self.tokenizer.decode(tokens)
 
+    def _eos_stop_strings(self) -> List[str]:
+        """EOS token(s) as stop strings.
+
+        Composite VLM configs (transformers 5: Qwen3-VL, Qwen3.5, ...) keep
+        ``eos_token_id`` under ``text_config``, and it may be a list.
+        """
+        eos = getattr(self.config, "eos_token_id", None)
+        if eos is None:
+            eos = getattr(getattr(self.config, "text_config", None), "eos_token_id", None)
+        if eos is None:
+            eos = self.tokenizer.eos_token_id
+        if eos is None:
+            return []
+        ids = eos if isinstance(eos, (list, tuple)) else [eos]
+        return [self.tokenizer.decode([i]) for i in ids]
+
+    def _text_generate(self, input_ids, **kwargs):
+        """``model.generate`` on text-only input (RBLNVLM adds token_type_ids where needed)."""
+        return self.model.generate(input_ids=input_ids, **kwargs)
+
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # we require users to pass do_sample=True explicitly
         # for non-greedy gen. This should be reevaluated when considering beam search.
@@ -625,12 +759,12 @@ class RBLNLM(TemplateLM):
 
             stopping_criteria = stop_sequences_criteria(
                 self.tokenizer,
-                stop + [self.tokenizer.decode([self.config.eos_token_id])],
+                stop + self._eos_stop_strings(),
                 1,
                 context.shape[0],
             )
 
-            return self.model.generate(
+            return self._text_generate(
                 input_ids=context,
                 max_length=max_length,
                 stopping_criteria=stopping_criteria,
@@ -1226,12 +1360,11 @@ class RBLNLM(TemplateLM):
 
                     s = self.tok_decode(cont_toks)
 
-                    # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                    for term in until:
-                        if len(term) > 0:
-                            # ignore '' separator,
-                            # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
-                            s = s.split(term)[0]
+                    # drop the reasoning (think_end_token), then cut at the
+                    # secondary stop seqs post-hoc ('' separators are ignored)
+                    s = lm_eval.models.utils.postprocess_generated_text(
+                        s, until, self.think_end_token
+                    )
 
                     res[key].append(s)
 

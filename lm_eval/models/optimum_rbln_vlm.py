@@ -11,7 +11,7 @@ Supports:
 - ``generate_until`` requests (used by MMMU, ChartQA) — multimodal path.
 - ``loglikelihood`` for text-only requests (multiple-choice-style tasks like
   hellaswag / mmlu). The implementation uses ``model.generate(...,
-  max_new_tokens=1, output_scores=True)`` with ``token_type_ids=zeros``
+  max_new_tokens=1, output_scores=True)`` (with ``token_type_ids=zeros`` for models that take it)
   per continuation token to extract next-token logits, because direct
   ``model(input_ids=...)`` is not a stable forward API on RBLN-compiled VLM
   artifacts (state-init constraints).
@@ -38,6 +38,7 @@ from lm_eval.models.utils import (
     Collator,
     flatten_image_list,
     handle_stop_sequences,
+    postprocess_generated_text,
     replace_placeholders,
     resize_image,
 )
@@ -100,6 +101,9 @@ class RBLNVLM(RBLNLM):
         # compiles/loads the RBLN model. The tokenizer is replaced with
         # processor.tokenizer immediately afterward to ensure consistent
         # handling of image placeholder tokens.
+        # Whether generate() takes token_type_ids on text-only input:
+        # None = not tried yet, then True / False after the first call.
+        self._text_token_type_ids: Optional[bool] = None
         super().__init__(pretrained=pretrained, **kwargs)
 
         if self.model_type != "vlm":
@@ -158,6 +162,57 @@ class RBLNVLM(RBLNLM):
                 )
 
         self.chat_applied = False
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
+        """Render with the processor's chat template (as HFMultimodalLM).
+
+        ``<image>`` placeholders in each message become ``{"type": "image"}``
+        content entries, so the template emits the model's own image markers;
+        ``tok_batch_multimodal_encode`` then skips its placeholder replacement.
+        """
+        self.chat_applied = True
+        for message in chat_history:
+            text = message["content"]
+            if not isinstance(text, str):
+                continue
+            expected = min(self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER))
+            content = []
+            if not self.interleave:
+                content += [{"type": "image"} for _ in range(expected)]
+                text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
+                content.append({"type": "text", "text": text})
+            else:
+                parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
+                for i, part in enumerate(parts):
+                    if part:
+                        content.append({"type": "text", "text": part})
+                    if i < len(parts) - 1 and i < self.max_images:
+                        content.append({"type": "image"})
+            if sum(c["type"] == "image" for c in content) != expected:
+                raise ValueError(
+                    f"Mismatch in image placeholder count. Expected: {expected}"
+                )
+            message["content"] = content
+
+        return self.processor.apply_chat_template(
+            chat_history,
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
+            **self.chat_template_args,
+        )
+
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        """Select the template from the processor when it has one."""
+        if hasattr(self.processor, "apply_chat_template"):
+            tokenizer, self.tokenizer = self.tokenizer, self.processor
+            try:
+                return super().chat_template(chat_template)
+            finally:
+                self.tokenizer = tokenizer
+        return super().chat_template(chat_template)
 
     def _load_processor(
         self, pretrained: str, revision: str, trust_remote_code: bool
@@ -250,6 +305,29 @@ class RBLNVLM(RBLNLM):
                 **generation_kwargs,
             )
 
+    def _text_generate(self, input_ids, **kwargs):
+        """``model.generate`` on text-only input.
+
+        Gemma3 / PaliGemma need ``token_type_ids`` (all zeros = text); Qwen-VL
+        and most other VLMs reject the kwarg. Try it once, then remember.
+        """
+        if self._text_token_type_ids is not False:
+            try:
+                with torch.inference_mode():
+                    out = self.model.generate(
+                        input_ids=input_ids,
+                        token_type_ids=torch.zeros_like(input_ids),
+                        **kwargs,
+                    )
+                self._text_token_type_ids = True
+                return out
+            except ValueError as e:
+                if self._text_token_type_ids is True or "token_type_ids" not in str(e):
+                    raise
+                self._text_token_type_ids = False
+        with torch.inference_mode():
+            return self.model.generate(input_ids=input_ids, **kwargs)
+
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         if requests and len(requests[0].args) < 3:
             return super().loglikelihood(requests=requests, disable_tqdm=disable_tqdm)
@@ -313,43 +391,40 @@ class RBLNVLM(RBLNLM):
                 prefix = full_sequence[:target_pos]
                 input_ids = torch.tensor([prefix], dtype=torch.long)
                 attention_mask = torch.ones_like(input_ids)
-                token_type_ids = torch.zeros_like(input_ids)
-
                 try:
-                    with torch.inference_mode():
-                        # Explicitly disable any logit-modifying behaviour that
-                        # the model's GenerationConfig might enable, so that
-                        # `out.scores[0]` is the raw next-token logit distribution
-                        # (equivalent to direct forward) and stays comparable to
-                        # GPU HFLM scores. do_sample=False already skips warpers
-                        # (top_k/top_p/temperature); the rest neutralises any
-                        # active LogitsProcessor for cases where the model's
-                        # config has non-default values.
-                        out = self.model.generate(
-                            input_ids=input_ids,
-                            attention_mask=attention_mask,
-                            token_type_ids=token_type_ids,
-                            max_new_tokens=1,
-                            do_sample=False,
-                            repetition_penalty=1.0,
-                            min_length=0,
-                            no_repeat_ngram_size=0,
-                            bad_words_ids=None,
-                            forced_bos_token_id=None,
-                            forced_eos_token_id=None,
-                            suppress_tokens=None,
-                            begin_suppress_tokens=None,
-                            renormalize_logits=False,
-                            pad_token_id=self.tokenizer.pad_token_id,
-                            output_scores=True,
-                            return_dict_in_generate=True,
-                        )
+                    # Explicitly disable any logit-modifying behaviour that the
+                    # model's GenerationConfig might enable, so that
+                    # `out.scores[0]` is the raw next-token logit distribution
+                    # (equivalent to direct forward) and stays comparable to GPU
+                    # HFLM scores. do_sample=False already skips warpers
+                    # (top_k/top_p/temperature); the rest neutralises any active
+                    # LogitsProcessor for cases where the model's config has
+                    # non-default values.
+                    out = self._text_generate(
+                        input_ids=input_ids,
+                        attention_mask=attention_mask,
+                        max_new_tokens=1,
+                        do_sample=False,
+                        repetition_penalty=1.0,
+                        min_length=0,
+                        no_repeat_ngram_size=0,
+                        bad_words_ids=None,
+                        forced_bos_token_id=None,
+                        forced_eos_token_id=None,
+                        suppress_tokens=None,
+                        begin_suppress_tokens=None,
+                        renormalize_logits=False,
+                        pad_token_id=self.tokenizer.pad_token_id,
+                        output_scores=True,
+                        return_dict_in_generate=True,
+                    )
                 except Exception as e:
-                    logger.error(
+                    # Never swallow: a skipped token would silently score the
+                    # request as (0.0, False) and corrupt the metric.
+                    raise RuntimeError(
                         f"Per-token generate failed at continuation index {i} "
                         f"(prefix_len={len(prefix)}): {e}"
-                    )
-                    continue
+                    ) from e
 
                 continuation_logits.append(out.scores[0])  # [1, vocab]
                 scored_indices.append(i)
@@ -449,10 +524,9 @@ class RBLNVLM(RBLNLM):
 
             for cont_toks, context in zip(cont.tolist(), contexts):
                 cont_toks = cont_toks[context_enc.shape[1] :]
-                s = self.tok_decode(cont_toks)
-                for term in until:
-                    if term:
-                        s = s.split(term)[0]
+                s = postprocess_generated_text(
+                    self.tok_decode(cont_toks), until, self.think_end_token
+                )
                 res.append(s)
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
                 pbar.update(1)
