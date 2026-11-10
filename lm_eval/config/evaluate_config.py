@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import textwrap
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
@@ -283,7 +284,24 @@ class EvaluatorConfig:
 
     def _configure(self):
         """Validate configuration and preprocess fields after creation."""
-        self._parse_dict_args()._validate_arguments()._process_arguments()._normalize_seed()._set_trust_remote_code()
+        self._parse_dict_args()._validate_arguments()._process_arguments()._normalize_seed()._normalize_plugins()._set_trust_remote_code()
+
+        return self
+
+    def _normalize_plugins(self):
+        """Split a comma- or space-separated ``plugins`` string into a list.
+
+        `--plugins` gets a list from argparse, but a YAML config supplies whatever
+        the document holds, and ``plugins: my_pkg.models`` is the documented form.
+        A bare string reaches ``import_plugins`` as an iterable of characters, so
+        every one-character "module" fails to import and the real module is never
+        loaded. Accept the same shapes as the flag.
+        """
+        if not isinstance(self.plugins, str):
+            return self
+
+        names = [name.strip() for name in re.split(r"[,\s]+", self.plugins)]
+        self.plugins = [name for name in names if name] or None
 
         return self
 
