@@ -1,6 +1,6 @@
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
+from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean, median
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
@@ -251,6 +251,16 @@ def test_chrfpp_perfect_match():
 
     items = [("the cat sat on the mat", "the cat sat on the mat")]
     assert chrfpp(items) == 100.0
+
+
+def test_median_even_length_averages_middle_values():
+    assert median([4, 1, 3, 2]) == 2.5
+    assert median([0, 10]) == 5
+
+
+def test_median_odd_length_and_single_value():
+    assert median([3, 1, 2]) == 2
+    assert median([7]) == 7
 
 
 if __name__ == "__main__":
