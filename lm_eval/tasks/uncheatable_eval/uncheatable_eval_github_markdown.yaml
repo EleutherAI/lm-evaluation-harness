@@ -1,0 +1,8 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_github_markdown
+task_alias: UE_github_md
+process_docs: !function uncheatable_eval_utils.filter_github_markdown
+metadata:
+  description: >-
+    Rolling perplexity on GitHub Markdown files from the Uncheatable Eval 2026-07
+    snapshot.

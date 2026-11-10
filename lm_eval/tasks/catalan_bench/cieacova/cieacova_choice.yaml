@@ -1,0 +1,85 @@
+task: cieacova_choice
+custom_dataset: !function utils.load_cieacova_dataset
+dataset_kwargs:
+  dataset_repo: gplsi/cieacova
+  dataset_name: multiple_choice
+process_docs: !function utils.process_docs
+output_type: multiple_choice
+training_split: train
+validation_split: null
+test_split: test
+num_fewshot: 0
+doc_to_text: "{{Instrucción}}\n\n{{dynamic_fewshot}}Text a resoldre:\n{{Pregunta}}\n\nOpcions de resposta:\n{{parsed_opciones_text}}\n\nResposta:\n"
+doc_to_choice: "{{parsed_opciones}}"
+doc_to_target: "{{parsed_respuesta[0]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{Pregunta}}"
+process_results: !function utils.process_results
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_C1
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_C1
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_C2
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_C2
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_B1
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_B1
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_B2
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_B2
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_text
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_text
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_frase
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_frase
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_oracions
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_oracions
+    aggregation: mean
+    higher_is_better: true
+
+  - metric: acc_definició
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm_definició
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0

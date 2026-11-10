@@ -4,5 +4,7 @@ task:
   - flores_pt
   - assin_paraphrase
   - assin_entailment
+  - assin2_rte
+  - assin2_sts
 metadata:
   version: 1.0

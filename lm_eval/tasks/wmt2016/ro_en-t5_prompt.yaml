@@ -1,5 +1,5 @@
 task: wmt-ro-en-t5-prompt
-dataset_path: wmt16
+dataset_path: wmt/wmt16
 dataset_name: ro-en
 training_split: train
 validation_split: validation

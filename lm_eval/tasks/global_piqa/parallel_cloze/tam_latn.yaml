@@ -1,0 +1,3 @@
+dataset_name: tam_latn
+include: _template
+task: global_piqa_parallel_cloze_tam_latn

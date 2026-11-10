@@ -1,0 +1,4 @@
+include: _default_indicparam_template_yaml
+task: indicparam_rajasthani
+task_alias: Rajasthani
+process_docs: !function utils.process_docs_rajasthani

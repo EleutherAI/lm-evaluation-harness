@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_abercrombie
+dataset_name: abercrombie
+num_fewshot: 5
+description: "A mark is generic if it is the common name for the product. A mark is descriptive if it describes a purpose, nature, or attribute of the product. A mark is suggestive if it suggests or implies a quality or characteristic of the product. A mark is arbitrary if it is a real English word that has no relation to the product. A mark is fanciful if it is an invented word. Label the type of mark for the following products.\n\n"
+doc_to_text: "Description: {{text}}\nType:"

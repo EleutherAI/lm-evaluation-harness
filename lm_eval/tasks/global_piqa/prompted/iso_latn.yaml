@@ -1,3 +1,0 @@
-dataset_name: iso_latn
-include: _template
-task: global_piqa_prompted_iso_latn

@@ -1,12 +1,13 @@
 import re
 from abc import abstractmethod
 from functools import reduce
+from typing import ClassVar
 
 import numpy as np
-import transformers.data.metrics.squad_metrics as squad_metrics
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 from evaluate import load
 from transformers import AutoTokenizer
+from transformers.data.metrics import squad_metrics
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
@@ -86,7 +87,7 @@ def _drop_duplicates_in_input(untokenized_dataset):
     id_to_idx = {}
     outputs = []
     for i, (id_, output) in enumerate(
-        zip(untokenized_dataset["id"], untokenized_dataset["output"])
+        zip(untokenized_dataset["id"], untokenized_dataset["output"], strict=False)
     ):
         if id_ in id_to_idx:
             outputs[id_to_idx[id_]].append(output)
@@ -119,6 +120,10 @@ class _SCROLLSTask(ConfigurableTask):
     PRUNE_TOKENIZERS = None
     PRUNE_MAX_TOKENS = None
     PRUNE_NUM_PROC = None
+
+    # Each subtask ships as "<name>/<split>.jsonl" inside "<name>.zip", stored
+    # in the dataset repo alongside the loading script.
+    ZIP_URL = "https://huggingface.co/datasets/{path}/resolve/main/{name}.zip"
 
     def __init__(self, config=None):
         super().__init__(config={"metadata": {"version": self.VERSION}})
@@ -163,8 +168,18 @@ class _SCROLLSTask(ConfigurableTask):
         return doc["input"]
 
     def download(self, *args, **kwargs):
-        super().download(*args, **kwargs)
-        del self.dataset["test"]
+        # `datasets` no longer runs loading scripts, so read the zipped jsonl
+        # that the dataset repo already publishes rather than going through
+        # scrolls.py. Only train and validation carry labels upstream, so the
+        # held-out test split is not loaded at all.
+        zip_url = self.ZIP_URL.format(path=self.DATASET_PATH, name=self.DATASET_NAME)
+        self.dataset = load_dataset(
+            "json",
+            data_files={
+                split: f"zip://{self.DATASET_NAME}/{split}.jsonl::{zip_url}"
+                for split in ("train", "validation")
+            },
+        )
         for split in self.dataset:
             self.dataset[split] = _drop_duplicates_in_input(self.dataset[split])
         if self.PRUNE_TOKENIZERS is not None:
@@ -186,7 +201,7 @@ class _SCROLLSTask(ConfigurableTask):
 
         def _filter(sample):
             text = self._get_prune_text(sample)
-            cached = cache.get(text, None)
+            cached = cache.get(text)
             if cached is None:
                 for tokenizer in tokenizers:
                     if len(tokenizer(text).input_ids) > self.PRUNE_MAX_TOKENS:
@@ -214,7 +229,7 @@ class _SCROLLSTask(ConfigurableTask):
 
     def _make_compute_metrics(self, value):
         def compute_metrics(samples):
-            predictions, references = zip(*samples)  # unzip, if you will
+            predictions, references = zip(*samples, strict=False)  # unzip, if you will
             computed = self.metric.compute(
                 predictions=predictions, references=references
             )
@@ -245,7 +260,7 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
     def process_results(self, doc, results):
         gold = doc["gold"]
 
-        lls, _ = zip(*results)
+        lls, _ = zip(*results, strict=False)
         acc = 1.0 if np.argmax(lls) == gold else 0.0
         completion_len = np.array([float(len(i)) for i in doc["choices"]])
         acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
@@ -263,9 +278,9 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice))
+                arguments=(ctx, f" {choice}")
                 if not apply_chat_template
-                else (ctx, "{}".format(choice)),
+                else (ctx, f"{choice}"),
                 idx=i,
                 **kwargs,
             )
@@ -317,8 +332,9 @@ class Qasper(_SCROLLSTask):
     def _process_doc(self, doc):
         doc = _process_doc_prepended_question(doc)
         doc["is_yes_no"] = reduce(
-            lambda prev, cur: prev
-            and squad_metrics.normalize_answer(cur) in ["yes", "no"],
+            lambda prev, cur: (
+                prev and squad_metrics.normalize_answer(cur) in ["yes", "no"]
+            ),
             doc["outputs"],
             True,
         )
@@ -437,7 +453,7 @@ class ContractNLI(_SCROLLSMultipleChoiceTask):
     """
 
     DATASET_NAME = "contract_nli"
-    CHOICES = ["Not mentioned", "Entailment", "Contradiction"]
+    CHOICES: ClassVar[list[str]] = ["Not mentioned", "Entailment", "Contradiction"]
 
     def _process_doc(self, doc):
         doc = _process_doc_prepended_question(doc)

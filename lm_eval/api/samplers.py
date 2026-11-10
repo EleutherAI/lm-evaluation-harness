@@ -61,6 +61,14 @@ class ContextSampler:
                 eval_doc, self.rnd.sample(self.fewshot_docs(), n + 1), n
             )
         )
+        if len(res) < n:
+            # The eval_doc path samples n + 1 docs to leave headroom for removing
+            # a single eval_doc occurrence. If the pool holds duplicate rows equal
+            # to eval_doc, more than one copy can be drawn and removed, leaving
+            # fewer than n. Resample from the pool with every eval_doc copy
+            # removed so we still return n examples.
+            pool = [x for x in self.fewshot_docs() if x != eval_doc]
+            res = self.rnd.sample(pool, n)
         assert len(res) == n, (
             f"Error: number of fewshot samples returned ({len(res)}) not equal to number requested ({n})."
         )
@@ -99,10 +107,11 @@ class FirstNSampler(ContextSampler):
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
-        assert n <= len(self.df), (
-            f"Error: number of fewshot samples requested exceeds the {len(self.df)} that are available."
+        pool = self.rm_eval_doc(eval_doc, self.df) if eval_doc is not None else self.df
+        assert n <= len(pool), (
+            f"Error: number of fewshot samples requested exceeds the {len(pool)} that are available."
         )
-        return self.df[:n]
+        return pool[:n]
 
 
 class BalancedSampler(ContextSampler):
@@ -117,7 +126,6 @@ class BalancedSampler(ContextSampler):
 
 class ManualSampler(ContextSampler):
     def sample(self, n: int, eval_doc=None, df=None, **kwargs):
-        """ """
         raise NotImplementedError
 
 

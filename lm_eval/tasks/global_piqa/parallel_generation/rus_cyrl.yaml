@@ -1,0 +1,3 @@
+dataset_name: rus_cyrl
+include: _template
+task: global_piqa_parallel_generation_rus_cyrl

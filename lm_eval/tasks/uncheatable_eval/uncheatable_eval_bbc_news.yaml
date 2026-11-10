@@ -1,0 +1,7 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_bbc_news
+task_alias: UE_bbc_news
+process_docs: !function uncheatable_eval_utils.filter_bbc_news
+metadata:
+  description: >-
+    Rolling perplexity on BBC News articles from the Uncheatable Eval 2026-07 snapshot.

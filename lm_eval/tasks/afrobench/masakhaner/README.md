@@ -10,6 +10,12 @@ Paper Link: https://aclanthology.org/2022.emnlp-main.298/
 
 HomePage: https://github.com/masakhane-io/masakhane-ner
 
+### Changelog
+
+* (tasks) 2026-08-21 -- (version 1.0 --> version 1.1) PR #3887
+  * `format_span` now rewrites labels only where they directly precede a `:`, instead of an
+    unanchored substring replacement; span F1 changes, so results differ from version 1.0.
+
 ### Citation
 
 ```

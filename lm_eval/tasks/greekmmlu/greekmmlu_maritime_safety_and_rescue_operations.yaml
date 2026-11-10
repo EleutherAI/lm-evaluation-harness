@@ -1,0 +1,5 @@
+include: _default_greekmmlu_template_yaml
+tag: greekmmlu_other_tasks
+task: greekmmlu_maritime_safety_and_rescue_operations
+task_alias: Maritime Safety and Rescue Operations
+dataset_name: Maritime_Safety_and_Rescue_Operations

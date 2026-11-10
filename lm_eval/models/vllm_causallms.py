@@ -16,6 +16,7 @@ from vllm.lora.request import LoRARequest
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
+    DEFAULT_MAX_LENGTH,
     Collator,
     _add_special_kwargs,
     configure_pad_token,
@@ -24,6 +25,7 @@ from lm_eval.models.utils import (
     maybe_truncate,
     normalize_gen_kwargs,
     postprocess_generated_text,
+    resolve_max_length,
     undistribute,
 )
 from lm_eval.utils import (
@@ -55,7 +57,7 @@ eval_logger = logging.getLogger(__name__)
 
 @register_model("vllm")
 class VLLM(TemplateLM):
-    _DEFAULT_MAX_LENGTH = 2048
+    _DEFAULT_MAX_LENGTH = DEFAULT_MAX_LENGTH
     tokenizer: PreTrainedTokenizerBase
 
     def __init__(
@@ -102,7 +104,13 @@ class VLLM(TemplateLM):
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
-        kwargs.pop("device", None)
+        if "device" in kwargs:
+            eval_logger.warning(
+                "The `device` argument is ignored by the vLLM backend. To select "
+                "which GPU(s) vLLM can use, set the `CUDA_VISIBLE_DEVICES` "
+                "environment variable before running lm-eval."
+            )
+            kwargs.pop("device")
         self.think_end_token = think_end_token
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
@@ -251,16 +259,11 @@ class VLLM(TemplateLM):
             return self._max_length
         if self.data_parallel_size <= 1:
             return self.model.llm_engine.model_config.max_model_len
-        else:
-            seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
-            for attr in seqlen_config_attrs:
-                if hasattr(self._config, attr):
-                    return getattr(self._config, attr)
-            if hasattr(self.tokenizer, "model_max_length"):
-                if self.tokenizer.model_max_length == 1000000000000000019884624838656:
-                    return self._DEFAULT_MAX_LENGTH
-                return self.tokenizer.model_max_length
-            return self._DEFAULT_MAX_LENGTH
+        # With data parallelism there is no engine to query, so resolve the
+        # context length from the config the same way the HF backend does.
+        return resolve_max_length(
+            self._config, self.tokenizer, default=self._DEFAULT_MAX_LENGTH
+        )
 
     @property
     def max_gen_toks(self):
@@ -580,6 +583,10 @@ class VLLM(TemplateLM):
         )
         # for each different set of kwargs, we execute all requests, by batch.
         eos = self.tokenizer.decode(self.eot_token_id)
+        # ChatGLM: eos_token_id can be a low id that decodes to "" while tokenizer_config's
+        # eos_token (e.g. "</s>") is correct — prefer the string when decode is empty.
+        if not eos and getattr(self.tokenizer, "eos_token", None):
+            eos = self.tokenizer.eos_token
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk, strict=True)
             context, context_encoding = zip(*context_and_encoding, strict=True)

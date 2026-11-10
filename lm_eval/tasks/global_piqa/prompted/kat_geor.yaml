@@ -1,3 +1,0 @@
-dataset_name: kat_geor
-include: _template
-task: global_piqa_prompted_kat_geor
