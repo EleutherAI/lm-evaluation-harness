@@ -329,6 +329,9 @@ class TemplateAPI(TemplateLM):
         Should return the name of the tokenizer or chat template used.
         Used only to properly fingerprint caches when requests are being cached with `--cache_requests`, otherwise not used.
         """
+        if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
+            # Names can be local paths; keep cache filenames portable and bounded.
+            return f"hf-{utils.hash_string(self.tokenizer.name_or_path)}"
         return ""
 
     def apply_chat_template(
