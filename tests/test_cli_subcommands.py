@@ -742,6 +742,42 @@ class TestEvaluatorConfigFromCLI:
         assert cfg.model_args == {"pretrained": "gpt2", "dtype": "float16"}
         assert cfg.wandb_args == {"project": "lm-eval", "name": "test-run"}
 
+    def test_plugins_string_from_config_is_split(self, tmp_path):
+        """A `plugins:` string in a config must become a list of module names.
+
+        `--plugins` yields a list from argparse, but a YAML config passes the raw
+        document value. `plugins: my_pkg.models` used to reach `import_plugins`
+        as a string, which it iterates character by character, so the module was
+        never imported and every character was logged as a failed import.
+        """
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        config_path = tmp_path / "eval.yaml"
+        config_path.write_text("tasks: [hellaswag]\nplugins: my_pkg.models\n")
+        cfg = EvaluatorConfig.from_config(config_path)
+        assert cfg.plugins == ["my_pkg.models"]
+
+        # Comma- and space-separated forms are accepted by `--plugins`, so the
+        # config accepts them too.
+        config_path.write_text(
+            "tasks: [hellaswag]\nplugins: my_pkg.models, other_pkg.filters\n"
+        )
+        cfg = EvaluatorConfig.from_config(config_path)
+        assert cfg.plugins == ["my_pkg.models", "other_pkg.filters"]
+
+        config_path.write_text(
+            "tasks: [hellaswag]\nplugins: my_pkg.models other_pkg.filters\n"
+        )
+        cfg = EvaluatorConfig.from_config(config_path)
+        assert cfg.plugins == ["my_pkg.models", "other_pkg.filters"]
+
+        # An already-parsed list is left alone.
+        config_path.write_text(
+            "tasks: [hellaswag]\nplugins: [my_pkg.models, other_pkg.filters]\n"
+        )
+        cfg = EvaluatorConfig.from_config(config_path)
+        assert cfg.plugins == ["my_pkg.models", "other_pkg.filters"]
+
     def test_none_args_use_defaults(self, tmp_path):
         """Test that None values fall back to defaults."""
         from argparse import Namespace
