@@ -16,7 +16,7 @@ def json_serial(obj: Any) -> str:
 
     if isinstance(obj, (datetime.datetime,)):
         return obj.isoformat()
-    raise TypeError("Type %s not serializable" % type(obj))
+    raise TypeError(f"Type {type(obj)} not serializable")
 
 
 # Modified version of lm_dataformat Archive for single file.
@@ -26,7 +26,7 @@ class Archive:
         dir_name = os.path.dirname(file_path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
-        self.fh = open(self.file_path, "wb")
+        self.fh = open(self.file_path, "wb")  # noqa: SIM115 - closed by commit()
         self.cctx = zstandard.ZstdCompressor(level=compression_level)
         self.compressor = self.cctx.stream_writer(self.fh)
 
@@ -91,7 +91,7 @@ class TextArchive:
         if not os.path.exists(file_path):
             Path(file_path).touch()
 
-        self.fh = open(self.file_path, mode)
+        self.fh = open(self.file_path, mode)  # noqa: SIM115 - closed by commit()
 
     def add_data(self, data) -> None:
         self.fh.write(data.encode("UTF-8") + b"\n")
@@ -111,7 +111,7 @@ class TextReader:
         current_file_position = 0
         line_counter = 0
         with (
-            open(self.file_path, "r", encoding="utf-8") as fh,
+            open(self.file_path, encoding="utf-8") as fh,
             tqdm.tqdm(
                 total=os.path.getsize(self.file_path),
                 dynamic_ncols=True,
@@ -119,6 +119,8 @@ class TextReader:
                 unit_scale=1,
             ) as progress,
         ):
+            if os.fstat(fh.fileno()).st_size == 0:
+                return
             with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
                 for line in iter(mmap_obj.readline, b""):
                     line = line.decode("utf-8")
@@ -133,7 +135,9 @@ class TextReader:
 
     def read_and_tell(self):
         current_file_position = 0
-        with open(self.file_path, "r", encoding="utf8") as fh:
+        with open(self.file_path, encoding="utf8") as fh:
+            if os.fstat(fh.fileno()).st_size == 0:
+                return
             with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
                 for line in iter(mmap_obj.readline, b""):
                     line = line.decode("utf-8")
@@ -143,14 +147,16 @@ class TextReader:
                     yield line[:-1], raw_bytes_read
 
     def read(self):
-        with open(self.file_path, "r", encoding="utf8") as fh:
+        with open(self.file_path, encoding="utf8") as fh:
+            if os.fstat(fh.fileno()).st_size == 0:
+                return
             with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
                 for line in iter(mmap_obj.readline, b""):
                     line = line.decode("utf-8")
                     yield line[:-1]
 
     def read_slow(self):
-        with open(self.file_path, "r", encoding="utf8") as fh:
+        with open(self.file_path, encoding="utf8") as fh:
             while True:
                 line = fh.readline()
                 if line == -1 or line == "":
@@ -168,7 +174,8 @@ class ZStdTextReader:
     def read_tqdm(self):
         decompressed_file = self.file[:-4]
         print("Decompressing file, please wait...")
-        os.system(f"zstd -d {self.file}")  # linux decompress is faster
+        # Retain the existing external decompression behavior in this reader fix.
+        os.system(f"zstd -d {self.file}")  # noqa: S605
         reader = TextReader(decompressed_file)
         yield from reader.read_tqdm()
         os.remove(decompressed_file)
