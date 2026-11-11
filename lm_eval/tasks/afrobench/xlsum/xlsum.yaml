@@ -1,10 +1,10 @@
-group: xlum
+group: xlsum
 task:
   - xlsum_prompt_1
   - xlsum_prompt_2
   - xlsum_prompt_3
 aggregate_metric_list:
-  - metric: acc
+  - metric: rougeL
     aggregation: mean
     weight_by_size: true
 metadata:
