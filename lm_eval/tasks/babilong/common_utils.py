@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Union
 import datasets
 from transformers import AutoTokenizer
 
+from lm_eval.utils import task_trust_remote_code
+
 
 if TYPE_CHECKING:
     import transformers
@@ -21,7 +23,9 @@ def get_tokenizer(
     pretrained = tokenizer or pretrained
     assert pretrained, "No tokenizer or pretrained provided."
     eval_logger.info(f"Using tokenizer {pretrained} for babilong tasks.")
-    return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
+    return AutoTokenizer.from_pretrained(
+        pretrained, trust_remote_code=task_trust_remote_code()
+    )
 
 
 def postprocess_pred(prediction: list[str]) -> list[str]:

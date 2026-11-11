@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 
 from transformers import AutoTokenizer
 
+from lm_eval.utils import task_trust_remote_code
+
 
 if TYPE_CHECKING:
     import transformers
@@ -52,7 +54,9 @@ def get_tokenizer(
         "with `--model_args tokenizer=<name>`."
     )
     eval_logger.info("Using tokenizer %s for synthetic tasks.", pretrained)
-    tok = AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
+    tok = AutoTokenizer.from_pretrained(
+        pretrained, trust_remote_code=task_trust_remote_code()
+    )
 
     # Every synthetic task sizes its prompts by token count, so a tokenizer that
     # under-reports lengths sends the samplers into unbounded loops. A repo that

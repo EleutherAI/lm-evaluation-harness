@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING, Any, cast
 
 import yaml
 
-from lm_eval.utils import simple_parse_args_string
+from lm_eval.utils import (
+    parse_trust_remote_code,
+    set_trust_remote_code,
+    simple_parse_args_string,
+)
 
 
 if TYPE_CHECKING:
@@ -192,8 +196,11 @@ class EvaluatorConfig:
     )
 
     # Security
-    trust_remote_code: bool = field(
-        default=False, metadata={"help": "Trust remote code for HF datasets"}
+    trust_remote_code: bool | str = field(
+        default="auto",
+        metadata={
+            "help": "Remote code policy: 'auto' (tasks may opt in), true, or false (veto)"
+        },
     )
     confirm_run_unsafe_code: bool = field(
         default=False,
@@ -488,15 +495,19 @@ class EvaluatorConfig:
         return task_manager
 
     def _set_trust_remote_code(self):
-        """Apply the trust_remote_code setting if enabled."""
-        if self.trust_remote_code:
+        """Apply the trust_remote_code policy: "auto", True or False (veto)."""
+        self.trust_remote_code = parse_trust_remote_code(self.trust_remote_code)
+        set_trust_remote_code(self.trust_remote_code)
+
+        if self.trust_remote_code != "auto":
             # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
             # because it's already been determined based on the prior env var before launching our
             # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
             import datasets
 
-            datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+            datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = self.trust_remote_code
 
+        if self.trust_remote_code is True:
             # Add to model_args for the actual model initialization
             if self.model_args is None:
                 self.model_args = {}

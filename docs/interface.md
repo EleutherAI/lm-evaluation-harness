@@ -138,7 +138,7 @@ lm-eval run --config my_config.yaml --tasks mmlu
 |----------|-------|-------------|
 | `--predict_only` | `-x` | Save predictions only, skip metric computation. Implies `--log_samples`. |
 | `--seed` | | Random seeds as single integer or comma-separated list for `python,numpy,torch,fewshot`. Default: `0,1234,1234,1234`. Use `None` to skip. Example: `--seed 42` or `--seed 0,None,8,52`. |
-| `--trust_remote_code` | | Allow executing remote code from HuggingFace Hub. |
+| `--trust_remote_code` | | Allow executing remote code from HuggingFace Hub. A bare flag means `true`. Pass `false` to block tasks that need remote code (they raise instead of running it). Default: `auto`, where tasks may opt in. |
 | `--confirm_run_unsafe_code` | | Confirm understanding of risks for tasks executing arbitrary Python. |
 | `--metadata` | | JSON string passed to TaskConfig. Required for some tasks like RULER. Example: `--metadata '{"max_seq_length": 4096}'`. |
 

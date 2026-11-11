@@ -644,7 +644,7 @@ class TestEvaluatorConfigFromCLI:
         assert cfg.num_fewshot is None
         assert cfg.limit is None
         assert cfg.seed == [0, 1234, 1234, 1234]
-        assert cfg.trust_remote_code is False
+        assert cfg.trust_remote_code == "auto"
         assert cfg.apply_chat_template is False
 
     def test_cli_args_override_defaults(self, tmp_path):
@@ -1089,7 +1089,7 @@ log_samples: true
         assert cfg.output_path == "/yaml/path", "YAML should be used when CLI is falsy"
 
         # Defaults used when neither CLI nor YAML specify
-        assert cfg.trust_remote_code is False, "Should use default"
+        assert cfg.trust_remote_code == "auto", "Should use default"
         assert cfg.seed == [0, 1234, 1234, 1234], "Should use default"
 
     def test_yaml_overrides_defaults(self, tmp_path):

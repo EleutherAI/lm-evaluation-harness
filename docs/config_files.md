@@ -50,7 +50,7 @@ All configuration keys correspond directly to CLI arguments. See the [CLI Refere
 | `wandb_args` | dict | `{}` | W&B init arguments |
 | `hf_hub_log_args` | dict | `{}` | HF Hub logging |
 | `seed` | list/int | `[0,1234,1234,1234]` | Random seeds |
-| `trust_remote_code` | bool | `false` | Trust remote code |
+| `trust_remote_code` | bool/`auto` | `auto` | Trust remote code. `false` blocks tasks that need it |
 | `metadata` | dict | `{}` | Task metadata |
 
 ---
