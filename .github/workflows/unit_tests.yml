@@ -76,7 +76,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install -e '.[dev,unitxt,hf]' --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install -e '.[dev,unitxt,hf,ifeval]' --extra-index-url https://download.pytorch.org/whl/cpu
           uv pip install hf_xet
 
       - name: Test with pytest
