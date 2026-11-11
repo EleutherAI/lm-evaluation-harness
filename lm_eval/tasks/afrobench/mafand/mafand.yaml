@@ -7,7 +7,10 @@ task:
   - mafand_afr-eng_prompt_2
   - mafand_afr-eng_prompt_3
 aggregate_metric_list:
-  - metric: acc
+  - metric: bleu
+    aggregation: mean
+    weight_by_size: true
+  - metric: chrf
     aggregation: mean
     weight_by_size: true
 metadata:
