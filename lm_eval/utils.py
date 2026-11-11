@@ -31,6 +31,10 @@ HIGHER_IS_BETTER_SYMBOLS = {
 # Track whether logging has been configured to avoid duplicate handlers
 _LOGGING_CONFIGURED = False
 
+# Remote code policy for tasks: "auto" lets a task opt in, False vetoes it.
+_TRUST_REMOTE_CODE: bool | str = "auto"
+_TRUST_REMOTE_CODE_VALUES = {"auto": "auto", "true": True, "false": False}
+
 
 class _LMEvalFormatter(logging.Formatter):
     """Formatter that strips 'lm_eval.' prefix from logger names for cleaner output."""
@@ -46,6 +50,29 @@ def is_torch_available() -> bool:
 
 def is_transformers_available() -> bool:
     return importlib.util.find_spec("transformers") is not None
+
+
+def parse_trust_remote_code(value: bool | str) -> bool | str:
+    """Normalize a trust_remote_code setting to "auto", True or False."""
+    if isinstance(value, bool):
+        return value
+    key = str(value).lower()
+    if key not in _TRUST_REMOTE_CODE_VALUES:
+        raise ValueError(
+            f"trust_remote_code must be 'auto', 'true' or 'false', got {value!r}"
+        )
+    return _TRUST_REMOTE_CODE_VALUES[key]
+
+
+def set_trust_remote_code(value: bool | str) -> None:
+    """Set the remote code policy that task-level call sites read."""
+    global _TRUST_REMOTE_CODE
+    _TRUST_REMOTE_CODE = parse_trust_remote_code(value)
+
+
+def task_trust_remote_code() -> bool:
+    """trust_remote_code for code a task asks for. Only an explicit False vetoes."""
+    return _TRUST_REMOTE_CODE is not False
 
 
 def wrap_text(string: str, width: int = 140, **kwargs) -> str | None:

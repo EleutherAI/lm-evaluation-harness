@@ -857,6 +857,16 @@ class ConfigurableTask(Task):
 
         if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
             dataset_kwargs.pop("trust_remote_code", None)
+        if (
+            dataset_kwargs
+            and dataset_kwargs.get("trust_remote_code")
+            and not utils.task_trust_remote_code()
+        ):
+            raise ValueError(
+                f"Task '{self.config.task}' needs remote code to load "
+                f"'{self.DATASET_PATH}', but trust_remote_code is set to false. "
+                "Pass --trust_remote_code to allow it, or skip this task."
+            )
         if isinstance(self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."

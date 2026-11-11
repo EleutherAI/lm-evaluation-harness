@@ -333,9 +333,13 @@ class Run(SubCommand):
         )
         advanced_group.add_argument(
             "--trust_remote_code",
-            action="store_true",
+            nargs="?",
+            const="true",
+            type=str.lower,
+            choices=["auto", "true", "false"],
             default=argparse.SUPPRESS,
-            help="Allow executing remote code from Hugging Face Hub",
+            help="Allow executing remote code from Hugging Face Hub. A bare flag means "
+            "true; false blocks tasks that need remote code (default: auto)",
         )
         advanced_group.add_argument(
             "--confirm_run_unsafe_code",
