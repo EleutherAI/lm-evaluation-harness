@@ -43,3 +43,6 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+version 4.1: `KeywordChecker` (`keywords:existence`) and `KeywordFrequencyChecker` (`keywords:frequency`) match whole words (with an optional `s`/`es` plural suffix) instead of arbitrary substrings. Other inflected forms (e.g. "trusted" for "trust") and words embedded in a longer token (e.g. hashtags such as "#GridSolutions" for "grid") no longer count.
