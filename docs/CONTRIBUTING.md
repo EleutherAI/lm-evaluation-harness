@@ -84,4 +84,4 @@ There are a number of distinct ways to contribute to LM Evaluation Harness, and 
 - **Adding new modeling / inference library integrations** - We hope to support a broad range of commonly-used inference libraries popular among the community, and welcome PRs for new integrations, so long as they are documented properly and maintainable.
 - **Proposing or Contributing New Features** - We want LM Evaluation Harness to support a broad range of evaluation usecases. If you have a feature that is not currently supported but desired, feel free to open an issue describing the feature and, if applicable, how you intend to implement it. We would be happy to give feedback on the cleanest way to implement new functionalities and are happy to coordinate with interested contributors via GH discussions or via discord.
 
-We hope that this has been helpful, and appreciate your interest in contributing! Further questions can be directed to [our Discord](discord.gg/eleutherai).
+We hope that this has been helpful, and appreciate your interest in contributing! Further questions can be directed to [our Discord](https://discord.gg/eleutherai).
