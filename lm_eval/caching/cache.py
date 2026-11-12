@@ -57,7 +57,7 @@ def load_from_cache(file_name: str, cache: bool = False):
         path = _cache_file_path(file_name)
 
         with open(path, "rb") as file:
-            cached_task_dict = dill.loads(file.read())  # noqa: S301
+            cached_task_dict = dill.load(file)  # noqa: S301
             return cached_task_dict
 
     except Exception:  # noqa: BLE001
@@ -71,7 +71,7 @@ def save_to_cache(file_name, obj):
 
     eval_logger.debug("Saving %s to cache...", file_path)
     with open(file_path, "wb") as file:
-        file.write(dill.dumps(obj))
+        dill.dump(obj, file)
 
 
 # NOTE the "key" param is to allow for flexibility
