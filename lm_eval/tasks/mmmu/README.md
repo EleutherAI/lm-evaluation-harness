@@ -62,7 +62,14 @@ Note: Some questions have multiple images in context. To control for this use `m
 
 ### Variants
 
-The `mmmu_val` group implements MMMU using processing code [from the original MMMU authors](https://github.com/MMMU-Benchmark/MMMU/tree/main/mmmu) and uses the prompt format found in [the MMMU repository for Llava-1.5](https://github.com/MMMU-Benchmark/MMMU/blob/main/mmmu/configs/llava1.5.yaml). This implementation should give scores on par with or slightly higher than those reported by [lmms-eval](https://github.com/EvolvingLMMs-Lab/lmms-eval/tree/main/lmms_eval/tasks/mmmu) for `mmmu_val` and the MMMU repository code.
+Version 0.1 corrects overlapping numeric extraction in open-answer scoring. A number
+such as `1.25e3` or `1,234.5` is now consumed as one candidate, so fragments such as
+`3` or `234.5` cannot receive credit as additional answers. The two-decimal numeric
+normalization and multiple-choice scoring are unchanged. This correction differs
+from the original MMMU parser; scores affected by these numeric formats should not
+be compared directly with version 0.0. The historical model scores below use version 0.0.
+
+The `mmmu_val` group uses processing code [from the original MMMU authors](https://github.com/MMMU-Benchmark/MMMU/tree/main/mmmu), with the numeric extraction correction described above, and the prompt format found in [the MMMU repository for Llava-1.5](https://github.com/MMMU-Benchmark/MMMU/blob/main/mmmu/configs/llava1.5.yaml).
 
 Scores on several tested models (**all with `--apply_chat_template`**) are:
 
