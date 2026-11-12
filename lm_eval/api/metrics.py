@@ -329,14 +329,20 @@ def bits_per_byte_fn(items):  # This is a passthrough function
     return items
 
 
-def pop_stddev(arr):
+def _stddev(arr, ddof):
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / len(arr))
+    if not math.isfinite(mu):
+        return math.sqrt(sum((x - mu) ** 2 for x in arr) / (len(arr) - ddof))
+    # hypot rescales the norm instead of overflowing or underflowing each square.
+    return math.hypot(*(x - mu for x in arr)) / math.sqrt(len(arr) - ddof)
+
+
+def pop_stddev(arr):
+    return _stddev(arr, ddof=0)
 
 
 def sample_stddev(arr: Sequence[T]) -> float:
-    mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+    return _stddev(arr, ddof=1)
 
 
 def mean_stderr(arr):
