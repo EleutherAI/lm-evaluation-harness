@@ -43,14 +43,22 @@ def median(arr):
 
 # Certain metrics must be calculated across all documents in a benchmark.
 # We use them as aggregation metrics, paired with no-op passthrough metric fns.
+def _exp_or_inf(value):
+    try:
+        return math.exp(value)
+    except OverflowError:
+        # A finite mean log loss can have a perplexity outside the float range.
+        return math.inf
+
+
 @register_aggregation("perplexity")
 def perplexity(items):
-    return math.exp(-mean(items))
+    return _exp_or_inf(-mean(items))
 
 
 @register_aggregation("weighted_perplexity")
 def weighted_perplexity(items):
-    return math.exp(-weighted_mean(items))
+    return _exp_or_inf(-weighted_mean(items))
 
 
 @register_aggregation("bits_per_byte")
