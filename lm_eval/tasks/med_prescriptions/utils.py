@@ -2071,6 +2071,8 @@ def process_docs(dataset: datasets.Dataset):
         doc["keep"] = (diagnosis != "NA") and (len(medicines_list) != 0)
         doc["gold"] = gold
         doc["gold_position"] = gold_position
+        doc["choices_easy"] = _sample_choices_easy(doc)
+        doc["choices_hard"] = _sample_choices_hard(doc)
         return doc
 
     transformed_dataset = dataset.map(_transform)
@@ -2264,6 +2266,14 @@ def doc_to_target_obtain(doc):
 
 
 def doc_to_choice_easy(doc):
+    return doc["choices_easy"].copy()
+
+
+def doc_to_choice_hard(doc):
+    return doc["choices_hard"].copy()
+
+
+def _sample_choices_easy(doc):
     gold, gold_position = doc["gold"], doc["gold_position"]
     full_med_list = get_full_med_list()
     random_items = random.sample(full_med_list, 3)
@@ -2271,7 +2281,7 @@ def doc_to_choice_easy(doc):
     return choices_easy
 
 
-def doc_to_choice_hard(doc):
+def _sample_choices_hard(doc):
     gold, gold_position = doc["gold"], doc["gold_position"]
     medicines_sample = get_medicines_list(doc)
     random_choices = []
