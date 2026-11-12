@@ -80,7 +80,9 @@ def process_results(doc, results):
         option_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
         all_choices = option_letters[: len(option_strs)]
-        index2ans = {index: ans for index, ans in zip(option_letters, option_strs)}
+        index2ans = {
+            index: ans for index, ans in zip(option_letters, option_strs, strict=False)
+        }
 
         pred = parse_multi_choice_response(results[0], all_choices, index2ans)
         # print(pred, all_choices, index2ans)
@@ -202,22 +204,15 @@ def extract_numbers(string):
     Exact all forms of numbers from a string with regex.
     """
     # Pattern for numbers with commas
-    pattern_commas = r"-?\b\d{1,3}(?:,\d{3})+\b"
+    pattern_commas = r"-?\b\d{1,3}(?:,\d{3})+(?:\.\d+)?(?:[eE][+-]?\d+)?\b"
     # Pattern for scientific notation
-    pattern_scientific = r"-?\d+(?:\.\d+)?[eE][+-]?\d+"
+    pattern_scientific = r"-?(?:\d+(?:\.\d+)?|\.\d+)[eE][+-]?\d+"
     # Pattern for simple numbers without commas
     pattern_simple = r"-?(?:\d+\.\d+|\.\d+|\d+\b)(?![eE][+-]?\d+)(?![,\d])"
 
-    # Extract numbers with commas
-    numbers_with_commas = re.findall(pattern_commas, string)
-    # Extract numbers in scientific notation
-    numbers_scientific = re.findall(pattern_scientific, string)
-    # Extract simple numbers without commas
-    numbers_simple = re.findall(pattern_simple, string)
-
-    # Combine all extracted numbers
-    all_numbers = numbers_with_commas + numbers_scientific + numbers_simple
-    return all_numbers
+    # Consume each complete number once so its mantissa, exponent, or comma groups
+    # cannot also become separate answer candidates.
+    return re.findall(f"{pattern_commas}|{pattern_scientific}|{pattern_simple}", string)
 
 
 def parse_open_response(response):
@@ -258,19 +253,17 @@ def parse_open_response(response):
                             shortest_key_response = resp.split(indicator)[-1].strip()
                     # key_responses.append(resp.split(indicator)[1].strip())
 
-            if shortest_key_response:
-                # and it's not trivial
-                if shortest_key_response.strip() not in [
-                    ":",
-                    ",",
-                    ".",
-                    "!",
-                    "?",
-                    ";",
-                    ":",
-                    "'",
-                ]:
-                    key_responses.append(shortest_key_response)
+            if shortest_key_response and shortest_key_response.strip() not in [
+                ":",
+                ",",
+                ".",
+                "!",
+                "?",
+                ";",
+                ":",
+                "'",
+            ]:
+                key_responses.append(shortest_key_response)
         if len(key_responses) == 0:  # did not found any
             return [response]
         return key_responses
