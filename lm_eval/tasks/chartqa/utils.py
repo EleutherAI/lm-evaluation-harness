@@ -84,8 +84,8 @@ class RelaxedCorrectness:
             # Compare as-is
             value = _compare_numeric_values(prediction, target, max_relative_change)
 
-            # If not equal and one is percent, try other comparisons
-            if value != 1.0 and (prediction_is_percent or target_is_percent):
+            # Convert units only when exactly one value is an explicit percentage.
+            if value != 1.0 and prediction_is_percent != target_is_percent:
                 value = max(
                     value,
                     _compare_numeric_values(
@@ -208,13 +208,12 @@ class AnywhereInAnswerRelaxedCorrectness(ExplicitPromptRelaxedCorrectness):
                 # Revert to int if it is actually an int.
                 if int(number) == number:
                     number = int(number)
-                # Check if the number is in the model answer with commas (e.g. 1,000)
-                if format(number, ",") in model_answer:
-                    return 1.0
-                # Check if the number is in the model answer without commas (e.g. 1000)
-                elif str(number) in model_answer:
-                    return 1.0
-                elif str(number) + "%" in model_answer:
+                # Check the original comma, plain-number, and percent representations.
+                if (
+                    format(number, ",") in model_answer
+                    or str(number) in model_answer
+                    or str(number) + "%" in model_answer
+                ):
                     return 1.0
             except ValueError:
                 # Reference answer was a text string. We search for typical patterns
@@ -233,7 +232,7 @@ class AnywhereInAnswerRelaxedCorrectness(ExplicitPromptRelaxedCorrectness):
                             f"\n\n{ref}",
                         ]
                     )
-                if any([c.lower() in model_answer for c in candidates]):
+                if any(c.lower() in model_answer for c in candidates):
                     return 1.0
 
         return 0
