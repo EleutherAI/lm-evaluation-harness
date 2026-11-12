@@ -285,7 +285,7 @@ def general_detokenize(string) -> str:
 
 def _result_basename(filename: str) -> str:
     """Return a result basename for both POSIX and Windows-style paths."""
-    return filename.replace("\\\\", "/").rsplit("/", 1)[-1]
+    return filename.replace("\\", "/").rsplit("/", 1)[-1]
 
 
 def get_file_task_name(filename: str) -> str:
