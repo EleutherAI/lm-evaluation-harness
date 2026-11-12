@@ -300,6 +300,8 @@ class CachingLM:
         def _fn(requests: list["Instance"]) -> list["Instance"]:
             res = []
             remaining_reqs = []
+            first_pending_request = {}
+            duplicate_requests = {}
             warned = False
             # figure out which ones are cached and which ones are new
             eval_logger.info(
@@ -323,11 +325,18 @@ class CachingLM:
                     assert ob is not None
 
                     res.append(ob)
+                elif hsh in first_pending_request:
+                    # Coalesce deterministic misses within the same call. The
+                    # cache DB is populated only after inference finishes.
+                    duplicate_requests[len(res)] = first_pending_request[hsh]
+                    res.append(None)
                 else:
+                    first_pending_request[hsh] = len(res)
                     res.append(None)
                     remaining_reqs.append(req)
             eval_logger.info(
-                f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
+                f"Cached requests: {len(requests) - len(remaining_reqs) - len(duplicate_requests)}, "
+                f"Reused in-batch: {len(duplicate_requests)}, Requests remaining: {len(remaining_reqs)}"
             )
             # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs) if remaining_reqs else []
@@ -335,7 +344,7 @@ class CachingLM:
             # stick the new ones back into the list and also cache any of the new ones
             resptr = 0
             for req, r in zip(remaining_reqs, rem_res, strict=True):
-                while res[resptr] is not None:
+                while res[resptr] is not None or resptr in duplicate_requests:
                     resptr += 1
 
                 res[resptr] = r
@@ -343,6 +352,8 @@ class CachingLM:
                 # caching
                 hsh = hash_args(attr, req.args)
                 self.dbdict[hsh] = r
+            for duplicate_pos, original_pos in duplicate_requests.items():
+                res[duplicate_pos] = res[original_pos]
             self.dbdict.commit()
 
             return res
