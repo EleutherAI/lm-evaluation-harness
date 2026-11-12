@@ -1,5 +1,7 @@
 import evaluate as hf_evaluate
 
+from lm_eval.tasks.code_eval_sanitize import harden_humaneval_references
+
 
 try:
     compute_ = hf_evaluate.load("code_eval")
@@ -16,7 +18,7 @@ def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] 
     if isinstance(k, int):
         k = [k]
     res = compute_.compute(
-        references=references,
+        references=harden_humaneval_references(references),
         predictions=predictions,
         k=k,
     )
