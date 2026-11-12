@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import sys
+from collections import deque
 from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import Filter
@@ -10,6 +11,31 @@ from lm_eval.api.registry import register_filter
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+
+
+def _select_match(
+    regex: re.Pattern[str], response: str, index: int
+) -> str | tuple[str, ...] | None:
+    """Select a findall-compatible result without retaining every match."""
+    matches = regex.finditer(response)
+    if index >= 0:
+        match = next(matches, None)
+        if match is None:
+            return None
+        for _ in range(index):
+            match = next(matches, None)
+            if match is None:
+                raise IndexError("list index out of range")
+    else:
+        trailing = deque(matches, maxlen=min(-index, sys.maxsize))
+        if not trailing:
+            return None
+        match = trailing[index]
+
+    groups = match.groups(default="")
+    if not groups:
+        return match.group()
+    return groups[0] if len(groups) == 1 else groups
 
 
 @register_filter("regex")
@@ -44,9 +70,8 @@ class RegexFilter(Filter):
             for resp in inst:
                 if not isinstance(resp, str):
                     resp = ""
-                match = self.regex.findall(resp)
-                if match:
-                    match = match[self.group_select]
+                match = _select_match(self.regex, resp, self.group_select)
+                if match is not None:
                     if isinstance(match, tuple):
                         match = [m for m in match if m]
                         if match:
@@ -164,9 +189,8 @@ class MultiChoiceRegexFilter(RegexFilter):
                 convert_dict = {}
             if not isinstance(resp, str):
                 resp = ""
-            match = regex.findall(resp)
-            if match:
-                match = match[self.group_select]
+            match = _select_match(regex, resp, self.group_select)
+            if match is not None:
                 if isinstance(match, tuple):
                     non_empty = [m for m in match if m]
                     if not non_empty:
