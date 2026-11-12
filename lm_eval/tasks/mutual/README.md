@@ -34,6 +34,10 @@ Homepage: https://github.com/Nealcly/MuTual
 * `mutual`
 * `mutual_plus`
 
+### Version history
+
+* 2.1: Rank choices by loglikelihood for all three metrics. Greedy-match flags do not affect ranking; equal loglikelihoods retain choice order. Applies to both `mutual` and `mutual_plus`.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
