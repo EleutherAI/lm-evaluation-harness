@@ -48,3 +48,12 @@ If other tasks on this dataset are already supported:
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
+
+- Version 0.1: when both the prediction and reference explicitly contain `%`,
+  relaxed correctness compares them in the same units. It no longer accepts
+  answers that differ by a factor of 100 through a second, one-sided conversion
+  (for example, `1%` versus `100%`). The existing 5% relative tolerance and
+  conversion fallback when only one value contains `%` are unchanged. This
+  applies to all three tasks through the shared configuration. It corrects the
+  adapted Mistral scoring behavior; affected relaxed/anywhere scores are not
+  directly comparable with version 0.0. Exact-match scoring is unchanged.
