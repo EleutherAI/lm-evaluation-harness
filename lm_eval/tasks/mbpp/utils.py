@@ -3,6 +3,8 @@ from typing import Union
 
 import evaluate as hf_evaluate
 
+from lm_eval.tasks.code_eval_sanitize import harden_mbpp_predictions
+
 
 try:
     pass_at_k = hf_evaluate.load("code_eval")
@@ -24,7 +26,7 @@ def pass_at_1(
         predictions = [[p] for p in predictions]
     return pass_at_k.compute(
         references=references,
-        predictions=predictions,
+        predictions=harden_mbpp_predictions(predictions),
         k=[1],
     )[0]["pass@1"]
 
