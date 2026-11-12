@@ -19,7 +19,6 @@ import re
 import string
 import sys
 from functools import partial
-from itertools import combinations
 from typing import Any, Dict, List
 
 import numpy as np
@@ -231,11 +230,14 @@ def calculate_consistency_rate(responses: List[List[str]]) -> float:
     total_combinations = 0
 
     for response_set in responses:
-        pairs = combinations(response_set, 2)
         num_pairs = len(response_set) * (len(response_set) - 1) / 2
         total_combinations += num_pairs
-        for answer1, answer2 in pairs:
-            total_similarity += int(answer1 == answer2)
+        counts = {}
+        for answer in response_set:
+            count = counts.get(answer, 0)
+            # Each previous occurrence forms one more matching pair.
+            total_similarity += count
+            counts[answer] = count + 1
 
     return total_similarity / total_combinations if total_combinations > 0 else 0.0
 
