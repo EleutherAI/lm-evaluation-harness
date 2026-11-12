@@ -33,7 +33,7 @@ def test_instruction_following_strict(
         instruction = instruction_cls(instruction_id)
 
         # Remove None values from kwargs to avoid unexpected keyword argument errors in build_description method.
-        kwargs = {k: v for k, v in inp.kwargs[index].items() if v}
+        kwargs = {k: v for k, v in inp.kwargs[index].items() if v is not None}
         instruction.build_description(**kwargs)
         args = instruction.get_instruction_args()
         if args and "prompt" in args:
@@ -84,7 +84,7 @@ def test_instruction_following_loose(
         instruction = instruction_cls(instruction_id)
 
         # Remove None values from kwargs to avoid unexpected keyword argument errors in build_description method.
-        kwargs = {k: v for k, v in inp.kwargs[index].items() if v}
+        kwargs = {k: v for k, v in inp.kwargs[index].items() if v is not None}
         instruction.build_description(**kwargs)
         args = instruction.get_instruction_args()
         if args and "prompt" in args:

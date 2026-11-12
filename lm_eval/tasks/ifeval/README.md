@@ -23,6 +23,12 @@ Homepage: https://github.com/google-research/google-research/tree/master/instruc
 
 ### Groups and Tasks
 
+The current task versions preserve zero-valued instruction arguments in both
+strict and loose evaluation. For example, a requirement for exactly zero bullet
+points remains zero rather than being replaced with a randomly chosen positive
+count. This correction applies to `ifeval` (4.1), `leaderboard_ifeval` (3.1), and
+the Spanish and Catalan variants (1.1).
+
 #### Groups
 
 * Not part of a group yet
