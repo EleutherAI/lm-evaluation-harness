@@ -283,11 +283,17 @@ def general_detokenize(string) -> str:
     return string
 
 
+def _result_basename(filename: str) -> str:
+    """Return a result basename for both POSIX and Windows-style paths."""
+    return filename.replace("\\", "/").rsplit("/", 1)[-1]
+
+
 def get_file_task_name(filename: str) -> str:
     """
     Given the sample results filenames, extracts and returns the task name.
     """
-    return filename[filename.find("_") + 1 : filename.rfind("_")]
+    basename = _result_basename(filename)
+    return basename[basename.find("_") + 1 : basename.rfind("_")]
 
 
 def get_file_datetime(filename: str) -> str:
@@ -322,14 +328,14 @@ def get_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to aggregated results.
     """
-    return [f for f in filenames if "/results_" in f and ".json" in f]
+    return [f for f in filenames if _result_basename(f).startswith("results_") and f.endswith(".json")]
 
 
 def get_sample_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to sample results.
     """
-    return [f for f in filenames if "/samples_" in f and ".json" in f]
+    return [f for f in filenames if _result_basename(f).startswith("samples_") and f.endswith(".jsonl")]
 
 
 def get_rolling_token_windows(
