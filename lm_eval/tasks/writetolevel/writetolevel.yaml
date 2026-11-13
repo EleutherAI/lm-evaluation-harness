@@ -1,0 +1,30 @@
+task: writetolevel
+dataset_path: harukicoder/writetolevel
+dataset_name: null
+dataset_kwargs:
+  revision: c3a443736f2b18003a88e2eca9d8225b96a27438
+test_split: test
+output_type: generate_until
+doc_to_text: "{{prompt}}"
+doc_to_target: "{{target_level}}"
+generation_kwargs:
+  until: []
+  max_gen_toks: 1024
+  do_sample: false
+  temperature: 0.0
+process_results: !function utils.process_results
+metric_list:
+  - metric: level_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: signed_error
+    aggregation: mean
+    higher_is_better: false
+  - metric: length_compliance
+    aggregation: mean
+    higher_is_better: true
+  - metric: budget_violation
+    aggregation: mean
+    higher_is_better: false
+metadata:
+  version: 1.0
