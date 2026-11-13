@@ -93,6 +93,7 @@ discrim_eval = ["statsmodels==0.14.4"]
 unitxt = ["unitxt==1.22.0"]
 trackio = ["trackio>=0.23.0"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
+writetolevel = ["hsk30>=0.2.1"]
 zeno = ["pandas", "zeno-client"]
 tasks = [
     "lm_eval[discrim_eval]",
@@ -103,6 +104,7 @@ tasks = [
     "lm_eval[math]",
     "lm_eval[multilingual]",
     "lm_eval[ruler]",
+    "lm_eval[writetolevel]",
 ]
 
 [dependency-groups]
