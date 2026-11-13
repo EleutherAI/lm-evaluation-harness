@@ -22,8 +22,14 @@ def variant(request):
     pytest.importorskip("immutabledict")
     module, prefix, config_file = request.param
     if prefix:
-        # These checkers import both language models while loading their registry.
-        for dependency in ("spacy", "iso639", "es_core_news_sm", "ca_core_news_sm"):
+        # These checkers import all three models while loading their registry.
+        for dependency in (
+            "spacy",
+            "iso639",
+            "es_core_news_sm",
+            "ca_core_news_sm",
+            "xx_sent_ud_sm",
+        ):
             pytest.importorskip(dependency)
     return importlib.import_module(module), prefix, config_file
 
@@ -55,7 +61,7 @@ def variant(request):
         (
             "detectable_format:number_bullet_lists",
             {"num_bullets": 2},
-            "- first\n- second",
+            "* first\n* second",
         ),
     ],
 )
