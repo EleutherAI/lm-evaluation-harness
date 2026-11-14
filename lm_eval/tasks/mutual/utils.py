@@ -1,6 +1,3 @@
-import numpy as np
-
-
 def process_docs(dataset):
     def _detokenize(text):
         text = text.replace(" '", "'")
@@ -29,8 +26,8 @@ def process_docs(dataset):
 
 def process_results(doc, results):
     gold = ["A", "B", "C", "D"].index(doc["answers"])
-    r4_1 = np.argmax(results) == gold  # r4_1 = accuracy
-    ranks = sorted(results, reverse=True)
-    r4_2 = (ranks.index(results[gold]) == 1) + r4_1
-    mrr = 1.0 / (ranks.index(results[gold]) + 1)  # `+ 1` for index offset
-    return {"r@1": r4_1, "r@2": r4_2, "mrr": mrr}
+    ranked_choices = sorted(
+        range(len(results)), key=lambda idx: results[idx][0], reverse=True
+    )
+    rank = ranked_choices.index(gold)
+    return {"r@1": rank == 0, "r@2": rank < 2, "mrr": 1.0 / (rank + 1)}

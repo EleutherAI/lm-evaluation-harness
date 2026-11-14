@@ -34,6 +34,10 @@ Homepage: https://github.com/Nealcly/MuTual
 * `mutual`
 * `mutual_plus`
 
+### Version history
+
+* 2.1: Rank choices by loglikelihood for all three metrics. Greedy-match flags do not affect ranking; equal loglikelihoods retain choice order. Applies to both `mutual` and `mutual_plus`. Previously, `r@1` applied `argmax` to flattened `(loglikelihood, is_greedy)` pairs. When every loglikelihood is negative and every greedy flag is false, it always selects choice B, so aggregate `r@1` equals the fraction of B gold answers rather than model accuracy. `r@2` also incorporated that incorrect top-1 result. Recompute earlier `r@1` and `r@2` scores with version 2.1.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
