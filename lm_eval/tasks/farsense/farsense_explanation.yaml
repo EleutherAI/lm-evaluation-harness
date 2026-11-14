@@ -1,0 +1,21 @@
+task: farsense_explanation
+dataset_path: Kamyar-zeinalipour/CS_Farsi
+dataset_name: eval
+output_type: generate_until
+training_split: train
+test_split: test
+fewshot_split: train
+process_docs: !function utils.process_explanation
+doc_to_text: !function utils.doc_to_text_explanation
+doc_to_target: answer
+
+generation_kwargs:
+  until: ["\n"]
+  do_sample: false
+  max_gen_toks: 128
+metric_list:
+  - metric: chrf
+    aggregation: chrf
+    higher_is_better: true
+metadata:
+  version: 1.0

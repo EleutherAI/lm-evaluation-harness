@@ -1,0 +1,10 @@
+group: farsense
+task:
+  - farsense_multiple_choice
+  - farsense_true_false
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
