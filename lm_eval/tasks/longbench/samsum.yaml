@@ -3,10 +3,10 @@ tag:
   - longbench_fewshot_tasks
   - longbench_tasks
 task: longbench_samsum
-dataset_path: Xnhyacinth/LongBench
+dataset_path: nootxlm/LongBench
 test_split: test
 dataset_name: samsum
-doc_to_text: "Summarize the dialogue into a few short sentences. The following are some examples.\n\n{{context}}\n{{question}}"
+doc_to_text: "Summarize the dialogue into a few short sentences. The following are some examples.\n\n{{context}}\n\n{{input}}"
 doc_to_target: '{{answers}}'
 target_delimiter: ""
 process_results: !function metrics.get_rouge_with_score
