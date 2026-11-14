@@ -1,0 +1,7 @@
+group: shawarma_chats
+task:
+  - shawarma_chats_msa
+  - shawarma_chats_egyptian
+  - shawarma_chats_maghrebi
+metadata:
+  version: 1.0
