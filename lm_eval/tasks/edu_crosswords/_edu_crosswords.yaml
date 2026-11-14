@@ -1,0 +1,7 @@
+group: edu_crosswords
+task:
+  - clue_instruct_en
+  - italian_clue_generation
+  - arabic_clue_generation
+metadata:
+  version: 1.0
