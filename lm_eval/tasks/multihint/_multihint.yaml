@@ -1,0 +1,7 @@
+group: multihint
+task:
+  - multihint_en
+  - multihint_it
+  - multihint_fa
+metadata:
+  version: 1.0
