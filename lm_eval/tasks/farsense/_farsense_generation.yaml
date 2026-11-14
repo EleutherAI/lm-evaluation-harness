@@ -1,0 +1,8 @@
+group: farsense_generation
+task:
+  - farsense_cloze
+  - farsense_explanation
+  - farsense_counterfactual
+  - farsense_cause_effect
+metadata:
+  version: 1.0

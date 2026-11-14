@@ -1,0 +1,20 @@
+task: farsense_true_false
+dataset_path: Kamyar-zeinalipour/CS_Farsi
+dataset_name: eval
+output_type: multiple_choice
+training_split: train
+test_split: test
+fewshot_split: train
+process_docs: !function utils.process_true_false
+doc_to_text: !function utils.doc_to_text_true_false
+doc_to_choice: [" نادرست", " درست"]
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
