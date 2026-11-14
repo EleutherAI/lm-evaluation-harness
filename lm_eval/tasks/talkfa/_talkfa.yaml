@@ -1,0 +1,11 @@
+group: talkfa
+task:
+  - talkfa_act
+  - talkfa_emotion
+  - talkfa_sentiment
+aggregate_metric_list:
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
