@@ -1,0 +1,8 @@
+tag:
+  - norec_document_nob
+  - norec_document_nob_mcf
+task: norec_document_nob_mcf_p1
+include: _norec_document_nob_yaml
+doc_to_text: "Tekst: {{review}}\nEr anmeldelsen A. negativ eller B. positiv?\nSvar:"
+doc_to_choice: !function utils.choices_letters
+process_results: !function utils.process_results_mcf

@@ -1,0 +1,11 @@
+include: ../_norec_sentence_yaml
+dataset_path: ltg/norec_sentence
+dataset_kwargs:
+  revision: 5326d626b35e6da3a503e5303e39adf11250ba3d
+process_results: !function utils.process_results
+metadata:
+  version: 1.3
+  primary_metric: f1
+  random_baseline: 0.4815172167
+  category: language_understanding
+  language: nob

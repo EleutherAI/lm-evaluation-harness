@@ -1,0 +1,8 @@
+tag:
+  - norec_document_nob
+  - norec_document_nob_cf
+task: norec_document_nob_cf_p4
+include: _norec_document_nob_yaml
+doc_to_text: "Anmeldelse: {{review}}\nHvordan vil du oppsummere anmeldelsen?\nSvar:"
+doc_to_choice: !function utils.choices_darlig_bra
+process_results: !function utils.process_results_darlig_bra

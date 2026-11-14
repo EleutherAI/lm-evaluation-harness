@@ -1,0 +1,6 @@
+tag:
+  - nortruthfulqa_mc_nno
+  - nortruthfulqa_mc_nno_hybrid
+task: nortruthfulqa_mc_nno_hybrid_p0
+include: _nortruthfulqa_mc_nno_yaml
+doc_to_text: !function utils.hybrid_p0_nn

@@ -1,15 +1,13 @@
-import datasets
 import numpy as np
 from evaluate import load
 
 
 try:
-    import bert_score
     import sacrebleu
     from rouge_score import rouge_scorer, scoring
 except ModuleNotFoundError as e:
     raise type(e)(
-        "`sacrebleu`, `bert_score`, and `rouge_score` are required for evaluating the model on NorEval."
+        "`sacrebleu` and `rouge_score` are required for evaluating the model on NorEval."
     ) from e
 
 
@@ -17,8 +15,24 @@ ROUGE_SCORER = None
 BERTSCORE = None
 
 
-def process_results(doc, results):
-    completion = results[0]
+def clean_summary_text(text):
+    """Remove newlines from summaries."""
+    text = text.replace("\n\n", " ")
+    text = text.replace("\n", "")
+    return text
+
+
+def clean_summaries(dataset):
+    """Clean newlines from all summaries in the dataset."""
+
+    def clean_doc(doc):
+        doc["summaries"] = [clean_summary_text(s) for s in doc["summaries"]]
+        return doc
+
+    return dataset.map(clean_doc)
+
+
+def _score_one(doc, completion):
     references = doc["summaries"]
 
     bleu_scores = [bleu([[reference]], [completion]) for reference in references]
@@ -45,6 +59,12 @@ def process_results(doc, results):
         "bertscore_f1_max": bertscore_f1_max,
         "bertscore_f1_avg": bertscore_f1_avg,
     }
+
+
+def process_results(doc, results):
+    # results[0] holds the K sampled generations; average their scores
+    scored = [_score_one(doc, completion) for completion in results[0]]
+    return {key: sum(s[key] for s in scored) / len(scored) for key in scored[0]}
 
 
 def bleu(refs, preds):
@@ -94,9 +114,14 @@ def rouge(refs, preds):
         summary = summary.replace(" . ", ".\n")
         return summary
 
+    # A single (ref, pred) pair needs no bootstrap: the aggregate's `mid` is exactly that pair's score
+    if len(refs) == 1 and len(preds) == 1:
+        score = scorer.score(_prepare_summary(refs[0]), _prepare_summary(preds[0]))
+        return {type: score[type].fmeasure * 100 for type in rouge_types}
+
     # Accumulate confidence intervals.
     aggregator = scoring.BootstrapAggregator()
-    for ref, pred in zip(refs, preds):
+    for ref, pred in zip(refs, preds, strict=False):
         ref = _prepare_summary(ref)
         pred = _prepare_summary(pred)
         aggregator.add_scores(scorer.score(ref, pred))
@@ -106,16 +131,24 @@ def rouge(refs, preds):
 
 def bertscore_f1(references, predictions):
     """Computes the F1 score of the BERTScore metric.
+
     Args:
         references: A list of reference strings.
         predictions: A list of predicted strings.
         **kwargs: Additional keyword arguments.
+
     Returns:
         The F1 score of the BERTScore metric.
     """
     global BERTSCORE
     if BERTSCORE is None:
         # init BERTScore once
+        try:
+            import bert_score  # noqa: F401
+        except ModuleNotFoundError as e:
+            raise type(e)(
+                "`bert_score` is required for evaluating the model on NorSumm."
+            ) from e
         BERTSCORE = load("bertscore")
     bertscore = BERTSCORE
     return bertscore.compute(
@@ -123,4 +156,5 @@ def bertscore_f1(references, predictions):
         references=references,
         model_type="bert-base-multilingual-cased",
         num_layers=9,
+        device="cpu",
     )["f1"][0]

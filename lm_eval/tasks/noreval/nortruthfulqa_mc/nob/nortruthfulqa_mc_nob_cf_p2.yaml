@@ -1,0 +1,6 @@
+tag:
+  - nortruthfulqa_mc_nob
+  - nortruthfulqa_mc_nob_cf
+task: nortruthfulqa_mc_nob_cf_p2
+include: _nortruthfulqa_mc_nob_yaml
+doc_to_text: !function utils.cf_p2_nb

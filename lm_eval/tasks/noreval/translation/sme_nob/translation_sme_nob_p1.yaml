@@ -1,0 +1,3 @@
+task: translation_sme_nob_p1
+include: _translation_sme_nob_yaml
+doc_to_text: "Oversett følgende setning til bokmål: {{text_sme}}\nBokmål:"

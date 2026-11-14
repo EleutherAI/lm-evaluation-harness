@@ -1,0 +1,15 @@
+include: ../_norsumm_yaml
+dataset_name: nb
+tag: norsumm_nob
+repeats: &samples 32
+filter_list:
+  - name: sampling
+    filter:
+      - function: take_first_k
+        k: *samples
+metadata:
+  version: 1.3
+  primary_metric: rougeL_max
+  random_baseline: 0.0
+  category: generation_and_summarization
+  language: nob
