@@ -1,0 +1,10 @@
+group: arabicsense
+task:
+  - arabicsense_validation
+  - arabicsense_explanation
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
