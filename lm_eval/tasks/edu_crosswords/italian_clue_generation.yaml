@@ -1,0 +1,19 @@
+task: italian_clue_generation
+dataset_path: Kamyar-zeinalipour/ita_cw_text
+output_type: generate_until
+test_split: test
+training_split: train
+fewshot_split: train
+doc_to_text: !function utils.doc_to_text_it
+doc_to_target: clues
+process_results: !function utils.process_results_it
+generation_kwargs:
+  until: ["\n"]
+  do_sample: false
+  max_gen_toks: 64
+metric_list:
+  - metric: chrf
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
