@@ -33,7 +33,7 @@ Homepage: https://github.com/google-research/google-research/tree/master/instruc
 
 ### Changelog
 
-- \[Nov 15, 2026\] Version 4.0 -> 5.0: `keywords:letter_frequency` checks the character given in the dataset, including punctuation. Keys 1122 (`#`) and 1129 (`!`) were previously checked against a random letter. See [#4602](https://github.com/EleutherAI/lm-evaluation-harness/issues/4602).
+- \[Nov 15, 2026\] (PR #4617) Version 4.0 -> 5.0: `keywords:letter_frequency` checks the character given in the dataset, including punctuation. Keys 1122 (`#`) and 1129 (`!`) were previously checked against a random letter. See [#4602](https://github.com/EleutherAI/lm-evaluation-harness/issues/4602).
 
 ### Checklist
 
