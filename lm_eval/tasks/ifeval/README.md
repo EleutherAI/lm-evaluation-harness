@@ -43,3 +43,12 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+- version 4.1 (15-Nov-2026); scoring is deterministic regardless of item order. When the dataset leaves a
+  checker's arguments null, `build_description()` fills them from `random`; those draws came from the
+  process-wide RNG, so the same (prompt, response) pair could score both True and False depending on how many
+  items were scored before it. They are now drawn from a generator seeded per instruction from the item's own
+  content, and scoring no longer consumes the global stream. Verdicts for items with null arguments can differ
+  from historical unseeded runs (#4602).
