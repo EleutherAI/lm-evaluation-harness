@@ -31,6 +31,10 @@ Homepage: https://github.com/google-research/google-research/tree/master/instruc
 
 * `ifeval`
 
+### Changelog
+
+- \[Nov 15, 2026\] Version 4.0 -> 5.0: `keywords:letter_frequency` checks the character given in the dataset, including punctuation. Keys 1122 (`#`) and 1129 (`!`) were previously checked against a random letter. See [#4602](https://github.com/EleutherAI/lm-evaluation-harness/issues/4602).
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:

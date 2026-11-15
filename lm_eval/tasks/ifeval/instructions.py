@@ -1385,15 +1385,15 @@ class LetterFrequencyChecker(Instruction):
         Returns:
           A string representing the instruction description.
         """
-        if (
-            not letter
-            or len(letter) > 1
-            or ord(letter.lower()) < 97
-            or ord(letter.lower()) > 122
-        ):
+        if letter is None:
             self._letter = random.choice(list(string.ascii_letters))
         else:
+            # Any single character is counted, including punctuation such as "#".
             self._letter = letter.strip()
+            if len(self._letter) != 1:
+                raise ValueError(
+                    f"letter must be a single non-whitespace character, but {letter!r} is given."
+                )
         self._letter = self._letter.lower()
 
         self._frequency = let_frequency
