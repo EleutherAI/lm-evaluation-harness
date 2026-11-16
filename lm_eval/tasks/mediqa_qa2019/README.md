@@ -17,6 +17,19 @@ Homepage: \
 * `mediqa_qa2019`: Open-ended QA in english.
 * `mediqa_qa2019_perplexity`: Open-Ended QA in english, evaluated with perplexity.
 
+### Dataset loading
+
+Both tasks read the source-schema Parquet export published in `bigbio/mediqa_qa`
+at revision `789036735c8a87ae9dd2621153e0e4a7d9b0b898`. Selecting the four
+`mediqa_qa_source` files explicitly preserves the original script's default
+schema and split names without executing a dataset loading script on
+`datasets>=4`.
+
+The ordered records match the original MEDIQA 2019 XML files: 104 in
+`train_live_qa_med`, 104 in `train_alexa`, 25 in `validation`, and 150 in `test`.
+Training/few-shot selection remains `train_live_qa_med`; prompts, first-answer
+references, scoring, and task version 1.0 are unchanged.
+
 ### Citation
 
 ```bibtex
