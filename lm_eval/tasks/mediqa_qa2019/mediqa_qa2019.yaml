@@ -1,5 +1,12 @@
 task: mediqa_qa2019
 dataset_path: bigbio/mediqa_qa
+dataset_kwargs:
+  revision: 789036735c8a87ae9dd2621153e0e4a7d9b0b898
+  data_files:
+    train_live_qa_med: mediqa_qa_source/train_live_qa_med/0000.parquet
+    train_alexa: mediqa_qa_source/train_alexa/0000.parquet
+    validation: mediqa_qa_source/validation/0000.parquet
+    test: mediqa_qa_source/test/0000.parquet
 description: >
   Instructions: The following text is a question asked by a patient. Answer how a doctor would, while trying to be as informative and helpful as possible.
 
