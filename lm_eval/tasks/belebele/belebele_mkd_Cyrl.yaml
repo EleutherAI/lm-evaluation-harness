@@ -1,0 +1,5 @@
+dataset_name: mkd_Cyrl
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_mkd_Cyrl
+test_split: test

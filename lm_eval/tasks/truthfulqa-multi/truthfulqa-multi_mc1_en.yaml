@@ -1,0 +1,3 @@
+include: truthfulqa-multi_mc_common
+task: truthfulqa-multi_mc1_en
+dataset_name: en

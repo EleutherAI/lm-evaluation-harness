@@ -1,0 +1,4 @@
+include: _paloma_template
+task: paloma_c4_en
+task_alias: C4
+dataset_name: c4_en

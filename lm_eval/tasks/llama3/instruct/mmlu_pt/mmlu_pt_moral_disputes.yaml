@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Ainda n\xE3o est\xE1 claro se a pena capital impede ou n\xE3o danos \xE0\
+        \ comunidade."
+      B: "Ainda n\xE3o est\xE1 claro se a pena capital impede ou n\xE3o danos a quaisquer\
+        \ indiv\xEDduos."
+      C: "O consequencialismo n\xE3o \xE9 apoiado pelos valores africanos."
+      D: "Embora o consequencialismo seja apoiado por valores africanos, n\xE3o foram\
+        \ apresentados quaisquer argumentos consequencialistas enquadrados em termos\
+        \ de valores africanos."
+    input_correct_responses:
+    - A
+    input_question: "De acordo com Metz, o que h\xE1 de errado com os argumentos consequencialistas\
+      \ contra a pena capital baseados em valores africanos?"
+  - input_choice_list:
+      A: um zigoto.
+      B: "um embri\xE3o."
+      C: uma viabilidade.
+      D: um blastocisto.
+    input_correct_responses:
+    - A
+    input_question: "Um \xF3vulo fertilizado tamb\xE9m \xE9 conhecido como"
+  - input_choice_list:
+      A: estar na classe alta
+      B: a capacidade de aprender e resolver problemas
+      C: "sendo mais bonita que a maioria da popula\xE7\xE3o"
+      D: "sendo mais curto que a m\xE9dia"
+    input_correct_responses:
+    - B
+    input_question: "Qual das alternativas a seguir \xE9 um bem intr\xEDnseco, de\
+      \ acordo com Singer?"
+  - input_choice_list:
+      A: "A SCNT n\xE3o \xE9 um tipo diferente de reprodu\xE7\xE3o porque n\xE3o existem\
+        \ diferen\xE7as moralmente relevantes entre ela e outros meios de reprodu\xE7\
+        \xE3o permitidos."
+      B: "Como existe um baixo risco de danos para a gemelaridade natural, haver\xE1\
+        \ um baixo risco de danos para o TNCS."
+      C: ambos a e B
+      D: nem A nem B
+    input_correct_responses:
+    - A
+    input_question: "Pence compara seis casos diferentes de reprodu\xE7\xE3o, desde\
+      \ gemelaridade natural at\xE9 SCNT. Que conclus\xE3o ele tira dessa compara\xE7\
+      \xE3o?"
+  - input_choice_list:
+      A: "a estupidez da maioria dos exemplos filos\xF3ficos tradicionais."
+      B: "uma falta geral de intelig\xEAncia entre pessoas com diplomas avan\xE7ados."
+      C: o erro da tortura.
+      D: "a disponibilidade por parte de muitas pessoas inteligentes para verem a\
+        \ tortura como a melhor solu\xE7\xE3o para lidar com o terrorismo."
+    input_correct_responses:
+    - D
+    input_question: "Baron admite que as vers\xF5es hipot\xE9ticas da bomba-rel\xF3\
+      gio que ela discute s\xE3o &quot;incrivelmente est\xFApidas&quot;, mas ela afirma\
+      \ que isso \xE9 na verdade uma evid\xEAncia de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_disputes
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_moral_disputes
+task_alias: moral_disputes

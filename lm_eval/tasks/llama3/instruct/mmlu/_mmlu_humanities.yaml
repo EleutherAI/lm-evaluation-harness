@@ -1,0 +1,11 @@
+group: mmlu_llama_humanities
+group_alias: humanities
+task:
+  - mmlu_llama_humanities_tasks
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: True
+    filter_list: [strict_match]
+metadata:
+  version: 1

@@ -1,0 +1,54 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_biology
+description:
+  "Soru: AaKkDdEeX$^{R}$X$^{r}$ genotipli bireyde AKD alelleri bağlı olup diğerleri bağımsızdır.\
+  \ Bu birey bu karakterler açısından kaç çeşit gamet oluşturabilir? (Krossing over gerçekleşmemiştir.)\nA) 2 \nB)\
+  \ 4 \nC) 8 \nD) 16 \nE) 32 \nÇözüm: Adım adım düşünelim.\
+  \ Bir bireyde A, K ve D genleri bağımlı olduğunda, bu üç gen birlikte hareket eder ve aynı gamet içinde bulunurlar.\
+  \ Diğer lokuslardaki alleller bağımsızdır.\
+  \ AKD lokusundaki allel kombinasyonları: AKD veya akd (2 seçenek)\
+  \ Diğer lokuslardaki allel kombinasyonları: Ee (2 seçenek), X$^{R}$X$^{r}$ (2 seçenek).\
+  \ Şimdi, bağımlı olan AKD lokusundaki kombinasyonu diğer bağımsız lokuslardaki kombinasyonlarla çarpacağız:\
+  \ 2 x 2 x 2 = 8\
+  \ Bu birey 8 farklı gamet oluşturabilir.\
+  \ Doğru cevap C şıkkıdır.\n\nSoru: Aşağıda verilen hormon çiftlerinden hangisi antagonist (zıt) çalışır?\nA) Oksitosin\
+  \ - Prolaktin\nB) Kalsitonin - Parathormon\nC) Adrenalin\
+  \ - Noradrenalin\nD) Östrojen - Progesteron\nE) FSH - LH\nÇözüm: Adım adım düşünelim.\
+  \ Bu soruyu cevaplayabilmek için hormonların görevlerini ve birbirleri ile olan ilişkilerini bilmek gerekir.\
+  \ A) Oksitosin ve Prolaktin: Oksitosin doğum sırasında uterus kasılmalarını uyarır ve süt salgılanmasını sağlar. Prolaktin ise süt üretimini uyarır. Bu iki hormon birbirini destekleyici görev yapar, zıt değildir.\
+  \ B) Kalsitonin ve Parathormon: Kalsitonin kanda kalsiyum seviyesini düşürür, parathormon ise kalsiyum seviyesini yükseltir. Bu iki hormon birbirine zıt etki gösterir, antagonisttir.\
+  \ C) Adrenalin ve Noradrenalin: Her ikisi de stres hormonudur ve benzer görevleri vardır. Zıt etki göstermezler.\
+  \ D) Östrojen ve Progesteron: Östrojen kadınlık hormonudur, progesteron ise gebelik sırasında üretilir. Birlikte çalışırlar, zıt etki göstermezler.\
+  \ E) FSH ve LH: FSH folikül gelişimini, LH ovulasyonu uyarır. Birlikte çalışırlar, zıt etki göstermezler.\
+  \ Dolayısıyla verilen seçenekler arasında antagonist (zıt) çalışan hormon çifti Kalsitonin ve Parathormon'dur.\
+  \ Doğru cevap B şıkkıdır.\n\nSoru: I. Besin azalması II. Avcıların artması III. Zehirli madde birikimin artması\
+  \ Yukarıdaki faktörlerden hangileri çevre direncini artırır?\nA) Yalnız I\nB) Yalnız II\nC)\
+  \ Yalnız III\nD) II ve III\nE) I, II ve III\nÇözüm: Adım adım düşünelim.\
+  \ Çevre direnci, bir ekosistemin dışarıdan gelen olumsuz etkilere karşı direncini ifade eder. Yüksek çevre direnci, ekosistemin bu olumsuz etkilere daha iyi direnebileceği anlamına gelir.\
+  \ I. Besin azalması, popülasyonların büyümesini ve sağlığını olumsuz etkiler, dolayısıyla çevre direncini artırır.\
+  \ II. Avcıların artması, popülasyonların dengesini bozar ve türlerin sayısını azaltır, bu da çevre direncini artırır.\
+  \ III. Zehirli madde birikiminin artması, canlıların sağlığını ve üremesini olumsuz etkiler, ekosistemin dengesini bozar, bu şekilde çevre direncini artırır.\
+  \ Sorudaki faktörlerin hepsi olumsuz faktörlerdir ve ekosistemin direncini zorlar. Doğru cevap E şıkkıdır.\n\nSoru:\
+  \ Gen klonlama çalışmaları sırasında; a. Vektör DNA ve istenen geni taşıyan DNA'nın kesilmesi, b. İstenen geni taşıyan DNA'nın,\
+  \ vektör DNA ile birleştirilmesi, c. Bakterinin çoğalmasıyla birlikte istenen genin kopyalanması, uygulamaları yapılmaktadır.\
+  \ Bu uygulamalarda; I. DNA polimeraz II. DNA ligaz III. Restriksiyon enzimi yapılarının kullanıldığı çalışma basamakları\
+  \ hangi seçenekte doğru olarak verilmiştir?\
+  \                 I                           II                                  III \nA) a, b                     b\
+  \                               a, c\nB) b                         a, b                           c\nC)\
+  \ a                         c                               a, c\nD) c                         b, c                          a\nE)\
+  \ b, c                     a                               a, b\nÇözüm: Adım Adım düşünelim.\
+  \ I. DNA polimeraz: c (Bakterinin çoğalması ile birlikte istenen genin kopyalanması)\
+  \ II. DNA ligaz: b, c (İstenen geni taşıyan DNA'nın, vektör DNA ile birleştirilmesi ve sonrasında bakterinin çoğalması ile birlikte kopyalanması)\
+  \ III. Restriksiyon enzimi: a (Vektör DNA ve istenen geni taşıyan DNA'nın kesilmesi)\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: İnsanlardaki lizozomlar, fagositoz yapmayan hücrelerde de aktif olabilir. Hücreler metabolik faaliyetlerinin sorunsuz geçebilmesi için bazı hücresel yapılarını yıkıp yeniden yapar.\
+  \ Hücresel yapıların kontrollü ve programlı şekilde yıkılması lizozomlar tarafından yapılır ve otofaji olarak bilinir.\
+  \ Otofaji ile ilgili ifadelerden;  I. Otofaji sonucu hücresel yapılar yıkılamadığında lizozomal depolama hastalıkları ortaya çıkar\
+  \ II. Otofaji sırasında hidrolitik enzimler hücre dışında etkinlik gösterir\
+  \ III. Otofaji olayında hidrolitik enzimler lizozomlarda üretilip sitoplazmaya gönderilir hangileri doğrudur?\nA) Yalnız\
+  \ I\nB) I ve II\nC) I ve III\nD) II ve III\nE) I, II ve III\nÇözüm: Adım adım düşünelim.\
+  \ I. Otofaji sonucu hücresel yapılar yıkılamadığında lizozomal depolama hastalıkları ortaya çıkar: Doğru\
+  \ II. Otofaji sırasında hidrolitik enzimler hücre dışında etkinlik gösterir: Yanlış, hidrolitik enzimler lizozomlarda etkinlik gösterir.\
+  \ III. Otofaji olayında hidrolitik enzimler lizozomlarda üretilip sitoplazmaya gönderilir: Yanlış, hidrolitik enzimler lizozomlarda üretilir ve lizozom içinde etkinlik gösterir.\
+  \ Doğru cevap A şıkkıdır."
+num_fewshot: 0
+dataset_name: Biology

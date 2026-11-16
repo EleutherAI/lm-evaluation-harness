@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_global_facts
+"tag": "mmmlu_de_de_other_tasks"
+"task": "mmmlu_de_de_global_facts"
+"task_alias": "global facts (German)"
+"description": "The following are multiple choice questions (with answers) about global facts (German).\n\n"

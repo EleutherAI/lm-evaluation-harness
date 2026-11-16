@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_jurisprudence
+"tag": "mmmlu_sw_ke_humanities_tasks"
+"task": "mmmlu_sw_ke_jurisprudence"
+"task_alias": "jurisprudence (Swahili)"
+"description": "The following are multiple choice questions (with answers) about jurisprudence (Swahili).\n\n"

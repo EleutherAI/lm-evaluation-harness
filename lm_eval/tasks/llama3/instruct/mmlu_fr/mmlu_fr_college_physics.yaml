@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: "Une lunette astronomique est constitu\xE9e de deux lentilles\
+      \ convergentes distantes de 100 cm. La lentille oculaire a une distance focale\
+      \ de 20 cm. Le grossissement angulaire du t\xE9lescope est"
+  - input_choice_list:
+      A: "Temp\xE9rature constante"
+      B: Volume constant
+      C: Pression constante
+      D: Adiabatique
+    input_correct_responses:
+    - B
+    input_question: "Pour lequel des processus thermodynamiques suivants l&#39;augmentation\
+      \ de l&#39;\xE9nergie interne d&#39;un gaz parfait est-elle \xE9gale \xE0 la\
+      \ chaleur ajout\xE9e au gaz\_?"
+  - input_choice_list:
+      A: 2,4 V
+      B: 3,3 V
+      C: 4,5 V
+      D: 5,7 V
+    input_correct_responses:
+    - A
+    input_question: "Une extr\xE9mit\xE9 d&#39;un fil de nichrome de longueur 2L et\
+      \ de section transversale A est fix\xE9e \xE0 une extr\xE9mit\xE9 d&#39;un autre\
+      \ fil de nichrome de longueur L et de section transversale 2A. Si l&#39;extr\xE9\
+      mit\xE9 libre du fil le plus long est \xE0 un potentiel \xE9lectrique de 8,0\
+      \ volts et que l&#39;extr\xE9mit\xE9 libre du fil le plus court est \xE0 un\
+      \ potentiel \xE9lectrique de 1,0 volt, le potentiel \xE0 la jonction des deux\
+      \ fils est presque \xE9gal \xE0"
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: "Une lunette astronomique est constitu\xE9e de deux lentilles\
+      \ convergentes distantes de 100 cm. La lentille oculaire a une distance focale\
+      \ de 20 cm. Le grossissement angulaire du t\xE9lescope est"
+  - input_choice_list:
+      A: charge
+      B: masse
+      C: "\xE9nergie et dynamisme"
+      D: nombre de leptons
+    input_correct_responses:
+    - D
+    input_question: "Le muon se d\xE9sint\xE8gre avec une dur\xE9e de vie caract\xE9\
+      ristique d&#39;environ 10^-6 seconde en un \xE9lectron, un neutrino muonique\
+      \ et un antineutrino \xE9lectronique. Il est interdit au muon de se d\xE9sint\xE9\
+      grer en un \xE9lectron et un seul neutrino par la loi de conservation de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_physics
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_college_physics
+task_alias: college_physics

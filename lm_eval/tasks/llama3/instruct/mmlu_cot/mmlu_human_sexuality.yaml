@@ -1,0 +1,6 @@
+"dataset_name": "human_sexuality"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_social_sciences_tasks"
+"task": "mmlu_cot_llama_human_sexuality"
+"task_alias": "human sexuality"

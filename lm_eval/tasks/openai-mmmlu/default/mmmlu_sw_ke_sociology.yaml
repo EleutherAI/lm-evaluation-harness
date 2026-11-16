@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_sociology
+"tag": "mmmlu_sw_ke_social_sciences_tasks"
+"task": "mmmlu_sw_ke_sociology"
+"task_alias": "sociology (Swahili)"
+"description": "The following are multiple choice questions (with answers) about sociology (Swahili).\n\n"

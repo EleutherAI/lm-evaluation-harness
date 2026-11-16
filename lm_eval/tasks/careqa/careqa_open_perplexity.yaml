@@ -1,0 +1,16 @@
+include: careqa_open.yaml
+task: careqa_open_perplexity
+output_type: loglikelihood_rolling
+doc_to_text: ""
+doc_to_target: !function utils_open.doc_to_target
+process_results: !function utils_perplexity.process_results
+metric_list:
+  - metric: word_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    higher_is_better: false
+metadata:
+  version: 1.0
+generation_kwargs: null

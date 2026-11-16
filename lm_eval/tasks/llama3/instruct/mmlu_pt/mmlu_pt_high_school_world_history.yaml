@@ -1,0 +1,107 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Hindu\xEDsmo"
+      B: budismo
+      C: "Xinto\xEDsmo"
+      D: Zoroastrismo
+    input_correct_responses:
+    - A
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ Ele cont\xE9m todas as obras e desejos e todos os perfumes e todos os gostos.\
+      \ Ele envolve todo o universo e em sil\xEAncio \xE9 amoroso com todos. Este\
+      \ \xE9 o Esp\xEDrito que est\xE1 em meu cora\xE7\xE3o, este \xE9 Brahman. A\
+      \ ele irei quando for al\xE9m desta vida, e a ele vir\xE1 aquele que tiver f\xE9\
+      \ e n\xE3o duvidar. \u2014Os Upanishads, \xCDndia, c. 1000 aC A que religi\xE3\
+      o o orador provavelmente pertence?"
+  - input_choice_list:
+      A: "A revolu\xE7\xE3o industrial"
+      B: "Descoloniza\xE7\xE3o"
+      C: "Associa\xE7\xF5es Regionais de Livre Com\xE9rcio"
+      D: Autarquia
+    input_correct_responses:
+    - B
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ \u201CA luta contra o neocolonialismo n\xE3o visa excluir o capital do mundo\
+      \ desenvolvido de operar nos pa\xEDses menos desenvolvidos. Visa evitar que\
+      \ o poder financeiro dos pa\xEDses desenvolvidos seja utilizado de forma a empobrecer\
+      \ os menos desenvolvidos. O n\xE3o-alinhamento, tal como praticado pelo Gana\
+      \ e por muitos outros pa\xEDses, baseia-se na coopera\xE7\xE3o com todos os\
+      \ Estados, sejam eles capitalistas, socialistas ou de economia mista. Tal pol\xED\
+      tica, portanto, envolve investimento estrangeiro de pa\xEDses capitalistas,\
+      \ mas deve ser investido de acordo com um plano nacional elaborado pelo governo\
+      \ do Estado n\xE3o alinhado com os seus pr\xF3prios interesses em mente. A quest\xE3\
+      o n\xE3o \xE9 qual o retorno que o investidor estrangeiro recebe dos seus investimentos...\
+      \ A quest\xE3o \xE9 de poder. as garras do neocolonialismo n\xE3o s\xE3o donas\
+      \ do seu pr\xF3prio destino.&quot; Kwame Nkrumah, Neo-Colonialismo, 1965 Qual\
+      \ das alternativas a seguir fornece o melhor contexto para os escritos de Nkrumah?"
+  - input_choice_list:
+      A: "Aceita\xE7\xE3o social do trabalho infantil"
+      B: "Diminui\xE7\xE3o da esperan\xE7a de vida na Alemanha"
+      C: "Cr\xEDticas \xE0s tarifas comerciais alem\xE3s"
+      D: "Efeitos negativos atribu\xEDdos ao capitalismo industrial"
+    input_correct_responses:
+    - D
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ \u201CA verdadeira queixa do trabalhador \xE9 a inseguran\xE7a da sua exist\xEA\
+      ncia; ele n\xE3o tem certeza de que sempre ter\xE1 trabalho, n\xE3o tem certeza\
+      \ de que sempre ter\xE1 sa\xFAde e prev\xEA que um dia ficar\xE1 velho e incapacitado\
+      \ para trabalhar Se ele cair na pobreza, mesmo que seja apenas devido a uma\
+      \ doen\xE7a prolongada, ele ficar\xE1 completamente desamparado, por conta pr\xF3\
+      pria, e a sociedade n\xE3o reconhece atualmente qualquer obriga\xE7\xE3o real\
+      \ para com ele al\xE9m da ajuda habitual aos pobres, mesmo que ele tenha tenho\
+      \ trabalhado o tempo todo com muita fidelidade e dilig\xEAncia. A ajuda habitual\
+      \ aos pobres, por\xE9m, deixa muito a desejar, especialmente nas grandes cidades,\
+      \ onde \xE9 muito pior do que no campo.&quot; Otto von Bismarck, 1884 Otto von\
+      \ Bismarck provavelmente fez este discurso em rea\xE7\xE3o a qual das seguintes\
+      \ quest\xF5es?"
+  - input_choice_list:
+      A: "A manuten\xE7\xE3o da supremacia militar a todo custo"
+      B: "Expans\xE3o das tens\xF5es entre seitas religiosas"
+      C: "Fatores que provocaram o colapso do Imp\xE9rio Otomano"
+      D: "Esfor\xE7os de pacifica\xE7\xE3o entre os imp\xE9rios isl\xE2micos"
+    input_correct_responses:
+    - B
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ &quot;Na verdade, como tanto as fatwas de ilustres [estudiosos] que baseiam\
+      \ as suas opini\xF5es tanto na raz\xE3o como na tradi\xE7\xE3o, e o consenso\
+      \ da comunidade sunita concordam que a antiga obriga\xE7\xE3o de extirpa\xE7\
+      \xE3o, exterm\xEDnio e expuls\xE3o da inova\xE7\xE3o maligna deve ser o objectivo\
+      \ da nossa exaltada aspira\xE7\xE3o, pois &quot;O zelo religioso \xE9 uma vit\xF3\
+      ria para a F\xE9 de Deus, o Beneficente&quot;; ent\xE3o, de acordo com as palavras\
+      \ do Profeta (que a paz esteja com ele!) &quot;Todo aquele que introduz inova\xE7\
+      \xF5es malignas em nossa ordem deve ser expulso&quot; e &quot;Quem o faz qualquer\
+      \ coisa contra a nossa ordem deve ser expulsa,&quot; a ac\xE7\xE3o tornou-se\
+      \ necess\xE1ria e exigente\u2026&quot; Carta do Sult\xE3o Otomano Selim I ao\
+      \ X\xE1 Saf\xE1vida Ismail I, 1514 A carta de Selim I \xE9 mais claramente um\
+      \ exemplo de qual das seguintes op\xE7\xF5es?"
+  - input_choice_list:
+      A: "Uma ruptura nas rotas comerciais atrav\xE9s do colapso da estrutura estatal\
+        \ estabelecida"
+      B: "Um aumento na popula\xE7\xE3o do mundo atrav\xE9s de suprimentos mais abundantes\
+        \ de alimentos"
+      C: "A dissemina\xE7\xE3o dos sistemas de cren\xE7as chineses e indianos em todo\
+        \ o mundo"
+      D: "Um aumento na agita\xE7\xE3o social"
+    input_correct_responses:
+    - B
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ &quot;Pelo menos uma das sociedades [do mundo] teria de, de alguma forma,\
+      \ aumentar enormemente a sua produtividade [para alcan\xE7ar a hegemonia global].\
+      \ Esse salto qu\xE2ntico teria de ser dado antes das v\xE1rias revolu\xE7\xF5\
+      es cient\xEDficas, tecnol\xF3gicas, agr\xEDcolas e industriais em que o nosso\
+      \ o mundo p\xF3s-salto qu\xE2ntico repousa. Isso s\xF3 poderia ser alcan\xE7\
+      ado atrav\xE9s da explora\xE7\xE3o dos ecossistemas, recursos minerais e ativos\
+      \ humanos de continentes inteiros fora das terras da sociedade que deu o salto.\
+      \ A Europa Ocidental fez exatamente isso por meio de sua brutalidade e armas\
+      \ e , mais importante, por sorte geogr\xE1fica e ecol\xF3gica.&quot; Direitos\
+      \ autorais \xA9 2015 Cambridge University Press. Alfred Crosby, historiador,\
+      \ Imperialismo Ecol\xF3gico, 2004 O &quot;salto qu\xE2ntico&quot; mencionado\
+      \ na passagem contribuiu mais diretamente para qual dos seguintes desenvolvimentos\
+      \ no per\xEDodo 1450-1750 dC?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_world_history
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_high_school_world_history
+task_alias: high_school_world_history

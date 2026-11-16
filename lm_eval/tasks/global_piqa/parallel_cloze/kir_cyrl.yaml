@@ -1,0 +1,3 @@
+dataset_name: kir_cyrl
+include: _template
+task: global_piqa_parallel_cloze_kir_cyrl

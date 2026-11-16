@@ -1,0 +1,14 @@
+group: bhs_basque
+task:
+  - bhs__basque__DO__S_DO_V_AUX
+  - bhs__basque__DO__S_IO_DO_V_AUX
+  - bhs__basque__IO__IO_S_V_AUX
+  - bhs__basque__IO__S_IO_DO_V_AUX
+  - bhs__basque__S__IO_S_V_AUX
+  - bhs__basque__S__S_DO_V_AUX
+  - bhs__basque__S__S_IO_DO_V_AUX
+  - bhs__basque__S__S_V_AUX
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false

@@ -1,0 +1,6 @@
+"dataset_name": "logic_reasoning"
+"description": "以下為邏輯思維的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_other_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_logic_reasoning"
+"task_alias": "logic reasoning"

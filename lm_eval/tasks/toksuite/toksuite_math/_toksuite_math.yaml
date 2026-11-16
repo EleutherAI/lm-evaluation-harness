@@ -1,0 +1,21 @@
+aggregate_metric_list:
+- aggregation: mean
+  metric: acc
+  weight_by_size: true
+- aggregation: mean
+  metric: acc_norm
+  weight_by_size: true
+group: toksuite_math
+metadata:
+  description: Tokenization robustness evaluation dataset
+  version: 1.0.2
+task:
+- toksuite_math_canonical
+- toksuite_math_decorative_unicode
+- toksuite_math_chinese
+- toksuite_math_space_removal
+- toksuite_math_latex
+- toksuite_math_farsi
+- toksuite_math_spelled_out
+- toksuite_math_turkish
+- toksuite_math_italian

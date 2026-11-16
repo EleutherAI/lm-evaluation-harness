@@ -1,0 +1,4 @@
+task: mmmu_val_agriculture
+include: _template_yaml
+task_alias: Agriculture
+dataset_name: Agriculture

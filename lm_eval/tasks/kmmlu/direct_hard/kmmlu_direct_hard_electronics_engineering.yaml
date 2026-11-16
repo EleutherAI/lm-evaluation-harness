@@ -1,0 +1,4 @@
+dataset_name: electronics_engineering
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_direct_hard_electronics_engineering
+tag: kmmlu_direct_hard_applied_science_tasks

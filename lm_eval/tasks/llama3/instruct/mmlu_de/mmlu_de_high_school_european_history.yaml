@@ -1,0 +1,210 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Jean-Jacques Rousseau
+      B: Baron Montesquieu
+      C: Mary Wollstonecraft
+      D: Adam Smith
+    input_correct_responses:
+    - B
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. Der\
+      \ folgende Auszug stammt aus einer Brosch\xFCre. Sie werden mir die Ehre erweisen,\
+      \ mich daran zu erinnern, dass ich immer nachdr\xFCcklich das Recht jedes Menschen\
+      \ auf seine eigene Meinung unterst\xFCtzt habe, so unterschiedlich diese Meinung\
+      \ auch von meiner sein mag. Wer einem anderen dieses Recht verweigert, macht\
+      \ sich seiner jetzigen Meinung versklavt, weil er sich selbst das Recht ausschlie\xDF\
+      t, sie zu \xE4ndern. Die m\xE4chtigste Waffe gegen Irrt\xFCmer aller Art ist\
+      \ die Vernunft. Ich habe noch nie einen anderen benutzt, und ich vertraue darauf,\
+      \ dass ich das auch nie tun werde. Der jetzt in Frankreich eingetretene Umstand\
+      \ der totalen Abschaffung der ganzen nationalen Priesterschaftsordnung und aller\
+      \ Zwangsreligionsordnungen und Zwangsglaubensartikel hat meine Absicht nicht\
+      \ nur beschleunigt, sondern zum Werk gemacht Art \xFCberaus notwendig, damit\
+      \ wir nicht in dem allgemeinen Wrack des Aberglaubens, der falschen Regierungssysteme\
+      \ und der falschen Theologie die Moral, die Menschlichkeit und die wahre Theologie\
+      \ aus den Augen verlieren. Ich glaube an einen Gott und nicht mehr; und ich\
+      \ hoffe auf Gl\xFCck jenseits dieses Lebens. Ich glaube an die Gleichheit des\
+      \ Menschen; und ich glaube, dass religi\xF6se Pflichten darin bestehen, Gerechtigkeit\
+      \ zu \xFCben, Barmherzigkeit zu lieben und sich zu bem\xFChen, unsere Mitgesch\xF6\
+      pfe gl\xFCcklich zu machen. Ich glaube nicht an das Glaubensbekenntnis der j\xFC\
+      dischen Kirche, der r\xF6mischen Kirche, der griechischen Kirche, der t\xFC\
+      rkischen Kirche, der protestantischen Kirche oder irgendeiner mir bekannten\
+      \ Kirche. Mein eigener Geist ist meine eigene Kirche. Alle nationalen Kircheninstitutionen,\
+      \ ob j\xFCdisch, christlich oder t\xFCrkisch, scheinen mir nichts anderes als\
+      \ menschliche Erfindungen zu sein, die geschaffen wurden, um die Menschheit\
+      \ zu erschrecken und zu versklaven und Macht und Profit zu monopolisieren. Ich\
+      \ meine mit dieser Erkl\xE4rung nicht, diejenigen zu verurteilen, die anders\
+      \ glauben; Sie haben das gleiche Recht auf ihren Glauben wie ich auf meinen.\
+      \ \u2014Thomas Paine, Das Zeitalter der Vernunft, 1794\u20131795 Welcher der\
+      \ folgenden Philosophen der Aufkl\xE4rung entwarf ein System der Kontrolle und\
+      \ Gegenkontrolle f\xFCr die Regierung, um Machtmissbrauch zu verhindern?"
+  - input_choice_list:
+      A: "Die w\xE4hrend der Aufkl\xE4rung entstandenen Ideen der pers\xF6nlichen\
+        \ Freiheit und des Nationalismus f\xFChrten zu radikalen Revolutionen, die\
+        \ sich \xFCber ganz Europa ausbreiten konnten."
+      B: "Die Eroberung Europas durch Napoleon f\xFChrte zur Entstehung neuer Fraktionen\
+        \ und verschob die europ\xE4ischen Machtverh\xE4ltnisse."
+      C: "Die Macht der Monarchen war bis zu dem Punkt gewachsen, an dem sie von anderen\
+        \ M\xE4chten innerhalb jeder Nation kontrolliert werden musste, oder es w\xFC\
+        rde zu einer Beherrschung der Zivilbev\xF6lkerung kommen."
+      D: "Der steigende und fallende Wirtschaftszyklus der neu entstehenden kapitalistischen\
+        \ Wirtschaft k\xF6nnte zu zivilen Unruhen f\xFChren, die unterdr\xFCckt werden\
+        \ m\xFCssen."
+    input_correct_responses:
+    - A
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. Lesen\
+      \ Sie den folgenden Auszug. Die revolution\xE4re Saat war in alle L\xE4nder\
+      \ eingedrungen und hatte sich mehr oder weniger ausgebreitet. Es wurde unter\
+      \ dem Regime der Milit\xE4rdespotie Bonapartes stark entwickelt. Seine Eroberungen\
+      \ verdr\xE4ngten eine Reihe von Gesetzen, Institutionen und Br\xE4uchen; brach\
+      \ durch alle Nationen heilige Bande, stark genug, um der Zeit selbst zu widerstehen;\
+      \ was mehr ist, als man von bestimmten Vorteilen sagen kann, die diese Innovatoren\
+      \ bieten. Die Monarchen werden die Pflichten erf\xFCllen, die ihnen von ihm\
+      \ auferlegt wurden, der ihnen, indem er ihnen Macht anvertraute, aufgetragen\
+      \ hat, \xFCber die Wahrung der Gerechtigkeit und der Rechte aller zu wachen,\
+      \ die Pfade des Irrtums zu vermeiden und fest auf dem Weg zu gehen Wahrheit.\
+      \ Au\xDFerhalb der Leidenschaften, die die Gesellschaft ersch\xFCttern, sind\
+      \ sie vor allem in Tagen der Pr\xFCfung aufgerufen, die Realit\xE4ten ihres\
+      \ falschen Scheins zu berauben und sich so zu zeigen, wie sie sind, V\xE4ter,\
+      \ ausgestattet mit der Autorit\xE4t, die von Rechts wegen den Familienoberh\xE4\
+      uptern zusteht, um zu beweisen, dass sie es verstehen, in Tagen der Trauer gerecht,\
+      \ weise und daher stark zu sein, und dass sie die Menschen, die sie regieren\
+      \ sollten, nicht dem Spiel der Fraktionen \xFCberlassen werden, dem Irrtum und\
+      \ seinen Folgen, die es m\xFCssen den Verlust der Gesellschaft beinhalten. Die\
+      \ Einheit zwischen den Monarchen ist die Grundlage der Politik, die jetzt verfolgt\
+      \ werden muss, um die Gesellschaft vor dem totalen Ruin zu retten. . . . Lassen\
+      \ Sie sie die den Parteien gemachten Zugest\xE4ndnisse nicht mit dem Guten verwechseln,\
+      \ das sie f\xFCr ihr Volk tun sollten, indem sie gem\xE4\xDF ihren anerkannten\
+      \ Bed\xFCrfnissen die Zweige der Verwaltung \xE4ndern, die dies erfordern. Lass\
+      \ sie gerecht, aber stark sein; wohlwollend, aber streng. Lassen Sie sie die\
+      \ religi\xF6sen Prinzipien in ihrer ganzen Reinheit bewahren und nicht zulassen,\
+      \ dass der Glaube angegriffen und die Moral gem\xE4\xDF dem Gesellschaftsvertrag\
+      \ oder den Visionen t\xF6richter Sektierer interpretiert wird. Lassen Sie sie\
+      \ Geheimgesellschaften unterdr\xFCcken; dieser Gangr\xE4n der Gesellschaft.\
+      \ \u2014Klemens von Metternich, Politisches Glaubensbekenntnis, 1820 Welche\
+      \ der folgenden Ursachen war die gr\xF6\xDFte Ursache f\xFCr die von Metternich\
+      \ in obigem Dokument ge\xE4u\xDFerten Bef\xFCrchtungen?"
+  - input_choice_list:
+      A: Kapitalist
+      B: Wissenschaftlich
+      C: Kommunist
+      D: Existentialist
+    input_correct_responses:
+    - C
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. In\
+      \ Russland lief nichts gut, und [Souvarine] war verzweifelt \xFCber die Nachricht,\
+      \ die er erhalten hatte. Seine alten Gef\xE4hrten wandten sich alle den Politikern\
+      \ zu; die ber\xFChmten Nihilisten, die Europa erzittern lie\xDFen \u2013 S\xF6\
+      hne von Dorfpriestern, der unteren Mittelschicht, von Kaufleuten \u2013 konnten\
+      \ sich nicht \xFCber die Idee der nationalen Befreiung erheben und schienen\
+      \ zu glauben, dass die Welt befreit werden w\xFCrde \u2013 wenn sie ihren Despoten\
+      \ get\xF6tet hatten \u2026 \u201EDummheit! Mit ihrer Dummheit werden sie nie\
+      \ wieder herauskommen.\u201C Dann, mit noch tieferer Stimme, schilderte er mit\
+      \ einigen bitteren Worten seinen alten Traum von Br\xFCderlichkeit. Er hatte\
+      \ auf seinen Rang und sein Verm\xF6gen verzichtet; er war unter Arbeiter gegangen,\
+      \ nur in der Hoffnung, endlich die Grundlage einer neuen gemeinsamen Arbeitsgesellschaft\
+      \ zu sehen. Alle Sous in seinen Taschen waren l\xE4ngst zu den Bengeln der Siedlung\
+      \ geflossen; er war den Bergleuten gegen\xFCber z\xE4rtlich wie ein Bruder gewesen,\
+      \ hatte \xFCber ihren Argwohn gel\xE4chelt und sie durch seine ruhige, handwerkliche\
+      \ Art und seine Abneigung gegen Geschw\xE4tz \xFCberzeugt. Aber die Fusion hatte\
+      \ definitiv nicht stattgefunden. Seine Stimme \xE4nderte sich, seine Augen wurden\
+      \ hell, er richtete sie auf \xE9tienne und wandte sich direkt an ihn: \u201E\
+      Nun, verstehst du das? Diese Hutmacher in Marseille, die den gro\xDFen Lottogewinn\
+      \ von hunderttausend Francs gewonnen haben, sind sofort losgezogen und haben\
+      \ investiert es, indem sie erkl\xE4ren, dass sie leben werden, ohne etwas zu\
+      \ tun! Ja, das ist Ihre Idee, alle franz\xF6sischen Arbeiter, Sie wollen einen\
+      \ Schatz heben, um ihn sp\xE4ter in einer faulen, selbsts\xFCchtigen Ecke allein\
+      \ zu verschlingen. Sie k\xF6nnen schreien so viel du willst gegen die Reichen,\
+      \ du hast nicht den Mut, den Armen das Geld zur\xFCckzugeben, das dir das Gl\xFC\
+      ck bringt, du wirst nie des Gl\xFCcks w\xFCrdig sein, solange du etwas besitzt,\
+      \ und dein Ha\xDF gegen die Bourgeoisie geht davon aus nur aus dem zornigen\
+      \ Verlangen, an ihrer Stelle selbst Bourgeois zu sein.&quot; \xE9mile Zola,\
+      \ franz\xF6sischer Schriftsteller, Germinal, 1885 Die Passage zeigt die direkte\
+      \ Sorge um das Wohlergehen der Arbeiterklasse, die typischerweise Teil welcher\
+      \ Bewegung war?"
+  - input_choice_list:
+      A: "Sie dienten als Katalysator f\xFCr das Wachstum der englischen Schifffahrt\
+        \ und des \xDCberseehandels, trugen jedoch wenig dazu bei, die Aussichten\
+        \ der Holl\xE4nder im 17. Jahrhundert einzuschr\xE4nken."
+      B: "Sie brachten der niederl\xE4ndischen Wirtschaft fast unmittelbare Schwierigkeiten,\
+        \ da ihre Dominanz im \xDCberseehandel schnell endete."
+      C: "Sie wurden w\xE4hrend der Wiederherstellung der Stuarts aufgehoben, da sie\
+        \ normale diplomatische Beziehungen zu den Niederl\xE4ndern anstrebten, um\
+        \ die finanzielle Unterst\xFCtzung des Parlaments f\xFCr den Krieg nicht zu\
+        \ ben\xF6tigen."
+      D: "Sie f\xFChrten zu fast einem Jahrhundert wiederkehrender Kriege zwischen\
+        \ England und den Niederlanden, die erst nach der amerikanischen Unabh\xE4\
+        ngigkeit enden w\xFCrden."
+    input_correct_responses:
+    - A
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. Die\
+      \ folgenden Ausz\xFCge stammen aus den Navigationsakten von 1651. [Nach dem\
+      \ ersten Tag des Dezembers, eintausendsechshunderteins, und von da an, keinerlei\
+      \ Waren oder Waren aus dem Wachstum, der Produktion oder der Herstellung von\
+      \ Asien, Afrika oder Amerika oder einem Teil davon; oder von Inseln, die zu\
+      \ ihnen geh\xF6ren, oder die in den \xFCblichen Karten oder Karten dieser Orte\
+      \ beschrieben oder festgelegt sind, sowie von den englischen Plantagen und anderen,\
+      \ sollen in dieses Commonwealth of England oder nach Irland oder importiert\
+      \ oder gebracht werden alle anderen L\xE4nder, Inseln, Plantagen oder Territorien\
+      \ zu diesem Commonwealth, die zu diesem Commonwealth geh\xF6ren oder in ihrem\
+      \ Besitz sind, in einem anderen Schiff oder Schiffen, Schiff oder Schiffen,\
+      \ aber nur in solchen, die wirklich und ohne Betrug nur den Menschen dieses\
+      \ Commonwealth geh\xF6ren , oder deren Plantagen, als deren Eigent\xFCmer oder\
+      \ Rechteinhaber; und wovon der Kapit\xE4n und die Seeleute auch von den Leuten\
+      \ dieses Commonwealth sind, unter der Strafe des Verfalls und des Verlustes\
+      \ aller Waren, die entgegen diesem Gesetz importiert werden sollen, , , , [N]\
+      \ keine Waren oder Waren des Wachstums, Produktion oder Herstellung Europas\
+      \ oder eines Teils davon nach dem ersten Dezember eintausendsechshunderteins\
+      \ in dieses Commonwealth of England oder in andere L\xE4nder oder Territorien\
+      \ dieses Commonwealth eingef\xFChrt oder gebracht werden, die zu diesem Commonwealth\
+      \ geh\xF6ren, oder in ihrem Besitz, in jedem Schiff oder Schiffen, Schiff oder\
+      \ Schiffen, aber in solchen, die wirklich und ohne Betrug nur den Menschen dieses\
+      \ Commonwealth geh\xF6ren, und in keinem anderen, au\xDFer nur solchen fremden\
+      \ Schiffen und Schiffen, die wirklich und geh\xF6ren ordnungsgem\xE4\xDF den\
+      \ Menschen dieses Landes oder Ortes geh\xF6ren, dessen Wachstum, Produktion\
+      \ oder Herstellung die besagten G\xFCter sind. Welche der folgenden Aussagen\
+      \ beschreibt am besten das Ergebnis der Navigationsakte von 1651?"
+  - input_choice_list:
+      A: "geben dem englischen K\xF6nig eine neue Autorit\xE4tsposition"
+      B: "die Position des Oberhauptes der Church of England allein Heinrich VIII.\
+        \ zu \xFCbertragen und seine Erben auszuschlie\xDFen"
+      C: den Calvinismus als die einzig wahre Theologie in England zu etablieren
+      D: verschiedene Formen der Korruption beenden, die die Kirche in England plagen
+    input_correct_responses:
+    - D
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. Obwohl\
+      \ die Majest\xE4t des K\xF6nigs mit Recht und Recht das oberste Oberhaupt der\
+      \ Kirche von England ist und sein sollte, und so von der Geistlichkeit dieses\
+      \ Reiches in ihren Versammlungen anerkannt wird, wird sie dennoch zur Best\xE4\
+      tigung und Best\xE4tigung derselben und zur Steigerung der Tugend in Christi\
+      \ Religion in diesem Reich von England zu unterdr\xFCcken und alle Irrt\xFC\
+      mer, Ketzereien und andere Ungeheuerlichkeiten und Mi\xDFbr\xE4uche, die bisher\
+      \ in demselben verwendet wurden, zu unterdr\xFCcken und auszurotten, sei es\
+      \ durch die Autorit\xE4t dieses gegenw\xE4rtigen Parlaments erlassen, dass der\
+      \ K\xF6nig, unser souver\xE4ner Herr, seine Erben und Nachfolger, K\xF6nige\
+      \ dieses Reiches, sollen das einzige oberste Oberhaupt der Kirche von England,\
+      \ genannt Anglicans Ecclesia, genommen, angenommen und anerkannt werden; und\
+      \ wird die kaiserliche Krone dieses Reiches annektiert und vereint haben und\
+      \ genie\xDFen, sowie den Titel und Stil davon, sowie alle Ehren, W\xFCrden,\
+      \ Vorrang, Gerichtsbarkeiten, Privilegien, Autorit\xE4ten, Immunit\xE4ten, Gewinne\
+      \ und Waren zu der besagten W\xFCrde von das oberste Oberhaupt derselben Kirche\
+      \ geh\xF6rend und geh\xF6rend; und dass unser besagter souver\xE4ner Herr, seine\
+      \ Erben und Nachfolger, K\xF6nige dieses Reiches, von Zeit zu Zeit die volle\
+      \ Macht und Autorit\xE4t haben werden, all diese Fehler, Ketzereien zu besuchen,\
+      \ zu unterdr\xFCcken, wiedergutzumachen, aufzuzeichnen, anzuordnen, zu korrigieren,\
+      \ einzuschr\xE4nken und zu \xE4ndern Missbrauch, Beleidigungen, Verachtung und\
+      \ Ungeheuerlichkeiten, welcher Art auch immer, die durch irgendeine Art von\
+      \ geistlicher Autorit\xE4t oder Rechtsprechung reformiert, unterdr\xFCckt, angeordnet,\
+      \ wiedergutgemacht, korrigiert, eingeschr\xE4nkt oder ge\xE4ndert werden sollten\
+      \ oder k\xF6nnen, am meisten zur Freude des Allm\xE4chtigen Gottes, die Zunahme\
+      \ der Tugend in der Religion Christi und f\xFCr die Bewahrung des Friedens,\
+      \ der Einheit und der Ruhe dieses Reiches; ungeachtet jeglicher Verwendung,\
+      \ fremden Landes, ausl\xE4ndischer Beh\xF6rden, Vorschriften oder anderer Dinge\
+      \ oder Dinge, die hiervon abweichen. Englisches Parlament, Act of Supremacy,\
+      \ 1534 Aus der Passage kann man schlie\xDFen, dass das englische Parlament argumentieren\
+      \ wollte, dass der Act of Supremacy dies tun w\xFCrde"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_european_history
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_high_school_european_history
+task_alias: high_school_european_history

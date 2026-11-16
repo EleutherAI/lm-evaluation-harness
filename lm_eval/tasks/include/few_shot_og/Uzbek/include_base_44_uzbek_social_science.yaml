@@ -1,0 +1,5 @@
+include: _uzbek_few_shot_og_template_yaml
+description: Quyida Social Science boʻyicha koʻp tanlovli savollar (javoblari bilan)
+  keltirilgan.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_uzbek_few_shot_og_social_science

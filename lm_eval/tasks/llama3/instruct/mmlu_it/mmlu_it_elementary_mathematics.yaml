@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 5 migliaia
+      B: 5 centinaia
+      C: 5 decine
+      D: 5 quelli
+    input_correct_responses:
+    - A
+    input_question: "La popolazione della citt\xE0 dove \xE8 nata Michelle \xE8 di\
+      \ 145.826 abitanti. Qual \xE8 il valore del 5 nel numero 145.826?"
+  - input_choice_list:
+      A: "Il decimo numero nello schema sar\xE0 un numero pari."
+      B: "Lo schema numerico non avr\xE0 mai due numeri pari uno accanto all&#39;altro."
+      C: I prossimi due numeri nello schema saranno un numero pari e poi un numero
+        dispari.
+      D: Se lo schema numerico iniziasse con un numero dispari, allora lo schema conterrebbe
+        solo numeri dispari.
+    input_correct_responses:
+    - B
+    input_question: "Olivia ha utilizzato la regola &quot;Aggiungi 11&quot; per creare\
+      \ lo schema numerico mostrato di seguito. 10, 21, 32, 43, 54 Quale affermazione\
+      \ sullo schema numerico \xE8 vera?"
+  - input_choice_list:
+      A: Aggiungi 5 a 30 per trovare 35 squadre.
+      B: Dividi 30 per 5 per trovare 6 squadre.
+      C: Moltiplica 30 e 5 per trovare 150 squadre.
+      D: Sottrai 5 da 30 per trovare 25 squadre.
+    input_correct_responses:
+    - B
+    input_question: Un totale di 30 giocatori giocheranno a basket in un parco. Ci
+      saranno esattamente 5 giocatori in ogni squadra. Quale affermazione spiega correttamente
+      come trovare il numero di squadre necessarie?
+  - input_choice_list:
+      A: '749'
+      B: '2.675'
+      C: '2.945'
+      D: '4.250'
+    input_correct_responses:
+    - B
+    input_question: "Un negozio vende 107 colori diversi di vernice. Hanno 25 lattine\
+      \ di ogni colore in magazzino. Il numero di barattoli di vernice che il negozio\
+      \ ha in magazzino pu\xF2 essere trovato utilizzando l&#39;espressione seguente.\
+      \ 107\xD725. Quanti barattoli di vernice ha in magazzino il negozio?"
+  - input_choice_list:
+      A: "(5\xD74)\xD7(6\xD75)"
+      B: "(5\xD75) + (5\xD74)"
+      C: "(5\xD75) + (5\xD79)"
+      D: "(5\xD79)\xD7(6\xD79)"
+    input_correct_responses:
+    - B
+    input_question: Quale espressione equivale a 5 x 9?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_elementary_mathematics
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_elementary_mathematics
+task_alias: elementary_mathematics

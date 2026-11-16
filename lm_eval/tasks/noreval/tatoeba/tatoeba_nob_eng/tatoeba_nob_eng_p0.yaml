@@ -1,0 +1,6 @@
+tag: tatoeba_nob_eng
+dataset_name: eng-nob
+doc_to_target: sourceString
+task: tatoeba_nob_eng_p0
+include: ../_tatoeba_yaml
+doc_to_text: "Bokmål: {{targetString}}\nEngelsk:"

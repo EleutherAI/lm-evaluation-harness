@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '0'
+      B: '1'
+      C: '2'
+      D: '3'
+    input_correct_responses:
+    - B
+    input_question: Trouver tout c dans Z_3 tel que Z_3[x]/(x^2 + c) soit un champ.
+  - input_choice_list:
+      A: Vrai vrai
+      B: Faux, faux
+      C: Vrai faux
+      D: Faux vrai
+    input_correct_responses:
+    - B
+    input_question: "D\xE9claration 1 | Si aH est un \xE9l\xE9ment d&#39;un groupe\
+      \ de facteurs, alors |aH| divise |a|. D\xE9claration 2 | Si H et K sont des\
+      \ sous-groupes de G alors HK est un sous-groupe de G."
+  - input_choice_list:
+      A: Vrai vrai
+      B: Faux, faux
+      C: Vrai faux
+      D: Faux vrai
+    input_correct_responses:
+    - C
+    input_question: "D\xE9claration 1 | Chaque \xE9l\xE9ment d&#39;un groupe g\xE9\
+      n\xE8re un sous-groupe cyclique du groupe. D\xE9claration 2 | Le groupe sym\xE9\
+      trique S_10 a 10 \xE9l\xE9ments."
+  - input_choice_list:
+      A: Vrai vrai
+      B: Faux, faux
+      C: Vrai faux
+      D: Faux vrai
+    input_correct_responses:
+    - A
+    input_question: "D\xE9claration 1 | Chaque fonction d&#39;un ensemble fini sur\
+      \ elle-m\xEAme doit \xEAtre un \xE0 un. D\xE9claration 2 | Tout sous-groupe\
+      \ d&#39;un groupe ab\xE9lien est ab\xE9lien."
+  - input_choice_list:
+      A: '0'
+      B: '3'
+      C: '12'
+      D: '30'
+    input_correct_responses:
+    - A
+    input_question: "Trouver la caract\xE9ristique de l&#39;anneau 2Z."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_abstract_algebra
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_abstract_algebra
+task_alias: abstract_algebra

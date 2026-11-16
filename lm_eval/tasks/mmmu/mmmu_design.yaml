@@ -1,0 +1,4 @@
+task: mmmu_val_design
+include: _template_yaml
+task_alias: Design
+dataset_name: Design

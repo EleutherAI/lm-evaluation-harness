@@ -1,0 +1,6 @@
+tag: norsumm_nno
+dataset_name: nn
+task: norsumm_nno_p2
+include: ../_norsumm_yaml
+doc_to_text: "{{article}}\nSkriv ein kort og presis oppsummering av teksten over. Språket må vere klart og lett å forstå. Sørg for å ikkje introdusere feil. Oppsummeringa må dekkje følgande spørsmål: kven, kva, kor, når, og kvifor er denne saka viktig å vite om. Oppsummeringa må vere engasjerande og framheve nøkkelinformasjon frå artikkelen. Oppsummeringa skal innehalde maksimalt 700 tegn, inkludert mellomrom."
+target_delimiter: "\n"

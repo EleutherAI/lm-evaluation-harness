@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: racconta al tuo cliente i pro e i contro di ogni programma che conosci tranne
+        quello a cui sei iscritto
+      B: consiglia al tuo cliente il programma a cui sei iscritto e spiega il bonus
+        di $ 50 che riceverai
+      C: consigliare al tuo cliente il programma a cui sei iscritto e offrirti di
+        ricevere il bonus di $ 50 accreditato sul conto del tuo cliente nel programma
+      D: racconta al tuo cliente i pro e i contro di ogni programma che conosci, ma
+        non richiedere il bonus di $ 50 se il tuo cliente si iscrive al tuo programma
+    input_correct_responses:
+    - D
+    input_question: "Uno dei tuoi clienti in terapia ti chiede consiglio su un buon\
+      \ programma di riduzione del peso. Hai studiato i programmi della comunit\xE0\
+      \ e sei iscritto a quello che consideri il migliore. Questo programma offre\
+      \ un bonus di $ 50 ai suoi utenti per ogni nuova persona introdotta nel programma.\
+      \ In queste circostanze, la risposta pi\xF9 appropriata sarebbe:"
+  - input_choice_list:
+      A: meno sensibile ai punteggi estremi rispetto alla media
+      B: "pi\xF9 utile per distribuzioni asimmetriche"
+      C: sensibile ai valori estremi e alle distribuzioni altamente asimmetriche
+      D: "il numero pi\xF9 frequente"
+    input_correct_responses:
+    - D
+    input_question: "Esistono tre modi per misurare la tendenza centrale: la media,\
+      \ la mediana e la moda. Dalla tua conoscenza su di loro, qual \xE8 la modalit\xE0\
+      ?"
+  - input_choice_list:
+      A: individualismo.
+      B: Individualismo e distanza dal potere.
+      C: "distanza di potere e mascolinit\xE0."
+      D: "evitamento dell\u2019incertezza."
+    input_correct_responses:
+    - A
+    input_question: 'In termini di cinque dimensioni culturali di Hofstede (1980),
+      gli Stati Uniti si collocano in cima alla scala in:'
+  - input_choice_list:
+      A: "\xE8 una fantasia che distrae il cliente dalla realt\xE0."
+      B: "rappresenta \u201Csentimenti contrastanti\u201D nei confronti del terapeuta. "
+      C: "&quot;\xE8 una forma di &quot;&quot;recitazione.&quot;&quot;&quot;"
+      D: riflette l&#39;inconscio personale e collettivo del cliente.
+    input_correct_responses:
+    - D
+    input_question: 'Carl Jung credeva che il transfert del cliente:'
+  - input_choice_list:
+      A: non sono correlati tra loro ma sono moderatamente correlati con il criterio
+      B: hanno basse correlazioni tra loro e basse correlazioni con il criterio
+      C: sono altamente intercorrelati tra loro e moderatamente correlati con il criterio
+      D: hanno basse correlazioni con il criterio ma sono moderatamente correlati
+        tra loro
+    input_correct_responses:
+    - A
+    input_question: "Nella costruzione di un&#39;equazione di regressione multipla\
+      \ a fini di previsione, la combinazione ottimale di misure \xE8 quella in cui\
+      \ i predittori"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_psychology
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_professional_psychology
+task_alias: professional_psychology

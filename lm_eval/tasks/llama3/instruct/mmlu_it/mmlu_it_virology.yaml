@@ -1,0 +1,52 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Perch\xE9 non hanno acido nucleico"
+      B: Richiedono un virus aiutante
+      C: Si replicano solo nelle cellule in divisione
+      D: "Pu\xF2 integrarsi nei cromosomi ospiti"
+    input_correct_responses:
+    - A
+    input_question: "Perch\xE9 i parvovirus sono parassiti ad alto impatto?"
+  - input_choice_list:
+      A: Virus fragili spesso visualizzati con RNA che fuoriesce dall&#39;interno
+      B: Allungare i virus
+      C: Virus icosaedrici con involucro
+      D: Virus molto grandi
+    input_correct_responses:
+    - A
+    input_question: "Quale delle seguenti \xE8 una caratteristica morfologica dei\
+      \ paramixovirus."
+  - input_choice_list:
+      A: Raccolta dati
+      B: Istituzione di un archivio di campioni biologici
+      C: Interesse dei partecipanti
+      D: Somministrazione del questionario da parte del personale
+    input_correct_responses:
+    - B
+    input_question: "Un fattore chiave che ha facilitato l\u2019applicazione degli\
+      \ studi caso-controllo annidati dal MACS \xE8 stato:"
+  - input_choice_list:
+      A: Cambiamento nel comportamento
+      B: Copertura completa
+      C: Uso efficace della teoria comportamentale
+      D: Cambiamento comportamentale duraturo
+    input_correct_responses:
+    - D
+    input_question: "L\u2019obiettivo pi\xF9 importante di un intervento comportamentale\
+      \ \xE8:"
+  - input_choice_list:
+      A: Individui sieroprevalenti con infezione da HIV
+      B: Sieronegativi
+      C: Sieroconvertitori
+      D: Sieronegativi ad alto rischio
+    input_correct_responses:
+    - C
+    input_question: "Il tempo medio di sopravvivenza all\u2019AIDS e alla morte \xE8\
+      \ stato stabilito come segue:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_virology
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_virology
+task_alias: virology

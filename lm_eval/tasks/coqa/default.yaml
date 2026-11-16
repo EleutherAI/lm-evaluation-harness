@@ -1,0 +1,22 @@
+task: coqa
+dataset_path: EleutherAI/coqa
+output_type: generate_until
+training_split: train
+validation_split: validation
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
+should_decontaminate: true
+doc_to_decontamination_query: "{{story}} {{question.input_text|join('\n')}}"
+generation_kwargs:
+  until:
+    - "\nQ:"
+metric_list:
+  - metric: em
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 3.0

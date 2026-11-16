@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "a defini\xE7\xE3o constitucional desses poderes \xE9 ampla e inespec\xED\
+        fica"
+      B: "a maioria das pessoas concorda que a Constitui\xE7\xE3o imp\xF5e demasiados\
+        \ limites ao poder presidencial"
+      C: o Supremo Tribunal recusa-se consistentemente a decidir sobre casos relativos
+        aos poderes presidenciais
+      D: emendas constitucionais aumentaram muito os poderes presidenciais
+    input_correct_responses:
+    - A
+    input_question: "A incerteza sobre os limites do poder presidencial \xE9 causada\
+      \ principalmente pelo facto de"
+  - input_choice_list:
+      A: "aumento anual nos gastos federais com as for\xE7as armadas"
+      B: "montante dos juros sobre a d\xEDvida nacional"
+      C: "diferen\xE7a entre as propostas or\xE7ament\xE1rias iniciais feitas pelo\
+        \ presidente e pelo Congresso"
+      D: "valor que o governo gasta al\xE9m de suas receitas"
+    input_correct_responses:
+    - D
+    input_question: "O termo \u201Cd\xE9fice or\xE7amental\u201D refere-se ao"
+  - input_choice_list:
+      A: Semanas x Estados Unidos
+      B: Betts x Brady
+      C: Mapp v.
+      D: Miranda v. Arizona
+    input_correct_responses:
+    - D
+    input_question: "Qual dos seguintes casos estabeleceu o precedente de que o r\xE9\
+      u deve ser informado do direito de permanecer calado, do direito a um advogado\
+      \ e da prote\xE7\xE3o contra a autoincrimina\xE7\xE3o?"
+  - input_choice_list:
+      A: "Eles s\xE3o estabelecidos pelo Poder Legislativo."
+      B: "Os seus membros muitas vezes n\xE3o t\xEAm muita influ\xEAncia sobre as\
+        \ decis\xF5es presidenciais."
+      C: "N\xE3o podem ser todos dirigidos por l\xEDderes que perten\xE7am ao mesmo\
+        \ partido pol\xEDtico do presidente."
+      D: "Nem toda ag\xEAncia federal \xE9 um departamento de gabinete."
+    input_correct_responses:
+    - C
+    input_question: "Qual das seguintes afirma\xE7\xF5es sobre departamentos de gabinete\
+      \ \xE9 FALSA?"
+  - input_choice_list:
+      A: "Pol\xEDticos honestos podem impedir o desenvolvimento de fac\xE7\xF5es."
+      B: "\xC9 mais prov\xE1vel que ocorram fac\xE7\xF5es nas grandes rep\xFAblicas\
+        \ do que nas pequenas."
+      C: Os efeitos negativos do faccionalismo podem ser reduzidos por um governo
+        republicano.
+      D: "As elei\xE7\xF5es livres s\xE3o a melhor defesa do povo contra o partidarismo."
+    input_correct_responses:
+    - C
+    input_question: "Qual das alternativas a seguir melhor expressa um argumento apresentado\
+      \ por James Madison em The Federalist n\xFAmero 10?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_government_and_politics
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_high_school_government_and_politics
+task_alias: high_school_government_and_politics

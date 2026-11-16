@@ -1,0 +1,74 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: $ 70.000
+      B: $ 75.000
+      C: $ 80.000
+      D: '100000'
+    input_correct_responses:
+    - D
+    input_question: "Box, un&#39;organizzazione non governativa senza fini di lucro,\
+      \ ha effettuato le seguenti transazioni durante l&#39;anno: Proventi dalla vendita\
+      \ di investimenti $ 80.000 Acquisto di immobili, impianti e attrezzature $ 10.000\
+      \ Proventi da debiti a lungo termine $ 100.000 Perdita sulla vendita di investimenti\
+      \ $ 5.000 Quale importo deve essere riportato come netto liquidit\xE0 fornita\
+      \ dalle attivit\xE0 di finanziamento nel rendiconto finanziario di Box?"
+  - input_choice_list:
+      A: $ 13.000
+      B: $ 600
+      C: $ 15.000
+      D: $ 28.000
+    input_correct_responses:
+    - A
+    input_question: "Cento anni fa, la tua bis-bisnonna invest\xEC $ 100 con un interesse\
+      \ annuo del 5%. Quanto vale l\u2019investimento oggi?"
+  - input_choice_list:
+      A: $ 0
+      B: $ 500
+      C: $ 1.650
+      D: $ 16.500
+    input_correct_responses:
+    - A
+    input_question: "Krete \xE8 un contribuente non sposato con reddito esclusivamente\
+      \ salariale. Entro il 31 dicembre, anno 1, il datore di lavoro di Krete ha trattenuto\
+      \ $ 16.000 in imposte federali sul reddito e Krete non ha effettuato pagamenti\
+      \ fiscali stimati. Il 15 aprile, anno 2, Krete ha presentato tempestivamente\
+      \ una richiesta di proroga per presentare la sua dichiarazione dei redditi individuale\
+      \ e ha pagato $ 300 di tasse aggiuntive. Il debito fiscale del primo anno di\
+      \ Krete era di $ 16.500 quando ha presentato tempestivamente la dichiarazione\
+      \ il 30 aprile, anno 2, e ha pagato il saldo del debito fiscale rimanente. Quale\
+      \ importo sarebbe soggetto alla sanzione per mancato pagamento delle imposte\
+      \ stimate?"
+  - input_choice_list:
+      A: $ 5.000
+      B: $ 13.500
+      C: $ 16.000
+      D: $ 20.000
+    input_correct_responses:
+    - B
+    input_question: "Il 1\xB0 gennaio dell&#39;anno 1, Alpha Co. ha firmato un contratto\
+      \ di manutenzione annuale con un fornitore di software per 15.000 dollari e\
+      \ il periodo di manutenzione inizia il 1\xB0 marzo dell&#39;anno 2. Alpha ha\
+      \ inoltre sostenuto costi di 5.000 dollari il 1\xB0 gennaio dell&#39;anno 1,\
+      \ relativi alla modifica del software richieste che aumenteranno la funzionalit\xE0\
+      \ del software. Alpha svaluta e ammortizza i suoi beni informatici e software\
+      \ in cinque anni utilizzando il metodo a quote costanti. Qual \xE8 l&#39;importo\
+      \ totale della spesa che Alpha dovrebbe riconoscere in relazione al contratto\
+      \ di manutenzione e alle modifiche del software per l&#39;anno terminato il\
+      \ 31 dicembre, anno 1?"
+  - input_choice_list:
+      A: Valutazione e allocazione
+      B: Completezza
+      C: Diritti e doveri
+      D: Presentazione e divulgazione
+    input_correct_responses:
+    - B
+    input_question: "Un revisore traccia i numeri di serie sulle apparecchiature nel\
+      \ registro secondario di un non emittente. Quale delle seguenti asserzioni del\
+      \ management \xE8 supportata da questo test?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_accounting
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_professional_accounting
+task_alias: professional_accounting

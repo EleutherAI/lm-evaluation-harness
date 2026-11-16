@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ~Pd
+      B: "(\u2200x)(Px \u2228 ~Dx)"
+      C: "(\u2200x)(Px \u2283 ~Dx)"
+      D: ~Dp
+    input_correct_responses:
+    - C
+    input_question: "Selecione a melhor tradu\xE7\xE3o para a l\xF3gica de predicados:\
+      \ Ningu\xE9m dirige em Marte."
+  - input_choice_list:
+      A: Blgh
+      B: Bhlg
+      C: Bglh
+      D: Bghl
+    input_correct_responses:
+    - C
+    input_question: "Selecione a melhor tradu\xE7\xE3o para a l\xF3gica de predicados.\
+      \ George pega emprestado o cortador de grama de Hector. (g: George; h: Hector;\
+      \ l: cortador de grama de Hector; Bxyx: x empresta y de z)"
+  - input_choice_list:
+      A: "Marina \xE9 dan\xE7arina. Alguns fracos n\xE3o s\xE3o dan\xE7arinos. Ou\
+        \ tudo \xE9 fraco ou a Ge\xF3rgia joga v\xF4lei. Ent\xE3o algo joga v\xF4\
+        lei."
+      B: "Marina \xE9 dan\xE7arina. Nenhum fraco \xE9 dan\xE7arino. Tudo ou \xE9 fraco\
+        \ ou joga v\xF4lei. Ent\xE3o algo joga v\xF4lei."
+      C: "Marina \xE9 dan\xE7arina. Alguns fracos n\xE3o s\xE3o dan\xE7arinos. Tudo\
+        \ ou \xE9 fraco ou joga v\xF4lei. Ent\xE3o algo joga v\xF4lei."
+      D: "Marina \xE9 dan\xE7arina. Nenhum fraco \xE9 dan\xE7arino. Ou tudo \xE9 fraco\
+        \ ou a Ge\xF3rgia joga v\xF4lei. Ent\xE3o algo joga v\xF4lei."
+    input_correct_responses:
+    - D
+    input_question: "Selecione a melhor interpreta\xE7\xE3o em ingl\xEAs dos argumentos\
+      \ fornecidos na l\xF3gica de predicados. Dm (\u2200x)(Wx \u2283 ~Dx) (\u2200\
+      x)Wx \u2228 Ag / (\u2203x)Ax"
+  - input_choice_list:
+      A: Logicamente equivalente
+      B: "Contradit\xF3rio"
+      C: "Nem logicamente equivalente nem contradit\xF3rio, mas consistente"
+      D: Inconsistente
+    input_correct_responses:
+    - C
+    input_question: "Construa uma tabela verdade completa para os seguintes pares\
+      \ de proposi\xE7\xF5es. Ent\xE3o, usando as tabelas verdade, determine se as\
+      \ afirma\xE7\xF5es s\xE3o logicamente equivalentes ou contradit\xF3rias. Se\
+      \ n\xE3o, determine se s\xE3o consistentes ou inconsistentes. Justifique suas\
+      \ respostas. E \u2283 (F \xB7 E) e ~E \xB7 F"
+  - input_choice_list:
+      A: "(L \u2022 H) \u2261 I"
+      B: "(L \u2022 H) \u2228 I"
+      C: "L \u2022 (H \u2228 I)"
+      D: "L \u2022 (H \u2283 R)"
+    input_correct_responses:
+    - B
+    input_question: "Qual das f\xF3rmulas fornecidas de PL \xE9 a melhor simboliza\xE7\
+      \xE3o da frase a seguir? As tartarugas vivem vidas longas e s\xE3o criaturas\
+      \ felizes, a menos que sejam feridas."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_formal_logic
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_formal_logic
+task_alias: formal_logic

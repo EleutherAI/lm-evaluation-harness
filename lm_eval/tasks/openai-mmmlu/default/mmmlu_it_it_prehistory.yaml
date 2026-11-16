@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_prehistory
+"tag": "mmmlu_it_it_humanities_tasks"
+"task": "mmmlu_it_it_prehistory"
+"task_alias": "prehistory (Italian)"
+"description": "The following are multiple choice questions (with answers) about prehistory (Italian).\n\n"

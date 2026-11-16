@@ -1,0 +1,37 @@
+group: tmlu
+group_alias: TMLU
+task:
+  - group: tmlu_social_sciences
+    group_alias: Social Sciences
+    task:
+      - tmlu_social_sciences_tasks
+    aggregate_metric_list:
+      - metric: acc
+  - group: tmlu_stem
+    group_alias: STEM
+    task:
+      - tmlu_stem_tasks
+    aggregate_metric_list:
+      - metric: acc
+  - group: tmlu_humanities
+    group_alias: Humanities
+    task:
+      - tmlu_humanities_tasks
+    aggregate_metric_list:
+      - metric: acc
+  - group: tmlu_taiwan_specific
+    group_alias: Taiwan Specific
+    task:
+      - tmlu_taiwan_specific_tasks
+    aggregate_metric_list:
+      - metric: acc
+  - group: tmlu_other
+    group_alias: Other
+    task:
+      - tmlu_other_tasks
+    aggregate_metric_list:
+      - metric: acc
+aggregate_metric_list:
+  - metric: acc
+metadata:
+  version: 1

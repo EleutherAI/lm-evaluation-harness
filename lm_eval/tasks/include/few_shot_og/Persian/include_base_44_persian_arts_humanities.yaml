@@ -1,0 +1,5 @@
+include: _persian_few_shot_og_template_yaml
+description: در زیر سؤالات چند گزینه ای (همراه با پاسخ) در مورد Arts & Humanities
+  آمده است.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_persian_few_shot_og_arts_humanities

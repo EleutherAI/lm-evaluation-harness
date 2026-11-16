@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_nutrition
+"tag": "mmmlu_pt_br_other_tasks"
+"task": "mmmlu_pt_br_nutrition"
+"task_alias": "nutrition (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about nutrition (Brazilian Portuguese).\n\n"

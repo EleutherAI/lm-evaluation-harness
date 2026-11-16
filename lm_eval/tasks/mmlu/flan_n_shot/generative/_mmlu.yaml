@@ -1,0 +1,32 @@
+group: mmlu_flan_n_shot_generative
+group_alias: mmlu (flan style, generative)
+task:
+  - group: stem
+    task:
+      - mmlu_flan_n_shot_generative_stem
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: other
+    task:
+      - mmlu_flan_n_shot_generative_other
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: social sciences
+    task:
+      - mmlu_flan_n_shot_generative_social_sciences
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: humanities
+    task:
+      - mmlu_flan_n_shot_generative_humanities
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2

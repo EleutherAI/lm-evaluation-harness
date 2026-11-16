@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "r\xE9action en cha\xEEne par polym\xE9rase."
+      B: analyse du polymorphisme conformationnel simple brin.
+      C: Southern Blot.
+      D: Western blot.
+    input_correct_responses:
+    - C
+    input_question: "Les grandes expansions r\xE9p\xE9t\xE9es de triplets peuvent\
+      \ \xEAtre d\xE9tect\xE9es par\_:"
+  - input_choice_list:
+      A: "une enzyme qui joint des fragments dans la r\xE9plication normale de l&#39;ADN"
+      B: "une enzyme d&#39;origine bact\xE9rienne qui coupe l&#39;ADN \xE0 des s\xE9\
+        quences de bases d\xE9finies"
+      C: "une enzyme qui facilite la transcription de g\xE8nes sp\xE9cifiques"
+      D: une enzyme qui limite le niveau auquel un nutriment particulier atteint
+    input_correct_responses:
+    - A
+    input_question: L&#39;ADN ligase est
+  - input_choice_list:
+      A: "a les deux all\xE8les exprim\xE9s ind\xE9pendamment chez l&#39;h\xE9t\xE9\
+        rozygote"
+      B: "a un all\xE8le dominant l&#39;autre"
+      C: "a des all\xE8les \xE9troitement li\xE9s sur le m\xEAme chromosome"
+      D: "a des all\xE8les exprim\xE9s en m\xEAme temps dans le d\xE9veloppement"
+    input_correct_responses:
+    - A
+    input_question: "Un g\xE8ne montrant la codominance"
+  - input_choice_list:
+      A: "St\xE9nose pylorique"
+      B: "Schizophr\xE9nie"
+      C: Spina bifida (malformations du tube neural)
+      D: Le syndrome de Marfan
+    input_correct_responses:
+    - D
+    input_question: "Laquelle des conditions suivantes ne montre pas l&#39;h\xE9ritage\
+      \ multifactoriel\_?"
+  - input_choice_list:
+      A: prophase I
+      B: "m\xE9taphase I"
+      C: prophase II
+      D: "m\xE9taphase II"
+    input_correct_responses:
+    - A
+    input_question: "Le stade de la m\xE9iose au cours duquel les chromosomes s&#39;apparient\
+      \ et se croisent est\_:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_medical_genetics
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_medical_genetics
+task_alias: medical_genetics

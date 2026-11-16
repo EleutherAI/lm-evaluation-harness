@@ -1,0 +1,129 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "o estatuto \xE9 nulo por imprecis\xE3o sob a cl\xE1usula do devido processo\
+        \ da D\xE9cima Quarta Emenda."
+      B: "o estatuto \xE9 inv\xE1lido porque viola a liberdade de express\xE3o do\
+        \ peticion\xE1rio sob a Primeira Emenda."
+      C: "o estatuto \xE9 uma abreviatura da liberdade de express\xE3o ao abrigo da\
+        \ Primeira Emenda porque meios menos restritivos est\xE3o dispon\xEDveis para\
+        \ atingir o mesmo objectivo."
+      D: "o estatuto \xE9 muito amplo e, conseq\xFCentemente, inv\xE1lido sob a Primeira\
+        \ e a D\xE9cima Quarta Emendas."
+    input_correct_responses:
+    - D
+    input_question: "Uma legislatura estadual promulgou recentemente uma lei que considera\
+      \ contraven\xE7\xE3o xingar, insultar ou usar linguagem obscena ou injuriosa\
+      \ em rela\xE7\xE3o a um policial no desempenho de suas fun\xE7\xF5es ou em refer\xEA\
+      ncia a ele. Um estudante de uma universidade estadual organizou uma manifesta\xE7\
+      \xE3o no campus para protestar contra a guerra. A manifesta\xE7\xE3o contou\
+      \ com a presen\xE7a de um grupo de 50 estudantes que gritaram mensagens anti-guerra\
+      \ aos carros que passavam. Para mostrar seu desprezo pelos Estados Unidos, o\
+      \ estudante costurou a bandeira americana na parte traseira da cal\xE7a jeans.\
+      \ Quando um policial viu a bandeira pregada na cal\xE7a jeans do estudante,\
+      \ ele se aproximou e disse-lhe para retirar a bandeira ou ele seria preso. O\
+      \ estudante ficou furioso e gritou para o policial: \u201CEscute, seu bastardo,\
+      \ usarei esse trapo onde quiser\u201D. O estudante foi posteriormente preso\
+      \ e acusado de violar a lei estadual. O estudante posteriormente entra com uma\
+      \ a\xE7\xE3o na Justi\xE7a estadual questionando a constitucionalidade da lei.\
+      \ O argumento constitucional mais forte para o estudante \xE9 que"
+  - input_choice_list:
+      A: "A cl\xE1usula comercial."
+      B: "A cl\xE1usula de prote\xE7\xE3o igual da D\xE9cima Quarta Emenda."
+      C: "A cl\xE1usula de privil\xE9gios e imunidades do Artigo IV, Se\xE7\xE3o 2."
+      D: "A cl\xE1usula contratual."
+    input_correct_responses:
+    - A
+    input_question: "Um estado promulgou recentemente uma lei que pro\xEDbe a elimina\xE7\
+      \xE3o de quaisquer res\xEDduos nucleares dentro do estado. Esta lei n\xE3o contraria\
+      \ nem entra em conflito com quaisquer estatutos federais. Um homem dirige uma\
+      \ empresa no estado que se dedica \xE0 elimina\xE7\xE3o de res\xEDduos nucleares.\
+      \ Ap\xF3s a aprova\xE7\xE3o do estatuto estatal, o homem, ainda sem conhecimento\
+      \ da nova lei, celebrou contratos com muitas empresas de fora do estado para\
+      \ eliminar os seus res\xEDduos nucleares no estado. Por conta dessa nova lei,\
+      \ por\xE9m, o homem n\xE3o poder\xE1 cumprir esses contratos. Suponha que o\
+      \ homem tenha legitimidade para contestar esta lei estadual. Qual das alternativas\
+      \ a seguir apresenta seus fundamentos constitucionais mais fortes para desafiar\
+      \ a lei estadual que pro\xEDbe o descarte de res\xEDduos nucleares dentro do\
+      \ estado?"
+  - input_choice_list:
+      A: "Fatos indiscut\xEDveis."
+      B: "Fatos que foram afirmados por organiza\xE7\xF5es pol\xEDticas individuais."
+      C: Fatos reconhecidos como verdadeiros pelo conhecimento comum.
+      D: "Fatos pass\xEDveis de verifica\xE7\xE3o cient\xEDfica."
+    input_correct_responses:
+    - B
+    input_question: "O juiz tomou conhecimento judicial de alguns factos no in\xED\
+      cio do julgamento. Qual das alternativas a seguir n\xE3o \xE9 um tipo de fato\
+      \ apropriado para notifica\xE7\xE3o judicial?"
+  - input_choice_list:
+      A: "conceder al\xEDvio, porque a cerca violava a restri\xE7\xE3o de servid\xE3\
+        o."
+      B: "conceder al\xEDvio, porque a invas\xE3o da cerca violou a restri\xE7\xE3\
+        o do plano original."
+      C: "negar a tutela, porque o professor n\xE3o conseguiu fazer cumprir a restri\xE7\
+        \xE3o ao aposentado."
+      D: "negar al\xEDvio, porque a cerca n\xE3o seria interpretada como \u201Cuma\
+        \ estrutura\u201D dentro dos termos da restri\xE7\xE3o."
+    input_correct_responses:
+    - B
+    input_question: "Em 1\xBA de outubro de 1980, um incorporador, propriet\xE1rio\
+      \ de v\xE1rias centenas de acres em um condado rural, elaborou um plano geral\
+      \ de desenvolvimento para a \xE1rea. O plano devidamente registrado imp\xF4\
+      s limita\xE7\xF5es e restri\xE7\xF5es elaboradas ao terreno do plano, que deveria\
+      \ ser desenvolvido como um bairro residencial. As restri\xE7\xF5es deveriam\
+      \ se estender a todas as pessoas que adquirissem qualquer um dos lotes e aos\
+      \ seus herdeiros, cession\xE1rios e arrendat\xE1rios. Foi ainda previsto que\
+      \ todos os propriet\xE1rios subsequentes seriam cobrados com a devida notifica\xE7\
+      \xE3o das restri\xE7\xF5es. Entre essas restri\xE7\xF5es do plano geral estavam\
+      \ as seguintes:(22) \xC9 criado um direito de franquia em uma faixa de terreno\
+      \ de 10 p\xE9s de largura ao longo dos fundos de cada lote para uso de concession\xE1\
+      rias de servi\xE7os p\xFAblicos com direito de entrada e sa\xEDda. \xA7 23\xBA\
+      \ Nenhuma casa ou estrutura de qualquer esp\xE9cie dever\xE1 ser constru\xED\
+      da na referida faixa de terreno que atravessa os referidos quarteir\xF5es. Em\
+      \ 2000, um aposentado comprou um dos lotes, construiu uma casa e ergueu uma\
+      \ cerca nos fundos de sua propriedade, dentro da \xE1rea restrita. Em 2004,\
+      \ uma professora comprou um terreno adjacente \xE0 propriedade do aposentado\
+      \ e construiu uma nova casa. Dois anos depois, uma bibliotec\xE1ria comprou\
+      \ o terreno cont\xEDguo \xE0 propriedade da professora. Cada uma das tr\xEA\
+      s escrituras dessas propriedades continha refer\xEAncias ao livro de escrituras\
+      \ onde estava registado o plano geral. Em 2008, o bibliotec\xE1rio iniciou a\
+      \ constru\xE7\xE3o de uma cerca de 2,1 metros de altura ao longo da linha que\
+      \ divide seu lote com o do professor, e ao longo do centro da \xE1rea sujeita\
+      \ ao direito de franquia. Embora o professor tenha se oposto \xE0 sua constru\xE7\
+      \xE3o, a cerca foi conclu\xEDda. Se o professor solicitar uma liminar para obrigar\
+      \ a remo\xE7\xE3o da cerca do bibliotec\xE1rio, o tribunal provavelmente ir\xE1"
+  - input_choice_list:
+      A: "A promessa do pai e a confian\xE7a do credor nela, se provadas, deram origem\
+        \ a uma reclama\xE7\xE3o v\xE1lida do credor contra o pai com base na doutrina\
+        \ da preclus\xE3o promiss\xF3ria."
+      B: "Como era previs\xEDvel que a promessa do pai induziria o credor a abster-se\
+        \ de tomar qualquer ac\xE7\xE3o contra o filho, tal toler\xE2ncia era, por\
+        \ uma quest\xE3o de lei, uma contrapartida negociada pela promessa do pai."
+      C: "Os cinco pagamentos do pai ao credor, totalizando US$ 2.500, manifestaram\
+        \ uma inten\xE7\xE3o s\xE9ria por parte do pai de estar contratualmente vinculado,\
+        \ e tal manifesta\xE7\xE3o \xE9 geralmente reconhecida como um substituto\
+        \ eficaz da contrapresta\xE7\xE3o."
+      D: "Ao assumir a obriga\xE7\xE3o de d\xEDvida antecedente que o filho devia\
+        \ ao credor, o pai tornou-se fiador cuja promessa ao credor era execut\xF3\
+        ria, desde que fosse por escrito e amparada por contrapresta\xE7\xE3o adequada."
+    input_correct_responses:
+    - A
+    input_question: "Um filho devia a um credor US$ 5.000. O pai do filho contactou\
+      \ o credor e disse-lhe que queria pagar a d\xEDvida do filho. O pai assinou\
+      \ um documento que afirmava que pagaria a d\xEDvida do filho a uma taxa de US$\
+      \ 500 por m\xEAs durante 10 meses. O credor n\xE3o se comprometeu por escrito\
+      \ ou verbalmente a deixar de processar o filho para cobrar a d\xEDvida de $5.000,\
+      \ e o pai n\xE3o fez nenhum pedido oral ou escrito de tal toler\xE2ncia. Durante\
+      \ os cinco meses seguintes, o pai fez e o credor aceitou os pagamentos mensais\
+      \ de US$ 500 conforme acordado. Durante esse per\xEDodo, o credor, de facto,\
+      \ absteve-se de intentar qualquer ac\xE7\xE3o judicial contra o filho. No entanto,\
+      \ o pai informou ent\xE3o ao credor que n\xE3o faria mais pagamentos da d\xED\
+      vida. Qual das alternativas a seguir \xE9 o argumento mais persuasivo de que\
+      \ o pai \xE9 respons\xE1vel perante o credor nos termos do acordo?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_law
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_professional_law
+task_alias: professional_law

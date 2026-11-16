@@ -1,0 +1,6 @@
+tag: tatoeba_eng_nno
+dataset_name: eng-nno
+doc_to_target: targetString
+task: tatoeba_eng_nno_p2
+include: ../_tatoeba_yaml
+doc_to_text: "Gje ei nynorsk omsetjing av denne setninga: {{sourceString}}\nNynorsk:"

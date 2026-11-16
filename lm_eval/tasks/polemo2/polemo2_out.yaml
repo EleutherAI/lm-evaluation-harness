@@ -1,0 +1,4 @@
+include: polemo2_in.yaml
+task: polemo2_out
+dataset_path: allegro/klej-polemo2-out
+dataset_name: null

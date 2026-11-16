@@ -1,0 +1,4 @@
+include: _paloma_template
+task: paloma_manosphere_meta_sep
+task_alias: Manosphere
+dataset_name: manosphere_meta_sep

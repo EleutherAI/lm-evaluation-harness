@@ -1,0 +1,12 @@
+group: evalita-mp_gen
+group_alias: Evalita-LLM - Generative
+task:
+  - evalita-mp_sum_fp
+  - evalita-mp_ls
+  - evalita-mp_ner_group
+  - evalita-mp_re
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1

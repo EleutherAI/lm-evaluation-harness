@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Le POP choisirait l&#39;\xE9galit\xE9 plut\xF4t que la libert\xE9."
+      B: "Le POP opterait pour la strat\xE9gie du &#39;maximin&#39;."
+      C: "Le POP opterait pour le &quot;principe de diff\xE9rence&quot;."
+      D: "Le POP rejetterait le \xAB syst\xE8me de libert\xE9 naturelle \xBB."
+    input_correct_responses:
+    - A
+    input_question: "Selon Rawls, quelle position est la moins susceptible d&#39;\xEA\
+      tre adopt\xE9e par le POP (personnes dans la position d&#39;origine)\_?"
+  - input_choice_list:
+      A: "maximiser la libert\xE9 individuelle"
+      B: fournir une base de compromis
+      C: maintenir la paix
+      D: "promouvoir les principes du syst\xE8me de la libre entreprise"
+    input_correct_responses:
+    - D
+    input_question: "Les fonctions de la loi incluent tout mais lequel des \xE9l\xE9\
+      ments suivants\_?"
+  - input_choice_list:
+      A: "Autorit\xE9."
+      B: Charisme.
+      C: "Coop\xE9ration."
+      D: Capitalisme.
+    input_correct_responses:
+    - D
+    input_question: "Quel mot r\xE9sume le mieux l&#39;explication de Weber du d\xE9\
+      veloppement du droit formellement rationnel ?"
+  - input_choice_list:
+      A: Loi naturelle
+      B: Analytique
+      C: Historique
+      D: sociologique
+    input_correct_responses:
+    - A
+    input_question: "L&#39;\xC9cole de jurisprudence ________ postule que la loi est\
+      \ fond\xE9e sur ce qui est \xAB\_correct\_\xBB."
+  - input_choice_list:
+      A: La lettre est une offre de vente
+      B: "Une offre valable ne peut \xEAtre faite par lettre."
+      C: "La lettre contient une offre valable qui prendra fin dans un d\xE9lai raisonnable."
+      D: "Il manque \xE0 la lettre l&#39;un des \xE9l\xE9ments essentiels d&#39;une\
+        \ offre."
+    input_correct_responses:
+    - D
+    input_question: "Iverson Jewelers a \xE9crit une lettre \xE0 Miller : \xAB Nous\
+      \ avons re\xE7u une montre Rolox \xE0 remontage automatique d&#39;une qualit\xE9\
+      \ exceptionnelle que nous vous vendrons \xE0 un prix tr\xE8s avantageux."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_jurisprudence
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_jurisprudence
+task_alias: jurisprudence

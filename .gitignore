@@ -1,0 +1,79 @@
+# OS system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Virtual environments
+.venv/
+/venv/
+/ENV/
+/env/
+*.env
+
+# Python bytecode and build artifacts
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+*.egg
+/build/
+/dist/
+
+# IDE & editor settings
+.vscode/
+.idea/
+.zed/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# Output and data
+/output/
+/data/
+/temp/
+/test_logs/
+
+# Caching
+lm_eval/caching/.cache
+/lm_cache/
+
+# Logging
+*.log
+/logs/
+
+# wandb experiment tracking
+wandb/
+examples/wandb/
+
+# PyInstaller
+*.spec
+
+#uv
+uv.lock
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.nox/
+
+# Test coverage
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# Merge/patch artifacts
+*.orig
+*.rej
+
+# Agent tooling
+.claude/settings.local.json

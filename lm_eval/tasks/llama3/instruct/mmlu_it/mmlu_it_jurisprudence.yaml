@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Il POP sceglierebbe l\u2019uguaglianza al di sopra della libert\xE0."
+      B: "Il POP opterebbe per la strategia della \u201Cmassimizzazione\u201D."
+      C: "Il POP opterebbe per il \u201Cprincipio di differenza\u201D."
+      D: "Il POP rifiuterebbe il \u201Csistema della libert\xE0 naturale\u201D."
+    input_correct_responses:
+    - A
+    input_question: "Quale posizione, secondo Rawls, avr\xE0 meno probabilit\xE0 di\
+      \ essere adottata dal POP (persone nella posizione originaria)?"
+  - input_choice_list:
+      A: "massimizzazione della libert\xE0 individuale"
+      B: fornendo una base per un compromesso
+      C: mantenendo la pace
+      D: promuovere i principi del sistema della libera impresa
+    input_correct_responses:
+    - D
+    input_question: Le funzioni della legge includono tutte, tranne quale delle seguenti?
+  - input_choice_list:
+      A: "Autorit\xE0."
+      B: Carisma.
+      C: Cooperazione.
+      D: Capitalismo.
+    input_correct_responses:
+    - D
+    input_question: Quale parola riassume meglio la spiegazione di Weber dello sviluppo
+      del diritto formalmente razionale?
+  - input_choice_list:
+      A: Legge naturale
+      B: Analitico
+      C: Storico
+      D: Sociologico
+    input_correct_responses:
+    - A
+    input_question: "La ________ Scuola di giurisprudenza postula che la legge si\
+      \ basa su ci\xF2 che \xE8 &quot;corretto&quot;."
+  - input_choice_list:
+      A: "La lettera \xE8 un&#39;offerta di vendita"
+      B: "Un&#39;offerta valida non pu\xF2 essere fatta per lettera."
+      C: "La lettera contiene un&#39;offerta valida che terminer\xE0 entro un termine\
+        \ ragionevole."
+      D: Nella lettera manca uno degli elementi essenziali di un&#39;offerta.
+    input_correct_responses:
+    - D
+    input_question: 'Iverson Jewellers scrisse una lettera a Miller: &quot;Abbiamo
+      ricevuto un orologio Rolox a carica automatica eccezionalmente raffinato che
+      ti venderemo a un prezzo molto favorevole&quot;.'
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_jurisprudence
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_jurisprudence
+task_alias: jurisprudence

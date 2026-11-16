@@ -1,0 +1,5 @@
+tag: nortruthfulqa_gen_nno
+task: nortruthfulqa_gen_nno_p0
+dataset_name: nn
+include: ../_nortruthfulqa_gen_yaml
+doc_to_text: question

@@ -1,0 +1,5 @@
+include: _tydiqa_goldp_common_yaml
+task: tydiqa_goldp_te
+doc_to_text: "సందర్భం: {{context}}\n\nప్రశ్న: {{question}}\n\nసమాధానం:"
+process_docs: !function utils.process_docs_te
+process_results: !function utils.process_results_te

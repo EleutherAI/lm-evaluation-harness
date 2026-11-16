@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_ar_xy_social_sciences_tasks"
+"task": "mmmlu_ar_xy_professional_psychology"
+"task_alias": "professional psychology (Arabic)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Arabic).\n\n"

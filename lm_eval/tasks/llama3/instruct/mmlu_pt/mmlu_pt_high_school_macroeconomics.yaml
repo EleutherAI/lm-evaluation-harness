@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Os militares dos EUA abrem uma nova base em um pa\xEDs estrangeiro com 1.000\
+        \ funcion\xE1rios dos EUA."
+      B: Os consumidores japoneses compram milhares de CDs produzidos nos Estados
+        Unidos.
+      C: Uma cantora pop americana realiza um show com ingressos esgotados em Paris.
+      D: "Uma produ\xE7\xE3o teatral francesa percorre dezenas de cidades americanas."
+    input_correct_responses:
+    - C
+    input_question: "Qual dos itens a seguir n\xE3o est\xE1 inclu\xEDdo no PIB dos\
+      \ EUA?"
+  - input_choice_list:
+      A: "rela\xE7\xE3o direta entre desemprego e infla\xE7\xE3o"
+      B: "rela\xE7\xE3o direta entre pre\xE7o e quantidade demandada"
+      C: "rela\xE7\xE3o inversa entre pre\xE7o e quantidade demandada"
+      D: "rela\xE7\xE3o inversa entre desemprego e infla\xE7\xE3o"
+    input_correct_responses:
+    - D
+    input_question: A curva de Phillips de curto prazo indica uma
+  - input_choice_list:
+      A: "as exporta\xE7\xF5es excedem as importa\xE7\xF5es."
+      B: "as importa\xE7\xF5es excedem as exporta\xE7\xF5es."
+      C: "a arrecada\xE7\xE3o de impostos federais excede os gastos."
+      D: os gastos federais excedem as receitas fiscais federais.
+    input_correct_responses:
+    - D
+    input_question: "Um d\xE9ficit federal ocorre quando"
+  - input_choice_list:
+      A: Aumentando a taxa de desconto
+      B: "Aumentando o \xEDndice de reserva"
+      C: "Compra de t\xEDtulos do governo"
+      D: "Redu\xE7\xE3o de tarifas"
+    input_correct_responses:
+    - C
+    input_question: "Mantendo tudo o resto igual, qual das seguintes pol\xEDticas\
+      \ monet\xE1rias seria usada para impulsionar as exporta\xE7\xF5es dos EUA?"
+  - input_choice_list:
+      A: Um aumento na oferta de moeda
+      B: Aumento dos gastos do governo
+      C: Impostos mais baixos sobre pesquisa e desenvolvimento de novas tecnologias
+      D: Impostos mais elevados sobre a renda familiar
+    input_correct_responses:
+    - C
+    input_question: "Qual das seguintes pol\xEDticas melhor descreve a pol\xEDtica\
+      \ fiscal do lado da oferta?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_macroeconomics
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_high_school_macroeconomics
+task_alias: high_school_macroeconomics

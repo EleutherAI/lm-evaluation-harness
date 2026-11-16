@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_global_facts
+"tag": "mmmlu_sw_ke_other_tasks"
+"task": "mmmlu_sw_ke_global_facts"
+"task_alias": "global facts (Swahili)"
+"description": "The following are multiple choice questions (with answers) about global facts (Swahili).\n\n"

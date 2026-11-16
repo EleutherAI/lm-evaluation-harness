@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "mmlu_pro_llama_chemistry"
+task_alias: "chemistry"
+process_docs: !function utils.process_chemistry

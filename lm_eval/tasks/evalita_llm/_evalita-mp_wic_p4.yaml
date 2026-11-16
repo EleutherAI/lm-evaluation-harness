@@ -1,0 +1,6 @@
+tag: evalita-mp_wic_tasks
+task: evalita-mp_wic_prompt-4
+task_alias: prompt-4
+include: _wic_template_yaml
+doc_to_text: "Devi determinare se una stessa parola usata in due frasi differenti ha lo stesso significato in entrambi i contesti. La parola '{{sentence1[start1:end1]}}' nella frase '{{sentence1}}' ha lo stesso significato della parola '{{sentence2[start2:end2]}}' nella frase '{{sentence2}}'?\nA: Sì\nB: No\nRisposta:"
+doc_to_choice: ["B", "A"]

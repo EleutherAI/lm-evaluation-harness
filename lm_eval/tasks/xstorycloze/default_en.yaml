@@ -1,0 +1,3 @@
+include: default_ar.yaml
+task: xstorycloze_en
+dataset_name: en

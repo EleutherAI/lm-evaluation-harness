@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: tu quoque
+      B: rire de cheval
+      C: argument contre la personne
+      D: Ignoratio Elenchi
+    input_correct_responses:
+    - C
+    input_question: "Si quelqu&#39;un attaque le caract\xE8re d&#39;un argumentateur\
+      \ adverse, au lieu de r\xE9pondre aux arguments de cet adversaire, la premi\xE8\
+      re personne a probablement commis laquelle des erreurs suivantes\_?"
+  - input_choice_list:
+      A: "faire valoir que quelque chose est inf\xE9rieur simplement parce qu&#39;il\
+        \ ne fait pas quelque chose qu&#39;il n&#39;a jamais \xE9t\xE9 destin\xE9\
+        \ \xE0 faire."
+      B: inclure plus d&#39;une revendication dans la proposition et traiter la preuve
+        d&#39;une revendication comme la preuve de toutes les revendications.
+      C: "tirer une conclusion avant d&#39;examiner les preuves, et ne consid\xE9\
+        rer que les preuves qui \xE9tayent cette conclusion."
+      D: "poser une question qui comprend soit une hypoth\xE8se non prouv\xE9e, soit\
+        \ plus d&#39;une question, rendant ainsi une r\xE9ponse simple oui ou non\
+        \ sans signification."
+    input_correct_responses:
+    - D
+    input_question: "Le sophisme de la question complexe consiste \xE0"
+  - input_choice_list:
+      A: "La pr\xE9misse mineure doit nier l&#39;ant\xE9c\xE9dent"
+      B: "La pr\xE9misse majeure doit affirmer la cons\xE9quence"
+      C: "Le moyen terme doit \xEAtre utilis\xE9 dans au moins une pr\xE9misse dans\
+        \ un sens universel ou non qualifi\xE9"
+      D: "Tout ce qui pr\xE9c\xE8de"
+    input_correct_responses:
+    - C
+    input_question: "Lequel des \xE9nonc\xE9s suivants est vrai d&#39;un syllogisme\
+      \ cat\xE9gorique valide\_?"
+  - input_choice_list:
+      A: Division
+      B: Composition
+      C: "Appel \xE0 la personne"
+      D: "Appel \xE0 l&#39;ignorance"
+    input_correct_responses:
+    - B
+    input_question: "Pr\xE9tendre que ce qui est vrai des parties doit \xEAtre vrai\
+      \ du tout est le sophisme de..."
+  - input_choice_list:
+      A: manque d&#39;esprit sportif
+      B: "appel \xE0 la compassion"
+      C: argument contre la personne
+      D: "ignorance de la r\xE9futation"
+    input_correct_responses:
+    - D
+    input_question: "Lorsqu&#39;un argumentateur cause de la confusion pendant la\
+      \ r\xE9futation en raison d&#39;un manque r\xE9el ou simul\xE9 de capacit\xE9\
+      \ \xE0 s&#39;engager dans la r\xE9futation, cet argumentateur peut avoir commis\
+      \ l&#39;erreur de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_logical_fallacies
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_logical_fallacies
+task_alias: logical_fallacies

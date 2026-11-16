@@ -1,0 +1,10 @@
+include: _infinitebench_common_yaml
+task: infinitebench_math_find
+test_split: math_find
+process_results: !function utils.process_results_math
+doc_to_text: !function utils.doc_to_text_math_find
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 3
+  until: ["\n"]

@@ -1,0 +1,9 @@
+description: 'खाली गणित विषयावरील बहुपर्यायी प्रश्न आहेत (उत्तरांसह). कृपया पायरी
+  पायरीने विचार करा आणि आपले उत्तर "उत्तर आहे (X)" असे संपवा, जिथे X हे योग्य पर्यायाचे
+  अक्षर आहे.
+
+  '
+include: _mr_lite_template_yaml
+task: mmlu_prox_lite_mr_math
+task_alias: math
+process_docs: !function utils.process_math

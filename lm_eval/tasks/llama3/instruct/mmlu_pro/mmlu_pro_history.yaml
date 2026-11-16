@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "mmlu_pro_llama_history"
+task_alias: "history"
+process_docs: !function utils.process_history

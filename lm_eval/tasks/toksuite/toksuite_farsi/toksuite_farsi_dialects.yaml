@@ -1,0 +1,7 @@
+dataset_name: toksuite_farsi_dialects
+include: toksuite_farsi_base.yaml
+task: toksuite_farsi_dialects
+metadata:
+  canonical_task: toksuite_farsi_canonical
+  task_pretty_name: Dialects
+  num_samples: 360

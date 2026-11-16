@@ -1,0 +1,6 @@
+tag: noropenbookqa_nno
+task: noropenbookqa_nno_p4
+dataset_name: nn
+include: ../_noropenbookqa_yaml
+doc_to_text: "Ta utgangspunkt i følgande fakta når du svarar på spørsmålet: {{fact}}\n\n{{question_stem}}\nVel rett svar blant desse alternativa:\n– {{choices.text[0]}}\n– {{choices.text[1]}}\n– {{choices.text[2]}}\n– {{choices.text[3]}}\n\nSvar:"
+doc_to_choice: "{{choices.text}}"

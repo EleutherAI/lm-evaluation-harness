@@ -1,0 +1,4 @@
+"dataset_name": "named_entity_recognition"
+"description": "以下是关于古汉语命名体识别的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "aclue_named_entity_recognition"

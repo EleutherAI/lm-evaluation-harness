@@ -1,0 +1,100 @@
+dataset_name: high_school_world_history
+description: The following are multiple choice questions (with answers) about high
+  school world history.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "This question refers to the following information.\n\"At least one of\
+      \ the [world's] societies would have to somehow enormously increase its productivity\
+      \ [in order to achieve global hegemony]. That quantum jump would have to be\
+      \ made before the various scientific, technological, agricultural, and industrial\
+      \ revolutions on which our post-quantum-leap world rests. It could only be accomplished\
+      \ by exploiting the ecosystems, mineral resources, and human assets of whole\
+      \ continents outside the lands of the society making the jump. Western Europe\
+      \ did just that by means of its brutality and guns and, more important, by geographical\
+      \ and ecological luck.\"\nCopyright \xA9 2015 Cambridge University Press.\n\
+      Alfred Crosby, historian, Ecological Imperialism, 2004\nThe \"quantum jump\"\
+      \ mentioned in the passage most directly contributed to which of the following\
+      \ developments in the period 1450\u20131750 C.E.?\n(A) A breakdown in trade\
+      \ routes through the collapse of the established state structure (B) An increase\
+      \ in the population of the world through more plentiful supplies of food (C)\
+      \ The spread of Chinese and Indian belief systems across the world (D) An increase\
+      \ in social unrest"
+    target: Let's think step by step. We refer to Wikipedia articles on world history
+      for help. The "quantum jump" mentioned in the passage refers to the conquest
+      of the New World and the Columbian Exchange. Choice (A) and (C) did not happen
+      in history. Choice (C) refers to the human assets. The answer is (B).
+  - question: "This question refers to the following information.\n\"The struggle against\
+      \ neo-colonialism is not aimed at excluding the capital of the developed world\
+      \ from operating in less developed countries. It is aimed at preventing the\
+      \ financial power of the developed countries being used in such a way as to\
+      \ impoverish the less developed.\nNon-alignment, as practiced by Ghana and many\
+      \ other countries, is based on co-operation with all States whether they be\
+      \ capitalist, socialist or have a mixed economy. Such a policy, therefore, involves\
+      \ foreign investment from capitalist countries, but it must be invested in accordance\
+      \ with a national plan drawn up by the government of the non-aligned State with\
+      \ its own interests in mind. The issue is not what return the foreign investor\
+      \ receives on his investments\u2026The question is one of power. A State in\
+      \ the grip of neo-colonialism is not master of its own destiny.\"\nKwame Nkrumah,\
+      \ Neo-Colonialism, 1965\nWhich of the following provides the best context for\
+      \ Nkrumah's writings?\n(A) The Industrial Revolution (B) Decolonization (C)\
+      \ Regional Free Trade Associations (D) Autarky"
+    target: Let's think step by step. We refer to Wikipedia articles on world history
+      for help. The passage expresses a point that the successful fight against neo-colonialism
+      were in danger and the newly independent nations like Ghana may be re-colonized
+      via financial power of the developed countries. The answer is (B).
+  - question: "This question refers to the following information.\n\"Indeed, as both\
+      \ the fatwas of distinguished [scholars] who base their opinion on reason and\
+      \ tradition alike and the consensus of the Sunni community agree that the ancient\
+      \ obligation of extirpation, extermination, and expulsion of evil innovation\
+      \ must be the aim of our exalted aspiration, for \"Religious zeal is a victory\
+      \ for the Faith of God the Beneficent\"; then, in accordance with the words\
+      \ of the Prophet (Peace upon him!) \"Whosoever introduces evil innovation into\
+      \ our order must be expelled\" and \"Whosoever does aught against our order\
+      \ must be expelled,\" action has become necessary and exigent\u2026\"\nLetter\
+      \ from Ottoman Sultan Selim I to Safavid Shah Ismail I, 1514\nThe letter from\
+      \ Selim I is most clearly an example of which of the following?\n(A) The maintenance\
+      \ of military supremacy at all costs (B) Expanding tensions between religious\
+      \ sects (C) Factors that brought about the collapse of the Ottoman Empire (D)\
+      \ Peacemaking efforts among the Islamic empires"
+    target: Let's think step by step. We refer to Wikipedia articles on world history
+      for help. The passage is an example of expanding tensions between Selim and
+      Ismail. In the passage the Selim references the fatwa and the consensus of the
+      Sunni community to against whosoever introduces evil. The answer is (B).
+  - question: 'This question refers to the following information.
+
+      "The real grievance of the worker is the insecurity of his existence; he is
+      not sure that he will always have work, he is not sure that he will always be
+      healthy, and he foresees that he will one day be old and unfit to work. If he
+      falls into poverty, even if only through a prolonged illness, he is then completely
+      helpless, exam_ins to his own devices, and society does not currently recognize
+      any real obligation towards him beyond the usual help for the poor, even if
+      he has been working all the time ever so faithfully and diligently. The usual
+      help for the poor, however, leaves a lot to be desired, especially in large
+      cities, where it is very much worse than in the country."
+
+      Otto von Bismarck, 1884
+
+      Otto von Bismarck likely made this speech in reaction to which of the following
+      issues?
+
+      (A) Social acceptance of child labor (B) Declining life expectancy in Germany
+      (C) Criticisms of German trade tariffs (D) Negative effects attributed to industrial
+      capitalism'
+    target: Let's think step by step. We refer to Wikipedia articles on world history
+      for help. The passage talks about the grievance of the work under the industrial
+      capitalism. The answer is (D).
+  - question: "This question refers to the following information.\nHe contains all works\
+      \ and desires and all perfumes and all tastes. He enfolds the whole universe\
+      \ and in silence is loving to all. This is the Spirit that is in my heart, this\
+      \ is Brahman. To him I shall come when I go beyond this life, and to him will\
+      \ come he who has faith and doubts not.\n\u2014The Upanishads, India, c. 1000\
+      \ BCE\nTo which religion does the speaker most likely belong?\n(A) Hinduism\
+      \ (B) Buddhism (C) Shintoism (D) Zoroastrianism"
+    target: 'Let''s think step by step. We refer to Wikipedia articles on world history
+      for help. Brahman refers to the ultimate reality of all things in the Hindu
+      religion. In contrast, Buddhism does not have a concept of supreme God. The
+      answer is (A).'
+tag: mmlu_flan_cot_fewshot_humanities
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_high_school_world_history

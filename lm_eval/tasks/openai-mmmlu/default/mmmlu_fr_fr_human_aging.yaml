@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_human_aging
+"tag": "mmmlu_fr_fr_other_tasks"
+"task": "mmmlu_fr_fr_human_aging"
+"task_alias": "human aging (French)"
+"description": "The following are multiple choice questions (with answers) about human aging (French).\n\n"

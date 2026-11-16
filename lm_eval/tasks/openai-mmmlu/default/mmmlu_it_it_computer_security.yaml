@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_computer_security
+"tag": "mmmlu_it_it_stem_tasks"
+"task": "mmmlu_it_it_computer_security"
+"task_alias": "computer security (Italian)"
+"description": "The following are multiple choice questions (with answers) about computer security (Italian).\n\n"

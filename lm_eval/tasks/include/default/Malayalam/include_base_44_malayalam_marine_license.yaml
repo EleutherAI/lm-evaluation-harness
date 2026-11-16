@@ -1,0 +1,4 @@
+include: _malayalam_template_yaml
+description: The following is multiple-choice question about Marine License.
+process_docs: !function 'utils.process_marine_license'
+task: include_base_44_malayalam_marine_license

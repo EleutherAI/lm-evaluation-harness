@@ -1,0 +1,4 @@
+include: _hindi_template_yaml
+description: The following is multiple-choice question about General knowledge.
+process_docs: !function 'utils.process_general_knowledge'
+task: include_base_44_hindi_general_knowledge

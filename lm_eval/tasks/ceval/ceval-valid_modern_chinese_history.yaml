@@ -1,0 +1,4 @@
+"dataset_name": "modern_chinese_history"
+"description": "以下是中国关于近代史纲要的单项选择题，请选出其中的正确答案。\n\n"
+"include": "_default_ceval_yaml"
+"task": "ceval-valid_modern_chinese_history"

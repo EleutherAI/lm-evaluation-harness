@@ -1,0 +1,8 @@
+"dataset_name": "high_school_mathematics"
+"description":
+  "The following are multiple choice questions (with answers) about high\
+  \ school mathematics.\n\n"
+"tag": "mmlu_stem_generative_spanish"
+"include": "_default_template_spanish_yaml"
+"task": "mmlu_high_school_mathematics_generative_spanish"
+"task_alias": "high_school_mathematics_spanish"

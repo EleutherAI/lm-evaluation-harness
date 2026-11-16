@@ -1,0 +1,4 @@
+task: mmmu_val_basic_medical_science
+include: _template_yaml
+task_alias: Basic Medical Science
+dataset_name: Basic_Medical_Science

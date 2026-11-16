@@ -1,0 +1,30 @@
+include: cruxeval_common_yaml
+task: cruxeval_output
+repeats: 10
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [1]
+description: "You are given a Python function and an assertion containing an input to the function. Complete the assertion with a literal (no unsimplified expressions, no function calls) containing the output when executing the provided code on the given input, even if the function is incorrect or incomplete. Do NOT output any extra information. Provide the full assertion with the correct output in [ANSWER] and [/ANSWER] tags, following the examples.\n"
+doc_to_text: "[PYTHON]\n{{code}}\nassert f({{input}}) == ??\n[/PYTHON]"
+doc_to_target: "{% if is_fewshot is defined %}\n[ANSWER]\nassert f({{input}}) == {{output}}\n[/ANSWER]{% else %}[ANSWER]{% endif %}"
+generation_kwargs:
+  until:
+    - "[/ANSWER]"
+    - "</seed:think>[ANSWER]"
+  max_gen_toks: 1024
+  do_sample: True
+  temperature: 0.2
+  top_p: 0.95
+filter_list:
+  - name: "create_test"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions_output
+num_fewshot: 2
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples_output
+metadata:
+  version: 1.0

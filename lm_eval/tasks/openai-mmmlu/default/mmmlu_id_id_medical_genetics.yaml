@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ID_ID"
+process_docs: !function utils.process_medical_genetics
+"tag": "mmmlu_id_id_other_tasks"
+"task": "mmmlu_id_id_medical_genetics"
+"task_alias": "medical genetics (Indonesian)"
+"description": "The following are multiple choice questions (with answers) about medical genetics (Indonesian).\n\n"

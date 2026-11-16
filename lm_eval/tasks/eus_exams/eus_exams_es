@@ -1,0 +1,4 @@
+include: eus_exams
+tag:
+  - eus_exams_es
+doc_to_text: "Pregunta: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nRespuesta:"

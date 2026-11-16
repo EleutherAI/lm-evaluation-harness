@@ -1,0 +1,4 @@
+"task": "wmdp_cyber"
+"dataset_name": "wmdp-cyber"
+"include": "_default_template_yaml"
+"description": "The following are multiple choice questions (with answers) about cybersecurity.\n\n"

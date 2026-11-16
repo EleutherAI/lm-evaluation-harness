@@ -1,0 +1,4 @@
+dataset_name: public_safety
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_public_safety
+tag: kmmlu_hard_other_tasks

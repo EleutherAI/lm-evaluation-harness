@@ -1,0 +1,11 @@
+group: mmlu_th_llama_social_sciences
+group_alias: social sciences
+task:
+  - mmlu_th_llama_social_sciences_tasks
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: True
+    filter_list: [strict_match]
+metadata:
+  version: 1

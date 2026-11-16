@@ -1,0 +1,40 @@
+task: ja_leaderboard_jsquad
+
+dataset_path: Rakuten/JGLUE
+dataset_name: JSQuAD
+
+training_split: train
+validation_split: validation
+test_split: null
+
+fewshot_split: train
+num_fewshot: 2
+
+description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
+doc_to_text: "### 指示：\n与えられた文脈から、質問に対する答えを抜き出してください。\n\n### 入力：\n文脈：{% set _context = context.split('[SEP]')[-1] %}{{ _context | trim }}\n質問：{{ question }}\n\n### 応答："
+doc_to_target: "{{ answers['text'][0] }}"
+target_delimiter: "\n"
+
+output_type: generate_until
+
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+
+metric_list:
+  - metric: exact_match
+    regexes_to_ignore:
+      - '^\s+'
+      - '\s+$'
+    aggregation: mean
+    higher_is_better: true
+
+filter_list:
+  - name: whitespaces
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+
+metadata:
+  version: 1.0

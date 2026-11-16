@@ -1,0 +1,6 @@
+"dataset_name": "high_school_us_history"
+"description": "The following are questions (with answers) about high\
+  \ school us history.\n\n"
+"tag": "mmlu_humanities_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_high_school_us_history_continuation"

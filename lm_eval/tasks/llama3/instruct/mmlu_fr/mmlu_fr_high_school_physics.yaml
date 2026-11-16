@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: I et II seulement
+      B: I et III seulement
+      C: II et III uniquement
+      D: III seulement
+    input_correct_responses:
+    - D
+    input_question: "Laquelle des conditions suivantes garantira la conservation du\
+      \ moment cin\xE9tique\_? I. Conservation de la quantit\xE9 de mouvement lin\xE9\
+      aire II. Force externe nette nulle III. Couple externe net nul"
+  - input_choice_list:
+      A: "La pression est \xE0 un n\u0153ud, mais le d\xE9placement des particules\
+        \ est \xE0 un ventre."
+      B: "La pression est \xE0 un ventre, mais le d\xE9placement des particules est\
+        \ \xE0 un n\u0153ud."
+      C: "La pression et le d\xE9placement des particules sont tous les deux aux n\u0153\
+        uds."
+      D: "La pression et le d\xE9placement des particules sont tous les deux aux ventres."
+    input_correct_responses:
+    - B
+    input_question: "Un tuyau plein d&#39;air est ferm\xE9 \xE0 une extr\xE9mit\xE9\
+      . Une onde stationnaire est produite dans le tuyau, ce qui fait que le tuyau\
+      \ \xE9met une note. Lequel des \xE9nonc\xE9s suivants est une affirmation correcte\
+      \ concernant les propri\xE9t\xE9s de l&#39;onde \xE0 l&#39;extr\xE9mit\xE9 ferm\xE9\
+      e du tuyau\_?"
+  - input_choice_list:
+      A: 02H00
+      B: 06H00
+      C: 00h00
+      D: 24 A
+    input_correct_responses:
+    - D
+    input_question: "Une cellule photo\xE9lectrique de fonction de travail \u03D5\
+      \ = 2eV est connect\xE9e \xE0 une r\xE9sistance en s\xE9rie. La lumi\xE8re de\
+      \ fr\xE9quence f = 1 \xD7 10^15 Hz frappe une plaque m\xE9tallique de la cellule\
+      \ photo\xE9lectrique. Si la puissance de la lumi\xE8re est P = 100 W, quel est\
+      \ le courant traversant la r\xE9sistance ?"
+  - input_choice_list:
+      A: 10W
+      B: 30W
+      C: 60W
+      D: 240W
+    input_correct_responses:
+    - D
+    input_question: "Un four \xE0 micro-ondes est branch\xE9 sur une prise 120 V et\
+      \ consomme un courant de 2 amp\xE8res. \xC0 quelle vitesse l&#39;\xE9nergie\
+      \ est-elle utilis\xE9e par le four \xE0 micro-ondes\_?"
+  - input_choice_list:
+      A: 3,5 J
+      B: 6,0 J
+      C: 22,5 J
+      D: 40J
+    input_correct_responses:
+    - B
+    input_question: "Une charge ponctuelle, Q = +1 mC, est fix\xE9e \xE0 l&#39;origine.\
+      \ Combien de travail faut-il pour d\xE9placer une charge, Q = +8 \xB5C, du point\
+      \ (0, 4 m\xE8tres) au point (3 m\xE8tres, 0)\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_physics
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_high_school_physics
+task_alias: high_school_physics

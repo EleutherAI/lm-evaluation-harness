@@ -1,0 +1,4 @@
+task: mmmu_val_marketing
+include: _template_yaml
+task_alias: Marketing
+dataset_name: Marketing

@@ -1,0 +1,23 @@
+tag:
+  - french_bench_perplexity
+task: french_bench_opus_perplexity
+dataset_path: manu/opus100-en-fr
+output_type: loglikelihood_rolling
+test_split: test
+fewshot_split: validation
+validation_split: validation
+num_fewshot: 0
+doc_to_text: ""
+doc_to_target: "{{text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false

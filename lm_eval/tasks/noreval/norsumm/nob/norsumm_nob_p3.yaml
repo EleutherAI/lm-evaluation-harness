@@ -1,0 +1,6 @@
+tag: norsumm_nob
+dataset_name: nb
+task: norsumm_nob_p3
+include: ../_norsumm_yaml
+doc_to_text: "Gi et kortfattet sammendrag av følgende tekst: {{article}}"
+target_delimiter: "\n"

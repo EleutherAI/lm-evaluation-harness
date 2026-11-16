@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_hi_in_social_sciences_tasks"
+"task": "mmmlu_hi_in_professional_psychology"
+"task_alias": "professional psychology (Hindi)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Hindi).\n\n"

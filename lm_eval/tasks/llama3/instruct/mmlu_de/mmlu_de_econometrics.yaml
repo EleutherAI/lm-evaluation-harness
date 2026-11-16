@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Absterben schlie\xDFlich"
+      B: Bestehen Sie auf unbestimmte Zeit
+      C: Wachsen Sie exponentiell
+      D: Kommt nie vor
+    input_correct_responses:
+    - A
+    input_question: "Bei einem station\xE4ren autoregressiven Prozess werden Schocks\
+      \ auftreten"
+  - input_choice_list:
+      A: 0,2
+      B: 0,4
+      C: 0,5
+      D: 0,33
+    input_correct_responses:
+    - D
+    input_question: "Betrachten Sie das folgende AR(1)-Modell, bei dem die St\xF6\
+      rungen einen Mittelwert von Null und eine Einheitsvarianz haben: yt = 0,2 +\
+      \ 0,4 yt-1 + ut Der (unbedingte) Mittelwert von y wird gegeben durch"
+  - input_choice_list:
+      A: (ii) und (iv) nur
+      B: nur (i) und (iii).
+      C: Nur (i), (ii) und (iii).
+      D: (i), (ii), (iii) und (iv)
+    input_correct_responses:
+    - C
+    input_question: "Angenommen, einer Teststatistik ist ein p-Wert von 0,08 zugeordnet.\
+      \ Welche der folgenden Aussagen ist wahr? (i) Wenn die Gr\xF6\xDFe des Tests\
+      \ genau 8 % w\xE4re, w\xE4re es gleichg\xFCltig, ob wir die Nullhypothese ablehnen\
+      \ oder nicht ablehnen w\xFCrden (ii) Die Null w\xFCrde abgelehnt werden, wenn\
+      \ eine Testgr\xF6\xDFe von 10 % verwendet w\xFCrde (iii) Die Null w\xFCrde dies\
+      \ nicht tun zur\xFCckgewiesen werden, wenn eine Testgr\xF6\xDFe von 1 % verwendet\
+      \ w\xFCrde (iv) Die Null w\xFCrde zur\xFCckgewiesen werden, wenn eine Testgr\xF6\
+      \xDFe von 5 % verwendet w\xFCrde."
+  - input_choice_list:
+      A: Es wird voreingenommen sein
+      B: Es wird inkonsequent sein
+      C: Es wird ineffizient sein
+      D: Alle von (a), (b) und (c) werden wahr sein.
+    input_correct_responses:
+    - C
+    input_question: "Was w\xE4ren dann Konsequenzen f\xFCr den OLS-Sch\xE4tzer, wenn\
+      \ Heteroskedastizit\xE4t in einem Regressionsmodell vorhanden ist, aber ignoriert\
+      \ wird?"
+  - input_choice_list:
+      A: "1 Verz\xF6gerung"
+      B: "2 Verz\xF6gerungen"
+      C: "3 Verz\xF6gerungen"
+      D: "4 Verz\xF6gerungen"
+    input_correct_responses:
+    - C
+    input_question: "Nehmen wir nun an, dass ein Forscher Informationskriterien verwenden\
+      \ m\xF6chte, um die optimale Verz\xF6gerungsl\xE4nge f\xFCr einen VAR zu bestimmen.\
+      \ 500 Beobachtungen sind f\xFCr die bivariate VAR verf\xFCgbar, und die Werte\
+      \ der Determinante der Varianz-Kovarianz-Matrix der Residuen sind 0,0336, 0,0169,\
+      \ 0,0084 und 0,0062 f\xFCr 1, 2, 3 bzw. 4 Verz\xF6gerungen. Was ist die optimale\
+      \ Modellreihenfolge nach dem Informationskriterium von Akaike?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_econometrics
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_econometrics
+task_alias: econometrics

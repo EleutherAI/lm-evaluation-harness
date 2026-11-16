@@ -1,0 +1,29 @@
+task: mbpp_instruct
+dataset_path: google-research-datasets/mbpp
+dataset_name: full
+unsafe_code: true
+output_type: generate_until
+test_split: test
+doc_to_text: "You are an expert Python programmer, and here is your task:\n{{text}}\nYour code should pass these tests:\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}"
+doc_to_target: "{% if is_fewshot is defined %}{{code}}\n```{% else %}{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}{% endif %}"
+gen_prefix: "\n```python\n"
+target_delimiter: ""
+metric_list:
+  - metric: !function utils.pass_at_1
+    aggregation: mean
+    higher_is_better: true
+filter_list:
+  - name: "extract_code"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions
+generation_kwargs:
+  max_gen_toks: 256
+  until: []
+  do_sample: false
+num_fewshot: 3
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples
+metadata:
+  version: 1.0

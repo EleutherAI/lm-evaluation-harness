@@ -1,0 +1,10 @@
+group: evalita-mp_ls
+group_alias: lexical-substitution
+task:
+- evalita-mp_ls_tasks
+aggregate_metric_list:
+  - metric: f1
+    weight_by_size: True
+
+metadata:
+  version: 1

@@ -1,0 +1,4 @@
+"dataset_name": "high_school_biology"
+"description": "以下是中国关于高中生物的单项选择题，请选出其中的正确答案。\n\n"
+"include": "_default_ceval_yaml"
+"task": "ceval-valid_high_school_biology"

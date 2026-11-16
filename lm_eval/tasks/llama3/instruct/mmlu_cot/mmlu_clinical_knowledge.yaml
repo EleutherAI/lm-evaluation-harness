@@ -1,0 +1,6 @@
+"dataset_name": "clinical_knowledge"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_other_tasks"
+"task": "mmlu_cot_llama_clinical_knowledge"
+"task_alias": "clinical knowledge"

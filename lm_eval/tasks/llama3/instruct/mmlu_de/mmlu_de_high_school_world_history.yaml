@@ -1,0 +1,110 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Hinduismus
+      B: Buddhismus
+      C: Schintoismus
+      D: Zoroastrismus
+    input_correct_responses:
+    - A
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. Er\
+      \ enth\xE4lt alle Werke und W\xFCnsche und alle D\xFCfte und alle Geschm\xE4\
+      cker. Er umfasst das ganze Universum und ist in der Stille liebevoll zu allen.\
+      \ Das ist der Geist, der in meinem Herzen ist, das ist Brahman. Zu ihm werde\
+      \ ich kommen, wenn ich \xFCber dieses Leben hinausgehe, und zu ihm wird kommen,\
+      \ wer Glauben hat und nicht zweifelt. \u2013 Die Upanishaden, Indien, c. 1000\
+      \ v. Chr. Welcher Religion geh\xF6rt der Sprecher am ehesten an?"
+  - input_choice_list:
+      A: Die Industrielle Revolution
+      B: Entkolonisierung
+      C: "Regionale Freihandelsverb\xE4nde"
+      D: Autarkie
+    input_correct_responses:
+    - B
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. \u201E\
+      Der Kampf gegen den Neokolonialismus zielt nicht darauf ab, das Kapital der\
+      \ entwickelten Welt davon auszuschlie\xDFen, in weniger entwickelten L\xE4ndern\
+      \ zu operieren. Er zielt darauf ab, zu verhindern, dass die Finanzkraft der\
+      \ entwickelten L\xE4nder so eingesetzt wird, dass die weniger entwickelten verarmt\
+      \ werden. Die Blockfreiheit, wie sie von Ghana und vielen anderen L\xE4ndern\
+      \ praktiziert wird, basiert auf der Zusammenarbeit mit allen Staaten, ob sie\
+      \ kapitalistisch, sozialistisch oder eine gemischte Wirtschaft haben Eine solche\
+      \ Politik beinhaltet daher ausl\xE4ndische Investitionen aus kapitalistischen\
+      \ L\xE4ndern, aber sie muss in \xDCbereinstimmung mit einem nationalen Plan\
+      \ investiert werden, der von der Regierung des blockfreien Staates unter Ber\xFC\
+      cksichtigung seiner eigenen Interessen aufgestellt wurde. Die Frage ist nicht,\
+      \ welche Rendite der ausl\xE4ndische Investor f\xFCr seine Investitionen erh\xE4\
+      lt \u2026 Die Frage ist eine Machtfrage. Ein Staat in Der Griff des Neokolonialismus\
+      \ ist nicht Herr seines eigenen Schicksals.&quot; Kwame Nkrumah, Neo-Colonialism,\
+      \ 1965 Welche der folgenden Aussagen bietet den besten Kontext f\xFCr Nkrumahs\
+      \ Schriften?"
+  - input_choice_list:
+      A: Gesellschaftliche Akzeptanz von Kinderarbeit
+      B: Sinkende Lebenserwartung in Deutschland
+      C: "Kritik an deutschen Handelsz\xF6llen"
+      D: Dem industriellen Kapitalismus zugeschriebene negative Auswirkungen
+    input_correct_responses:
+    - D
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. \u201E\
+      Die eigentliche Beschwerde des Arbeiters ist die Unsicherheit seiner Existenz;\
+      \ er ist sich nicht sicher, dass er immer Arbeit haben wird, er ist sich nicht\
+      \ sicher, dass er immer gesund sein wird, und er sieht voraus, dass er eines\
+      \ Tages alt und arbeitsunf\xE4hig sein wird F\xE4llt er in Armut, und sei es\
+      \ auch nur durch eine l\xE4ngere Krankheit, so ist er v\xF6llig hilflos, sich\
+      \ selbst \xFCberlassen, und die Gesellschaft erkennt ihm gegen\xFCber derzeit\
+      \ keine wirkliche Verpflichtung \xFCber die \xFCbliche Hilfe f\xFCr die Armen\
+      \ hinaus, auch wenn er eine hat die ganze Zeit \xFCber so treu und flei\xDF\
+      ig gearbeitet. Die \xFCbliche Hilfe f\xFCr die Armen l\xE4sst jedoch sehr zu\
+      \ w\xFCnschen \xFCbrig, besonders in Gro\xDFst\xE4dten, wo es sehr viel schlimmer\
+      \ ist als auf dem Land.\u201C Otto von Bismarck, 1884 Otto von Bismarck hielt\
+      \ diese Rede wahrscheinlich als Reaktion auf welches der folgenden Themen?"
+  - input_choice_list:
+      A: "Die Aufrechterhaltung der milit\xE4rischen Vormachtstellung um jeden Preis"
+      B: "Wachsende Spannungen zwischen religi\xF6sen Sekten"
+      C: "Faktoren, die zum Zusammenbruch des Osmanischen Reiches f\xFChrten"
+      D: "Friedensbem\xFChungen unter den islamischen Reichen"
+    input_correct_responses:
+    - B
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. \u201E\
+      In der Tat, da sowohl die Fatwas angesehener [Gelehrter], die ihre Meinung gleicherma\xDF\
+      en auf Vernunft und Tradition st\xFCtzen, als auch der Konsens der sunnitischen\
+      \ Gemeinschaft darin \xFCbereinstimmen, dass die alte Verpflichtung zur Ausrottung,\
+      \ Ausrottung und Vertreibung b\xF6ser Neuerungen das Ziel unserer Erhabenen\
+      \ sein muss Streben, denn &quot;Religi\xF6ser Eifer ist ein Sieg f\xFCr den\
+      \ Glauben Gottes, des Erbarmers&quot;; dann, in \xDCbereinstimmung mit den Worten\
+      \ des Propheten (Friede sei mit ihm!) &quot;Wer auch immer b\xF6se Neuerungen\
+      \ in unsere Ordnung einf\xFChrt, muss ausgewiesen werden&quot; und &quot;Wer\
+      \ auch immer dies tut alles, was gegen unseren Befehl verst\xF6\xDFt, muss ausgewiesen\
+      \ werden, \u201EMa\xDFnahmen sind notwendig und dringend geworden \u2026\u201C\
+      \ Brief des osmanischen Sultans Selim I. an Safawiden Shah Ismail I., 1514 Der\
+      \ Brief von Selim I. ist am deutlichsten ein Beispiel f\xFCr welches der folgenden?"
+  - input_choice_list:
+      A: Ein Zusammenbruch der Handelswege durch den Zusammenbruch der etablierten
+        Staatsstruktur
+      B: "Eine Zunahme der Weltbev\xF6lkerung durch reichlichere Nahrungsmittelvorr\xE4\
+        te"
+      C: Die Verbreitung chinesischer und indischer Glaubenssysteme auf der ganzen
+        Welt
+      D: Eine Zunahme sozialer Unruhen
+    input_correct_responses:
+    - B
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. \u201E\
+      Zumindest eine der Gesellschaften [der Welt] m\xFCsste ihre Produktivit\xE4\
+      t irgendwie enorm steigern [um globale Hegemonie zu erlangen]. Dieser Quantensprung\
+      \ m\xFCsste vor den verschiedenen wissenschaftlichen, technologischen, landwirtschaftlichen\
+      \ und industriellen Revolutionen gemacht werden, auf denen unsere Die Welt nach\
+      \ dem Quantensprung ruht. Es konnte nur durch die Ausbeutung der \xD6kosysteme,\
+      \ Bodensch\xE4tze und Humanressourcen ganzer Kontinente au\xDFerhalb der L\xE4\
+      nder der Gesellschaft, die den Sprung machte, erreicht werden. Westeuropa tat\
+      \ genau das durch seine Brutalit\xE4t und Waffen und , was noch wichtiger ist,\
+      \ durch geografisches und \xF6kologisches Gl\xFCck.&quot; Copyright \xA9 2015\
+      \ Cambridge University Press. Alfred Crosby, Historiker, Ecological Imperialism,\
+      \ 2004 Zu welcher der folgenden Entwicklungen im Zeitraum 1450\u20131750 n.\
+      \ Chr. hat der in der Passage erw\xE4hnte \u201EQuantensprung\u201C am unmittelbarsten\
+      \ beigetragen?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_world_history
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_high_school_world_history
+task_alias: high_school_world_history

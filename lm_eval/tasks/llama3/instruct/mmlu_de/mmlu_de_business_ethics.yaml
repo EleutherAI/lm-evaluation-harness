@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Externalit\xE4ten, Macht, Unabh\xE4ngigkeit"
+      B: "Werbung, Unwesentliche Ressourcen, Gegenseitige Abh\xE4ngigkeit"
+      C: "\xD6ffentlichkeit, Macht, Unabh\xE4ngigkeit"
+      D: "Externalit\xE4ten, Macht, gegenseitige Abh\xE4ngigkeit"
+    input_correct_responses:
+    - D
+    input_question: "Neben dem Business Case f\xFCr CSR-Engagement gibt es eine Reihe\
+      \ moralischer Argumente in Bezug auf: negative _______, die _______, die Unternehmen\
+      \ besitzen, und die ________ von Wirtschaft und Gesellschaft."
+  - input_choice_list:
+      A: Soziale Verantwortung des Unternehmens
+      B: "Gesch\xE4ftsethisches Management"
+      C: Nachhaltigkeit
+      D: Umweltmanagement
+    input_correct_responses:
+    - B
+    input_question: "_______ ist der direkte Versuch, ethische Fragen oder Probleme\
+      \ formell oder informell durch spezifische Richtlinien, Praktiken und Programme\
+      \ zu bew\xE4ltigen."
+  - input_choice_list:
+      A: "Au\xDFerhalb, begrenzt, unabh\xE4ngig"
+      B: Innen, begrenzt, zeitweise
+      C: "Au\xDFerhalb, unbegrenzt, zeitweise"
+      D: "Drinnen, unbegrenzt, unabh\xE4ngig"
+    input_correct_responses:
+    - A
+    input_question: "Um die Unabh\xE4ngigkeit der nicht gesch\xE4ftsf\xFChrenden Vorstandsmitglieder\
+      \ zu gew\xE4hrleisten, gibt es eine Reihe von Ma\xDFnahmen, die ergriffen werden\
+      \ k\xF6nnen, darunter die Abberufung von nicht gesch\xE4ftsf\xFChrenden Mitgliedern\
+      \ aus _______ der Gesellschaft, die Ernennung f\xFCr einen Zeitraum von _________\
+      \ sowie die Ernennung von _________."
+  - input_choice_list:
+      A: "Gewaltfreie direkte Aktion, gewaltt\xE4tige direkte Aktion, indirekte Aktion,\
+        \ Boykott"
+      B: Indirekte Aktion, Instrumentelle Aktion, Gewaltfreie direkte Aktion, Informationskampagne
+      C: "Indirekte Aktion, gewaltt\xE4tige direkte Aktion, gewaltfreie direkte Aktion\
+        \ Boykott"
+      D: Gewaltfreie direkte Aktion, Instrumentelle Aktion, Indirekte Aktion, Informationskampagne
+    input_correct_responses:
+    - C
+    input_question: "Drei gegens\xE4tzliche Taktiken, die CSOs anwenden k\xF6nnen,\
+      \ um ihre Ziele zu erreichen, sind ________, was typischerweise Forschung und\
+      \ Kommunikation beinhaltet, ________, was physische Angriffe auf die Gesch\xE4\
+      ftst\xE4tigkeit eines Unternehmens beinhalten kann, oder ________, oft mit irgendeiner\
+      \ Form von _______."
+  - input_choice_list:
+      A: "Buycotts, Boycotts, Blockchain-Technologie, wohlt\xE4tige Spenden"
+      B: Buycotts, Boycotts, Digitaltechnik, Umsatzsteigerung
+      C: "Boykotte, Buyalls, Blockchain-Technologie, wohlt\xE4tige Spenden"
+      D: Boykotte, Buycotts, Digitaltechnik, Umsatzsteigerung
+    input_correct_responses:
+    - D
+    input_question: "Im Gegensatz zu _______ zielen _______ darauf ab, positives Verhalten\
+      \ von Unternehmen zu belohnen. Der Erfolg solcher Kampagnen wurde durch die\
+      \ Verwendung von ___________ gesteigert, die es Kampagnen erm\xF6glichen, das\
+      \ Unternehmen bei der Erreichung von _________ zu unterst\xFCtzen."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_business_ethics
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_business_ethics
+task_alias: business_ethics

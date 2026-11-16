@@ -1,0 +1,74 @@
+dataset_name: machine_learning
+description: The following are multiple choice questions (with answers) about machine
+  learning.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Which image data augmentation is most common for natural images?
+
+      (A) random crop and horizontal flip (B) random crop and vertical flip (C) posterization
+      (D) dithering'
+    target: Let's think step by step. Data augmentation is used to increase the diversity
+      of images in the training dataset. It is important that natural images are kept
+      natural after being augmented. Vertical flips of images are not natural, so
+      (B) is false. Posterization makes the image look like a poster and and dithering
+      increases color depth. None of these two preserve the natural property. The
+      only natural data augmentation technique is (A). The answer is (A).
+  - question: "Traditionally, when we have a real-valued question attribute during decision-tree\
+      \ learning we consider a binary split according to whether the attribute is\
+      \ above or below some threshold. Pat suggests that instead we should just have\
+      \ a multiway split with one branch for each of the distinct values of the attribute.\
+      \ From the list below choose the single biggest problem with Pat\u2019s suggestion:\n\
+      (A) It is too computationally expensive. (B) It would probably result in a decision\
+      \ tree that scores badly on the training set and a testset. (C) It would probably\
+      \ result in a decision tree that scores well on the training set but badly on\
+      \ a testset. (D) It would probably result in a decision tree that scores well\
+      \ on a testset but badly on a training set."
+    target: "Let's think step by step. Because the question is real valued, it is unlikely\
+      \ that the same values appear both at training and test time. This means that\
+      \ while such a decision tree could yield good performance on the training data,\
+      \ when evaluated on the test data it will perform badly because the decision\
+      \ tree won\u2019t know what to do with numbers that did not appear in the training\
+      \ data. The answer is (C)."
+  - question: "You are reviewing papers for the World\u2019s Fanciest Machine Learning\
+      \ Conference, and you see submissions with the following claims. Which ones\
+      \ would you consider accepting?\n(A) My method achieves a training error lower\
+      \ than all previous methods! (B) My method achieves a test error lower than\
+      \ all previous methods! (Footnote: When regularisation parameter \u03BB is chosen\
+      \ so as to minimise test error.) (C) My method achieves a test error lower than\
+      \ all previous methods! (Footnote: When regularisation parameter \u03BB is chosen\
+      \ so as to minimise cross-validaton error.) (D) My method achieves a cross-validation\
+      \ error lower than all previous methods! (Footnote: When regularisation parameter\
+      \ \u03BB is chosen so as to minimise cross-validaton error.)"
+    target: "Let's think step by step. In machine learning, we train with some data\
+      \ and fixed hyperparameters and the training error can be arbitrarily low, so\
+      \ (A) can\u2019t be right. Then, one compares different hyperparameters by selecting\
+      \ the model with the lowest cross-validation error, this means that (B) and\
+      \ (D) are not the right procedure. The only relevant number after these is the\
+      \ test error and thus (C) is the right answer. The answer is (C)."
+  - question: 'A 6-sided die is rolled 15 times and the results are: side 1 comes up
+      0 times; side 2: 1 time; side 3: 2 times; side 4: 3 times; side 5: 4 times;
+      side 6: 5 times. Based on these results, what is the probability of side 3 coming
+      up when using Add-1 Smoothing?
+
+      (A) 2.0/15 (B) 1.0/7 (C) 3.0/16 (D) 1.0/5'
+    target: 'Let''s think step by step. Add-1 smoothing adds the value of one to the
+      different counts and then normalizes the probabilities accordingly. The counts
+      after adding one will be: side 1 comes up 1 time; side 2: 2 times; side 3: 3
+      times; side 4: 4 times; side 5: 5 times; side 6: 6 times. The number of sum
+      one die rolls will be 21, so the probability of drawing a three is 3/21 = 1/7.
+      The answer is (B).'
+  - question: 'To achieve an 0/1 loss estimate that is less than 1 percent of the true
+      0/1 loss (with probability 95%), according to Hoeffding''s inequality the IID
+      test set must have how many examples?
+
+      (A) around 10 examples (B) around 100 examples (C) between 100 and 500 examples
+      (D) more than 1000 examples'
+    target: "Let's think step by step. By the Hoeffding\u2019s inequality, we expect\
+      \ that with 95% probability the in-sample and out-of-sample errors differ by\
+      \ epsilon when we have N samples if 2 exp(-2 epsilon^2 N)<0.05, this implies\
+      \ that N > -1/(2*epsilon**2) log ( 0.05/2 )= log (40)*5000. Since log(40)>1,\
+      \ we have that one needs more than 1000 examples. The answer is (D).\n\n"
+tag: mmlu_flan_cot_fewshot_stem
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_machine_learning

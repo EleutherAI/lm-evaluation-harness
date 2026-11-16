@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ST = 0
+      B: ST = T
+      C: ST = TS
+      D: "ST - TS \xE9 o mapa de identidade de V sobre si mesmo."
+    input_correct_responses:
+    - D
+    input_question: "Seja V o conjunto de todos os polin\xF4mios reais p(x). Deixe\
+      \ as transforma\xE7\xF5es T, S serem definidas em V por T:p(x) -&gt; xp(x) e\
+      \ S:p(x) -&gt; p&#39;(x) = d/dx p(x), e interprete (ST) (p(x)) como S(T(p(x))).\
+      \ Qual dos seguintes \xE9 verdadeiro?"
+  - input_choice_list:
+      A: '2'
+      B: 2-e^-2
+      C: 2 + e^-2
+      D: 2 + e^-4
+    input_correct_responses:
+    - D
+    input_question: "Um tanque cont\xE9m inicialmente uma solu\xE7\xE3o salina de\
+      \ 3 gramas de sal dissolvidos em 100 litros de \xE1gua. Uma solu\xE7\xE3o salina\
+      \ contendo 0,02 gramas de sal por litro de \xE1gua \xE9 pulverizada no tanque\
+      \ a uma taxa de 4 litros por minuto. A solu\xE7\xE3o pulverizada \xE9 continuamente\
+      \ misturada com a solu\xE7\xE3o salina no tanque, e a mistura flui para fora\
+      \ do tanque a uma taxa de 4 litros por minuto. Se a mistura for instant\xE2\
+      nea, quantos gramas de sal h\xE1 no tanque ap\xF3s decorridos 100 minutos?"
+  - input_choice_list:
+      A: eu apenas
+      B: II apenas
+      C: III apenas
+      D: Apenas II e III
+    input_correct_responses:
+    - B
+    input_question: "Seja A uma matriz 2x2 real. Qual das seguintes afirma\xE7\xF5\
+      es deve ser verdadeira? I. Todas as entradas de A^2 s\xE3o n\xE3o negativas.\
+      \ II. O determinante de A ^ 2 n\xE3o \xE9 negativo. III. Se A tem dois autovalores\
+      \ distintos, ent\xE3o A^2 tem dois autovalores distintos."
+  - input_choice_list:
+      A: '-11'
+      B: '0'
+      C: '11'
+      D: 33/2
+    input_correct_responses:
+    - C
+    input_question: "Suponha que f(1 + x) = f(x) para todo x real. Se f \xE9 um polin\xF4\
+      mio e f(5) = 11, ent\xE3o f(15/2)"
+  - input_choice_list:
+      A: '-5'
+      B: '-4'
+      C: '-3'
+      D: '-2'
+    input_correct_responses:
+    - B
+    input_question: "Seja A o conjunto de todos os pares ordenados de inteiros (m,\
+      \ n) tais que 7m + 12n = 22. Qual \xE9 o maior n\xFAmero negativo no conjunto\
+      \ B = {m + n : (m, n) \\in A}?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_mathematics
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_college_mathematics
+task_alias: college_mathematics

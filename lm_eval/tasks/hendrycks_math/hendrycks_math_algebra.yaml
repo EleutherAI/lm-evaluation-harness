@@ -1,0 +1,23 @@
+tag:
+  - math_word_problems
+task: hendrycks_math_algebra
+dataset_path: EleutherAI/hendrycks_math
+process_docs: !function utils.process_docs
+dataset_name: algebra
+output_type: generate_until
+training_split: train
+test_split: test
+doc_to_text: "Problem: {{problem}}\nAnswer:"
+process_results: !function utils.process_results
+doc_to_target: "{{answer}}"
+generation_kwargs:
+  until:
+    - "Problem:"
+  do_sample: false
+  temperature: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

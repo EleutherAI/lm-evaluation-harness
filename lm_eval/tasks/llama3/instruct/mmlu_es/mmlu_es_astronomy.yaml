@@ -1,0 +1,66 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Ser\xEDa m\xE1s dif\xEDcil ya que el cami\xF3n es m\xE1s pesado en Marte."
+      B: "Ser\xEDa m\xE1s f\xE1cil ya que el cami\xF3n es m\xE1s ligero en Marte."
+      C: "Ser\xEDa m\xE1s dif\xEDcil ya que el cami\xF3n es m\xE1s ligero en Marte."
+      D: "Ser\xEDa lo mismo sin importar d\xF3nde est\xE9s."
+    input_correct_responses:
+    - D
+    input_question: "Est\xE1s empujando un cami\xF3n por una carretera. \xBFSer\xED\
+      a m\xE1s f\xE1cil acelerar este cami\xF3n en Marte? \xBFPor qu\xE9? (Supongamos\
+      \ que no hay fricci\xF3n)"
+  - input_choice_list:
+      A: "El cintur\xF3n de Kuiper; Los cometas de per\xEDodo corto tienden a estar\
+        \ en el plano del sistema solar al igual que el cintur\xF3n de Kuiper."
+      B: "El cintur\xF3n de Kuiper; Los cometas de per\xEDodo corto tienden a provenir\
+        \ de direcciones aleatorias, lo que indica una distribuci\xF3n esf\xE9rica\
+        \ de cometas llamada cintur\xF3n de Kuiper."
+      C: "El cintur\xF3n de asteroides; Los cometas de per\xEDodo corto tienen per\xED\
+        odos orbitales similares a los asteroides como Vesta y se encuentran en el\
+        \ plano del sistema solar al igual que el cintur\xF3n de asteroides."
+      D: "La nube de Oort; Los cometas de per\xEDodo corto tienden a estar en el plano\
+        \ del sistema solar al igual que la nube de Oort."
+    input_correct_responses:
+    - A
+    input_question: "\xBFDe d\xF3nde proceden la mayor\xEDa de los cometas de per\xED\
+      odo corto y c\xF3mo lo sabemos?"
+  - input_choice_list:
+      A: "10000 veces m\xE1s"
+      B: "100 veces m\xE1s"
+      C: "1000 veces m\xE1s"
+      D: "10 veces m\xE1s"
+    input_correct_responses:
+    - A
+    input_question: "Digamos que la pupila de tu ojo tiene un di\xE1metro de 5 mm\
+      \ y tienes un telescopio con una apertura de 50 cm. \xBFCu\xE1nta m\xE1s luz\
+      \ puede captar el telescopio que tu ojo?"
+  - input_choice_list:
+      A: "Una vez se form\xF3 aqu\xED un planeta, pero fue destruido por una colisi\xF3\
+        n catastr\xF3fica."
+      B: "En esta parte de la nebulosa solar no hab\xEDa suficiente material para\
+        \ formar un planeta."
+      C: "Hab\xEDa demasiado material rocoso para formar un planeta terrestre pero\
+        \ no suficiente material gaseoso para formar un planeta joviano."
+      D: "La resonancia con J\xFApiter impidi\xF3 que el material se acumulara para\
+        \ formar un planeta."
+    input_correct_responses:
+    - D
+    input_question: "\xBFPor qu\xE9 no existe un planeta donde se encuentre el cintur\xF3\
+      n de asteroides?"
+  - input_choice_list:
+      A: "Porque la superficie est\xE1 cubierta de minerales muy oxidados (&quot;oxidados&quot;)."
+      B: "Porque la atm\xF3sfera dispersa m\xE1s luz en longitudes de onda m\xE1s\
+        \ azules y transmite principalmente luz roja."
+      C: "Porque Marte est\xE1 cubierto de antiguos flujos de lava de color rojo."
+      D: "Porque el agua que fluy\xF3 sobre la superficie de Marte alter\xF3 los minerales\
+        \ de la superficie hace varios miles de millones de a\xF1os."
+    input_correct_responses:
+    - A
+    input_question: "\xBFPor qu\xE9 Marte es rojo?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_astronomy
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_astronomy
+task_alias: astronomy

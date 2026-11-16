@@ -1,0 +1,5 @@
+include: mbpp.yaml
+task: mbpp_plus
+dataset_path: evalplus/mbppplus
+dataset_name: null
+doc_to_text: "You are an expert Python programmer, and here is your task: {{prompt if prompt is defined else text}} Your code should pass these tests:\n\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}\n[BEGIN]\n"

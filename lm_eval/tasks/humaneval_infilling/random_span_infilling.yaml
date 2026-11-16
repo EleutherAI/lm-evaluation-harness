@@ -1,0 +1,3 @@
+include: multi_line_infilling.yaml
+task: humaneval_random_span_infilling
+dataset_name: HumanEval-RandomSpanInfilling

@@ -1,0 +1,15 @@
+group: mmmlu_it_it
+group_alias: "Italian"
+task:
+  - mmmlu_it_it_stem
+  - mmmlu_it_it_other
+  - mmmlu_it_it_social_sciences
+  - mmmlu_it_it_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

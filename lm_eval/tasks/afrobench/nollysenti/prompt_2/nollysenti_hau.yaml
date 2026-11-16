@@ -1,0 +1,4 @@
+dataset_name: ha
+include: nollysenti
+doc_to_text: 'Does this Hausa movie description; "{{review}}" have a Positive or Negative sentiment? Labels only\n'
+task: nollysenti_hau_prompt_2

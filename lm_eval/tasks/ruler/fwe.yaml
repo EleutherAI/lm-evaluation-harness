@@ -1,0 +1,8 @@
+include: niah_single_1.yaml
+task: ruler_fwe
+custom_dataset: !function fwe_utils.fwe_download
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50
+  until: []

@@ -1,0 +1,4 @@
+dataset_name: law
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_direct_hard_law
+tag: kmmlu_direct_hard_humss_tasks

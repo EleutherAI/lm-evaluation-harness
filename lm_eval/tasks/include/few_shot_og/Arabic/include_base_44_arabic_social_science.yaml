@@ -1,0 +1,4 @@
+include: _arabic_few_shot_og_template_yaml
+description: فيما يلي أسئلة اختيارية متعددة (مع الإجابات) حول Social Science.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_arabic_few_shot_og_social_science

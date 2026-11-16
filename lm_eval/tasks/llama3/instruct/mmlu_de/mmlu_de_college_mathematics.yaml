@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ST = 0
+      B: ST = T
+      C: ST = TS
+      D: "ST - TS ist die Identit\xE4tsabbildung von V auf sich selbst."
+    input_correct_responses:
+    - D
+    input_question: Sei V die Menge aller reellen Polynome p(x). Seien Transformationen
+      T, S auf V definiert durch T:p(x) -&gt; xp(x) und S:p(x) -&gt; p&#39;(x) = d/dx
+      p(x), und interpretiere (ST) (p(x)) als S(T(p(x))). Welche der folgenden Aussagen
+      ist wahr?
+  - input_choice_list:
+      A: '2'
+      B: 2 - e^-2
+      C: 2 + e^-2
+      D: 2 + e^-4
+    input_correct_responses:
+    - D
+    input_question: "Ein Tank enth\xE4lt zun\xE4chst eine Salzl\xF6sung aus 3 Gramm\
+      \ Salz gel\xF6st in 100 Liter Wasser. Eine Salzl\xF6sung mit 0,02 Gramm Salz\
+      \ pro Liter Wasser wird mit einer Geschwindigkeit von 4 Litern pro Minute in\
+      \ den Tank gespr\xFCht. Die verspr\xFChte L\xF6sung wird kontinuierlich mit\
+      \ der Salzl\xF6sung im Tank vermischt und die Mischung flie\xDFt mit einer Geschwindigkeit\
+      \ von 4 Litern pro Minute aus dem Tank. Wenn das Mischen sofort erfolgt, wie\
+      \ viel Gramm Salz befinden sich nach Ablauf von 100 Minuten im Tank?"
+  - input_choice_list:
+      A: ich nur
+      B: Nur II
+      C: III nur
+      D: Nur II und III
+    input_correct_responses:
+    - B
+    input_question: "Sei A eine reelle 2x2-Matrix. Welche der folgenden Aussagen muss\
+      \ wahr sein? I. Alle Eintr\xE4ge von A^2 sind nichtnegativ. II. Die Determinante\
+      \ von A^2 ist nichtnegativ. III. Wenn A zwei verschiedene Eigenwerte hat, dann\
+      \ hat A^2 zwei verschiedene Eigenwerte."
+  - input_choice_list:
+      A: '-11'
+      B: '0'
+      C: '11'
+      D: 33/2
+    input_correct_responses:
+    - C
+    input_question: "Angenommen, f(1 + x) = f(x) f\xFCr alle reellen x. Wenn f ein\
+      \ Polynom ist und f(5) = 11, dann ist f(15/2)"
+  - input_choice_list:
+      A: '-5'
+      B: '-4'
+      C: '-3'
+      D: '-2'
+    input_correct_responses:
+    - B
+    input_question: "Sei A die Menge aller geordneten Paare ganzer Zahlen (m, n),\
+      \ so dass 7m + 12n = 22. Was ist die gr\xF6\xDFte negative Zahl in der Menge\
+      \ B = {m + n : (m, n) \\in A}?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_mathematics
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_college_mathematics
+task_alias: college_mathematics

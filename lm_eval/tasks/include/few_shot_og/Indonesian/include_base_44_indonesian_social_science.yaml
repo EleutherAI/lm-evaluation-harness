@@ -1,0 +1,5 @@
+include: _indonesian_few_shot_og_template_yaml
+description: Berikut ini adalah pertanyaan pilihan ganda (dengan jawaban) tentang
+  Social Science.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_indonesian_few_shot_og_social_science

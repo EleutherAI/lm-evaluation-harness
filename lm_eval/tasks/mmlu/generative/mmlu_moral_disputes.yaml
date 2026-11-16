@@ -1,0 +1,7 @@
+"dataset_name": "moral_disputes"
+"description": "The following are multiple choice questions (with answers) about moral\
+  \ disputes.\n\n"
+"tag": "mmlu_humanities_generative"
+"include": "_default_template_yaml"
+"task": "mmlu_moral_disputes_generative"
+"task_alias": "moral_disputes"

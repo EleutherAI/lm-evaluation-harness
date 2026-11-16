@@ -1,0 +1,16 @@
+# group:
+#   - hendrycks_ethics
+# task: ethics_utilitarianism_original
+# dataset_path: hails/hendrycks_ethics
+# dataset_name: utilitarianism
+# output_type: winograd_schema
+# fewshot_split: null # TODO: implement a special fewshot split for this dataset subsets
+# test_split: test
+# template_aliases:  #"{% set answer_choices = range(1, 11)|list %}"
+# doc_to_text: 'Activity: "{{activity}}"\nRating:'
+# doc_to_target: "{{answer_choices[label]}}"
+# metric_list:
+#   - metric: acc
+# TODO: we want this to be implemented as a winograd_schema task type, actually
+# metadata:
+#   version: 1.0

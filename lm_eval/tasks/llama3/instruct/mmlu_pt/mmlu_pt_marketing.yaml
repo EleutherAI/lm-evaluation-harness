@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Geodemografia
+      B: "Diferencia\xE7\xE3o do produto."
+      C: Matriz ANSOFF.
+      D: "Gest\xE3o de marca."
+    input_correct_responses:
+    - A
+    input_question: "_____________ \xE9 um resultado natural quando se combinam vari\xE1\
+      veis demogr\xE1ficas e geogr\xE1ficas."
+  - input_choice_list:
+      A: "Unidade de terceiriza\xE7\xE3o."
+      B: Centro de compras.
+      C: Unidade executiva principal.
+      D: "Unidade de tomada de decis\xE3o."
+    input_correct_responses:
+    - D
+    input_question: "Em uma organiza\xE7\xE3o, o grupo de pessoas encarregadas de\
+      \ tomar decis\xF5es de compra \xE9 denominado _______________."
+  - input_choice_list:
+      A: "As necessidades dependem da cultura e tamb\xE9m da classe social."
+      B: "As necessidades de n\xEDvel inferior devem ser pelo menos parcialmente satisfeitas\
+        \ antes que necessidades superiores possam afetar o comportamento."
+      C: "As necessidades n\xE3o s\xE3o priorizadas ou organizadas em nenhuma ordem\
+        \ espec\xEDfica."
+      D: "As necessidades satisfeitas s\xE3o motivadores e novas necessidades surgem\
+        \ quando as necessidades atuais permanecem n\xE3o satisfeitas."
+    input_correct_responses:
+    - B
+    input_question: "Qual das alternativas a seguir \xE9 uma suposi\xE7\xE3o na hierarquia\
+      \ de necessidades de Maslow?"
+  - input_choice_list:
+      A: "O consumidor mais velho que se sente um tanto exclu\xEDdo."
+      B: As mulheres casadas, muitas das quais sentem necessidade de estabilidade
+        nas suas vidas.
+      C: Novos imigrantes que realmente desejam assimilar sua nova cultura.
+      D: "Crian\xE7as, que baseiam a maior parte das suas decis\xF5es de compra em\
+        \ influ\xEAncias externas."
+    input_correct_responses:
+    - D
+    input_question: "O \xFAnico grupo dentro da sociedade que \xE9 mais vulner\xE1\
+      vel \xE0 influ\xEAncia do grupo de refer\xEAncia \xE9:"
+  - input_choice_list:
+      A: Linhas de cuidado.
+      B: Mala direta.
+      C: "Inser\xE7\xF5es."
+      D: De porta em porta.
+    input_correct_responses:
+    - D
+    input_question: "Embora o conte\xFAdo e a qualidade possam ser t\xE3o controlados\
+      \ quanto a mala direta, as taxas de resposta desse meio s\xE3o mais baixas devido\
+      \ \xE0 falta de um mecanismo de endere\xE7o pessoal. Este formato de m\xEDdia\
+      \ \xE9 conhecido como:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_marketing
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_marketing
+task_alias: marketing

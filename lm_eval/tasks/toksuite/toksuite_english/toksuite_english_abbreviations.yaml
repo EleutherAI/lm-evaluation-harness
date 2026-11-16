@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_abbreviations
+include: toksuite_english_base.yaml
+task: toksuite_english_abbreviations
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Abbreviations
+  num_samples: 37

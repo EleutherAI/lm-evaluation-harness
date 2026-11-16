@@ -1,0 +1,4 @@
+include: _paloma_template
+task: paloma_4chan_meta_sep
+task_alias: 4chan
+dataset_name: 4chan_meta_sep

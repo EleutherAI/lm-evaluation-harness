@@ -1,0 +1,14 @@
+group: mmmu_val_science
+group_alias: Science
+task:
+  - mmmu_val_biology
+  - mmmu_val_chemistry
+  - mmmu_val_geography
+  - mmmu_val_math
+  - mmmu_val_physics
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

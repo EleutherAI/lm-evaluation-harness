@@ -1,0 +1,20 @@
+tag:
+  - lambada_multilingual
+task: lambada_openai_mt_en
+dataset_path: EleutherAI/lambada_openai
+dataset_name: en
+output_type: loglikelihood
+test_split: test
+doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"
+doc_to_target: "{{' '+text.split(' ')[-1]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: perplexity
+    aggregation: perplexity
+    higher_is_better: false
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

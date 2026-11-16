@@ -1,0 +1,4 @@
+include: _paloma_template
+task: paloma_m2d2_s2orc_unsplit
+task_alias: M2D2 S2ORC
+dataset_name: m2d2_s2orc_unsplit

@@ -1,0 +1,3 @@
+dataset_name: principle_A_domain_number
+include: _template_yaml
+task: zhoblimp_principle_A_domain_number

@@ -1,0 +1,291 @@
+group: blimp_nl
+task:
+  - group: blimp_nl__adpositional_phrases
+    task:
+      - blimp_nl__adpositional_phrases__argument_r_extraction
+      - blimp_nl__adpositional_phrases__argument_scrambling
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__adverbial_modification
+    task:
+      - blimp_nl__adverbial_modification__position_proform
+      - blimp_nl__adverbial_modification__position_type
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__anaphor_agreement
+    task:
+      - blimp_nl__anaphor_agreement__number
+      - blimp_nl__anaphor_agreement__person
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__argument_structure
+    task:
+      - blimp_nl__argument_structure__argument_number_ditransitive
+      - blimp_nl__argument_structure__argument_number_in_transitive
+      - blimp_nl__argument_structure__ditransitive_nomdat_1
+      - blimp_nl__argument_structure__ditransitive_nomdat_2
+      - blimp_nl__argument_structure__ditransitive_nomdat_3
+      - blimp_nl__argument_structure__intransitive_unaccusative_1
+      - blimp_nl__argument_structure__intransitive_unaccusative_2
+      - blimp_nl__argument_structure__intransitive_unaccusative_3
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__auxiliaries
+    task:
+      - blimp_nl__auxiliaries__order_1
+      - blimp_nl__auxiliaries__order_2
+      - blimp_nl__auxiliaries__perfect
+      - blimp_nl__auxiliaries__semi_aspectual_1
+      - blimp_nl__auxiliaries__semi_aspectual_2
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__binding_principle_a
+    task:
+      - blimp_nl__binding_principle_a__c_command
+      - blimp_nl__binding_principle_a__monomorphemic
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__complementive
+    task:
+      - blimp_nl__complementive__ditransitive
+      - blimp_nl__complementive__intransitive
+      - blimp_nl__complementive__position_adverb
+      - blimp_nl__complementive__position_verb
+      - blimp_nl__complementive__transitive
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__crossing_dependencies
+    task:
+      - blimp_nl__crossing_dependencies__cross_dependency
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__determiners
+    task:
+      - blimp_nl__determiners__geen_expletive
+      - blimp_nl__determiners__geen_scrambling_1
+      - blimp_nl__determiners__geen_scrambling_2
+      - blimp_nl__determiners__negative_polarity
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__extraposition
+    task:
+      - blimp_nl__extraposition__adjectival_adverbial
+      - blimp_nl__extraposition__adjectival_supplementive
+      - blimp_nl__extraposition__argument_nominal
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__finite_argument_clause
+    task:
+      - blimp_nl__finite_argument_clause__complementizer
+      - blimp_nl__finite_argument_clause__perception_dat
+      - blimp_nl__finite_argument_clause__perception_of
+      - blimp_nl__finite_argument_clause__position
+      - blimp_nl__finite_argument_clause__sluicing_1
+      - blimp_nl__finite_argument_clause__sluicing_2
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__infinitival_argument_clause
+    task:
+      - blimp_nl__infinitival_argument_clause__bare_verb_cluster
+      - blimp_nl__infinitival_argument_clause__bare_verb_type_1
+      - blimp_nl__infinitival_argument_clause__bare_verb_type_2
+      - blimp_nl__infinitival_argument_clause__bare_verb_type_3
+      - blimp_nl__infinitival_argument_clause__om_te
+      - blimp_nl__infinitival_argument_clause__te_om_te_difference_1
+      - blimp_nl__infinitival_argument_clause__te_om_te_difference_2
+      - blimp_nl__infinitival_argument_clause__te_transparant_split
+      - blimp_nl__infinitival_argument_clause__verb_type
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__nominalization
+    task:
+      - blimp_nl__nominalization__type_inf_1
+      - blimp_nl__nominalization__type_inf_2
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__parasitic_gaps
+    task:
+      - blimp_nl__parasitic_gaps__scrambling
+      - blimp_nl__parasitic_gaps__structure_type_1
+      - blimp_nl__parasitic_gaps__structure_type_2
+      - blimp_nl__parasitic_gaps__structure_type_3
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__passive
+    task:
+      - blimp_nl__passive__aci
+      - blimp_nl__passive__ditransitive_1
+      - blimp_nl__passive__ditransitive_2
+      - blimp_nl__passive__impersonal
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__quantifiers
+    task:
+      - blimp_nl__quantifiers__universal_difference_agreement_plural
+      - blimp_nl__quantifiers__universal_difference_agreement_singular
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__r_words
+    task:
+      - blimp_nl__r_words__adverbial
+      - blimp_nl__r_words__weak_proform
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__relativization
+    task:
+      - blimp_nl__relativization__island
+      - blimp_nl__relativization__pied_piping
+      - blimp_nl__relativization__resumptive_prolepsis
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__topicalization
+    task:
+      - blimp_nl__topicalization__island
+      - blimp_nl__topicalization__question_similarity_1
+      - blimp_nl__topicalization__question_similarity_2
+      - blimp_nl__topicalization__resumptive_prolepsis
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__verb_second
+    task:
+      - blimp_nl__verb_second__order_embedded
+      - blimp_nl__verb_second__order_main
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__wh_movement
+    task:
+      - blimp_nl__wh_movement__filler_effect_gap
+      - blimp_nl__wh_movement__filler_effect_no_gap
+      - blimp_nl__wh_movement__hierarchy
+      - blimp_nl__wh_movement__question_formation
+      - blimp_nl__wh_movement__stranding_1
+      - blimp_nl__wh_movement__stranding_2
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+  - group: blimp_nl__wh_movement_restrictions
+    task:
+      - blimp_nl__wh_movement_restrictions__bridge_verb_1
+      - blimp_nl__wh_movement_restrictions__bridge_verb_2
+      - blimp_nl__wh_movement_restrictions__island_1
+      - blimp_nl__wh_movement_restrictions__island_2
+      - blimp_nl__wh_movement_restrictions__resumptive_prolepsis
+      - blimp_nl__wh_movement_restrictions__superiority
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+      - metric: acc_norm
+        aggregation: mean
+        weight_by_size: false
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false

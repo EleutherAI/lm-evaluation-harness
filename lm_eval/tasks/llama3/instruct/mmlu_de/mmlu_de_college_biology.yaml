@@ -1,0 +1,57 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Sie besitzen ein Exoskelett, das haupts\xE4chlich aus Peptidoglycan besteht."
+      B: "Sie besitzen ein offenes Kreislaufsystem mit einem R\xFCckenherz."
+      C: "Sie sind Mitglieder eines biologisch erfolglosen Stammes, der nicht in der\
+        \ Lage ist, verschiedene Lebensr\xE4ume und Nahrungsquellen zu nutzen."
+      D: "Ihnen fehlen gepaarte, gegliederte Anh\xE4ngsel."
+    input_correct_responses:
+    - B
+    input_question: Welche der folgenden Aussagen trifft auf Arthropoden zu?
+  - input_choice_list:
+      A: 1/400
+      B: 19/400
+      C: 20/400
+      D: 38/400
+    input_correct_responses:
+    - D
+    input_question: "In einer bestimmten Population hat 1 von 400 Menschen einen Krebs,\
+      \ der durch ein vollst\xE4ndig rezessives Allel verursacht wird, b. Unter der\
+      \ Annahme, dass sich die Population im Hardy-Weinberg-Gleichgewicht befindet,\
+      \ welcher der folgenden Werte ist der erwartete Anteil an Personen, die das\
+      \ b-Allel tragen, aber voraussichtlich nicht an Krebs erkranken?"
+  - input_choice_list:
+      A: Mensch und Vogel sind polyphyletische Arten
+      B: Die Evolution eines Menschen und eines Vogels ist konvergent
+      C: "der Mensch und der Vogel geh\xF6ren zu einer Gruppe"
+      D: der Mensch und der Vogel entwickelten sich analog
+    input_correct_responses:
+    - C
+    input_question: Das Vorhandensein homologer Strukturen in zwei verschiedenen Organismen,
+      wie dem Humerus in den Vorderbeinen eines Menschen und eines Vogels, weist darauf
+      hin
+  - input_choice_list:
+      A: "eine ATP-abh\xE4ngige Druckflusspumpe"
+      B: ein Wasserdruckpotentialgradient
+      C: Transpiration
+      D: apoplastische Diffusion
+    input_correct_responses:
+    - B
+    input_question: Nach dem Druck-Fluss-Modell der Bewegung von Phloeminhalten wird
+      die Photosynthesebewegung von der Quelle zur Senke angetrieben
+  - input_choice_list:
+      A: Telomere
+      B: Zentromere
+      C: Nukleosomen
+      D: Spliceosomen
+    input_correct_responses:
+    - B
+    input_question: "Welche der folgenden enthalten DNA-Sequenzen, die f\xFCr die\
+      \ Trennung von Chromosomen bei Mitose und Meiose erforderlich sind?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_biology
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_college_biology
+task_alias: college_biology

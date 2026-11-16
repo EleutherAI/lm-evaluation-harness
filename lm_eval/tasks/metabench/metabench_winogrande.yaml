@@ -1,0 +1,20 @@
+task: metabench_winogrande
+tag:
+  - metabench_winogrande_subset
+dataset_path: HCAI/metabench
+dataset_name: Winogrande
+process_docs: !function process_docs.process_winogrande
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: primary
+num_fewshot: 0
+doc_to_text: !function process_docs.winogrande_doc_to_text
+doc_to_target: !function process_docs.winogrande_doc_to_target
+doc_to_choice: !function process_docs.winogrande_doc_to_choice
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

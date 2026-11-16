@@ -1,0 +1,3 @@
+task: xsum
+include: unitxt
+recipe: card=cards.xsum,template=templates.summarization.abstractive.full

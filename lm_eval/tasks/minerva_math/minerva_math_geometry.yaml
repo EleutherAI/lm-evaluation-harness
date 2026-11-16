@@ -1,0 +1,3 @@
+include: minerva_math_algebra.yaml
+dataset_name: geometry
+task: minerva_math_geometry

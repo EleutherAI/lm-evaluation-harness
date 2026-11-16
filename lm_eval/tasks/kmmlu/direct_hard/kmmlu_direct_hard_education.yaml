@@ -1,0 +1,4 @@
+dataset_name: education
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_direct_hard_education
+tag: kmmlu_direct_hard_humss_tasks

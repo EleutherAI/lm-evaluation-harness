@@ -1,0 +1,4 @@
+include: _default_indicparam_template_yaml
+task: indicparam_santali
+task_alias: Santali
+process_docs: !function utils.process_docs_santali

@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "a trav\xE9s de transportadores de prote\xEDnas llamados GLUT4."
+      B: "s\xF3lo en presencia de insulina."
+      C: "v\xEDa hexoquinasa."
+      D: "mediante transportadores de \xE1cido monocarb\xEDlico."
+    input_correct_responses:
+    - A
+    input_question: "La glucosa se transporta a la c\xE9lula muscular:"
+  - input_choice_list:
+      A: "El gluc\xF3geno muscular se descompone enzim\xE1ticamente en glucosa-1-fosfato."
+      B: "Los corredores de resistencia de \xE9lite tienen una alta proporci\xF3n\
+        \ de fibras tipo I en los m\xFAsculos de las piernas"
+      C: "El gluc\xF3geno hep\xE1tico es importante en el mantenimiento de la concentraci\xF3\
+        n de glucosa en sangre."
+      D: "La insulina promueve la absorci\xF3n de glucosa por todos los tejidos del\
+        \ cuerpo."
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes no es una afirmaci\xF3n verdadera?"
+  - input_choice_list:
+      A: "Todos los descendientes por l\xEDnea materna padecer\xE1n el trastorno."
+      B: "Las mujeres se ver\xE1n aproximadamente dos veces m\xE1s afectadas que los\
+        \ hombres en esta familia."
+      C: "Todas las hijas de un var\xF3n afectado se ver\xE1n afectadas."
+      D: "Habr\xE1 una distribuci\xF3n equitativa de hombres y mujeres afectados."
+    input_correct_responses:
+    - C
+    input_question: "En una prueba gen\xE9tica de un reci\xE9n nacido, se encuentra\
+      \ un trastorno gen\xE9tico poco com\xFAn que tiene transmisi\xF3n recesiva ligada\
+      \ al cromosoma X. \xBFCu\xE1l de las siguientes afirmaciones es probablemente\
+      \ cierta con respecto al pedigr\xED de este trastorno?"
+  - input_choice_list:
+      A: Aumento de temperatura, aumento de moles de gas.
+      B: Aumento de temperatura, aumento de volumen.
+      C: "Disminuci\xF3n del volumen, disminuci\xF3n de la temperatura."
+      D: "Disminuci\xF3n de moles de gas, aumento de volumen."
+    input_correct_responses:
+    - A
+    input_question: "Un profesor de ciencias de secundaria llena una botella de 1\
+      \ litro con nitr\xF3geno puro y sella la tapa. La presi\xF3n es de 1,70 atm\
+      \ y la temperatura ambiente es de 25\xB0C. \xBFCu\xE1les dos variables aumentar\xE1\
+      n la presi\xF3n del sistema si todas las dem\xE1s variables se mantienen constantes?"
+  - input_choice_list:
+      A: debilidad muscular.
+      B: ganancia de masa corporal.
+      C: calambres musculares.
+      D: "p\xE9rdida de electrolitos."
+    input_correct_responses:
+    - B
+    input_question: "Un efecto secundario esperado de la suplementaci\xF3n con creatina\
+      \ es:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_medicine
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_college_medicine
+task_alias: college_medicine

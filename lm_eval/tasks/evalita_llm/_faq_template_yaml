@@ -1,0 +1,8 @@
+dataset_path: evalitahf/faq
+test_split: test_1
+fewshot_split: dev_1
+doc_to_target: !function utils.faq_doc_to_target
+doc_to_choice: ["A", "B", "C", "D"]
+output_type: multiple_choice
+metadata:
+  version: 1

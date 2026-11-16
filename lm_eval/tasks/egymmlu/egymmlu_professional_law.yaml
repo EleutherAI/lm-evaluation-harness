@@ -1,0 +1,7 @@
+"dataset_name": "professional_law"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_humanities_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_professional_law"
+"task_alias": "professional law"

@@ -1,0 +1,17 @@
+tag: basque-glue
+task: wiceu
+dataset_path: orai-nlp/basqueGLUE
+dataset_name: wic
+output_type: multiple_choice
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_wic_docs
+doc_to_text: "1. esaldia: {{sentence1}}\n2. esaldia: {{sentence2}}\nGaldera: Aurreko bi esaldietan, \"{{word}}\" hitzak esanahi berdina du?\nErantzuna:"
+doc_to_target: label
+doc_to_choice: ['ez', 'bai']
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

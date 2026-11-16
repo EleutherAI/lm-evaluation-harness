@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_philosophy
+"tag": "mmmlu_ar_xy_humanities_tasks"
+"task": "mmmlu_ar_xy_philosophy"
+"task_alias": "philosophy (Arabic)"
+"description": "The following are multiple choice questions (with answers) about philosophy (Arabic).\n\n"

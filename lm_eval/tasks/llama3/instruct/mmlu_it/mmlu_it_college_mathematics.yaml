@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ST = 0
+      B: ST = T
+      C: ST = ST
+      D: "ST - TS \xE8 la mappa identitaria di V su se stessa."
+    input_correct_responses:
+    - D
+    input_question: "Sia V l&#39;insieme di tutti i polinomi reali p(x). Siano definite\
+      \ le trasformazioni T, S su V da T:p(x) -&gt; xp(x) e S:p(x) -&gt; p&#39;(x)\
+      \ = d/dx p(x), e si interpreti (ST) (p(x)) come S(T(p(x))). Quale delle seguenti\
+      \ affermazioni \xE8 vera?"
+  - input_choice_list:
+      A: '2'
+      B: 2 - e^-2
+      C: 2+e^-2
+      D: 2+e^-4
+    input_correct_responses:
+    - D
+    input_question: "Un serbatoio contiene inizialmente una soluzione salina composta\
+      \ da 3 grammi di sale disciolti in 100 litri di acqua. Nel serbatoio viene spruzzata\
+      \ una soluzione salina contenente 0,02 grammi di sale per litro d&#39;acqua\
+      \ ad una velocit\xE0 di 4 litri al minuto. La soluzione spruzzata viene continuamente\
+      \ miscelata con la soluzione salina contenuta nel serbatoio e la miscela fuoriesce\
+      \ dal serbatoio ad una velocit\xE0 di 4 litri al minuto. Se la miscelazione\
+      \ \xE8 istantanea, quanti grammi di sale ci sono nel serbatoio dopo che sono\
+      \ trascorsi 100 minuti?"
+  - input_choice_list:
+      A: I solo
+      B: Solo II
+      C: Solo III
+      D: Solo II e III
+    input_correct_responses:
+    - B
+    input_question: "Sia A una matrice 2x2 reale. Quale delle seguenti affermazioni\
+      \ deve essere vera? I. Tutte le voci di A^2 sono non negative. II. Il determinante\
+      \ di A^2 non \xE8 negativo. III. Se A ha due autovalori distinti, allora A^2\
+      \ ha due autovalori distinti."
+  - input_choice_list:
+      A: '-11'
+      B: '0'
+      C: '11'
+      D: 33/2
+    input_correct_responses:
+    - C
+    input_question: "Supponiamo che f(1 + x) = f(x) per ogni x reale. Se f \xE8 un\
+      \ polinomio e f(5) = 11, allora f(15/2)"
+  - input_choice_list:
+      A: '-5'
+      B: '-4'
+      C: '-3'
+      D: '-2'
+    input_correct_responses:
+    - B
+    input_question: "Sia A l&#39;insieme di tutte le coppie ordinate di interi (m,\
+      \ n) tali che 7m + 12n = 22. Qual \xE8 il numero negativo pi\xF9 grande nell&#39;insieme\
+      \ B = {m + n : (m, n) \\in A}?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_mathematics
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_college_mathematics
+task_alias: college_mathematics

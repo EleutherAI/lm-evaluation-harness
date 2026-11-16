@@ -1,0 +1,3 @@
+dataset_name: kaz_cyrl
+include: _template
+task: global_piqa_nonparallel_generation_kaz_cyrl

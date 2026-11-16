@@ -1,0 +1,94 @@
+task: bbq_generate
+dataset_path: oskarvanderwal/bbq
+dataset_name: All
+test_split: test
+output_type: generate_until
+process_docs: !function utils.process_docs
+process_results: !function utils.process_results_generate_until
+doc_to_text: "{{context}}\n\nQ: {{question}}\nA:"
+doc_to_target: !function utils.doc_to_target
+doc_to_choice: !function utils.doc_to_choice
+metadata:
+  version: 1.0
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: accuracy_amb
+    aggregation: !function utils.agg_accuracy_amb
+    higher_is_better: true
+  - metric: accuracy_disamb
+    aggregation: !function utils.agg_accuracy_disamb
+    higher_is_better: true
+  - metric: amb_bias_score
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Age
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Disability_status
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Gender_identity
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Nationality
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Physical_appearance
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Race_ethnicity
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Race_x_gender
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Race_x_SES
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Religion
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_SES
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Sexual_orientation
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Age
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Disability_status
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Gender_identity
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Nationality
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Physical_appearance
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Race_ethnicity
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Race_x_gender
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Race_x_SES
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Religion
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_SES
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false
+  - metric: disamb_bias_score_Sexual_orientation
+    aggregation: !function utils.agg_disamb_bias_scores
+    higher_is_better: false

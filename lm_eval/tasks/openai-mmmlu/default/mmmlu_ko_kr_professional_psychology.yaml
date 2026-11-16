@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_ko_kr_social_sciences_tasks"
+"task": "mmmlu_ko_kr_professional_psychology"
+"task_alias": "professional psychology (Korean)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Korean).\n\n"

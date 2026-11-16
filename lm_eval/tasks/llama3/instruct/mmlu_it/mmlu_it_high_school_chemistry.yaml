@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: HCl
+      B: H2SO3
+      C: SO2
+      D: Al(NO3)3
+    input_correct_responses:
+    - C
+    input_question: "Quale delle seguenti \xE8 considerata un&#39;anidride acida?"
+  - input_choice_list:
+      A: PCl4F
+      B: BF3
+      C: CO2
+      D: Si(CH3)4
+    input_correct_responses:
+    - A
+    input_question: Quale delle seguenti dovrebbe essere una molecola polare?
+  - input_choice_list:
+      A: Tutti i cloruri, i bromuri e gli ioduri sono solubili
+      B: Tutti i solfati sono solubili
+      C: Tutti gli idrossidi sono solubili
+      D: Tutti i composti contenenti ammonio sono solubili
+    input_correct_responses:
+    - D
+    input_question: "Dalle regole di solubilit\xE0, quale delle seguenti affermazioni\
+      \ \xE8 vera?"
+  - input_choice_list:
+      A: 3,89
+      B: '7.78'
+      C: '5.78'
+      D: '2.33'
+    input_correct_responses:
+    - C
+    input_question: "Viene sintetizzato un nuovo composto e si scopre che \xE8 un\
+      \ acido monoprotico con una massa molare di 248 g/mol. Quando 0,0050 moli di\
+      \ questo acido vengono sciolte in 0,500 L di acqua, il pH viene misurato come\
+      \ 3,89. Qual \xE8 il pKa di questo acido?"
+  - input_choice_list:
+      A: 0,500 moli
+      B: 1,00 talpa
+      C: 2,00 talpe
+      D: 3,00 talpe
+    input_correct_responses:
+    - C
+    input_question: "Una soluzione contiene 2,00 moli di acido acetico, CH3COOH, e\
+      \ 1,00 moli di acetato di calcio, Ca(CH3COO)2. La soluzione \xE8 in grado di\
+      \ resistere all&#39;aggiunta di una piccola quantit\xE0 di acido forte o base\
+      \ forte con solo lievi variazioni del pH della soluzione. Quantit\xE0 maggiori\
+      \ di acido forte o base forte possono causare un cambiamento significativo nel\
+      \ pH. Quante moli di acido nitrico, HNO3, possono essere aggiunte prima che\
+      \ il pH inizi a cambiare in modo significativo?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_chemistry
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_high_school_chemistry
+task_alias: high_school_chemistry

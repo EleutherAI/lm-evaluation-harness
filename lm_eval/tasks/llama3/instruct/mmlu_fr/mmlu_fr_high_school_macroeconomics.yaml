@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "L&#39;arm\xE9e am\xE9ricaine ouvre une nouvelle base dans un pays \xE9tranger\
+        \ avec 1000 militaires am\xE9ricains."
+      B: "Les consommateurs japonais ach\xE8tent des milliers de CD produits aux \xC9\
+        tats-Unis."
+      C: "Une chanteuse pop am\xE9ricaine donne un concert \xE0 guichets ferm\xE9\
+        s \xE0 Paris."
+      D: "Une production th\xE9\xE2trale fran\xE7aise tourne dans des dizaines de\
+        \ villes am\xE9ricaines."
+    input_correct_responses:
+    - C
+    input_question: "Lequel des \xE9l\xE9ments suivants n&#39;est pas inclus dans\
+      \ le PIB am\xE9ricain\_?"
+  - input_choice_list:
+      A: "relation directe entre le ch\xF4mage et l&#39;inflation"
+      B: "relation directe entre le prix et la quantit\xE9 demand\xE9e"
+      C: "relation inverse entre le prix et la quantit\xE9 demand\xE9e"
+      D: "relation inverse entre le ch\xF4mage et l&#39;inflation"
+    input_correct_responses:
+    - D
+    input_question: "La courbe de Phillips \xE0 court terme indique une"
+  - input_choice_list:
+      A: "les exportations d\xE9passent les importations."
+      B: "les importations d\xE9passent les exportations."
+      C: "les recettes fiscales f\xE9d\xE9rales d\xE9passent les d\xE9penses."
+      D: "les d\xE9penses f\xE9d\xE9rales d\xE9passent les recettes fiscales f\xE9\
+        d\xE9rales."
+    input_correct_responses:
+    - D
+    input_question: "Un d\xE9ficit f\xE9d\xE9ral se produit lorsque"
+  - input_choice_list:
+      A: Augmenter le taux d&#39;actualisation
+      B: "Augmentation du taux de r\xE9serve"
+      C: Acheter des titres publics
+      D: Abaissement des tarifs
+    input_correct_responses:
+    - C
+    input_question: "Toutes choses \xE9gales par ailleurs, laquelle des politiques\
+      \ mon\xE9taires suivantes serait utilis\xE9e pour stimuler les exportations\
+      \ am\xE9ricaines\_?"
+  - input_choice_list:
+      A: "Une augmentation de la masse mon\xE9taire"
+      B: "Augmentation des d\xE9penses publiques"
+      C: "R\xE9duction des imp\xF4ts sur la recherche et le d\xE9veloppement de nouvelles\
+        \ technologies"
+      D: "Hausse des imp\xF4ts sur le revenu des m\xE9nages"
+    input_correct_responses:
+    - C
+    input_question: "Laquelle des politiques suivantes d\xE9crit le mieux la politique\
+      \ budg\xE9taire de l&#39;offre\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_macroeconomics
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_high_school_macroeconomics
+task_alias: high_school_macroeconomics

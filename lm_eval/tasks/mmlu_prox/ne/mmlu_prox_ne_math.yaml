@@ -1,0 +1,9 @@
+description: 'यहाँ गणित सम्बन्धी बहुवैकल्पिक प्रश्नहरू छन् (उत्तरहरू सहित)। कृपया
+  चरणबद्ध रूपमा सोच्नुहोस् र आफ्नो उत्तर "उत्तर (X) हो।" बाट अन्त्य गर्नुहोस्, जहाँ
+  X सही विकल्पको अक्षर हो।
+
+  '
+include: _ne_template_yaml
+task: mmlu_prox_ne_math
+task_alias: math
+process_docs: !function utils.process_math

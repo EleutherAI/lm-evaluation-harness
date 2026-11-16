@@ -1,0 +1,5 @@
+include: _ukrainian_few_shot_og_template_yaml
+description: Нижче наведено запитання з кількома варіантами відповідей (з відповідями)
+  про STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_ukrainian_few_shot_og_stem

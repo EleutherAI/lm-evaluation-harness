@@ -1,0 +1,19 @@
+dataset_name: multistep_arithmetic_two
+description: 'Solve multi-step arithmetic problems.
+
+
+  '
+doc_to_text: 'Q: {{input}}
+
+  A:'
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input: ((-5 + 9 * -4 - 0) * (4 + -7 + 0 * -5)) =
+    target: '123'
+  - input: ((-9 * 7 * 7 * -9) + (4 * -9 - 8 - -4)) =
+    target: '3929'
+  - input: ((-3 + 5 * 8 * -4) - (9 - 8 * -7 + -9)) =
+    target: '-219'
+include: _fewshot_template_yaml
+task: bbh_fewshot_multistep_arithmetic_two

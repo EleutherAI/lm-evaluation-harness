@@ -1,0 +1,8 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_arxiv_math
+task_alias: UE_arxiv_math
+process_docs: !function uncheatable_eval_utils.filter_arxiv_math
+metadata:
+  description: >-
+    Rolling perplexity on arXiv mathematics papers from the Uncheatable Eval 2026-07
+    snapshot.

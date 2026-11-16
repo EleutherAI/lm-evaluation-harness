@@ -1,0 +1,21 @@
+tag:
+  - mastermind
+  - mastermind_hard
+task: mastermind_24_hard
+dataset_path: flair/mastermind_24_mcq_close
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "{{instruction}}\n\nThe secret code is:"
+doc_to_target: "{{options.label.index(answerKey)}}"
+doc_to_choice: "{{options.text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{instruction}}\n\nThe secret code is:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

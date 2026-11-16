@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "mmlu_pro_llama_business"
+task_alias: "business"
+process_docs: !function utils.process_business

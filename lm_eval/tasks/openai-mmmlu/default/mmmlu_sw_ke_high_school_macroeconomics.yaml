@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_high_school_macroeconomics
+"tag": "mmmlu_sw_ke_social_sciences_tasks"
+"task": "mmmlu_sw_ke_high_school_macroeconomics"
+"task_alias": "high school macroeconomics (Swahili)"
+"description": "The following are multiple choice questions (with answers) about high school macroeconomics (Swahili).\n\n"

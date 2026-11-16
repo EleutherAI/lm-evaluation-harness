@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "El primer arco far\xEDngeo."
+      B: "El primer y segundo arco far\xEDngeo."
+      C: "El segundo arco far\xEDngeo"
+      D: "El segundo y tercer arco far\xEDngeo."
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l es el origen embriol\xF3gico del hueso hioides?"
+  - input_choice_list:
+      A: El nervio supraorbitario
+      B: El nervio infraorbitario
+      C: El nervio mental
+      D: Ninguna de las anteriores
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de estas ramas del nervio trig\xE9mino contiene procesos\
+      \ motores som\xE1ticos?"
+  - input_choice_list:
+      A: "No tienen inervaci\xF3n sensorial."
+      B: "est\xE1n separados por un espacio de 2 mm."
+      C: extenderse hasta el cuello.
+      D: "Est\xE1n compuestos por epitelio respiratorio."
+    input_correct_responses:
+    - C
+    input_question: la pleura
+  - input_choice_list:
+      A: Sobremordida excesiva de los incisivos laterales superiores.
+      B: resalte negativo de los incisivos centrales superiores.
+      C: exceso de resalte de los incisivos laterales superiores.
+      D: exceso de resalte de los incisivos centrales superiores.
+    input_correct_responses:
+    - C
+    input_question: "En la oclusi\xF3n Clase II Div 2 de Angle hay"
+  - input_choice_list:
+      A: Abdominal
+      B: Craneal
+      C: pleural
+      D: Espinal
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de las siguientes es la cavidad corporal que contiene\
+      \ la gl\xE1ndula pituitaria?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_anatomy
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_anatomy
+task_alias: anatomy

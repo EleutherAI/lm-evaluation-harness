@@ -1,0 +1,5 @@
+dataset_name: kan_Knda
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_kan_Knda
+test_split: test

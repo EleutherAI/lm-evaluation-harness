@@ -1,0 +1,67 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Externalidades, Poder, Independencia
+      B: Publicidad, Recursos insustanciales, Dependencia mutua
+      C: Publicidad, Poder, Independencia
+      D: Externalidades, Poder, Dependencia mutua
+    input_correct_responses:
+    - D
+    input_question: "M\xE1s all\xE1 del argumento comercial para involucrarse en la\
+      \ RSE, hay una serie de argumentos morales relacionados con: _______ negativo,\
+      \ el _______ que poseen las corporaciones y el ________ de los negocios y la\
+      \ sociedad."
+  - input_choice_list:
+      A: Responsabilidad social corporativa
+      B: "Gesti\xF3n de la \xE9tica empresarial"
+      C: Sostenibilidad
+      D: "Gesti\xF3n ambiental"
+    input_correct_responses:
+    - B
+    input_question: "_______ es el intento directo de gestionar formal o informalmente\
+      \ cuestiones o problemas \xE9ticos, a trav\xE9s de pol\xEDticas, pr\xE1cticas\
+      \ y programas espec\xEDficos."
+  - input_choice_list:
+      A: Exterior, limitado, independiente
+      B: Interior, limitado, intermitente
+      C: Exterior, ilimitado, intermitente
+      D: Dentro, Ilimitado, Independiente
+    input_correct_responses:
+    - A
+    input_question: "Para garantizar la independencia de los miembros no ejecutivos\
+      \ de la junta directiva, se pueden tomar una serie de medidas, que incluyen\
+      \ la selecci\xF3n de no ejecutivos de _______ de la empresa, su nombramiento\
+      \ por un per\xEDodo de tiempo _________ y su nombramiento _________."
+  - input_choice_list:
+      A: "Acci\xF3n directa no violenta, Acci\xF3n directa violenta, Acci\xF3n indirecta,\
+        \ Boicot"
+      B: "Acci\xF3n indirecta, Acci\xF3n instrumental, Acci\xF3n directa no violenta,\
+        \ Campa\xF1a de informaci\xF3n"
+      C: "Acci\xF3n indirecta, Acci\xF3n directa violenta, Boicot de acci\xF3n directa\
+        \ no violenta"
+      D: "Acci\xF3n directa no violenta, Acci\xF3n instrumental, Acci\xF3n indirecta,\
+        \ Campa\xF1a de informaci\xF3n"
+    input_correct_responses:
+    - C
+    input_question: "Tres t\xE1cticas contrastantes que las OSC pueden utilizar para\
+      \ alcanzar sus objetivos son ________, que normalmente implica investigaci\xF3\
+      n y comunicaci\xF3n, ________, que puede implicar atacar f\xEDsicamente las\
+      \ operaciones de una empresa o ________, que a menudo implica alguna forma de\
+      \ _______."
+  - input_choice_list:
+      A: "Buycotts, Boicots, Tecnolog\xEDa Blockchain, Donaciones ben\xE9ficas"
+      B: "Buycotts, Boicots, Tecnolog\xEDa digital, Aumento de ventas"
+      C: "Boicots, Buyalls, Tecnolog\xEDa Blockchain, Donaciones ben\xE9ficas"
+      D: "Boicots, Buycotts, Tecnolog\xEDa digital, Aumento de ventas"
+    input_correct_responses:
+    - D
+    input_question: "A diferencia de _______, _______ pretende recompensar el comportamiento\
+      \ favorable de las empresas. El \xE9xito de este tipo de campa\xF1as se ha incrementado\
+      \ mediante el uso de ___________, que permiten que las campa\xF1as faciliten\
+      \ a la empresa la consecuci\xF3n de _________."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_business_ethics
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_business_ethics
+task_alias: business_ethics

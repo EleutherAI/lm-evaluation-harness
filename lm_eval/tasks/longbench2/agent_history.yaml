@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2_tasks
+  - longbench2_history_tasks
+task: longbench2_agent_history
+dataset_name: agent_history_qa

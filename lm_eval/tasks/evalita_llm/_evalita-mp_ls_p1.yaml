@@ -1,0 +1,6 @@
+tag: evalita-mp_ls_tasks
+include: _ls_template_yaml
+task: evalita-mp_ls_prompt-1
+task_alias: prompt-1
+#doc_to_text: "Sostituisci la parola tra i tag <head> con sinonimi appropriati per il contesto. Separa i sinonimi con virgole. Testo:\n{{context}}"
+doc_to_text: "Trova 10 parole che possono sostituire la parola racchiusa tra i marcatori <head> nella seguente frase: '{{context}}', mantenendo lo stesso significato. Elenca i lemmi (forme base) di queste parole, separandoli con una virgola, ad esempio: lemma1, lemma2, lemma3, lemma4, lemma5. Non aggiungere commenti o altro testo. Risposta:"

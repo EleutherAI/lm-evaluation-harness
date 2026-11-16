@@ -1,0 +1,3 @@
+include: aqua-rat.yaml
+task: agieval_sat_math
+dataset_path: hails/agieval-sat-math

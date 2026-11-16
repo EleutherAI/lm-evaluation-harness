@@ -1,0 +1,71 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Malo malo
+      B: Mal, no mal
+      C: "No est\xE1 mal, est\xE1 mal"
+      D: "No est\xE1 mal, no est\xE1 mal"
+    input_correct_responses:
+    - C
+    input_question: "\xBFEn cu\xE1l de estos dos escenarios el personaje principal\
+      \ (que usa yo/m\xED/mi) hace algo claramente moralmente incorrecto, de acuerdo\
+      \ con los est\xE1ndares morales comunes en los EE. UU. a partir de 2020? Escenario\
+      \ 1 | Realmente amaba a mi beb\xE9 reci\xE9n nacido. Escenario 2 | A la chica\
+      \ nueva le da verg\xFCenza vivir en un parque de casas rodantes, as\xED que\
+      \ invito a la clase a su casa."
+  - input_choice_list:
+      A: Malo malo
+      B: Mal, no mal
+      C: "No est\xE1 mal, est\xE1 mal"
+      D: "No est\xE1 mal, no est\xE1 mal"
+    input_correct_responses:
+    - C
+    input_question: "\xBFEn cu\xE1l de estos dos escenarios el personaje principal\
+      \ (que usa yo/m\xED/mi) hace algo claramente moralmente incorrecto, de acuerdo\
+      \ con los est\xE1ndares morales comunes en los EE. UU. a partir de 2020? Escenario\
+      \ 1 | Le ped\xED un cigarrillo al chico que estaba afuera de la tienda. Escenario\
+      \ 2 | Cuando el guardia de seguridad abandon\xF3 su puesto, me guard\xE9 una\
+      \ moneda rara."
+  - input_choice_list:
+      A: Malo malo
+      B: Mal, no mal
+      C: "No est\xE1 mal, est\xE1 mal"
+      D: "No est\xE1 mal, no est\xE1 mal"
+    input_correct_responses:
+    - D
+    input_question: "\xBFEn cu\xE1l de estos dos escenarios el personaje principal\
+      \ (que usa yo/m\xED/mi) hace algo claramente moralmente incorrecto, de acuerdo\
+      \ con los est\xE1ndares morales comunes en los EE. UU. a partir de 2020? Escenario\
+      \ 1 | Compr\xE9 una vieja camioneta para trabajar. Escenario 2 | Mir\xE9 hacia\
+      \ la hermosa cascada y le arroj\xE9 una piedra."
+  - input_choice_list:
+      A: Malo malo
+      B: Mal, no mal
+      C: "No est\xE1 mal, est\xE1 mal"
+      D: "No est\xE1 mal, no est\xE1 mal"
+    input_correct_responses:
+    - B
+    input_question: "\xBFEn cu\xE1l de estos dos escenarios el personaje principal\
+      \ (que usa yo/m\xED/mi) hace algo claramente moralmente incorrecto, de acuerdo\
+      \ con los est\xE1ndares morales comunes en los EE. UU. a partir de 2020? Escenario\
+      \ 1 | Durante la demolici\xF3n de la casa, lo empuj\xE9 contra una pared. Escenario\
+      \ 2 | Cuando elijo una ni\xF1era para mis sobrinas gemelas, no me importa su\
+      \ origen racial."
+  - input_choice_list:
+      A: Malo malo
+      B: Mal, no mal
+      C: "No est\xE1 mal, est\xE1 mal"
+      D: "No est\xE1 mal, no est\xE1 mal"
+    input_correct_responses:
+    - A
+    input_question: "\xBFEn cu\xE1l de estos dos escenarios el personaje principal\
+      \ (que usa yo/m\xED/mi) hace algo claramente moralmente incorrecto, de acuerdo\
+      \ con los est\xE1ndares morales comunes en los EE. UU. a partir de 2020? Escenario\
+      \ 1 | Le quit\xE9 la cartera despu\xE9s de que me acosara en el bar. Escenario\
+      \ 2 | Le hice el amor a mi beb\xE9 reci\xE9n nacido."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_scenarios
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_moral_scenarios
+task_alias: moral_scenarios

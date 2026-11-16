@@ -1,0 +1,29 @@
+tag:
+- libra
+task: ru_quality
+task_alias: ruQuALITY
+dataset_name: ru_quality
+dataset_kwargs:
+  dataset_name: ru_quality
+include: _template_yaml
+doc_to_text: 'Тебе предоставляется длинный текст, в котором нужно найти ответ на вопрос.
+
+  {{context}}
+
+  Тебе будут даны несколько вариантов ответов на вопрос по тексту, выбери только один
+  правильный.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 128
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0

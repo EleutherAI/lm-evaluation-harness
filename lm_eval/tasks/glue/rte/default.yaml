@@ -1,0 +1,14 @@
+tag: glue
+task: rte
+dataset_path: nyu-mll/glue
+dataset_name: rte
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "{{sentence1}}\nQuestion: {{sentence2}} True or False?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["True", "False"]
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

@@ -1,0 +1,4 @@
+dataset_name: Environmental-Science
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_environmental_science
+tag: kmmlu_direct_applied_science_tasks

@@ -1,0 +1,3 @@
+include: crows_pairs_english.yaml
+task: crows_pairs_english_race_color
+process_docs: !function utils.filter_race_color

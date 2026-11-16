@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-college_medicine": {"acc": 0.27167630057803466, "acc_norm": 0.2543352601156069, "acc_norm_stderr": 0.0332055644308557, "acc_stderr": 0.03391750322321659}}, "versions": {"hendrycksTest-college_medicine": 0}}

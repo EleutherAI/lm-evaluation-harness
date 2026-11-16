@@ -1,0 +1,52 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Porque no tienen \xE1cido nucleico."
+      B: Requieren un virus ayudante
+      C: "S\xF3lo se replican en c\xE9lulas en divisi\xF3n."
+      D: "Puede integrarse en los cromosomas del hu\xE9sped."
+    input_correct_responses:
+    - A
+    input_question: "\xBFPor qu\xE9 los parvovirus son un par\xE1sito de gran impacto?"
+  - input_choice_list:
+      A: "Los virus fr\xE1giles a menudo se visualizan con ARN arrojado desde el interior"
+      B: Virus alargados
+      C: "Virus icosa\xE9dricos con envoltura."
+      D: Virus muy grandes
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l de las siguientes es una caracter\xEDstica morfol\xF3\
+      gica de los paramixovirus?"
+  - input_choice_list:
+      A: "Recopilaci\xF3n de datos"
+      B: "Establecimiento de un dep\xF3sito de muestras biol\xF3gicas"
+      C: "Inter\xE9s de los participantes"
+      D: "Administraci\xF3n del cuestionario por parte del personal."
+    input_correct_responses:
+    - B
+    input_question: "Un factor clave que facilit\xF3 la aplicaci\xF3n de estudios\
+      \ de casos y controles anidados del MACS fue:"
+  - input_choice_list:
+      A: Cambio de comportamiento
+      B: Cobertura completa
+      C: "Uso eficaz de la teor\xEDa del comportamiento."
+      D: Cambio de comportamiento sostenido
+    input_correct_responses:
+    - D
+    input_question: "El objetivo m\xE1s importante de una intervenci\xF3n conductual\
+      \ es:"
+  - input_choice_list:
+      A: Individuos infectados por VIH seroprevalentes
+      B: Seronegativos
+      C: Seroconvertidores
+      D: Seronegativos de alto riesgo
+    input_correct_responses:
+    - C
+    input_question: "El tiempo medio de supervivencia hasta el SIDA y la muerte se\
+      \ estableci\xF3 de la siguiente manera:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_virology
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_virology
+task_alias: virology

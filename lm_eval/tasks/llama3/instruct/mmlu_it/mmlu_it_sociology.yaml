@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: assistenza sanitaria e istruzione gratuite per tutti
+      B: un salario minimo
+      C: piena occupazione
+      D: benessere universale
+    input_correct_responses:
+    - B
+    input_question: 'Quale dei seguenti servizi lo stato sociale del dopoguerra del
+      1948 non mirava a fornire:'
+  - input_choice_list:
+      A: una giostra da fiera
+      B: un circo
+      C: un teatro di marionette
+      D: un balletto
+    input_correct_responses:
+    - C
+    input_question: "Cosa descrive Berger (1963) come metafora della realt\xE0 sociale?"
+  - input_choice_list:
+      A: la crescente burocrazia statale ha reso la religione solo una parte marginale
+        della nostra vita
+      B: "nonostante l\u2019indebolimento dell\u2019autorit\xE0 tradizionale, la nostra\
+        \ vita quotidiana e il \u201Csenso comune\u201D rimangono plasmati da credenze\
+        \ e valori religiosi"
+      C: "la partecipazione religiosa al culto collettivo pu\xF2 essere diminuita,\
+        \ ma le persone continuano a praticare la propria fede in privato"
+      D: "le persone sono molto pi\xF9 propense a discutere le proprie convinzioni\
+        \ religiose in contesti pubblici e informali"
+    input_correct_responses:
+    - B
+    input_question: "Il passaggio dalla \u201Creligione civile\u201D alla \u201Creligione\
+      \ comune\u201D significa che:"
+  - input_choice_list:
+      A: la tendenza della classe operaia a non realizzare i propri interessi
+      B: "un\u2019ideologia dominante che legittima il potere economico, politico\
+        \ e culturale"
+      C: una forma di doppia coscienza basata sull&#39;ideologia e sulle esperienze
+        quotidiane
+      D: "una modalit\xE0 di pagamento prevista per arte topiaria eccezionale"
+    input_correct_responses:
+    - B
+    input_question: "Il termine \u201Cegemonia\u201D si riferisce a:"
+  - input_choice_list:
+      A: la maggior parte degli scioperi passa inosservata ai datori di lavoro e ai
+        mass media
+      B: non tutte le controversie industriali verranno denunciate dal datore di lavoro
+      C: dalla definizione di sciopero sono esclusi quelli che coinvolgono meno di
+        dieci lavoratori o che durano meno di un giorno
+      D: "\xE8 difficile confrontare gli scioperi misurati in modi diversi"
+    input_correct_responses:
+    - A
+    input_question: "Quale dei seguenti non \xE8 un problema associato alle statistiche\
+      \ ufficiali sugli scioperi?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_sociology
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_sociology
+task_alias: sociology

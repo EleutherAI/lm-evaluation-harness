@@ -1,0 +1,14 @@
+tag: advanced_ai_risk
+dataset_path: EleutherAI/advanced_ai_risk
+output_type: multiple_choice
+validation_split: validation
+target_delimiter: ""
+doc_to_text: "Human: {{question}}\n\nAssistant:"
+doc_to_target: 0
+doc_to_choice: "{{[answer_matching_behavior, answer_not_matching_behavior]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{sentence_good}} {{sentence_bad}}"
+metric_list:
+  - metric: acc
+metadata:
+  version: 0.0

@@ -1,0 +1,6 @@
+group: med_concepts_qa_icd9cm
+task:
+  - med_concepts_qa_icd9cm_tasks
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean

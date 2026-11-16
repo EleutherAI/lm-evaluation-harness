@@ -1,0 +1,6 @@
+"dataset_name": "security_studies"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_security_studies"
+"task_alias": "security studies"

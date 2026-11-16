@@ -1,0 +1,6 @@
+"dataset_name": "medical_genetics"
+"description": "The following are questions (with answers) about medical\
+  \ genetics.\n\n"
+"tag": "mmlu_other_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_medical_genetics_continuation"

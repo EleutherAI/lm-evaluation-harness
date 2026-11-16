@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_virology
+"tag": "mmmlu_sw_ke_other_tasks"
+"task": "mmmlu_sw_ke_virology"
+"task_alias": "virology (Swahili)"
+"description": "The following are multiple choice questions (with answers) about virology (Swahili).\n\n"

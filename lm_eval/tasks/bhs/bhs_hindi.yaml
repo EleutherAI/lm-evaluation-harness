@@ -1,0 +1,12 @@
+group: bhs_hindi
+task:
+  - bhs__hindi__S_O_V
+  - bhs__hindi__S_PossPRN_O_V
+  - bhs__hindi__S_PossPRN_PossN_O_V
+  - bhs__hindi__S_ne_O_V
+  - bhs__hindi__S_ne_PossPRN_O_V
+  - bhs__hindi__S_ne_PossPRN_PossN_O_V
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false

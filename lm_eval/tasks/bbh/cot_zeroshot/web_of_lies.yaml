@@ -1,0 +1,20 @@
+"dataset_name": "web_of_lies"
+"description": "Evaluate a random boolean function expressed as a word problem.\n\n"
+"doc_to_text": "Q: {{input}}\nA: Let's think step by step."
+"include": "_cot_zeroshot_template_yaml"
+"task": "bbh_cot_zeroshot_web_of_lies"
+filter_list:
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MapRegexFilter
+        group_select: -1
+        ignore_case: true
+        regex_pattern_to_value:
+          \b(no|does not tell the truth|is not telling the truth)\b: "no"
+          \b(yes|tells the truth|is telling the truth)\b: "yes"
+      - function: "take_first"
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"

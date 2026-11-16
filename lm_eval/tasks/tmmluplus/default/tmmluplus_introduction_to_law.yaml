@@ -1,0 +1,6 @@
+"dataset_name": "introduction_to_law"
+"description": "以下為法律概論的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_humanities_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_introduction_to_law"
+"task_alias": "introduction to law"

@@ -1,0 +1,6 @@
+"dataset_name": "us_foreign_policy"
+"description": "The following are multiple choice questions (with answers) about us\
+  \ foreign policy.\n\n"
+"tag": "mmlu_flan_n_shot_generative_social_sciences"
+"include": "_mmlu_flan_generative_template_yaml"
+"task": "mmlu_flan_n_shot_generative_us_foreign_policy"

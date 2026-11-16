@@ -1,0 +1,5 @@
+dataset_name: tir_Ethi
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_tir_Ethi
+test_split: test

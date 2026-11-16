@@ -1,0 +1,9 @@
+description: 'Yafuatayo ni maswali ya chaguo-nyingi (yenye majibu) kuhusu biashara.
+  Fikiria hatua kwa hatua kisha malizia jibu lako kwa "Jibu ni (X)" ambapo X ni herufi
+  ya chaguo sahihi.
+
+  '
+include: _sw_lite_template_yaml
+task: mmlu_prox_lite_sw_business
+task_alias: business
+process_docs: !function utils.process_business

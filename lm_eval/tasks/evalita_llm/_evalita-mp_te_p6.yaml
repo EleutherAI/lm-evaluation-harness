@@ -1,0 +1,6 @@
+tag: evalita-mp_te_tasks
+include: _te_template_yaml
+task: evalita-mp_te_prompt-6
+task_alias: prompt-6
+doc_to_choice: ["La frase 1 implica logicamente che la frase 2 sia vera", "La frase 1 non implica logicamente che la frase 2 sia vera"]
+doc_to_text: "Devi risolvere un compito di inferenza semantica. Frase 1: '{{text1}}' Frase 2: '{{text2}}'"

@@ -1,0 +1,7 @@
+"dataset_name": "marketing"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_other_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_marketing"
+"task_alias": "marketing"

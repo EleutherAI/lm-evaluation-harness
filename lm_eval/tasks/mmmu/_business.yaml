@@ -1,0 +1,14 @@
+group: mmmu_val_business
+group_alias: Business
+task:
+  - mmmu_val_accounting
+  - mmmu_val_economics
+  - mmmu_val_finance
+  - mmmu_val_manage
+  - mmmu_val_marketing
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

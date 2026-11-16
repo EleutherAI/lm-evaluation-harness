@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Les gens ont tendance \xE0 \xEAtre optimistes quant \xE0 leur propre avenir\
+        \ et \xE0 l&#39;avenir de leur nation ou du monde."
+      B: "Les gens ont tendance \xE0 \xEAtre optimistes quant \xE0 leur propre avenir,\
+        \ mais pessimistes quant \xE0 l&#39;avenir de leur nation ou du monde."
+      C: "Les gens ont tendance \xE0 \xEAtre pessimistes quant \xE0 leur propre avenir,\
+        \ mais optimistes quant \xE0 l&#39;avenir de leur nation ou du monde."
+      D: "Les gens ont tendance \xE0 \xEAtre pessimistes quant \xE0 leur propre avenir\
+        \ et \xE0 l&#39;avenir de leur nation ou du monde."
+    input_correct_responses:
+    - B
+    input_question: "Parmi les paires d&#39;\xE9nonc\xE9s suivants, lesquels sont\
+      \ tous les deux vrais (\xE0 partir de 2019)\_?"
+  - input_choice_list:
+      A: 31%
+      B: 46%
+      C: 61%
+      D: 76%
+    input_correct_responses:
+    - B
+    input_question: "En 2019, environ quel pourcentage d&#39;Am\xE9ricains est d&#39;accord\
+      \ pour dire que l&#39;\xC9tat est g\xE9r\xE9 au profit de tout le monde\_?"
+  - input_choice_list:
+      A: "augment\xE9, augment\xE9"
+      B: "augment\xE9 diminu\xE9"
+      C: "diminu\xE9, augment\xE9"
+      D: "diminu\xE9, diminu\xE9"
+    input_correct_responses:
+    - B
+    input_question: "Depuis 2015, depuis 1990, les for\xEAts ont ____ en Europe et\
+      \ ont ____ en Afrique et dans les Am\xE9riques."
+  - input_choice_list:
+      A: 38%
+      B: 53%
+      C: 68%
+      D: 83%
+    input_correct_responses:
+    - A
+    input_question: "En 2019, environ quel pourcentage de Russes disent qu&#39;il\
+      \ est tr\xE8s important d&#39;avoir des m\xE9dias libres dans notre pays sans\
+      \ censure gouvernementale/\xE9tatique\_?"
+  - input_choice_list:
+      A: 80%
+      B: 60%
+      C: 40%
+      D: 20%
+    input_correct_responses:
+    - A
+    input_question: "En 2017, combien d&#39;enfants d&#39;un an dans le monde ont\
+      \ \xE9t\xE9 vaccin\xE9s contre une maladie\_? *"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_global_facts
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_global_facts
+task_alias: global_facts

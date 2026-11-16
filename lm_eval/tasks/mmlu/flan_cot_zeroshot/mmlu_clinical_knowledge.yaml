@@ -1,0 +1,6 @@
+"dataset_name": "clinical_knowledge"
+"description": "The following are multiple choice questions (with answers) about clinical\
+  \ knowledge.\n\n"
+"tag": "mmlu_flan_cot_zeroshot_other"
+"include": "_mmlu_flan_cot_zeroshot_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_clinical_knowledge"

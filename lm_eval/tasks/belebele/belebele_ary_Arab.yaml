@@ -1,0 +1,5 @@
+dataset_name: ary_Arab
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_ary_Arab
+test_split: test

@@ -1,0 +1,106 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_physics
+description:
+  "Soru: 20°C sıcaklığında R direncine sahip silindirik bakır tel eritilerek boyu ilk boyunun iki katı kadar ve yine\
+  \ silindirik olacak biçimde yeni bir kalıba dökülüyor. Bu durumda yeni telin direnci kaç R olur?\nA)\
+  \ 4\nB) 2\nC) 1\nD) 1/2\nE) 1/4\nÇözüm: Adım adım düşünelim.\
+  \ Yeni direncin değerini bulmak için öncelikle direncin nasıl değiştiğini anlamamız gerekiyor.\
+  \ Direnç \\(R\\), iletkenin direncinin uzunluğu \\(l\\), kesit alanı \\(A\\) ve\
+  \ malzemenin özdirenci (veya direnç katsayısı) \\(\\rho\\) ile doğrudan ilişkilidir ve\
+  \ aşağıdaki formülle ifade edilir:\
+  \ \\[R = \\rho \\frac{l}{A}\\]\
+  \ Bu denklemde görüldüğü üzere, direnç iletkenin uzunluğu ile doğru orantılıyken,\
+  \ kesit alanı ile ters orantılıdır. Soruda verilenler doğrultusunda, bakır telin uzunluğu iki\
+  \ katına çıkarılıyor, bu durumda yeni uzunluğumuz \\(2l\\) olacaktır. Bakır telin hacmi\
+  \ değişmediğinden ve şekli de yine silindirik olduğundan, bu durumda kesit alan da\
+  \ değişmek zorundadır; çünkü uzunluk iki katına çıkartıldığında, hacmi korumak için\
+  \ kesit alanın yarıya düşürülmesi gerekiyor. Yeni kesit alanımız \\(A/2\\) olacaktır.\
+  \ Yeni direnç \\(R'\\) şu şekilde hesaplanır:\
+  \ \\[R' = \\rho \\frac{2l}{A/2} = 4 \\times \\rho \\frac{l}{A}\\]\
+  \ Bu durumda, yeni direnç \\(R'\\) orijinal direnç \\(R\\) ile karşılaştırıldığında 4 katına\
+  \ çıkmış olur. Doğru cevap A şıkkıdır.\n\nSoru: Karayip resif mürekkep balığı suyun üstünde 2 m yüksekliğe çıkmak\
+  \ ve vücut uzunluğunun 50 katı kadar bir mesafeye yani toplamda 10 m uçmak için tepkili itme kullanır.\
+  \ Bunun için vücuduna düşük hızda aldığı akışkan ile kütlesini arttırıp, sonra bu akışkanı yüksek hızda dışarı atarak kütlesini azaltır. Mürekkep balığının kullandığı\
+  \ bu yöntem roketleri fırlatmak için ihtiyaç duyulan itiş gücünün temel mantığını oluşturur. Örneğin yükünü\
+  \ kaldırabilecek yeterli itiş kuvvetinin sağlanabilmesi için Atlas V roketinde, saniyede 1000 kg’dan fazla yakıt\
+  \ tüketilmesi ve egzoz gazının saniyede 4000 m süratle dışarı atılması gerekmiştir. Yer çekimine karşı yapılan bu\
+  \ fırlatma işlemi rokete uçuş süresi boyunca gerekli yakıtın sağlanması ve yer çekiminden kurtulmak için saatte 40000 km gibi bir sürate ulaşması\
+  \ ile mümkün olabilmektedir. Aşağıdakilerden hangisinde ya da hangilerinde\
+  \ yukarıdaki metinde geçen duruma örnek verilebilir?\nI. Şişirilen balonun serbest bırakılması. II. Ateşlenen top aracının geriye doğru hareket etmesi.\
+  \ III. Havada patlayan havai fişeği parçalarının farklı yönlerde ilerlemesi. IV.\
+  \ Hareketli bir bilardo topu ile duran bilardo topunun hareket ettirilmesi\nA) Yalnız I\nB)\
+  \ Yalnız II\nC) I ve II\nD) II ve IV\nE) I, II ve IV\nÇözüm: Adım adım düşünelim.\
+  \ Yukarıdaki metinde anlatılan durum, bir cismin içerisinden hızla dışarı atılan akışkan veya gaz sayesinde\
+  \ ters yönde bir itiş gücü üretilmesini ve bu sayede ileri hareket edilmesini içerir. Bu durum, roketlerin fırlatılma\
+  \ prensibi ve Karayip resif mürekkep balığının hareket mekanizması ile örneklendirilmiştir. Verilen seçenekler göz önünde\
+  \ bulundurulduğunda: \
+  \ I. Şişirilen balonun serbest bırakılması - Bu durum, balonun içindeki hava dışarıya hızla atıldığında balonun ters yönde\
+  \ hareket etmesi prensibine dayanır, bu nedenle ilgili durumla benzerdir. \
+  \ II. Ateşlenen top aracının geriye doğru hareket etmesi - Bu, Newton'un üçüncü yasası (her eyleme karşılık eşit ve zıt\
+  \ yönde bir tepki olur) örneğidir ve roketin veya mürekkep balığının hareketine benzer bir durumdur. Ateşlenen top, bir yöne doğru\
+  \ kuvvet uyguladığında, top aracı da zıt yönde bir kuvvetle hareket eder.\
+  \ III. Havada patlayan havai fişeğin parçalarının farklı yönlere ilerlemesi - Bu, içeriden\
+  \ dışarıya bir patlama etkisi ile nesnelerin her yöne dağılmasını içerir ve itme\
+  \ kuvvetinin her yöne eşit dağıldığı bir durumu ifade eder. Bu örnek, direkt olarak\
+  \ içeriden dışarıya hızlı bir akışkan veya gazın atılması ile ileri hareket etme prensibini\
+  \ taşımaz.\
+  \ IV. Hareketli bir bilardo topu ile duran bilardo topunun hareket ettirilmesi - Bu, iki katı\
+  \ cismin çarpışması durumunu ve momentumun korunumu ilkesini içerir, direkt olarak\
+  \ itiş kuvveti prensibi ile ilgili değildir.\
+  \ Böylece, açıklanan prensiplere en çok uyan seçenek I. ve II. durumları içeren seçenek doğrudur.\
+  \ Doğru cevap C şıkkıdır.\n\nSoru: Yay sabiti k olan yay sarkacı ve ip uzunluğu $\\(\\ell\\)$ olan basit sarkaçtan oluşturulan\
+  \ sistemler yerçekimi ivmesinin daha büyük olduğu bir gezegene götürülürse periyotları nasıl değişir?\nYay Sarkacı        Basit Sarkaç\nA) Değişmez Artar\nB) Değişmez Değişmez\nC) Azalır\
+  \ Değişmez\nD) Artar Azalır\nE) Değişmez Azalır\nÇözüm: Adım adım düşünelim.\
+  \ Yay sarkacının periyodu, yay sabiti \\(k\\) ve sarkacın kütlesi \\(m\\) ile ilişkili olup\
+  \ \\(T = 2\\pi\\sqrt{\\frac{m}{k}}\\) formülüyle hesaplanır. Yerçekimi ivmesi (\\(g\\)) bu formülde yer almadığından, yay sarkacının\
+  \ periyodu yerçekimi ivmesinin değerinden bağımsızdır ve değişmez. \
+  \ Basit sarkacın periyodu ise \\(T = 2\\pi\\sqrt{\\frac{\\ell}{g}}\\) formülüyle hesaplanır. Bu  formülde \\(\\ell\\) ipin uzunluğunu\
+  \ ve \\(g\\) yerçekimi ivmesini temsil eder. Eğer yerçekimi ivmesi \\(g\\) büyükse, denklemin paydası büyüyeceğinden, periyodun\
+  \ değeri azalır. Bu durumda, yay sarkacının periyodu değişmezken, basit sarkacın periyodu azalır.\
+  \ Doğru cevap E şıkkıdır.\n\nSoru: 100 g kütleli bir kap özkütlesi 1 g/cm $^{3}$ olan su ile dolu iken kütlesi 350 g oluyor.\
+  \ Buna göre, kap 0,5 g/cm$^{3 }$özkütleli sıvı ile doldurulursa kütlesi kaç g olur?\nA) 75\nB)\
+  \ 125\nC) 175\nD) 225\nE) 250\nÇözüm: Adım adım düşünelim.\
+  \ Kap ve suyun birleşik kütlesi 350 g olduğuna göre, sadece suyun kütlesini bulabilmek için kapın kütlesini bu değerden\
+  \ çıkarmamız gerekiyor. Kap zaten boşken 100 g olduğuna göre: \
+  \ Su + kap = 350 g\
+  \ Su = 350 g - kap\
+  \ Su = 350 g - 100 g\
+  \ Su = 250 g\
+  \ Bu, kapın içerisine koyduğumuz suyun kütlesinin 250 g olduğunu gösterir. Su için\
+  \ verilen özkütlesi 1 g/cm$^{3}$ olduğuna göre ve kütlesi 250 g ise hacmi de 250\
+  \ cm$^{3}$ olmalıdır (çünkü kütlesi özkütlesi ile çarpıldığında hacmini verir).\
+  \ Şimdi, 0,5 g/cm$^{3}$ öz kütleli bir sıvı ile aynı kapı doldurursak, aynı hacmi (250\
+  \ cm$^{3}$) dolduracağını varsayabiliriz. Bu sıvının kütlesini bulmak için hacmi öz\
+  \ kütlesi ile çarpalım:\
+  \ Kütle = özkütle * hacim\
+  \ Kütle = 0,5 g/cm$^{3}$ * 250 cm$^{3}$\
+  \ Kütle = 125 g\
+  \ Bu yeni sıvının kütlesi 125 g olacaktır. Ancak bu sadece sıvının kütlesi. Toplam\
+  \ kütleyi bulmak için kapın kütlesini (100 g) de eklememiz gerekiyor:\
+  \ Toplam kütle = sıvı + kap\
+  \ Toplam kütle = 125 g + 100 g\
+  \ Toplam kütle = 225 g\
+  \ Buna göre, kap 0,5 g/cm$^{3}$ özkütleli sıvı ile doldurulursa toplam kütlesi 225 g olur.\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: Sıcaklık için aşağıda verilenlerden hangisi doğrudur?\nA)\
+  \ Bir enerji çeşitidir.\nB) Termometre ile ölçülür.\nC) Birimi\
+  \ kaloridir.\nD) Madde miktarına bağlıdır.\nE) Birimi joule' dür.\nÇözüm: Adım adım düşünelim.\
+  \ Sıcaklığın ne olduğunu ve nasıl ölçüldüğünü ele alarak, verilen seçenekleri inceleyelim:\
+  \ A) \"Bir enerji çeşididir.\" - Bu ifade doğru değildir. Sıcaklık, enerjinin bir çeşidi değil,\
+  \ malzemenin veya cismin ortalama kinetik enerjisinin bir ölçüsüdür. Dolayısıyla,\
+  \ enerjinin bir türü olarak değil, enerjinin belli bir durumunu ifade eder.\
+  \ B) \"Termometre ile ölçülür.\" - Bu ifade doğrudur. Sıcaklık termometre gibi özel\
+  \ aygıtlar kullanılarak ölçülür. Bu aygıtlar, farklı sıcaklık değerlerinde farklı tepkiler verir\
+  \ ve bu sayede sıcaklığın ne olduğunu belirleyebiliriz.\
+  \ C) \"Birimi kaloridir.\" - Bu ifade yanlıştır. Kalori, enerji birimidir ve özellikle ısı\
+  \ enerjisinin miktarını ölçmek için kullanılır. Sıcaklığın birimi ise derece Celsius (°C), derece\
+  \ Fahrenheit (°F), veya Kelvin (K) gibi ölçü birimleridir.\
+  \ D) \"Madde miktarına bağlıdır.\" - Bu ifade yanlıştır. Sıcaklık, bir maddenin miktarından\
+  \ bağımsız, maddenin ortalama kinetik enerjisinin bir ölçüsüdür. Yani, madde miktarı\
+  \ sıcaklığı doğrudan etkilemez; aynı sıcaklıktaki iki farklı miktar madde, biri fazla biri az\
+  \ olsa dahi, aynı sıcaklığa sahip olabilir.\
+  \ E) \"Birimi joule'dür.\" - Bu ifade de yanlıştır. Joule, enerjinin SI birimidir ve sıcaklığın\
+  \ birimi değildir. Daha önce belirtildiği gibi, sıcaklığın birimi derece Celsius, derece\
+  \ Fahrenheit veya Kelvin'dir.\
+  \ Doğru cevap B şıkkıdır."
+num_fewshot: 0
+dataset_name: Physics

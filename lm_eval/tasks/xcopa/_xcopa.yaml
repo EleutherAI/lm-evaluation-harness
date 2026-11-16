@@ -1,0 +1,19 @@
+group: xcopa
+task:
+  - xcopa_et
+  - xcopa_ht
+  - xcopa_id
+  - xcopa_it
+  - xcopa_qu
+  - xcopa_sw
+  - xcopa_ta
+  - xcopa_th
+  - xcopa_tr
+  - xcopa_vi
+  - xcopa_zh
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: True
+metadata:
+  version: 1.0

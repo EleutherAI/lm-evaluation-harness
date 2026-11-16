@@ -1,0 +1,6 @@
+tag: tatoeba_nob_eng
+dataset_name: eng-nob
+doc_to_target: sourceString
+task: tatoeba_nob_eng_p2
+include: ../_tatoeba_yaml
+doc_to_text: "Gi en engelsk oversettelse av denne setningen: {{targetString}}\nEngelsk:"

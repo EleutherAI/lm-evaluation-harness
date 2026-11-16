@@ -1,0 +1,9 @@
+description: 'Hier is ''n multikeusevraag oor Wiskunde (met antwoorde). Dink asseblief
+  stap vir stap en eindig jou antwoord met "Die antwoord is (X)", waar X die letter
+  van die korrekte opsie is.
+
+  '
+include: _af_template_yaml
+task: mmlu_prox_af_math
+task_alias: math
+process_docs: !function utils.process_math

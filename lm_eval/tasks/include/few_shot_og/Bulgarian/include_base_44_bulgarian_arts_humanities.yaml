@@ -1,0 +1,4 @@
+include: _bulgarian_few_shot_og_template_yaml
+description: Следват въпроси с избираем отговор (с отговори) за Arts & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_bulgarian_few_shot_og_arts_humanities

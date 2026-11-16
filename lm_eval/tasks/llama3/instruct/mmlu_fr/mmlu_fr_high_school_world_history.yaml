@@ -1,0 +1,114 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: hindouisme
+      B: bouddhisme
+      C: "shinto\xEFsme"
+      D: Zoroastrisme
+    input_correct_responses:
+    - A
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ Il contient toutes les \u0153uvres et tous les d\xE9sirs et tous les parfums\
+      \ et tous les go\xFBts. Il enveloppe tout l&#39;univers et dans le silence il\
+      \ aime tous. C&#39;est l&#39;Esprit qui est dans mon c\u0153ur, c&#39;est Brahman.\
+      \ A lui je viendrai quand j&#39;irai au-del\xE0 de cette vie, et \xE0 lui viendra\
+      \ celui qui a la foi et ne doute pas. \u2014Les Upanishads, Inde, v. 1000 avant\
+      \ notre \xE8re \xC0 quelle religion le locuteur appartient-il le plus probablement\_\
+      ?"
+  - input_choice_list:
+      A: "La r\xE9volution industrielle"
+      B: "D\xE9colonisation"
+      C: "Associations r\xE9gionales de libre-\xE9change"
+      D: Autarcie
+    input_correct_responses:
+    - B
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ &quot;La lutte contre le n\xE9o-colonialisme ne vise pas \xE0 emp\xEAcher\
+      \ le capital du monde d\xE9velopp\xE9 d&#39;op\xE9rer dans les pays moins d\xE9\
+      velopp\xE9s. Elle vise \xE0 emp\xEAcher que le pouvoir financier des pays d\xE9\
+      velopp\xE9s ne soit utilis\xE9 de mani\xE8re \xE0 appauvrir les moins d\xE9\
+      velopp\xE9s. Le non-alignement, tel qu&#39;il est pratiqu\xE9 par le Ghana et\
+      \ de nombreux autres pays, repose sur la coop\xE9ration avec tous les \xC9tats,\
+      \ qu&#39;ils soient capitalistes, socialistes ou \xE0 \xE9conomie mixte. Une\
+      \ telle politique implique donc des investissements \xE9trangers en provenance\
+      \ des pays capitalistes, mais elle doit \xEAtre investi conform\xE9ment \xE0\
+      \ un plan national \xE9labor\xE9 par le gouvernement de l&#39;\xC9tat non align\xE9\
+      \ en fonction de ses propres int\xE9r\xEAts. La question n&#39;est pas de savoir\
+      \ quel retour l&#39;investisseur \xE9tranger re\xE7oit sur ses investissements...\
+      \ La question est une question de pouvoir. Un \xC9tat en l&#39;emprise du n\xE9\
+      o-colonialisme n&#39;est pas ma\xEEtre de son destin.&quot; Kwame Nkrumah, Neo-Colonialism,\
+      \ 1965 Lequel des \xE9nonc\xE9s suivants fournit le meilleur contexte pour les\
+      \ \xE9crits de Nkrumah\_?"
+  - input_choice_list:
+      A: Acceptation sociale du travail des enfants
+      B: "Baisse de l&#39;esp\xE9rance de vie en Allemagne"
+      C: Critiques des tarifs commerciaux allemands
+      D: "Effets n\xE9gatifs attribu\xE9s au capitalisme industriel"
+    input_correct_responses:
+    - D
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ \xAB Le vrai grief du travailleur est l&#39;ins\xE9curit\xE9 de son existence\
+      \ ; il n&#39;est pas s\xFBr d&#39;avoir toujours du travail, il n&#39;est pas\
+      \ s\xFBr d&#39;\xEAtre toujours en bonne sant\xE9, et il pr\xE9voit qu&#39;il\
+      \ sera un jour vieux et inapte au travail. S&#39;il tombe dans la pauvret\xE9\
+      , ne serait-ce qu&#39;\xE0 cause d&#39;une maladie prolong\xE9e, il est alors\
+      \ compl\xE8tement d\xE9muni, examin\xE9 par lui-m\xEAme, et la soci\xE9t\xE9\
+      \ ne lui reconna\xEEt actuellement aucune obligation r\xE9elle au-del\xE0 de\
+      \ l&#39;aide habituelle aux pauvres, m\xEAme s&#39;il a travaill\xE9 tout le\
+      \ temps avec tant de fid\xE9lit\xE9 et de diligence. L&#39;aide habituelle pour\
+      \ les pauvres, cependant, laisse beaucoup \xE0 d\xE9sirer, surtout dans les\
+      \ grandes villes, o\xF9 elle est bien pire qu&#39;\xE0 la campagne. Otto von\
+      \ Bismarck, 1884 Otto von Bismarck a probablement prononc\xE9 ce discours en\
+      \ r\xE9action \xE0 laquelle des questions suivantes\_?"
+  - input_choice_list:
+      A: "Le maintien de la supr\xE9matie militaire \xE0 tout prix"
+      B: Les tensions croissantes entre les sectes religieuses
+      C: "Facteurs qui ont provoqu\xE9 l&#39;effondrement de l&#39;Empire ottoman"
+      D: Efforts de paix entre les empires islamiques
+    input_correct_responses:
+    - B
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ &quot;En effet, comme les fatwas d&#39;\xE9minents [\xE9rudits] qui fondent\
+      \ leur opinion sur la raison et la tradition et le consensus de la communaut\xE9\
+      \ sunnite conviennent que l&#39;ancienne obligation d&#39;extirpation, d&#39;extermination\
+      \ et d&#39;expulsion de l&#39;innovation mal\xE9fique doit \xEAtre l&#39;objectif\
+      \ de notre exalt\xE9 aspiration, car &quot;le z\xE8le religieux est une victoire\
+      \ pour la Foi de Dieu le Bienfaiteur&quot;\_; puis, conform\xE9ment aux paroles\
+      \ du Proph\xE8te (paix sur lui\_!) &quot;Quiconque introduit une innovation\
+      \ mauvaise dans notre ordre doit \xEAtre expuls\xE9&quot; et &quot;Quiconque\
+      \ fait tout ce qui est contraire \xE0 notre ordre doit \xEAtre expuls\xE9&quot;,\
+      \ l&#39;action est devenue n\xE9cessaire et exigeante\u2026&quot; Lettre du\
+      \ sultan ottoman Selim Ier au safavide Shah Ismail Ier, 1514 La lettre de Selim\
+      \ Ier est le plus clairement un exemple de laquelle des r\xE9ponses suivantes\_\
+      ?"
+  - input_choice_list:
+      A: "Une rupture des routes commerciales par l&#39;effondrement de la structure\
+        \ \xE9tatique \xE9tablie"
+      B: "Une augmentation de la population mondiale gr\xE2ce \xE0 des approvisionnements\
+        \ alimentaires plus abondants"
+      C: "La propagation des syst\xE8mes de croyances chinois et indiens \xE0 travers\
+        \ le monde"
+      D: Une augmentation des troubles sociaux
+    input_correct_responses:
+    - B
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ &quot;Au moins une des soci\xE9t\xE9s [du monde] devrait en quelque sorte\
+      \ augmenter \xE9norm\xE9ment sa productivit\xE9 [afin d&#39;atteindre l&#39;h\xE9\
+      g\xE9monie mondiale]. Ce saut quantique devrait \xEAtre fait avant les diverses\
+      \ r\xE9volutions scientifiques, technologiques, agricoles et industrielles sur\
+      \ lesquelles notre monde post-saut quantique. Cela ne pouvait \xEAtre accompli\
+      \ qu&#39;en exploitant les \xE9cosyst\xE8mes, les ressources min\xE9rales et\
+      \ les ressources humaines de continents entiers en dehors des terres de la soci\xE9\
+      t\xE9 effectuant le saut. C&#39;est exactement ce que l&#39;Europe occidentale\
+      \ a fait au moyen de sa brutalit\xE9, de ses armes et de ses , plus important,\
+      \ par chance g\xE9ographique et \xE9cologique.&quot; Copyright \xA9 2015 Cambridge\
+      \ University Press. Alfred Crosby, historien, Ecological Imperialism, 2004 Le\
+      \ &quot;saut quantique&quot; mentionn\xE9 dans le passage a le plus directement\
+      \ contribu\xE9 \xE0 lequel des d\xE9veloppements suivants dans la p\xE9riode\
+      \ 1450\u20131750 CE\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_world_history
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_high_school_world_history
+task_alias: high_school_world_history

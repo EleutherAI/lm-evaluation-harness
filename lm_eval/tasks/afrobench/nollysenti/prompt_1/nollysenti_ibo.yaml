@@ -1,0 +1,3 @@
+dataset_name: ig
+include: nollysenti
+task: nollysenti_ibo_prompt_1

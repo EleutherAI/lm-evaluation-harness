@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Lo stato di ossidazione pi\xF9 comune per gli elementi lantanidi \xE8 +3."
+      B: I complessi di lantanidi hanno spesso numeri di coordinazione elevati (&gt;
+        6).
+      C: Tutti gli elementi lantanidi reagiscono con l&#39;acido acquoso per liberare
+        idrogeno.
+      D: I raggi atomici degli elementi lantanidi aumentano nel periodo da La a Lu.
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti affermazioni sugli elementi lantanidi NON\
+      \ \xE8 vera?"
+  - input_choice_list:
+      A: 1,0 ml
+      B: 10 ml
+      C: 20 ml
+      D: 50 ml
+    input_correct_responses:
+    - C
+    input_question: Un campione di 0,217 g di HgO (massa molare = 217 g) reagisce
+      con gli ioni ioduro in eccesso secondo la reazione mostrata sopra. La titolazione
+      della soluzione risultante richiede quanti ml di HCl 0,10 M per raggiungere
+      il punto equivalente?
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '6'
+      D: '24'
+    input_correct_responses:
+    - A
+    input_question: "Prevedere il numero di linee nello spettro EPR di una soluzione\
+      \ di radicale metilico marcato con 13C (13CH3\u2022), presupponendo che le linee\
+      \ non si sovrappongano."
+  - input_choice_list:
+      A: un acido
+      B: una base
+      C: un catalizzatore
+      D: un agente riducente
+    input_correct_responses:
+    - D
+    input_question: "3 Cl\u2212(aq) + 4 CrO_4^2\u2212(aq) + 23 H+(aq) \u2192 3 HClO2(aq)\
+      \ + 4 Cr3+(aq) + 10 H2O(l). Nella reazione mostrata sopra, Cl\u2212(aq) si comporta\
+      \ come"
+  - input_choice_list:
+      A: PbH4 &lt; SnH4 &lt; GeH4 &lt; SiH4 &lt; CH4
+      B: PbH4 &lt; SnH4 &lt; CH4 &lt; GeH4 &lt; SiH4
+      C: CH4 &lt; SiH4 &lt; GeH4 &lt; SnH4 &lt; PbH4
+      D: CH4 &lt; PbH4 &lt; GeH4 &lt; SnH4 &lt; SiH4
+    input_correct_responses:
+    - A
+    input_question: "Quale delle seguenti elenca gli idruri degli elementi del gruppo\
+      \ 14 in ordine di stabilit\xE0 termica, dal pi\xF9 basso al pi\xF9 alto?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_chemistry
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_college_chemistry
+task_alias: college_chemistry

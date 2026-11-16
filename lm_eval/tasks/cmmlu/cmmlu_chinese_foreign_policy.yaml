@@ -1,0 +1,4 @@
+"dataset_name": "chinese_foreign_policy"
+"description": "以下是关于中国外交政策的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "cmmlu_chinese_foreign_policy"

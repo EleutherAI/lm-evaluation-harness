@@ -1,0 +1,8 @@
+description: 'ต่อไปนี้เป็นคำถามปรนัย (พร้อมคำตอบ) เกี่ยวกับ อื่นๆ คิดทีละขั้นตอนแล้วสรุปคำตอบด้วย
+  "คำตอบคือ (X)" โดยที่ X คือตัวอักษรที่เป็นตัวเลือกที่ถูกต้อง
+
+  '
+include: _th_lite_template_yaml
+task: mmlu_prox_lite_th_other
+task_alias: other
+process_docs: !function utils.process_other

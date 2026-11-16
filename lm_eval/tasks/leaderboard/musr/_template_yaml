@@ -1,0 +1,11 @@
+dataset_path: TAUR-Lab/MuSR
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{answer_choice}}"
+doc_to_choice: "{{choices}}"
+metric_list:
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

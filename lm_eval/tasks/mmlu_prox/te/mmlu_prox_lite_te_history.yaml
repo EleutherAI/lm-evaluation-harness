@@ -1,0 +1,8 @@
+description: 'క్రింది చరిత్రకి సంబంధించిన బహుళఎంపిక ప్రశ్న (సమాధానాలతో). దయచేసి దశలవారీగా
+  ఆలోచించి, మీ సమాధానాన్ని "సమాధానం (X)"తో ముగించండి, ఇక్కడ X సరైన ఎంపిక అక్షరం.
+
+  '
+include: _te_lite_template_yaml
+task: mmlu_prox_lite_te_history
+task_alias: history
+process_docs: !function utils.process_history

@@ -1,0 +1,9 @@
+group: evalita-mp_faq
+group_alias: faq
+task:
+  - evalita-mp_faq_tasks # Each of the tasks has to have a matching tag in its own yaml file
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1

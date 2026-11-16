@@ -1,0 +1,5 @@
+include: _tydiqa_goldp_common_yaml
+task: tydiqa_goldp_fi
+doc_to_text: "Konteksti: {{context}}\n\nKysymys: {{question}}\n\nVastaus:"
+process_docs: !function utils.process_docs_fi
+process_results: !function utils.process_results_fi

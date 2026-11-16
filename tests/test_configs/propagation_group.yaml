@@ -1,0 +1,7 @@
+# Group that sets config keys at the group level.
+# Children should inherit these values.
+group: propagation_group
+num_fewshot: 42
+task:
+  - simple_task
+  - simple_task_b

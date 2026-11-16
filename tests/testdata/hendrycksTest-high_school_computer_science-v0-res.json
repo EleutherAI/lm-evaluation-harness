@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-high_school_computer_science": {"acc": 0.2, "acc_norm": 0.22, "acc_norm_stderr": 0.04163331998932269, "acc_stderr": 0.04020151261036845}}, "versions": {"hendrycksTest-high_school_computer_science": 0}}

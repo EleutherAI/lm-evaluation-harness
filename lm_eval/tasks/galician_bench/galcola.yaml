@@ -1,0 +1,16 @@
+task: galcola
+dataset_path: proxectonos/galcola
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "{{sentence}}\nPregunta: Ten sentido esta frase?\nResposta:"
+doc_to_target: label
+doc_to_choice: ["non", "si"]
+should_decontaminate: true
+doc_to_decontamination_query: sentence
+metric_list:
+  - metric: mcc
+  - metric: acc
+metadata:
+  version: 1.0

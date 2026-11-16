@@ -1,0 +1,6 @@
+tag: norec_document
+dataset_path: ltg/norec_document
+task: norec_document_p4
+include: ../_norec_yaml
+doc_to_text: "Anmeldelse: {{review}}\nVil du oppsummere anmeldelsen som \"bra\" eller \"dårlig\"?"
+doc_to_choice: ["dårlig", "bra"]

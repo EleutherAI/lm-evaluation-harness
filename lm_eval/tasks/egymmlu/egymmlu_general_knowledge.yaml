@@ -1,0 +1,7 @@
+"dataset_name": "general_knowledge"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_other_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_general_knowledge"
+"task_alias": "general knowledge"

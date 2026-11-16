@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Atenci\xF3n sanitaria y educaci\xF3n gratuitas para todos."
+      B: "un salario m\xEDnimo"
+      C: pleno empleo
+      D: bienestar universal
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de los siguientes no pretend\xEDa proporcionar el\
+      \ Estado de bienestar de posguerra de 1948?"
+  - input_choice_list:
+      A: un paseo de feria
+      B: un circo
+      C: un teatro de marionetas
+      D: un ballet
+    input_correct_responses:
+    - C
+    input_question: "\xBFQu\xE9 describe Berger (1963) como met\xE1fora de la realidad\
+      \ social?"
+  - input_choice_list:
+      A: "La creciente burocracia del Estado ha hecho de la religi\xF3n s\xF3lo una\
+        \ parte marginal de nuestras vidas."
+      B: "A pesar del debilitamiento de la autoridad tradicional, nuestra vida cotidiana\
+        \ y nuestro &quot;sentido com\xFAn&quot; siguen moldeados por creencias y\
+        \ valores religiosos."
+      C: "La participaci\xF3n religiosa en el culto colectivo puede haber disminuido,\
+        \ pero la gente todav\xEDa practica su fe en privado."
+      D: "Es mucho m\xE1s probable que las personas hablen de sus creencias religiosas\
+        \ en entornos p\xFAblicos e informales."
+    input_correct_responses:
+    - B
+    input_question: "El cambio de la &quot;religi\xF3n civil&quot; a la &quot;religi\xF3\
+      n com\xFAn&quot; significa que:"
+  - input_choice_list:
+      A: La tendencia de la clase trabajadora a no realizar sus propios intereses.
+      B: "Una ideolog\xEDa dominante que legitima el poder econ\xF3mico, pol\xEDtico\
+        \ y cultural."
+      C: "una forma de conciencia dual basada en la ideolog\xEDa y las experiencias\
+        \ cotidianas"
+      D: una forma de pago dada por el topiario pendiente
+    input_correct_responses:
+    - B
+    input_question: "El t\xE9rmino &quot;hegemon\xEDa&quot; se refiere a:"
+  - input_choice_list:
+      A: "La mayor\xEDa de las huelgas pasan desapercibidas para los empleadores y\
+        \ los medios de comunicaci\xF3n."
+      B: "No todos los conflictos laborales ser\xE1n informados por el empleador."
+      C: "La definici\xF3n de huelga excluye aquellas que involucran a menos de diez\
+        \ trabajadores o duran menos de un d\xEDa."
+      D: "Es dif\xEDcil comparar huelgas que se midieron de diferentes maneras."
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l de los siguientes no es un problema asociado con\
+      \ las estad\xEDsticas oficiales sobre huelgas?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_sociology
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_sociology
+task_alias: sociology

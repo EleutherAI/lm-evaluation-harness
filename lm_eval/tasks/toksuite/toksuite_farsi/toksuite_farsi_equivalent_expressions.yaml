@@ -1,0 +1,7 @@
+dataset_name: toksuite_farsi_equivalent_expressions
+include: toksuite_farsi_base.yaml
+task: toksuite_farsi_equivalent_expressions
+metadata:
+  canonical_task: toksuite_farsi_canonical
+  task_pretty_name: Equivalent expressions
+  num_samples: 40

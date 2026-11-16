@@ -1,0 +1,6 @@
+"dataset_name": "human_aging"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_human_aging"
+"task_alias": "human aging"

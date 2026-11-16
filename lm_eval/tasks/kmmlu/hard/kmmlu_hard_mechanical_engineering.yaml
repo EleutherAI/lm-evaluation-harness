@@ -1,0 +1,4 @@
+dataset_name: mechanical_engineering
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_mechanical_engineering
+tag: kmmlu_hard_stem_tasks

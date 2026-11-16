@@ -1,0 +1,22 @@
+include: "_default_template_yaml"
+tag:
+  - french_bench
+  - french_bench_extra
+# description: "Répond au mieux en complétant la question avec une des réponses proposées."
+dataset_path: manu/french-bench-grammar-vocab-reading
+output_type: multiple_choice
+validation_split: Reading
+fewshot_split: Reading
+test_split: Reading
+# doc_to_text: "Context: {{context}}\nQuestion: {{question.strip()}}\nA: {{answerA}}\nB: {{answerB}}\nC: {{answerC}}\nD: {{answerD}}\nRéponse："
+# doc_to_choice: "{{['A: '+answerA, 'B: '+answerB, 'C: '+answerC, 'D: '+answerD]}}"
+doc_to_text: "Context: {{context}}\n\n"
+doc_to_choice: "{{[question.replace('<...>', answerA) if '<...>' in question else question + ' ' +answerA, question.replace('<...>', answerB) if '<...>' in question else question + ' ' + answerB, question.replace('<...>', answerC) if '<...>' in question else question + ' ' + answerC, question.replace('<...>', answerD) if '<...>' in question else question + ' ' + answerD]}}"
+doc_to_target: '{{["answerA", "answerB", "answerC", "answerD"].index("answer" + answer)}}'
+# doc_to_choice: "{{['A: '+answerA, 'B: '+answerB, 'C: '+answerC, 'D: '+answerD]}}"
+# doc_to_target: answer
+task: french_bench_reading_comp
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

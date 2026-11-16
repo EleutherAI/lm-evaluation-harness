@@ -1,0 +1,4 @@
+include: _chinese_few_shot_og_template_yaml
+description: 以下是关于 Driving License 的多项选择题（附答案）。
+process_docs: !function 'utils.process_driving_license'
+task: include_base_44_chinese_few_shot_og_driving_license

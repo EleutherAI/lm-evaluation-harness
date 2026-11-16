@@ -1,0 +1,56 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 160 Bit
+      B: 512 Bit
+      C: 628 Bit
+      D: 820 Bit
+    input_correct_responses:
+    - A
+    input_question: SHA-1 hat einen Message Digest von
+  - input_choice_list:
+      A: "IM \u2013 Trojaner"
+      B: Backdoor-Trojaner
+      C: Trojaner-Downloader
+      D: "L\xF6segeld-Trojaner"
+    input_correct_responses:
+    - D
+    input_question: "_____________ kann Daten auf Ihrem System ver\xE4ndern \u2013\
+      \ so dass Ihr System nicht mehr richtig l\xE4uft oder Sie auf bestimmte Daten\
+      \ nicht mehr zugreifen k\xF6nnen, oder es kann sogar L\xF6segeld verlangen,\
+      \ um Ihnen den Zugriff zu gew\xE4hren."
+  - input_choice_list:
+      A: "\u201EHacking\u201C-Ethik, um unbeabsichtigtes egoistisches Verhalten zu\
+        \ rechtfertigen"
+      B: "Hacking-Systeme (z. B. w\xE4hrend Penetrationstests), um Schwachstellen\
+        \ aufzudecken, damit sie behoben und nicht ausgenutzt werden k\xF6nnen"
+      C: Sich in Systeme hacken, die von Personen betrieben werden, deren Ethik Sie
+        nicht teilen
+      D: "Ein umgangssprachlicher Begriff f\xFCr schnelle Softwareentwicklung, zB\
+        \ im Rahmen von Hackathons"
+    input_correct_responses:
+    - B
+    input_question: Was ist ethisches Hacken?
+  - input_choice_list:
+      A: "\xDCberschreiben von kryptografischen Schl\xFCsseln im Speicher"
+      B: eine Art Code-Injection
+      C: "ein Lesen au\xDFerhalb der Grenzen eines Puffers"
+      D: ein Format-String-Angriff
+    input_correct_responses:
+    - C
+    input_question: Die Ausnutzung der Heartbleed-Bug-Genehmigungen
+  - input_choice_list:
+      A: Gespenstisches Netz
+      B: Weltweites Netz
+      C: "Oberfl\xE4chenweb"
+      D: Deep Web
+    input_correct_responses:
+    - D
+    input_question: Das ____________ ist alles, was Ihre Suchmaschine nicht finden
+      kann.
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_computer_security
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_computer_security
+task_alias: computer_security

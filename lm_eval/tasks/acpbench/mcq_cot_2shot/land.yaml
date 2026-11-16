@@ -1,0 +1,12 @@
+task: acp_land_mcq
+dataset_name: acp_land_mcq
+include: _mcq_cot_2shot_yaml
+fewshot_config:
+  sampler: first_n
+  samples:
+  - context: 'This is a ferry domain, where the task is to transport cars from their start to their goal locations, using a ferry. Each location is accessible by ferry from each other location. The cars can be debarked or boarded, and the ferry can carry only one car at a time.  There are 2 locations and 2 cars, numbered consecutively.  Currently, the ferry is at l0 location and it is empty. The cars are at locations as follows: c1 is at l0; c0 is at l1. The goal is to reach a state where the following facts hold: Car c1 is at location l1 and Car c0 is at location l1.'
+    question: 'Which of the following facts is a landmark (must hold at some point along any plan) for the current state? A. Car c0 is on the ferry.  B. Ferry has car c1 on board and Car c0 is at location l0.  C. Ferry has car c1 on board.  D. Ferry has car c1 on board and Car c0 is on the ferry.'
+    answer: "Let's think step by step.   Step 1: A fact is a landmark if it must hold at some point along any plan. Step 2: The fact \"Ferry has car c1 on board\" can be found by a simple procedure that traces back such atoms from the goal. **Final Answer**: C."
+  - context: 'There are several cities, each containing several locations, some of which are airports. There are also trucks, which can drive within a single city, and airplanes, which can fly between airports. The goal is to get some packages from various locations to various new locations.  There are 2 trucks and 1 airplane, as well as 4 packages. There are 4 locations across 2 cities.  The locations are in cities as follows: l1-1 and l1-0 are in c1; l0-1 and l0-0 are in c0.  Currently, p1 and t0 are at l0-0, a0, p0, p3, and p2 are at l1-0, t1 is at l1-1. The goal is to reach a state where the following facts hold: p0 is at l0-0, p1 is at l1-0, p3 is at l0-1, and p2 is at l1-0.'
+    question: 'Which of the following facts is a landmark (must hold at some point along any plan) for the current state? A. p3 is at l0-0.  B. p1 is at l0-1.  C. p0 is in t0.  D. p2 is in a0.'
+    answer: "Let's think step by step.   Step 1: A fact is a landmark if it must hold at some point along any plan. Step 2: The fact \"p3 is at l0-0\" can be found by a simple procedure that traces back such atoms from the goal. **Final Answer**: A."

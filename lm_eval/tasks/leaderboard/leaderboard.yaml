@@ -1,0 +1,32 @@
+group: leaderboard
+task:
+  - leaderboard_mmlu_pro
+  - leaderboard_bbh
+  - leaderboard_gpqa
+  - leaderboard_math_hard
+  - leaderboard_ifeval
+  - leaderboard_musr
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+  - metric: inst_level_loose_acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: inst_level_strict_acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: prompt_level_loose_acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: prompt_level_strict_acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

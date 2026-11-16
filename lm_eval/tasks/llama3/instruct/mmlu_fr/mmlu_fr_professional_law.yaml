@@ -1,0 +1,143 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "la loi est nulle pour impr\xE9cision en vertu de la clause de proc\xE9dure\
+        \ r\xE9guli\xE8re du quatorzi\xE8me amendement."
+      B: "la loi est invalide car elle viole la libert\xE9 d&#39;expression du p\xE9\
+        titionnaire en vertu du premier amendement."
+      C: "le statut est un raccourcissement de la libert\xE9 d&#39;expression en vertu\
+        \ du premier amendement parce que des moyens moins restrictifs sont disponibles\
+        \ pour atteindre le m\xEAme objectif."
+      D: "la loi est trop large et par cons\xE9quent invalide en vertu des premier\
+        \ et quatorzi\xE8me amendements."
+    input_correct_responses:
+    - D
+    input_question: "Une l\xE9gislature d&#39;\xC9tat a r\xE9cemment promulgu\xE9\
+      \ une loi qui consid\xE8re comme un d\xE9lit le fait d&#39;insulter ou d&#39;injurier\
+      \ ou d&#39;utiliser un langage obsc\xE8ne ou opprobre envers ou en r\xE9f\xE9\
+      rence \xE0 un policier dans l&#39;exercice de ses fonctions. Un \xE9tudiant\
+      \ d&#39;une universit\xE9 d&#39;\xC9tat a organis\xE9 une manifestation sur\
+      \ le campus pour protester contre la guerre. Le rassemblement a \xE9t\xE9 suivi\
+      \ par un groupe de 50 \xE9tudiants qui ont cri\xE9 des messages anti-guerre\
+      \ aux voitures qui passaient. Pour montrer son m\xE9pris pour les \xC9tats-Unis,\
+      \ l&#39;\xE9tudiant a cousu le drapeau am\xE9ricain \xE0 l&#39;arri\xE8re de\
+      \ son jean. Lorsqu&#39;un policier a vu le drapeau sem\xE9 sur le jean de l&#39;\xE9\
+      tudiant, il s&#39;est approch\xE9 et lui a dit d&#39;enlever le drapeau ou il\
+      \ serait plac\xE9 en \xE9tat d&#39;arrestation. L&#39;\xE9tudiant s&#39;est\
+      \ mis en col\xE8re et a cri\xE9 au policier : \xAB \xC9coute, salaud, je porterai\
+      \ ce chiffon partout o\xF9 je veux. \xBB L&#39;\xE9tudiant a ensuite \xE9t\xE9\
+      \ arr\xEAt\xE9 et accus\xE9 d&#39;avoir enfreint la loi de l&#39;\xC9tat. L&#39;\xE9\
+      tudiant intente ensuite une action devant un tribunal d&#39;\xC9tat pour contester\
+      \ la constitutionnalit\xE9 de la loi. L&#39;argument constitutionnel le plus\
+      \ fort pour l&#39;\xE9tudiant est que"
+  - input_choice_list:
+      A: La clause commerciale.
+      B: "La clause de protection \xE9gale du quatorzi\xE8me amendement."
+      C: "La clause de privil\xE8ges et immunit\xE9s de l&#39;article IV, section\
+        \ 2."
+      D: La clause contractuelle.
+    input_correct_responses:
+    - A
+    input_question: "Un \xC9tat a r\xE9cemment promulgu\xE9 une loi interdisant l&#39;\xE9\
+      limination de tout d\xE9chet nucl\xE9aire dans l&#39;\xC9tat. Cette loi ne contrevient\
+      \ ni n&#39;entre en conflit avec aucune loi f\xE9d\xE9rale. Un homme exploite\
+      \ une entreprise dans l&#39;\xC9tat qui se consacre \xE0 l&#39;\xE9limination\
+      \ des d\xE9chets nucl\xE9aires. \xC0 la suite de l&#39;adoption de la loi de\
+      \ l&#39;\xC9tat, l&#39;homme, qui n&#39;\xE9tait pas encore au courant de la\
+      \ nouvelle loi, a conclu des contrats avec de nombreuses entreprises ext\xE9\
+      rieures \xE0 l&#39;\xC9tat pour \xE9liminer leurs d\xE9chets nucl\xE9aires dans\
+      \ l&#39;\xC9tat. En raison de cette nouvelle loi, cependant, l&#39;homme sera\
+      \ incapable d&#39;ex\xE9cuter ces contrats. Supposons que l&#39;homme a qualit\xE9\
+      \ pour contester cette loi de l&#39;\xC9tat. Lequel des \xE9nonc\xE9s suivants\
+      \ pr\xE9sente ses motifs constitutionnels les plus solides pour contester la\
+      \ loi de l&#39;\xC9tat interdisant l&#39;\xE9limination des d\xE9chets nucl\xE9\
+      aires dans l&#39;\xC9tat\_?"
+  - input_choice_list:
+      A: Des faits incontestables.
+      B: "Des faits qui ont \xE9t\xE9 affirm\xE9s par des organisations politiques\
+        \ individuelles."
+      C: "Faits reconnus vrais de notori\xE9t\xE9 publique."
+      D: "Faits susceptibles de v\xE9rification scientifique."
+    input_correct_responses:
+    - B
+    input_question: "Le juge a pris connaissance d&#39;office de certains faits au\
+      \ d\xE9but du proc\xE8s. Lequel des \xE9l\xE9ments suivants n&#39;est pas un\
+      \ type de fait appropri\xE9 pour le constat judiciaire\_?"
+  - input_choice_list:
+      A: "accorder un all\xE9gement, parce que la cl\xF4ture contrevenait \xE0 la\
+        \ restriction de servitude."
+      B: "accorder un all\xE9gement, parce que l&#39;empi\xE9tement de la cl\xF4ture\
+        \ a viol\xE9 la restriction du plan initial."
+      C: "refuser l&#39;aide, parce que l&#39;enseignant n&#39;a pas fait appliquer\
+        \ la restriction \xE0 l&#39;encontre du retrait\xE9."
+      D: "refuser l&#39;all\xE9gement, car la cl\xF4ture ne serait pas interpr\xE9\
+        t\xE9e comme &quot;une structure&quot; au sens de la restriction."
+    input_correct_responses:
+    - B
+    input_question: "Le 1er octobre 1980, un promoteur, propri\xE9taire de plusieurs\
+      \ centaines d&#39;acres dans un comt\xE9 rural, a r\xE9dig\xE9 un plan d&#39;am\xE9\
+      nagement g\xE9n\xE9ral pour la r\xE9gion. Le plan d\xFBment enregistr\xE9 imposait\
+      \ des limites et des restrictions \xE9labor\xE9es sur le terrain du plan, qui\
+      \ devait \xEAtre d\xE9velopp\xE9 en tant que quartier r\xE9sidentiel. Les restrictions\
+      \ devaient s&#39;\xE9tendre \xE0 toutes les personnes acqu\xE9rant l&#39;un\
+      \ des lots et \xE0 leurs h\xE9ritiers, ayants droit et locataires. Il \xE9tait\
+      \ en outre pr\xE9vu que tous les propri\xE9taires ult\xE9rieurs seraient d\xFB\
+      ment inform\xE9s des restrictions. Parmi ces restrictions au plan g\xE9n\xE9\
+      ral figuraient les suivantes :(22) Un droit de franchise est cr\xE9\xE9 dans\
+      \ une bande de terrain de 10 pieds de largeur le long de l&#39;arri\xE8re de\
+      \ chaque lot \xE0 l&#39;usage des entreprises de services publics avec droit\
+      \ d&#39;entr\xE9e et de sortie. (23) Aucune maison ou construction de quelque\
+      \ nature que ce soit ne peut \xEAtre construite sur la bande de terrain susmentionn\xE9\
+      e traversant lesdits blocs. En 2000, un retrait\xE9 a achet\xE9 l&#39;un des\
+      \ lots, construit une maison et \xE9rig\xE9 une cl\xF4ture \xE0 l&#39;arri\xE8\
+      re de sa propri\xE9t\xE9 dans la zone r\xE9glement\xE9e. En 2004, un enseignant\
+      \ ach\xE8te un terrain adjacent \xE0 la propri\xE9t\xE9 du retrait\xE9 et y\
+      \ construit une nouvelle maison. Deux ans plus tard, un biblioth\xE9caire ach\xE8\
+      te le terrain qui jouxte la propri\xE9t\xE9 de l&#39;enseignant. Les trois actes\
+      \ de ces propri\xE9t\xE9s contenaient chacun des r\xE9f\xE9rences au livre des\
+      \ actes o\xF9 le plan g\xE9n\xE9ral a \xE9t\xE9 enregistr\xE9. En 2008, le biblioth\xE9\
+      caire a commenc\xE9 la construction d&#39;une cl\xF4ture de poteaux et de rails\
+      \ de sept pieds le long de la ligne s\xE9parant son terrain de celui de l&#39;enseignant\
+      \ et le long du centre de la zone soumise au droit de franchise. Bien que l&#39;enseignant\
+      \ se soit oppos\xE9 \xE0 sa construction, la cl\xF4ture a \xE9t\xE9 achev\xE9\
+      e. Si l&#39;enseignant demande une injonction obligatoire pour forcer l&#39;enl\xE8\
+      vement de la cl\xF4ture du biblioth\xE9caire, le tribunal sera tr\xE8s probablement"
+  - input_choice_list:
+      A: "La promesse du p\xE8re et la confiance du cr\xE9ancier dans celle-ci, si\
+        \ elles \xE9taient prouv\xE9es, donnaient naissance \xE0 une r\xE9clamation\
+        \ valide du cr\xE9ancier contre le p\xE8re fond\xE9e sur la doctrine de la\
+        \ pr\xE9clusion promissoire."
+      B: "Puisqu&#39;il \xE9tait pr\xE9visible que la promesse du p\xE8re inciterait\
+        \ le cr\xE9ancier \xE0 s&#39;abstenir d&#39;entreprendre toute action contre\
+        \ le fils, une telle abstention \xE9tait, en droit, une contrepartie n\xE9\
+        goci\xE9e pour la promesse du p\xE8re."
+      C: "Les cinq paiements du p\xE8re au cr\xE9ancier totalisant 2 500 $ ont manifest\xE9\
+        \ une intention s\xE9rieuse de la part du p\xE8re d&#39;\xEAtre li\xE9 contractuellement,\
+        \ et une telle manifestation est g\xE9n\xE9ralement reconnue comme un substitut\
+        \ efficace \xE0 la contrepartie."
+      D: "En assumant la dette ant\xE9rieure que le fils devait au cr\xE9ancier, le\
+        \ p\xE8re devenait une caution dont la promesse au cr\xE9ancier \xE9tait ex\xE9\
+        cutoire, puisqu&#39;elle \xE9tait \xE9crite et appuy\xE9e d&#39;une contrepartie\
+        \ ad\xE9quate."
+    input_correct_responses:
+    - A
+    input_question: "Un fils devait 5 000 $ \xE0 un cr\xE9ancier. Le p\xE8re du fils\
+      \ a contact\xE9 le cr\xE9ancier et lui a dit qu&#39;il voulait payer la dette\
+      \ du fils. Le p\xE8re a sign\xE9 un document indiquant que le p\xE8re paierait\
+      \ la dette du fils \xE0 raison de 500 $ par mois pendant 10 mois. Le cr\xE9\
+      ancier n&#39;a pris aucun engagement \xE9crit ou oral de s&#39;abstenir de poursuivre\
+      \ le fils pour recouvrer la dette de 5 000 $, et le p\xE8re n&#39;a fait aucune\
+      \ demande orale ou \xE9crite pour une telle abstention. Pendant les cinq mois\
+      \ suivants, le p\xE8re a effectu\xE9 et le cr\xE9ancier a accept\xE9 les paiements\
+      \ mensuels de 500\_$ comme convenu. Pendant cette p\xE9riode, le cr\xE9ancier\
+      \ s&#39;est en effet abstenu d&#39;intenter une action en justice contre le\
+      \ fils. Cependant, le p\xE8re a alors inform\xE9 le cr\xE9ancier qu&#39;il ne\
+      \ ferait plus aucun paiement sur la dette. Lequel des arguments suivants est\
+      \ l&#39;argument le plus convaincant selon lequel le p\xE8re est responsable\
+      \ envers le cr\xE9ancier aux termes de leur accord\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_law
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_professional_law
+task_alias: professional_law

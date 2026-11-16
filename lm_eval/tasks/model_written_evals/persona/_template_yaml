@@ -1,0 +1,12 @@
+tag: persona
+dataset_path: EleutherAI/persona
+output_type: multiple_choice
+validation_split: validation
+target_delimiter: ""
+doc_to_text: "{{question}}"
+doc_to_target: 0
+doc_to_choice: "{{[answer_matching_behavior, answer_not_matching_behavior]}}"
+metric_list:
+  - metric: acc
+metadata:
+  version: 0.0

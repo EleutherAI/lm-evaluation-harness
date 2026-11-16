@@ -1,0 +1,10 @@
+group: mmmlu_hi_in_humanities
+group_alias: "Hindi humanities"
+task:
+  - mmmlu_hi_in_humanities_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

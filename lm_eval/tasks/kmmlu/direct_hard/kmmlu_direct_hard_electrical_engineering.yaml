@@ -1,0 +1,4 @@
+dataset_name: electrical_engineering
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_direct_hard_electrical_engineering
+tag: kmmlu_direct_hard_stem_tasks

@@ -1,0 +1,4 @@
+"dataset_name": "global_facts"
+"description": "以下是关于全球事实的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "cmmlu_global_facts"

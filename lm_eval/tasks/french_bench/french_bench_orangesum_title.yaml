@@ -1,0 +1,28 @@
+include: "_default_template_yaml"
+tag:
+  - french_bench
+  - french_bench_extra
+description: "Trouve le titre de l'article."
+task: french_bench_orangesum_title
+dataset_path: orange_sum
+dataset_name: title
+output_type: generate_until
+validation_split: validation
+fewshot_split: validation
+doc_to_text: "\nArticle: {{text}}\n\nTitre:"
+doc_to_target: "{{summary}}"
+target_delimiter: " "
+should_decontaminate: true
+doc_to_decontamination_query: summary
+generation_kwargs:
+  until:
+    - "\n"
+# filter_list:
+#   - name: remove_whitespace
+#     filter:
+#       - function: remove_whitespace
+#       - function: take_first
+metric_list:
+  - metric: !function utils.rouge1
+    higher_is_better: true
+    aggregation:  !function utils.rouge1_agg

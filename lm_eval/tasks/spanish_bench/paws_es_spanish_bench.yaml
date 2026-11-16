@@ -1,0 +1,18 @@
+task: paws_es_spanish_bench
+dataset_path: paws-x
+dataset_name: es
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs_paraphrases
+doc_to_text: ''
+doc_to_target: label
+doc_to_choice: '{{[sentence1+", ¿verdad? No, "+sentence2, sentence1+", ¿verdad? Sí, "+sentence2]}}'
+target_delimiter: ''
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

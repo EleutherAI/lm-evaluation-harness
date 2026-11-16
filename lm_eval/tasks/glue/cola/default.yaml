@@ -1,0 +1,16 @@
+tag: glue
+task: cola
+dataset_path: nyu-mll/glue
+dataset_name: cola
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "{{sentence}}\nQuestion: Does this sentence make sense?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["no", "yes"]
+should_decontaminate: true
+doc_to_decontamination_query: sentence
+metric_list:
+  - metric: mcc
+metadata:
+  version: 1.0

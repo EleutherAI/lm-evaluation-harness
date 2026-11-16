@@ -1,0 +1,5 @@
+dataset_name: pbt_Arab
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_pbt_Arab
+test_split: test

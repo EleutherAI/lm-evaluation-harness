@@ -1,0 +1,70 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Artikel 2 Absatz 4 umfasst nur bewaffnete Gewalt
+      B: "Artikel 2 Absatz 4 umfasst alle Arten von Gewalt, einschlie\xDFlich Sanktionen"
+      C: Artikel 2(4) umfasst alle Eingriffe in die inneren Angelegenheiten von Staaten
+      D: "Artikel 2 Absatz 4 umfasst Gewalt, die nur gegen die territoriale Integrit\xE4\
+        t eines Staates gerichtet ist"
+    input_correct_responses:
+    - A
+    input_question: Welche Arten von Gewalt verbietet Artikel 2(4) der UN-Charta?
+  - input_choice_list:
+      A: "Wenn eine Partei in einem Streitfall vor dem IGH keinen nationalen Richter\
+        \ hat, ist sie berechtigt, nur f\xFCr diesen Fall jemanden als Richter mit\
+        \ dem Titel eines Ad-hoc-Richters zu ernennen"
+      B: "Judge ad hoc ist das Mitglied des Spruchk\xF6rpers des IGH mit ausschlaggebender\
+        \ Stimme"
+      C: Richter ad hoc ist ein Ersatzrichter, falls ein Richter disqualifiziert wird
+        oder verstirbt
+      D: Ad-hoc-Richter ist der Richter, den jede Partei in jedem Streitfall immer
+        ernennt
+    input_correct_responses:
+    - A
+    input_question: Was ist der Ad-hoc-Richter?
+  - input_choice_list:
+      A: Dies ist ein akzeptabler Vorbehalt, wenn die Gesetzgebung des reservierenden
+        Landes eine andere Definition verwendet
+      B: Dies ist ein inakzeptabler Vorbehalt, da er dem Ziel und Zweck des ICCPR
+        widerspricht
+      C: "Dies ist ein inakzeptabler Vorbehalt, da die Definition von Folter im ICCPR\
+        \ mit dem V\xF6lkergewohnheitsrecht vereinbar ist"
+      D: "Dies ist ein akzeptabler Vorbehalt, da Staaten nach allgemeinem V\xF6lkerrecht\
+        \ das Recht haben, Vorbehalte zu Vertr\xE4gen einzubringen"
+    input_correct_responses:
+    - B
+    input_question: "W\xE4re ein Vorbehalt zur Definition von Folter im ICCPR in der\
+      \ heutigen Praxis akzeptabel?"
+  - input_choice_list:
+      A: "Die Einwilligung kann als Umstand dienen, die Rechtswidrigkeit auszuschlie\xDF\
+        en, wann immer sie erteilt wird"
+      B: "Eine Einwilligung kann niemals als Umstand dienen, der eine Rechtswidrigkeit\
+        \ ausschlie\xDFt"
+      C: Als rechtswidriger Umstand kann die Einwilligung dienen, sofern die Einwilligung
+        wirksam ist und sich das Verhalten innerhalb der Grenzen der erteilten Einwilligung
+        bewegt
+      D: "Als rechtswidriger Umstand kann immer die Einwilligung dienen, gleichg\xFC\
+        ltig, welches Staatsorgan sie erteilt"
+    input_correct_responses:
+    - C
+    input_question: "Wann kann die \u201EZustimmung\u201C als Umstand dienen, der\
+      \ die Rechtswidrigkeit eines staatlichen Verhaltens ausschlie\xDFt?"
+  - input_choice_list:
+      A: "Die Zustimmung eines zu bindenden Staates wird nur durch Ratifikation ausgedr\xFC\
+        ckt"
+      B: "Die Zustimmung eines Staates, an einen Vertrag gebunden zu sein, kann durch\
+        \ Unterzeichnung, Ratifizierung, Annahme, Genehmigung oder Beitritt ausgedr\xFC\
+        ckt werden"
+      C: "Die Zustimmung eines zu bindenden Staates wird durch Unterschrift ausgedr\xFC\
+        ckt"
+      D: "Die Zustimmung eines Staates, gebunden zu werden, wird durch die von ihm\
+        \ gew\xE4hlten Mittel ausgedr\xFCckt"
+    input_correct_responses:
+    - B
+    input_question: "Wie kann die Bindungszusage eines Staates ausgedr\xFCckt werden?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_international_law
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_international_law
+task_alias: international_law

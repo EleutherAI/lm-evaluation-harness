@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_medical_genetics
+"tag": "mmmlu_it_it_other_tasks"
+"task": "mmmlu_it_it_medical_genetics"
+"task_alias": "medical genetics (Italian)"
+"description": "The following are multiple choice questions (with answers) about medical genetics (Italian).\n\n"

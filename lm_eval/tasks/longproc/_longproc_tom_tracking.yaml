@@ -1,0 +1,11 @@
+group: longproc_tom_tracking
+task:
+  - longproc_tom_tracking_0.5k
+  - longproc_tom_tracking_2k
+  - longproc_tom_tracking_8k
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

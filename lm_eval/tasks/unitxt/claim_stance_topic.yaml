@@ -1,0 +1,3 @@
+task: claim_stance_topic
+include: unitxt
+recipe: card=cards.claim_stance_topic,template=templates.classification.multi_class.title

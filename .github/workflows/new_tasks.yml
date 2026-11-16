@@ -1,0 +1,76 @@
+name: Tasks Modified
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+env:
+  TQDM_DISABLE: "1"
+  HF_HUB_DISABLE_PROGRESS_BARS: "1"
+
+# comment/edit out the above to stop/change the triggers
+jobs:
+  changed_files:
+    runs-on: ubuntu-latest  # windows-latest || macos-latest
+    timeout-minutes: 120
+    name: Scan for changed tasks
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
+
+      # Uses the tj-actions/changed-files action to check for changes.
+      # The `files_yaml` input optionally takes a yaml string to specify filters,
+      # and prepends the filter name to the standard output names.
+      - name: Check task folders
+        id: changed-tasks
+        uses: tj-actions/changed-files@v47
+        with:
+          # tasks checks the tasks folder and api checks the api folder for changes
+          files_yaml: |
+            tasks:
+              - lm_eval/tasks/**
+            api:
+              - lm_eval/api/**
+          write_output_files: true
+
+    # The next step is optional; the files are written to the workspace by default (above).
+    # so it's just for debugging
+      - name: Run Tests
+        if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
+        run: |
+          echo .github/outputs/tasks_all_changed_and_modified_files.txt >> 'GITHUB_ENV'
+          echo "One or more test file(s) has changed."
+          echo "List of all the files that have changed: ${{ steps.changed-tasks.outputs.tasks_all_modified_files }}"
+
+      - name: Install uv
+        if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: "auto"
+          prune-cache: true
+          python-version: "3.10"
+          activate-environment: true
+      - name: Install dependencies
+        if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
+        run: |
+          uv pip install -e '.[dev,ifeval,unitxt,math,longbench,hf]' --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Test with pytest
+        # if new tasks are added, run tests on them
+        if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: pytest -x -s -vv tests/test_tasks.py
+        # if api is modified, run tests on it
+      - name: Test more tasks with pytest
+        env:
+          API: true
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        if: steps.changed-tasks.outputs.api_any_modified == 'true'
+        run: pytest -x -s -vv -n=auto tests/test_tasks.py

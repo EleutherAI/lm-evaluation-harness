@@ -1,0 +1,12 @@
+tag: evalita-mp_faq_tasks
+include: _faq_template_yaml
+task: evalita-mp_faq_prompt-3
+task_alias: prompt-3
+#doc_to_text: "Data la seguente domanda {{question}}, individua la risposta corretta tra le seguenti opzioni:\n A: {{A}}\nB: {{B}}\nC: {{C}}\nD: {{D}} Risposta:"
+doc_to_text: "Rispondi alla seguente domanda: '{{question}}'\nA: {{A}}\nB: {{B}}\nC: {{C}}\nD: {{D}}\nRisposta:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1

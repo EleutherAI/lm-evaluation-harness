@@ -1,0 +1,18 @@
+include: _babilong_common_yaml
+task: babilong_qa4
+test_split: qa4
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa4
+description: "I will give you context with the facts about different people, their location and actions, hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nYour answer should contain only one word - location. Do not write anything else after that.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "The hallway is south of the kitchen. The bedroom is north of the kitchen."
+      question: "What is the kitchen south of?"
+      target: "bedroom"
+    - input: "The garden is west of the bedroom. The bedroom is west of the kitchen."
+      question: "What is west of the bedroom?"
+      target: "garden"

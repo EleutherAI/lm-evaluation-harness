@@ -1,0 +1,20 @@
+
+task: bangla_mmlu
+dataset_path: hishab/titulm-bangla-mmlu
+dataset_name: all
+description: "The following are multiple choice questions (with answers) about range of topics in Bangla"
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_text: "{{question.strip()}} A. {{options[0]}} B. {{options[1]}} C. {{options[2]}} D. {{options[3]}} Answer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

@@ -1,0 +1,4 @@
+dataset_name: real_estate
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_direct_hard_real_estate
+tag: kmmlu_direct_hard_other_tasks

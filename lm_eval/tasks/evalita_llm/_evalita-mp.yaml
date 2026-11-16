@@ -1,0 +1,18 @@
+group: evalita-mp
+group_alias: Evalita-LLM
+task:
+  - evalita-mp_te
+  - evalita-mp_sa
+  - evalita-mp_wic
+  - evalita-mp_hs
+  - evalita-mp_at
+  - evalita-mp_faq
+  - evalita-mp_sum_fp
+  - evalita-mp_ls
+  - evalita-mp_ner_group
+  - evalita-mp_re
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1

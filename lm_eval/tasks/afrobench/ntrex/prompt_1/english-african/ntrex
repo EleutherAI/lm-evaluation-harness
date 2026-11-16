@@ -1,0 +1,25 @@
+tag:
+- ntrex_tasks
+- ntrex_eng-afr
+- ntrex_eng-afr_prompt_1
+- afrobench_MT_tasks
+dataset_path: masakhane/ntrex_african
+output_type: generate_until
+validation_split: test
+fewshot_split: test
+test_split: test
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: chrf
+    aggregation: chrf
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+metadata:
+  version: 1.0

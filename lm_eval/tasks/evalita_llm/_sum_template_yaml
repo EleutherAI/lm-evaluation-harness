@@ -1,0 +1,11 @@
+dataset_path: silvia-casola/WITS
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "</s>"
+test_split: test_100
+fewshot_split: dev
+#test_split: train
+doc_to_target: "{{summary}}"
+metadata:
+  version: 1

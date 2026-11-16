@@ -1,0 +1,14 @@
+tag: evalita-mp_hs_tasks
+include: _hs_template_yaml
+task: evalita-mp_hs_prompt-3
+task_alias: prompt-3
+doc_to_choice: ["B", "A"]
+#doc_to_text: "Dato il seguente testo, rispondi Vero se il testo contiene hate speech, altrimenti rispondi Falso. Testo:\n{{full_text}} Risposta:"
+doc_to_text: "C'è incitamento all'odio nel seguente tweet: '{{full_text}}'?\nA: Vero\nB: Falso\nRisposta:"
+metric_list:
+  - metric: f1
+    higher_is_better: true
+    average: macro
+    aggregation: f1
+metadata:
+  version: 1.0

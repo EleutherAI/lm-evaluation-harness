@@ -1,0 +1,74 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 2.0/15
+      B: 1.0/7
+      C: 3.0/16
+      D: 1.0/5
+    input_correct_responses:
+    - B
+    input_question: "Ein 6-seitiger W\xFCrfel wird 15 Mal geworfen und die Ergebnisse\
+      \ sind: Seite 1 kommt 0 Mal auf; Seite 2: 1 Mal; Seite 3: 2 mal; Seite 4: 3\
+      \ mal; Seite 5: 4 mal; Seite 6: 5 mal. Wie hoch ist basierend auf diesen Ergebnissen\
+      \ die Wahrscheinlichkeit, dass Seite 3 erscheint, wenn Add-1-Gl\xE4ttung verwendet\
+      \ wird?"
+  - input_choice_list:
+      A: "Zuf\xE4lliges Zuschneiden und horizontales Spiegeln"
+      B: "Zuf\xE4lliges Zuschneiden und vertikales Flip"
+      C: Posterisierung
+      D: Zittern
+    input_correct_responses:
+    - A
+    input_question: "Welche Bilddatenaugmentation ist bei nat\xFCrlichen Bildern am\
+      \ gebr\xE4uchlichsten?"
+  - input_choice_list:
+      A: Meine Methode erreicht einen geringeren Trainingsfehler als alle bisherigen
+        Methoden!
+      B: "Meine Methode erreicht einen geringeren Testfehler als alle bisherigen Methoden!\
+        \ (Fu\xDFnote: Wenn der Regularisierungsparameter \u03BB so gew\xE4hlt wird,\
+        \ dass der Testfehler minimiert wird.)"
+      C: "Meine Methode erreicht einen niedrigeren Testfehler als alle bisherigen\
+        \ Methoden! (Fu\xDFnote: Wenn der Regularisierungsparameter \u03BB so gew\xE4\
+        hlt wird, dass der Kreuzvalidierungsfehler minimiert wird.)"
+      D: "Meine Methode erreicht einen geringeren Kreuzvalidierungsfehler als alle\
+        \ bisherigen Methoden! (Fu\xDFnote: Wenn der Regularisierungsparameter \u03BB\
+        \ so gew\xE4hlt wird, dass der Kreuzvalidierungsfehler minimiert wird.)"
+    input_correct_responses:
+    - C
+    input_question: "Sie sehen sich Beitr\xE4ge f\xFCr die World&#39;s Fanciest Machine\
+      \ Learning Conference an und sehen Beitr\xE4ge mit den folgenden Behauptungen.\
+      \ Welche w\xFCrden Sie annehmen?"
+  - input_choice_list:
+      A: rund 10 Beispiele
+      B: rund 100 Beispiele
+      C: zwischen 100 und 500 Beispiele
+      D: mehr als 1000 Beispiele
+    input_correct_responses:
+    - D
+    input_question: "Um eine 0/1-Verlustsch\xE4tzung zu erreichen, die weniger als\
+      \ 1 Prozent des wahren 0/1-Verlusts betr\xE4gt (mit einer Wahrscheinlichkeit\
+      \ von 95 %), muss das IID-Testset gem\xE4\xDF der Hoeffding-Ungleichung wie\
+      \ viele Beispiele haben?"
+  - input_choice_list:
+      A: Es ist zu rechenintensiv.
+      B: "Dies w\xFCrde wahrscheinlich zu einem Entscheidungsbaum f\xFChren, der auf\
+        \ dem Trainingssatz und einem Testsatz schlecht abschneidet."
+      C: "Dies w\xFCrde wahrscheinlich zu einem Entscheidungsbaum f\xFChren, der auf\
+        \ dem Trainingssatz gut abschneidet, aber auf einem Testsatz schlecht."
+      D: "Dies w\xFCrde wahrscheinlich zu einem Entscheidungsbaum f\xFChren, der in\
+        \ einem Testset gut, aber in einem Trainingsset schlecht abschneidet."
+    input_correct_responses:
+    - C
+    input_question: "Wenn wir w\xE4hrend des Entscheidungsbaumlernens ein reellwertiges\
+      \ Eingabeattribut haben, ziehen wir traditionell eine bin\xE4re Aufteilung in\
+      \ Betracht, je nachdem, ob das Attribut \xFCber oder unter einem bestimmten\
+      \ Schwellenwert liegt. Pat schl\xE4gt vor, dass wir stattdessen einfach eine\
+      \ Mehrfachaufteilung mit einem Zweig f\xFCr jeden der unterschiedlichen Werte\
+      \ des Attributs haben sollten. W\xE4hlen Sie aus der folgenden Liste das gr\xF6\
+      \xDFte Einzelproblem mit Pats Vorschlag aus:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_machine_learning
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_machine_learning
+task_alias: machine_learning

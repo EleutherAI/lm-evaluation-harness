@@ -1,0 +1,6 @@
+"dataset_name": "management_accounting"
+"description": "以下為管理會計的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_other_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_management_accounting"
+"task_alias": "management accounting"

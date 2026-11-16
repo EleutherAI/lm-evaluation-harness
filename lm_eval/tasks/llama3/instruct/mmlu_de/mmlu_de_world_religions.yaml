@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Der Regenbogen
+      B: Beschneidung
+      C: Einen Sohn
+      D: Bar Mizwa
+    input_correct_responses:
+    - B
+    input_question: "Was ist das Zeichen des Bundes f\xFCr j\xFCdische M\xE4nner?"
+  - input_choice_list:
+      A: Der Dharma
+      B: Der Sangha
+      C: Der Buddha
+      D: Der Bodhisattva
+    input_correct_responses:
+    - A
+    input_question: Was ist das zweite Juwel im Buddhismus?
+  - input_choice_list:
+      A: Shang
+      B: Zhou
+      C: Han
+      D: Xia
+    input_correct_responses:
+    - B
+    input_question: "In welcher Dynastie wurde das \u201EMandat des Himmels\u201C\
+      \ entwickelt, um die neuen Herrscher zu legitimieren?"
+  - input_choice_list:
+      A: Honen
+      B: Tanaka
+      C: Tokugawa
+      D: Meiji
+    input_correct_responses:
+    - D
+    input_question: "Welche japanische Regierung f\xF6rderte eine Art nationalen Kult,\
+      \ der auf dem Kaiser und seinen Beziehungen zu Kami beruhte?"
+  - input_choice_list:
+      A: Rituelle Texte
+      B: Philosophische Texte
+      C: Hymnen
+      D: Entstehungsgeschichten
+    input_correct_responses:
+    - B
+    input_question: Wie lassen sich die Upanishaden charakterisieren?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_world_religions
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_world_religions
+task_alias: world_religions

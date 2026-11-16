@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-high_school_government_and_politics": {"acc": 0.24352331606217617, "acc_norm": 0.23834196891191708, "acc_norm_stderr": 0.03074890536390988, "acc_stderr": 0.030975436386845436}}, "versions": {"hendrycksTest-high_school_government_and_politics": 0}}

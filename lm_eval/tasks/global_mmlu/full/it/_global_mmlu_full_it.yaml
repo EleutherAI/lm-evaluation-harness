@@ -1,0 +1,11 @@
+group: global_mmlu_full_it
+task:
+  - global_mmlu_full_it_stem
+  - global_mmlu_full_it_other
+  - global_mmlu_full_it_social_sciences
+  - global_mmlu_full_it_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0.0

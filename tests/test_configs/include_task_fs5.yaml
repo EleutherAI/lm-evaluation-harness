@@ -1,0 +1,13 @@
+# Task demonstrating include inheritance with custom metrics
+
+task: include_task_fs5
+include: include_base.yaml
+num_fewshot: 5
+description: "Five-shot with custom metrics"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

@@ -1,0 +1,23 @@
+group: xnli
+task:
+  - xnli_ar
+  - xnli_bg
+  - xnli_de
+  - xnli_el
+  - xnli_en
+  - xnli_es
+  - xnli_fr
+  - xnli_hi
+  - xnli_ru
+  - xnli_sw
+  - xnli_th
+  - xnli_tr
+  - xnli_ur
+  - xnli_vi
+  - xnli_zh
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

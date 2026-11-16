@@ -1,0 +1,3 @@
+dataset_name: v1-Hard
+include: slr_bench_common_yaml
+task: slr_bench_hard

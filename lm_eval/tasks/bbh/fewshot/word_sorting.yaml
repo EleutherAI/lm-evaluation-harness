@@ -1,0 +1,21 @@
+dataset_name: word_sorting
+description: 'Sort a list of words.
+
+
+  '
+doc_to_text: 'Q: {{input}}
+
+  A:'
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input: 'Sort the following words alphabetically: List: oven costume counterpart'
+    target: costume counterpart oven
+  - input: 'Sort the following words alphabetically: List: hypochlorite ponderosa
+      phone credulity'
+    target: credulity hypochlorite phone ponderosa
+  - input: 'Sort the following words alphabetically: List: newt arson parthia seismography
+      mugho aspect census'
+    target: arson aspect census mugho newt parthia seismography
+include: _fewshot_template_yaml
+task: bbh_fewshot_word_sorting

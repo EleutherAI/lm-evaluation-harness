@@ -1,0 +1,7 @@
+dataset_name: toksuite_italian_grammatical_errors
+include: toksuite_italian_base.yaml
+task: toksuite_italian_grammatical_errors
+metadata:
+  canonical_task: toksuite_italian_canonical
+  task_pretty_name: Grammatical errors
+  num_samples: 86

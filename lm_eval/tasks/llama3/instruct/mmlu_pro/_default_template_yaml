@@ -1,0 +1,33 @@
+dataset_path: TIGER-Lab/MMLU-Pro
+output_type: generate_until
+test_split: test
+fewshot_split: validation
+fewshot_config:
+    sampler: first_n
+    doc_to_target: !function utils.fewshot_to_text
+doc_to_text: "{% set letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}Given the following question and candidate answers, choose the best answer.\nQuestion: {{question.strip()}}\n{% for choice in options %}{{letters[loop.index0]}}. {{choice}}\n{% endfor %}\nYour response should end with \"The best answer is [the_answer_letter].\" where the [the_answer_letter] is a letter from the provided choices.\n\nLet's think step by step."
+doc_to_target: answer
+num_fewshot: 5
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - "\\$"
+      - "\\.$"
+generation_kwargs:
+  do_sample: false
+  temperature: 0
+  max_gen_toks: 1024
+  until: []
+filter_list:
+  - name: strict_match
+    filter:
+        - function: "regex"
+          regex_pattern: "[tT]he best answer is ([A-Z])"
+          group_select: -1
+        - function: take_first
+metadata:
+  version: 1.0

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_human_aging
+"tag": "mmmlu_sw_ke_other_tasks"
+"task": "mmmlu_sw_ke_human_aging"
+"task_alias": "human aging (Swahili)"
+"description": "The following are multiple choice questions (with answers) about human aging (Swahili).\n\n"

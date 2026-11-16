@@ -1,0 +1,68 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Os bebedores de ch\xE1 t\xEAm menor risco de desenvolver diabetes."
+      B: "Os bebedores de ch\xE1 t\xEAm maior risco de desenvolver diabetes."
+      C: "Com base nas informa\xE7\xF5es fornecidas, n\xE3o podemos dizer se a diferen\xE7\
+        a observada no risco de doen\xE7a \xE9 resultado do acaso."
+      D: "A raz\xE3o de risco est\xE1 pr\xF3xima do valor um, portanto n\xE3o h\xE1\
+        \ diferen\xE7a no risco de doen\xE7a entre os dois grupos."
+    input_correct_responses:
+    - C
+    input_question: "Num estudo de coorte, a taxa de risco de desenvolver diabetes\
+      \ foi de 0,86 quando se comparou os consumidores de ch\xE1 (os expostos) com\
+      \ aqueles que n\xE3o beberam ch\xE1 (os n\xE3o expostos). Qual afirma\xE7\xE3\
+      o est\xE1 correta (de acordo com o conhecimento em 2020)?"
+  - input_choice_list:
+      A: "Consumidores com fenilceton\xFAria devem evitar o consumo do ado\xE7ante\
+        \ aspartame"
+      B: "Consumidores com fenilceton\xFAria devem evitar o consumo do ado\xE7ante\
+        \ sacarina"
+      C: "Consumidores com fenilceton\xFAria devem evitar o consumo do ado\xE7ante\
+        \ sucralose"
+      D: "Consumidores com fenilceton\xFAria devem evitar o consumo do ado\xE7ante\
+        \ acessulfame K"
+    input_correct_responses:
+    - A
+    input_question: "Qual das seguintes afirma\xE7\xF5es est\xE1 correta (de acordo\
+      \ com o conhecimento em 2020)?"
+  - input_choice_list:
+      A: "O \xE1cido propi\xF4nico, formado durante a fermenta\xE7\xE3o das fibras\
+        \ do c\xF3lon, inibe a s\xEDntese de \xE1cidos graxos no f\xEDgado"
+      B: "O \xE1cido but\xEDrico, formado durante a fermenta\xE7\xE3o das fibras do\
+        \ c\xF3lon, estimula o &quot;silenciamento&quot; do gene supressor de tumor\
+        \ SLC5A8"
+      C: "Nenhuma dessas op\xE7\xF5es est\xE1 correta"
+      D: "O \xE1cido but\xEDrico, formado durante a fermenta\xE7\xE3o das fibras do\
+        \ c\xF3lon, estimula as defesas antioxidantes no c\xF3lon"
+    input_correct_responses:
+    - D
+    input_question: "Qual das alternativas a seguir \xE9 a explica\xE7\xE3o mais plaus\xED\
+      vel para o efeito protetor da fibra alimentar contra o c\xE2ncer de c\xF3lon,\
+      \ a partir de 2020?"
+  - input_choice_list:
+      A: "50% dos adultos consomem iodo em n\xEDveis abaixo do RNI"
+      B: "Os produtos l\xE1cteos s\xE3o uma fonte pobre de iodo"
+      C: "O teor de iodo do leite org\xE2nico \xE9 geralmente inferior ao n\xEDvel\
+        \ do leite n\xE3o org\xE2nico"
+      D: "Os valores de refer\xEAncia diet\xE9ticos do Reino Unido recomendam um aumento\
+        \ na ingest\xE3o de iodo durante a gravidez"
+    input_correct_responses:
+    - C
+    input_question: "Qual das seguintes afirma\xE7\xF5es sobre o iodo est\xE1 correta\
+      \ em 2020?"
+  - input_choice_list:
+      A: Acarbose
+      B: Metformina
+      C: Sulfonilureias
+      D: Insulina
+    input_correct_responses:
+    - B
+    input_question: "Qual \xE9 o medicamento de primeira linha para pacientes com\
+      \ diabetes tipo 2 e obesidade, a partir de 2020?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_nutrition
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_nutrition
+task_alias: nutrition

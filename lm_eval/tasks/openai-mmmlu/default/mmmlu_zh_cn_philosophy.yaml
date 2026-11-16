@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_philosophy
+"tag": "mmmlu_zh_cn_humanities_tasks"
+"task": "mmmlu_zh_cn_philosophy"
+"task_alias": "philosophy (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about philosophy (Simplified Chinese).\n\n"

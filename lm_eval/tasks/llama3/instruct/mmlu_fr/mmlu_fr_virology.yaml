@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Parce qu&#39;ils n&#39;ont pas d&#39;acide nucl\xE9ique"
+      B: Ils ont besoin d&#39;un virus auxiliaire
+      C: "R\xE9pliquer uniquement dans les cellules en division"
+      D: "Peut s&#39;int\xE9grer dans les chromosomes de l&#39;h\xF4te"
+    input_correct_responses:
+    - A
+    input_question: "Pourquoi les parvovirus sont-ils un parasite tr\xE8s impactant\
+      \ ?"
+  - input_choice_list:
+      A: "Virus fragiles souvent visualis\xE9s avec de l&#39;ARN crachant de l&#39;int\xE9\
+        rieur"
+      B: "Virus allong\xE9s"
+      C: "Virus icosa\xE9driques avec enveloppe"
+      D: "Tr\xE8s gros virus"
+    input_correct_responses:
+    - A
+    input_question: "Laquelle des caract\xE9ristiques suivantes est une caract\xE9\
+      ristique morphologique des paramyxovirus."
+  - input_choice_list:
+      A: "Collecte de donn\xE9es"
+      B: "Mise en place d&#39;un r\xE9f\xE9rentiel d&#39;\xE9chantillons biologiques"
+      C: "Int\xE9r\xEAt des participants"
+      D: Administration du questionnaire par le personnel
+    input_correct_responses:
+    - B
+    input_question: "Un facteur cl\xE9 facilitant l&#39;application des \xE9tudes\
+      \ cas-t\xE9moins embo\xEEt\xE9es du MACS \xE9tait\_:"
+  - input_choice_list:
+      A: Changement de comportement
+      B: "Couverture compl\xE8te"
+      C: "Utilisation efficace de la th\xE9orie comportementale"
+      D: Changement de comportement durable
+    input_correct_responses:
+    - D
+    input_question: "L&#39;objectif le plus important d&#39;une intervention comportementale\
+      \ est\_:"
+  - input_choice_list:
+      A: "Personnes infect\xE9es par le VIH s\xE9ropr\xE9valentes"
+      B: "S\xE9ron\xE9gatifs"
+      C: "S\xE9roconvertisseurs"
+      D: "S\xE9ron\xE9gatifs \xE0 haut risque"
+    input_correct_responses:
+    - C
+    input_question: "La dur\xE9e m\xE9diane de survie au SIDA et au d\xE9c\xE8s a\
+      \ \xE9t\xE9 \xE9tablie comme suit\_:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_virology
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_virology
+task_alias: virology

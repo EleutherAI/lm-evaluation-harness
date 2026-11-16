@@ -1,0 +1,5 @@
+include: _urdu_few_shot_og_template_yaml
+description: ذیل میں Health oriented education کے بارے میں متعدد انتخابی سوالات (جوابات
+  کے ساتھ) ہیں۔
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_urdu_few_shot_og_health_oriented_education

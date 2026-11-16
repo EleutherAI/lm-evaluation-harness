@@ -1,0 +1,6 @@
+"dataset_name": "econometrics"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_social_sciences_tasks"
+"task": "mmlu_cot_llama_econometrics"
+"task_alias": "econometrics"

@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Das US-Milit\xE4r er\xF6ffnet eine neue Basis in einem fremden Land mit\
+        \ 1000 US-Personal."
+      B: Japanische Verbraucher kaufen Tausende von CDs, die in den Vereinigten Staaten
+        hergestellt wurden.
+      C: "Ein amerikanischer Pops\xE4nger gibt ein ausverkauftes Konzert in Paris."
+      D: "Eine franz\xF6sische Theaterproduktion tourt durch Dutzende von amerikanischen\
+        \ St\xE4dten."
+    input_correct_responses:
+    - C
+    input_question: Was ist nicht im US-BIP enthalten?
+  - input_choice_list:
+      A: direkten Zusammenhang zwischen Arbeitslosigkeit und Inflation
+      B: direkter Zusammenhang zwischen Preis und nachgefragter Menge
+      C: umgekehrte Beziehung zwischen Preis und nachgefragter Menge
+      D: umgekehrte Beziehung zwischen Arbeitslosigkeit und Inflation
+    input_correct_responses:
+    - D
+    input_question: Die kurzfristige Phillips-Kurve zeigt a
+  - input_choice_list:
+      A: "Exporte \xFCbersteigen Importe."
+      B: "Importe \xFCbersteigen Exporte."
+      C: "Bundessteuereinnahmen \xFCbersteigen Ausgaben."
+      D: "Die Bundesausgaben \xFCbersteigen die Steuereinnahmen des Bundes."
+    input_correct_responses:
+    - D
+    input_question: Ein Bundesdefizit tritt auf, wenn
+  - input_choice_list:
+      A: "Erh\xF6hung des Diskontsatzes"
+      B: "Erh\xF6hung des Reservesatzes"
+      C: Kauf von Staatspapieren
+      D: Senkung der Tarife
+    input_correct_responses:
+    - C
+    input_question: "Unter sonst gleichen Bedingungen, welche der folgenden Geldpolitiken\
+      \ w\xFCrden eingesetzt, um die US-Exporte anzukurbeln?"
+  - input_choice_list:
+      A: "Eine Erh\xF6hung der Geldmenge"
+      B: "Erh\xF6hte Staatsausgaben"
+      C: Niedrigere Steuern auf Forschung und Entwicklung neuer Technologien
+      D: "H\xF6here Steuern auf Haushaltseinkommen"
+    input_correct_responses:
+    - C
+    input_question: Welche der folgenden Politiken beschreibt die angebotsseitige
+      Fiskalpolitik am besten?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_macroeconomics
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_high_school_macroeconomics
+task_alias: high_school_macroeconomics

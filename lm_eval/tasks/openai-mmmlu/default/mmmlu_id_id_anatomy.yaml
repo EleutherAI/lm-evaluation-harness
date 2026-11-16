@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ID_ID"
+process_docs: !function utils.process_anatomy
+"tag": "mmmlu_id_id_stem_tasks"
+"task": "mmmlu_id_id_anatomy"
+"task_alias": "anatomy (Indonesian)"
+"description": "The following are multiple choice questions (with answers) about anatomy (Indonesian).\n\n"

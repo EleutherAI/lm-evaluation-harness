@@ -1,0 +1,7 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_biorxiv_all
+task_alias: UE_biorxiv
+process_docs: !function uncheatable_eval_utils.filter_biorxiv_all
+metadata:
+  description: >-
+    Rolling perplexity on bioRxiv preprints from the Uncheatable Eval 2026-07 snapshot.

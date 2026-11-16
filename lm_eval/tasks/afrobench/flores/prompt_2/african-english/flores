@@ -1,0 +1,27 @@
+tag:
+- african_flores_tasks
+- flores_afr-eng
+- flores_afr-eng_prompt_2
+- afrobench_MT_tasks
+dataset_path: facebook/flores
+dataset_kwargs: {trust_remote_code: True}
+output_type: generate_until
+validation_split: dev
+fewshot_split: dev
+test_split: devtest
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: chrf
+    aggregation: chrf
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "**"
+    - </s>
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+metadata:
+  version: 1.0

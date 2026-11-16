@@ -1,0 +1,5 @@
+dataset_name: lao_Laoo
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_lao_Laoo
+test_split: test

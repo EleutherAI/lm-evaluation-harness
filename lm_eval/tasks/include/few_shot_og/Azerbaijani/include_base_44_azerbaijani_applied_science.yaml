@@ -1,0 +1,5 @@
+include: _azerbaijani_few_shot_og_template_yaml
+description: Aşağıdakılar Applied Science haqqında çoxseçimli suallardır (cavabları
+  ilə).
+process_docs: !function 'utils.process_applied_science'
+task: include_base_44_azerbaijani_few_shot_og_applied_science

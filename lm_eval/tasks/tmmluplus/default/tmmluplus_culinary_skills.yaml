@@ -1,0 +1,6 @@
+"dataset_name": "culinary_skills"
+"description": "以下為餐旅的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_other_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_culinary_skills"
+"task_alias": "culinary skills"

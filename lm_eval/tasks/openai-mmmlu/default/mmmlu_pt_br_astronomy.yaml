@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_astronomy
+"tag": "mmmlu_pt_br_stem_tasks"
+"task": "mmmlu_pt_br_astronomy"
+"task_alias": "astronomy (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about astronomy (Brazilian Portuguese).\n\n"

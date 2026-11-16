@@ -1,0 +1,6 @@
+"dataset_name": "professional_law"
+"description": "The following are questions (with answers) about professional\
+  \ law.\n\n"
+"tag": "mmlu_humanities_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_professional_law_continuation"

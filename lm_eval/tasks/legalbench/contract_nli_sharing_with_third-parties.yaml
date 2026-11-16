@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_contract_nli_sharing_with_third-parties
+dataset_name: contract_nli_sharing_with_third-parties
+num_fewshot: 8
+description: "Identify if the clause provides that the Receiving Party may share some Confidential Information with some third-parties (including consultants, agents and professional advisors).\n\n"
+doc_to_text: "Clause: {{text}}\nLabel:"

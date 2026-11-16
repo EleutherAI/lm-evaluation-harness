@@ -1,0 +1,11 @@
+include: _infinitebench_common_yaml
+task: infinitebench_kv_retrieval
+test_split: kv_retrieval
+process_results: !function utils.process_results_kv
+description: "Extract the value corresponding to the specified key in the JSON object below.\n\n"
+doc_to_text: "{{context}}\n\n{{input}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50
+  until: ["\n"]

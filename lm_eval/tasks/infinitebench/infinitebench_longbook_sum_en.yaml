@@ -1,0 +1,11 @@
+include: _infinitebench_common_yaml
+task: infinitebench_longbook_sum_en
+test_split: longbook_sum_en
+process_results: !function utils.process_results_rouge
+description: "Summarize the following book.\n\n"
+doc_to_text: "{{context}}"
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 1200
+  until: []

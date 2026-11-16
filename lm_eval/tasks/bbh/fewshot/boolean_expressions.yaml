@@ -1,0 +1,19 @@
+dataset_name: boolean_expressions
+description: 'Evaluate the result of a random Boolean expression.
+
+
+  '
+doc_to_text: 'Q: {{input}}
+
+  A:'
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input: not ( ( not not True ) ) is
+    target: 'False'
+  - input: True and False and not True and True is
+    target: 'False'
+  - input: not not ( not ( False ) ) is
+    target: 'True'
+include: _fewshot_template_yaml
+task: bbh_fewshot_boolean_expressions

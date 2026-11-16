@@ -1,0 +1,12 @@
+include: mimic_repsum.yaml
+task: mimic_repsum_perplexity
+output_type: loglikelihood_rolling
+doc_to_text: ""
+process_results: !function utils_perplexity.process_results
+metric_list:
+  - metric: word_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    higher_is_better: false

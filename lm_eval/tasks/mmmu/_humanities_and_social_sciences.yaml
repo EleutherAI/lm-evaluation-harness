@@ -1,0 +1,13 @@
+group: mmmu_val_humanities_and_social_science
+group_alias: Humanities and Social Science
+task:
+  - mmmu_val_history
+  - mmmu_val_literature
+  - mmmu_val_sociology
+  - mmmu_val_psychology
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

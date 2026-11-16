@@ -1,0 +1,18 @@
+tag: qasper
+task: qasper_freeform
+dataset_path: allenai/qasper
+output_type: generate_until
+training_split: train
+validation_split: validation
+process_docs: !function utils.process_docs_freeform
+doc_to_text: "TITLE: {{title}}\nABSTRACT: {{abstract}}\n\nQ: {{question}}\n\nA:"
+doc_to_target: answer
+generation_kwargs:
+  until:
+    - "\n"
+metric_list:
+  - metric: !function metrics.f1_abstractive
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 2.0

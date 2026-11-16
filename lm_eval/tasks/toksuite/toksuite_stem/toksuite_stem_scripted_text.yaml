@@ -1,0 +1,7 @@
+dataset_name: toksuite_stem_scripted_text
+include: toksuite_stem_base.yaml
+task: toksuite_stem_scripted_text
+metadata:
+  canonical_task: toksuite_stem_canonical
+  task_pretty_name: "Scripted text"
+  num_samples: 18

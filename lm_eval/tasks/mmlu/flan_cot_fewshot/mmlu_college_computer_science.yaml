@@ -1,0 +1,180 @@
+dataset_name: college_computer_science
+description: The following are multiple choice questions (with answers) about college
+  computer science.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Which of the following regular expressions is equivalent to (describes
+      the same set of strings as) (a* + b)*(c + d)?
+
+      (A) a*(c + d)+ b(c + d)
+
+      (B) a*(c + d)* + b(c + d)*
+
+      (C) a*(c + d)+ b*(c + d)
+
+      (D) (a + b)*c +(a + b)*d'
+    target: 'Let''s think step by step. We know that:
+
+      1. (X* + Y)* = (X + Y)*
+
+      2. X(Y + Z)? = XY + XZ
+
+      Using equation 1 we can rewrite (a* + b)*(c + d)? as:
+
+      3. (a + b)*(c + d)?
+
+      Using equation 2 we can rewrite equation 3 as:
+
+      (a + b)*c + (a + b)*d The answer is (D).'
+  - question: 'The Singleton design pattern is used to guarantee that only a single instance
+      of a class may be instantiated. Which of the following is (are) true of this
+      design pattern?
+
+      I. The Singleton class has a static factory method to provide its instance.
+
+      II. The Singleton class can be a subclass of another class.
+
+      III. The Singleton class has a private constructor.
+
+      (A) I only
+
+      (B) II only
+
+      (C) III only
+
+      (D) I, II, and III'
+    target: 'Let''s think step by step. Statement I is a correct statement about a
+      Singleton, because a Singleton restricts instantiation to a single, static method.
+      Statement II is also correct, because there is no inherent restriction regarding
+      the inheritance of a Singleton. Statement III is also correct, because a Singletons
+      must be instantiated only once, so its constructor is made private to prevent
+      any construction except via its static factory method.
+
+      Given these facts, statements I, II, and III are all correct. The answer is
+      (D).'
+  - question: 'A certain pipelined RISC machine has 8 general-purpose registers R0, R1,
+      . . . , R7 and supports the following operations:
+
+      ADD Rs1, Rs2, Rd (Add Rs1 to Rs2 and put the sum in Rd)
+
+      MUL Rs1, Rs2, Rd (Multiply Rs1 by Rs2 and put the product in Rd)
+
+      An operation normally takes one cycle; however, an operation takes two cycles
+      if it produces a result required by the immediately following operation in an
+      operation sequence.
+
+      Consider the expression AB + ABC + BC, where variables A, B, C are located in
+      registers R0, R1, R2. If the contents of these three registers must not be modified,
+      what is the minimum number of clock cycles required for an operation sequence
+      that computes the value of AB + ABC + BC?
+
+      (A) 5 (B) 6 (C) 7 (D) 8'
+    target: 'Let''s think step by step. First, we are given that A is in R0, B is
+      in R1, and C is in R2.
+
+      Next, we can see that we must compute three multiplies (AB, BC, and ABC) and
+      two adds (AB + ABC, (AB + ABC) + BC) to compute our final answer, resulting
+      in a minimum of five clock cycles.
+
+      Next, we can see that there is no way to avoid at least one pipeline stall when
+      computing our final answer, because to compute our final sum we must wait at
+      least one cycle for the results from the previous stage to be ready. Thus, our
+      minimum number of cycles must be 6.
+
+      We can verify that we can create a solution that requires only six cycles as
+      follows:
+
+      compute AB: MUL R0, R1, R3
+
+      compute BC: MUL R1, R2, R4
+
+      compute ABC: MUL R3, R4, R5
+
+      compute AB + BC: ADD R3, R4, R6
+
+      STALL
+
+      compute AB + ABC + BC: ADD R5, R6, R7
+
+      So there are 6 cycles. The answer is (B).'
+  - question: 'A compiler generates code for the following assignment statement.
+
+      G := (A + B) * C - (D + E) * F
+
+      The target machine has a single accumulator and a single-address instruction
+      set consisting of instructions load, store, add, subtract, and multiply. For
+      the arithmetic operations, the left operand is taken from the accumulator and
+      the result appears in the accumulator. The smallest possible number of instructions
+      in the resulting code is
+
+      (A) 5 (B) 6 (C) 7 (D) 9'
+    target: 'Let''s think step by step. We can compute the final answer with the following
+      sequence of operations:
+
+      1. LOAD D  (accumulator = D)
+
+      2. ADD E  (accumulator = D+E)
+
+      3. MUL F  (accumulator = (D+E)*F)
+
+      4. STORE X (X = (D+E)*F)
+
+      5. LOAD A  (accumulator = A)
+
+      6. ADD B  (accumulator = A+B)
+
+      7. MUL C  (accumulator = (A+B)*C)
+
+      8. SUB X  (accumulator = (A+B)*C - (D+E)*F)
+
+      9. STORE G (G = (A+B)*C - (D+E)*F)
+
+      This sequence takes 9 instructions. The answer is (D).'
+  - question: 'Consider a computer design in which multiple processors, each with a private
+      cache memory, share global memory using a single bus. This bus is the critical
+      system resource. Each processor can execute one instruction every 500 nanoseconds
+      as long as memory references are satisfied by its local cache. When a cache
+      miss occurs, the processor is delayed for an additional 2,000 nanoseconds. During
+      half of this additional delay, the bus is dedicated to serving the cache miss.
+      During the other half, the processor cannot continue, but the bus is free to
+      service requests from other processors. On average, each instruction requires
+      2 memory references. On average, cache misses occur on 1 percent of references.
+      What proportion of the capacity of the bus would a single processor consume,
+      ignoring delays due to competition from other processors?
+
+      (A) 1/50 (B) 1/27 (C) 1/25 (D) 2/27'
+    target: 'Let''s think step by step. We know that each instruction requires two
+      memory references per instruction, and that there is an average cache miss rate
+      of one percent.
+
+      Thus a given processor has:
+
+      (1 cache miss / 100 references) * (2 references / instruction) =
+
+      (2 cache misses / 100 instructions), so:
+
+      misses_per_instruction = 1 cache miss / 50 instructions.
+
+      Next, we know that each instruction requires 500 nanoseconds when there is no
+      cache miss, and 500 + 2000 = 2500 nanoseconds when there is a cache miss. Thus:
+
+      50 instructions / (49 * 500) + (1 * 2500) nanoseconds, so:
+
+      instructions_per_ns = 50 instructions / 27000 nanoseconds.
+
+      Now, we know that each cache miss locks the bus for half of the 2000 nanosecond
+      cache miss delay, or 1000 nanoseconds, so:
+
+      lock_ns_per_miss = 1000 nanoseconds / cache miss.
+
+      Thus we can see that on average a single processor will lock the bus for:
+
+      lock_ns_per_miss * misses_per_instruction * instructions_per_ns =
+
+      (1000 nanoseconds / cache miss) * (1 cache miss / 50 instructions) * (50 instructions
+      / 27000 nanoseconds) = 1000 * (1/50) * (50/27000) = 1000/27000 = 1/27. The answer
+      is (B).'
+tag: mmlu_flan_cot_fewshot_stem
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_college_computer_science

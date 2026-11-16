@@ -1,0 +1,5 @@
+include: _greek_few_shot_en_template_yaml
+description: The following are multiple-choice questions (with answers) about Professional
+  certification.
+process_docs: !function 'utils.process_professional_certification'
+task: include_base_44_greek_few_shot_en_professional_certification

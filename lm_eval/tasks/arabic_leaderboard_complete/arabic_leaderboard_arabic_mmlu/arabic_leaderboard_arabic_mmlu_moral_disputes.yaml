@@ -1,0 +1,23 @@
+task: arabic_leaderboard_arabic_mmlu_moral_disputes
+dataset_path: OALL/Arabic_MMLU
+dataset_name: moral_disputes
+output_type: multiple_choice
+training_split: null
+validation_split: dev
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: "{{query}}"
+doc_to_target: "{{gold}}"
+doc_to_choice: "choices"
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

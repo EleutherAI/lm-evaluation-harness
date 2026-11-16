@@ -1,0 +1,9 @@
+description: 'Im Folgenden sind Multiple-Choice-Fragen (mit Antworten) zu Gesundheit.
+  Denken Sie Schritt für Schritt nach und beenden Sie Ihre Antwort mit "Die Antwort
+  ist (X)", wobei X der richtige Buchstabe ist.
+
+  '
+include: _de_template_yaml
+task: mmlu_prox_de_health
+task_alias: health
+process_docs: !function utils.process_health

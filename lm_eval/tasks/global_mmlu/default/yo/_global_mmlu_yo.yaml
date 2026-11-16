@@ -1,0 +1,13 @@
+group: global_mmlu_yo
+task:
+  - global_mmlu_yo_business
+  - global_mmlu_yo_humanities
+  - global_mmlu_yo_medical
+  - global_mmlu_yo_other
+  - global_mmlu_yo_stem
+  - global_mmlu_yo_social_sciences
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0.0

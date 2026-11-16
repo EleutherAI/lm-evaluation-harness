@@ -1,0 +1,6 @@
+"dataset_name": "trust_practice"
+"description": "以下為信託實務的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_humanities_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_trust_practice"
+"task_alias": "trust practice"

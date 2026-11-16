@@ -1,0 +1,3 @@
+include: _template_yaml
+dataset_name: prealgebra
+task: leaderboard_math_prealgebra_hard

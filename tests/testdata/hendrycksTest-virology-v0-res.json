@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-virology": {"acc": 0.27710843373493976, "acc_norm": 0.2710843373493976, "acc_norm_stderr": 0.03460579907553027, "acc_stderr": 0.034843315926805875}}, "versions": {"hendrycksTest-virology": 0}}

@@ -1,0 +1,11 @@
+tag: evalita-mp_sa_tasks
+include: _sa_template_yaml
+task: evalita-mp_sa_prompt-3
+task_alias: prompt-3
+#doc_to_text: "Opinione: '{{text}}' Determinare la sentiment dell'opinione data. Possibili risposte: A – neutrale B – negativo C – positivo D - misto Risposta:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_text: "Qual è il sentiment espresso nel seguente tweet: '{{text}}'?\nA: Positivo\nB: Negativo\nC: Neutro\nD: Misto\nRisposta:"
+metric_list:
+  - metric: f1
+    higher_is_better: True
+    aggregation: !function metrics._aggreg_sa

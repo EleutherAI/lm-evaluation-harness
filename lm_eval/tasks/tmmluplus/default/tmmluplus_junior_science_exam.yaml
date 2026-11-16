@@ -1,0 +1,6 @@
+"dataset_name": "junior_science_exam"
+"description": "以下為國中會考基測自然科的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_STEM_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_junior_science_exam"
+"task_alias": "junior science exam"

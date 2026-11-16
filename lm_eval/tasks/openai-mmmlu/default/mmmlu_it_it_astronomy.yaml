@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_astronomy
+"tag": "mmmlu_it_it_stem_tasks"
+"task": "mmmlu_it_it_astronomy"
+"task_alias": "astronomy (Italian)"
+"description": "The following are multiple choice questions (with answers) about astronomy (Italian).\n\n"

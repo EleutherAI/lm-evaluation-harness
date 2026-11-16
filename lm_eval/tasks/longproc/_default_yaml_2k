@@ -1,0 +1,15 @@
+dataset_path: PrincetonPli/LongProc
+unsafe_code: true
+output_type: generate_until
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: "{{input_prompt}}"
+doc_to_target: "{{reference_output}}"
+num_fewshot: 0
+generation_kwargs:
+  temperature: 0
+  do_sample: false
+  until: []
+  max_gen_toks: 3072
+metadata:
+  version: 1.0

@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 160 bits
+      B: 512 bits
+      C: 628 bits
+      D: 820 bits
+    input_correct_responses:
+    - A
+    input_question: SHA-1 tem um resumo da mensagem de
+  - input_choice_list:
+      A: "IM \u2013 Trojans"
+      B: Trojans de backdoor
+      C: Downloader de Trojan
+      D: Trojan de resgate
+    input_correct_responses:
+    - D
+    input_question: "_____________ pode modificar dados em seu sistema \u2013 para\
+      \ que seu sistema n\xE3o funcione corretamente ou voc\xEA n\xE3o possa mais\
+      \ acessar dados espec\xEDficos, ou pode at\xE9 pedir resgate para conceder seu\
+      \ acesso."
+  - input_choice_list:
+      A: "\xC9tica de \u201Chacking\u201D para justificar comportamento ego\xEDsta\
+        \ n\xE3o intencional"
+      B: "Hackear sistemas (por exemplo, durante testes de penetra\xE7\xE3o) para\
+        \ expor vulnerabilidades para que possam ser corrigidas, em vez de exploradas"
+      C: "Invadir sistemas administrados por pessoas cuja \xE9tica voc\xEA discorda"
+      D: "Uma g\xEDria para desenvolvimento r\xE1pido de software, por exemplo, como\
+        \ parte de hackathons"
+    input_correct_responses:
+    - B
+    input_question: "O que \xE9 hacking \xE9tico?"
+  - input_choice_list:
+      A: "sobrescrevendo chaves criptogr\xE1ficas na mem\xF3ria"
+      B: "uma esp\xE9cie de inje\xE7\xE3o de c\xF3digo"
+      C: uma leitura fora dos limites de um buffer
+      D: um ataque de string de formato
+    input_correct_responses:
+    - C
+    input_question: "A explora\xE7\xE3o do bug Heartbleed permite"
+  - input_choice_list:
+      A: Teia assombrada
+      B: Rede mundial de computadores
+      C: "Superf\xEDcie da web"
+      D: Rede profunda
+    input_correct_responses:
+    - D
+    input_question: "O ____________ \xE9 qualquer coisa que seu mecanismo de pesquisa\
+      \ n\xE3o consegue pesquisar."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_computer_security
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_computer_security
+task_alias: computer_security

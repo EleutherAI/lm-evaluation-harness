@@ -1,0 +1,17 @@
+task: wnli_es
+dataset_path: csv
+dataset_kwargs:
+  data_files:
+    train: hf://datasets/PlanTL-GOB-ES/wnli-es/wnli-train-es.csv
+    validation: hf://datasets/PlanTL-GOB-ES/wnli-es/wnli-dev-es.csv
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: null
+doc_to_text: "{{sentence1}}\nPregunta: {{sentence2}} ¿Verdadero o Falso?\nRespuesta:"
+doc_to_target: label
+doc_to_choice: ["Falso", "Verdadero"]
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

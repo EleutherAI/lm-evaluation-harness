@@ -1,0 +1,4 @@
+include: med_prescriptions_easy.yaml
+task: med_prescriptions_hard
+doc_to_text: !function utils.doc_to_text_hard
+doc_to_choice: !function utils.doc_to_choice_hard

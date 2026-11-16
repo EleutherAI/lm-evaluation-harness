@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: HCl
+      B: H2SO3
+      C: SO2
+      D: Al(NO3)3
+    input_correct_responses:
+    - C
+    input_question: "Lequel des \xE9l\xE9ments suivants est consid\xE9r\xE9 comme\
+      \ un anhydride d&#39;acide\_?"
+  - input_choice_list:
+      A: PCl4F
+      B: BF3
+      C: CO2
+      D: Si(CH3)4
+    input_correct_responses:
+    - A
+    input_question: "Laquelle des mol\xE9cules suivantes devrait \xEAtre une mol\xE9\
+      cule polaire\_?"
+  - input_choice_list:
+      A: Tous les chlorures, bromures et iodures sont solubles
+      B: Tous les sulfates sont solubles
+      C: Tous les hydroxydes sont solubles
+      D: "Tous les compos\xE9s contenant de l&#39;ammonium sont solubles"
+    input_correct_responses:
+    - D
+    input_question: "D&#39;apr\xE8s les r\xE8gles de solubilit\xE9, laquelle des affirmations\
+      \ suivantes est vraie\_?"
+  - input_choice_list:
+      A: 3,89
+      B: 7,78
+      C: 5,78
+      D: '2.33'
+    input_correct_responses:
+    - C
+    input_question: "Un nouveau compos\xE9 est synth\xE9tis\xE9 et s&#39;av\xE8re\
+      \ \xEAtre un acide monoprotique avec une masse molaire de 248 g/mol. Lorsque\
+      \ 0,0050 mol de cet acide sont dissous dans 0,500 L d&#39;eau, le pH est mesur\xE9\
+      \ \xE0 3,89. Quel est le pKa de cet acide ?"
+  - input_choice_list:
+      A: 0,500 mole
+      B: 1,00 mole
+      C: 2,00 mole
+      D: 3,00 mole
+    input_correct_responses:
+    - C
+    input_question: "Une solution contient 2,00 moles d&#39;acide ac\xE9tique, CH3COOH,\
+      \ et 1,00 mole d&#39;ac\xE9tate de calcium, Ca(CH3COO)2. La solution est capable\
+      \ de r\xE9sister \xE0 l&#39;ajout d&#39;une petite quantit\xE9 d&#39;acide fort\
+      \ ou de base forte avec seulement des modifications mineures du pH de la solution.\
+      \ De plus grandes quantit\xE9s d&#39;acide fort ou de base forte peuvent provoquer\
+      \ un changement significatif du pH. Combien de moles d&#39;acide nitrique, HNO3,\
+      \ peuvent \xEAtre ajout\xE9es avant que le pH ne commence \xE0 changer de mani\xE8\
+      re significative\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_chemistry
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_high_school_chemistry
+task_alias: high_school_chemistry

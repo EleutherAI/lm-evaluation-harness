@@ -1,0 +1,3 @@
+task: arc_ca_easy
+dataset_name: ARC-Easy
+include: _arc_ca_common_yaml

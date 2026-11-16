@@ -1,0 +1,7 @@
+dataset_name: toksuite_english_spaced_styling
+include: toksuite_english_base.yaml
+task: toksuite_english_spaced_styling
+metadata:
+  canonical_task: toksuite_english_canonical
+  task_pretty_name: Spaced styling
+  num_samples: 40

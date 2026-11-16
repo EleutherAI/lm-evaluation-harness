@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_college_mathematics
+"tag": "mmmlu_pt_br_stem_tasks"
+"task": "mmmlu_pt_br_college_mathematics"
+"task_alias": "college mathematics (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about college mathematics (Brazilian Portuguese).\n\n"

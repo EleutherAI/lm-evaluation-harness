@@ -1,0 +1,270 @@
+group: global_piqa_parallel_generation
+task:
+  - task: global_piqa_parallel_generation_acm_arab
+    task_alias: acm_arab
+  - task: global_piqa_parallel_generation_acq_arab
+    task_alias: acq_arab
+  - task: global_piqa_parallel_generation_aeb_arab
+    task_alias: aeb_arab
+  - task: global_piqa_parallel_generation_afb_arab
+    task_alias: afb_arab
+  - task: global_piqa_parallel_generation_als_latn
+    task_alias: als_latn
+  - task: global_piqa_parallel_generation_amh_ethi
+    task_alias: amh_ethi
+  - task: global_piqa_parallel_generation_apc_arab_jord
+    task_alias: apc_arab_jord
+  - task: global_piqa_parallel_generation_apc_arab_leba
+    task_alias: apc_arab_leba
+  - task: global_piqa_parallel_generation_apc_arab_pale
+    task_alias: apc_arab_pale
+  - task: global_piqa_parallel_generation_apc_arab_syri
+    task_alias: apc_arab_syri
+  - task: global_piqa_parallel_generation_arb_arab
+    task_alias: arb_arab
+  - task: global_piqa_parallel_generation_arq_arab
+    task_alias: arq_arab
+  - task: global_piqa_parallel_generation_ars_arab
+    task_alias: ars_arab
+  - task: global_piqa_parallel_generation_ary_arab
+    task_alias: ary_arab
+  - task: global_piqa_parallel_generation_arz_arab
+    task_alias: arz_arab
+  - task: global_piqa_parallel_generation_azj_latn
+    task_alias: azj_latn
+  - task: global_piqa_parallel_generation_bam_latn
+    task_alias: bam_latn
+  - task: global_piqa_parallel_generation_bcc_arab
+    task_alias: bcc_arab
+  - task: global_piqa_parallel_generation_bel_cyrl
+    task_alias: bel_cyrl
+  - task: global_piqa_parallel_generation_ben_beng
+    task_alias: ben_beng
+  - task: global_piqa_parallel_generation_ben_latn
+    task_alias: ben_latn
+  - task: global_piqa_parallel_generation_bgc_deva
+    task_alias: bgc_deva
+  - task: global_piqa_parallel_generation_bho_deva
+    task_alias: bho_deva
+  - task: global_piqa_parallel_generation_bra_deva
+    task_alias: bra_deva
+  - task: global_piqa_parallel_generation_bul_cyrl
+    task_alias: bul_cyrl
+  - task: global_piqa_parallel_generation_bxr_cyrl
+    task_alias: bxr_cyrl
+  - task: global_piqa_parallel_generation_cat_latn
+    task_alias: cat_latn
+  - task: global_piqa_parallel_generation_ceb_latn
+    task_alias: ceb_latn
+  - task: global_piqa_parallel_generation_ces_latn
+    task_alias: ces_latn
+  - task: global_piqa_parallel_generation_ckm_latn
+    task_alias: ckm_latn
+  - task: global_piqa_parallel_generation_cls_deva
+    task_alias: cls_deva
+  - task: global_piqa_parallel_generation_cmn_hans
+    task_alias: cmn_hans
+  - task: global_piqa_parallel_generation_cmn_hant
+    task_alias: cmn_hant
+  - task: global_piqa_parallel_generation_dan_latn
+    task_alias: dan_latn
+  - task: global_piqa_parallel_generation_deu_latn
+    task_alias: deu_latn
+  - task: global_piqa_parallel_generation_dhd_deva
+    task_alias: dhd_deva
+  - task: global_piqa_parallel_generation_ekk_latn
+    task_alias: ekk_latn
+  - task: global_piqa_parallel_generation_ekp_latn
+    task_alias: ekp_latn
+  - task: global_piqa_parallel_generation_ell_grek
+    task_alias: ell_grek
+  - task: global_piqa_parallel_generation_eng_latn
+    task_alias: eng_latn
+  - task: global_piqa_parallel_generation_eus_latn
+    task_alias: eus_latn
+  - task: global_piqa_parallel_generation_fao_latn
+    task_alias: fao_latn
+  - task: global_piqa_parallel_generation_fin_latn
+    task_alias: fin_latn
+  - task: global_piqa_parallel_generation_fra_latn_cana
+    task_alias: fra_latn_cana
+  - task: global_piqa_parallel_generation_fra_latn_fran
+    task_alias: fra_latn_fran
+  - task: global_piqa_parallel_generation_glg_latn
+    task_alias: glg_latn
+  - task: global_piqa_parallel_generation_guj_gujr
+    task_alias: guj_gujr
+  - task: global_piqa_parallel_generation_hau_latn
+    task_alias: hau_latn
+  - task: global_piqa_parallel_generation_haw_latn
+    task_alias: haw_latn
+  - task: global_piqa_parallel_generation_heb_hebr
+    task_alias: heb_hebr
+  - task: global_piqa_parallel_generation_hin_deva
+    task_alias: hin_deva
+  - task: global_piqa_parallel_generation_hin_latn
+    task_alias: hin_latn
+  - task: global_piqa_parallel_generation_hrv_latn
+    task_alias: hrv_latn
+  - task: global_piqa_parallel_generation_hun_latn
+    task_alias: hun_latn
+  - task: global_piqa_parallel_generation_hye_armn
+    task_alias: hye_armn
+  - task: global_piqa_parallel_generation_ibo_latn
+    task_alias: ibo_latn
+  - task: global_piqa_parallel_generation_idu_latn
+    task_alias: idu_latn
+  - task: global_piqa_parallel_generation_ilo_latn
+    task_alias: ilo_latn
+  - task: global_piqa_parallel_generation_ind_latn
+    task_alias: ind_latn
+  - task: global_piqa_parallel_generation_isl_latn
+    task_alias: isl_latn
+  - task: global_piqa_parallel_generation_iso_latn
+    task_alias: iso_latn
+  - task: global_piqa_parallel_generation_ita_latn
+    task_alias: ita_latn
+  - task: global_piqa_parallel_generation_jav_latn
+    task_alias: jav_latn
+  - task: global_piqa_parallel_generation_jpn_jpan
+    task_alias: jpn_jpan
+  - task: global_piqa_parallel_generation_kan_knda
+    task_alias: kan_knda
+  - task: global_piqa_parallel_generation_kan_latn
+    task_alias: kan_latn
+  - task: global_piqa_parallel_generation_kat_geor
+    task_alias: kat_geor
+  - task: global_piqa_parallel_generation_kin_latn
+    task_alias: kin_latn
+  - task: global_piqa_parallel_generation_kir_cyrl
+    task_alias: kir_cyrl
+  - task: global_piqa_parallel_generation_kor_hang
+    task_alias: kor_hang
+  - task: global_piqa_parallel_generation_lin_latn
+    task_alias: lin_latn
+  - task: global_piqa_parallel_generation_lit_latn
+    task_alias: lit_latn
+  - task: global_piqa_parallel_generation_mag_deva
+    task_alias: mag_deva
+  - task: global_piqa_parallel_generation_mal_mlym
+    task_alias: mal_mlym
+  - task: global_piqa_parallel_generation_mar_deva
+    task_alias: mar_deva
+  - task: global_piqa_parallel_generation_mkd_cyrl
+    task_alias: mkd_cyrl
+  - task: global_piqa_parallel_generation_mni_beng
+    task_alias: mni_beng
+  - task: global_piqa_parallel_generation_nag_latn
+    task_alias: nag_latn
+  - task: global_piqa_parallel_generation_nld_latn
+    task_alias: nld_latn
+  - task: global_piqa_parallel_generation_nno_latn
+    task_alias: nno_latn
+  - task: global_piqa_parallel_generation_nob_latn
+    task_alias: nob_latn
+  - task: global_piqa_parallel_generation_npi_deva
+    task_alias: npi_deva
+  - task: global_piqa_parallel_generation_ory_orya
+    task_alias: ory_orya
+  - task: global_piqa_parallel_generation_pan_guru
+    task_alias: pan_guru
+  - task: global_piqa_parallel_generation_pcm_latn
+    task_alias: pcm_latn
+  - task: global_piqa_parallel_generation_pes_arab
+    task_alias: pes_arab
+  - task: global_piqa_parallel_generation_plt_latn
+    task_alias: plt_latn
+  - task: global_piqa_parallel_generation_pol_latn
+    task_alias: pol_latn
+  - task: global_piqa_parallel_generation_por_latn_braz
+    task_alias: por_latn_braz
+  - task: global_piqa_parallel_generation_por_latn_port
+    task_alias: por_latn_port
+  - task: global_piqa_parallel_generation_ron_latn
+    task_alias: ron_latn
+  - task: global_piqa_parallel_generation_rus_cyrl
+    task_alias: rus_cyrl
+  - task: global_piqa_parallel_generation_rwr_deva
+    task_alias: rwr_deva
+  - task: global_piqa_parallel_generation_sin_latn
+    task_alias: sin_latn
+  - task: global_piqa_parallel_generation_sin_sinh
+    task_alias: sin_sinh
+  - task: global_piqa_parallel_generation_slk_latn
+    task_alias: slk_latn
+  - task: global_piqa_parallel_generation_slk_latn_sari
+    task_alias: slk_latn_sari
+  - task: global_piqa_parallel_generation_slv_latn
+    task_alias: slv_latn
+  - task: global_piqa_parallel_generation_slv_latn_cerk
+    task_alias: slv_latn_cerk
+  - task: global_piqa_parallel_generation_slv_latn_prle
+    task_alias: slv_latn_prle
+  - task: global_piqa_parallel_generation_snd_arab
+    task_alias: snd_arab
+  - task: global_piqa_parallel_generation_snd_deva
+    task_alias: snd_deva
+  - task: global_piqa_parallel_generation_spa_latn_mexi
+    task_alias: spa_latn_mexi
+  - task: global_piqa_parallel_generation_spa_latn_peru
+    task_alias: spa_latn_peru
+  - task: global_piqa_parallel_generation_spa_latn_spai
+    task_alias: spa_latn_spai
+  - task: global_piqa_parallel_generation_srp_cyrl
+    task_alias: srp_cyrl
+  - task: global_piqa_parallel_generation_srp_cyrl_torl
+    task_alias: srp_cyrl_torl
+  - task: global_piqa_parallel_generation_srp_latn
+    task_alias: srp_latn
+  - task: global_piqa_parallel_generation_srp_latn_torl
+    task_alias: srp_latn_torl
+  - task: global_piqa_parallel_generation_swe_latn
+    task_alias: swe_latn
+  - task: global_piqa_parallel_generation_swh_latn
+    task_alias: swh_latn
+  - task: global_piqa_parallel_generation_swv_deva
+    task_alias: swv_deva
+  - task: global_piqa_parallel_generation_tam_latn
+    task_alias: tam_latn
+  - task: global_piqa_parallel_generation_tam_taml
+    task_alias: tam_taml
+  - task: global_piqa_parallel_generation_tel_latn
+    task_alias: tel_latn
+  - task: global_piqa_parallel_generation_tel_telu
+    task_alias: tel_telu
+  - task: global_piqa_parallel_generation_tgl_latn
+    task_alias: tgl_latn
+  - task: global_piqa_parallel_generation_tha_thai
+    task_alias: tha_thai
+  - task: global_piqa_parallel_generation_tur_latn
+    task_alias: tur_latn
+  - task: global_piqa_parallel_generation_uig_arab
+    task_alias: uig_arab
+  - task: global_piqa_parallel_generation_ukr_cyrl
+    task_alias: ukr_cyrl
+  - task: global_piqa_parallel_generation_urd_arab
+    task_alias: urd_arab
+  - task: global_piqa_parallel_generation_urd_latn
+    task_alias: urd_latn
+  - task: global_piqa_parallel_generation_urh_latn
+    task_alias: urh_latn
+  - task: global_piqa_parallel_generation_uzn_latn
+    task_alias: uzn_latn
+  - task: global_piqa_parallel_generation_vie_latn
+    task_alias: vie_latn
+  - task: global_piqa_parallel_generation_xho_latn
+    task_alias: xho_latn
+  - task: global_piqa_parallel_generation_yor_latn
+    task_alias: yor_latn
+  - task: global_piqa_parallel_generation_yue_hant
+    task_alias: yue_hant
+  - task: global_piqa_parallel_generation_zsm_latn
+    task_alias: zsm_latn
+  - task: global_piqa_parallel_generation_zul_latn
+    task_alias: zul_latn
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

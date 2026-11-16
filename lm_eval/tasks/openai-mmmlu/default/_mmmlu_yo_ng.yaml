@@ -1,0 +1,15 @@
+group: mmmlu_yo_ng
+group_alias: "Yoruba"
+task:
+  - mmmlu_yo_ng_stem
+  - mmmlu_yo_ng_other
+  - mmmlu_yo_ng_social_sciences
+  - mmmlu_yo_ng_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

@@ -1,0 +1,6 @@
+include: _legalbench_template_yaml
+task: legalbench_contract_nli_limited_use
+dataset_name: contract_nli_limited_use
+num_fewshot: 8
+description: "Identify if the clause provides that the Receiving Party shall not use any Confidential Information for any purpose other than the purposes stated in Agreement.\n\n"
+doc_to_text: "Clause: {{text}}\nLabel:"

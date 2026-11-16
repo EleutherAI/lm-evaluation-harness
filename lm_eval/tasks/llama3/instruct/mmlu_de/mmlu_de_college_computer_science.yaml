@@ -1,0 +1,83 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: a*(c + d)+ b(c + d)
+      B: a*(c + d)* + b(c + d)*
+      C: a*(c + d)+ b*(c + d)
+      D: (a + b)*c + (a + b)*d
+    input_correct_responses:
+    - D
+    input_question: "Welcher der folgenden regul\xE4ren Ausdr\xFCcke ist \xE4quivalent\
+      \ zu (beschreibt denselben Satz von Zeichenfolgen wie) (a* + b)*(c + d)?"
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '8'
+    input_correct_responses:
+    - B
+    input_question: "Eine bestimmte Pipeline-RISC-Maschine hat 8 Mehrzweckregister\
+      \ R0, R1, . . . , R7 und unterst\xFCtzt die folgenden Operationen. ADD Rs1,\
+      \ Rs2, Rd Addiere Rs1 zu Rs2 und setze die Summe in Rd MUL Rs1, Rs2, Rd Multipliziere\
+      \ Rs1 mit Rs2 und setze das Produkt in Rd Eine Operation dauert normalerweise\
+      \ einen Zyklus; Eine Operation dauert jedoch zwei Zyklen, wenn sie ein Ergebnis\
+      \ erzeugt, das von der unmittelbar folgenden Operation in einer Operationssequenz\
+      \ ben\xF6tigt wird. Betrachten Sie den Ausdruck AB + ABC + BC, wobei sich die\
+      \ Variablen A, B, C in den Registern R0, R1, R2 befinden. Wenn der Inhalt dieser\
+      \ drei Register nicht ge\xE4ndert werden darf, was ist die minimale Anzahl von\
+      \ Taktzyklen, die f\xFCr eine Operationssequenz erforderlich ist, die den Wert\
+      \ von AB + ABC + BC berechnet?"
+  - input_choice_list:
+      A: ich nur
+      B: Nur II
+      C: III nur
+      D: I, II und III
+    input_correct_responses:
+    - D
+    input_question: Das Singleton-Entwurfsmuster wird verwendet, um sicherzustellen,
+      dass nur eine einzige Instanz einer Klasse instanziiert werden darf. Welche
+      der folgenden Aussagen trifft (sind) auf dieses Entwurfsmuster zu? I. Die Singleton-Klasse
+      hat eine statische Factory-Methode, um ihre Instanz bereitzustellen. II. Die
+      Singleton-Klasse kann eine Unterklasse einer anderen Klasse sein. III. Die Singleton-Klasse
+      hat einen privaten Konstruktor.
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '9'
+    input_correct_responses:
+    - D
+    input_question: "Ein Compiler generiert Code f\xFCr die folgende Zuweisungsanweisung.\
+      \ G := (A + B) * C - (D + E) * F Die Zielmaschine hat einen einzigen Akkumulator\
+      \ und einen Befehlssatz mit einer einzigen Adresse, der aus Befehlen zum Laden,\
+      \ Speichern, Addieren, Subtrahieren und Multiplizieren besteht. Bei den arithmetischen\
+      \ Operationen wird der linke Operand aus dem Akkumulator genommen und das Ergebnis\
+      \ erscheint im Akkumulator. Die kleinstm\xF6gliche Anzahl von Anweisungen im\
+      \ resultierenden Code ist"
+  - input_choice_list:
+      A: 1/50
+      B: '27.1'
+      C: 1/25
+      D: '27.2'
+    input_correct_responses:
+    - B
+    input_question: "Stellen Sie sich ein Computerdesign vor, bei dem mehrere Prozessoren,\
+      \ jeder mit einem privaten Cache-Speicher, den globalen Speicher unter Verwendung\
+      \ eines einzelnen Busses gemeinsam nutzen. Dieser Bus ist die kritische Systemressource.\
+      \ Jeder Prozessor kann alle 500 Nanosekunden einen Befehl ausf\xFChren, solange\
+      \ die Speicherreferenzen von seinem lokalen Cache erf\xFCllt werden. Wenn ein\
+      \ Cache-Fehltreffer auftritt, wird der Prozessor um weitere 2.000 Nanosekunden\
+      \ verz\xF6gert. W\xE4hrend der H\xE4lfte dieser zus\xE4tzlichen Verz\xF6gerung\
+      \ dient der Bus dazu, den Cache-Fehltreffer zu bedienen. W\xE4hrend der anderen\
+      \ H\xE4lfte kann der Prozessor nicht fortfahren, aber der Bus kann Anforderungen\
+      \ von anderen Prozessoren bedienen. Im Durchschnitt erfordert jede Anweisung\
+      \ 2 Speicherreferenzen. Im Durchschnitt treten Cache-Fehler bei 1 Prozent der\
+      \ Referenzen auf. Welchen Anteil der Buskapazit\xE4t w\xFCrde ein einzelner\
+      \ Prozessor verbrauchen, wenn man Verz\xF6gerungen aufgrund von Konkurrenz durch\
+      \ andere Prozessoren ignoriert?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_computer_science
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_college_computer_science
+task_alias: college_computer_science

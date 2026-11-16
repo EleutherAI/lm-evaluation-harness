@@ -1,0 +1,3 @@
+task: banking77
+include: unitxt
+recipe: card=cards.banking77,template=templates.classification.multi_class.title

@@ -1,0 +1,14 @@
+dataset_path: evalitahf/entity_recognition
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "</s>"
+    - "\n"
+doc_to_target: !function utils.ner_doc_to_target
+process_results: !function utils.ner_process_results
+metric_list:
+  - metric: f1
+    higher_is_better: True
+    aggregation: !function metrics._aggreg_ner
+metadata:
+  version: 1

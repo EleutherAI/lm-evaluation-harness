@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Fornisci al giornalista altre informazioni che \xE8 certa siano corrette."
+      B: Diciamo che le informazioni sono &quot;non registrate&quot; e verranno diffuse
+        in seguito.
+      C: Di&#39; &quot;Non lo so&quot; e prometti di fornire le informazioni in seguito.
+      D: Di&#39; &quot;no comment&quot; piuttosto che sembrare disinformato.
+    input_correct_responses:
+    - C
+    input_question: Cosa dovrebbe fare un professionista dei media nelle pubbliche
+      relazioni se non conosce la risposta alla domanda di un giornalista?
+  - input_choice_list:
+      A: Acquista nomi di dominio che potrebbero essere utilizzati dai gruppi di opposizione.
+      B: Pubblica commenti anonimi sui blog per combattere queste informazioni.
+      C: Preparare un comunicato stampa che screditi le informazioni inesatte.
+      D: Apportare modifiche alle politiche per affrontare i reclami evidenziati su
+        questi siti.
+    input_correct_responses:
+    - D
+    input_question: "Nella gestione dei problemi, qual \xE8 l&#39;approccio pi\xF9\
+      \ proattivo per affrontare le informazioni negative o fuorvianti pubblicate\
+      \ online sulla tua organizzazione?"
+  - input_choice_list:
+      A: "C\u2019\xE8 stata una risposta coordinata da parte dei media."
+      B: Sono stati comunicati messaggi coerenti.
+      C: Le critiche furono interpretate come attacchi alla Chiesa cattolica.
+      D: "La credibilit\xE0 del Vaticano \xE8 stata mantenuta."
+    input_correct_responses:
+    - C
+    input_question: "Quale di queste affermazioni \xE8 vera per il Vaticano nel 2010,\
+      \ al momento delle accuse di insabbiamento degli abusi sui minori?"
+  - input_choice_list:
+      A: Definizione del programma
+      B: Pianificazione del programma
+      C: Agire e implementare le idee
+      D: Valutazione del programma
+    input_correct_responses:
+    - A
+    input_question: In quale fase del processo di pianificazione verrebbe effettuata
+      un&#39;analisi della situazione?
+  - input_choice_list:
+      A: Pace verde
+      B: L&#39;ONU
+      C: Oxfam
+      D: Fondo mondiale per la fauna selvatica
+    input_correct_responses:
+    - D
+    input_question: "Earth Hour \xE8 stata una campagna lanciata da quale organizzazione?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_public_relations
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_public_relations
+task_alias: public_relations

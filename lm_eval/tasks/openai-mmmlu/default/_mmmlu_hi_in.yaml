@@ -1,0 +1,15 @@
+group: mmmlu_hi_in
+group_alias: "Hindi"
+task:
+  - mmmlu_hi_in_stem
+  - mmmlu_hi_in_other
+  - mmmlu_hi_in_social_sciences
+  - mmmlu_hi_in_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

@@ -1,0 +1,11 @@
+group: kmmlu_direct
+task:
+  - kmmlu_direct_stem
+  - kmmlu_direct_other
+  - kmmlu_direct_applied_science
+  - kmmlu_direct_humss
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+metadata:
+  version: 2.0

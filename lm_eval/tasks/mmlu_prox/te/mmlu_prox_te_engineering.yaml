@@ -1,0 +1,9 @@
+description: 'క్రింది ఇంజనీరింగ్కి సంబంధించిన బహుళఎంపిక ప్రశ్న (సమాధానాలతో). దయచేసి
+  దశలవారీగా ఆలోచించి, మీ సమాధానాన్ని "సమాధానం (X)"తో ముగించండి, ఇక్కడ X సరైన ఎంపిక
+  అక్షరం.
+
+  '
+include: _te_template_yaml
+task: mmlu_prox_te_engineering
+task_alias: engineering
+process_docs: !function utils.process_engineering

@@ -1,0 +1,4 @@
+"dataset_name": "ancient_phonetics"
+"description": "以下是关于古音学的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "aclue_ancient_phonetics"

@@ -1,0 +1,5 @@
+dataset_name: ben_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_ben_Latn
+test_split: test

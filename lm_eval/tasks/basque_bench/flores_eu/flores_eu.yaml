@@ -1,0 +1,24 @@
+group: flores_eu
+task:
+  - basque_bench_flores_es-eu
+  - basque_bench_flores_eu-es
+  - basque_bench_flores_en-eu
+  - basque_bench_flores_eu-en
+  - basque_bench_flores_eu-pt
+  - basque_bench_flores_pt-eu
+  - basque_bench_flores_eu-it
+  - basque_bench_flores_it-eu
+  - basque_bench_flores_eu-fr
+  - basque_bench_flores_fr-eu
+  - basque_bench_flores_eu-ca
+  - basque_bench_flores_ca-eu
+  - basque_bench_flores_eu-gl
+  - basque_bench_flores_gl-eu
+  - basque_bench_flores_eu-de
+  - basque_bench_flores_de-eu
+aggregate_metric_list:
+  - metric: bleu
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

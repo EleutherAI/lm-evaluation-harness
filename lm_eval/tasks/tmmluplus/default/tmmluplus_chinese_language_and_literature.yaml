@@ -1,0 +1,6 @@
+"dataset_name": "chinese_language_and_literature"
+"description": "以下為國文的單選題，請提供正確答案的選項。\n\n"
+"tag": "tmmluplus_social_sciences_tasks"
+"include": "_tmmluplus_template_yaml"
+"task": "tmmluplus_chinese_language_and_literature"
+"task_alias": "chinese language and literature"

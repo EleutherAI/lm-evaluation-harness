@@ -1,0 +1,23 @@
+include: "_default_template_yaml"
+tag:
+  - french_bench
+  - french_bench_extra
+description: "D'après l'information dans le contexte donné, quelle est la réponse à la question ?"
+task: french_bench_boolqa
+dataset_path: manu/french_boolq
+output_type: multiple_choice
+validation_split: valid
+doc_to_text: "\nContexte: {{passage}}\n\nQuestion: {{question}}\n"
+doc_to_choice: ["Oui", "Non"]
+# doc_to_text: "\nContexte: {{passage}}\n\nQuestion: {{question}}\n\nD'après l'information dans le contexte, la réponse est:\nA. Oui \nB. Non\n\nRéponse:"
+# doc_to_choice: ["A", "B"]
+doc_to_target: "{{[1, 0].index(label)}}"
+should_decontaminate: true
+doc_to_decontamination_query: passage
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

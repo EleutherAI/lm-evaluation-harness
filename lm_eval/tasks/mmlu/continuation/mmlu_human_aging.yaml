@@ -1,0 +1,6 @@
+"dataset_name": "human_aging"
+"description": "The following are questions (with answers) about human\
+  \ aging.\n\n"
+"tag": "mmlu_other_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_human_aging_continuation"

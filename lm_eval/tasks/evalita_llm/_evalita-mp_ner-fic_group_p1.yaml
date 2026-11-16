@@ -1,0 +1,17 @@
+include: _ner_template_yaml
+dataset_name: fic
+test_split: reduced_test
+test_split: dev
+fewshot_split: dev
+task_alias: prompt-1
+tag: evalita-mp_ner-v2_tasks_fic
+task: evalita-mp_ner-v2_fic_p1
+
+#
+doc_to_target: !function utils.filter_per_entities_from_lines
+doc_to_target: entities
+
+# English
+#doc_to_text: "Given the following text, write the entity mentions in the text, indicating their type: [PER] (person), [LOC] (location), [ORG] (organization). Respond with the following format: Entity$Type. Separate each entity-type pair with the '%' character. Text: {{text}}"
+# Italian
+doc_to_text: "Dato il seguente testo, scrivi le menzioni di entità nel testo, indicandone il tipo: PER (persona), LOC (luogo), ORG (organizzazione). Rispondi con il seguente formato: Entità$Tipo%Entità$Tipo. Separa ogni coppia entità-tipo con il carattere '%' ad esempio:  Entità_2$Tipo%Entità_2$Tipo. In caso non ci siano entita' rispondi '&&NOENT&&'. Testo: {{text}}"

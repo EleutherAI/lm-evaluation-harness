@@ -1,0 +1,5 @@
+task: norbelebele_p3
+include: _norbelebele_yaml
+doc_to_text: "Svar på følgende spørsmål: {{question}}\nSvaret skal baseres på følgende tekst:\n{{flores_passage}}\nVelg et svar fra denne listen:\n– {{mc_answer1}}\n– {{mc_answer2}},\n– {{mc_answer3}}\n– {{mc_answer4}}"
+doc_to_choice: "{{[mc_answer1, mc_answer2, mc_answer3, mc_answer4]}}"
+target_delimiter: "\n"

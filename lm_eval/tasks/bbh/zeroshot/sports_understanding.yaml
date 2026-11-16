@@ -1,0 +1,19 @@
+"dataset_name": "sports_understanding"
+"description": "Determine whether an artificially constructed sentence relating to sports is plausible or not.\n\n"
+"doc_to_text": "Q: {{input}}\nA:"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_zeroshot_sports_understanding"
+
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MapRegexFilter
+        group_select: 0
+        ignore_case: true
+        regex_pattern_to_value:
+          \b(no|not plausible)\b: "no"
+          \b(yes|plausible)\b: "yes"
+      - function: "take_first"

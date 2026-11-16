@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-human_aging": {"acc": 0.21524663677130046, "acc_norm": 0.17937219730941703, "acc_norm_stderr": 0.025749819569192804, "acc_stderr": 0.02758406660220827}}, "versions": {"hendrycksTest-human_aging": 0}}

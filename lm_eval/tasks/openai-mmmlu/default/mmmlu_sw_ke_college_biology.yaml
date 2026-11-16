@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_college_biology
+"tag": "mmmlu_sw_ke_stem_tasks"
+"task": "mmmlu_sw_ke_college_biology"
+"task_alias": "college biology (Swahili)"
+"description": "The following are multiple choice questions (with answers) about college biology (Swahili).\n\n"

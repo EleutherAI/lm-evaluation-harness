@@ -1,0 +1,7 @@
+"dataset_name": "computer_security"
+"description": "The following are multiple choice questions (with answers) about computer\
+  \ security.\n\n"
+"tag": "mmlu_stem_generative"
+"include": "_default_template_yaml"
+"task": "mmlu_computer_security_generative"
+"task_alias": "computer_security"

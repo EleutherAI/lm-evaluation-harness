@@ -1,0 +1,4 @@
+include: xquad_common_yaml
+task: xquad_el
+dataset_name: xquad.el
+doc_to_text: "Συμφραζόμενα: {{context}}\n\nΕρώτηση: {{question}}\n\nΑπάντηση:"

@@ -1,0 +1,3 @@
+include: default_ar.yaml
+task: xstorycloze_zh
+dataset_name: zh

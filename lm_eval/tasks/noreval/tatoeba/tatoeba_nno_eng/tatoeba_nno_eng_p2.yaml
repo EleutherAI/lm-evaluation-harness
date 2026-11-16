@@ -1,0 +1,6 @@
+tag: tatoeba_nno_eng
+dataset_name: eng-nno
+doc_to_target: sourceString
+task: tatoeba_nno_eng_p2
+include: ../_tatoeba_yaml
+doc_to_text: "Gje ei engelsk omsetjing av denne setninga: {{targetString}}\nEngelsk:"

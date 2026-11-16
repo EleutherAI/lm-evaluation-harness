@@ -1,0 +1,67 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "I bevitori di t\xE8 hanno un rischio minore di sviluppare il diabete."
+      B: "I bevitori di t\xE8 hanno un rischio maggiore di sviluppare il diabete."
+      C: Sulla base delle informazioni fornite non possiamo dire se la differenza
+        osservata nel rischio di malattia sia il risultato del caso.
+      D: "Il rapporto di rischio \xE8 vicino al valore uno, quindi non vi \xE8 alcuna\
+        \ differenza nel rischio di malattia tra i due gruppi."
+    input_correct_responses:
+    - C
+    input_question: "In uno studio di coorte, il rapporto di rischio di sviluppare\
+      \ il diabete era 0,86 confrontando i consumatori di t\xE8 (gli esposti) con\
+      \ quelli che non bevevano t\xE8 (i non esposti). Quale affermazione \xE8 corretta\
+      \ (secondo le conoscenze nel 2020)?\\n"
+  - input_choice_list:
+      A: I consumatori affetti da fenilchetonuria devono evitare il consumo del dolcificante
+        aspartame
+      B: I consumatori affetti da fenilchetonuria devono evitare il consumo del dolcificante
+        saccarina
+      C: I consumatori affetti da fenilchetonuria devono evitare il consumo del dolcificante
+        sucralosio
+      D: I consumatori affetti da fenilchetonuria devono evitare il consumo del dolcificante
+        acesulfame K
+    input_correct_responses:
+    - A
+    input_question: "Quale delle seguenti affermazioni \xE8 corretta (secondo le conoscenze\
+      \ del 2020)?\\n"
+  - input_choice_list:
+      A: L&#39;acido propionico, formato durante la fermentazione delle fibre del
+        colon, inibisce la sintesi degli acidi grassi nel fegato
+      B: L&#39;acido butirrico, formato durante la fermentazione delle fibre del colon,
+        stimola il &quot;silenziamento&quot; del gene soppressore del tumore SLC5A8
+      C: "Nessuna di queste opzioni \xE8 corretta"
+      D: L&#39;acido butirrico, formato durante la fermentazione delle fibre del colon,
+        stimola le difese antiossidanti del colon
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti \xE8 la spiegazione pi\xF9 plausibile per\
+      \ l&#39;effetto protettivo delle fibre alimentari contro il cancro del colon,\
+      \ a partire dal 2020?\\n"
+  - input_choice_list:
+      A: Il 50% degli adulti consuma iodio a livelli inferiori all&#39;RNI
+      B: I latticini sono una scarsa fonte di iodio
+      C: "Il contenuto di iodio del latte biologico \xE8 generalmente inferiore a\
+        \ quello del latte non biologico"
+      D: "I valori dietetici di riferimento del Regno Unito raccomandano un aumento\
+        \ dell\u2019assunzione di iodio in gravidanza"
+    input_correct_responses:
+    - C
+    input_question: "Quale delle seguenti affermazioni sullo iodio \xE8 corretta,\
+      \ al 2020?\\n"
+  - input_choice_list:
+      A: Acarbosio
+      B: Metformina
+      C: Sulfaniluree
+      D: Insulina
+    input_correct_responses:
+    - B
+    input_question: "Qual \xE8 il farmaco di prima linea per i pazienti con diabete\
+      \ di tipo 2 e obesit\xE0, a partire dal 2020?\\n"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_nutrition
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_nutrition
+task_alias: nutrition

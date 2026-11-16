@@ -1,0 +1,6 @@
+"dataset_name": "moral_scenarios"
+"description": "The following are questions (with answers) about moral\
+  \ scenarios.\n\n"
+"tag": "mmlu_humanities_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_moral_scenarios_continuation"

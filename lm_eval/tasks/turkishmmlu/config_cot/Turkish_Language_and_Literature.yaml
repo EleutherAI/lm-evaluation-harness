@@ -1,0 +1,59 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_turkish_language_and_literature
+description:
+  "Soru: Aşağıdakilerden hangisi edebiyat tarihinin  konuları arasında yer almaz?\nA) Edebî dönemler\nB)\
+  \ Şair ve yazarların edebî kişiliği\nC) Şair ve yazarların hayatları\nD) Edebî eserler\nE)\
+  \ Arkeolojik eserler\nÇözüm: Adım adım düşünelim.\
+  \ Edebiyat tarihinin konularını gözden geçirelim:\
+  \ A) Edebî dönemler - Edebiyat tarihi, farklı edebi dönemleri ve bu dönemlerdeki edebi akımları inceler.\
+  \ B) Şair ve yazarların edebî kişiliği - Edebiyat tarihi, şair ve yazarların eserlerindeki temaları, tarzları ve edebi kişiliklerini de ele alır.\
+  \ C) Şair ve yazarların hayatları - Edebiyat tarihi, şair ve yazarların biyografilerini ve hayat hikayelerini de inceler.\
+  \ D) Edebî eserler - Edebiyat tarihi, farklı edebi eserleri, bu eserlerin türlerini, temalarını ve döneminin özelliklerini inceler.\
+  \ E) Arkeolojik eserler - Edebiyat tarihi, genellikle arkeolojik eserlerle ilgilenmez. Arkeolojik eserler,\
+  \ arkeoloji biliminin konusudur ve genellikle tarih ve kültürel antropoloji alanlarında incelenir.\
+  \ Sonuç olarak, edebiyat tarihinin konuları arasında yer almayan (farklı bir alana ait olan) seçenek E) Arkeolojik eserlerdir.\
+  \ Doğru cevap E şıkkıdır.\n\nSoru: Osmanlı Devleti'nin son döneminde ortaya çıkan düşünce akımlarının\
+  \ temsilcileri hangi seçenekte doğru verilmiştir?\nA) İslamcılık: Sait Halim Paşa, Mehmet Emin Yurdakul\nB)\
+  \ Türkçülük: Ziya Gökalp, Ömer Seyfettin\nC) Batıcılık: Tevfik Fikret, Eşref Edip\nD) Osmanlıcılık:\
+  \ Mehmet Akif Ersoy, Sait Halim Paşa\nE) Medeniyetçilik: Münif Paşa, Ali Canip Yöntem\nÇözüm: Adım adım düşünelim.\
+  \ Osmanlı Devleti'nin son döneminde ortaya çıkan düşünce akımlarının temsilcilerini inceleyelim:\
+  \ A) İslamcılık: Sait Halim Paşa, Mehmet Emin Yurdakul - İslamcılık akımının temsilcileri arasında Sait Halim Paşa ve Mehmet Emin Yurdakul yer almamaktadır.\
+  \ B) Türkçülük: Ziya Gökalp, Ömer Seyfettin - Türkçülük akımının önde gelen temsilcileri arasında Ziya Gökalp ve Ömer Seyfettin bulunmaktadır. Bu seçenek doğru görünmektedir.\
+  \ C) Batıcılık: Tevfik Fikret, Eşref Edip - Batıcılık akımının temsilcileri arasında Tevfik Fikret ve Eşref Edip bulunmamaktadır.\
+  \ D) Osmanlıcılık: Mehmet Akif Ersoy, Sait Halim Paşa - Osmanlıcılık akımının temsilcileri arasında Mehmet Akif Ersoy ve Sait Halim Paşa bulunmamaktadır.\
+  \ E) Medeniyetçilik: Münif Paşa, Ali Canip Yöntem - Medeniyetçilik akımının temsilcileri arasında Münif Paşa ve Ali Canip Yöntem bulunmamaktadır.\
+  \ Doğru cevap B şıkkıdır.\n\nSoru: Birçok edebiyatçı ve eleştirmene göre şairlik yeteneği Tevfik Fikret'ten bile daha ileridedir.\
+  \ Fakat siyasi görüşleri daima sanatının önünde yer almıştır.\
+  \ Millî Mücadele Dönemi'nde Anadolu hareketini eleştirmiş, saltanat yanlısı görüşler ortaya koymuştur. Cumhuriyet Dönemi'nde de siyasi fikirleri yüzünden çokça eleştirilmiştir.\
+  \ Parçada bahsedilen Servetifünun şairi aşağıdakilerden hangisidir?\nA) Süleyman Nazif\nB) Hüseyin Cahit Yalçın\nC) Mehmet Rauf\nD) Cenab\
+  \ Şahabettin\nE) Halit Ziya Uşaklıgil\nÇözüm: Adım adım düşünelim.\
+  \ Parçada bahsedilen şairin siyasi görüşlerinin sanatından daha önde olduğu ve Milli Mücadele Dönemi'nde Anadolu hareketini eleştirdiği,\
+  \ saltanat yanlısı görüşler ortaya koyduğu ve Cumhuriyet Dönemi'nde de siyasi fikirleri nedeniyle eleştirildiği belirtilmektedir.\
+  \ Bu özellikler ışığında, Servet-i Fünun döneminin önemli şairlerinden olan Cenab Şahabettin'i işaretlemek gerekir.\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: Selime’nin odasında biraz kaldıktan sonra otelden çıktım ( ) kırlara doğru yürüdüm ( )\
+  \ Tozlu bir yol ( ) İki yanında fırınlar ( ) kahveler ( ) büyük ambarlar var ( )\
+  \ Bu parçada yay ayraçlarla gösterilen yerlere aşağıdaki noktalama işaretlerinden hangisinde\
+  \ verilenler getirilmelidir?\nA) (,) (.) (...) (,) (,) (.)\nB) (,) (!) (.) (,) (;) (...)\nC)\
+  \ (...) (.) (...) (,) (,) (.)\nD) (,) (.) (.) (,) (,) (.)\nE) (,) (.) (;) (,) (,) (.)\nÇözüm: Adım adım düşünelim.\
+  \ Parçada yay ayraçlarla gösterilen yerlere uygun noktalama işaretlerini belirlememiz gerekiyor.\
+  \ Parçada yer alan noktalama işaretlerini dikkate alarak, uygun noktalama işaretlerini belirleyelim:\
+  \ Selime’nin odasında biraz kaldıktan sonra otelden çıktım (,) kırlara doğru yürüdüm (.)\
+  \ Tozlu bir yol (...) İki yanında fırınlar (,) kahveler (,) büyük ambarlar var (.)\
+  \ Parçada yer alan noktalama işaretlerine göre, doğru sıralama şu şekildedir: (,) (.) (...) (,) (,) (.)\
+  \ Doğru cevap A şıkkıdır.\n\nSoru: HOROZLA İNCİ Bir horoz inci bulur, kuyumcuya gider: “Al, şuna bak, der, pırıl pırıl,\
+  \ ne özrü ne kusuru var. Fakat sen bana bir avuç mısır ver, benim işime o yarar.”\
+  \ Bir cahile bir kitap miras kalır. Adam kitabı alır, komşusu kitapçıya gider:\
+  \ “Bak, ne güzel kitap, der, fakat sen bana beş on kuruş ver, benim işime o yarar.”\
+  \ Nâzım Hikmet ,  La Fontaine’den Masallar Bu fablda; I. Teşhis ve intak sanatlarından yararlanıldığı,\
+  \ II. Fablın kahramanlarından birinin hayvan olduğu, III. Fablda zamanın belli olduğu bilgilerinden hangilerine\
+  \ ulaşılabilir?\nA) Yalnız I\nB) Yalnız II\nC) I ve II\nD) I ve III\nE) II ve III\nÇözüm: Adım adım düşünelim.
+  \ Verilen metinde, bir horoz ve bir cahil (insan) arasında bir benzetme yapılmıştır. Bu fabldan hangi bilgilere ulaşılabilir gözden geçirelim:\
+  \ I. Teşhis ve intak sanatlarından yararlanıldığı - Metinde, horozun inciyi bulduktan sonra kuyumcuya gidip onun değerini belirlemesi anlatılmaktadır.\
+  \ Bu, bir tür değerlendirme ve tanımlama sürecidir. Dolayısıyla, I doğrudur.\
+  \ II. Fablın kahramanlarından birinin hayvan olduğu - Metinde, horozun inci bulduğu ve cahilin bir kitap bulduğu anlatılmaktadır.\
+  \ Horoz bir hayvandır, dolayısıyla fablın bir hayvan karakterine sahip olduğunu söyleyebiliriz. II doğrudur.\
+  \ III. Fablda zamanın belli olduğu - Metinde, zaman belirtilmemiştir. Dolayısıyla, III hakkında bir bilgiye ulaşılamaz.\
+  \ Sonuç olarak, I ve II doğru yanıtlardır, ancak III hakkında bir bilgiye ulaşılamaz.\
+  \ Doğru cevap D şıkkıdır."
+num_fewshot: 0
+dataset_name: Turkish_Language_and_Literature

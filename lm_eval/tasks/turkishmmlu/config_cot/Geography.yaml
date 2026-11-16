@@ -1,0 +1,52 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_geography
+description:
+  "Soru: Yerkabuğunu oluşturan levha sınırları ile aşağıdakilerden hangisinin dağılışı paralellik göstermez?\nA) Tektonik depremlerin\nB) Volkanik faaliyetlerin\nC) Kaplıcaların\nD)\
+  \ Orman alanlarının\nE) Fay hatlarının\nÇözüm: Adım adım düşünelim.\
+  \ Bu soruyu cevaplayabilmek için, levha sınırlarının özelliklerini ve levha hareketlerinin yeryüzündeki etkilerini bilmek gerekir.\
+  \ A) Tektonik depremlerin dağılışı, levha sınırlarıyla paralellik gösterir. Levhaların birbirinden uzaklaştığı veya birbirine çarptığı yerlerde depremler meydana gelir.\
+  \ B) Volkanik faaliyetlerin dağılışı, levha sınırlarıyla paralellik gösterir. Özellikle açılma (divergent) sınırlarında ve çarpışma (konverjan) sınırlarında volkanik faaliyetler görülür.\
+  \ C) Kaplıcaların dağılışı, levha sınırlarıyla paralellik gösterir. Yerkabuğu inceldikçe ve magma yeryüzüne yaklaştıkça kaplıcalar oluşur. Bu da genellikle levha sınırlarında gerçekleşir.\
+  \ D) Orman alanlarının dağılışı, levha sınırlarıyla paralellik göstermez. Orman alanlarının dağılışı iklim, toprak yapısı, yükselti gibi faktörlere bağlıdır, doğrudan levha sınırlarıyla ilişkili değildir.\
+  \ E) Fay hatlarının dağılışı, levha sınırlarıyla paralellik gösterir. Faylar, levha hareketleri sonucu oluşur ve levha sınırlarına paralel uzanırlar.\
+  \ Dolayısıyla, verilen seçeneklerden sadece D şıkkı \"Orman alanlarının\" dağılışı, levha sınırlarıyla paralellik göstermez.\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: Geçmişten günümüze değişen iklim koşullarına rağmen, kendi yaşam bölgelerinde varlıklarını\
+  \ devam ettiren kalıntı bitkilere..........denir. \
+  \ Yukarıdaki boşluğa aşağıdakilerden hangisi getirilirse cümle tamamlanmış olur?\nA)\
+  \ Endemik\nB) Relikt\nC) Psödomaki\nD) Antropojen Bozkır\nE) Habitat\nÇözüm: Adım adım düşünelim.\
+  \ Bu soruyu cevaplayabilmek için \"relikt\" kavramının ne anlama geldiğini bilmemiz gerekir.\
+  \ Relikt bitkiler, geçmiş dönemlerdeki iklim koşullarına uyum sağlamış ve günümüze kadar varlıklarını sürdürebilmiş bitki türleridir.\
+  \ Bu bitkiler, çevresel koşullar değişmiş olmasına rağmen özel alanlarda hayatta kalabilmişlerdir.\
+  \ Seçeneklere baktığımızda, relikt bitkileri en iyi tanımlayan seçenek B şıkkındaki \"Relikt\" seçeneğidir.\
+  \ Doğru cevap B şıkkıdır.\n\nSoru: I. Üretim sürecinde doğanın dengesini bozacak ve\
+  \ insan sağlığına zararlı olabilecek kimyasal madde kullanmadan yapılan bir tarım şeklidir. II. Yağışın az, sulamanın yetersiz olduğu alanlarda tarlaların bir yıl ekilip, bir yıl dinlendirilmesi şeklinde uygulanan bir tarım yöntemidir. III. Kış sıcaklık ortalamasının 0 °C’nin altına inmediği yerlerde uygulanan tarım yöntemidir.\
+  \ Bu yöntem tarım ürünlerinin mevsimi dışında yetiştirilmesine olanak sağlar. Yukarıda anlatılan tarımsal faaliyetler hangisinde doğru verilmiştir?\
+  \ I II III \nA) Organik              Nadas               Seracılık\nB) Entansif             Organik             Ekstansif\nC) Seracılık             Nadas               Organik\nD) Ekstansif            Nadas               Seracılık\nE)\
+  \ Organik              Ekstansif          Seracılık\nÇözüm: Adım adım düşünelim. Bu soruyu cevaplayabilmek için, verilen tarım yöntemlerinin özelliklerini bilmemiz gerekir.\
+  \ Organik tarım, üretim sürecinde doğanın dengesini bozacak ve insan sağlığına zararlı olabilecek kimyasal madde kullanmadan yapılan bir tarım şeklidir.\
+  \ Nadas, yağışın az, sulamanın yetersiz olduğu alanlarda tarlaların bir yıl ekilip, bir yıl dinlendirilmesi şeklinde uygulanan bir tarım yöntemidir.\
+  \ Seracılık, kış sıcaklık ortalamasının 0 °C’nin altına inmediği yerlerde uygulanan tarım yöntemidir. Bu yöntem tarım ürünlerinin mevsimi dışında yetiştirilmesine olanak sağlar.\
+  \ Dolayısıyla, verilen tarım yöntemlerinin doğru karşılıkları şu şekildedir: Organik - Nadas - Seracılık\
+  \ Doğru cevap A şıkkıdır.\n\nSoru:\
+  \ Yeşilırmak Havzası gelişim projesi ile aşağıdakilerden hangisinin gerçekleşmesi beklenmez?\nA)\
+  \ Yeşilırmak'ın akım düzensizliğinden kaynaklanan sel, taşkın, erozyon, su ve çevre kirliliği sorunlarının çözülmesi\nB)\
+  \ Otlak alanlarının iyileştirilmesi\nC) Düzenli kentleşmenin sağlanması\nD) Sanayileşmenin\
+  \ gerçekleşmesi\nE) Bölgeden çıkarılan ham madde kaynaklarının pazarlanması\nÇözüm: Adım adım düşünelim.\
+  \ Yeşilırmak Havzası Gelişim Projesi genellikle bölgedeki çevresel sorunların çözümü, tarım alanlarının geliştirilmesi, su kaynaklarının yönetimi gibi hedeflerle yapılan bir projedir.\
+  \ A) Doğru: Projede sel, taşkın, erozyon gibi akım düzensizliğinden kaynaklanan sorunların çözülmesi hedeflenir.\
+  \ B) Doğru: Projede otlak alanlarının iyileştirilmesi ve tarım alanlarının geliştirilmesi gibi doğal alanların rehabilitasyonu da önemli bir hedeftir.\
+  \ C) Doğru: Projede düzenli kentleşme, altyapı geliştirme gibi şehir planlaması da dikkate alınır.\
+  \ D) Doğru: Projenin amaçlarından biri sanayileşmede plansızlığın giderilmesi ve sanayinin gelişmesidir.\
+  \ E) Yanlış: Projedenin amaçları arasında ham madde kaynaklarının pazarlanması yer almamaktadır.\
+  \ Sonuç olarak, E) Bölgeden çıkarılan ham madde kaynaklarının pazarlanması beklenmez, çünkü projenin amaçları arasında yer almamaktadır.\
+  \ Doğru cevap E şıkkıdır.\n\nSoru:\
+  \ 1\/2.000.000 ölçekli bir haritada 4 cm olarak gösterilen A-B arasındaki uzaklık başka bir haritada 16 cm olarak gösterilmiştir.\
+  \ Buna göre ikinci haritanın ölçeği aşağıdakilerden hangisidir?\nA) 1\/100.000\nB) 1\/200.000\nC) 1\/500.000\nD) 1\/1.500.000\nE)\
+  \ 1\/8.000.000\nÇözüm: Adım adım düşünelim.\
+  \ İlk haritada 4 cm olarak gösterilen A-B arasındaki uzaklık, ikinci haritada 16 cm olarak gösterilmiştir.\
+  \ İlk haritada 4 cm olan uzaklık, ikinci haritada 16 cm olarak gösterildiğine göre, ikinci haritanın ölçeği 4 kat büyüktür.\
+  \ İlk haritanın ölçeği 1/2.000.000 olduğuna göre, ikinci haritanın ölçeği 4 kat büyük olduğundan 1/500.000 olacaktır.\
+  \ Dolayısıyla, ikinci haritanın ölçeği 1/500.000'dir.\
+  \ Doğru cevap C şıkkıdır."
+num_fewshot: 0
+dataset_name: Geography

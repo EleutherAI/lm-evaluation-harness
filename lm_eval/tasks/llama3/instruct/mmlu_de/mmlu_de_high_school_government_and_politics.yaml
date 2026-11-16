@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: die verfassungsrechtliche Definition dieser Befugnisse ist breit und unspezifisch
+      B: "Die meisten Menschen sind sich einig, dass die Verfassung der Macht des\
+        \ Pr\xE4sidenten zu viele Grenzen setzt"
+      C: "Der Oberste Gerichtshof weigert sich konsequent, \xFCber F\xE4lle zu entscheiden,\
+        \ die die Befugnisse des Pr\xE4sidenten betreffen"
+      D: "Verfassungs\xE4nderungen haben die Befugnisse des Pr\xE4sidenten erheblich\
+        \ erweitert"
+    input_correct_responses:
+    - A
+    input_question: "Die Unsicherheit \xFCber die Grenzen der pr\xE4sidialen Macht\
+      \ entsteht vor allem dadurch, dass"
+  - input_choice_list:
+      A: "j\xE4hrlicher Anstieg der Bundesausgaben f\xFCr das Milit\xE4r"
+      B: "H\xF6he der Zinsen auf die Staatsschuld"
+      C: "Unterschied zwischen den urspr\xFCnglichen Budgetvorschl\xE4gen des Pr\xE4\
+        sidenten und des Kongresses"
+      D: "Betrag, den der Staat \xFCber seine Einnahmen hinaus ausgibt"
+    input_correct_responses:
+    - D
+    input_question: "Der Begriff \u201EHaushaltsdefizit\u201C bezieht sich auf die"
+  - input_choice_list:
+      A: Wochen gegen die Vereinigten Staaten
+      B: Betts gegen Brady
+      C: Mapp gegen Ohio
+      D: Miranda gegen Arizona
+    input_correct_responses:
+    - D
+    input_question: "Welcher der folgenden F\xE4lle hat den Pr\xE4zedenzfall geschaffen,\
+      \ dass ein Angeklagter \xFCber das Recht auf Schweigen, das Recht auf einen\
+      \ Anwalt und den Schutz vor Selbstbelastung aufgekl\xE4rt werden muss?"
+  - input_choice_list:
+      A: Sie werden von der Legislative festgelegt.
+      B: "Ihre Mitglieder haben oft keinen gro\xDFen Einfluss auf die Entscheidungen\
+        \ des Pr\xE4sidenten."
+      C: "Sie k\xF6nnen nicht alle von F\xFChrern gef\xFChrt werden, die derselben\
+        \ politischen Partei angeh\xF6ren wie der Pr\xE4sident."
+      D: "Nicht jede Bundesbeh\xF6rde ist eine Kabinettsabteilung."
+    input_correct_responses:
+    - C
+    input_question: "Welche der folgenden Aussagen \xFCber Kabinettsabteilungen ist\
+      \ FALSCH?"
+  - input_choice_list:
+      A: "Ehrliche Politiker k\xF6nnen verhindern, dass sich Fraktionen entwickeln."
+      B: "Fraktionen treten eher in gro\xDFen Republiken auf als in kleinen."
+      C: "Die negativen Auswirkungen des Fraktionalismus k\xF6nnen durch eine republikanische\
+        \ Regierung reduziert werden."
+      D: Freie Wahlen sind die beste Verteidigung des Volkes gegen Fraktionen.
+    input_correct_responses:
+    - C
+    input_question: Welche der folgenden Aussagen beschreibt am besten ein Argument
+      von James Madison in The Federalist Nummer 10?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_government_and_politics
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_high_school_government_and_politics
+task_alias: high_school_government_and_politics

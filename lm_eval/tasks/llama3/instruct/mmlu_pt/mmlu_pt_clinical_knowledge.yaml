@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ATP.
+      B: ADP.
+      C: fosfocreatina.
+      D: "fosforila\xE7\xE3o oxidativa."
+    input_correct_responses:
+    - A
+    input_question: "A energia para todas as formas de contra\xE7\xE3o muscular \xE9\
+      \ fornecida por:"
+  - input_choice_list:
+      A: "Os cateteres masculinos e femininos s\xE3o de cores diferentes."
+      B: "Os cateteres masculinos s\xE3o mais longos que os cateteres femininos."
+      C: "Os cateteres masculinos s\xE3o maiores que os cateteres femininos."
+      D: "Os cateteres femininos s\xE3o mais longos que os masculinos."
+    input_correct_responses:
+    - B
+    input_question: "Qual \xE9 a diferen\xE7a entre um cateter masculino e um cateter\
+      \ feminino?"
+  - input_choice_list:
+      A: "A abdu\xE7\xE3o do polegar \xE9 suprida pela raiz espinhal T2"
+      B: "A oposi\xE7\xE3o do polegar pelo oponente pol\xEDtico \xE9 suprida pela\
+        \ raiz espinhal T1"
+      C: "A adu\xE7\xE3o do dedo \xE9 suprida pelo nervo mediano"
+      D: "A abdu\xE7\xE3o dos dedos \xE9 mediada pelos inter\xF3sseos palmares"
+    input_correct_responses:
+    - B
+    input_question: "Na avalia\xE7\xE3o da fun\xE7\xE3o da m\xE3o, qual das afirma\xE7\
+      \xF5es a seguir \xE9 verdadeira?"
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '2'
+      D: '1'
+    input_correct_responses:
+    - C
+    input_question: "Quantas tentativas voc\xEA deve fazer para canular um paciente\
+      \ antes de passar o trabalho para um colega s\xEAnior, de acordo com o conhecimento\
+      \ m\xE9dico de 2020?"
+  - input_choice_list:
+      A: "glicog\xEAnio em glicose-1-fosfato."
+      B: "glicog\xEAnio ou glicose em frutose."
+      C: "glicog\xEAnio ou glicose em piruvato ou lactato."
+      D: "glicog\xEAnio ou glicose em piruvato ou acetil CoA."
+    input_correct_responses:
+    - C
+    input_question: "Glic\xF3lise \xE9 o nome dado \xE0 via que envolve a convers\xE3\
+      o de:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_clinical_knowledge
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_clinical_knowledge
+task_alias: clinical_knowledge

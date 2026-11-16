@@ -1,0 +1,6 @@
+tag: nrk_quiz_qa_nno
+task: nrk_quiz_qa_nno_p4
+dataset_name: nn
+include: ../_nrk_quiz_qa_yaml
+doc_to_text: !function utils.p4_nn
+doc_to_choice: "{{choices.text}}"

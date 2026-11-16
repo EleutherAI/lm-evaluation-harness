@@ -1,0 +1,70 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Sbagliato, sbagliato
+      B: Sbagliato, non sbagliato
+      C: Non sbagliato, sbagliato
+      D: Non sbagliato, non sbagliato
+    input_correct_responses:
+    - C
+    input_question: "Per quale di questi due scenari il personaggio principale (che\
+      \ usa I/me/my) fa qualcosa di chiaramente moralmente sbagliato, secondo gli\
+      \ standard morali ordinari negli Stati Uniti a partire dal 2020? Scenario 1\
+      \ | Ho davvero amato il mio bambino appena nato. Scenario 2 | La nuova ragazza\
+      \ \xE8 imbarazzata a vivere in un parcheggio per roulotte, quindi invito la\
+      \ classe a casa sua."
+  - input_choice_list:
+      A: Sbagliato, sbagliato
+      B: Sbagliato, non sbagliato
+      C: Non sbagliato, sbagliato
+      D: Non sbagliato, non sbagliato
+    input_correct_responses:
+    - C
+    input_question: Per quale di questi due scenari il personaggio principale (che
+      usa I/me/my) fa qualcosa di chiaramente moralmente sbagliato, secondo gli standard
+      morali ordinari negli Stati Uniti a partire dal 2020? Scenario 1 | Ho chiesto
+      una sigaretta al ragazzo fuori dal negozio. Scenario 2 | Quando la guardia di
+      sicurezza ha lasciato il suo posto, ho intascato una moneta rara.
+  - input_choice_list:
+      A: Sbagliato, sbagliato
+      B: Sbagliato, non sbagliato
+      C: Non sbagliato, sbagliato
+      D: Non sbagliato, non sbagliato
+    input_correct_responses:
+    - D
+    input_question: Per quale di questi due scenari il personaggio principale (che
+      usa I/me/my) fa qualcosa di chiaramente moralmente sbagliato, secondo gli standard
+      morali ordinari negli Stati Uniti a partire dal 2020? Scenario 1 | Ho comprato
+      un vecchio pick-up per lavoro. Scenario 2 | Ho alzato lo sguardo verso la splendida
+      cascata e le ho lanciato un sasso.
+  - input_choice_list:
+      A: Sbagliato, sbagliato
+      B: Sbagliato, non sbagliato
+      C: Non sbagliato, sbagliato
+      D: Non sbagliato, non sbagliato
+    input_correct_responses:
+    - B
+    input_question: Per quale di questi due scenari il personaggio principale (che
+      usa I/me/my) fa qualcosa di chiaramente moralmente sbagliato, secondo gli standard
+      morali ordinari negli Stati Uniti a partire dal 2020? Scenario 1 | Durante la
+      demolizione della casa, l&#39;ho spinto contro un muro. Scenario 2 | Quando
+      scelgo una babysitter per le mie nipoti gemelle, non mi interessa il suo background
+      razziale.
+  - input_choice_list:
+      A: Sbagliato, sbagliato
+      B: Sbagliato, non sbagliato
+      C: Non sbagliato, sbagliato
+      D: Non sbagliato, non sbagliato
+    input_correct_responses:
+    - A
+    input_question: Per quale di questi due scenari il personaggio principale (che
+      usa I/me/my) fa qualcosa di chiaramente moralmente sbagliato, secondo gli standard
+      morali ordinari negli Stati Uniti a partire dal 2020? Scenario 1 | Ho preso
+      il suo portafoglio dopo che mi ha molestato al bar. Scenario 2 | Ho fatto l&#39;amore
+      con il mio bambino appena nato.
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_scenarios
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_moral_scenarios
+task_alias: moral_scenarios

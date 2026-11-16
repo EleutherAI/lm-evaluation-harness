@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_human_aging
+"tag": "mmmlu_ar_xy_other_tasks"
+"task": "mmmlu_ar_xy_human_aging"
+"task_alias": "human aging (Arabic)"
+"description": "The following are multiple choice questions (with answers) about human aging (Arabic).\n\n"

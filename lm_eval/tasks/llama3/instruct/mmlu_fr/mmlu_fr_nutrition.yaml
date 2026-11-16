@@ -1,0 +1,71 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Les buveurs de th\xE9 ont moins de risque de d\xE9velopper un diab\xE8te."
+      B: "Les buveurs de th\xE9 ont un risque plus \xE9lev\xE9 de d\xE9velopper un\
+        \ diab\xE8te."
+      C: "Sur la base des informations fournies, nous ne pouvons pas dire si la diff\xE9\
+        rence observ\xE9e dans le risque de maladie est le r\xE9sultat du hasard."
+      D: "Le risque relatif est proche de la valeur un, il n&#39;y a donc pas de diff\xE9\
+        rence de risque de maladie entre les deux groupes."
+    input_correct_responses:
+    - C
+    input_question: "Dans une \xE9tude de cohorte, le risque relatif de d\xE9velopper\
+      \ un diab\xE8te \xE9tait de 0,86 en comparant les consommateurs de th\xE9 (les\
+      \ expos\xE9s) \xE0 ceux qui ne buvaient pas de th\xE9 (les non expos\xE9s).\
+      \ Laquelle des affirmations est correcte (selon les connaissances en 2020)\_\
+      ?"
+  - input_choice_list:
+      A: "Les consommateurs atteints de ph\xE9nylc\xE9tonurie doivent \xE9viter la\
+        \ consommation de l&#39;\xE9dulcorant aspartame"
+      B: "Les consommateurs atteints de ph\xE9nylc\xE9tonurie doivent \xE9viter la\
+        \ consommation de l&#39;\xE9dulcorant saccharine"
+      C: "Les consommateurs atteints de ph\xE9nylc\xE9tonurie doivent \xE9viter la\
+        \ consommation de l&#39;\xE9dulcorant sucralose"
+      D: "Les consommateurs atteints de ph\xE9nylc\xE9tonurie doivent \xE9viter la\
+        \ consommation de l&#39;\xE9dulcorant ac\xE9sulfame K"
+    input_correct_responses:
+    - A
+    input_question: "Laquelle des affirmations suivantes est correcte (selon les connaissances\
+      \ en 2020)\_?"
+  - input_choice_list:
+      A: "L&#39;acide propionique, form\xE9 pendant la fermentation des fibres du\
+        \ c\xF4lon, inhibe la synth\xE8se des acides gras du foie"
+      B: "L&#39;acide butyrique, form\xE9 lors de la fermentation des fibres du c\xF4\
+        lon, stimule le &quot;silence&quot; du g\xE8ne suppresseur de tumeur SLC5A8"
+      C: Aucune de ces options n&#39;est correcte
+      D: "L&#39;acide butyrique, form\xE9 lors de la fermentation des fibres coliques,\
+        \ stimule les d\xE9fenses anti-oxydantes du c\xF4lon"
+    input_correct_responses:
+    - D
+    input_question: "Laquelle des affirmations suivantes est l&#39;explication la\
+      \ plus plausible de l&#39;effet protecteur des fibres alimentaires contre le\
+      \ cancer du c\xF4lon, \xE0 partir de 2020\_?"
+  - input_choice_list:
+      A: "50% des adultes consomment de l&#39;iode \xE0 des niveaux inf\xE9rieurs\
+        \ au RNI"
+      B: Les produits laitiers sont une mauvaise source d&#39;iode
+      C: "La teneur en iode du lait biologique est g\xE9n\xE9ralement inf\xE9rieure\
+        \ \xE0 celle du lait non biologique"
+      D: "Les valeurs nutritionnelles de r\xE9f\xE9rence du Royaume-Uni recommandent\
+        \ une augmentation de l&#39;apport en iode pendant la grossesse"
+    input_correct_responses:
+    - C
+    input_question: "Laquelle des affirmations suivantes sur l&#39;iode est correcte,\
+      \ \xE0 partir de 2020\_?"
+  - input_choice_list:
+      A: Acarbose
+      B: Metformine
+      C: "Sulfonylur\xE9es"
+      D: Insuline
+    input_correct_responses:
+    - B
+    input_question: "Quel est le m\xE9dicament de premi\xE8re ligne pour les patients\
+      \ atteints de diab\xE8te de type 2 et d&#39;ob\xE9sit\xE9, \xE0 partir de 2020\_\
+      ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_nutrition
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_nutrition
+task_alias: nutrition

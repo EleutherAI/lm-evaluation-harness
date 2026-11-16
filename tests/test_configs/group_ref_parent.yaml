@@ -1,0 +1,6 @@
+# Parent group that references an existing group (include_group) with overrides.
+# Tests that existing group references preserve children and apply overrides.
+group: group_ref_parent
+task:
+  - group: include_group
+    num_fewshot: 99

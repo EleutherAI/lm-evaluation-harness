@@ -1,0 +1,4 @@
+include: _hrm8k_en_yaml
+dataset_name: MMMLU
+task: hrm8k_mmmlu_en
+doc_to_text: !function utils.doc_to_text_mmmlu

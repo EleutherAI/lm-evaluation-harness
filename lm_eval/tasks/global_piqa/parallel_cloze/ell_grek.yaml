@@ -1,0 +1,3 @@
+dataset_name: ell_grek
+include: _template
+task: global_piqa_parallel_cloze_ell_grek

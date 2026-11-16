@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: weniger
+      B: mehr
+      C: das gleiche
+      D: 'null'
+    input_correct_responses:
+    - A
+    input_question: Verglichen mit der Masse eines Uranatoms, das gespalten wird,
+      sind die kombinierten Massen der Produkte nach der Spaltung
+  - input_choice_list:
+      A: Raum und Zeit.
+      B: ein reisender Zwilling und ein Zwilling, der zu Hause bleibt.
+      C: Schwerkraft und Beschleunigung.
+      D: Masse und Energie.
+    input_correct_responses:
+    - C
+    input_question: "Dinge, die nach dem \xC4quivalenzprinzip gleichwertig sind, sind"
+  - input_choice_list:
+      A: auf eine andere Frequenz umgestellt
+      B: Ablenkung
+      C: Interferenz
+      D: Polarisation
+    input_correct_responses:
+    - C
+    input_question: Farben in einer Seifenblase entstehen durch Licht
+  - input_choice_list:
+      A: das gleiche
+      B: "gr\xF6\xDFer"
+      C: weniger
+      D: Je nach Windgeschwindigkeit mehr oder weniger
+    input_correct_responses:
+    - B
+    input_question: "Ein Modellflugzeug fliegt bei Gegenwind langsamer und bei R\xFC\
+      ckenwind schneller. Beim Start im rechten Winkel zum Wind und Seitenwind ist\
+      \ seine Geschwindigkeit \xFCber Grund im Vergleich zum Fliegen in ruhender Luft"
+  - input_choice_list:
+      A: Wasserstoff
+      B: Eisen
+      C: Uran
+      D: In jedem gleich
+    input_correct_responses:
+    - A
+    input_question: "Welches dieser drei Elemente hat die gr\xF6\xDFte Masse pro Nukleon?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_conceptual_physics
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_conceptual_physics
+task_alias: conceptual_physics

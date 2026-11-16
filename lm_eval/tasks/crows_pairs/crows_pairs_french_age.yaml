@@ -1,0 +1,3 @@
+include: crows_pairs_french.yaml
+task: crows_pairs_french_age
+process_docs: !function utils.filter_age

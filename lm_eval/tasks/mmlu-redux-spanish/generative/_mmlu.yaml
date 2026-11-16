@@ -1,0 +1,33 @@
+group: mmlu_redux_spanish_generative
+group_alias: mmlu_redux_spanish (generative)
+task:
+  - group: stem_spanish
+    task:
+      - mmlu_stem_generative_spanish
+    aggregate_metric_list:
+      - metric: exact_match
+        weight_by_size: true
+  - group: other_spanish
+    task:
+      - mmlu_other_generative_spanish
+    aggregate_metric_list:
+      - metric: exact_match
+        weight_by_size: true
+  - group: social sciences_spanish
+    task:
+      - mmlu_social_sciences_generative_spanish
+    aggregate_metric_list:
+      - metric: exact_match
+        weight_by_size: true
+#  - group: humanities_spanish
+#    task:
+#      - mmlu_humanities_generative_spanish
+#    aggregate_metric_list:
+#      - metric: exact_match
+#        weight_by_size: true
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: true
+metadata:
+  version: 3

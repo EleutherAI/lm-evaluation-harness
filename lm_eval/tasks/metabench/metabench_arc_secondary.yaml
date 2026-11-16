@@ -1,0 +1,5 @@
+include: metabench_arc.yaml
+task: metabench_arc_secondary
+test_split: secondary
+metadata:
+  version: 0.0

@@ -1,0 +1,16 @@
+include: cruxeval_output.yaml
+task: cruxeval_output_08
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [5]
+generation_kwargs:
+  until:
+    - "[/ANSWER]"
+    - "</seed:think>[ANSWER]"
+  max_gen_toks: 1024
+  do_sample: True
+  temperature: 0.8
+metadata:
+  version: 1.0

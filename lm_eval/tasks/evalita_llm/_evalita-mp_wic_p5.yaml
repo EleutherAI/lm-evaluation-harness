@@ -1,0 +1,6 @@
+tag: evalita-mp_wic_tasks
+task: evalita-mp_wic_prompt-5
+task_alias: prompt-5
+include: _wic_template_yaml
+doc_to_text: "La parola: '{{sentence1[start1:end1]}}' nella frase: '{{sentence1}}' e la parola: '{{sentence2[start2:end2]}}' nella frase: '{{sentence2}}'"
+doc_to_choice: ["non hanno lo stesso significato", "hanno lo stesso significato"]

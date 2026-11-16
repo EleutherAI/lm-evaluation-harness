@@ -1,0 +1,24 @@
+task: AraDiCE_piqa_lev
+dataset_path: QCRI/AraDiCE-PIQA
+dataset_name: PIQA-lev
+training_split: null
+validation_split: null
+test_split: test
+output_type: multiple_choice
+doc_to_text: "سؤال : {{goal}}\nإجابة :"
+doc_to_target: label
+doc_to_choice: "{{[sol1, sol2]}}"
+should_decontaminate: true
+doc_to_decontamination_query: goal
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    higher_is_better: true
+    aggregation: !function metrics.micro_f1_score
+metadata:
+  version: 1.0

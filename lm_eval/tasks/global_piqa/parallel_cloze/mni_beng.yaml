@@ -1,0 +1,3 @@
+dataset_name: mni_beng
+include: _template
+task: global_piqa_parallel_cloze_mni_beng

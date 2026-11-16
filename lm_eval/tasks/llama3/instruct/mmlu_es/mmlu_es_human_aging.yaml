@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Un hombre o una mujer asi\xE1tica."
+      B: un hombre hispano
+      C: Una mujer afroamericana
+      D: Un hombre o una mujer blanca.
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de las siguientes personas tiene m\xE1s probabilidades\
+      \ de permanecer sola en casa a partir de 2019?"
+  - input_choice_list:
+      A: Ventaja de la adolescencia
+      B: Golpe de memoria
+      C: monumento conmemorativo
+      D: "Pico de recuperaci\xF3n cuadr\xE1tica"
+    input_correct_responses:
+    - B
+    input_question: "El hallazgo de que los adultos tienden a recordar mejor los acontecimientos\
+      \ de su adolescencia que los de otros per\xEDodos de sus vidas se conoce como"
+  - input_choice_list:
+      A: Texas
+      B: California
+      C: Hawai
+      D: Vermont
+    input_correct_responses:
+    - A
+    input_question: "Cuando los adultos mayores se mudan a un nuevo estado despu\xE9\
+      s de jubilarse, \xBFcu\xE1l de los siguientes es el destino m\xE1s probable?"
+  - input_choice_list:
+      A: Nicotina
+      B: "Alquitr\xE1n"
+      C: "Mon\xF3xido de carbono"
+      D: "Part\xEDculas de humo"
+    input_correct_responses:
+    - B
+    input_question: "\xBFQu\xE9 elemento del humo del tabaco es responsable de los\
+      \ c\xE1nceres?"
+  - input_choice_list:
+      A: Una mujer hispanoamericana mayor
+      B: Una mujer afroamericana mayor
+      C: "Una mujer asi\xE1tica americana mayor"
+      D: Una mujer nativa americana mayor
+    input_correct_responses:
+    - C
+    input_question: "En igualdad de condiciones, \xBFcu\xE1l de las siguientes personas\
+      \ tiene m\xE1s probabilidades de padecer osteoporosis?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_aging
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_human_aging
+task_alias: human_aging

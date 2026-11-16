@@ -1,0 +1,5 @@
+dataset_name: ory_Orya
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_ory_Orya
+test_split: test

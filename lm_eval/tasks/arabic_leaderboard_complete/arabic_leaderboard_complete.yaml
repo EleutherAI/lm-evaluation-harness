@@ -1,0 +1,25 @@
+group: arabic_leaderboard_complete
+task:
+  - arabic_leaderboard_acva
+  - arabic_leaderboard_alghafa
+  - arabic_leaderboard_arabic_exams
+  - arabic_leaderboard_arabic_mt_arc_challenge
+  - arabic_leaderboard_arabic_mt_arc_easy
+  - arabic_leaderboard_arabic_mt_boolq
+  - arabic_leaderboard_arabic_mt_hellaswag
+  - arabic_leaderboard_arabic_mt_mmlu
+  - arabic_leaderboard_arabic_mt_copa
+  - arabic_leaderboard_arabic_mt_openbook_qa
+  - arabic_leaderboard_arabic_mt_piqa
+  - arabic_leaderboard_arabic_mt_race
+  - arabic_leaderboard_arabic_mt_sciq
+  - arabic_leaderboard_arabic_mt_toxigen
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

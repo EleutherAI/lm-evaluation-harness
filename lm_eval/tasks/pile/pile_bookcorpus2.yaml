@@ -1,0 +1,3 @@
+include: pile_arxiv.yaml
+task: pile_bookcorpus2
+dataset_name: pile_bookcorpus2
