@@ -19,6 +19,7 @@ import wonderwords
 from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_NUM_SAMPLES,
     DEFAULT_SEQ_LENGTHS,
     get_tokenizer,
     resolve_tokenizer_name,
@@ -167,18 +168,24 @@ def sys_word_pair_random(
     return write_jsons
 
 
-def get_dataset(tokenizer, seq: int | None = None, **kwargs):
+def get_dataset(
+    tokenizer,
+    seq: int | None = None,
+    num_samples: int = DEFAULT_NUM_SAMPLES,
+    **kwargs,
+):
     assert seq is not None, "max_seq_length must be specified"
     write_jsons = sys_word_pair_random(
-        num_samples=500, max_seq_length=seq, tokenizer=tokenizer
+        num_samples=num_samples, max_seq_length=seq, tokenizer=tokenizer
     )
     return write_jsons
 
 
 def get_cw_dataset(**kwargs):
     tokenizer = get_tokenizer(resolve_tokenizer_name(kwargs))
+    num_samples = kwargs.pop("num_samples", DEFAULT_NUM_SAMPLES)
     df = (
-        get_dataset(tokenizer, seq=seq)
+        get_dataset(tokenizer, seq=seq, num_samples=num_samples)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

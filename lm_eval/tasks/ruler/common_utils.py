@@ -18,6 +18,9 @@ DEFAULT_SEQ_LENGTHS = [
     4096,
 ]
 
+# Samples per sequence length; override with `--metadata='{"num_samples": 50}'`.
+DEFAULT_NUM_SAMPLES = 500
+
 # The keys a model name can arrive under. RULER tasks are handed the parsed
 # `--model_args`, and each backend names the model differently: `pretrained`
 # for local HuggingFace models, `model` for the API backends.

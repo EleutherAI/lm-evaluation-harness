@@ -249,3 +249,38 @@ class TestBuildersWithoutATokenizer:
         # niah_utils' `get_tokenizer(**kwargs)` and raise TypeError there.
         with pytest.raises(AssertionError, match="No tokenizer or pretrained"):
             builder(stop=["\n", "###"], extra={"a": 1})
+
+
+class TestNumSamples:
+    """`num_samples` in the task metadata sets how many samples each length gets.
+
+    Every builder used to hard-code 500, and `--limit` only trims after all 500
+    are built, so a small long-context run still paid for 500 prompts a length.
+    """
+
+    @pytest.fixture(autouse=True)
+    def offline(self, monkeypatch):
+        """A whitespace tokenizer and local stand-ins for the downloaded corpora."""
+        for module_name, _ in BUILDER_SPECS:
+            try:
+                module = importlib.import_module(f"lm_eval.tasks.ruler.{module_name}")
+            except ImportError:
+                continue
+            monkeypatch.setattr(
+                module, "get_tokenizer", lambda name: FakeTokenizer(max_calls=10**6)
+            )
+        prepare_niah = importlib.import_module("lm_eval.tasks.ruler.prepare_niah")
+        essay = {"text": [" ".join(f"essay{i}" for i in range(20000))]}
+        monkeypatch.setattr(
+            prepare_niah.datasets, "load_dataset", lambda *args, **kwargs: essay
+        )
+        qa_utils = importlib.import_module("lm_eval.tasks.ruler.qa_utils")
+        docs, qas = make_qa_corpus(doc_words=5, gold_docs=2, num_qas=600)
+        monkeypatch.setattr(qa_utils, "read_squad", lambda: (qas, docs))
+        monkeypatch.setattr(qa_utils, "read_hotpotqa", lambda: (qas, docs))
+
+    @pytest.mark.parametrize("builder", BUILDERS)
+    def test_each_length_gets_num_samples(self, builder):
+        lengths = [2048, 4096]
+        test = builder(model="fake", max_seq_lengths=lengths, num_samples=3)["test"]
+        assert [row["max_length"] for row in test] == [2048] * 3 + [4096] * 3
