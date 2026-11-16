@@ -14,6 +14,17 @@ abstractive models for medical question summarization. We introduce the MeQSum c
 1,000 summarized consumer health questions.
 
 
+### Dataset loading
+
+The task reads the publisher's `meqsum_source` Parquet export at revision
+`3d16738df5528f99adc4bb28a9dd78bc99d5433b`, rather than the dataset loading
+script, which is unsupported by `datasets>=4`. The explicit `data_files` entry
+selects the source schema instead of mixing it with the BigBio text-to-text export.
+
+All 1,000 records, their order, and the rendered prompts and reference summaries
+match the original MeQSum spreadsheet. The existing split selection, preprocessing,
+metrics, and task version 1.0 are retained.
+
 ### Citation
 
 ```bibtex
