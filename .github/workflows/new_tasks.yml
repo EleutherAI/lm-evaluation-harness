@@ -16,7 +16,7 @@ jobs:
     name: Scan for changed tasks
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
 
@@ -26,7 +26,7 @@ jobs:
       # and prepends the filter name to the standard output names.
       - name: Check task folders
         id: changed-tasks
-        uses: tj-actions/changed-files@v44.5.2
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           # tasks checks the tasks folder and api checks the api folder for changes
           files_yaml: |
@@ -47,7 +47,7 @@ jobs:
 
       - name: Set up Python 3.9
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: 3.9
           cache: 'pip'
