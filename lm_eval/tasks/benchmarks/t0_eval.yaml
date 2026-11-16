@@ -14,7 +14,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   # Coreference Resolution
-  - dataset_path: winogrande
+  - dataset_path: allenai/winogrande
     dataset_name: winogrande_xl
     use_prompt: promptsource:*
     training_split: train
@@ -52,7 +52,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   - task: anli_r1
-    dataset_path: anli
+    dataset_path: facebook/anli
     use_prompt: promptsource:*
     training_split: train_r1
     validation_split: dev_r1
@@ -64,7 +64,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   - task: anli_r2
-    dataset_path: anli
+    dataset_path: facebook/anli
     use_prompt: promptsource:*
     training_split: train_r2
     validation_split: dev_r2
@@ -76,7 +76,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   - task: anli_r3
-    dataset_path: anli
+    dataset_path: facebook/anli
     use_prompt: promptsource:*
     training_split: train_r3
     validation_split: dev_r3
@@ -101,7 +101,7 @@ task:
         ignore_case: true
         ignore_punctuation: true
   # Natural Language Inference
-  - dataset_path: hellaswag
+  - dataset_path: Rowan/hellaswag
     use_prompt: promptsource:*
     training_split: train
     validation_split: validation

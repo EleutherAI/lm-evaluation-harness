@@ -1,6 +1,6 @@
 # Task configuration derived from Eleuther AI's implementation as of March 22, 2024, supplemented with an additional preprocessing function
 task: xnli_es_spanish_bench
-dataset_path: xnli
+dataset_path: facebook/xnli
 dataset_name: es
 output_type: multiple_choice
 doc_to_choice: '{{[premise+", ¿correcto? Sí, "+hypothesis,premise+", ¿correcto? Así
