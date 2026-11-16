@@ -231,6 +231,23 @@ def acc_bytes_fn(items):  # This is a passthrough function
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+def _prepare_exact_match_strings(values, regexes_to_ignore, ignore_case):
+    """Normalize strings before they become a fixed-width NumPy array.
+
+    ``np.char.lower`` lowercases inside a ``<U`` array. Characters such as
+    U+0130 expand when lowercased, and the array truncates the extra code
+    point. Lowercasing with ``str.lower`` first sizes the array for the
+    expanded text.
+    """
+    normalized = list(values)
+    if regexes_to_ignore is not None:
+        for pattern in regexes_to_ignore:
+            normalized = [re.sub(pattern, "", value) for value in normalized]
+    if ignore_case:
+        normalized = [value.lower() for value in normalized]
+    return np.asarray(normalized)
+
+
 def exact_match_hf_evaluate(
     predictions,
     references,
@@ -239,17 +256,12 @@ def exact_match_hf_evaluate(
     ignore_punctuation=False,
     ignore_numbers=False,
 ):
-    if regexes_to_ignore is not None:
-        for s in regexes_to_ignore:
-            predictions = np.array([re.sub(s, "", x) for x in predictions])
-            references = np.array([re.sub(s, "", x) for x in references])
-    else:
-        predictions = np.asarray(predictions)
-        references = np.asarray(references)
-
-    if ignore_case:
-        predictions = np.char.lower(predictions)
-        references = np.char.lower(references)
+    predictions = _prepare_exact_match_strings(
+        predictions, regexes_to_ignore, ignore_case
+    )
+    references = _prepare_exact_match_strings(
+        references, regexes_to_ignore, ignore_case
+    )
 
     if ignore_punctuation:
         repl_table = string.punctuation.maketrans("", "", string.punctuation)

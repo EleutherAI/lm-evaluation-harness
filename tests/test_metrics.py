@@ -245,6 +245,46 @@ def test_chrfpp_uses_word_order_two():
     )
 
 
+def test_exact_match_ignore_case_keeps_expanding_lowercase():
+    """U+0130 lowercases to two code points and must not be truncated."""
+    from lm_eval.api.metrics import exact_match_hf_evaluate
+
+    def score(prediction, references):
+        result = exact_match_hf_evaluate(
+            predictions=[prediction] * len(references),
+            references=references,
+            ignore_case=True,
+        )
+        return float(result["exact_match"])
+
+    assert score("İzmit", ["İzmir"]) == 0.0
+    assert score("İzmir", ["İzmir"]) == 1.0
+    assert score("İzmir", ["İzmir", "LANTERN"]) == 0.5
+    assert score("Hello", ["hello"]) == 1.0
+    assert (
+        float(
+            exact_match_hf_evaluate(
+                predictions=["Hello"],
+                references=["hello"],
+                ignore_case=False,
+            )["exact_match"]
+        )
+        == 0.0
+    )
+    assert (
+        float(
+            exact_match_hf_evaluate(
+                predictions=["Foo BAR"],
+                references=["foo bar"],
+                regexes_to_ignore=[r"\s+"],
+                ignore_case=True,
+                ignore_punctuation=True,
+            )["exact_match"]
+        )
+        == 1.0
+    )
+
+
 def test_chrfpp_perfect_match():
     """chrf++ should return 100.0 for identical hypothesis and reference."""
     from lm_eval.api.metrics import chrfpp
