@@ -1,6 +1,10 @@
 task: meqsum
 dataset_path: bigbio/meqsum
-dataset_name: meqsum_source
+dataset_name: null
+dataset_kwargs:
+  revision: 3d16738df5528f99adc4bb28a9dd78bc99d5433b
+  data_files:
+    train: meqsum_source/train/0000.parquet
 description: >
   Instructions: The following text is contains a medical question. Extract and summarize the question.
 
