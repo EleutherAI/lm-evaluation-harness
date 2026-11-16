@@ -4,7 +4,7 @@ tag:
   - french_bench_gen
 description: "Résume l'article en une phrase."
 task: french_bench_orangesum_abstract
-dataset_path: orange_sum
+dataset_path: EdinburghNLP/orange_sum
 dataset_name: abstract
 output_type: generate_until
 validation_split: validation

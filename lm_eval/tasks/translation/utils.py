@@ -31,6 +31,13 @@ LANGUAGES = {
     "iwslt2017": ["en-ar"],  # Arabic
 }
 
+# Namespaced Hugging Face Hub ids these benchmarks resolve to.
+HF_DATASET_IDS = {
+    "wmt14": "wmt/wmt14",
+    "wmt16": "wmt/wmt16",
+    "iwslt2017": "IWSLT/iwslt2017",
+}
+
 
 def code_to_language(code):
     # key is alpha_2 or alpha_3 depending on the code length
@@ -70,7 +77,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                             {
                                 "include": "wmt_common_yaml",
                                 "group": groups,
-                                "dataset_path": lang,
+                                "dataset_path": HF_DATASET_IDS.get(lang, lang),
                                 "dataset_name": dataset_name
                                 if not (lang == "iwslt2017")
                                 else "iwslt2017-" + dataset_name,
