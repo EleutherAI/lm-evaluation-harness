@@ -130,7 +130,26 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | `--show_config` | | Display full task configuration after evaluation. |
 | `--wandb_args` | | Weights & Biases arguments as `key=val`. E.g., `project=my-project name=run-1`. |
 | `--wandb_config_args` | | Additional W&B config arguments. |
+| `--trackio_args` | | Trackio initialization arguments, e.g. `project=my-evals name=run-1`. See [Trackio Logging](#trackio-logging). |
 | `--hf_hub_log_args` | | HuggingFace Hub logging arguments. See [HF Hub Logging](#huggingface-hub-logging). |
+
+#### Trackio Logging
+
+Install the Hugging Face model backend and [Trackio](https://huggingface.co/docs/trackio/quickstart) from a checkout of this repository:
+
+```bash
+python -m pip install -e ".[hf,trackio]"
+lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag \
+  --device cpu --limit 5 --trackio_args project=my-evals name=gpt2-smoke \
+  --log_samples --output_path ./results/
+trackio show --project my-evals
+```
+
+`--trackio_args` enables run configuration and aggregate metric logging. With
+`--log_samples` and an output path, each evaluated sample is also logged as a
+trace with the prompt, response or selected choice, and available sample metrics
+and target. The example stores the Trackio project locally. Remove `--limit`
+when running the full evaluation.
 
 ### Advanced Options
 
