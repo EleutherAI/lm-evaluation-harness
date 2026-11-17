@@ -4,6 +4,8 @@ include: meddialog_raw_dialogues.yaml
 task: meddialog_qsumm
 dataset_path: lighteval/med_dialog
 dataset_name: icliniq
+# Use the question-summarization dataset's own files.
+dataset_kwargs: null
 description: >
   Instructions: The following text is contains a medical question. Extract and summarize the question.
 

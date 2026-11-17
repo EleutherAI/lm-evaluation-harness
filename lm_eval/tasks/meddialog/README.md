@@ -16,6 +16,15 @@ question entailment, and open-ended Question Answering (QA).
 * `meddialog_raw_dialogues`: Open-Ended QA in english.
 * `meddialog_raw_perplexity`: Open-Ended QA in english, evaluated with perplexity.
 
+### Dataset loading
+
+The raw dialogue and perplexity tasks use BigBio's English source-schema Parquet
+export at revision `f56efc19f07aa6e8e0a5a45ea0a9744e2e36ba29`. This retains the
+original loader's default English source configuration on versions of `datasets`
+that no longer execute dataset scripts. Both tasks continue to use the `train`
+split for task training, validation and test. The question-summarization variants
+continue to use the `icliniq` configuration of `lighteval/med_dialog`.
+
 ### Citation
 
 ```bibtex
