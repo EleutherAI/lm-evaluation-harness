@@ -44,3 +44,7 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+- `simple_cooccurrence_bias_gen` version 2.0 (2026-11-17, PR #4634): count every male and female generation instead of at most one of each, and count a tie as neither preference.
