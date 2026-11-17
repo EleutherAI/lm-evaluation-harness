@@ -1,0 +1,6 @@
+include: ../xed_emotions.yaml
+
+task: xed_emotions_fi
+
+metadata:
+  lang: fi

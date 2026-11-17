@@ -1,0 +1,8 @@
+
+include: ../xed_emotions.yaml
+
+task: xed_emotions_tr
+
+metadata:
+  lang: "tr"
+  

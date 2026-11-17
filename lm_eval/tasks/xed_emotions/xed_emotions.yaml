@@ -1,0 +1,21 @@
+output_type: multiple_choice
+doc_to_text: "You are a sociolinguist studying emotion and you specialise is in Plutchik's eight core emotions. Given the sentence '{{text}}', which emotion label (anger, anticipation, disgust, fear, joy, sadness, surprise, trust, or neutral) fits best?\n\nThe best label is:"
+
+#"You are competent linguist studying semantics, particularly negation and antonymy. You are given an original sentence and three paraphrases. Your goal is to find the paraphrase that is semantically identical to the original sentence, the two others being negated and antonymated versions of the original sentence. Please give the number of the option that is semantically identical to the original sentences.\n\nOrignal text: {{input}} \n\nOptions:\n\n1 {{sentences[0]}}\n2 {{sentences[1]}}\n3 {{sentences[2]}}\n\n---\n\nCorrect label:"
+doc_to_target: label
+custom_dataset: !function utils.load_xed_emotions
+
+#task: xed_emotions
+
+test_split: test
+
+doc_to_choice: '{{["anger", "anticipation", "disgust", "fear", "joy", "sadness", "surprise", "trust"]}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1
+  dataset_dir: Helsinki-NLP/xed_emotions
+  split: test

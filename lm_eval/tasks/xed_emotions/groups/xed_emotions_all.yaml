@@ -1,0 +1,45 @@
+
+group: xed_emotions_all
+task:
+    - xed_emotions_ar
+    - xed_emotions_bg
+    - xed_emotions_br
+    - xed_emotions_bs
+    - xed_emotions_cn
+    - xed_emotions_cs
+    - xed_emotions_da
+    - xed_emotions_de
+    - xed_emotions_el
+    - xed_emotions_en
+    - xed_emotions_es
+    - xed_emotions_et
+    - xed_emotions_eu
+    - xed_emotions_fa
+    - xed_emotions_fi
+    - xed_emotions_fr
+    - xed_emotions_gl
+    - xed_emotions_he
+    - xed_emotions_hr
+    - xed_emotions_hu
+    - xed_emotions_id
+    - xed_emotions_is
+    - xed_emotions_it
+    - xed_emotions_ja
+    - xed_emotions_mk
+    - xed_emotions_ml
+    - xed_emotions_ms
+    - xed_emotions_nl
+    - xed_emotions_no
+    - xed_emotions_pl
+    - xed_emotions_pt
+    - xed_emotions_ro
+    - xed_emotions_ru
+    - xed_emotions_sk
+    - xed_emotions_sl
+    - xed_emotions_sr
+    - xed_emotions_sv
+    - xed_emotions_th
+    - xed_emotions_tr
+    - xed_emotions_tw
+    - xed_emotions_vi
+    - xed_emotions_zh

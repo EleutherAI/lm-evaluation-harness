@@ -1,0 +1,3 @@
+# XED emotions
+
+This task is about labelling text with the correct emotion. It is backed by [Helsinki-NLP/XED](https://github.com/Helsinki-NLP/XED/tree/master). In the original data, each sentence is annotated with 1+ emotion labels out of a set of eight. For this test, multiple choice questions are generated from this data: one correct answer is deterministically sampled from the set of correct labels.
