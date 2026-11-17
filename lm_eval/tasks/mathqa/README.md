@@ -48,3 +48,7 @@ If other tasks on this dataset are already supported:
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
   * [x] Checked for equivalence with v0.3.0 LM Evaluation Harness
+
+### Changelog
+
+- `mathqa` version 2.0 (2026-11-17, PR #4636): parse options that contain " , " and options stored as a list literal, so no answer choice is cut at its first comma or keeps a stray quote.
