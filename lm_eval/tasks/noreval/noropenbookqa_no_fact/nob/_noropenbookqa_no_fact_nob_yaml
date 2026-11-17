@@ -1,0 +1,9 @@
+include: ../_noropenbookqa_no_fact_yaml
+dataset_name: nb
+process_results: !function utils.process_results
+metadata:
+  version: 1.3
+  primary_metric: acc_norm
+  random_baseline: 0.25
+  category: world_knowledge_and_reasoning
+  language: nob

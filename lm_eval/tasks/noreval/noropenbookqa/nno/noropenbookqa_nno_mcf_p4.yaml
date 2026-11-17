@@ -1,0 +1,8 @@
+tag:
+  - noropenbookqa_nno
+  - noropenbookqa_nno_mcf
+task: noropenbookqa_nno_mcf_p4
+include: _noropenbookqa_nno_yaml
+doc_to_text: "Ta utgangspunkt i følgande fakta når du svarar på spørsmålet: {{fact}}\n\n{{question_stem}}\nVel rett svar blant desse alternativa:\n A: {{choices.text[0]}}\n B: {{choices.text[1]}}\n C: {{choices.text[2]}}\n D: {{choices.text[3]}}\n\nSvar:"
+doc_to_choice: !function utils.choices_labels
+process_results: !function utils.process_results_mcf

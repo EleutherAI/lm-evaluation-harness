@@ -1,0 +1,38 @@
+dataset_path: ltg/norrewrite-instruct
+dataset_kwargs:
+  revision: f7197b35d55de69d48302e397661a6c43667a6b0
+training_split: null
+test_split: test
+doc_to_text: "{{prompt}} {{context}}"
+doc_to_target: response
+output_type: generate_until
+metric_list:
+  - metric: bleu
+    aggregation: !function utils.mean_bleu
+    higher_is_better: true
+  - metric: chrf
+    aggregation: !function utils.mean_chrf
+    higher_is_better: true
+  - metric: bleu_stderr
+    aggregation: !function utils.bleu_stderr
+    higher_is_better: false
+  - metric: chrf_stderr
+    aggregation: !function utils.chrf_stderr
+    higher_is_better: false
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: true
+  temperature: 1.0
+  top_p: 1.0
+  top_k: 0
+  max_new_tokens: 256
+process_results: !function utils.process_results
+repeats: &samples 32
+filter_list:
+  - name: sampling
+    filter:
+      - function: take_first_k
+        k: *samples
+metadata:
+  version: 1.3

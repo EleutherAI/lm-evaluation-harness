@@ -1,0 +1,7 @@
+tag:
+  - slide_nob_nno_swe_dan
+  - slide_nob_nno_swe_dan_cf
+task: slide_nob_nno_swe_dan_cf_p0
+include: _slide_nob_nno_swe_dan_yaml
+doc_to_text: "Hvilket språk er det i følgende setning?\n{{text}}\n\nSvar:"
+doc_to_choice: !function utils.choices_words

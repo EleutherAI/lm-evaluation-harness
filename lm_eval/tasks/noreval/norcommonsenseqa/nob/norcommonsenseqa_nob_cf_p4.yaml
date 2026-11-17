@@ -1,0 +1,7 @@
+tag:
+  - norcommonsenseqa_nob
+  - norcommonsenseqa_nob_cf
+task: norcommonsenseqa_nob_cf_p4
+include: _norcommonsenseqa_nob_yaml
+doc_to_text: "{{question}}\n\nHva er det riktige svaret?\n\nSvar:"
+doc_to_choice: !function utils.choices_text

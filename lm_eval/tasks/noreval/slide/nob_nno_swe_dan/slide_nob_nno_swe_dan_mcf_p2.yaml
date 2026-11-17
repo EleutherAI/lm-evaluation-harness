@@ -1,0 +1,8 @@
+tag:
+  - slide_nob_nno_swe_dan
+  - slide_nob_nno_swe_dan_mcf
+task: slide_nob_nno_swe_dan_mcf_p2
+include: _slide_nob_nno_swe_dan_yaml
+doc_to_text: "Tekst: {{text}}\n\nIdentifiser språket i teksten. Velg alternativet som passer best.\n\nAlternativer:\n- A. Bokmål\n- B. Nynorsk\n- C. Dansk\n- D. Svensk\n- E. Et annet språk\n\nSvar:"
+doc_to_choice: !function utils.choices_letters
+process_results: !function utils.process_results_mcf

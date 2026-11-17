@@ -1,0 +1,39 @@
+group: multiblimp_noreval_sme
+task:
+  - "multiblimp_noreval_sme_1-2"
+  - "multiblimp_noreval_sme_2-1"
+  - "multiblimp_noreval_sme_1-3"
+  - "multiblimp_noreval_sme_3-1"
+  - "multiblimp_noreval_sme_2-3"
+  - "multiblimp_noreval_sme_3-2"
+  - "multiblimp_noreval_sme_SG-PL"
+  - "multiblimp_noreval_sme_PL-SG"
+  - "multiblimp_noreval_sme_SG-DU"
+  - "multiblimp_noreval_sme_DU-SG"
+  - "multiblimp_noreval_sme_PL-DU"
+  - "multiblimp_noreval_sme_DU-PL"
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: True
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: True
+  - metric: prob_correct
+    aggregation: mean
+    weight_by_size: True
+  - metric: prob_correct_norm
+    aggregation: mean
+    weight_by_size: True
+  - metric: loglikelihood_correct
+    aggregation: mean
+    weight_by_size: True
+  - metric: loglikelihood_correct_norm
+    aggregation: mean
+    weight_by_size: True
+metadata:
+  version: 1.3
+  primary_metric: acc
+  random_baseline: 0.5
+  category: linguistic_knowledge
+  language: sme

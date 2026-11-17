@@ -1,5 +1,6 @@
-tag: norquad
 dataset_path: ltg/norquad
+dataset_kwargs:
+  revision: be5b02011e6d8752797e75452732c36a3475b657
 output_type: generate_until
 training_split: train
 validation_split: validation
@@ -11,15 +12,23 @@ target_delimiter: ' '
 generation_kwargs:
   until:
     - "\n"
-  do_sample: false
-  num_beams: 1
+  do_sample: true
+  temperature: 1.0
+  top_p: 1.0
+  top_k: 0
   max_new_tokens: 32
 metric_list:
-  - metric: exact_match
-    aggregation: mean
-    higher_is_better: true
   - metric: f1
     aggregation: mean
     higher_is_better: true
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+repeats: &samples 22
+filter_list:
+  - name: sampling
+    filter:
+      - function: take_first_k
+        k: *samples
 metadata:
-  version: 1.0
+  version: 1.3

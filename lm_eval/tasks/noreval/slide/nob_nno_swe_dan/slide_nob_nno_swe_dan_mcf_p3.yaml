@@ -1,0 +1,8 @@
+tag:
+  - slide_nob_nno_swe_dan
+  - slide_nob_nno_swe_dan_mcf
+task: slide_nob_nno_swe_dan_mcf_p3
+include: _slide_nob_nno_swe_dan_yaml
+doc_to_text: "Setning å vurdere: {{text}}\nEr denne setningen skrevet på bokmål, nynorsk, dansk, svensk eller et annet språk? Alternativer:\n- A. Bokmål\n- B. Nynorsk\n- C. Dansk\n- D. Svensk\n- E. Et annet språk\nSvar:"
+doc_to_choice: !function utils.choices_letters
+process_results: !function utils.process_results_mcf

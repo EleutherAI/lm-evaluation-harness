@@ -1,0 +1,7 @@
+tag:
+  - noropenbookqa_no_fact_nob
+  - noropenbookqa_no_fact_nob_cf
+task: noropenbookqa_no_fact_nob_cf_p1
+include: _noropenbookqa_no_fact_nob_yaml
+doc_to_text: "Spørsmål: {{question_stem}}\n\nHva er riktig svar?"
+doc_to_choice: !function utils.choices_text

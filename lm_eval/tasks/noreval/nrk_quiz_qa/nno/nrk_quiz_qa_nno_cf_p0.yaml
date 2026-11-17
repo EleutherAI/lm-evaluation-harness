@@ -1,0 +1,7 @@
+tag:
+  - nrk_quiz_qa_nno
+  - nrk_quiz_qa_nno_cf
+task: nrk_quiz_qa_nno_cf_p0
+include: _nrk_quiz_qa_nno_yaml
+doc_to_text: !function utils.cf_p0_nn
+doc_to_choice: !function utils.choices_text
