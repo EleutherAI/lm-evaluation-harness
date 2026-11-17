@@ -2,6 +2,12 @@ tag:
   - meddialog
 task: meddialog_raw_dialogues
 dataset_path: bigbio/meddialog
+dataset_kwargs:
+  revision: f56efc19f07aa6e8e0a5a45ea0a9744e2e36ba29
+  data_files:
+    train: meddialog_en_source/train/0000.parquet
+    validation: meddialog_en_source/validation/0000.parquet
+    test: meddialog_en_source/test/0000.parquet
 description: >
   Instructions: The following text is from a collection of medical dialogues. What follows is the patients question. Answer how a doctor would, trying to be as helpful as possible.
 
