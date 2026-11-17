@@ -1,6 +1,12 @@
 tag: qasper
 task: qasper_bool
 dataset_path: allenai/qasper
+dataset_kwargs:
+  revision: 06806e4608976fc2fac0a090ac425d5b2b29caf4
+  data_files:
+    train: qasper/train/0000.parquet
+    validation: qasper/validation/0000.parquet
+    test: qasper/test/0000.parquet
 output_type: multiple_choice
 training_split: train
 validation_split: validation

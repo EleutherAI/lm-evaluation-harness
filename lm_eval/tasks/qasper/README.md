@@ -49,6 +49,14 @@ Homepage: https://allenai.org/data/qasper
 * `qasper_bool`: Multiple choice task that evaluates the task with `answer_type="bool"`
 * `qasper_freeform`: Greedy generation task that evaluates the samples from the task with `answer_type="free form answer"`
 
+### Dataset loading
+
+Both tasks read Allen AI's QASPER Parquet export at revision
+`06806e4608976fc2fac0a090ac425d5b2b29caf4`. This replaces the loader script
+required by earlier versions of datasets. All 1,585 paper records match the
+original v0.3 archives in order and content. The two tasks retain their
+train and validation selections, preprocessing, prompts, and metrics.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
