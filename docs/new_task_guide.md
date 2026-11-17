@@ -317,6 +317,51 @@ metric_list:
 
 For a full list of natively supported metrics and aggregation functions see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md). To ship a custom metric, aggregation or filter from your own package rather than adding it to the `lm-eval` source tree, see the [Plugin Guide](./plugins.md). All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval` or `hf_evaluate` is set to `true`.
 
+### Custom metrics for multiple-choice tasks
+
+The default multiple-choice scorer emits a fixed set of metrics, including `acc` and
+`acc_norm`. A custom entry in `metric_list` needs a `process_results` function that
+returns a per-document value under that metric's name. When you supply
+`process_results`, return a value for every metric you want to report, including
+built-in metrics such as accuracy.
+
+Add these YAML settings to a task with an integer `label` and one loglikelihood
+result per answer choice.
+
+```yaml
+process_results: !function utils.process_results
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: macro_precision
+    aggregation: !function utils.macro_precision
+    higher_is_better: true
+```
+
+Place the functions in `utils.py` next to the task YAML. The scorer selects the
+choice with the highest loglikelihood and passes each reference/prediction pair
+to the dataset-level precision function.
+
+```python
+from sklearn.metrics import precision_score
+
+
+def process_results(doc, results):
+    scores = [loglikelihood for loglikelihood, _ in results]
+    prediction = max(range(len(scores)), key=scores.__getitem__)
+    reference = doc["label"]
+    return {
+        "acc": float(prediction == reference),
+        "macro_precision": (reference, prediction),
+    }
+
+
+def macro_precision(items):
+    references, predictions = zip(*items)
+    return precision_score(references, predictions, average="macro", zero_division=0)
+```
+
 ### Optional, More Advanced Setup
 
 Some tasks may require more advanced processing logic than is described in this guide.
