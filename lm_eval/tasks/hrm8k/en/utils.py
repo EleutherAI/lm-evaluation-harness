@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List
+from decimal import Decimal, InvalidOperation
 
 
 def doc_to_text(doc):
@@ -27,13 +27,21 @@ def doc_to_target(doc):
 def postprocess(s):
     s = str(s).strip()
     try:
-        float_value = float(s)
-        return str(int(float_value)) if float_value.is_integer() else str(float_value)
-    except Exception:
+        try:
+            return str(int(s))
+        except ValueError:
+            pass
+        d = Decimal(s)
+        if d.is_nan() or d.is_infinite():
+            return s
+        if d == d.to_integral():
+            return str(int(d))
+        return str(d.normalize())
+    except (InvalidOperation, TypeError, ValueError):
         return s
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidate = results[0]
 
     gold = postprocess(doc["answer"])
@@ -64,6 +72,7 @@ def is_equiv(str1, str2, verbose=False):
         ss1 = _strip_string(str1)
         ss1 = postprocess(ss1)
         ss2 = _strip_string(str2)
+        ss2 = postprocess(ss2)
         if verbose:
             print(ss1, ss2)
         return ss1 == ss2
