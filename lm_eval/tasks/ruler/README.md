@@ -17,6 +17,8 @@ Homepage: `https://github.com/NVIDIA/RULER`
 >   `--metadata='{"max_seq_lengths":[4096,8192,16384,32768,65536,131072]}'`. The metadata parameter can also be passed to the TaskManager (metadata: dict).
 > 3. To prevent truncation of longer sequences, we recommend setting the max_length parameter in model_args:
 >   `--model_args=pretrained=...,max_length=32768`
+> 4. Each length gets 500 samples by default. Set `num_samples` in the metadata to build fewer (or more), e.g.
+>   `--metadata='{"max_seq_lengths":[32768,131072],"num_samples":50}'`. Unlike `--limit`, which trims after every sample is built and keeps the first rows of the first length, this builds only what is asked for, at every length.
 
 ### Citation
 

@@ -26,6 +26,7 @@ import numpy as np
 from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_NUM_SAMPLES,
     DEFAULT_SEQ_LENGTHS,
     get_tokenizer,
     resolve_tokenizer_name,
@@ -230,6 +231,7 @@ def sys_vartrack_w_noise_random(
 def get_dataset(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     seq: int | None = None,
+    num_samples: int = DEFAULT_NUM_SAMPLES,
     **kwargs,
 ) -> list[dict]:
     icl_example = sys_vartrack_w_noise_random(
@@ -241,7 +243,7 @@ def get_dataset(
     assert seq is not None, "Require a max seq length"
     write_jsons = sys_vartrack_w_noise_random(
         tokenizer=tokenizer,
-        num_samples=500,
+        num_samples=num_samples,
         max_seq_length=seq,
         icl_example=icl_example,
     )
@@ -250,8 +252,9 @@ def get_dataset(
 
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
     tokenizer = get_tokenizer(resolve_tokenizer_name(kwargs))
+    num_samples = kwargs.pop("num_samples", DEFAULT_NUM_SAMPLES)
     df = (
-        get_dataset(tokenizer=tokenizer, seq=seq)
+        get_dataset(tokenizer=tokenizer, seq=seq, num_samples=num_samples)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

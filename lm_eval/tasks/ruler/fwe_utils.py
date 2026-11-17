@@ -24,6 +24,7 @@ from scipy.special import zeta
 from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import (
+    DEFAULT_NUM_SAMPLES,
     DEFAULT_SEQ_LENGTHS,
     get_tokenizer,
     resolve_tokenizer_name,
@@ -97,7 +98,7 @@ def generate_input_output(
 def sys_kwext(
     tokenizer: transformers.PreTrainedTokenizerFast,
     max_seq_length: int,
-    num_samples: int = 500,
+    num_samples: int = DEFAULT_NUM_SAMPLES,
     vocab_size: int = -1,
     coded_wordlen: int = 6,
     alpha: float = 2.0,
@@ -154,18 +155,22 @@ def sys_kwext(
     return write_jsons
 
 
-def get_dataset(tokenizer, max_seq_length=None, **kwargs):
+def get_dataset(
+    tokenizer, max_seq_length=None, num_samples=DEFAULT_NUM_SAMPLES, **kwargs
+):
     write_jsons = sys_kwext(
         tokenizer=tokenizer,
         max_seq_length=max_seq_length,
+        num_samples=num_samples,
     )
     return write_jsons
 
 
 def fwe_download(**kwargs):
     tokenizer = get_tokenizer(resolve_tokenizer_name(kwargs))
+    num_samples = kwargs.pop("num_samples", DEFAULT_NUM_SAMPLES)
     df = (
-        get_dataset(tokenizer, max_seq_length=seq)
+        get_dataset(tokenizer, max_seq_length=seq, num_samples=num_samples)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 
