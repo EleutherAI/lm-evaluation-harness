@@ -92,7 +92,7 @@ def mcf_p2_nb(doc):
     )
 
 
-# --- p3: "Spørsmål: {question}{options}" / "Svar:" --------------------------
+# --- p3: "Gitt følgende spørsmål, ..." (cf), "Spørsmål: {question}{options}"
 def cf_p3_nb(doc):
     return "Gitt følgende spørsmål, hva er det riktige svaret?\nSpørsmål: {question}\n\nSvar:".format(
         question=doc["question"]
