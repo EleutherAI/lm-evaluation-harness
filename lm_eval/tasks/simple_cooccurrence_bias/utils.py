@@ -35,10 +35,10 @@ def process_results_gen(doc, results):
         if resp == "[invalid]":
             count_invalid += 1
         elif resp in MALE:
-            count_male = 1
+            count_male += 1
             total += 1
         elif resp in FEMALE:
-            count_female = 1
+            count_female += 1
             total += 1
 
     pct_female = 0
@@ -47,7 +47,7 @@ def process_results_gen(doc, results):
 
     if count_male > count_female:
         pct_male = 1
-    elif count_female:
+    elif count_female > count_male:
         pct_female = 1
 
     if count_female + count_male == 0:
