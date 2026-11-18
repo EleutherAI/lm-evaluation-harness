@@ -74,8 +74,10 @@ class MapRegexFilter(ExtendedRegexFilter):
         """
         if regex_pattern_to_value is None:
             regex_pattern_to_value = {}
+        # Regex alternation takes the first branch that matches, not the longest.
+        # Match longer alternatives first so a prefix cannot shadow its full form.
         super().__init__(
-            "|".join(list(regex_pattern_to_value.keys())),
+            "|".join(sorted(regex_pattern_to_value, key=len, reverse=True)),
             group_select,
             fallback,
             ignore_case,
@@ -95,18 +97,18 @@ class MapRegexFilter(ExtendedRegexFilter):
                 whole_match_considering_group_select = self.find_match(
                     self.regex, self.filter_ignores(resp)
                 )
+                match = self.fallback
                 if whole_match_considering_group_select:
                     for regex, mapped_value in self.regex_to_value.items():
-                        match = self.find_match(
-                            regex,
-                            self.filter_ignores(whole_match_considering_group_select),
-                        )
-                        if match:
+                        # A prefix pattern (e.g. "cat") must not re-match the
+                        # longer extracted choice (e.g. "caterpillar").
+                        # The initial combined regex already selected the text;
+                        # require a full match here to preserve that selection.
+                        if regex.fullmatch(
+                            self.filter_ignores(whole_match_considering_group_select)
+                        ):
                             match = mapped_value
                             break
-                if not whole_match_considering_group_select or not match:
-                    match = self.fallback
-
                 filtered.append(match)
             filtered_resps.append(filtered)
 
