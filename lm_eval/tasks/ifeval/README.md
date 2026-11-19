@@ -43,3 +43,18 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+- version 4.1 (15-Nov-2026); scoring is deterministic regardless of item order. When the dataset leaves a
+  checker's arguments null, `build_description()` fills them from `random`; those draws came from the
+  process-wide RNG, so the same (prompt, response) pair could score both True and False depending on how many
+  items were scored before it. They are now drawn from a generator seeded per instruction from the item's own
+  content, and scoring no longer consumes the global stream. Verdicts for items with null arguments can differ
+  from historical unseeded runs (#4602). On the in-tree `google/IFEval` data only two instructions draw anything:
+  key 1122 (`#` at least 4, now drawn as `h` at least 4) and key 1129 (`!` at least 6, now drawn as `e` at least
+  6), so those two are the only items whose verdicts can move between 4.0 and 4.1.
+- version 1.1 of `ifeval_es` and `ifeval_ca`; the same per-item seeding now covers the Spanish and Catalan
+  scorers. They draw the same two keys (es: `j` at least 4 and `r` at least 6; ca: `k` at least 4 and `f` at
+  least 6). Those checkers also draw the `relation` argument for number_highlighted_sections,
+  number_placeholders and multiple_sections, but check_following never reads it, so no verdict depends on it.

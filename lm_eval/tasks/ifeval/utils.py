@@ -1,7 +1,14 @@
 import dataclasses
-from typing import Dict, Optional, Union
 
-from lm_eval.tasks.ifeval import instructions_registry
+from lm_eval.tasks.ifeval import (
+    instructions,
+    instructions_registry,
+    instructions_util,
+)
+from lm_eval.tasks.ifeval.seeding import (
+    deterministic_checker_draws,
+    stable_seed,
+)
 
 
 @dataclasses.dataclass
@@ -9,7 +16,7 @@ class InputExample:
     key: int
     instruction_id_list: list[str]
     prompt: str
-    kwargs: list[Dict[str, Optional[Union[str, int]]]]
+    kwargs: list[dict[str, str | int | None]]
 
 
 @dataclasses.dataclass
@@ -35,10 +42,17 @@ def test_instruction_following_strict(
 
         # Remove None values from kwargs to avoid unexpected keyword argument errors in build_description method.
         kwargs = {k: v for k, v in inp.kwargs[index].items() if v}
-        instruction.build_description(**kwargs)
-        args = instruction.get_instruction_args()
-        if args and "prompt" in args:
-            instruction.build_description(prompt=inp.prompt)
+        # build_description() fills missing args from `random`; seed from the
+        # item so the drawn args do not depend on scoring history (#4602).
+        with deterministic_checker_draws(
+            stable_seed(instruction_id, inp.prompt, kwargs),
+            instructions,
+            instructions_util,
+        ):
+            instruction.build_description(**kwargs)
+            args = instruction.get_instruction_args()
+            if args and "prompt" in args:
+                instruction.build_description(prompt=inp.prompt)
 
         if response.strip() and instruction.check_following(response):
             is_following_list.append(True)
@@ -86,10 +100,17 @@ def test_instruction_following_loose(
 
         # Remove None values from kwargs to avoid unexpected keyword argument errors in build_description method.
         kwargs = {k: v for k, v in inp.kwargs[index].items() if v}
-        instruction.build_description(**kwargs)
-        args = instruction.get_instruction_args()
-        if args and "prompt" in args:
-            instruction.build_description(prompt=inp.prompt)
+        # build_description() fills missing args from `random`; seed from the
+        # item so the drawn args do not depend on scoring history (#4602).
+        with deterministic_checker_draws(
+            stable_seed(instruction_id, inp.prompt, kwargs),
+            instructions,
+            instructions_util,
+        ):
+            instruction.build_description(**kwargs)
+            args = instruction.get_instruction_args()
+            if args and "prompt" in args:
+                instruction.build_description(prompt=inp.prompt)
 
         is_following = False
         for r in all_responses:
