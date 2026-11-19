@@ -60,6 +60,35 @@ def test_missing_args_score_identically_from_any_rng_position(module_path, varia
     assert len(verdicts) == 1, f"identical input scored {verdicts}"
 
 
+MULTILINGUAL_SCORER = "lm_eval.tasks.ifeval.multilingual.utils"
+
+
+@pytest.mark.parametrize("language", ["es", "ca"])
+@pytest.mark.parametrize("variant", ["strict", "loose"])
+def test_multilingual_missing_args_score_identically_from_any_rng_position(
+    language, variant
+):
+    """The Spanish and Catalan checkers draw from their own module-level random."""
+    try:
+        importlib.import_module(MULTILINGUAL_SCORER)
+    except (ImportError, OSError) as exc:
+        pytest.skip(f"multilingual IFEval checkers need spacy and its models: {exc}")
+    verdicts = set()
+    for trial in range(20):
+        random.seed(trial)
+        for _ in range(3 * trial):
+            random.random()
+        inp = {
+            "key": 0,
+            "instruction_id_list": [f"{language}:length_constraints:number_sentences"],
+            "prompt": MISSING_ARGS_INP["prompt"],
+            "kwargs": [{"num_sentences": None, "relation": None}],
+        }
+        out = score(MULTILINGUAL_SCORER, inp, THREE_SENTENCES, variant)
+        verdicts.add((out.follow_all_instructions, tuple(out.follow_instruction_list)))
+    assert len(verdicts) == 1, f"identical input scored {verdicts}"
+
+
 @pytest.mark.parametrize("module_path", SCORERS)
 def test_scoring_does_not_consume_global_random(module_path):
     random.seed(0)
