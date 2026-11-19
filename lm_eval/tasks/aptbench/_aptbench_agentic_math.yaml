@@ -1,0 +1,12 @@
+group: aptbench_agentic_math
+group_alias: agentic_math
+task:
+  - aptbench_agentic_math_planning_single
+  - aptbench_agentic_math_feedback_tf
+  - aptbench_agentic_math_action_cal
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

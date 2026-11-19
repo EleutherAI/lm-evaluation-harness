@@ -1,0 +1,13 @@
+include: _aptbench_common_yaml
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 30
+  until: []
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: true
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true

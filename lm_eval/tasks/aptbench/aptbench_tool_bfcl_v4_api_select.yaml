@@ -1,0 +1,9 @@
+include: _aptbench_tc_yaml
+tag:
+  - aptbench_tasks
+  - aptbench_tool_tasks
+task: aptbench_tool_bfcl_v4_api_select
+task_alias: tool_bfcl_v4_api_select
+dataset_kwargs:
+  aptbench_dataset: tool
+  aptbench_task: bfcl_v4_api_select

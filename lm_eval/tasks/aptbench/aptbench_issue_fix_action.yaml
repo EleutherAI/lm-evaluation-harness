@@ -1,0 +1,15 @@
+include: _aptbench_tc_yaml
+tag:
+  - aptbench_tasks
+  - aptbench_swe_tasks
+  - aptbench_issue_fix_tasks
+task: aptbench_issue_fix_action
+task_alias: issue_fix_action
+dataset_kwargs:
+  aptbench_dataset: issue_fix
+  aptbench_task: action
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 10
+  until: []

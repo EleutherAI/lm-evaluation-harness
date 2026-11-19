@@ -1,0 +1,12 @@
+group: aptbench
+task:
+  - aptbench_swe
+  - aptbench_deepresearch
+  - aptbench_tool
+  - aptbench_agentic_math
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

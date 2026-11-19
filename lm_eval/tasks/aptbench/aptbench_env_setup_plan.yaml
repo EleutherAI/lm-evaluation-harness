@@ -1,0 +1,10 @@
+include: _aptbench_mcq_yaml
+tag:
+  - aptbench_tasks
+  - aptbench_swe_tasks
+  - aptbench_env_setup_tasks
+task: aptbench_env_setup_plan
+task_alias: env_setup_plan
+dataset_kwargs:
+  aptbench_dataset: env_setup
+  aptbench_task: plan
