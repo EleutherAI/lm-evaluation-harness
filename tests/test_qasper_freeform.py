@@ -15,7 +15,12 @@ from lm_eval.tasks._yaml_loader import load_yaml
     ],
     ids=["single-line", "multiline", "paragraph-break"],
 )
-def test_qasper_freeform_stops_at_next_paper_title(answer: str) -> None:
+@pytest.mark.parametrize(
+    "continuation",
+    ["\n\nTITLE: The next paper", "\n\nQ: A new question?\n\nA: Another answer."],
+    ids=["next-paper", "next-question"],
+)
+def test_qasper_freeform_stops_at_next_prompt(answer: str, continuation: str) -> None:
     task_path = (
         Path(__file__).resolve().parents[1]
         / "lm_eval"
@@ -24,7 +29,7 @@ def test_qasper_freeform_stops_at_next_paper_title(answer: str) -> None:
         / "freeform.yaml"
     )
     config = load_yaml(task_path)
-    generated = answer + "\n\nTITLE: The next paper"
+    generated = answer + continuation
     prediction = postprocess_generated_text(
         generated, config["generation_kwargs"]["until"], think_end_token=None
     )

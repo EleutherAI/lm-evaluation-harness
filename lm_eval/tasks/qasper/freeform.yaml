@@ -10,6 +10,7 @@ doc_to_target: answer
 generation_kwargs:
   until:
     - "\n\nTITLE:"
+    - "\n\nQ:"
 metric_list:
   - metric: !function metrics.f1_abstractive
     aggregation: mean

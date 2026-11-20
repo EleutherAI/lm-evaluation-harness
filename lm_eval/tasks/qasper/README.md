@@ -64,4 +64,4 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 
-- `qasper_freeform` 3.0 preserves line and paragraph breaks in answers and stops at the next paper's `TITLE:` heading.
+- `qasper_freeform` 3.0 preserves line and paragraph breaks in answers and stops at the next paper's `TITLE:` heading or the next `Q:` prompt.
