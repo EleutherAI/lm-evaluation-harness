@@ -61,3 +61,7 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+- `qasper_freeform` 3.0 preserves line and paragraph breaks in answers and stops at the next paper's `TITLE:` heading or the next `Q:` prompt.
