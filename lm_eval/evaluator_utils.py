@@ -35,15 +35,13 @@ class ResultAcc(TypedDict):
 
 
 def print_writeout(task: Task) -> None:
-    for inst in task.instances:
-        # print the prompt for the first few documents
-        if inst.doc_id is not None and inst.doc_id < 1:
-            eval_logger.info(
-                f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
+    if task.instances:
+        inst = task.instances[0]
+        eval_logger.info(
+            f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
     \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
-            )
-            eval_logger.info(f"Request: {str(inst)}")
-            break
+        )
+        eval_logger.info(f"Request: {inst}")
 
 
 def get_sample_size(task, limit: int | float | None) -> int | None:

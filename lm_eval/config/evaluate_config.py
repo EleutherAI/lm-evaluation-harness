@@ -31,6 +31,15 @@ DICT_KEYS = [
 DEFAULT_SEED = [0, 1234, 1234, 1234]
 
 
+def validate_sample_args(
+    limit: float | None, samples: str | dict | None, sample_seed: int | None
+) -> None:
+    if samples is not None and limit is not None:
+        raise ValueError("Cannot combine --samples with --limit.")
+    if sample_seed is not None and (limit is None or limit <= 0):
+        raise ValueError("--sample_seed requires a positive --limit.")
+
+
 @dataclass(slots=True)
 class EvaluatorConfig:
     """Configuration for language model evaluation runs.
@@ -92,6 +101,11 @@ class EvaluatorConfig:
     # Data sampling and limiting
     limit: float | None = field(
         default=None, metadata={"help": "Limit number of examples per task"}
+    )
+    sample_seed: int | None = field(
+        default=None,
+        kw_only=True,
+        metadata={"help": "Seed for sampling evaluation documents with --limit"},
     )
     samples: str | dict | None = field(
         default=None,
@@ -368,9 +382,7 @@ class EvaluatorConfig:
                 "When `fewshot_as_multiturn` is True, `apply_chat_template` must be set."
             )
 
-        # samples and limit are mutually exclusive
-        if self.samples and self.limit is not None:
-            raise ValueError("If --samples is not None, then --limit must be None.")
+        validate_sample_args(self.limit, self.samples, self.sample_seed)
 
         return self
 

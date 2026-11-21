@@ -109,6 +109,12 @@ class Run(SubCommand):
             help="Limit examples per task (integer count or fraction)",
         )
         model_group.add_argument(
+            "--sample_seed",
+            type=int,
+            default=None,
+            help="Sample --limit documents per task uniformly without replacement using this seed",
+        )
+        model_group.add_argument(
             "--use_cache",
             "-c",
             type=str,
@@ -431,6 +437,7 @@ class Run(SubCommand):
             ),
             limit=cfg.limit,
             samples=cfg.samples,
+            sample_seed=cfg.sample_seed,
             check_integrity=cfg.check_integrity,
             write_out=cfg.write_out,
             log_samples=cfg.log_samples,

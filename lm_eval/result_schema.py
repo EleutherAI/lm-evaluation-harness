@@ -152,6 +152,7 @@ class _EvalConfig(TypedDict, total=False):
     device: str | None
     use_cache: str | None
     limit: int | float | None
+    sample_seed: int | None
     bootstrap_iters: int
     gen_kwargs: str | dict | None
     random_seed: int
