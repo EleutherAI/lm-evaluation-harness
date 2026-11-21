@@ -43,3 +43,4 @@ filter_list:
       - function: "take_first"
 metadata:
   version: 3.0
+  description: Solve grade-school math word problems and generate the numerical answer.

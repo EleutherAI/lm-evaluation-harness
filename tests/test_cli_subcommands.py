@@ -117,7 +117,13 @@ class TestListCommand:
         with patch("builtins.print") as mock_print:
             list_cmd._execute(args)
             mock_print.assert_called_once_with("task1\ntask2\ntask3")
-            mock_tm_instance.list_all_tasks.assert_called_once_with()
+            mock_tm_instance.list_all_tasks.assert_called_once_with(
+                list_groups=True,
+                list_tags=True,
+                list_subtasks=True,
+                output_type=None,
+                show_description=False,
+            )
 
     @patch("lm_eval.tasks.TaskManager")
     def test_list_command_execute_groups(self, mock_task_manager):
@@ -135,8 +141,93 @@ class TestListCommand:
             list_cmd._execute(args)
             mock_print.assert_called_once_with("group1\ngroup2")
             mock_tm_instance.list_all_tasks.assert_called_once_with(
-                list_subtasks=False, list_tags=False
+                list_groups=True,
+                list_tags=False,
+                list_subtasks=False,
+                output_type=None,
+                show_description=False,
             )
+
+    @pytest.mark.parametrize("what", ["tasks", "subtasks"])
+    def test_list_filtered_tasks(self, what, tmp_path, monkeypatch, capsys, caplog):
+        from functools import partial
+
+        from lm_eval.tasks import TaskManager
+
+        (tmp_path / "template").write_text(
+            "output_type: multiple_choice\nmetadata:\n  description: |\n    Pick the\n    best ending.\n"
+        )
+        (tmp_path / "choice.yaml").write_text(
+            "include: template\ntask: choose\ntag: reasoning\n"
+        )
+        (tmp_path / "default.yaml").write_text(
+            "task: generate\ndescription: Private prompt text\n"
+        )
+        (tmp_path / "python.yaml").write_text(
+            "task: custom\nclass: !function missing.Task\n"
+        )
+        (tmp_path / "group.yaml").write_text("group: suite\ntask: [choose, generate]\n")
+        monkeypatch.setattr(
+            "lm_eval.tasks.TaskManager", partial(TaskManager, include_defaults=False)
+        )
+        parser = argparse.ArgumentParser()
+        List.create(parser.add_subparsers())
+
+        def listing(*flags):
+            args = parser.parse_args(
+                ["ls", what, "--include_path", str(tmp_path), *flags]
+            )
+            args.func(args)
+            return capsys.readouterr().out
+
+        unfiltered = listing()
+        assert "Description" not in unfiltered
+        assert "unknown" in unfiltered
+        assert ("suite" in unfiltered) == (what == "tasks")
+
+        def filtered_row(output_type):
+            output = listing("--output-type", output_type, "--show-description")
+            header, _, row = output.strip().splitlines()
+            assert "Description" in header
+            return [cell.strip() for cell in row.strip("|").split("|")]
+
+        assert filtered_row("multiple_choice") == [
+            "choose",
+            str(tmp_path / "choice.yaml"),
+            "multiple_choice",
+            "Pick the best ending.",
+        ]
+        assert "Skipped 1 task" in caplog.text
+
+        assert filtered_row("generate_until") == [
+            "generate",
+            str(tmp_path / "default.yaml"),
+            "generate_until",
+            "",
+        ]
+        assert "No tasks" in listing("--output-type", "loglikelihood_rolling")
+
+    @pytest.mark.parametrize(
+        "arguments",
+        [
+            ["groups", "--output-type", "generate_until"],
+            ["tags", "--show-description"],
+        ],
+    )
+    def test_invalid_list_options(self, arguments):
+        parser = argparse.ArgumentParser()
+        List.create(parser.add_subparsers())
+        args = parser.parse_args(["ls", *arguments])
+        with pytest.raises(SystemExit) as exc:
+            args.func(args)
+        assert exc.value.code == 2
+
+    def test_unknown_output_type(self):
+        parser = argparse.ArgumentParser()
+        List.create(parser.add_subparsers())
+        with pytest.raises(SystemExit) as exc:
+            parser.parse_args(["ls", "tasks", "--output-type", "typo"])
+        assert exc.value.code == 2
 
 
 class TestRunCommand:

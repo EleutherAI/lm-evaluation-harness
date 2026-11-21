@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -11,13 +12,15 @@ from typing_extensions import NotRequired, TypedDict, deprecated
 from lm_eval import utils
 from lm_eval.api.group import Group
 from lm_eval.api.task import Task
+from lm_eval.config.task import TaskConfig
 from lm_eval.tasks._factory import TaskFactory
 from lm_eval.tasks._index import Entry, Kind, TaskIndex
-from lm_eval.tasks._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+
+    from lm_eval.api.instance import OutputType
 
 
 class TaskDict(TypedDict):
@@ -315,8 +318,11 @@ class TaskManager:
         list_groups: bool = True,
         list_tags: bool = True,
         list_subtasks: bool = True,
+        *,
+        output_type: OutputType | None = None,
+        show_description: bool = False,
     ) -> str:
-        """Generate a markdown table listing all available tasks."""
+        """List indexed tasks. An output type filter restricts the result to leaf tasks."""
         from pytablewriter import MarkdownTableWriter
 
         def sanitize_path(path):
@@ -324,44 +330,66 @@ class TaskManager:
                 return "---"
             path_str = str(path)
             if "lm_eval/tasks/" in path_str:
-                return "lm_eval/tasks/" + path_str.split("lm_eval/tasks/")[-1]
+                return "lm_eval/tasks/" + path_str.rsplit("lm_eval/tasks/", 1)[-1]
             return path_str
 
-        group_table = MarkdownTableWriter()
-        group_table.headers = ["Group", "Config Location"]
-        gt_values = []
-        for g in self.all_groups:
-            entry = self._index[g]
-            path = sanitize_path(entry.yaml_path)
-            gt_values.append([g, path])
-        group_table.value_matrix = gt_values
-
-        tag_table = MarkdownTableWriter()
-        tag_table.headers = ["Tag"]
-        tag_table.value_matrix = [[t] for t in self.all_tags]
-
-        subtask_table = MarkdownTableWriter()
-        subtask_table.headers = ["Task", "Config Location", "Output Type"]
-        st_values = []
-        for t in self.all_subtasks:
-            entry = self._index[t]
-            path = entry.yaml_path
-            output_type = ""
-
-            if path is not None:
-                config = load_yaml(path, resolve_func=False, recursive=True)
-                if "output_type" in config:
-                    output_type = config["output_type"]
-
-            path = sanitize_path(path)
-            st_values.append([t, path, output_type])
-        subtask_table.value_matrix = st_values
-
         result = "\n"
-        if list_groups:
-            result += group_table.dumps() + "\n\n"
-        if list_tags:
-            result += tag_table.dumps() + "\n\n"
-        if list_subtasks:
-            result += subtask_table.dumps() + "\n\n"
-        return result
+        if list_groups and output_type is None:
+            result += (
+                MarkdownTableWriter(
+                    headers=["Group", "Config Location"],
+                    value_matrix=[
+                        [g, sanitize_path(self._index[g].yaml_path)]
+                        for g in self.all_groups
+                    ],
+                ).dumps()
+                + "\n\n"
+            )
+        if list_tags and output_type is None:
+            result += (
+                MarkdownTableWriter(
+                    headers=["Tag"], value_matrix=[[t] for t in self.all_tags]
+                ).dumps()
+                + "\n\n"
+            )
+        if not list_subtasks:
+            return result
+
+        headers = ["Task", "Config Location", "Output Type"]
+        if show_description:
+            headers.append("Description")
+        rows = []
+        unknown = 0
+        for name in self.all_subtasks:
+            entry = self._index[name]
+            cfg = entry.cfg or {}
+            default_type = TaskConfig.output_type if entry.kind == Kind.TASK else None
+            task_type = cfg.get("output_type", default_type)
+            if output_type is not None and task_type != output_type:
+                if task_type is None:
+                    unknown += 1
+                continue
+            row = [name, sanitize_path(entry.yaml_path), task_type or "unknown"]
+            if show_description:
+                metadata = cfg.get("metadata")
+                description = (
+                    metadata.get("description") if isinstance(metadata, dict) else None
+                )
+                row.append(
+                    " ".join(description.split())
+                    if isinstance(description, str)
+                    else ""
+                )
+            rows.append(row)
+
+        if unknown:
+            logging.getLogger(__name__).warning(
+                "Skipped %d task(s) with unknown output type.", unknown
+            )
+        if output_type is not None and not rows:
+            return f"No tasks match output type '{output_type}'."
+        return (
+            result
+            + MarkdownTableWriter(headers=headers, value_matrix=rows).dumps()
+            + "\n\n"
+        )

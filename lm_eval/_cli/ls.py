@@ -1,7 +1,9 @@
 import argparse
 import textwrap
+from typing import get_args
 
 from lm_eval._cli.subcommand import SubCommand
+from lm_eval.api.instance import OutputType
 
 
 class List(SubCommand):
@@ -14,7 +16,6 @@ class List(SubCommand):
             "ls",
             help="List available tasks, groups, subtasks, or tags",
             description="List available tasks, groups, subtasks, or tags from the evaluation harness.",
-            usage="lm-eval list [tasks|groups|subtasks|tags] [--include_path DIR]",
             epilog=textwrap.dedent("""
                 examples:
                   # List all available tasks (includes groups, subtasks, and tags)
@@ -25,6 +26,9 @@ class List(SubCommand):
 
                   # List only individual subtasks (like 'mmlu_abstract_algebra')
                   $ lm-eval ls subtasks
+
+                  # Show generation tasks with their catalog descriptions
+                  $ lm-eval ls subtasks --output-type generate_until --show-description
 
                   # Include external task definitions
                   $ lm-eval ls tasks --include_path /path/to/external/tasks
@@ -62,20 +66,39 @@ class List(SubCommand):
             metavar="DIR",
             help="Additional path to include if there are external tasks.",
         )
+        self._parser.add_argument(
+            "--output-type",
+            choices=get_args(OutputType),
+            help="List only individual tasks with this output type (tasks or subtasks).",
+        )
+        self._parser.add_argument(
+            "--show-description",
+            action="store_true",
+            help="Include the optional metadata.description for each individual task.",
+        )
 
     def _execute(self, args: argparse.Namespace) -> None:
         """Execute the list command."""
         from lm_eval.tasks import TaskManager
 
-        task_manager = TaskManager(include_path=args.include_path)
-
-        if args.what == "tasks":
-            print(task_manager.list_all_tasks())
-        elif args.what == "groups":
-            print(task_manager.list_all_tasks(list_subtasks=False, list_tags=False))
-        elif args.what == "subtasks":
-            print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
-        elif args.what == "tags":
-            print(task_manager.list_all_tasks(list_groups=False, list_subtasks=False))
-        elif args.what is None:
+        if (args.output_type or args.show_description) and args.what not in (
+            "tasks",
+            "subtasks",
+        ):
+            self._parser.error(
+                "--output-type and --show-description require 'tasks' or 'subtasks'"
+            )
+        if args.what is None:
             self._parser.print_help()
+            return
+
+        task_manager = TaskManager(include_path=args.include_path)
+        print(
+            task_manager.list_all_tasks(
+                list_groups=args.what in ("tasks", "groups"),
+                list_tags=args.what in ("tasks", "tags"),
+                list_subtasks=args.what in ("tasks", "subtasks"),
+                output_type=args.output_type,
+                show_description=args.show_description,
+            )
+        )

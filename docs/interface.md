@@ -206,7 +206,7 @@ The `--hf_hub_log_args` argument accepts these keys:
 List available tasks, groups, subtasks, or tags.
 
 ```bash
-lm-eval ls [tasks|groups|subtasks|tags] [--include_path DIR]
+lm-eval ls [tasks|groups|subtasks|tags] [--include_path DIR] [--output-type TYPE] [--show-description]
 ```
 
 ### Arguments
@@ -218,6 +218,8 @@ lm-eval ls [tasks|groups|subtasks|tags] [--include_path DIR]
 | `subtasks` | List only individual subtasks (e.g., `mmlu_anatomy`, `hellaswag`). |
 | `tags` | List task tags (e.g., `reasoning`, `knowledge`). |
 | `--include_path` | Additional directory for external task definitions. |
+| `--output-type` | With `tasks` or `subtasks`, list only individual tasks of type `generate_until`, `multiple_choice`, `loglikelihood`, or `loglikelihood_rolling`. Python tasks whose YAML does not declare a type appear as `unknown` in unfiltered listings and are skipped when filtering. |
+| `--show-description` | With `tasks` or `subtasks`, add a Description column. It is empty for tasks without a `metadata.description` string. |
 
 ### Task Organization
 
@@ -233,6 +235,9 @@ lm-eval ls tasks
 
 # List only task groups
 lm-eval ls groups
+
+# List generation tasks with descriptions
+lm-eval ls subtasks --output-type generate_until --show-description
 
 # Include external tasks
 lm-eval ls tasks --include_path /path/to/external/tasks
