@@ -20,3 +20,4 @@ metric_list:
     higher_is_better: true
 metadata:
   version: 1.0
+  description: Choose the most plausible continuation of an everyday scenario.
