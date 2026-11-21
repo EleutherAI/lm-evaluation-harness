@@ -6,6 +6,7 @@ import os
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
+from more_itertools import chunked
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -227,6 +228,9 @@ class LM(abc.ABC):
 
 
 ### SQLite-based caching of LM responses
+_CACHE_LOOKUP_BATCH_SIZE = 500  # Below SQLite's historical 999-parameter limit.
+
+
 def _multimodal_cache_default(obj: Any) -> Any:
     """JSON ``default`` handler for cache-key hashing.
 
@@ -291,13 +295,29 @@ class CachingLM:
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
 
+    def _read_cached(self, keys: list[str | None]) -> dict[str, Any]:
+        lookup_keys = tuple(dict.fromkeys(key for key in keys if key is not None))
+        if not lookup_keys:
+            return {}
+
+        db = self.dbdict
+        placeholders = ", ".join("?" for _ in lookup_keys)
+        # SqliteDict supplies the quoted table name's contents. Keys are bound below.
+        query = f'SELECT key, value FROM "{db.tablename}" WHERE key IN ({placeholders})'  # noqa: S608
+        cached = {}
+        for key, raw in db.conn.select(query, lookup_keys):
+            value = db.decode(raw)
+            assert value is not None
+            cached[key] = value
+        return cached
+
     def __getattr__(self, attr: str) -> Any:
         lm_attr = getattr(self.lm, attr)
         if attr not in ["loglikelihood", "loglikelihood_rolling", "generate_until"]:
             eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
             return lm_attr
 
-        def _fn(requests: list["Instance"]) -> list["Instance"]:
+        def _fn(requests: list["Instance"]) -> list[Any]:
             res = []
             remaining_reqs = []
             warned = False
@@ -305,27 +325,27 @@ class CachingLM:
             eval_logger.info(
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
-            for req in tqdm(requests, desc="Checking cached requests"):
-                hsh = hash_args(attr, req.args)
-                if attr == "generate_until" and req.args[1].get("do_sample", False):
-                    # when we are doing non-greedy generation, don't use the cache
-                    # (else every "randomly sampled" generation would be identical for repeats > 1).
-                    if not warned:
-                        eval_logger.warning(
-                            f"Arguments to lm.generate_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
-                        )
-                        warned = True
-                    res.append(None)
-                    remaining_reqs.append(req)
-                elif hsh in self.dbdict:
-                    ob = self.dbdict[hsh]
+            progress = tqdm(requests, desc="Checking cached requests")
+            for batch in chunked(progress, _CACHE_LOOKUP_BATCH_SIZE):
+                keys = []
+                for req in batch:
+                    if attr == "generate_until" and req.args[1].get("do_sample", False):
+                        # Each repeat needs an independent sample, even on a cache hit.
+                        if not warned:
+                            eval_logger.warning(
+                                f"Arguments to lm.generate_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
+                            )
+                            warned = True
+                        keys.append(None)
+                    else:
+                        keys.append(hash_args(attr, req.args))
 
-                    assert ob is not None
-
-                    res.append(ob)
-                else:
-                    res.append(None)
-                    remaining_reqs.append(req)
+                cached = self._read_cached(keys)
+                for req, key in zip(batch, keys, strict=True):
+                    value = cached.get(key) if key is not None else None
+                    res.append(value)
+                    if value is None:
+                        remaining_reqs.append(req)
             eval_logger.info(
                 f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
             )
