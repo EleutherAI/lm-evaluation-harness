@@ -40,6 +40,7 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.group import Group
+    from lm_eval.api.instance import OutputType
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
     from lm_eval.loggers import EvaluationTracker
@@ -84,6 +85,7 @@ def simple_evaluate(
     fewshot_random_seed: int = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
     metadata: dict[str, Any] | None = None,
+    output_type: OutputType | None = None,
 ) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -96,6 +98,7 @@ def simple_evaluate(
         tasks (list[str | dict | Task]): List of task names or Task objects.
             Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined
             and type(task).__name__ otherwise.
+        output_type: Evaluate only leaf tasks with this output type.
         num_fewshot (int): Number of examples in few-shot context.
         batch_size (int | str | None): Batch size for model.
         max_batch_size (int | None): Maximal batch size to try with automatic
@@ -299,7 +302,11 @@ def simple_evaluate(
         task_manager = TaskManager(metadata=metadata)
 
     # Load tasks - returns {"tasks":.., "groups":..}
-    loaded = task_manager.load(tasks)
+    loaded = (
+        task_manager.load(tasks, output_type=output_type)
+        if output_type
+        else task_manager.load(tasks)
+    )
 
     # Log selected tasks with hierarchy
     _log_selected_tasks(loaded["tasks"], loaded["groups"], task_manager)
@@ -347,7 +354,7 @@ def simple_evaluate(
         task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
     if check_integrity:
-        run_task_tests(task_list=tasks)
+        run_task_tests(task_list=list(loaded["tasks"]) if output_type else tasks)
 
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
@@ -395,6 +402,8 @@ def simple_evaluate(
             "model": model_name,
             "model_args": model_args,
         }
+        if output_type is not None:
+            results["config"]["output_type"] = output_type
         # add more detailed model info if available
         if hasattr(lm, "get_model_info"):
             results["config"].update(lm.get_model_info())  # type: ignore

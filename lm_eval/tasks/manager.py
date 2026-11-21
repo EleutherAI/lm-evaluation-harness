@@ -19,6 +19,8 @@ from lm_eval.tasks._yaml_loader import load_yaml
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
+    from lm_eval.api.instance import OutputType
+
 
 class TaskDict(TypedDict):
     """Return type of :meth:`TaskManager.load`.
@@ -75,7 +77,6 @@ class TaskManager:
         self.metadata = metadata
 
         index = TaskIndex()
-        self._factory: TaskFactory = TaskFactory(meta=metadata)
 
         all_paths: list[Path] = []
         # Process defaults FIRST, then include_path (later paths can override earlier)
@@ -135,7 +136,9 @@ class TaskManager:
         """Get the Entry for a given task/group/tag name from the index."""
         return self._index.get(name)
 
-    def _load_spec(self, spec: str | dict[str, Any]) -> Task | Group | list[Task]:
+    def _load_spec(
+        self, spec: str | dict[str, Any], factory: TaskFactory
+    ) -> Task | Group | list[Task]:
         """Load a task/group/tag by name, file path, or inline config.
 
         Args:
@@ -151,15 +154,11 @@ class TaskManager:
                 # First check if it's a registered name (task/group/tag)
                 entry = self._entry(spec)
                 if entry:
-                    return self._factory.build(
-                        entry, overrides=None, registry=self._index
-                    )
+                    return factory.build(entry, overrides=None, registry=self._index)
                 # check if it's a path
                 entry = TaskIndex.entry_from_path(Path(spec))
                 if entry:
-                    return self._factory.build(
-                        entry, overrides=None, registry=self._index
-                    )
+                    return factory.build(entry, overrides=None, registry=self._index)
                 raise KeyError(
                     f"Spec '{spec}' is not a registered task/group/tag name or valid YAML path"
                 )
@@ -167,9 +166,7 @@ class TaskManager:
             case dict():
                 _entry = TaskIndex.entry_from_config(spec)
                 if _entry:
-                    return self._factory.build(
-                        _entry, overrides=spec, registry=self._index
-                    )
+                    return factory.build(_entry, overrides=None, registry=self._index)
                 raise ValueError(
                     "Invalid config dict: must contain 'task' or 'group' key"
                 )
@@ -184,6 +181,8 @@ class TaskManager:
         | Task
         | Group
         | dict[str, Any],
+        *,
+        output_type: OutputType | None = None,
     ) -> TaskDict:
         """Load tasks/groups and return organized result.
 
@@ -192,6 +191,7 @@ class TaskManager:
 
         Args:
             task_list: Single task name or list of task names
+            output_type: Limit evaluation to matching leaf tasks.
 
         Returns:
             Dict with:
@@ -203,9 +203,15 @@ class TaskManager:
             task_list = [task_list]  # type: ignore
 
         # Build all requested items
+        factory = TaskFactory(meta=self.metadata, output_type=output_type)
         built: list[Task | Group] = []
         for spec in cast("Iterable", task_list):
-            obj = self._load_spec(spec) if not isinstance(spec, (Task, Group)) else spec  # type:ignore[invalid-argument-type]
+            if isinstance(spec, (Task, Group)):
+                obj = factory.select_initialized(spec)
+                if obj is None:
+                    continue
+            else:
+                obj = self._load_spec(spec, factory)
             # Tags return list[Task], flatten
             if isinstance(obj, list):
                 obj = cast("list[Task]", obj)
@@ -229,6 +235,8 @@ class TaskManager:
 
         for item in built:
             collect(item)
+        if output_type is not None and not tasks:
+            raise ValueError(f"No selected tasks match output type {output_type!r}.")
         self._check_duplicates(built)
         return {
             "tasks": tasks,
@@ -246,7 +254,8 @@ class TaskManager:
         dicts expected by callers.  New code should use :meth:`load` instead.
 
         Args:
-            task_list: Single task name or list of task names/dicts.
+            task_list: Single task name or list of task names
+            output_type: Limit evaluation to matching leaf tasks./dicts.
 
         Returns:
             Nested dict keyed by :class:`ConfigurableGroup` (for groups) or
@@ -275,8 +284,11 @@ class TaskManager:
                 return {cg: nested}
             return {obj.task_name: obj}
 
+        factory = TaskFactory(meta=self.metadata)
         return dict(
-            collections.ChainMap(*[_to_nested(self._load_spec(s)) for s in task_list])
+            collections.ChainMap(
+                *[_to_nested(self._load_spec(s, factory)) for s in task_list]
+            )
         )
 
     @staticmethod

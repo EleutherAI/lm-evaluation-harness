@@ -5,10 +5,11 @@ import logging
 import textwrap
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, get_args
 
 import yaml
 
+from lm_eval.api.instance import OutputType
 from lm_eval.utils import simple_parse_args_string
 
 
@@ -74,6 +75,8 @@ class EvaluatorConfig:
         default_factory=list,
         metadata={"help": "Comma-separated list of task names to evaluate"},
     )
+
+    output_type: OutputType | None = field(default=None, kw_only=True)
 
     # Few-shot and batching
     num_fewshot: int | None = field(
@@ -336,6 +339,13 @@ class EvaluatorConfig:
 
     def _validate_arguments(self):
         """Validate configuration arguments and cross-field constraints."""
+        if self.output_type is not None and self.output_type not in get_args(
+            OutputType
+        ):
+            raise ValueError(
+                f"Unknown output_type {self.output_type!r}. Expected one of {get_args(OutputType)}."
+            )
+
         # tasks are required
         if self.tasks is None:
             raise ValueError("Need to specify task to evaluate.")
@@ -411,6 +421,15 @@ class EvaluatorConfig:
         from lm_eval.tasks import TaskManager
         from lm_eval.tasks._yaml_loader import load_yaml
 
+        def yaml_specs(pattern):
+            paths = glob.glob(str(pattern))
+            # Defer function imports until the factory selects each matching task.
+            return (
+                paths
+                if self.output_type
+                else [load_yaml(p, resolve_func=True) for p in paths]
+            )
+
         # if metadata manually passed use that:
         self.metadata = metadata or self.metadata
 
@@ -437,12 +456,7 @@ class EvaluatorConfig:
             and Path(task_list[0]).is_dir()
             and not task_manager.match_tasks([task_list[0]])
         ):
-            task_names = []
-            yaml_path = Path(task_list[0]) / "*.yaml"
-            for yaml_file in glob.glob(str(yaml_path)):
-                config = load_yaml(yaml_file, resolve_func=True)
-                task_names.append(config)
-            self.tasks = task_names
+            self.tasks = yaml_specs(Path(task_list[0]) / "*.yaml")
             return task_manager
         elif len(task_list) == 1 and Path(task_list[0]).is_dir():
             eval_logger.warning(
@@ -465,10 +479,7 @@ class EvaluatorConfig:
                 matches = task_manager.match_tasks([task])
             else:
                 # Custom config file(s) - support glob patterns
-                matches = []
-                for yaml_file in glob.glob(task):
-                    config = load_yaml(yaml_file, resolve_func=True)
-                    matches.append(config)
+                matches = yaml_specs(task)
             match_dict[task] = matches
 
         # Flatten and deduplicate results

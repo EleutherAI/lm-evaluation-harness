@@ -4,6 +4,7 @@ import logging
 import os
 import textwrap
 from functools import partial
+from typing import get_args
 
 from lm_eval._cli.subcommand import SubCommand
 from lm_eval._cli.utils import (
@@ -13,6 +14,7 @@ from lm_eval._cli.utils import (
     request_caching_arg_to_dict,
     try_parse_json,
 )
+from lm_eval.api.instance import OutputType
 
 
 class Run(SubCommand):
@@ -73,6 +75,12 @@ class Run(SubCommand):
                 Space (or comma-separated) list of task names or groupings.
                 Use 'lm-eval ls tasks' to see all available tasks.
             """).strip(),
+        )
+        model_group.add_argument(
+            "--output-type",
+            type=str,
+            choices=get_args(OutputType),
+            help="Evaluate matching leaf tasks. Partially selected groups have no aggregate score.",
         )
         model_group.add_argument(
             "--model",
@@ -417,6 +425,7 @@ class Run(SubCommand):
             model=cfg.model,
             model_args=cfg.model_args,
             tasks=cfg.tasks,
+            output_type=cfg.output_type,
             num_fewshot=cfg.num_fewshot,
             batch_size=cfg.batch_size,
             max_batch_size=cfg.max_batch_size,
