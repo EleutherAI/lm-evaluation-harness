@@ -172,8 +172,8 @@ class TaskIndex:
             return None
         cfg = load_yaml(path, resolve_func=False)
         kind = TaskIndex._kind_of(cfg)
-        name: str | None = cfg.get("task") or cfg.get("group")
-        return Entry(name=name, kind=kind, yaml_path=path) if name else None
+        name = cfg.get("group" if kind == Kind.GROUP else "task")
+        return Entry(name=name, kind=kind, yaml_path=path, cfg=cfg) if name else None
 
     @staticmethod
     def entry_from_config(cfg: dict[str, Any]) -> Entry | None:

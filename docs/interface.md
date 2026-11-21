@@ -78,9 +78,12 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | `--model` | `-M` | Model type/provider name (default: `hf`). See [supported models](https://github.com/EleutherAI/lm-evaluation-harness#model-apis-and-inference-servers). |
 | `--model_args` | `-a` | Model constructor arguments as `key=val key2=val2` or `key=val,key2=val2`. For HuggingFace models, see [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/huggingface.py) for available arguments. |
 | `--tasks` | `-t` | Space or comma-separated list of task names or groups. Use `lm-eval ls tasks` to see available tasks. |
+| `--output-type` | | Evaluate only individual tasks of type `generate_until`, `multiple_choice`, `loglikelihood`, or `loglikelihood_rolling`. Applies to tasks selected by name, group, tag, or pattern. |
 | `--apply_chat_template` | | Apply chat template to prompts. Use without argument for default template, or specify template name. |
 | `--limit` | `-L` | Limit examples per task. Integer for count, float (0.0-1.0) for percentage. **For testing only.** |
 | `--use_cache` | `-c` | Path prefix for SQLite cache of model responses (e.g., `/path/to/cache_`). |
+
+For example, `lm-eval run --model dummy --tasks leaderboard --output-type generate_until` selects the generation tasks within the leaderboard. Selection uses the effective task type after group overrides. The log reports coverage for partially selected groups. Those groups have no aggregate score. Fully selected subgroups still report their configured metrics. A selection with no matching tasks raises an error.
 
 ### Evaluation Settings
 

@@ -3,18 +3,21 @@ from __future__ import annotations
 import inspect
 import logging
 from copy import deepcopy
-from dataclasses import fields
-from typing import TYPE_CHECKING, Any, cast
+from dataclasses import fields, replace
+from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.group import Group
 from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.config.group import GroupConfig
+from lm_eval.config.task import TaskConfig
 from lm_eval.tasks._index import Entry, Kind
 from lm_eval.tasks._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    from lm_eval.api.instance import OutputType
 
 eval_logger = logging.getLogger(__name__)
 
@@ -29,7 +32,14 @@ class TaskFactory:
     Returns Task | Group directly - Groups contain their children.
     """
 
-    def __init__(self, *, meta: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        *,
+        meta: dict[str, Any] | None = None,
+        output_type: OutputType | None = None,
+    ):
+        self.output_type = output_type
+        self._skipped = 0
         self._meta: dict[str, Any] = meta or {}
 
     # ---------------------------------------------------------------- public API
@@ -55,15 +65,22 @@ class TaskFactory:
 
             case Entry(kind=Kind.GROUP):
                 raw_cfg = self._load_full_config(entry, None)
-                return self._build_group(entry.name, raw_cfg, overrides, registry)
+                item = self._build_group(entry.name, raw_cfg, overrides, registry)
 
             case _:
-                return self._build_task(entry, overrides)
+                item = self._build_task(entry, overrides)
+        return item if item is not None else []
 
     # ---------------------------------------------------------------- build methods
 
-    def _build_task(self, entry: Entry, overrides: dict[str, Any] | None) -> Task:
-        """Build and return a Task."""
+    def _build_task(
+        self, entry: Entry, overrides: dict[str, Any] | None
+    ) -> Task | None:
+        """Skip incompatible configurable tasks before loading functions or datasets."""
+        if self.output_type and entry.kind == Kind.TASK:
+            cfg = (entry.cfg or {}) | (overrides or {})
+            if not self._matches_type(cfg.get("output_type", TaskConfig.output_type)):
+                return None
         cfg = self._load_full_config(entry, overrides)
 
         # Remove structural keys that aren't part of task config
@@ -78,9 +95,48 @@ class TaskFactory:
             if hasattr(obj, "config") and hasattr(obj.config, "task"):
                 obj.config.task = task_name
         else:
-            obj = ConfigurableTask(config=cfg)
+            return ConfigurableTask(config=cfg)
 
-        return obj
+        # Custom Python tasks can set their request type in the constructor.
+        return (
+            obj if not self.output_type or self._matches_type(obj.OUTPUT_TYPE) else None
+        )
+
+    def select_initialized(self, item: Task | Group) -> Task | Group | None:
+        """Filter caller-provided objects without mutating their group membership."""
+        if not self.output_type:
+            return item
+        if isinstance(item, Group):
+            skipped_before = self._skipped
+            group = replace(item, _children={})
+            for child in item:
+                selected = self.select_initialized(child)
+                if selected is not None:
+                    group.add(selected)
+            return self._finish_group(group, skipped_before)
+        return item if self._matches_type(item.OUTPUT_TYPE) else None
+
+    def _matches_type(self, task_type: OutputType | None) -> bool:
+        if self.output_type is None or self.output_type == task_type:
+            return True
+        self._skipped += 1
+        return False
+
+    def _finish_group(self, group: Group, skipped_before: int) -> Group | None:
+        skipped = self._skipped - skipped_before
+        if skipped:
+            selected = len(group.get_all_tasks())
+            eval_logger.info(
+                "Group %s: selected %d/%d tasks for %s; omitting group score.",
+                group.name,
+                selected,
+                selected + skipped,
+                self.output_type,
+            )
+            group.aggregate_metric_list = None
+            if not selected:
+                return None
+        return group
 
     def _build_group(
         self,
@@ -88,7 +144,7 @@ class TaskFactory:
         raw_cfg: dict[str, Any],
         overrides: dict[str, Any] | None,
         registry: dict[str, Entry],
-    ) -> Group:
+    ) -> Group | None:
         """Build a Group with its children populated.
 
         Works for both registry-based groups (Entry with yaml) and
@@ -115,6 +171,7 @@ class TaskFactory:
         merged_overrides = {**group_task_overrides, **(overrides or {})}
 
         # Build children from task: list (references to existing tasks/groups/tags)
+        skipped_before = self._skipped
         task_field = raw_cfg.get("task")
         if isinstance(task_field, list):
             for child in self._build_group_members(
@@ -122,7 +179,7 @@ class TaskFactory:
             ):
                 group.add(child)
 
-        return group
+        return self._finish_group(group, skipped_before)
 
     def _build_group_members(
         self,
@@ -160,18 +217,17 @@ class TaskFactory:
                             k: v for k, v in item.items() if k != "group"
                         }
                         merged = {**(overrides or {}), **inline_overrides}
-                        child_obj = self.build(
-                            registry[name],
-                            overrides=merged,
-                            registry=registry,
+                        subgroup = self._build_group(
+                            name,
+                            self._load_full_config(registry[name]),
+                            merged,
+                            registry,
                         )
-                        children.append(cast("Group", child_obj))
                     else:
-                        # True inline group (not in registry)
                         name = f"{group_name}::{name}"
-                        children.append(
-                            self._build_group(name, item, overrides, registry)
-                        )
+                        subgroup = self._build_group(name, item, overrides, registry)
+                    if subgroup is not None:
+                        children.append(subgroup)
                     continue
 
                 if "task" not in item:
@@ -190,44 +246,20 @@ class TaskFactory:
                 namespaced = f"{group_name}::{base_name}"
                 task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
+                if not self._matches_type(
+                    task_cfg.get("output_type", TaskConfig.output_type)
+                ):
+                    continue
                 children.append(ConfigurableTask(config=task_cfg))
                 continue
 
-            # Build based on entry kind
-            child_entry = registry[base_name]
-            match child_entry:
-                case Entry(kind=Kind.GROUP):
-                    child_obj = self.build(
-                        child_entry, overrides=item_overrides, registry=registry
-                    )
-                    children.append(cast("Group", child_obj))
-
-                case Entry(kind=Kind.TAG):
-                    for task_name in sorted(child_entry.tags):
-                        # TODO not adding namespaces currently
-                        # namespaced = f"{group_name}::{task_name}"
-                        namespaced = task_name
-                        child_obj = self.build(
-                            registry[task_name],
-                            overrides={"task": namespaced, **item_overrides},
-                            registry=registry,
-                        )
-                        children.append(cast("Task", child_obj))
-                        # also register to index with new namespaced name
-                        registry[namespaced] = registry[task_name]
-
-                case _:
-                    # TASK or PY_TASK
-                    # TODO not adding namespaces currently
-                    # namespaced = f"{group_name}::{base_name}"
-                    namespaced = base_name
-                    child_obj = self.build(
-                        child_entry,
-                        overrides={"task": namespaced, **item_overrides},
-                        registry=registry,
-                    )
-                    children.append(cast("Task", child_obj))
-                    registry[namespaced] = child_entry
+            child = self.build(
+                registry[base_name], overrides=item_overrides, registry=registry
+            )
+            if isinstance(child, list):
+                children.extend(child)
+            else:
+                children.append(child)
 
         return children
 
@@ -249,7 +281,9 @@ class TaskFactory:
                     f"Tag '{entry.name}' references unknown task '{name}', skipping."
                 )
                 continue
-            tasks.append(self._build_task(registry[name], overrides))
+            task = self._build_task(registry[name], {**(overrides or {}), "task": name})
+            if task is not None:
+                tasks.append(task)
         return tasks
 
     def _load_full_config(

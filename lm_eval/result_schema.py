@@ -142,6 +142,7 @@ class _EvalConfig(TypedDict, total=False):
     """Model and execution configuration stored in results."""
 
     model: str
+    output_type: str
     model_args: str | dict[str, str | int | float] | None
     model_num_parameters: int
     model_dtype: str
