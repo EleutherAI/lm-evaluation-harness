@@ -1,3 +1,5 @@
+import types
+
 import datasets
 
 from lm_eval.tasks.coqa import utils as coqa_utils
@@ -60,10 +62,39 @@ def test_doc_to_target_returns_answer_for_requested_turn():
 
     targets = coqa_utils.doc_to_target(doc)
 
-    # Primary answer first, then unique additional answers (case-insensitive).
-    assert targets[0] == "a2"
-    assert "a2alt" in targets
-    assert "A2ALT" not in targets  # dedup is case-insensitive
+    # Primary answer first, then every additional answer, duplicates included.
+    assert targets == ["a2", "a2alt", "a2", "A2ALT"]
+
+
+def test_duplicate_references_score_like_official_evaluator(monkeypatch):
+    # transformers>=5 dropped squad_metrics; exact-match stand-ins isolate the averaging.
+    def exact(gold, pred):
+        return int(gold == pred)
+
+    monkeypatch.setattr(
+        coqa_utils,
+        "_squad_metrics",
+        lambda: types.SimpleNamespace(compute_exact=exact, compute_f1=exact),
+    )
+    # CoQA dev story 1, turn 4: one reference differs, three annotators agree.
+    gold = coqa_utils.doc_to_target(
+        {
+            "story": "STORY",
+            "questions": {"input_text": ["q"]},
+            "answers": {"input_text": ["with her mommy and 5 sisters"]},
+            "additional_answers": {
+                "0": {"input_text": ["her mommy and 5 other sisters"]},
+                "1": {"input_text": ["her mommy and 5 other sisters"]},
+                "2": {"input_text": ["her mommy and 5 other sisters"]},
+            },
+        }
+    )
+
+    scores = coqa_utils.compute_scores(gold, "her mommy and 5 other sisters")
+
+    # Every leave-one-out subset still contains a matching reference.
+    assert len(gold) == 4
+    assert scores == {"em": 1.0, "f1": 1.0}
 
 
 def test_helpers_fall_back_to_last_turn_without_turn_id():

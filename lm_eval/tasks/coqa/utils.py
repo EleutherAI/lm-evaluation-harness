@@ -46,19 +46,12 @@ def doc_to_text(doc):
 
 def doc_to_target(doc):
     turn_id = _target_turn(doc)
-    # Returns unique answers and valid alternatives (Some questions in CoQA have multiple valid answers).
-    answers = []
-    answer_forturn = doc["answers"]["input_text"][turn_id - 1]
-    answers.append(answer_forturn)
-
+    # Keep duplicates: the official evaluator scores leave-one-out over all references.
+    answers = [doc["answers"]["input_text"][turn_id - 1]]
     additional_answers = doc.get("additional_answers")
     if additional_answers:
         for key in additional_answers:
-            additional_answer_for_turn = additional_answers[key]["input_text"][
-                turn_id - 1
-            ]
-            if additional_answer_for_turn.lower() not in map(str.lower, answers):
-                answers.append(additional_answer_for_turn)
+            answers.append(additional_answers[key]["input_text"][turn_id - 1])
     return answers
 
 
