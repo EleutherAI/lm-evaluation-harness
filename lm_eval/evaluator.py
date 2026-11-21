@@ -14,6 +14,7 @@ import numpy as np
 import lm_eval.api.model
 import lm_eval.api.registry
 from lm_eval.caching.cache import delete_cache
+from lm_eval.config.evaluate_config import validate_sample_args
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
     ResultAcc,
@@ -84,6 +85,7 @@ def simple_evaluate(
     fewshot_random_seed: int = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
     metadata: dict[str, Any] | None = None,
+    sample_seed: int | None = None,
 ) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -113,6 +115,8 @@ def simple_evaluate(
         limit (int | float | None): Limit the number of examples per task (only
             use this for testing). If <1, limit is a percentage of the total
             number of examples.
+        sample_seed (int | None): With a positive limit, uniformly sample documents
+            without replacement per task. Defaults to taking the first documents.
         samples (dict | None): Dictionary indicating which examples should be
             tested in each task, e.g.,
             {"mmlu_astronomy": [0, 3, 6], "mmlu_anatomy": [1, 4, 7, 10]}.
@@ -162,10 +166,7 @@ def simple_evaluate(
         eval_logger.info("Setting verbosity through simple_evaluate is deprecated.")
     start_date = time.time()
 
-    if limit is not None and samples is not None:
-        raise ValueError(
-            "Either 'limit' or 'samples' must be None, but both are not None."
-        )
+    validate_sample_args(limit, samples, sample_seed)
 
     _NEEDS_CHAT_TEMPLATE = ("inst", "chat")
     if (
@@ -365,6 +366,7 @@ def simple_evaluate(
         task_dict=loaded,
         limit=limit,
         samples=samples,
+        sample_seed=sample_seed,
         cache_requests=cache_requests,
         rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
@@ -408,6 +410,7 @@ def simple_evaluate(
                 "device": device,
                 "use_cache": use_cache,
                 "limit": limit,
+                "sample_seed": sample_seed,
                 "bootstrap_iters": bootstrap_iters,
                 "gen_kwargs": gen_kwargs,
                 "random_seed": random_seed,
@@ -429,7 +432,7 @@ def simple_evaluate(
 def evaluate(
     lm: LM,
     task_dict: TaskDict | _NestedDict,
-    limit: int | None = None,
+    limit: float | None = None,
     samples: dict[str, list[int]] | None = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
@@ -441,6 +444,7 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
+    sample_seed: int | None = None,
 ) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -448,8 +452,10 @@ def evaluate(
         lm (LM): Language Model.
         task_dict (TaskDict): Dictionary returned by TaskManager.load() containing
             'tasks', 'groups', and 'group_map' entries.
-        limit (int | None): Limit the number of examples per task (only use this
+        limit (int | float | None): Limit the number of examples per task (only use this
             for testing).
+        sample_seed (int | None): With a positive limit, uniformly sample documents
+            without replacement per task. Defaults to taking the first documents.
         samples (dict | None): Dictionary indicating which examples should be
             tested in each task, e.g.,
             {"mmlu_astronomy": [0, 3, 6], "mmlu_anatomy": [1, 4, 7, 10]}.
@@ -479,10 +485,7 @@ def evaluate(
     Returns:
         dict | None: Dictionary of results, or None if not on rank 0.
     """
-    if limit is not None and samples is not None:
-        raise ValueError(
-            "Either 'limit' or 'samples' must be None, but both are not None."
-        )
+    validate_sample_args(limit, samples, sample_seed)
     if samples is not None:
         eval_logger.info(f"Evaluating examples for tasks {list(samples.keys())}")
     # tracks all Instances/requests a model must generate output on.
@@ -532,15 +535,24 @@ def evaluate(
         )
     # end validation check
 
-    # Cache the limit arg.
-    limit_arg = limit
-    limits = []
+    selections = {}
     for task_name, task in eval_tasks.items():
-        limit = get_sample_size(task, limit_arg)
-        limits.append(limit)
+        task_limit = get_sample_size(task, limit)
+        indices = samples.get(task_name) if samples is not None else None
+        if sample_seed is not None and task_limit is not None:
+            population = range(len(task.eval_docs))
+            rng = random.Random(f"{sample_seed}:{task_name}")
+            indices = sorted(rng.sample(population, min(task_limit, len(population))))
+            if len(indices) < lm.world_size:
+                raise ValueError(
+                    f"{task_name}: sample size {len(indices)} is too small for {lm.world_size} ranks. "
+                    "Each rank needs at least one document."
+                )
+            task_limit = None
+        selections[task_name] = task_limit, indices
         task.build_all_requests(
-            limit=limit,
-            samples=samples.get(task_name, None) if samples is not None else samples,
+            limit=task_limit,
+            samples=indices,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -558,7 +570,7 @@ def evaluate(
         eval_logger.debug(
             f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
         )
-        if write_out:
+        if write_out and lm.rank == 0:
             print_writeout(task)
         # aggregate Instances by LM method requested to get output.
         for instance in task.instances:
@@ -610,7 +622,8 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
+    for task_name, acc in eval_results_acc.items():
+        task_limit, indices = selections[task_name]
         task = acc["task"]
         task.apply_filters()
 
@@ -626,15 +639,13 @@ def evaluate(
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps:
-            indices = samples.get(task_name, None) if samples is not None else None
             doc_iterator = task.doc_iterator(
                 rank=RANK,
-                limit=limit,
+                limit=task_limit,
                 world_size=WORLD_SIZE,
                 samples=indices,
             )
             for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
@@ -642,7 +653,7 @@ def evaluate(
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
-                        "doc_id": doc_id_true,
+                        "doc_id": doc_id,
                         "doc": doc,
                         "target": target,
                         "arguments": [req.args for req in requests],

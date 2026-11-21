@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import json
 import logging
 import random
 import re
@@ -283,7 +284,7 @@ class Task(abc.ABC):
         """Build a set of Instances for a task, and store them in task.instances"""
 
         # used with caching
-        og_limit = limit
+        local_limit = len(range(rank, limit, world_size)) if limit is not None else None
 
         cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
         cache_key += "-chat_template" if apply_chat_template else ""
@@ -295,10 +296,19 @@ class Task(abc.ABC):
         )
         cache_key += f"-tokenizer{tokenizer_name}"
 
+        if cache_requests:
+            # Legacy keys could hold either a full split or an unidentified subset.
+            selection = (
+                utils.hash_string(json.dumps(sorted(set(samples))))
+                if samples
+                else "all"
+            )
+            cache_key += f"-docs-{selection}"
+
         cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
 
         if cache_requests and cached_instances and not rewrite_requests_cache:
-            cached_instances = cached_instances[:limit]
+            cached_instances = cached_instances[:local_limit]
 
             flattened_instances = [
                 instance
@@ -362,7 +372,7 @@ class Task(abc.ABC):
 
         # now flatten, this is to allow slicing to work with pickles
 
-        sliced_instances = instances[:og_limit]
+        sliced_instances = instances[:local_limit]
 
         flattened_instances = [
             instance
@@ -581,29 +591,29 @@ class Task(abc.ABC):
         world_size: int = 1,
         samples: list[int] | None = None,
     ) -> Iterator[tuple[int, Any]]:
+        docs = self.eval_docs
         if samples:
-            n = len(self.eval_docs)
-            assert all(e < n for e in samples), (
-                f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
-            )
+            indices = sorted(set(samples))
+            if indices[0] < 0 or indices[-1] >= len(docs):
+                raise ValueError(
+                    f"--samples indices must be in [0, {len(docs)}) for {self.config.task}."
+                )
             eval_logger.info(
-                f"{self.config.task}: Evaluating on {len(samples)} examples"
+                f"{self.config.task}: Evaluating on {len(indices)} examples"
             )
-            doc_iterator = utils.create_iterator(
-                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
-                rank=int(rank),
-                limit=None,  # limit does not matter here since we are selecting samples directly
-                world_size=int(world_size),
-            )
-        else:
-            limit = int(limit) if limit else None
-            doc_iterator = utils.create_iterator(
-                enumerate(self.eval_docs),
-                rank=int(rank),
-                limit=limit,
-                world_size=int(world_size),
-            )
-        return doc_iterator
+            shard = utils.create_iterator(indices, rank=rank, world_size=world_size)
+            if hasattr(docs, "__getitem__"):
+                return ((i, docs[i]) for i in shard)
+            # Custom tasks may expose a sized iterable without random access.
+            selected = set(shard)
+            return ((i, doc) for i, doc in enumerate(docs) if i in selected)
+
+        return utils.create_iterator(
+            enumerate(docs),
+            rank=int(rank),
+            limit=int(limit) if limit else None,
+            world_size=int(world_size),
+        )
 
     @staticmethod
     def resolve_field(doc: dict[str, Any], field: str | None = None):

@@ -79,7 +79,8 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | `--model_args` | `-a` | Model constructor arguments as `key=val key2=val2` or `key=val,key2=val2`. For HuggingFace models, see [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/huggingface.py) for available arguments. |
 | `--tasks` | `-t` | Space or comma-separated list of task names or groups. Use `lm-eval ls tasks` to see available tasks. |
 | `--apply_chat_template` | | Apply chat template to prompts. Use without argument for default template, or specify template name. |
-| `--limit` | `-L` | Limit examples per task. Integer for count, float (0.0-1.0) for percentage. **For testing only.** |
+| `--limit` | `-L` | Take the first N examples per task. A fraction between 0 and 1 selects that fraction of each task, rounded up. **For testing only.** |
+| `--sample_seed` | | Uniformly sample without replacement from each task with a positive `--limit`, e.g. `--limit 100 --sample_seed 42`. The same seed selects the same rows for a given task and dataset order, independently of the few-shot seed. Distributed runs need at least one selected document per rank for each task. |
 | `--use_cache` | `-c` | Path prefix for SQLite cache of model responses (e.g., `/path/to/cache_`). |
 
 ### Evaluation Settings
