@@ -168,6 +168,10 @@ two widely available LLMs on the market.
 
 - `leaderboard_ifeval`
 
+### Changelog
+
+- \[Nov 22, 2026\] (PR #4617) `leaderboard_ifeval` version 3.0 -> 4.0: it scores through the `ifeval` checkers, so it picks up the `keywords:letter_frequency` fix from `ifeval` version 5.0. Keys 1122 (`#`) and 1129 (`!`) are now checked against the character given in the dataset instead of a random letter. See [#4602](https://github.com/EleutherAI/lm-evaluation-harness/issues/4602).
+
 ## MATH-hard
 
 This is the 4 shots variant of minerva math but only keeping the level 5 questions.
