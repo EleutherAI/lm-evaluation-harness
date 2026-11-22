@@ -376,15 +376,23 @@ class EvaluatorConfig:
 
     def _process_arguments(self):
         """Process samples argument - load from a file if needed."""
-        if self.samples:
-            if isinstance(self.samples, dict):
-                self.samples = self.samples
-            elif isinstance(self.samples, str):
+        if self.samples is not None:
+            samples = self.samples
+            if isinstance(samples, str):
                 try:
-                    self.samples = json.loads(self.samples)
+                    samples = json.loads(samples)
                 except json.JSONDecodeError:
-                    if (samples_path := Path(cast("str", self.samples))).is_file():
-                        self.samples = json.loads(samples_path.read_text())
+                    try:
+                        samples = json.loads(Path(samples).read_text(encoding="utf-8"))
+                    except (OSError, ValueError) as exc:
+                        raise ValueError(
+                            "--samples must be valid JSON or a readable JSON file."
+                        ) from exc
+            if not isinstance(samples, dict):
+                raise ValueError(
+                    "--samples must be a JSON object mapping task names to sample indices."
+                )
+            self.samples = samples
 
         # Set up metadata by merging model_args and metadata.
         if self.model_args is None:

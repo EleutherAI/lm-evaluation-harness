@@ -11,7 +11,6 @@ from lm_eval._cli.utils import (
     SplitArgs,
     _int_or_none_list_arg_type,
     request_caching_arg_to_dict,
-    try_parse_json,
 )
 
 
@@ -186,9 +185,8 @@ class Run(SubCommand):
             "--samples",
             "-E",
             default=None,
-            type=try_parse_json,
-            metavar="<json>",
-            help="JSON mapping task names to sample indices, e.g. '{\"task1\": [0,1,2]}'. Incompatible with --limit.",
+            metavar="<json-or-path>",
+            help="JSON object or path to a JSON file mapping task names to sample indices, e.g. '{\"task1\": [0,1,2]}'. Incompatible with --limit.",
         )
 
         # Caching and Performance

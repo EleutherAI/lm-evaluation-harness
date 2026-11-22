@@ -622,6 +622,33 @@ metric_list:
 class TestEvaluatorConfigFromCLI:
     """Test EvaluatorConfig.from_cli defaults and argument handling."""
 
+    @pytest.mark.parametrize("value", ["[0, 1]", "null", "not-json"])
+    def test_samples_rejects_invalid_cli_input(self, value):
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        args = ["lm-eval", "run", "--tasks", "arc_easy", "--samples", value]
+        with patch.object(sys, "argv", args):
+            namespace = HarnessCLI().parse_args()
+
+        with pytest.raises(ValueError, match="--samples"):
+            EvaluatorConfig.from_cli(namespace)
+
+    @pytest.mark.parametrize("from_file", [False, True])
+    def test_samples_accepts_a_json_object(self, tmp_path, from_file):
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        value = '{"arc_easy": [0, 2]}'
+        if from_file:
+            path = tmp_path / "samples.json"
+            path.write_text(value, encoding="utf-8")
+            value = str(path)
+
+        args = ["lm-eval", "run", "--tasks", "arc_easy", "--samples", value]
+        with patch.object(sys, "argv", args):
+            namespace = HarnessCLI().parse_args()
+
+        assert EvaluatorConfig.from_cli(namespace).samples == {"arc_easy": [0, 2]}
+
     def test_defaults_applied(self, tmp_path):
         """Test that dataclass defaults are applied when CLI args are missing."""
         from argparse import Namespace
