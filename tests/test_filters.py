@@ -120,6 +120,37 @@ def test_multi_choice_regex_normalization_collisions(
     assert filt.apply([[response]], [{"choices": choices}]) == [[expected]]
 
 
+
+@pytest.mark.parametrize(
+    ("choices", "response", "filter_options"),
+    [
+        (
+            ["blue-green", "red"],
+            "bluegreen",
+            {"ignore_punctuation": True},
+        ),
+        (
+            ["New York", "Paris"],
+            "NewYork",
+            {"regexes_to_ignore": [r"\s+"]},
+        ),
+        (
+            ["ΦΩΣ", "ΝΕΡΟ"],
+            "ΦΩΣ",
+            {"ignore_case": True},
+        ),
+    ],
+)
+def test_multi_choice_regex_unique_normalized_match(
+    choices, response, filter_options
+):
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=-1,
+        **filter_options,
+    )
+    assert filt.apply([[response]], [{"choices": choices}]) == [["(A)"]]
+
 def test_multi_choice_regex_collision_uses_selected_match():
     filt = MultiChoiceRegexFilter(
         regex_pattern=r"(\([A-Z]\))",
@@ -185,3 +216,13 @@ def test_multi_choice_regex_collision_respects_group_select(
     )
     choices = ["-5", "5", "10", "-10"]
     assert filt.apply([[response]], [{"choices": choices}]) == [[expected]]
+
+
+def test_multi_choice_regex_preserves_contextual_lowercase_with_expansion():
+    filt = MultiChoiceRegexFilter(
+        regex_pattern=r"(\([A-Z]\))",
+        group_select=-1,
+        ignore_case=True,
+    )
+    choices = ["ΟΣ", "ΝΕΡΟ"]
+    assert filt.apply([["ΟΣ İ"]], [{"choices": choices}]) == [["(A)"]]

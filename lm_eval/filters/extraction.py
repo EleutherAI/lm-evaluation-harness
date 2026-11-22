@@ -204,14 +204,26 @@ class MultiChoiceRegexFilter(RegexFilter):
                     ]
 
             normalized = []
+            if self.ignore_case:
+                current = "".join(char for char, _, _ in chars)
+                lowered = current.lower()
+                lowered_chars = []
+                offset = 0
+                for char, start, end in chars:
+                    next_offset = offset + len(char.lower())
+                    lowered_chars.extend(
+                        (item, start, end)
+                        for item in lowered[offset:next_offset]
+                    )
+                    offset = next_offset
+                assert offset == len(lowered)
+                chars = lowered_chars
             for char, start, end in chars:
-                value = char.lower() if self.ignore_case else char
-                for item in value:
-                    if self.ignore_punctuation and unicodedata.category(
-                        item
-                    ).startswith("P"):
-                        continue
-                    normalized.append((item, start, end))
+                if self.ignore_punctuation and unicodedata.category(
+                    char
+                ).startswith("P"):
+                    continue
+                normalized.append((char, start, end))
 
             return "".join(item[0] for item in normalized), normalized
 
@@ -264,36 +276,39 @@ class MultiChoiceRegexFilter(RegexFilter):
                                 selected.group().strip(), []
                             )
 
-                            # Include one leading punctuation character only
-                            # when it matches a candidate choice's first character.
-                            if original_start > 0:
-                                preceding = response[original_start - 1]
-                                if any(
-                                    choice.startswith(preceding)
-                                    and unicodedata.category(preceding).startswith("P")
-                                    for choice, _ in candidates
-                                ):
-                                    original_start -= 1
+                            if len(candidates) == 1:
+                                match = candidates[0][1]
+                            else:
+                                # Include one leading punctuation character only
+                                # when it matches a candidate choice's first character.
+                                if original_start > 0:
+                                    preceding = response[original_start - 1]
+                                    if any(
+                                        choice.startswith(preceding)
+                                        and unicodedata.category(preceding).startswith("P")
+                                        for choice, _ in candidates
+                                    ):
+                                        original_start -= 1
 
-                            original_match = response[
-                                original_start:original_end
-                            ].strip()
+                                original_match = response[
+                                    original_start:original_end
+                                ].strip()
 
-                            exact = [
-                                label
-                                for choice, label in candidates
-                                if choice == original_match
-                            ]
-                            insensitive = [
-                                label
-                                for choice, label in candidates
-                                if choice.casefold() == original_match.casefold()
-                            ]
+                                exact = [
+                                    label
+                                    for choice, label in candidates
+                                    if choice == original_match
+                                ]
+                                insensitive = [
+                                    label
+                                    for choice, label in candidates
+                                    if choice.casefold() == original_match.casefold()
+                                ]
 
-                            if exact:
-                                match = exact[0]
-                            elif insensitive:
-                                match = insensitive[0]
+                                if exact:
+                                    match = exact[0]
+                                elif insensitive:
+                                    match = insensitive[0]
 
                     if not match:
                         match = find_match(
