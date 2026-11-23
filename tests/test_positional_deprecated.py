@@ -27,7 +27,6 @@ def test_positional_deprecated_allows_method_receiver(capsys):
     assert capsys.readouterr().out == ""
 
 
-
 def test_positional_deprecated_allows_class_method_receiver(capsys):
     class Example:
         @classmethod
@@ -36,7 +35,10 @@ def test_positional_deprecated_allows_class_method_receiver(capsys):
             return value
 
     assert Example.method("positional") == "positional"
-    assert "using method with positional arguments is deprecated" in capsys.readouterr().out
+    assert (
+        "using method with positional arguments is deprecated"
+        in capsys.readouterr().out
+    )
 
     assert Example.method(value="keyword") == "keyword"
     assert capsys.readouterr().out == ""
