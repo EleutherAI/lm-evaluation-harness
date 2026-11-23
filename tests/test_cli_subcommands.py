@@ -778,6 +778,93 @@ class TestEvaluatorConfigFromCLI:
 
         assert cfg.fewshot_as_multiturn is True
 
+    def test_fewshot_as_multiturn_explicit_false_via_cli(self, tmp_path):
+        """`--fewshot_as_multiturn false` disables the chat-template default.
+
+        Documented contract in docs/interface.md: "Set to `false` to disable."
+        """
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        parser = argparse.ArgumentParser()
+        Run.create(parser.add_subparsers())
+
+        args = parser.parse_args(
+            [
+                "run",
+                "--tasks",
+                "hellaswag",
+                "--output_path",
+                str(tmp_path),
+                "--apply_chat_template",
+                "--fewshot_as_multiturn",
+                "false",
+            ]
+        )
+
+        cfg = EvaluatorConfig.from_cli(args)
+
+        assert cfg.apply_chat_template is True
+        assert cfg.fewshot_as_multiturn is False
+
+    def test_fewshot_as_multiturn_bare_chat_template_defaults_true(self, tmp_path):
+        """Omitting `--fewshot_as_multiturn` still auto-enables it with a chat template."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        parser = argparse.ArgumentParser()
+        Run.create(parser.add_subparsers())
+
+        args = parser.parse_args(
+            [
+                "run",
+                "--tasks",
+                "hellaswag",
+                "--output_path",
+                str(tmp_path),
+                "--apply_chat_template",
+            ]
+        )
+
+        cfg = EvaluatorConfig.from_cli(args)
+
+        assert cfg.apply_chat_template is True
+        assert cfg.fewshot_as_multiturn is True
+
+    def test_explicit_false_overrides_yaml_config(self, tmp_path):
+        """An explicitly passed False wins over a true value from YAML config."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        config_path = tmp_path / "eval.yaml"
+        config_path.write_text("tasks: [hellaswag]\ntrust_remote_code: true\n")
+
+        ns = Namespace(config=str(config_path), trust_remote_code=False)
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        assert cfg.trust_remote_code is False
+
+    def test_explicit_empty_cli_value_overrides_yaml(self, tmp_path):
+        """An explicitly passed falsy CLI value must win over YAML.
+
+        The old truthiness filter silently discarded `""`, falling back to the
+        YAML value (unlike `False`, which only survived due to `False == 0`).
+        """
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        config_path = tmp_path / "eval.yaml"
+        config_path.write_text("tasks: [hellaswag]\nsystem_instruction: from-yaml\n")
+
+        parser = argparse.ArgumentParser()
+        Run.create(parser.add_subparsers())
+        args = parser.parse_args(
+            ["run", "--config", str(config_path), "--system_instruction", ""]
+        )
+
+        cfg = EvaluatorConfig.from_cli(args)
+
+        assert cfg.system_instruction == ""
+
     def test_empty_tasks_allowed_at_config_level(self):
         """Test that empty tasks passes config validation (fails later in process_tasks)."""
         from argparse import Namespace
