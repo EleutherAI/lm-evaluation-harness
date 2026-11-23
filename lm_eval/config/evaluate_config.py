@@ -221,12 +221,17 @@ class EvaluatorConfig:
         if used_config := getattr(namespace, "config", None):
             config.update(cls.load_yaml_config(cast("str", used_config)))
 
-        # Override with CLI args (only truthy values or 0, exclude non-config args)
+        # Override with CLI args that were actually provided (exclude non-config args).
+        # Several argparse options default to SUPPRESS, so a key being present in the
+        # namespace means it was passed explicitly. Filter on `is not None` rather than
+        # truthiness so an explicit False is preserved instead of falling back to the
+        # default/YAML value.
         excluded_args = {"command", "func"}  # argparse internal args
+        namespace_vars = vars(namespace)
         cli_args = {
-            k: v
-            for k, v in vars(namespace).items()
-            if (v or v == 0) and k not in excluded_args
+            k: namespace_vars[k]
+            for k in namespace_vars
+            if namespace_vars[k] is not None and k not in excluded_args
         }
         config.update(cli_args)
 
