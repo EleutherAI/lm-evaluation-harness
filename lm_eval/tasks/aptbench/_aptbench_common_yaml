@@ -1,0 +1,14 @@
+class: !function utils.APTBenchTask
+dataset_path: ""
+dataset_name: null
+output_type: generate_until
+test_split: test
+target_delimiter: ""
+num_fewshot: 0
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 10
+  until: []
+metadata:
+  version: 1.0

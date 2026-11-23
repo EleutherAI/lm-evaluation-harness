@@ -1,0 +1,11 @@
+group: aptbench_swe
+group_alias: swe
+task:
+  - aptbench_env_setup
+  - aptbench_issue_fix
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

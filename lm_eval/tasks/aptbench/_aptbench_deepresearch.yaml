@@ -1,0 +1,18 @@
+group: aptbench_deepresearch
+group_alias: deepresearch
+task:
+  - aptbench_deepresearch_plan_en
+  - aptbench_deepresearch_plan_zh
+  - aptbench_deepresearch_summ_ans_en
+  - aptbench_deepresearch_summ_ans_zh
+  - aptbench_deepresearch_openend_plan_en
+  - aptbench_deepresearch_openend_citation_en
+  - aptbench_deepresearch_openend_citation_zh
+  - aptbench_deepresearch_openend_quality_en
+  - aptbench_deepresearch_openend_quality_zh
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

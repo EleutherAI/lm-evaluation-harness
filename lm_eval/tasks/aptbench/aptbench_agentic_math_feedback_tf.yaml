@@ -1,0 +1,9 @@
+include: _aptbench_mcq_yaml
+tag:
+  - aptbench_tasks
+  - aptbench_agentic_math_tasks
+task: aptbench_agentic_math_feedback_tf
+task_alias: agentic_math_feedback_tf
+dataset_kwargs:
+  aptbench_dataset: agentic_math
+  aptbench_task: feedback_tf

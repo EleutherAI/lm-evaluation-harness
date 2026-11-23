@@ -1,0 +1,8 @@
+include: _aptbench_common_yaml
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

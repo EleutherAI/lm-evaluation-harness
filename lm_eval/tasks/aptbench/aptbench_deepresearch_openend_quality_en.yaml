@@ -1,0 +1,9 @@
+include: _aptbench_mcq_yaml
+tag:
+  - aptbench_tasks
+  - aptbench_deepresearch_tasks
+task: aptbench_deepresearch_openend_quality_en
+task_alias: deepresearch_openend_quality_en
+dataset_kwargs:
+  aptbench_dataset: deepresearch
+  aptbench_task: openend_quality_en

@@ -1,0 +1,13 @@
+group: aptbench_tool
+group_alias: tool
+task:
+  - aptbench_tool_acebench_api_select
+  - aptbench_tool_acebench_api_param
+  - aptbench_tool_bfcl_v4_api_select
+  - aptbench_tool_bfcl_v4_api_param
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

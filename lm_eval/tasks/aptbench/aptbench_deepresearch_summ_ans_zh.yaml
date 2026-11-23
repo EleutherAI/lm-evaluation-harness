@@ -1,0 +1,9 @@
+include: _aptbench_summ_ans_yaml
+tag:
+  - aptbench_tasks
+  - aptbench_deepresearch_tasks
+task: aptbench_deepresearch_summ_ans_zh
+task_alias: deepresearch_summ_ans_zh
+dataset_kwargs:
+  aptbench_dataset: deepresearch
+  aptbench_task: summ_ans_zh

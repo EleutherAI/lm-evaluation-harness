@@ -1,0 +1,12 @@
+group: aptbench_env_setup
+group_alias: env_setup
+task:
+  - aptbench_env_setup_plan
+  - aptbench_env_setup_action
+  - aptbench_env_setup_error
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

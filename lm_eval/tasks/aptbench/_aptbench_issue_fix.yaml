@@ -1,0 +1,14 @@
+group: aptbench_issue_fix
+group_alias: issue_fix
+task:
+  - aptbench_issue_fix_locate
+  - aptbench_issue_fix_fix_patch
+  - aptbench_issue_fix_plan
+  - aptbench_issue_fix_action
+  - aptbench_issue_fix_test_patch
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

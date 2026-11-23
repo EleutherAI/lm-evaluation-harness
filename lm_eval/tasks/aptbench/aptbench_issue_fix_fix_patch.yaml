@@ -1,0 +1,10 @@
+include: _aptbench_mcq_yaml
+tag:
+  - aptbench_tasks
+  - aptbench_swe_tasks
+  - aptbench_issue_fix_tasks
+task: aptbench_issue_fix_fix_patch
+task_alias: issue_fix_fix_patch
+dataset_kwargs:
+  aptbench_dataset: issue_fix
+  aptbench_task: fix_patch
