@@ -569,9 +569,14 @@ def positional_deprecated(fn):
     wrapped function, `fn`.
     """
 
+    parameters = tuple(inspect.signature(fn).parameters)
+    implicit_receiver_count = int(
+        bool(parameters) and parameters[0] in {"self", "cls"}
+    )
+
     @functools.wraps(fn)
     def _wrapper(*args, **kwargs):
-        if len(args) != 1 if inspect.ismethod(fn) else 0:
+        if len(args) > implicit_receiver_count:
             print(
                 f"WARNING: using {fn.__name__} with positional arguments is "
                 "deprecated and will be disallowed in a future version of "
