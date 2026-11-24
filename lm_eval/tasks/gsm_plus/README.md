@@ -34,6 +34,9 @@ The following tasks evaluate subjects in the gsm_plus dataset
 - `gsm_plus`
 - `gsm_plus_mini`
 
+Both tasks draw few-shot demonstrations from the GSM8K training split.
+If you cached prompts for version 1.0, rebuild them with `--cache_requests refresh`.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
