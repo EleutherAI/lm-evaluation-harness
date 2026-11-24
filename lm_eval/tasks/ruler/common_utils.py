@@ -99,23 +99,17 @@ def string_match_part(preds: list[str], refs: list[list[str]]) -> float:
 
 
 def process_results(doc: dict, results: list[str]) -> dict[str, float]:
-    # hacky: set all other lengths to -1
-    metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
     input_len = doc["max_length"]
     pred = postprocess_pred(results)
     score = string_match_all(pred, [doc["outputs"]])
-    metrics[str(input_len)] = score
-    return metrics
+    return {str(input_len): score}
 
 
 def process_results_part(doc: dict, results: list[str]) -> dict[str, float]:
-    # hacky: set all other lengths to -1
-    metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
     input_len = doc["max_length"]
     pred = postprocess_pred(results)
     score = string_match_part(pred, [doc["outputs"]])
-    metrics[str(input_len)] = score
-    return metrics
+    return {str(input_len): score}
 
 
 def aggregate_metrics(metrics: list[float]) -> float:

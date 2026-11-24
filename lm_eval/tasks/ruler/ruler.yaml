@@ -16,5 +16,15 @@ task:
 aggregate_metric_list:
   - metric: "4096"
     weight_by_size: False
+  - metric: "8192"
+    weight_by_size: False
+  - metric: "16384"
+    weight_by_size: False
+  - metric: "32768"
+    weight_by_size: False
+  - metric: "65536"
+    weight_by_size: False
+  - metric: "131072"
+    weight_by_size: False
 metadata:
   version: 1
