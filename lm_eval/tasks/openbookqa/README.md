@@ -40,6 +40,11 @@ Homepage: https://allenai.org/data/open-book-qa
 
 * `openbookqa`
 
+Version 2.0 excludes training examples from the few-shot pool when their
+question and correct answer text match a validation or test example after
+normalizing case and whitespace. Use `--cache_requests refresh` to regenerate
+previously cached OpenBookQA few-shot prompts.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
