@@ -18,10 +18,18 @@ module, so the rest still run in CI.
 """
 
 import importlib
+import re
+from pathlib import Path
 
 import pytest
+import yaml
 
-from lm_eval.tasks.ruler.common_utils import get_tokenizer, resolve_tokenizer_name
+from lm_eval.tasks.ruler.common_utils import (
+    get_tokenizer,
+    process_results,
+    process_results_part,
+    resolve_tokenizer_name,
+)
 from lm_eval.tasks.ruler.qa_utils import generate_samples
 
 
@@ -249,3 +257,28 @@ class TestBuildersWithoutATokenizer:
         # niah_utils' `get_tokenizer(**kwargs)` and raise TypeError there.
         with pytest.raises(AssertionError, match="No tokenizer or pretrained"):
             builder(stop=["\n", "###"], extra={"a": 1})
+
+
+RULER_DIR = Path(__file__).parent.parent / "lm_eval" / "tasks" / "ruler"
+
+
+class TestPerLengthMetrics:
+    """The group must aggregate every length a subtask can report, and a
+    subtask must report only the length it was given.
+    """
+
+    @pytest.mark.parametrize("process", [process_results, process_results_part])
+    def test_only_the_requested_length_is_reported(self, process):
+        doc = {"max_length": 8192, "outputs": ["abc"]}
+        assert process(doc, ["abc"]) == {"8192": 1.0}
+
+    def test_group_aggregates_every_subtask_length(self):
+        # Subtasks declare their lengths as `- metric: "<n>"` (the YAML also
+        # holds `!function` tags, so match the text instead of loading it).
+        declared = re.findall(
+            r'metric: "(\d+)"', (RULER_DIR / "niah_single_1.yaml").read_text()
+        )
+        group = yaml.safe_load((RULER_DIR / "ruler.yaml").read_text())
+        aggregated = [m["metric"] for m in group["aggregate_metric_list"]]
+        assert declared
+        assert aggregated == declared
