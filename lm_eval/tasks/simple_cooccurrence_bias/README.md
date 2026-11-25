@@ -47,4 +47,4 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 
-- `simple_cooccurrence_bias_gen` version 2.0 (2026-11-17, PR #4634): count every male and female generation instead of at most one of each, and count a tie as neither preference.
+- `simple_cooccurrence_bias_gen` version 2.0 (2026-11-17, PR #4634): count every male and female generation instead of at most one of each, and count a tie as neither preference. `difference_male_female` is now the difference of the two counts for each prompt (from -10 to 10 with the 10 repeats) instead of a value from -1 to 1, so its scores are not comparable with version 1.0.
