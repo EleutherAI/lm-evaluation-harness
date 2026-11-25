@@ -62,7 +62,7 @@ def mcf_p0_nn(doc):
 
 # --- p1: "Svaralternativ:" --------------------------------------------------
 def cf_p1_nn(doc):
-    return "Spørsmål: {question}\n\nSvar:".format(question=doc["question"])
+    return "{question}\n\nKva er rett svar?\n\nSvar:".format(question=doc["question"])
 
 
 def hybrid_p1_nn(doc):
