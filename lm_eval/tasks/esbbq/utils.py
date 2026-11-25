@@ -3,6 +3,9 @@ import logging
 import numpy as np
 
 
+eval_logger = logging.getLogger(__name__)
+
+
 def _model_answer(lls):
     """
     Find the index of the answer with the highest loglikelihood (0 for ans0, 1 for ans1, or 2 for all the unknown options).
@@ -152,6 +155,12 @@ def acc_ambig_agg(results):
     num_correct_ambig = sum(correct_ambig)
     total_ambig = sum(is_ambig)
 
+    if total_ambig == 0:
+        eval_logger.error(
+            "Cannot calculate acc_ambig due to insufficient ambiguous instances."
+        )
+        return np.nan
+
     acc_score_ambig: float = num_correct_ambig / total_ambig
     return acc_score_ambig
 
@@ -173,6 +182,12 @@ def acc_disambig_agg(results):
 
     num_correct_disambig = sum(correct_disambig)
     total_disambig = sum(is_disambig)
+
+    if total_disambig == 0:
+        eval_logger.error(
+            "Cannot calculate acc_disambig due to insufficient disambiguated instances."
+        )
+        return np.nan
 
     acc_score_disambig: float = num_correct_disambig / total_disambig
     return acc_score_disambig
