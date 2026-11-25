@@ -1,0 +1,7 @@
+tag:
+  - norec_document_nob
+  - norec_document_nob_hybrid
+task: norec_document_nob_hybrid_p0
+include: _norec_document_nob_yaml
+doc_to_text: "Tekst: {{review}}\nEr sentimentet \"negativ\" eller \"positiv\"?\nSentiment:"
+doc_to_choice: !function utils.choices_negativ_positiv

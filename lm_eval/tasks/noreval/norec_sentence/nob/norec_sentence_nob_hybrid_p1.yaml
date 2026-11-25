@@ -1,0 +1,7 @@
+tag:
+  - norec_sentence_nob
+  - norec_sentence_nob_hybrid
+task: norec_sentence_nob_hybrid_p1
+include: _norec_sentence_nob_yaml
+doc_to_text: "{{review}}\nEr denne setningen \"positiv\" eller \"negativ\"?\nSvar:"
+doc_to_choice: !function utils.choices_negativ_positiv

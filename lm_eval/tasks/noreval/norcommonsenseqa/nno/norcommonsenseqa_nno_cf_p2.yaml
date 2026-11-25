@@ -1,0 +1,7 @@
+tag:
+  - norcommonsenseqa_nno
+  - norcommonsenseqa_nno_cf
+task: norcommonsenseqa_nno_cf_p2
+include: _norcommonsenseqa_nno_yaml
+doc_to_text: "Kva er svaret på følgande spørsmål: {{question}}\n\nSvar:"
+doc_to_choice: !function utils.choices_text

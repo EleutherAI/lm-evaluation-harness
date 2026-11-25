@@ -1,0 +1,3 @@
+task: translation_nob_eng_p0
+include: _translation_nob_eng_yaml
+doc_to_text: "Bokmål: {{targetString}}\nEngelsk:"

@@ -1,0 +1,3 @@
+task: multiblimp_noreval_sme_2-1
+include: _multiblimp_noreval_sme_yaml
+process_docs: !function utils.filter_dataset_2_1

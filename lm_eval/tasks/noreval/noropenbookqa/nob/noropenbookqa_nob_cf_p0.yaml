@@ -1,0 +1,7 @@
+tag:
+  - noropenbookqa_nob
+  - noropenbookqa_nob_cf
+task: noropenbookqa_nob_cf_p0
+include: _noropenbookqa_nob_yaml
+doc_to_text: "{{fact}}\n{{question_stem}}"
+doc_to_choice: !function utils.choices_text

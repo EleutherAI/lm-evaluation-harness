@@ -1,0 +1,3 @@
+task: ask_gec_nob_p2
+doc_to_text: "Skriv om følgende tekst slik at den blir grammatisk korrekt: {{source}}\nKorreksjon:"
+include: _ask_gec_nob_yaml

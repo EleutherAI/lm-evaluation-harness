@@ -1,3 +1,0 @@
-task: norquad_p0
-include: _norquad_yaml
-doc_to_text: !function utils.p0

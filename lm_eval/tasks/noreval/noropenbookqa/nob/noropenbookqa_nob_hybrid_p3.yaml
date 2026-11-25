@@ -1,0 +1,7 @@
+tag:
+  - noropenbookqa_nob
+  - noropenbookqa_nob_hybrid
+task: noropenbookqa_nob_hybrid_p3
+include: _noropenbookqa_nob_yaml
+doc_to_text: "Bakgrunn: {{fact}}\n\nSpørsmål: {{question_stem}}\n- {{choices.text[0]}}\n- {{choices.text[1]}}\n- {{choices.text[2]}}\n- {{choices.text[3]}}\n\nSvar:"
+doc_to_choice: !function utils.choices_text

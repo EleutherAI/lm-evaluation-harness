@@ -1,0 +1,8 @@
+tag:
+  - slide_nob_nno_swe_dan
+  - slide_nob_nno_swe_dan_mcf
+task: slide_nob_nno_swe_dan_mcf_p0
+include: _slide_nob_nno_swe_dan_yaml
+doc_to_text: "Hvilket språk er det i følgende setning?\n{{text}}\nEr det A. bokmål, B. nynorsk, C. dansk, D. svensk eller E. et annet språk?\nSvar:"
+doc_to_choice: !function utils.choices_letters
+process_results: !function utils.process_results_mcf

@@ -1,0 +1,7 @@
+tag:
+  - norcommonsenseqa_nob
+  - norcommonsenseqa_nob_hybrid
+task: norcommonsenseqa_nob_hybrid_p1
+include: _norcommonsenseqa_nob_yaml
+doc_to_text: "{{question}}\nHvilket av følgende mulige svar er det riktige?\n- {{choices.text[0]}}\n- {{choices.text[1]}}\n- {{choices.text[2]}}\n- {{choices.text[3]}}\n- {{choices.text[4]}}\n\nSvar:"
+doc_to_choice: !function utils.choices_text

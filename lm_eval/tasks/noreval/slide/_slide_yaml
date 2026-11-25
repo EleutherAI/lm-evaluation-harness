@@ -1,0 +1,39 @@
+dataset_path: ltg/slide
+dataset_kwargs:
+  revision: 8f31c336dff5709a3369b4442c3d54b6c8f0f253
+test_split: test
+training_split: train
+validation_split: validation
+fewshot_split: validation
+output_type: multiple_choice
+doc_to_target: "{{correct_indices[0]}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_mutual_info
+    aggregation: mean
+    higher_is_better: true
+  - metric: prob_correct
+    aggregation: mean
+    higher_is_better: true
+  - metric: prob_correct_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: prob_correct_mutual_info
+    aggregation: mean
+    higher_is_better: true
+  - metric: loglikelihood_correct
+    aggregation: mean
+    higher_is_better: true
+  - metric: loglikelihood_correct_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: loglikelihood_correct_mutual_info
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.3

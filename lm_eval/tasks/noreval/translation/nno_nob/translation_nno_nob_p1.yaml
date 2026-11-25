@@ -1,0 +1,3 @@
+task: translation_nno_nob_p1
+include: _translation_nno_nob_yaml
+doc_to_text: "Oversett følgende tekst til bokmål: {{text_nno}}\nBokmål:"

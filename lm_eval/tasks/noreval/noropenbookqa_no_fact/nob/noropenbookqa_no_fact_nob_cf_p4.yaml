@@ -1,0 +1,7 @@
+tag:
+  - noropenbookqa_no_fact_nob
+  - noropenbookqa_no_fact_nob_cf
+task: noropenbookqa_no_fact_nob_cf_p4
+include: _noropenbookqa_no_fact_nob_yaml
+doc_to_text: "{{question_stem}}\n\nSvar:"
+doc_to_choice: !function utils.choices_text

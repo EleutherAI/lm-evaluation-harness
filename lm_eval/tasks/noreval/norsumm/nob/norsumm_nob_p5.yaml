@@ -1,5 +1,3 @@
-tag: norsumm_nob
-dataset_name: nb
 task: norsumm_nob_p5
-include: ../_norsumm_yaml
+include: _norsumm_nob_yaml
 doc_to_text: "Hele artikkelen:\n{{article}}\n\nHovedpunkter:"

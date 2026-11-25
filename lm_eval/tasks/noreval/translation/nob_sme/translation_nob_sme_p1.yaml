@@ -1,0 +1,3 @@
+task: translation_nob_sme_p1
+include: _translation_nob_sme_yaml
+doc_to_text: "Oversett følgende setning til samisk: {{text_nob}}\nSamisk:"

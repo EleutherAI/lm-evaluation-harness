@@ -1,0 +1,7 @@
+tag:
+  - norec_document_nob
+  - norec_document_nob_hybrid
+task: norec_document_nob_hybrid_p2
+include: _norec_document_nob_yaml
+doc_to_text: "Er polariteten til følgende anmeldelse positiv eller negativ?\nAnmeldelse: {{review}}\nAnmeldelsen er"
+doc_to_choice: !function utils.choices_negativ_positiv

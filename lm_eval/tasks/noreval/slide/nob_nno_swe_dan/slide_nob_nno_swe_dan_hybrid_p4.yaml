@@ -1,0 +1,7 @@
+tag:
+  - slide_nob_nno_swe_dan
+  - slide_nob_nno_swe_dan_hybrid
+task: slide_nob_nno_swe_dan_hybrid_p4
+include: _slide_nob_nno_swe_dan_yaml
+doc_to_text: "Folk skriver på mange språk, som bokmål, nynorsk, dansk, svensk eller på mange andre språk. «{{text}}» er et eksempel på en setning skrevet på"
+doc_to_choice: !function utils.choices_words

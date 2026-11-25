@@ -1,0 +1,20 @@
+include: ../_translation_yaml
+dataset_path: ltg/saami-tatoeba
+dataset_kwargs:
+  revision: 3869d397f39a742ad43e3836e26df0a63e89e4ff
+tag: translation_nob_sme
+doc_to_target: text_sme
+training_split: test
+process_results: !function utils.process_results
+repeats: &samples 32
+filter_list:
+  - name: sampling
+    filter:
+      - function: take_first_k
+        k: *samples
+metadata:
+  version: 1.3
+  primary_metric: bleu
+  random_baseline: 0.0
+  category: machine_translation
+  language: [nob, sme]
