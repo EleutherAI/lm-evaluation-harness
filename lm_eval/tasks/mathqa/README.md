@@ -51,4 +51,4 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 
-- `mathqa` version 2.0 (2026-11-17, PR #4636): parse options that contain " , " and options stored as a list literal, so no answer choice is cut at its first comma or keeps a stray quote.
+- `mathqa` version 2.0 (2026-11-17, PR #4636): parse options that contain " , " and options stored as a list literal, so no answer choice is cut at its first comma or keeps a stray quote. Some rows still have two identical answer choices; those duplicates are in the dataset itself, not caused by the parsing.
