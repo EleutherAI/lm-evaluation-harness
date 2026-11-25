@@ -56,9 +56,9 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                 try:
                     source, target = code_to_language(src), code_to_language(tgt)
 
-                    groups = ["generate_until", "translation", lang]
+                    tags = ["translation", lang]
                     if lang in gpt3_translation_benchmarks.keys():
-                        groups += ["gpt3_translation_benchmarks"]
+                        tags.append("gpt3_translation_benchmarks")
 
                     with open(
                         f"{output_dir}/{file_name}",
@@ -69,7 +69,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                         yaml.dump(
                             {
                                 "include": "wmt_common_yaml",
-                                "group": groups,
+                                "tag": tags,
                                 "dataset_path": lang,
                                 "dataset_name": dataset_name
                                 if not (lang == "iwslt2017")
