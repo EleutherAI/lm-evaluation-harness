@@ -425,6 +425,16 @@ class SGLangLM(TemplateLM):
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
         disable_tqdm: bool = False,
     ) -> List[Tuple[float, bool]]:
+        max_length = self.max_length
+        for _, _, continuation_enc in requests:
+            if len(continuation_enc) >= max_length:
+                raise ValueError(
+                    f"Continuation has {len(continuation_enc)} tokens, but SGLang "
+                    "loglikelihood requires at least one context token within "
+                    f"max_length={max_length}. Shorten the continuation or increase "
+                    "the context length if the model supports it."
+                )
+
         res = []
 
         def _collate(x):
@@ -445,9 +455,9 @@ class SGLangLM(TemplateLM):
             inputs = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
-                inp = (context_enc + continuation_enc)[-(self.max_length) :]
+                inp = (context_enc + continuation_enc)[-max_length:]
                 ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
+                    0, len(context_enc) + len(continuation_enc) - max_length
                 )
 
                 inputs.append(inp)
