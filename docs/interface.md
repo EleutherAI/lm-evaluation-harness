@@ -137,7 +137,7 @@ lm-eval run --config my_config.yaml --tasks mmlu
 | Argument | Short | Description |
 |----------|-------|-------------|
 | `--predict_only` | `-x` | Save predictions only, skip metric computation. Implies `--log_samples`. |
-| `--seed` | | Random seeds as single integer or comma-separated list for `python,numpy,torch,fewshot`. Default: `0,1234,1234,1234`. Use `None` to skip. Example: `--seed 42` or `--seed 0,None,8,52`. |
+| `--seed` | | Random seeds as single integer or comma-separated list for `python,numpy,torch,fewshot`. Default: `0,1234,1234,1234`. Use `None` to skip. Example: `--seed 42` or `--seed 0,None,8,52`. With a fixed few-shot seed, the default sampler uses the document’s dataset index so its examples are consistent across worker counts and sample subsets. Earlier versions drew examples in processing order and can produce different prompts for the same seed. |
 | `--trust_remote_code` | | Allow executing remote code from HuggingFace Hub. |
 | `--confirm_run_unsafe_code` | | Confirm understanding of risks for tasks executing arbitrary Python. |
 | `--metadata` | | JSON string passed to TaskConfig. Required for some tasks like RULER. Example: `--metadata '{"max_seq_length": 4096}'`. |
