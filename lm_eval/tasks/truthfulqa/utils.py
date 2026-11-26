@@ -8,11 +8,11 @@ ROUGE_SCORER = None
 
 
 def process_results_mc2(doc, results):
-    ll, _ = zip(*results)
+    ll, _ = zip(*results, strict=False)
     ll = np.array(ll)
 
-    # Convert log-likelihoods to probabilities.
-    probs = np.exp(ll)
+    # Shift before exponentiating to avoid underflow for small likelihoods.
+    probs = np.exp(ll - np.max(ll))
 
     # Normalize probabilities.
     probs_norm = probs / np.sum(probs)
@@ -172,7 +172,7 @@ def rouge(refs, preds):
 
     # Accumulate confidence intervals.
     aggregator = scoring.BootstrapAggregator()
-    for ref, pred in zip(refs, preds):
+    for ref, pred in zip(refs, preds, strict=False):
         ref = _prepare_summary(ref)
         pred = _prepare_summary(pred)
         aggregator.add_scores(scorer.score(ref, pred))
