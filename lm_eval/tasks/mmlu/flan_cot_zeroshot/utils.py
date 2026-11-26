@@ -6,8 +6,6 @@ from lm_eval.filters.extraction import RegexFilter
 
 
 class MultiChoiceRegexFilter(RegexFilter):
-    """ """
-
     def __init__(
         self,
         regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
@@ -37,12 +35,17 @@ class MultiChoiceRegexFilter(RegexFilter):
         # so we process each of these (same input/target response sets)
         # independently (and keep them a list.)
 
-        def find_match(regex, resp, convert_dict={}):
+        def find_match(regex, resp, convert_dict: dict[str, str] | None = None):
+            if convert_dict is None:
+                convert_dict = {}
             match = regex.findall(resp)
             if match:
                 match = match[self.group_select]
                 if isinstance(match, tuple):
-                    match = [m for m in match if m][0]
+                    non_empty = [m for m in match if m]
+                    if not non_empty:
+                        return ""
+                    match = non_empty[0]
                 match = match.strip()
                 if match and match in convert_dict:
                     match = convert_dict[match]
@@ -69,7 +72,7 @@ class MultiChoiceRegexFilter(RegexFilter):
 
         filtered_resps = []
 
-        for r, doc in zip(resps, docs):
+        for r, doc in zip(resps, docs, strict=False):
             fallback_regexes = []
             choice_to_alpha = {}
             next_alpha = "A"
