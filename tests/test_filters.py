@@ -100,9 +100,10 @@ def test_bbh_multi_choice_regex_prefix_choice_does_not_shadow_longer_choice(vari
 
 
 def test_multi_choice_regex_fallback_word_boundary():
-    # Fallback pattern `:[\\s]*(A|B|C|D)` must require a word boundary so words
-    # like "Note: All", "Explanation: Because", or "Caveat: Consider" don't match
-    # as choice letters and override the real answer under group_select=-1.
+    # Fallback pattern `:[\\s]*(A|B|C|D)` must reject following ASCII/Latin
+    # identifier characters so words like "Note: All", "Explanation: Because",
+    # or "Réponse: Décision" don't override the real answer under group_select=-1,
+    # while still accepting CJK answers followed directly by particles.
     filt = MultiChoiceRegexFilter(
         regex_pattern=r"(\([A-Z]\))",
         group_select=-1,
@@ -116,9 +117,19 @@ def test_multi_choice_regex_fallback_word_boundary():
             "Let's compute the band gap step by step.\nAnswer: B\nNote: All energies are rounded."
         ],
         ["Final answer: C\nExplanation: Because the photon energy exceeds the gap."],
+        ["Answer: B\nRéponse: Décision."],
+        ["答え: Bです。"],
+        ["答案: C是正确的"],
         ["Answer: D"],
     ]
-    assert filt.apply(resps, docs * 3) == [["(B)"], ["(C)"], ["(D)"]]
+    assert filt.apply(resps, docs * 6) == [
+        ["(B)"],
+        ["(C)"],
+        ["(B)"],
+        ["(B)"],
+        ["(C)"],
+        ["(D)"],
+    ]
 
 
 @pytest.mark.parametrize("variant", ["zeroshot", "cot_zeroshot"])

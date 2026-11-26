@@ -90,7 +90,7 @@ class MultiChoiceRegexFilter(RegexFilter):
             fallback_regex = re.compile("|".join(fallback_regexes))
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
-                rf":[\s]*({without_paren_fallback_regex})\b"
+                rf":[\s]*({without_paren_fallback_regex})(?![A-Za-z0-9_À-ɏ])"
             )
 
             filtered = []
