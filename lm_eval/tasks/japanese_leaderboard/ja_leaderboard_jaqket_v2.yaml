@@ -1,7 +1,11 @@
 task: ja_leaderboard_jaqket_v2
 
 dataset_path: kumapo/JAQKET
-dataset_name: v2.0
+dataset_kwargs:
+  revision: e8486c2258fdb88f5ebc8f045fcd9f67f13f70bf  # refs/convert/parquet
+  data_files:
+    train: v2.0/train/0000.parquet
+    validation: v2.0/validation/0000.parquet
 
 training_split: train
 validation_split: validation
