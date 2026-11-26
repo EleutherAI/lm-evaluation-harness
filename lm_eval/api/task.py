@@ -1491,8 +1491,18 @@ class ConfigurableTask(Task):
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = self.doc_to_choice(doc)
-            completion_len = np.array([float(len(i)) for i in choices])
-            byte_length = np.array([float(len(i.encode("utf-8"))) for i in choices])
+            # The scored continuations are what acc_norm / acc_bytes normalise by.
+            # For multiple_input tasks (e.g. Winogrande) the choices are the
+            # *contexts* and every option shares the same continuation.
+            continuations = (
+                [str(self.doc_to_target(doc))] * len(choices)
+                if self.multiple_input
+                else choices
+            )
+            completion_len = np.array([float(len(i)) for i in continuations])
+            byte_length = np.array(
+                [float(len(i.encode("utf-8"))) for i in continuations]
+            )
 
             if (
                 2 * len(choices) == len(lls)

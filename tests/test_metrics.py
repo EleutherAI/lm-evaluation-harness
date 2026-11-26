@@ -253,6 +253,47 @@ def test_chrfpp_perfect_match():
     assert chrfpp(items) == 100.0
 
 
+def test_acc_norm_multiple_input_normalizes_by_continuation():
+    """For multiple_input tasks (e.g. Winogrande) every option scores the same
+    continuation, so length normalization must not change the prediction.
+    """
+    import datasets
+
+    from lm_eval.tasks.winogrande import preprocess_winogrande as wino
+
+    docs = [
+        {
+            "sentence": "Katherine was a much better surgeon than Maria so _ always got the easier cases.",
+            "option1": "Katherine",
+            "option2": "Maria",
+            "answer": "2",
+        }
+    ]
+    task = ConfigurableTask(
+        config={
+            "task": "test_multiple_input_acc_norm",
+            "custom_dataset": lambda **kwargs: datasets.DatasetDict(
+                {"test": datasets.Dataset.from_list(docs)}
+            ),
+            "test_split": "test",
+            "output_type": "multiple_choice",
+            "doc_to_text": wino.doc_to_text,
+            "doc_to_target": wino.doc_to_target,
+            "doc_to_choice": wino.doc_to_choice,
+            "metric_list": [
+                {"metric": "acc"},
+                {"metric": "acc_norm"},
+                {"metric": "acc_bytes"},
+            ],
+        }
+    )
+    doc = task.eval_docs[0]
+    assert task.multiple_input
+    # The model slightly prefers the gold option 2 ("Maria", the shorter context).
+    result = task.process_results(doc, [(-20.0, False), (-19.8, False)])
+    assert result == {"acc": 1.0, "acc_norm": 1.0, "acc_bytes": 1.0}
+
+
 if __name__ == "__main__":
     test_acc_mutual_info_slicing()
     test_acc_mutual_info_different_predictions()
