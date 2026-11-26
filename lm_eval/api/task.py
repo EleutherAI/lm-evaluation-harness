@@ -81,6 +81,7 @@ class Task(abc.ABC):
     DATASET_NAME: str | None = None
 
     OUTPUT_TYPE: OutputType | None = None
+    _fewshot_seed: int | None = None
 
     def __init__(
         self,
@@ -284,8 +285,14 @@ class Task(abc.ABC):
 
         # used with caching
         og_limit = limit
+        # doc_iterator numbers a subset in dataset order, after filtering.
+        selected_ids = sorted(set(samples)) if samples else []
 
         cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
+        if self.config.num_fewshot:
+            cache_key += f"-docseed{self._fewshot_seed}"
+        if selected_ids:
+            cache_key += f"-samples{utils.hash_string(str(selected_ids))}"
         cache_key += "-chat_template" if apply_chat_template else ""
         cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
         cache_key += (
@@ -333,7 +340,11 @@ class Task(abc.ABC):
             doc_id_docs,
             total=num_docs,
         ):
-            # sample fewshot context #TODO: need to offset doc_id by rank now!
+            if self.config.num_fewshot and self._fewshot_seed is not None:
+                # The document must get the same stream regardless of its rank or subset.
+                row_id = selected_ids[doc_id] if selected_ids else doc_id
+                doc_seed = int(utils.hash_string(f"{self._fewshot_seed}:{row_id}"), 16)
+                self._reset_fewshot_rng(doc_seed)
             fewshot_ctx = self.fewshot_context(
                 doc,
                 num_fewshot=0
@@ -558,6 +569,10 @@ class Task(abc.ABC):
         self._config["process_results"] = "process_results"
 
     def set_fewshot_seed(self, seed: int | None = None) -> None:
+        self._fewshot_seed = seed
+        self._reset_fewshot_rng(seed)
+
+    def _reset_fewshot_rng(self, seed: int | None) -> None:
         self.fewshot_rnd = random.Random(seed)
         if hasattr(self, "sampler"):
             self.sampler.set_rnd(seed)
@@ -583,14 +598,15 @@ class Task(abc.ABC):
     ) -> Iterator[tuple[int, Any]]:
         if samples:
             n = len(self.eval_docs)
-            assert all(e < n for e in samples), (
+            assert all(0 <= e < n for e in samples), (
                 f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
             )
             eval_logger.info(
                 f"{self.config.task}: Evaluating on {len(samples)} examples"
             )
+            selected = set(samples)
             doc_iterator = utils.create_iterator(
-                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
+                enumerate(doc for i, doc in enumerate(self.eval_docs) if i in selected),
                 rank=int(rank),
                 limit=None,  # limit does not matter here since we are selecting samples directly
                 world_size=int(world_size),

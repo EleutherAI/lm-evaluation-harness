@@ -854,3 +854,59 @@ def test_fewshot_config_split_precedence():
         fewshot_config={"process_docs": None},
     )
     assert cfg_inherit.fewshot_config.split == "validation"
+
+
+@pytest.fixture
+def seeded_prompts(tmp_path, monkeypatch):
+    from datasets import Dataset
+
+    from lm_eval.caching import cache
+
+    monkeypatch.setattr(cache, "PATH", str(tmp_path))
+    dataset = {
+        split: Dataset.from_dict(
+            {"question": [f"{split}-{i}" for i in range(n)], "answer": ["yes"] * n}
+        )
+        for split, n in [("train", 24), ("test", 12)]
+    }
+
+    def build(seed=1234, rank=0, world_size=1, **kwargs):
+        task = ConfigurableTask(
+            config={
+                "task": "rank_test",
+                "custom_dataset": lambda: dataset,
+                "test_split": "test",
+                "fewshot_split": "train",
+                "doc_to_text": "question",
+                "doc_to_target": "answer",
+                "output_type": "loglikelihood",
+                "num_fewshot": 3,
+            }
+        )
+        task.set_fewshot_seed(seed)
+        task.build_all_requests(rank=rank, world_size=world_size, **kwargs)
+        return {r.doc_id: r.arguments[0] for r in task.instances}
+
+    return build
+
+
+@pytest.mark.parametrize("world_size", [2, 3])
+def test_fewshot_prompts_match_across_ranks(seeded_prompts, world_size):
+    serial = seeded_prompts()
+    assert len({prompt.rsplit("\n\n", 1)[0] for prompt in serial.values()}) > 1
+    shards = [
+        seeded_prompts(rank=rank, world_size=world_size) for rank in range(world_size)
+    ]
+    assert [list(shard) for shard in shards] == [
+        list(range(rank, 12, world_size)) for rank in range(world_size)
+    ]
+    assert {i: prompt for shard in shards for i, prompt in shard.items()} == serial
+
+
+def test_fewshot_prompt_for_selected_document(seeded_prompts):
+    serial = seeded_prompts(cache_requests=True)
+    subset = seeded_prompts(samples=[9, 2, 5], cache_requests=True)
+    assert list(subset.values()) == [serial[i] for i in [2, 5, 9]]
+    other_seed = seeded_prompts(seed=42)
+    assert other_seed != serial
+    assert seeded_prompts(seed=42, cache_requests=True) == other_seed

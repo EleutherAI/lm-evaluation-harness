@@ -627,6 +627,8 @@ def evaluate(
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps:
             indices = samples.get(task_name, None) if samples is not None else None
+            if indices:
+                indices = sorted(set(indices))
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
@@ -634,7 +636,6 @@ def evaluate(
                 samples=indices,
             )
             for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
@@ -642,7 +643,7 @@ def evaluate(
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
-                        "doc_id": doc_id_true,
+                        "doc_id": indices[doc_id] if indices else doc_id,
                         "doc": doc,
                         "target": target,
                         "arguments": [req.args for req in requests],
