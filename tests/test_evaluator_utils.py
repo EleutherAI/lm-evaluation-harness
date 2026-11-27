@@ -3,12 +3,13 @@ Tests for evaluator_utils.py — utility functions used by the evaluation pipeli
 """
 
 import logging
+import math
 from typing import Any
 
 import pytest
 
 from lm_eval.api.group import AggMetricConfig, Group
-from lm_eval.api.metrics import mean
+from lm_eval.api.metrics import mean, perplexity
 from lm_eval.api.task import Task
 from lm_eval.evaluator_utils import (
     EvalAcc,
@@ -210,6 +211,17 @@ class TestComputeTaskAggregations:
         metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
         # len(items) <= 1 → "N/A"
         assert metrics["acc_stderr,none"] == "N/A"
+
+    def test_stderr_with_one_bootstrap_iteration(self, monkeypatch):
+        monkeypatch.setenv("DISABLE_MULTIPROC", "1")
+        task = self._task({"perplexity": perplexity, "acc": mean})
+        raw = {("perplexity", "none"): [-1.0, -3.0], ("acc", "none"): [1, 0]}
+
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=1)
+
+        assert metrics["perplexity,none"] == pytest.approx(math.exp(2))
+        assert metrics["perplexity_stderr,none"] == "N/A"
+        assert metrics["acc_stderr,none"] == pytest.approx(0.5)
 
     def test_sample_count_does_not_depend_on_metric_order(self):
         # Three documents were scored for acc; only one of them also produced f1,
