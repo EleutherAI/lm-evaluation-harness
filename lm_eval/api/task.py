@@ -1508,8 +1508,13 @@ class ConfigurableTask(Task):
                 lls = lls[: len(choices)]
 
             pred = np.argmax(lls)
-            pred_norm = np.argmax(lls / completion_len)
-            pred_byte = np.argmax(lls / byte_length)
+            if self.multiple_input:
+                # The choices are the contexts and every option scores the same
+                # continuation, so length normalization cannot change the ranking.
+                pred_norm = pred_byte = pred
+            else:
+                pred_norm = np.argmax(lls / completion_len)
+                pred_byte = np.argmax(lls / byte_length)
 
             if self.multiple_input:
                 gold = self.doc_to_text(doc)
