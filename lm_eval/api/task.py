@@ -1230,10 +1230,8 @@ class ConfigurableTask(Task):
                 eval_logger.warning("Applied prompt returns empty string")
                 return self.config.fewshot_delimiter
         else:
-            raise TypeError(
-                f"doc_to_text must be a string, a callable, or an object with an "
-                f"`apply` method, got {type(doc_to_text).__name__}"
-            )
+            print(type(doc_to_text))
+            raise TypeError
 
     def doc_to_target(self, doc: Mapping, doc_to_target=None) -> int | str | list:
         if self.prompt is not None:
@@ -1279,10 +1277,7 @@ class ConfigurableTask(Task):
                 eval_logger.warning("Applied prompt returns empty string")
                 return self.config.fewshot_delimiter
         else:
-            raise TypeError(
-                f"doc_to_target must be a string, a callable, or an object with an "
-                f"`apply` method, got {type(doc_to_target).__name__}"
-            )
+            raise TypeError
 
     def doc_to_choice(self, doc: Any, doc_to_choice=None) -> list[str]:
         if self.prompt is not None:
@@ -1308,10 +1303,7 @@ class ConfigurableTask(Task):
         elif hasattr(doc_to_choice, "get_answer_choices_list"):
             return doc_to_choice.get_answer_choices_list(doc)
         else:
-            raise TypeError(
-                f"doc_to_choice must be a list, a dict, a callable, or an object "
-                f"with `get_answer_choices_list`, got {type(doc_to_choice).__name__}"
-            )
+            raise TypeError
 
     def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
         if doc_to_image is not None:
@@ -1510,8 +1502,8 @@ class ConfigurableTask(Task):
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 # as we extend the args list with unconditional ("", continuation) pairs
                 lls_unconditional = lls[len(choices) :]
-                if len(lls_unconditional) != len(choices):
-                    raise ValueError
+                # this branch is only entered when 2 * len(choices) == len(lls), so
+                # lls_unconditional already has len(choices) entries
                 # and this stores our "regular" conditional loglikelihoods
                 lls = lls[: len(choices)]
 
@@ -1779,7 +1771,11 @@ class PerplexityTask(Task):
 
     def construct_requests(self, doc: dict, ctx: str | None, **kwargs):
         if bool(ctx):
-            raise ValueError
+            raise ValueError(
+                "PerplexityTask does not support fewshot context: it scores the "
+                "document through its own target, so a ctx would be ignored. "
+                "Run it with num_fewshot=0."
+            )
 
         return Instance(
             request_type=self.OUTPUT_TYPE,
