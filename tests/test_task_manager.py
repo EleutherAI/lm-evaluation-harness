@@ -344,6 +344,17 @@ tag: my_custom_tag
         assert result["my_custom_tag"].kind == Kind.TAG
         assert "tagged_task" in result["my_custom_tag"].tags
 
+    def test_longbench2_multi_group_matches_tag(self):
+        """The explicit group and tag roll-up must select the same subtasks."""
+        task_dir = Path(__file__).parents[1] / "lm_eval" / "tasks" / "longbench2"
+        index = TaskIndex()
+        result = index.build([task_dir])
+
+        group_tasks = set(result["longbench2_multi"].cfg["task"])
+        tagged_tasks = result["longbench2_multi_tasks"].tags
+        assert "longbench2_legal_multi" in group_tasks
+        assert group_tasks == tagged_tasks
+
     def test_ignore_pycache(self, tmp_path):
         """Files in __pycache__ are ignored"""
         pycache = tmp_path / "__pycache__"
@@ -417,7 +428,8 @@ class TestTaskManagerIntegration:
         """Regression: afrobench afrisenti/mafand groups list ``*_prompt_2`` tags
         that must be registered. Previously the prompt_2 templates declared the
         wrong tag (``afrisent_prompt_2`` typo; ``mafand_afr-eng_prompt_3``
-        duplicating prompt_3), so loading those groups raised a not-found error."""
+        duplicating prompt_3), so loading those groups raised a not-found error.
+        """
         tags = set(shared_task_manager.all_tags)
         assert "afrisenti_prompt_2" in tags
         assert "mafand_afr-eng_prompt_2" in tags

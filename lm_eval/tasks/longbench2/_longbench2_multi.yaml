@@ -4,9 +4,10 @@ task:
   - longbench2_govt_multi
   - longbench2_academic_multi
   - longbench2_fin_multi
+  - longbench2_legal_multi
   - longbench2_news_multi
 aggregate_metric_list:
   - metric: acc
     weight_by_size: True
 metadata:
-  version: 0.0
+  version: 1.0
