@@ -1502,8 +1502,8 @@ class ConfigurableTask(Task):
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 # as we extend the args list with unconditional ("", continuation) pairs
                 lls_unconditional = lls[len(choices) :]
-                if len(lls_unconditional) != len(choices):
-                    raise ValueError
+                # this branch is only entered when 2 * len(choices) == len(lls), so
+                # lls_unconditional already has len(choices) entries
                 # and this stores our "regular" conditional loglikelihoods
                 lls = lls[: len(choices)]
 
@@ -1771,7 +1771,11 @@ class PerplexityTask(Task):
 
     def construct_requests(self, doc: dict, ctx: str | None, **kwargs):
         if bool(ctx):
-            raise ValueError
+            raise ValueError(
+                "PerplexityTask does not support fewshot context: it scores the "
+                "document through its own target, so a ctx would be ignored. "
+                "Run it with num_fewshot=0."
+            )
 
         return Instance(
             request_type=self.OUTPUT_TYPE,
