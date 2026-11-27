@@ -1230,8 +1230,10 @@ class ConfigurableTask(Task):
                 eval_logger.warning("Applied prompt returns empty string")
                 return self.config.fewshot_delimiter
         else:
-            print(type(doc_to_text))
-            raise TypeError
+            raise TypeError(
+                f"doc_to_text must be a string, a callable, or an object with an "
+                f"`apply` method, got {type(doc_to_text).__name__}"
+            )
 
     def doc_to_target(self, doc: Mapping, doc_to_target=None) -> int | str | list:
         if self.prompt is not None:
@@ -1277,7 +1279,10 @@ class ConfigurableTask(Task):
                 eval_logger.warning("Applied prompt returns empty string")
                 return self.config.fewshot_delimiter
         else:
-            raise TypeError
+            raise TypeError(
+                f"doc_to_target must be a string, a callable, or an object with an "
+                f"`apply` method, got {type(doc_to_target).__name__}"
+            )
 
     def doc_to_choice(self, doc: Any, doc_to_choice=None) -> list[str]:
         if self.prompt is not None:
@@ -1303,7 +1308,10 @@ class ConfigurableTask(Task):
         elif hasattr(doc_to_choice, "get_answer_choices_list"):
             return doc_to_choice.get_answer_choices_list(doc)
         else:
-            raise TypeError
+            raise TypeError(
+                f"doc_to_choice must be a list, a dict, a callable, or an object "
+                f"with `get_answer_choices_list`, got {type(doc_to_choice).__name__}"
+            )
 
     def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
         if doc_to_image is not None:
