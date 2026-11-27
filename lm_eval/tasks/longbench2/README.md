@@ -25,7 +25,7 @@ Homepage: `https://github.com/THUDM/LongBench`
 #### Groups
 
 * `longbench2_single`: Single-document QA tasks requiring comprehension of documents across various domains (government, legal, literature, finance, academic, detective stories, and order of events)
-* `longbench2_multi`: Multi-document QA tasks requiring information synthesis and reasoning across multiple documents in government, academic, finance, and news
+* `longbench2_multi`: Multi-document QA tasks requiring information synthesis and reasoning across multiple documents in government, academic, finance, legal, and news
 * `longbench2_incontext`: Long in-context learning tasks including user guide comprehension, translation with examples, and many-shot learning scenarios
 * `longbench2_history`: Long-dialogue history understanding tasks involving agent conversations and dialogue history comprehension
 * `longbench2_structured`: Long structured data understanding tasks for graph and table data processing
@@ -49,6 +49,7 @@ Homepage: `https://github.com/THUDM/LongBench`
 * `longbench2_govt_multi`: Question answering across multiple government documents
 * `longbench2_academic_multi`: Question answering across multiple academic papers
 * `longbench2_fin_multi`: Question answering across multiple financial documents
+* `longbench2_legal_multi`: Question answering across multiple legal documents
 * `longbench2_news_multi`: Question answering across multiple news articles
 
 **Long In-context Learning:**
@@ -66,6 +67,10 @@ Homepage: `https://github.com/THUDM/LongBench`
 **Long Structured Data Understanding:**
 * `longbench2_graph`: Understanding and reasoning over graph-structured data
 * `longbench2_table`: Understanding and reasoning over tabular data
+
+### Changelog
+
+- 2026-11-27: v1.0 (`longbench2_multi`): include `longbench2_legal_multi` so the group matches the `longbench2_multi_tasks` tag.
 
 ### Checklist
 
