@@ -592,7 +592,7 @@ def stderr_for_metric(
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
-    * If `bootstrap_iters > 0` and the metric is in the pre-approved
+    * If `bootstrap_iters > 1` and the metric is in the pre-approved
       bootstrappable list, use `bootstrap_stderr` with that many draws.
     * If the metric has a closed-form SE (e.g. `mean`, `acc_all`), use it.
     * Otherwise, return `None`.
@@ -614,7 +614,7 @@ def stderr_for_metric(
         nanmean,
     ]
 
-    if metric in bootstrappable:
+    if bootstrap_iters > 1 and metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
