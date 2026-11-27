@@ -1,5 +1,7 @@
 import unittest.mock as mock
 
+import pytest
+
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
@@ -253,7 +255,15 @@ def test_chrfpp_perfect_match():
     assert chrfpp(items) == 100.0
 
 
-def test_acc_norm_multiple_input_normalizes_by_continuation():
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Katherine was a much better surgeon than Maria so _ always got the easier cases.",
+        # blank at the end of the sentence: the shared continuation is empty
+        "The easier cases always went to _",
+    ],
+)
+def test_acc_norm_multiple_input_normalizes_by_continuation(sentence):
     """For multiple_input tasks (e.g. Winogrande) every option scores the same
     continuation, so length normalization must not change the prediction.
     """
@@ -263,7 +273,7 @@ def test_acc_norm_multiple_input_normalizes_by_continuation():
 
     docs = [
         {
-            "sentence": "Katherine was a much better surgeon than Maria so _ always got the easier cases.",
+            "sentence": sentence,
             "option1": "Katherine",
             "option2": "Maria",
             "answer": "2",
