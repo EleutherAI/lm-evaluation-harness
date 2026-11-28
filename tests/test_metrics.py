@@ -1,6 +1,12 @@
 import unittest.mock as mock
 
-from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
+import pytest
+
+from lm_eval.api.metrics import (
+    _bootstrap_internal_no_mp,
+    exact_match_hf_evaluate,
+    mean,
+)
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.config.task import TaskConfig
 
@@ -260,3 +266,45 @@ if __name__ == "__main__":
     test_bootstrap_internal_no_mp()
     test_dict_metric_uses_custom_aggregation()
     print("All tests passed!")
+
+
+@pytest.mark.parametrize(
+    "prediction, reference",
+    [
+        ("O’Neill", "O'Neill"),  # right single quotation mark
+        ("“Hamlet”", '"Hamlet"'),  # curly double quotes
+        ("1914–1918", "1914-1918"),  # en dash
+        ("well—known", "well-known"),  # em dash
+        ("北京。", "北京"),  # CJK full stop
+        ("¿Qué?", "Qué"),  # inverted question mark
+        ("«Paris»", "Paris"),  # guillemets
+    ],
+)
+def test_exact_match_ignore_punctuation_unicode(prediction, reference):
+    result = exact_match_hf_evaluate(
+        predictions=[prediction],
+        references=[reference],
+        ignore_punctuation=True,
+    )
+
+    assert result["exact_match"] == 1.0
+
+
+def test_exact_match_ignore_punctuation_keeps_ascii_behaviour():
+    # ASCII symbols in string.punctuation (e.g. "$", "+") are still removed,
+    # while letters, accents and digits are kept.
+    result = exact_match_hf_evaluate(
+        predictions=["$5+", "été", "a1"],
+        references=["5", "ete", "a"],
+        ignore_punctuation=True,
+    )
+
+    assert result["exact_match"] == pytest.approx(1 / 3)
+
+
+def test_exact_match_unicode_punctuation_kept_without_flag():
+    result = exact_match_hf_evaluate(
+        predictions=["O’Neill"], references=["O'Neill"], ignore_punctuation=False
+    )
+
+    assert result["exact_match"] == 0.0

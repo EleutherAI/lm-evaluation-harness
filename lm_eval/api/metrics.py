@@ -4,7 +4,10 @@ import os
 import random
 import re
 import string
+import sys
+import unicodedata
 from collections.abc import Iterable
+from functools import lru_cache
 from typing import Callable, List, Optional, Sequence, TypeVar
 
 import numpy as np
@@ -213,6 +216,27 @@ def acc_bytes_fn(items):  # This is a passthrough function
     return items
 
 
+@lru_cache(maxsize=1)
+def _punctuation_table() -> dict[int, None]:
+    """Characters removed by ``ignore_punctuation``.
+
+    Every Unicode punctuation character (categories ``P*``), such as curly
+    quotes, en dashes and CJK full stops, as ``MultiChoiceRegexFilter`` strips,
+    plus ASCII ``string.punctuation`` for backward compatibility. The ASCII set
+    also covers symbols such as ``$``, ``+`` and ``|``; their full-width forms
+    (``＄``, ``＋``, ``｜``) are symbols, not punctuation, and are kept.
+    """
+    table: dict[int, None] = dict.fromkeys(map(ord, string.punctuation))
+    table.update(
+        dict.fromkeys(
+            i
+            for i in range(sys.maxunicode + 1)
+            if unicodedata.category(chr(i)).startswith("P")
+        )
+    )
+    return table
+
+
 ### the code used in the `exact_match_hf_evaluate` function is ported from
 ### https://github.com/huggingface/evaluate/blob/main/metrics/exact_match/exact_match.py
 ### which is under the apache license.
@@ -252,7 +276,7 @@ def exact_match_hf_evaluate(
         references = np.char.lower(references)
 
     if ignore_punctuation:
-        repl_table = string.punctuation.maketrans("", "", string.punctuation)
+        repl_table = _punctuation_table()
         predictions = np.char.translate(predictions, table=repl_table)
         references = np.char.translate(references, table=repl_table)
 
