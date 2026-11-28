@@ -8,7 +8,7 @@ Original Title: `COPA`
 
 The Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing progress in open-domain commonsense causal reasoning.
 
-[Homepage](https://people.ict.usc.edu/~gordon/copa.html)
+[Homepage](https://asgordon.github.io/copa.html)
 
 AlGhafa has translated this dataset to Arabic[AlGafa](https://aclanthology.org/2023.arabicnlp-1.21.pdf)
 

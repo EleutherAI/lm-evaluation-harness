@@ -13,7 +13,7 @@ The Winograd Schema Challenge 273 is a collection of 273 such Winograd schemas.
 
 NOTE: This evaluation of Winograd Schema Challenge is based on `partial evaluation`
 as described by Trinh & Le in Simple Method for Commonsense Reasoning (2018).
-See: https://arxiv.org/abs/1806.0
+See: https://arxiv.org/abs/1806.02847
 
 Homepage: https://cs.nyu.edu/~davise/papers/WinogradSchemas/WS.html
 
