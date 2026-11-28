@@ -218,9 +218,13 @@ def acc_bytes_fn(items):  # This is a passthrough function
 
 @lru_cache(maxsize=1)
 def _punctuation_table() -> dict[int, None]:
-    """Characters removed by ``ignore_punctuation``: ASCII ``string.punctuation``
-    plus every Unicode punctuation character (categories ``P*``), such as curly
-    quotes, en dashes and CJK full stops. Matches ``MultiChoiceRegexFilter``.
+    """Characters removed by ``ignore_punctuation``.
+
+    Every Unicode punctuation character (categories ``P*``), such as curly
+    quotes, en dashes and CJK full stops, as ``MultiChoiceRegexFilter`` strips,
+    plus ASCII ``string.punctuation`` for backward compatibility. The ASCII set
+    also covers symbols such as ``$``, ``+`` and ``|``; their full-width forms
+    (``＄``, ``＋``, ``｜``) are symbols, not punctuation, and are kept.
     """
     table: dict[int, None] = dict.fromkeys(map(ord, string.punctuation))
     table.update(
